@@ -53,7 +53,7 @@
                     var pointee = Methods.clang_getPointeeType(type);
                     if (pointee.kind == CXTypeKind.CXType_Record || pointee.kind == CXTypeKind.CXType_Void)
                     {
-                        this.tw.WriteLine("    public struct " + spelling);
+                        this.tw.WriteLine("    public partial struct " + spelling);
                         this.tw.WriteLine("    {");
                         this.tw.WriteLine("        public " + spelling + "(IntPtr pointer)");
                         this.tw.WriteLine("        {");
@@ -97,7 +97,7 @@
 
                 if (Methods.clang_isPODType(type) != 0)
                 {
-                    this.tw.WriteLine("    public struct " + spelling);
+                    this.tw.WriteLine("    public partial struct " + spelling);
                     this.tw.WriteLine("    {");
                     this.tw.WriteLine("        public " + type.ToPlainTypeString() + " Value;");
                     this.tw.WriteLine("    }");

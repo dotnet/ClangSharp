@@ -339,57 +339,57 @@
         public IntPtr @TranslationUnit;
     }
 
-    public struct uintptr_t
+    public partial struct uintptr_t
     {
         public ulong Value;
     }
 
-    public struct va_list
+    public partial struct va_list
     {
         public IntPtr Value;
     }
 
-    public struct size_t
+    public partial struct size_t
     {
         public ulong Value;
     }
 
-    public struct ptrdiff_t
+    public partial struct ptrdiff_t
     {
         public long Value;
     }
 
-    public struct intptr_t
+    public partial struct intptr_t
     {
         public long Value;
     }
 
-    public struct errno_t
+    public partial struct errno_t
     {
         public int Value;
     }
 
-    public struct wint_t
+    public partial struct wint_t
     {
         public ushort Value;
     }
 
-    public struct wctype_t
+    public partial struct wctype_t
     {
         public ushort Value;
     }
 
-    public struct __time32_t
+    public partial struct __time32_t
     {
         public int Value;
     }
 
-    public struct __time64_t
+    public partial struct __time64_t
     {
         public long Value;
     }
 
-    public struct _locale_t
+    public partial struct _locale_t
     {
         public _locale_t(IntPtr pointer)
         {
@@ -399,22 +399,22 @@
         public IntPtr Pointer;
     }
 
-    public struct time_t
+    public partial struct time_t
     {
         public long Value;
     }
 
-    public struct rsize_t
+    public partial struct rsize_t
     {
         public ulong Value;
     }
 
-    public struct clock_t
+    public partial struct clock_t
     {
         public int Value;
     }
 
-    public struct CXVirtualFileOverlay
+    public partial struct CXVirtualFileOverlay
     {
         public CXVirtualFileOverlay(IntPtr pointer)
         {
@@ -424,7 +424,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXModuleMapDescriptor
+    public partial struct CXModuleMapDescriptor
     {
         public CXModuleMapDescriptor(IntPtr pointer)
         {
@@ -434,7 +434,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXIndex
+    public partial struct CXIndex
     {
         public CXIndex(IntPtr pointer)
         {
@@ -444,7 +444,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXTranslationUnit
+    public partial struct CXTranslationUnit
     {
         public CXTranslationUnit(IntPtr pointer)
         {
@@ -454,7 +454,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXClientData
+    public partial struct CXClientData
     {
         public CXClientData(IntPtr pointer)
         {
@@ -464,7 +464,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXFile
+    public partial struct CXFile
     {
         public CXFile(IntPtr pointer)
         {
@@ -474,7 +474,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXDiagnostic
+    public partial struct CXDiagnostic
     {
         public CXDiagnostic(IntPtr pointer)
         {
@@ -484,7 +484,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXDiagnosticSet
+    public partial struct CXDiagnosticSet
     {
         public CXDiagnosticSet(IntPtr pointer)
         {
@@ -494,7 +494,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXCursorSet
+    public partial struct CXCursorSet
     {
         public CXCursorSet(IntPtr pointer)
         {
@@ -507,7 +507,7 @@
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate CXChildVisitResult CXCursorVisitor(CXCursor @cursor, CXCursor @parent, IntPtr @client_data);
 
-    public struct CXModule
+    public partial struct CXModule
     {
         public CXModule(IntPtr pointer)
         {
@@ -517,7 +517,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXCompletionString
+    public partial struct CXCompletionString
     {
         public CXCompletionString(IntPtr pointer)
         {
@@ -530,7 +530,7 @@
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void CXInclusionVisitor(IntPtr @included_file, out CXSourceLocation @inclusion_stack, uint @include_len, IntPtr @client_data);
 
-    public struct CXRemapping
+    public partial struct CXRemapping
     {
         public CXRemapping(IntPtr pointer)
         {
@@ -540,7 +540,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXIdxClientFile
+    public partial struct CXIdxClientFile
     {
         public CXIdxClientFile(IntPtr pointer)
         {
@@ -550,7 +550,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXIdxClientEntity
+    public partial struct CXIdxClientEntity
     {
         public CXIdxClientEntity(IntPtr pointer)
         {
@@ -560,7 +560,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXIdxClientContainer
+    public partial struct CXIdxClientContainer
     {
         public CXIdxClientContainer(IntPtr pointer)
         {
@@ -570,7 +570,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXIdxClientASTFile
+    public partial struct CXIdxClientASTFile
     {
         public CXIdxClientASTFile(IntPtr pointer)
         {
@@ -580,7 +580,7 @@
         public IntPtr Pointer;
     }
 
-    public struct CXIndexAction
+    public partial struct CXIndexAction
     {
         public CXIndexAction(IntPtr pointer)
         {
