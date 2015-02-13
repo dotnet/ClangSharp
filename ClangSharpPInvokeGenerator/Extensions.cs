@@ -186,10 +186,10 @@
                     tw.Write("IntPtr");
                     break;
                 case CXTypeKind.CXType_Char_S:
-                    tw.Write("[MarshalAs(UnmanagedType.LPStr)] string");
+                    tw.Write(type.IsPtrToConstChar() ? "[MarshalAs(UnmanagedType.LPStr)] string" : "IntPtr"); // if it's not a const, it's best to go with IntPtr
                     break;
                 case CXTypeKind.CXType_WChar:
-                    tw.Write("[MarshalAs(UnmanagedType.LPWStr)] string");
+                    tw.Write(type.IsPtrToConstChar() ? "[MarshalAs(UnmanagedType.LPWStr)] string" : "IntPtr");
                     break;
                 default:
                     CommonTypeHandling(pointee, tw, "out ");

@@ -1268,49 +1268,49 @@
         public static extern void _invalid_parameter_noinfo_noreturn();
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void _invoke_watson([MarshalAs(UnmanagedType.LPWStr)] string @param0, [MarshalAs(UnmanagedType.LPWStr)] string @param1, [MarshalAs(UnmanagedType.LPWStr)] string @param2, uint @param3, uintptr_t @param4);
+        public static extern void _invoke_watson(IntPtr @param0, IntPtr @param1, IntPtr @param2, uint @param3, uintptr_t @param4);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr _wasctime(out tm @_Tm);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wasctime_s([MarshalAs(UnmanagedType.LPWStr)] string @_Buffer, size_t @_SizeInWords, out tm @_Tm);
+        public static extern errno_t _wasctime_s(IntPtr @_Buffer, size_t @_SizeInWords, out tm @_Tm);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern size_t wcsftime([MarshalAs(UnmanagedType.LPWStr)] string @_Buffer, size_t @_SizeInWords, [MarshalAs(UnmanagedType.LPWStr)] string @_Format, out tm @_Tm);
+        public static extern size_t wcsftime(IntPtr @_Buffer, size_t @_SizeInWords, IntPtr @_Format, out tm @_Tm);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern size_t _wcsftime_l([MarshalAs(UnmanagedType.LPWStr)] string @_Buffer, size_t @_SizeInWords, [MarshalAs(UnmanagedType.LPWStr)] string @_Format, out tm @_Tm, _locale_t @_Locale);
+        public static extern size_t _wcsftime_l(IntPtr @_Buffer, size_t @_SizeInWords, IntPtr @_Format, out tm @_Tm, _locale_t @_Locale);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr _wctime32(out __time32_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wctime32_s([MarshalAs(UnmanagedType.LPWStr)] string @_Buffer, size_t @_SizeInWords, out __time32_t @_Time);
+        public static extern errno_t _wctime32_s(IntPtr @_Buffer, size_t @_SizeInWords, out __time32_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr _wctime64(out __time64_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wctime64_s([MarshalAs(UnmanagedType.LPWStr)] string @_Buffer, size_t @_SizeInWords, out __time64_t @_Time);
+        public static extern errno_t _wctime64_s(IntPtr @_Buffer, size_t @_SizeInWords, out __time64_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wstrdate_s([MarshalAs(UnmanagedType.LPWStr)] string @_Buffer, size_t @_SizeInWords);
+        public static extern errno_t _wstrdate_s(IntPtr @_Buffer, size_t @_SizeInWords);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _wstrdate([MarshalAs(UnmanagedType.LPWStr)] string @_Buffer);
+        public static extern IntPtr _wstrdate(IntPtr @_Buffer);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wstrtime_s([MarshalAs(UnmanagedType.LPWStr)] string @_Buffer, size_t @_SizeInWords);
+        public static extern errno_t _wstrtime_s(IntPtr @_Buffer, size_t @_SizeInWords);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _wstrtime([MarshalAs(UnmanagedType.LPWStr)] string @_Buffer);
+        public static extern IntPtr _wstrtime(IntPtr @_Buffer);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr _wctime(out time_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wctime_s([MarshalAs(UnmanagedType.LPWStr)] string @_Buffer, size_t @_SizeInWords, out time_t @_Time);
+        public static extern errno_t _wctime_s(IntPtr @_Buffer, size_t @_SizeInWords, out time_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr __daylight();
@@ -1334,13 +1334,13 @@
         public static extern errno_t _get_timezone(out int @_TimeZone);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _get_tzname(out size_t @_ReturnValue, [MarshalAs(UnmanagedType.LPStr)] string @_Buffer, size_t @_SizeInBytes, int @_Index);
+        public static extern errno_t _get_tzname(out size_t @_ReturnValue, IntPtr @_Buffer, size_t @_SizeInBytes, int @_Index);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr asctime(out tm @_Tm);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t asctime_s([MarshalAs(UnmanagedType.LPStr)] string @_Buffer, size_t @_SizeInBytes, out tm @_Tm);
+        public static extern errno_t asctime_s(IntPtr @_Buffer, size_t @_SizeInBytes, out tm @_Tm);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern clock_t clock();
@@ -1349,13 +1349,13 @@
         public static extern IntPtr _ctime32(out __time32_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _ctime32_s([MarshalAs(UnmanagedType.LPStr)] string @_Buffer, size_t @_SizeInBytes, out __time32_t @_Time);
+        public static extern errno_t _ctime32_s(IntPtr @_Buffer, size_t @_SizeInBytes, out __time32_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr _ctime64(out __time64_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _ctime64_s([MarshalAs(UnmanagedType.LPStr)] string @_Buffer, size_t @_SizeInBytes, out __time64_t @_Time);
+        public static extern errno_t _ctime64_s(IntPtr @_Buffer, size_t @_SizeInBytes, out __time64_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern double _difftime32(__time32_t @_Time1, __time32_t @_Time2);
@@ -1400,22 +1400,22 @@
         public static extern __time64_t _mktime64(out tm @_Tm);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern size_t strftime([MarshalAs(UnmanagedType.LPStr)] string @_Buffer, size_t @_SizeInBytes, [MarshalAs(UnmanagedType.LPStr)] string @_Format, out tm @_Tm);
+        public static extern size_t strftime(IntPtr @_Buffer, size_t @_SizeInBytes, [MarshalAs(UnmanagedType.LPStr)] string @_Format, out tm @_Tm);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern size_t _strftime_l([MarshalAs(UnmanagedType.LPStr)] string @_Buffer, size_t @_MaxSize, [MarshalAs(UnmanagedType.LPStr)] string @_Format, out tm @_Tm, _locale_t @_Locale);
+        public static extern size_t _strftime_l(IntPtr @_Buffer, size_t @_MaxSize, [MarshalAs(UnmanagedType.LPStr)] string @_Format, out tm @_Tm, _locale_t @_Locale);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _strdate_s([MarshalAs(UnmanagedType.LPStr)] string @_Buffer, size_t @_SizeInBytes);
+        public static extern errno_t _strdate_s(IntPtr @_Buffer, size_t @_SizeInBytes);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _strdate([MarshalAs(UnmanagedType.LPStr)] string @_Buffer);
+        public static extern IntPtr _strdate(IntPtr @_Buffer);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _strtime_s([MarshalAs(UnmanagedType.LPStr)] string @_Buffer, size_t @_SizeInBytes);
+        public static extern errno_t _strtime_s(IntPtr @_Buffer, size_t @_SizeInBytes);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _strtime([MarshalAs(UnmanagedType.LPStr)] string @_Buffer);
+        public static extern IntPtr _strtime(IntPtr @_Buffer);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern __time32_t _time32(out __time32_t @_Time);
@@ -1463,7 +1463,7 @@
         public static extern int timespec_get(out timespec @_Ts, int @_Base);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t ctime_s([MarshalAs(UnmanagedType.LPStr)] string @_Buffer, size_t @_SizeInBytes, out time_t @_Time);
+        public static extern errno_t ctime_s(IntPtr @_Buffer, size_t @_SizeInBytes, out time_t @_Time);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern errno_t gmtime_s(out tm @_Tm, out time_t @_Time);
