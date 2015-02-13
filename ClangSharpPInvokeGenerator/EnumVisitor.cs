@@ -5,7 +5,7 @@
     using System.IO;
     using ClangSharp;
 
-    internal sealed class EnumVisitor : ICXCursorVisitor, IDisposable
+    internal sealed class EnumVisitor : ICXCursorVisitor
     {
         private readonly ISet<string> printedEnums = new HashSet<string>();
 
@@ -49,7 +49,7 @@
                         break;
                 }
 
-                var enumName = Methods.clang_getCursorSpelling(cursor).String();
+                var enumName = Methods.clang_getCursorSpelling(cursor).ToString();
 
                 // enumName can be empty because of typedef enum { .. } enumName;
                 // so we have to find the sibling, and this is the only way I've found
@@ -58,7 +58,7 @@
                 {
                     var forwardDeclaringVisitor = new ForwardDeclarationVisitor(cursor);
                     Methods.clang_visitChildren(Methods.clang_getCursorLexicalParent(cursor), forwardDeclaringVisitor.Visit, new CXClientData(IntPtr.Zero));
-                    enumName = Methods.clang_getCursorSpelling(forwardDeclaringVisitor.ForwardDeclarationCursor).String();
+                    enumName = Methods.clang_getCursorSpelling(forwardDeclaringVisitor.ForwardDeclarationCursor).ToString();
 
                     if (string.IsNullOrEmpty(enumName))
                     {
@@ -80,7 +80,7 @@
                 // visit all the enum values
                 Methods.clang_visitChildren(cursor, (cxCursor, _, __) =>
                 {
-                    this.tw.WriteLine("        @" + Methods.clang_getCursorSpelling(cxCursor).String() + " = " + Methods.clang_getEnumConstantDeclValue(cxCursor) + ",");
+                    this.tw.WriteLine("        @" + Methods.clang_getCursorSpelling(cxCursor).ToString() + " = " + Methods.clang_getEnumConstantDeclValue(cxCursor) + ",");
                     return CXChildVisitResult.CXChildVisit_Continue;
                 }, new CXClientData(IntPtr.Zero));
 
@@ -89,10 +89,6 @@
             }
 
             return CXChildVisitResult.CXChildVisit_Recurse;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

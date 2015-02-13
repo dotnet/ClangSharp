@@ -101,7 +101,7 @@
                     for (uint i = 0; i < numDiagnostics; ++i)
                     {
                         var diagnostic = Methods.clang_getDiagnostic(translationUnit, i);
-                        Console.WriteLine(Methods.clang_getDiagnosticSpelling(diagnostic).String());
+                        Console.WriteLine(Methods.clang_getDiagnosticSpelling(diagnostic).ToString());
                         Methods.clang_disposeDiagnostic(diagnostic);
                     }
                 }
@@ -153,6 +153,8 @@
             {
                 Methods.clang_disposeTranslationUnit(tu);
             }
+
+            Methods.clang_disposeIndex(createIndex);
         }
     }
 }

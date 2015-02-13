@@ -2,13 +2,13 @@
 {
     using System.Runtime.InteropServices;
 
-    public static class Extensions
+    public partial struct CXString
     {
-        public static string String(this CXString cxString)
+        public override string ToString()
         {
-            string retVal = Marshal.PtrToStringAnsi(cxString.data);
-            Methods.clang_disposeString(cxString);
-            return retVal;
+            string retval = Marshal.PtrToStringAnsi(this.data);
+            Methods.clang_disposeString(this);
+            return retval;
         }
-    }
+    } 
 }

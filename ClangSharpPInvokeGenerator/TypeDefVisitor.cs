@@ -21,7 +21,7 @@
             CXCursorKind curKind = Methods.clang_getCursorKind(cursor);
             if (curKind == CXCursorKind.CXCursor_TypedefDecl)
             {
-                var spelling = Methods.clang_getCursorSpelling(cursor).String();
+                var spelling = Methods.clang_getCursorSpelling(cursor).ToString();
 
                 if (this.visitedTypeDefs.Contains(spelling))
                 {

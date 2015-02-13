@@ -63,7 +63,7 @@
                     var canonical = Methods.clang_getCanonicalType(type);
                     if (canonical.kind == CXTypeKind.CXType_Unexposed)
                     {
-                        return Methods.clang_getTypeSpelling(canonical).String();
+                        return Methods.clang_getTypeSpelling(canonical).ToString();
                     }
                     return canonical.ToPlainTypeString();
                 default:
@@ -73,7 +73,7 @@
 
         public static string ToMarshalString(this CXCursor cursor)
         {
-            var cursorSpelling = Methods.clang_getCursorSpelling(cursor).String();
+            var cursorSpelling = Methods.clang_getCursorSpelling(cursor).ToString();
             var canonical = Methods.clang_getCanonicalType(Methods.clang_getCursorType(cursor));
 
             switch (canonical.kind)
@@ -102,7 +102,7 @@
                     }
                 case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
-                    return "public " + Methods.clang_getTypeSpelling(canonical).String() + " @" + cursorSpelling + ";";
+                    return "public " + Methods.clang_getTypeSpelling(canonical).ToString() + " @" + cursorSpelling + ";";
                 default:
                     return "public " + canonical.ToPlainTypeString() + " @"  + cursorSpelling + ";";
             }
@@ -111,7 +111,7 @@
         public static void WriteFunctionInfoHelper(CXCursor cursor, TextWriter tw)
         {
             var functionType = Methods.clang_getCursorType(cursor);
-            var functionName = Methods.clang_getCursorSpelling(cursor).String();
+            var functionName = Methods.clang_getCursorSpelling(cursor).ToString();
             var resultType = Methods.clang_getCursorResultType(cursor);
 
             tw.WriteLine("        [DllImport(libraryPath, CallingConvention = " + functionType.CallingConventionSpelling() + ")]");
@@ -164,7 +164,7 @@
             var type = Methods.clang_getArgType(functionType, index);
             var cursorType = Methods.clang_getCursorType(paramCursor);
 
-            var spelling = Methods.clang_getCursorSpelling(paramCursor).String();
+            var spelling = Methods.clang_getCursorSpelling(paramCursor).ToString();
             if (string.IsNullOrEmpty(spelling))
             {
                 spelling = "param" + index;
@@ -180,7 +180,7 @@
                     tw.Write(pointee.IsPtrToConstChar() && Methods.clang_isConstQualifiedType(pointee) != 0 ? "string[]" : "out IntPtr");
                     break;
                 case CXTypeKind.CXType_FunctionProto:
-                    tw.Write(Methods.clang_getTypeSpelling(cursorType).String());
+                    tw.Write(Methods.clang_getTypeSpelling(cursorType).ToString());
                     break;
                 case CXTypeKind.CXType_Void:
                     tw.Write("IntPtr");
@@ -217,11 +217,11 @@
             switch (type.kind)
             {
                 case CXTypeKind.CXType_Typedef:
-                    spelling = Methods.clang_getCursorSpelling(Methods.clang_getTypeDeclaration(type)).String();
+                    spelling = Methods.clang_getCursorSpelling(Methods.clang_getTypeDeclaration(type)).ToString();
                     break;
                 case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
-                    spelling = Methods.clang_getTypeSpelling(type).String();
+                    spelling = Methods.clang_getTypeSpelling(type).ToString();
                     break;
                 case CXTypeKind.CXType_IncompleteArray:
                     spelling = Methods.clang_getArrayElementType(type).ToPlainTypeString() + "[]";
@@ -235,7 +235,7 @@
                     }
                     else
                     {
-                        spelling = Methods.clang_getTypeSpelling(canonical).String();
+                        spelling = Methods.clang_getTypeSpelling(canonical).ToString();
                     }    
                     break;
                 default:

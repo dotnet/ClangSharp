@@ -25,7 +25,7 @@
             // look only at function decls
             if (curKind == CXCursorKind.CXCursor_FunctionDecl)
             {
-                var functionName = Methods.clang_getCursorSpelling(cursor).String();
+                var functionName = Methods.clang_getCursorSpelling(cursor).ToString();
 
                 if (this.visitedFunctions.Contains(functionName))
                 {
