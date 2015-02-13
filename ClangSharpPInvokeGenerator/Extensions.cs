@@ -47,6 +47,7 @@
                 case CXTypeKind.CXType_UInt:
                     return "uint";
                 case CXTypeKind.CXType_Pointer:
+                case CXTypeKind.CXType_NullPtr: // ugh, what else can I do?
                     return "IntPtr";
                 case CXTypeKind.CXType_Long:
                     return "int";
@@ -222,6 +223,9 @@
                 case CXTypeKind.CXType_Enum:
                     spelling = Methods.clang_getTypeSpelling(type).String();
                     break;
+                case CXTypeKind.CXType_IncompleteArray:
+                    spelling = Methods.clang_getArrayElementType(type).ToPlainTypeString() + "[]";
+                    break;
                 case CXTypeKind.CXType_Unexposed: // Often these are enums and canonical type gets you the enum spelling
                     var canonical = Methods.clang_getCanonicalType(type);
                     // unexposed decl which turns into a function proto seems to be an un-typedef'd fn pointer
@@ -241,7 +245,7 @@
 
             if (isConstQualifiedType)
             {
-                spelling = spelling.Replace("const ", string.Empty);
+                spelling = spelling.Replace("const ", string.Empty); // ugh
             }
 
             tw.Write(outParam + spelling);
