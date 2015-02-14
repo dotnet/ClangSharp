@@ -13,6 +13,8 @@
 
         private int indentLevel = 1;
 
+        private int fieldPosition;
+
         private const int indentMultiplier = 4;
 
         public StructVisitor(TextWriter tw)
@@ -25,6 +27,7 @@
             CXCursorKind curKind = Methods.clang_getCursorKind(cursor);
             if (curKind == CXCursorKind.CXCursor_StructDecl)
             {
+                this.fieldPosition = 0;
                 var structName = Methods.clang_getCursorSpelling(cursor).ToString();
 
                 // struct names can be empty, and so we visit its sibling to find the name
@@ -60,7 +63,14 @@
 
             if (curKind == CXCursorKind.CXCursor_FieldDecl)
             {
-                this.IndentedWriteLine(cursor.ToMarshalString());
+                var fieldName = Methods.clang_getCursorSpelling(cursor).ToString();
+                if (string.IsNullOrEmpty(fieldName))
+                {
+                    fieldName = "field" + this.fieldPosition; // what if they have fields called field*? :)
+                }
+
+                this.fieldPosition++;
+                this.IndentedWriteLine(cursor.ToMarshalString(fieldName));
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
 

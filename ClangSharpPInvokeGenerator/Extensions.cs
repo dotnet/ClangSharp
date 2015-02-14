@@ -71,9 +71,8 @@
             }
         }
 
-        public static string ToMarshalString(this CXCursor cursor)
+        public static string ToMarshalString(this CXCursor cursor, string cursorSpelling)
         {
-            var cursorSpelling = Methods.clang_getCursorSpelling(cursor).ToString();
             var canonical = Methods.clang_getCanonicalType(Methods.clang_getCursorType(cursor));
 
             switch (canonical.kind)
