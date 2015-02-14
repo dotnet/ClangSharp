@@ -11,7 +11,7 @@
     {
         public static void Main(string[] args)
         {
-            Regex re = new Regex(@"(?<switch>-{1,2}\S*)(?:[=:]?|\s+)(?<value>[^-\s].*?)?(?=\s+[-\/]|$)");
+            Regex re = new Regex(@"(?<switch>-{1,2}\S*)(?:[=:]?|\s+)(?<value>[^-\s].*?)?(?=\s+[-]|$)");
             List<KeyValuePair<string, string>> matches = (from match in re.Matches(string.Join(" ", args)).Cast<Match>()
                 select new KeyValuePair<string, string>(match.Groups["switch"].Value, match.Groups["value"].Value))
                 .ToList();
