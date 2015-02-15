@@ -22,6 +22,7 @@
             string @namespace = string.Empty;
             string libraryPath = string.Empty;
             string prefixStrip = string.Empty;
+            string methodClassName = "Methods";
 
             foreach (KeyValuePair<string, string> match in matches)
             {
@@ -53,6 +54,11 @@
                 if (string.Equals(match.Key, "--p") || string.Equals(match.Key, "--prefixStrip"))
                 {
                     prefixStrip = match.Value;
+                }
+
+                if (string.Equals(match.Key, "--m") || string.Equals(match.Key, "--methodClassName"))
+                {
+                    methodClassName = match.Value;
                 }
             }
 
@@ -142,14 +148,14 @@
                     Methods.clang_visitChildren(Methods.clang_getTranslationUnitCursor(tu), enumVisitor.Visit, new CXClientData(IntPtr.Zero));
                 }
 
-                sw.WriteLine("    public static partial class Methods");
+                sw.WriteLine("    public static partial class " + methodClassName);
                 sw.WriteLine("    {");
                 {
                     var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip);
                     foreach (var tu in translationUnits)
                     {
                         Methods.clang_visitChildren(Methods.clang_getTranslationUnitCursor(tu), functionVisitor.Visit, new CXClientData(IntPtr.Zero));
-                    }    
+                    }
                 }
                 sw.WriteLine("    }");
                 sw.WriteLine("}");
