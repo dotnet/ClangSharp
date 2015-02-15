@@ -29,6 +29,7 @@
 
         public static string ToPlainTypeString(this CXType type, string unknownType = "UnknownType")
         {
+            var canonical = Methods.clang_getCanonicalType(type);
             switch (type.kind)
             {
                 case CXTypeKind.CXType_Bool:
@@ -65,7 +66,6 @@
                 case CXTypeKind.CXType_Void:
                     return "void";
                 case CXTypeKind.CXType_Unexposed:
-                    var canonical = Methods.clang_getCanonicalType(type);
                     if (canonical.kind == CXTypeKind.CXType_Unexposed)
                     {
                         return Methods.clang_getTypeSpelling(canonical).ToString();
@@ -108,7 +108,7 @@
                 case CXTypeKind.CXType_Enum:
                     return "public " + Methods.clang_getTypeSpelling(canonical).ToString() + " @" + cursorSpelling + ";";
                 default:
-                    return "public " + canonical.ToPlainTypeString() + " @"  + cursorSpelling + ";";
+                    return "public " + canonical.ToPlainTypeString() + " @" + cursorSpelling + ";";
             }
         }
 
@@ -153,12 +153,12 @@
         {
             switch (resultType.kind)
             {
-            case CXTypeKind.CXType_Pointer:
-                tw.Write(resultType.IsPtrToConstChar() ? "string" : "IntPtr"); // const char* gets special treatment
-                break;
-            default:
-                CommonTypeHandling(resultType, tw);
-                break;
+                case CXTypeKind.CXType_Pointer:
+                    tw.Write(resultType.IsPtrToConstChar() ? "string" : "IntPtr"); // const char* gets special treatment
+                    break;
+                default:
+                    CommonTypeHandling(resultType, tw);
+                    break;
             }
         }
 
@@ -176,33 +176,33 @@
 
             switch (type.kind)
             {
-            case CXTypeKind.CXType_Pointer:
-                var pointee = Methods.clang_getPointeeType(type);
-                switch (pointee.kind)
-                {
                 case CXTypeKind.CXType_Pointer:
-                    tw.Write(pointee.IsPtrToConstChar() && Methods.clang_isConstQualifiedType(pointee) != 0 ? "string[]" : "out IntPtr");
-                    break;
-                case CXTypeKind.CXType_FunctionProto:
-                    tw.Write(Methods.clang_getTypeSpelling(cursorType).ToString());
-                    break;
-                case CXTypeKind.CXType_Void:
-                    tw.Write("IntPtr");
-                    break;
-                case CXTypeKind.CXType_Char_S:
-                    tw.Write(type.IsPtrToConstChar() ? "[MarshalAs(UnmanagedType.LPStr)] string" : "IntPtr"); // if it's not a const, it's best to go with IntPtr
-                    break;
-                case CXTypeKind.CXType_WChar:
-                    tw.Write(type.IsPtrToConstChar() ? "[MarshalAs(UnmanagedType.LPWStr)] string" : "IntPtr");
+                    var pointee = Methods.clang_getPointeeType(type);
+                    switch (pointee.kind)
+                    {
+                        case CXTypeKind.CXType_Pointer:
+                            tw.Write(pointee.IsPtrToConstChar() && Methods.clang_isConstQualifiedType(pointee) != 0 ? "string[]" : "out IntPtr");
+                            break;
+                        case CXTypeKind.CXType_FunctionProto:
+                            tw.Write(Methods.clang_getTypeSpelling(cursorType).ToString());
+                            break;
+                        case CXTypeKind.CXType_Void:
+                            tw.Write("IntPtr");
+                            break;
+                        case CXTypeKind.CXType_Char_S:
+                            tw.Write(type.IsPtrToConstChar() ? "[MarshalAs(UnmanagedType.LPStr)] string" : "IntPtr"); // if it's not a const, it's best to go with IntPtr
+                            break;
+                        case CXTypeKind.CXType_WChar:
+                            tw.Write(type.IsPtrToConstChar() ? "[MarshalAs(UnmanagedType.LPWStr)] string" : "IntPtr");
+                            break;
+                        default:
+                            CommonTypeHandling(pointee, tw, "out ");
+                            break;
+                    }
                     break;
                 default:
-                    CommonTypeHandling(pointee, tw, "out ");
+                    CommonTypeHandling(type, tw);
                     break;
-                }
-                break;
-            default:
-                CommonTypeHandling(type, tw);
-                break;
             }
 
             tw.Write(" @");
@@ -221,14 +221,23 @@
             switch (type.kind)
             {
                 case CXTypeKind.CXType_Typedef:
-                    spelling = Methods.clang_getCursorSpelling(Methods.clang_getTypeDeclaration(type)).ToString();
+                    var cursor = Methods.clang_getTypeDeclaration(type);
+                    if (Methods.clang_Location_isInSystemHeader(Methods.clang_getCursorLocation(cursor)) != 0)
+                    {
+                        spelling = Methods.clang_getCanonicalType(type).ToPlainTypeString();
+                    }
+                    else
+                    {
+                        spelling = Methods.clang_getCursorSpelling(cursor).ToString();
+                    }
                     break;
                 case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
                     spelling = Methods.clang_getTypeSpelling(type).ToString();
                     break;
                 case CXTypeKind.CXType_IncompleteArray:
-                    spelling = Methods.clang_getArrayElementType(type).ToPlainTypeString() + "[]";
+                    CommonTypeHandling(Methods.clang_getArrayElementType(type), tw);
+                    spelling = "[]";
                     break;
                 case CXTypeKind.CXType_Unexposed: // Often these are enums and canonical type gets you the enum spelling
                     var canonical = Methods.clang_getCanonicalType(type);
@@ -240,7 +249,7 @@
                     else
                     {
                         spelling = Methods.clang_getTypeSpelling(canonical).ToString();
-                    }    
+                    }
                     break;
                 default:
                     spelling = Methods.clang_getCanonicalType(type).ToPlainTypeString();
