@@ -28,12 +28,12 @@
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
 
-            CXCursorKind curKind = Methods.clang_getCursorKind(cursor);
+            CXCursorKind curKind = clang.getCursorKind(cursor);
 
             // look only at function decls
             if (curKind == CXCursorKind.CXCursor_FunctionDecl)
             {
-                var functionName = Methods.clang_getCursorSpelling(cursor).ToString();
+                var functionName = clang.getCursorSpelling(cursor).ToString();
 
                 if (this.visitedFunctions.Contains(functionName))
                 {

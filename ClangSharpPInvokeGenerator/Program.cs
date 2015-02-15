@@ -92,7 +92,7 @@
                 }
             }
 
-            var createIndex = Methods.clang_createIndex(0, 0);
+            var createIndex = clang.createIndex(0, 0);
             string[] arr = { "-x", "c++" };
             
             arr = arr.Concat(includeDirs.Select(x => "-I" + x)).ToArray();
@@ -103,18 +103,18 @@
             {
                 CXTranslationUnit translationUnit;
                 CXUnsavedFile unsavedFile;
-                var translationUnitError = Methods.clang_parseTranslationUnit2(createIndex, file, arr, 3, out unsavedFile, 0, 0, out translationUnit);
+                var translationUnitError = clang.parseTranslationUnit2(createIndex, file, arr, 3, out unsavedFile, 0, 0, out translationUnit);
                 
                 if (translationUnitError != CXErrorCode.CXError_Success)
                 {
                     Console.WriteLine("Error: " + translationUnitError);
-                    var numDiagnostics = Methods.clang_getNumDiagnostics(translationUnit);
+                    var numDiagnostics = clang.getNumDiagnostics(translationUnit);
 
                     for (uint i = 0; i < numDiagnostics; ++i)
                     {
-                        var diagnostic = Methods.clang_getDiagnostic(translationUnit, i);
-                        Console.WriteLine(Methods.clang_getDiagnosticSpelling(diagnostic).ToString());
-                        Methods.clang_disposeDiagnostic(diagnostic);
+                        var diagnostic = clang.getDiagnostic(translationUnit, i);
+                        Console.WriteLine(clang.getDiagnosticSpelling(diagnostic).ToString());
+                        clang.disposeDiagnostic(diagnostic);
                     }
                 }
 
@@ -133,19 +133,19 @@
                 var structVisitor = new StructVisitor(sw);
                 foreach (var tu in translationUnits)
                 {
-                    Methods.clang_visitChildren(Methods.clang_getTranslationUnitCursor(tu), structVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    clang.visitChildren(clang.getTranslationUnitCursor(tu), structVisitor.Visit, new CXClientData(IntPtr.Zero));
                 }
 
                 var typeDefVisitor = new TypeDefVisitor(sw);
                 foreach (var tu in translationUnits)
                 {
-                    Methods.clang_visitChildren(Methods.clang_getTranslationUnitCursor(tu), typeDefVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    clang.visitChildren(clang.getTranslationUnitCursor(tu), typeDefVisitor.Visit, new CXClientData(IntPtr.Zero));
                 }
                 
                 var enumVisitor = new EnumVisitor(sw);
                 foreach (var tu in translationUnits)
                 {
-                    Methods.clang_visitChildren(Methods.clang_getTranslationUnitCursor(tu), enumVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    clang.visitChildren(clang.getTranslationUnitCursor(tu), enumVisitor.Visit, new CXClientData(IntPtr.Zero));
                 }
 
                 sw.WriteLine("    public static partial class " + methodClassName);
@@ -154,7 +154,7 @@
                     var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip);
                     foreach (var tu in translationUnits)
                     {
-                        Methods.clang_visitChildren(Methods.clang_getTranslationUnitCursor(tu), functionVisitor.Visit, new CXClientData(IntPtr.Zero));
+                        clang.visitChildren(clang.getTranslationUnitCursor(tu), functionVisitor.Visit, new CXClientData(IntPtr.Zero));
                     }
                 }
                 sw.WriteLine("    }");
@@ -163,10 +163,10 @@
 
             foreach (var tu in translationUnits)
             {
-                Methods.clang_disposeTranslationUnit(tu);
+                clang.disposeTranslationUnit(tu);
             }
 
-            Methods.clang_disposeIndex(createIndex);
+            clang.disposeIndex(createIndex);
         }
     }
 }

@@ -29,18 +29,18 @@
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
 
-            CXCursorKind curKind = Methods.clang_getCursorKind(cursor);
+            CXCursorKind curKind = clang.getCursorKind(cursor);
             if (curKind == CXCursorKind.CXCursor_StructDecl)
             {
                 this.fieldPosition = 0;
-                var structName = Methods.clang_getCursorSpelling(cursor).ToString();
+                var structName = clang.getCursorSpelling(cursor).ToString();
 
                 // struct names can be empty, and so we visit its sibling to find the name
                 if (string.IsNullOrEmpty(structName))
                 {
                     var forwardDeclaringVisitor = new ForwardDeclarationVisitor(cursor);
-                    Methods.clang_visitChildren(Methods.clang_getCursorSemanticParent(cursor), forwardDeclaringVisitor.Visit, new CXClientData(IntPtr.Zero));
-                    structName = Methods.clang_getCursorSpelling(forwardDeclaringVisitor.ForwardDeclarationCursor).ToString();
+                    clang.visitChildren(clang.getCursorSemanticParent(cursor), forwardDeclaringVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    structName = clang.getCursorSpelling(forwardDeclaringVisitor.ForwardDeclarationCursor).ToString();
 
                     if (string.IsNullOrEmpty(structName))
                     {
@@ -54,7 +54,7 @@
                     this.IndentedWriteLine("{");
 
                     this.indentLevel++;
-                    Methods.clang_visitChildren(cursor, this.Visit, new CXClientData(IntPtr.Zero));
+                    clang.visitChildren(cursor, this.Visit, new CXClientData(IntPtr.Zero));
                     this.indentLevel--;
 
                     this.IndentedWriteLine("}");
@@ -68,7 +68,7 @@
 
             if (curKind == CXCursorKind.CXCursor_FieldDecl)
             {
-                var fieldName = Methods.clang_getCursorSpelling(cursor).ToString();
+                var fieldName = clang.getCursorSpelling(cursor).ToString();
                 if (string.IsNullOrEmpty(fieldName))
                 {
                     fieldName = "field" + this.fieldPosition; // what if they have fields called field*? :)

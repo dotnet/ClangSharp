@@ -23,7 +23,7 @@
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
 
-            if (Methods.clang_equalCursors(cursor, this.beginningCursor) != 0)
+            if (clang.equalCursors(cursor, this.beginningCursor) != 0)
             {
                 this.beginningCursorReached = true;
                 return CXChildVisitResult.CXChildVisit_Continue;

@@ -23,11 +23,11 @@
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
 
-            CXCursorKind curKind = Methods.clang_getCursorKind(cursor);
+            CXCursorKind curKind = clang.getCursorKind(cursor);
             if (curKind == CXCursorKind.CXCursor_EnumDecl)
             {
                 string inheritedEnumType;
-                CXTypeKind kind = Methods.clang_getEnumDeclIntegerType(cursor).kind;
+                CXTypeKind kind = clang.getEnumDeclIntegerType(cursor).kind;
 
                 switch (kind)
                 {
@@ -54,7 +54,7 @@
                         break;
                 }
 
-                var enumName = Methods.clang_getCursorSpelling(cursor).ToString();
+                var enumName = clang.getCursorSpelling(cursor).ToString();
 
                 // enumName can be empty because of typedef enum { .. } enumName;
                 // so we have to find the sibling, and this is the only way I've found
@@ -62,8 +62,8 @@
                 if (string.IsNullOrEmpty(enumName))
                 {
                     var forwardDeclaringVisitor = new ForwardDeclarationVisitor(cursor);
-                    Methods.clang_visitChildren(Methods.clang_getCursorLexicalParent(cursor), forwardDeclaringVisitor.Visit, new CXClientData(IntPtr.Zero));
-                    enumName = Methods.clang_getCursorSpelling(forwardDeclaringVisitor.ForwardDeclarationCursor).ToString();
+                    clang.visitChildren(clang.getCursorLexicalParent(cursor), forwardDeclaringVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    enumName = clang.getCursorSpelling(forwardDeclaringVisitor.ForwardDeclarationCursor).ToString();
 
                     if (string.IsNullOrEmpty(enumName))
                     {
@@ -83,9 +83,9 @@
                 this.tw.WriteLine("    {");
 
                 // visit all the enum values
-                Methods.clang_visitChildren(cursor, (cxCursor, _, __) =>
+                clang.visitChildren(cursor, (cxCursor, _, __) =>
                 {
-                    this.tw.WriteLine("        @" + Methods.clang_getCursorSpelling(cxCursor).ToString() + " = " + Methods.clang_getEnumConstantDeclValue(cxCursor) + ",");
+                    this.tw.WriteLine("        @" + clang.getCursorSpelling(cxCursor).ToString() + " = " + clang.getEnumConstantDeclValue(cxCursor) + ",");
                     return CXChildVisitResult.CXChildVisit_Continue;
                 }, new CXClientData(IntPtr.Zero));
 

@@ -7,7 +7,7 @@
         public override string ToString()
         {
             string retval = Marshal.PtrToStringAnsi(this.data);
-            Methods.clang_disposeString(this);
+            clang.disposeString(this);
             return retval;
         }
     }
@@ -16,7 +16,7 @@
     {
         public override string ToString()
         {
-            return Methods.clang_getTypeSpelling(this).ToString();
+            return clang.getTypeSpelling(this).ToString();
         }
     }
 
@@ -24,7 +24,7 @@
     {
         public override string ToString()
         {
-            return Methods.clang_getCursorSpelling(this).ToString();
+            return clang.getCursorSpelling(this).ToString();
         }
     }
 
@@ -32,7 +32,7 @@
     {
         public override string ToString()
         {
-            return Methods.clang_getDiagnosticSpelling(this).ToString();
+            return clang.getDiagnosticSpelling(this).ToString();
         }
     }
 }
