@@ -3,65 +3,6 @@
     using System;
     using System.Runtime.InteropServices;
 
-    public partial struct __crt_locale_data_public
-    {
-        public IntPtr @_locale_pctype;
-        public int @_locale_mb_cur_max;
-        public uint @_locale_lc_codepage;
-    }
-
-    public partial struct __crt_locale_pointers
-    {
-        public partial struct __crt_locale_data
-        {
-        }
-
-        public IntPtr @locinfo;
-        public partial struct __crt_multibyte_data
-        {
-        }
-
-        public IntPtr @mbcinfo;
-    }
-
-    public partial struct _Mbstatet
-    {
-        public int @_Wchar;
-        public ushort @_Byte;
-        public ushort @_State;
-    }
-
-    public partial struct tm
-    {
-        public int @tm_sec;
-        public int @tm_min;
-        public int @tm_hour;
-        public int @tm_mday;
-        public int @tm_mon;
-        public int @tm_year;
-        public int @tm_wday;
-        public int @tm_yday;
-        public int @tm_isdst;
-    }
-
-    public partial struct _timespec32
-    {
-        public int @tv_sec;
-        public int @tv_nsec;
-    }
-
-    public partial struct _timespec64
-    {
-        public long @tv_sec;
-        public int @tv_nsec;
-    }
-
-    public partial struct timespec
-    {
-        public long @tv_sec;
-        public int @tv_nsec;
-    }
-
     public partial struct CXString
     {
         public IntPtr @data;
@@ -82,8 +23,10 @@
 
     public partial struct CXUnsavedFile
     {
-        [MarshalAs(UnmanagedType.LPStr)] public string @Filename;
-        [MarshalAs(UnmanagedType.LPStr)] public string @Contents;
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string @Filename;
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string @Contents;
         public int @Length;
     }
 
@@ -96,18 +39,18 @@
 
     public partial struct CXFileUniqueID
     {
-        public ulong @data0; public ulong @data1; public ulong @data2; 
+        public ulong @data0; public ulong @data1; public ulong @data2;
     }
 
     public partial struct CXSourceLocation
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
         public uint @int_data;
     }
 
     public partial struct CXSourceRange
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
         public uint @begin_int_data;
         public uint @end_int_data;
     }
@@ -135,7 +78,7 @@
     {
         public CXCursorKind @kind;
         public int @xdata;
-        public IntPtr @data0; public IntPtr @data1; public IntPtr @data2; 
+        public IntPtr @data0; public IntPtr @data1; public IntPtr @data2;
     }
 
     public partial struct CXPlatformAvailability
@@ -155,12 +98,12 @@
     public partial struct CXType
     {
         public CXTypeKind @kind;
-        public IntPtr @data0; public IntPtr @data1; 
+        public IntPtr @data0; public IntPtr @data1;
     }
 
     public partial struct CXToken
     {
-        public uint @int_data0; public uint @int_data1; public uint @int_data2; public uint @int_data3; 
+        public uint @int_data0; public uint @int_data1; public uint @int_data2; public uint @int_data3;
         public IntPtr @ptr_data;
     }
 
@@ -184,14 +127,15 @@
 
     public partial struct CXIdxLoc
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
         public uint @int_data;
     }
 
     public partial struct CXIdxIncludedFileInfo
     {
         public CXIdxLoc @hashLoc;
-        [MarshalAs(UnmanagedType.LPStr)] public string @filename;
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string @filename;
         public IntPtr @file;
         public int @isImport;
         public int @isAngled;
@@ -218,8 +162,10 @@
         public CXIdxEntityKind @kind;
         public CXIdxEntityCXXTemplateKind @templateKind;
         public CXIdxEntityLanguage @lang;
-        [MarshalAs(UnmanagedType.LPStr)] public string @name;
-        [MarshalAs(UnmanagedType.LPStr)] public string @USR;
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string @name;
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string @USR;
         public CXCursor @cursor;
         public IntPtr @attributes;
         public uint @numAttributes;
@@ -337,81 +283,6 @@
     {
         public IntPtr @ASTNode;
         public IntPtr @TranslationUnit;
-    }
-
-    public partial struct uintptr_t
-    {
-        public ulong Value;
-    }
-
-    public partial struct va_list
-    {
-        public IntPtr Value;
-    }
-
-    public partial struct size_t
-    {
-        public ulong Value;
-    }
-
-    public partial struct ptrdiff_t
-    {
-        public long Value;
-    }
-
-    public partial struct intptr_t
-    {
-        public long Value;
-    }
-
-    public partial struct errno_t
-    {
-        public int Value;
-    }
-
-    public partial struct wint_t
-    {
-        public ushort Value;
-    }
-
-    public partial struct wctype_t
-    {
-        public ushort Value;
-    }
-
-    public partial struct __time32_t
-    {
-        public int Value;
-    }
-
-    public partial struct __time64_t
-    {
-        public long Value;
-    }
-
-    public partial struct _locale_t
-    {
-        public _locale_t(IntPtr pointer)
-        {
-            this.Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct time_t
-    {
-        public long Value;
-    }
-
-    public partial struct rsize_t
-    {
-        public ulong Value;
-    }
-
-    public partial struct clock_t
-    {
-        public int Value;
     }
 
     public partial struct CXVirtualFileOverlay
@@ -590,12 +461,7 @@
         public IntPtr Pointer;
     }
 
-    public enum _ : int
-    {
-        @__the_value = 0,
-    }
-
-    public enum CXErrorCode : int
+    public enum CXErrorCode : uint
     {
         @CXError_Success = 0,
         @CXError_Failure = 1,
@@ -604,7 +470,7 @@
         @CXError_ASTReadError = 4,
     }
 
-    public enum CXAvailabilityKind : int
+    public enum CXAvailabilityKind : uint
     {
         @CXAvailability_Available = 0,
         @CXAvailability_Deprecated = 1,
@@ -612,7 +478,7 @@
         @CXAvailability_NotAccessible = 3,
     }
 
-    public enum CXGlobalOptFlags : int
+    public enum CXGlobalOptFlags : uint
     {
         @CXGlobalOpt_None = 0,
         @CXGlobalOpt_ThreadBackgroundPriorityForIndexing = 1,
@@ -620,7 +486,7 @@
         @CXGlobalOpt_ThreadBackgroundPriorityForAll = 3,
     }
 
-    public enum CXDiagnosticSeverity : int
+    public enum CXDiagnosticSeverity : uint
     {
         @CXDiagnostic_Ignored = 0,
         @CXDiagnostic_Note = 1,
@@ -629,7 +495,7 @@
         @CXDiagnostic_Fatal = 4,
     }
 
-    public enum CXLoadDiag_Error : int
+    public enum CXLoadDiag_Error : uint
     {
         @CXLoadDiag_None = 0,
         @CXLoadDiag_Unknown = 1,
@@ -637,7 +503,7 @@
         @CXLoadDiag_InvalidFile = 3,
     }
 
-    public enum CXDiagnosticDisplayOptions : int
+    public enum CXDiagnosticDisplayOptions : uint
     {
         @CXDiagnostic_DisplaySourceLocation = 1,
         @CXDiagnostic_DisplayColumn = 2,
@@ -647,7 +513,7 @@
         @CXDiagnostic_DisplayCategoryName = 32,
     }
 
-    public enum CXTranslationUnit_Flags : int
+    public enum CXTranslationUnit_Flags : uint
     {
         @CXTranslationUnit_None = 0,
         @CXTranslationUnit_DetailedPreprocessingRecord = 1,
@@ -660,12 +526,12 @@
         @CXTranslationUnit_IncludeBriefCommentsInCodeCompletion = 128,
     }
 
-    public enum CXSaveTranslationUnit_Flags : int
+    public enum CXSaveTranslationUnit_Flags : uint
     {
         @CXSaveTranslationUnit_None = 0,
     }
 
-    public enum CXSaveError : int
+    public enum CXSaveError : uint
     {
         @CXSaveError_None = 0,
         @CXSaveError_Unknown = 1,
@@ -673,12 +539,12 @@
         @CXSaveError_InvalidTU = 3,
     }
 
-    public enum CXReparse_Flags : int
+    public enum CXReparse_Flags : uint
     {
         @CXReparse_None = 0,
     }
 
-    public enum CXTUResourceUsageKind : int
+    public enum CXTUResourceUsageKind : uint
     {
         @CXTUResourceUsage_AST = 1,
         @CXTUResourceUsage_Identifiers = 2,
@@ -700,7 +566,7 @@
         @CXTUResourceUsage_Last = 14,
     }
 
-    public enum CXCursorKind : int
+    public enum CXCursorKind : uint
     {
         @CXCursor_UnexposedDecl = 1,
         @CXCursor_StructDecl = 2,
@@ -893,7 +759,7 @@
         @CXCursor_LastExtraDecl = 600,
     }
 
-    public enum CXLinkageKind : int
+    public enum CXLinkageKind : uint
     {
         @CXLinkage_Invalid = 0,
         @CXLinkage_NoLinkage = 1,
@@ -902,7 +768,7 @@
         @CXLinkage_External = 4,
     }
 
-    public enum CXLanguageKind : int
+    public enum CXLanguageKind : uint
     {
         @CXLanguage_Invalid = 0,
         @CXLanguage_C = 1,
@@ -910,7 +776,7 @@
         @CXLanguage_CPlusPlus = 3,
     }
 
-    public enum CXTypeKind : int
+    public enum CXTypeKind : uint
     {
         @CXType_Invalid = 0,
         @CXType_Unexposed = 1,
@@ -964,7 +830,7 @@
         @CXType_MemberPointer = 117,
     }
 
-    public enum CXCallingConv : int
+    public enum CXCallingConv : uint
     {
         @CXCallingConv_Default = 0,
         @CXCallingConv_C = 1,
@@ -991,14 +857,14 @@
         @CXTypeLayoutError_InvalidFieldName = -5,
     }
 
-    public enum CXRefQualifierKind : int
+    public enum CXRefQualifierKind : uint
     {
         @CXRefQualifier_None = 0,
         @CXRefQualifier_LValue = 1,
         @CXRefQualifier_RValue = 2,
     }
 
-    public enum CX_CXXAccessSpecifier : int
+    public enum CX_CXXAccessSpecifier : uint
     {
         @CX_CXXInvalidAccessSpecifier = 0,
         @CX_CXXPublic = 1,
@@ -1006,14 +872,14 @@
         @CX_CXXPrivate = 3,
     }
 
-    public enum CXChildVisitResult : int
+    public enum CXChildVisitResult : uint
     {
         @CXChildVisit_Break = 0,
         @CXChildVisit_Continue = 1,
         @CXChildVisit_Recurse = 2,
     }
 
-    public enum CXObjCPropertyAttrKind : int
+    public enum CXObjCPropertyAttrKind : uint
     {
         @CXObjCPropertyAttr_noattr = 0,
         @CXObjCPropertyAttr_readonly = 1,
@@ -1030,7 +896,7 @@
         @CXObjCPropertyAttr_unsafe_unretained = 2048,
     }
 
-    public enum CXObjCDeclQualifierKind : int
+    public enum CXObjCDeclQualifierKind : uint
     {
         @CXObjCDeclQualifier_None = 0,
         @CXObjCDeclQualifier_In = 1,
@@ -1041,14 +907,14 @@
         @CXObjCDeclQualifier_Oneway = 32,
     }
 
-    public enum CXNameRefFlags : int
+    public enum CXNameRefFlags : uint
     {
         @CXNameRange_WantQualifier = 1,
         @CXNameRange_WantTemplateArgs = 2,
         @CXNameRange_WantSinglePiece = 4,
     }
 
-    public enum CXTokenKind : int
+    public enum CXTokenKind : uint
     {
         @CXToken_Punctuation = 0,
         @CXToken_Keyword = 1,
@@ -1057,7 +923,7 @@
         @CXToken_Comment = 4,
     }
 
-    public enum CXCompletionChunkKind : int
+    public enum CXCompletionChunkKind : uint
     {
         @CXCompletionChunk_Optional = 0,
         @CXCompletionChunk_TypedText = 1,
@@ -1082,14 +948,14 @@
         @CXCompletionChunk_VerticalSpace = 20,
     }
 
-    public enum CXCodeComplete_Flags : int
+    public enum CXCodeComplete_Flags : uint
     {
         @CXCodeComplete_IncludeMacros = 1,
         @CXCodeComplete_IncludeCodePatterns = 2,
         @CXCodeComplete_IncludeBriefComments = 4,
     }
 
-    public enum CXCompletionContext : int
+    public enum CXCompletionContext : uint
     {
         @CXCompletionContext_Unexposed = 0,
         @CXCompletionContext_AnyType = 1,
@@ -1117,20 +983,20 @@
         @CXCompletionContext_Unknown = 4194303,
     }
 
-    public enum CXVisitorResult : int
+    public enum CXVisitorResult : uint
     {
         @CXVisit_Break = 0,
         @CXVisit_Continue = 1,
     }
 
-    public enum CXResult : int
+    public enum CXResult : uint
     {
         @CXResult_Success = 0,
         @CXResult_Invalid = 1,
         @CXResult_VisitBreak = 2,
     }
 
-    public enum CXIdxEntityKind : int
+    public enum CXIdxEntityKind : uint
     {
         @CXIdxEntity_Unexposed = 0,
         @CXIdxEntity_Typedef = 1,
@@ -1161,7 +1027,7 @@
         @CXIdxEntity_CXXInterface = 26,
     }
 
-    public enum CXIdxEntityLanguage : int
+    public enum CXIdxEntityLanguage : uint
     {
         @CXIdxEntityLang_None = 0,
         @CXIdxEntityLang_C = 1,
@@ -1169,7 +1035,7 @@
         @CXIdxEntityLang_CXX = 3,
     }
 
-    public enum CXIdxEntityCXXTemplateKind : int
+    public enum CXIdxEntityCXXTemplateKind : uint
     {
         @CXIdxEntity_NonTemplate = 0,
         @CXIdxEntity_Template = 1,
@@ -1177,7 +1043,7 @@
         @CXIdxEntity_TemplateSpecialization = 3,
     }
 
-    public enum CXIdxAttrKind : int
+    public enum CXIdxAttrKind : uint
     {
         @CXIdxAttr_Unexposed = 0,
         @CXIdxAttr_IBAction = 1,
@@ -1185,25 +1051,25 @@
         @CXIdxAttr_IBOutletCollection = 3,
     }
 
-    public enum CXIdxDeclInfoFlags : int
+    public enum CXIdxDeclInfoFlags : uint
     {
         @CXIdxDeclFlag_Skipped = 1,
     }
 
-    public enum CXIdxObjCContainerKind : int
+    public enum CXIdxObjCContainerKind : uint
     {
         @CXIdxObjCContainer_ForwardRef = 0,
         @CXIdxObjCContainer_Interface = 1,
         @CXIdxObjCContainer_Implementation = 2,
     }
 
-    public enum CXIdxEntityRefKind : int
+    public enum CXIdxEntityRefKind : uint
     {
         @CXIdxEntityRef_Direct = 1,
         @CXIdxEntityRef_Implicit = 2,
     }
 
-    public enum CXIndexOptFlags : int
+    public enum CXIndexOptFlags : uint
     {
         @CXIndexOpt_None = 0,
         @CXIndexOpt_SuppressRedundantRefs = 1,
@@ -1213,7 +1079,7 @@
         @CXIndexOpt_SkipParsedBodiesInSession = 16,
     }
 
-    public enum CXCommentKind : int
+    public enum CXCommentKind : uint
     {
         @CXComment_Null = 0,
         @CXComment_Text = 1,
@@ -1230,7 +1096,7 @@
         @CXComment_FullComment = 12,
     }
 
-    public enum CXCommentInlineCommandRenderKind : int
+    public enum CXCommentInlineCommandRenderKind : uint
     {
         @CXCommentInlineCommandRenderKind_Normal = 0,
         @CXCommentInlineCommandRenderKind_Bold = 1,
@@ -1238,7 +1104,7 @@
         @CXCommentInlineCommandRenderKind_Emphasized = 3,
     }
 
-    public enum CXCommentParamPassDirection : int
+    public enum CXCommentParamPassDirection : uint
     {
         @CXCommentParamPassDirection_In = 0,
         @CXCommentParamPassDirection_Out = 1,
@@ -1248,231 +1114,6 @@
     public static partial class Methods
     {
         private const string libraryPath = "libclang.dll";
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void __va_start(out va_list @param0);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void __security_init_cookie();
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void __security_check_cookie(uintptr_t @_StackCookie);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void __report_gsfailure(uintptr_t @_StackCookie);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void _invalid_parameter_noinfo();
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void _invalid_parameter_noinfo_noreturn();
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void _invoke_watson(IntPtr @param0, IntPtr @param1, IntPtr @param2, uint @param3, uintptr_t @param4);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _wasctime(out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wasctime_s(IntPtr @_Buffer, size_t @_SizeInWords, out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern size_t wcsftime(IntPtr @_Buffer, size_t @_SizeInWords, IntPtr @_Format, out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern size_t _wcsftime_l(IntPtr @_Buffer, size_t @_SizeInWords, IntPtr @_Format, out tm @_Tm, _locale_t @_Locale);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _wctime32(out __time32_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wctime32_s(IntPtr @_Buffer, size_t @_SizeInWords, out __time32_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _wctime64(out __time64_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wctime64_s(IntPtr @_Buffer, size_t @_SizeInWords, out __time64_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wstrdate_s(IntPtr @_Buffer, size_t @_SizeInWords);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _wstrdate(IntPtr @_Buffer);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wstrtime_s(IntPtr @_Buffer, size_t @_SizeInWords);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _wstrtime(IntPtr @_Buffer);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _wctime(out time_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _wctime_s(IntPtr @_Buffer, size_t @_SizeInWords, out time_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr __daylight();
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr __dstbias();
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr __timezone();
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr __tzname();
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _get_daylight(out int @_Daylight);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _get_dstbias(out int @_DaylightSavingsBias);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _get_timezone(out int @_TimeZone);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _get_tzname(out size_t @_ReturnValue, IntPtr @_Buffer, size_t @_SizeInBytes, int @_Index);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr asctime(out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t asctime_s(IntPtr @_Buffer, size_t @_SizeInBytes, out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern clock_t clock();
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _ctime32(out __time32_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _ctime32_s(IntPtr @_Buffer, size_t @_SizeInBytes, out __time32_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _ctime64(out __time64_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _ctime64_s(IntPtr @_Buffer, size_t @_SizeInBytes, out __time64_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern double _difftime32(__time32_t @_Time1, __time32_t @_Time2);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern double _difftime64(__time64_t @_Time1, __time64_t @_Time2);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _gmtime32(out __time32_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _gmtime32_s(out tm @_Tm, out __time32_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _gmtime64(out __time64_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _gmtime64_s(out tm @_Tm, out __time64_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _localtime32(out __time32_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _localtime32_s(out tm @_Tm, out __time32_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _localtime64(out __time64_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _localtime64_s(out tm @_Tm, out __time64_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern __time32_t _mkgmtime32(out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern __time64_t _mkgmtime64(out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern __time32_t _mktime32(out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern __time64_t _mktime64(out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern size_t strftime(IntPtr @_Buffer, size_t @_SizeInBytes, [MarshalAs(UnmanagedType.LPStr)] string @_Format, out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern size_t _strftime_l(IntPtr @_Buffer, size_t @_MaxSize, [MarshalAs(UnmanagedType.LPStr)] string @_Format, out tm @_Tm, _locale_t @_Locale);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _strdate_s(IntPtr @_Buffer, size_t @_SizeInBytes);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _strdate(IntPtr @_Buffer);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t _strtime_s(IntPtr @_Buffer, size_t @_SizeInBytes);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _strtime(IntPtr @_Buffer);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern __time32_t _time32(out __time32_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern __time64_t _time64(out __time64_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int _timespec32_get(out _timespec32 @_Ts, int @_Base);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int _timespec64_get(out _timespec64 @_Ts, int @_Base);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void _tzset();
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint _getsystime(out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint _setsystime(out tm @_Tm, uint @_Milliseconds);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr ctime(out time_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern double difftime(time_t @_Time1, time_t @_Time2);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr gmtime(out time_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr localtime(out time_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern time_t _mkgmtime(out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern time_t mktime(out tm @_Tm);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern time_t time(out time_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int timespec_get(out timespec @_Ts, int @_Base);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t ctime_s(IntPtr @_Buffer, size_t @_SizeInBytes, out time_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t gmtime_s(out tm @_Tm, out time_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern errno_t localtime_s(out tm @_Tm, out time_t @_Time);
-
-        [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void tzset();
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern string clang_getCString(CXString @string);
@@ -1529,7 +1170,7 @@
         public static extern CXString clang_getFileName(CXFile @SFile);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern time_t clang_getFileTime(CXFile @SFile);
+        public static extern int clang_getFileTime(CXFile @SFile);
 
         [DllImport(libraryPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern int clang_getFileUniqueID(CXFile @file, out CXFileUniqueID @outID);
