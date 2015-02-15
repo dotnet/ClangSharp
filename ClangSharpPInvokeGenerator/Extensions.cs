@@ -6,6 +6,11 @@
 
     internal static class Extensions
     {
+        public static bool IsInSystemHeader(this CXCursor cursor)
+        {
+            return Methods.clang_Location_isInSystemHeader(Methods.clang_getCursorLocation(cursor)) != 0;
+        }
+
         public static bool IsPtrToConstChar(this CXType type)
         {
             var pointee = Methods.clang_getPointeeType(type);
