@@ -118,7 +118,7 @@
             var functionName = clang.getCursorSpelling(cursor).ToString();
             var resultType = clang.getCursorResultType(cursor);
 
-            tw.WriteLine("        [DllImport(libraryPath, CallingConvention = " + functionType.CallingConventionSpelling() + ")]");
+            tw.WriteLine("        [DllImport(libraryPath, EntryPoint = \"" + functionName + "\", CallingConvention = " + functionType.CallingConventionSpelling() + ")]");
             tw.Write("        public static extern ");
 
             ReturnTypeHelper(resultType, tw);
