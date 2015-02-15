@@ -18,6 +18,11 @@
 
         public CXChildVisitResult Visit(CXCursor cursor, CXCursor parent, IntPtr data)
         {
+            if (cursor.IsInSystemHeader())
+            {
+                return CXChildVisitResult.CXChildVisit_Continue;
+            }
+
             CXCursorKind curKind = Methods.clang_getCursorKind(cursor);
             if (curKind == CXCursorKind.CXCursor_TypedefDecl)
             {
@@ -97,8 +102,14 @@
 
                 if (Methods.clang_isPODType(type) != 0)
                 {
+                    var podType = type.ToPlainTypeString();
                     this.tw.WriteLine("    public partial struct " + spelling);
                     this.tw.WriteLine("    {");
+                    this.tw.WriteLine("        public " + spelling + "(" + podType + " value)");
+                    this.tw.WriteLine("        {");
+                    this.tw.WriteLine("            this.Value = value;");
+                    this.tw.WriteLine("        }");
+                    this.tw.WriteLine();
                     this.tw.WriteLine("        public " + type.ToPlainTypeString() + " Value;");
                     this.tw.WriteLine("    }");
                     this.tw.WriteLine();

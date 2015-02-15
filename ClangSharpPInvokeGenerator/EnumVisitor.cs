@@ -18,6 +18,11 @@
 
         public CXChildVisitResult Visit(CXCursor cursor, CXCursor parent, IntPtr data)
         {
+            if (cursor.IsInSystemHeader())
+            {
+                return CXChildVisitResult.CXChildVisit_Continue;
+            }
+
             CXCursorKind curKind = Methods.clang_getCursorKind(cursor);
             if (curKind == CXCursorKind.CXCursor_EnumDecl)
             {

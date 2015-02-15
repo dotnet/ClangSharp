@@ -18,6 +18,11 @@
 
         public CXChildVisitResult Visit(CXCursor cursor, CXCursor parent, IntPtr data)
         {
+            if (cursor.IsInSystemHeader())
+            {
+                return CXChildVisitResult.CXChildVisit_Continue;
+            }
+
             if (Methods.clang_equalCursors(cursor, this.beginningCursor) != 0)
             {
                 this.beginningCursorReached = true;
