@@ -42,7 +42,7 @@
 
                 this.visitedFunctions.Add(functionName);
 
-                Extensions.WriteFunctionInfoHelper(cursor, this.tw);
+                Extensions.WriteFunctionInfoHelper(cursor, this.tw, this.prefixStrip);
 
                 return CXChildVisitResult.CXChildVisit_Continue;
             }

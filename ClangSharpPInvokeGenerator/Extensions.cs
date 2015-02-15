@@ -112,7 +112,7 @@
             }
         }
 
-        public static void WriteFunctionInfoHelper(CXCursor cursor, TextWriter tw, string stripPrefix)
+        public static void WriteFunctionInfoHelper(CXCursor cursor, TextWriter tw, string prefixStrip)
         {
             var functionType = Methods.clang_getCursorType(cursor);
             var functionName = Methods.clang_getCursorSpelling(cursor).ToString();
@@ -123,9 +123,9 @@
 
             ReturnTypeHelper(resultType, tw);
 
-            if (functionName.StartsWith(stripPrefix))
+            if (functionName.StartsWith(prefixStrip))
             {
-                functionName = functionName.Substring(stripPrefix.Length);
+                functionName = functionName.Substring(prefixStrip.Length);
             }
 
             tw.Write(" " + functionName + "(");

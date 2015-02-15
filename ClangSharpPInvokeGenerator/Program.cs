@@ -145,7 +145,7 @@
                 sw.WriteLine("    public static partial class Methods");
                 sw.WriteLine("    {");
                 {
-                    var functionVisitor = new FunctionVisitor(sw, libraryPath);
+                    var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip);
                     foreach (var tu in translationUnits)
                     {
                         Methods.clang_visitChildren(Methods.clang_getTranslationUnitCursor(tu), functionVisitor.Visit, new CXClientData(IntPtr.Zero));
