@@ -11,8 +11,11 @@
 
         private readonly HashSet<string> visitedFunctions = new HashSet<string>();
 
-        public FunctionVisitor(TextWriter tw, string libraryPath)
+        private readonly string prefixStrip;
+
+        public FunctionVisitor(TextWriter tw, string libraryPath, string prefixStrip)
         {
+            this.prefixStrip = prefixStrip;
             this.tw = tw;
             this.tw.WriteLine("        private const string libraryPath = \"" + libraryPath + "\";");
             this.tw.WriteLine();

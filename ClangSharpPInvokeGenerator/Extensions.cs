@@ -112,7 +112,7 @@
             }
         }
 
-        public static void WriteFunctionInfoHelper(CXCursor cursor, TextWriter tw)
+        public static void WriteFunctionInfoHelper(CXCursor cursor, TextWriter tw, string stripPrefix)
         {
             var functionType = Methods.clang_getCursorType(cursor);
             var functionName = Methods.clang_getCursorSpelling(cursor).ToString();
@@ -122,6 +122,11 @@
             tw.Write("        public static extern ");
 
             ReturnTypeHelper(resultType, tw);
+
+            if (functionName.StartsWith(stripPrefix))
+            {
+                functionName = functionName.Substring(stripPrefix.Length);
+            }
 
             tw.Write(" " + functionName + "(");
 

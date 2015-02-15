@@ -21,6 +21,7 @@
             string outputFile = string.Empty;
             string @namespace = string.Empty;
             string libraryPath = string.Empty;
+            string prefixStrip = string.Empty;
 
             foreach (KeyValuePair<string, string> match in matches)
             {
@@ -47,6 +48,11 @@
                 if (string.Equals(match.Key, "--f") || string.Equals(match.Key, "--file"))
                 {
                     files.Add(match.Value);
+                }
+
+                if (string.Equals(match.Key, "--p") || string.Equals(match.Key, "--prefixStrip"))
+                {
+                    prefixStrip = match.Value;
                 }
             }
 
