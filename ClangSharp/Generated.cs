@@ -23,10 +23,8 @@
 
     public partial struct CXUnsavedFile
     {
-        [MarshalAs(UnmanagedType.LPStr)]
-        public string @Filename;
-        [MarshalAs(UnmanagedType.LPStr)]
-        public string @Contents;
+        [MarshalAs(UnmanagedType.LPStr)] public string @Filename;
+        [MarshalAs(UnmanagedType.LPStr)] public string @Contents;
         public int @Length;
     }
 
@@ -39,18 +37,18 @@
 
     public partial struct CXFileUniqueID
     {
-        public ulong @data0; public ulong @data1; public ulong @data2;
+        public ulong @data0; public ulong @data1; public ulong @data2; 
     }
 
     public partial struct CXSourceLocation
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
         public uint @int_data;
     }
 
     public partial struct CXSourceRange
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
         public uint @begin_int_data;
         public uint @end_int_data;
     }
@@ -78,7 +76,7 @@
     {
         public CXCursorKind @kind;
         public int @xdata;
-        public IntPtr @data0; public IntPtr @data1; public IntPtr @data2;
+        public IntPtr @data0; public IntPtr @data1; public IntPtr @data2; 
     }
 
     public partial struct CXPlatformAvailability
@@ -98,12 +96,12 @@
     public partial struct CXType
     {
         public CXTypeKind @kind;
-        public IntPtr @data0; public IntPtr @data1;
+        public IntPtr @data0; public IntPtr @data1; 
     }
 
     public partial struct CXToken
     {
-        public uint @int_data0; public uint @int_data1; public uint @int_data2; public uint @int_data3;
+        public uint @int_data0; public uint @int_data1; public uint @int_data2; public uint @int_data3; 
         public IntPtr @ptr_data;
     }
 
@@ -127,15 +125,14 @@
 
     public partial struct CXIdxLoc
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
         public uint @int_data;
     }
 
     public partial struct CXIdxIncludedFileInfo
     {
         public CXIdxLoc @hashLoc;
-        [MarshalAs(UnmanagedType.LPStr)]
-        public string @filename;
+        [MarshalAs(UnmanagedType.LPStr)] public string @filename;
         public IntPtr @file;
         public int @isImport;
         public int @isAngled;
@@ -162,10 +159,8 @@
         public CXIdxEntityKind @kind;
         public CXIdxEntityCXXTemplateKind @templateKind;
         public CXIdxEntityLanguage @lang;
-        [MarshalAs(UnmanagedType.LPStr)]
-        public string @name;
-        [MarshalAs(UnmanagedType.LPStr)]
-        public string @USR;
+        [MarshalAs(UnmanagedType.LPStr)] public string @name;
+        [MarshalAs(UnmanagedType.LPStr)] public string @USR;
         public CXCursor @cursor;
         public IntPtr @attributes;
         public uint @numAttributes;
@@ -727,7 +722,13 @@
         @CXCursor_OMPTaskwaitDirective = 245,
         @CXCursor_OMPFlushDirective = 246,
         @CXCursor_SEHLeaveStmt = 247,
-        @CXCursor_LastStmt = 247,
+        @CXCursor_OMPOrderedDirective = 248,
+        @CXCursor_OMPAtomicDirective = 249,
+        @CXCursor_OMPForSimdDirective = 250,
+        @CXCursor_OMPParallelForSimdDirective = 251,
+        @CXCursor_OMPTargetDirective = 252,
+        @CXCursor_OMPTeamsDirective = 253,
+        @CXCursor_LastStmt = 253,
         @CXCursor_TranslationUnit = 300,
         @CXCursor_FirstAttr = 400,
         @CXCursor_UnexposedAttr = 400,
@@ -746,7 +747,8 @@
         @CXCursor_CUDADeviceAttr = 413,
         @CXCursor_CUDAGlobalAttr = 414,
         @CXCursor_CUDAHostAttr = 415,
-        @CXCursor_LastAttr = 415,
+        @CXCursor_CUDASharedAttr = 416,
+        @CXCursor_LastAttr = 416,
         @CXCursor_PreprocessingDirective = 500,
         @CXCursor_MacroDefinition = 501,
         @CXCursor_MacroExpansion = 502,
@@ -844,8 +846,23 @@
         @CXCallingConv_IntelOclBicc = 9,
         @CXCallingConv_X86_64Win64 = 10,
         @CXCallingConv_X86_64SysV = 11,
+        @CXCallingConv_X86VectorCall = 12,
         @CXCallingConv_Invalid = 100,
         @CXCallingConv_Unexposed = 200,
+    }
+
+    public enum CXTemplateArgumentKind : uint
+    {
+        @CXTemplateArgumentKind_Null = 0,
+        @CXTemplateArgumentKind_Type = 1,
+        @CXTemplateArgumentKind_Declaration = 2,
+        @CXTemplateArgumentKind_NullPtr = 3,
+        @CXTemplateArgumentKind_Integral = 4,
+        @CXTemplateArgumentKind_Template = 5,
+        @CXTemplateArgumentKind_TemplateExpansion = 6,
+        @CXTemplateArgumentKind_Expression = 7,
+        @CXTemplateArgumentKind_Pack = 8,
+        @CXTemplateArgumentKind_Invalid = 9,
     }
 
     public enum CXTypeLayoutError : int
@@ -870,6 +887,18 @@
         @CX_CXXPublic = 1,
         @CX_CXXProtected = 2,
         @CX_CXXPrivate = 3,
+    }
+
+    public enum CX_StorageClass : uint
+    {
+        @CX_SC_Invalid = 0,
+        @CX_SC_None = 1,
+        @CX_SC_Extern = 2,
+        @CX_SC_Static = 3,
+        @CX_SC_PrivateExtern = 4,
+        @CX_SC_OpenCLWorkGroupLocal = 5,
+        @CX_SC_Auto = 6,
+        @CX_SC_Register = 7,
     }
 
     public enum CXChildVisitResult : uint
@@ -1181,6 +1210,9 @@
         [DllImport(libraryPath, EntryPoint = "clang_getFile", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXFile getFile(CXTranslationUnit @tu, [MarshalAs(UnmanagedType.LPStr)] string @file_name);
 
+        [DllImport(libraryPath, EntryPoint = "clang_File_isEqual", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int File_isEqual(CXFile @file1, CXFile @file2);
+
         [DllImport(libraryPath, EntryPoint = "clang_getNullLocation", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXSourceLocation getNullLocation();
 
@@ -1475,6 +1507,21 @@
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getArgument", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXCursor Cursor_getArgument(CXCursor @C, uint @i);
 
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_getNumTemplateArguments", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Cursor_getNumTemplateArguments(CXCursor @C);
+
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_getTemplateArgumentKind", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXTemplateArgumentKind Cursor_getTemplateArgumentKind(CXCursor @C, uint @I);
+
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_getTemplateArgumentType", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXType Cursor_getTemplateArgumentType(CXCursor @C, uint @I);
+
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_getTemplateArgumentValue", CallingConvention = CallingConvention.Cdecl)]
+        public static extern long Cursor_getTemplateArgumentValue(CXCursor @C, uint @I);
+
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_getTemplateArgumentUnsignedValue", CallingConvention = CallingConvention.Cdecl)]
+        public static extern ulong Cursor_getTemplateArgumentUnsignedValue(CXCursor @C, uint @I);
+
         [DllImport(libraryPath, EntryPoint = "clang_equalTypes", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint equalTypes(CXType @A, CXType @B);
 
@@ -1565,6 +1612,9 @@
         [DllImport(libraryPath, EntryPoint = "clang_getCXXAccessSpecifier", CallingConvention = CallingConvention.Cdecl)]
         public static extern CX_CXXAccessSpecifier getCXXAccessSpecifier(CXCursor @param0);
 
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_getStorageClass", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CX_StorageClass Cursor_getStorageClass(CXCursor @param0);
+
         [DllImport(libraryPath, EntryPoint = "clang_getNumOverloadedDecls", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint getNumOverloadedDecls(CXCursor @cursor);
 
@@ -1648,6 +1698,9 @@
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getBriefCommentText", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString Cursor_getBriefCommentText(CXCursor @C);
+
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_getMangling", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString Cursor_getMangling(CXCursor @param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getModule", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXModule Cursor_getModule(CXCursor @C);
