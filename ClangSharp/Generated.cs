@@ -1,4 +1,4 @@
-﻿namespace ClangSharp
+namespace ClangSharp
 {
     using System;
     using System.Runtime.InteropServices;
