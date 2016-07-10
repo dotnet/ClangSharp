@@ -465,6 +465,36 @@ namespace ClangSharp
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate CXVisitorResult CXFieldVisitor(CXCursor @C, IntPtr @client_data);
 
+    public partial struct CXCompilationDatabase
+    {
+        public CXCompilationDatabase(IntPtr pointer)
+        {
+            this.Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXCompileCommands
+    {
+        public CXCompileCommands(IntPtr pointer)
+        {
+            this.Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXCompileCommand
+    {
+        public CXCompileCommand(IntPtr pointer)
+        {
+            this.Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
     public enum CXErrorCode : int
     {
         @CXError_Success = 0,
@@ -1169,6 +1199,12 @@ namespace ClangSharp
         @CXCommentParamPassDirection_In = 0,
         @CXCommentParamPassDirection_Out = 1,
         @CXCommentParamPassDirection_InOut = 2,
+    }
+
+    public enum CXCompilationDatabase_Error : int
+    {
+        @CXCompilationDatabase_NoError = 0,
+        @CXCompilationDatabase_CanNotLoadDatabase = 1,
     }
 
     public static partial class clang
@@ -2092,6 +2128,48 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_FullComment_getAsXML", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString FullComment_getAsXML(CXComment @Comment);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_fromDirectory", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXCompilationDatabase CompilationDatabase_fromDirectory([MarshalAs(UnmanagedType.LPStr)] string @BuildDir, out CXCompilationDatabase_Error @ErrorCode);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_dispose", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void CompilationDatabase_dispose(CXCompilationDatabase @param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_getCompileCommands", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXCompileCommands CompilationDatabase_getCompileCommands(CXCompilationDatabase @param0, [MarshalAs(UnmanagedType.LPStr)] string @CompleteFileName);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_getAllCompileCommands", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXCompileCommands CompilationDatabase_getAllCompileCommands(CXCompilationDatabase @param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompileCommands_dispose", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void CompileCommands_dispose(CXCompileCommands @param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompileCommands_getSize", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint CompileCommands_getSize(CXCompileCommands @param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompileCommands_getCommand", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXCompileCommand CompileCommands_getCommand(CXCompileCommands @param0, uint @I);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getDirectory", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString CompileCommand_getDirectory(CXCompileCommand @param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getFilename", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString CompileCommand_getFilename(CXCompileCommand @param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getNumArgs", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint CompileCommand_getNumArgs(CXCompileCommand @param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getArg", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString CompileCommand_getArg(CXCompileCommand @param0, uint @I);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getNumMappedSources", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint CompileCommand_getNumMappedSources(CXCompileCommand @param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getMappedSourcePath", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString CompileCommand_getMappedSourcePath(CXCompileCommand @param0, uint @I);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getMappedSourceContent", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString CompileCommand_getMappedSourceContent(CXCompileCommand @param0, uint @I);
 
     }
 }
