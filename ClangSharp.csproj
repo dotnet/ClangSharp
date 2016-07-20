@@ -35,6 +35,7 @@
   <ItemGroup>
     <Compile Include="Extensions.cs" />
     <Compile Include="Generated.cs" />
+    <Compile Include="Generated.Custom.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

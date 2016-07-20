@@ -1,7 +1,5 @@
 ﻿namespace ClangSharp
 {
-    using System.Runtime.InteropServices;
-
     public partial struct CXString
     {
         public override string ToString()

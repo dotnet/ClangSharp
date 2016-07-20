@@ -1451,9 +1451,6 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_getTranslationUnitSpelling", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getTranslationUnitSpelling(CXTranslationUnit @CTUnit);
 
-        [DllImport(libraryPath, EntryPoint = "clang_createTranslationUnitFromSourceFile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXTranslationUnit createTranslationUnitFromSourceFile(CXIndex @CIdx, [MarshalAs(UnmanagedType.LPStr)] string @source_filename, int @num_clang_command_line_args, string[] @clang_command_line_args, uint @num_unsaved_files, out CXUnsavedFile @unsaved_files);
-
         [DllImport(libraryPath, EntryPoint = "clang_createTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXTranslationUnit createTranslationUnit(CXIndex @CIdx, [MarshalAs(UnmanagedType.LPStr)] string @ast_filename);
 
@@ -1462,15 +1459,6 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_defaultEditingTranslationUnitOptions", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint defaultEditingTranslationUnitOptions();
-
-        [DllImport(libraryPath, EntryPoint = "clang_parseTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXTranslationUnit parseTranslationUnit(CXIndex @CIdx, [MarshalAs(UnmanagedType.LPStr)] string @source_filename, string[] @command_line_args, int @num_command_line_args, out CXUnsavedFile @unsaved_files, uint @num_unsaved_files, uint @options);
-
-        [DllImport(libraryPath, EntryPoint = "clang_parseTranslationUnit2", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode parseTranslationUnit2(CXIndex @CIdx, [MarshalAs(UnmanagedType.LPStr)] string @source_filename, string[] @command_line_args, int @num_command_line_args, out CXUnsavedFile @unsaved_files, uint @num_unsaved_files, uint @options, out CXTranslationUnit @out_TU);
-
-        [DllImport(libraryPath, EntryPoint = "clang_parseTranslationUnit2FullArgv", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode parseTranslationUnit2FullArgv(CXIndex @CIdx, [MarshalAs(UnmanagedType.LPStr)] string @source_filename, string[] @command_line_args, int @num_command_line_args, out CXUnsavedFile @unsaved_files, uint @num_unsaved_files, uint @options, out CXTranslationUnit @out_TU);
 
         [DllImport(libraryPath, EntryPoint = "clang_defaultSaveOptions", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint defaultSaveOptions(CXTranslationUnit @TU);
@@ -1483,9 +1471,6 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_defaultReparseOptions", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint defaultReparseOptions(CXTranslationUnit @TU);
-
-        [DllImport(libraryPath, EntryPoint = "clang_reparseTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int reparseTranslationUnit(CXTranslationUnit @TU, uint @num_unsaved_files, out CXUnsavedFile @unsaved_files, uint @options);
 
         [DllImport(libraryPath, EntryPoint = "clang_getTUResourceUsageName", CallingConvention = CallingConvention.Cdecl)]
         public static extern string getTUResourceUsageName(CXTUResourceUsageKind @kind);
@@ -1982,9 +1967,6 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_defaultCodeCompleteOptions", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint defaultCodeCompleteOptions();
 
-        [DllImport(libraryPath, EntryPoint = "clang_codeCompleteAt", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr codeCompleteAt(CXTranslationUnit @TU, [MarshalAs(UnmanagedType.LPStr)] string @complete_filename, uint @complete_line, uint @complete_column, out CXUnsavedFile @unsaved_files, uint @num_unsaved_files, uint @options);
-
         [DllImport(libraryPath, EntryPoint = "clang_sortCodeCompletionResults", CallingConvention = CallingConvention.Cdecl)]
         public static extern void sortCodeCompletionResults(out CXCompletionResult @Results, uint @NumResults);
 
@@ -2087,23 +2069,11 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_index_setClientContainer", CallingConvention = CallingConvention.Cdecl)]
         public static extern void index_setClientContainer(out CXIdxContainerInfo @param0, CXIdxClientContainer @param1);
 
-        [DllImport(libraryPath, EntryPoint = "clang_index_getClientEntity", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXIdxClientEntity index_getClientEntity(out CXIdxEntityInfo @param0);
-
-        [DllImport(libraryPath, EntryPoint = "clang_index_setClientEntity", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void index_setClientEntity(out CXIdxEntityInfo @param0, CXIdxClientEntity @param1);
-
         [DllImport(libraryPath, EntryPoint = "clang_IndexAction_create", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXIndexAction IndexAction_create(CXIndex @CIdx);
 
         [DllImport(libraryPath, EntryPoint = "clang_IndexAction_dispose", CallingConvention = CallingConvention.Cdecl)]
         public static extern void IndexAction_dispose(CXIndexAction @param0);
-
-        [DllImport(libraryPath, EntryPoint = "clang_indexSourceFile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int indexSourceFile(CXIndexAction @param0, CXClientData @client_data, out IndexerCallbacks @index_callbacks, uint @index_callbacks_size, uint @index_options, [MarshalAs(UnmanagedType.LPStr)] string @source_filename, string[] @command_line_args, int @num_command_line_args, out CXUnsavedFile @unsaved_files, uint @num_unsaved_files, out CXTranslationUnit @out_TU, uint @TU_options);
-
-        [DllImport(libraryPath, EntryPoint = "clang_indexSourceFileFullArgv", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int indexSourceFileFullArgv(CXIndexAction @param0, CXClientData @client_data, out IndexerCallbacks @index_callbacks, uint @index_callbacks_size, uint @index_options, [MarshalAs(UnmanagedType.LPStr)] string @source_filename, string[] @command_line_args, int @num_command_line_args, out CXUnsavedFile @unsaved_files, uint @num_unsaved_files, out CXTranslationUnit @out_TU, uint @TU_options);
 
         [DllImport(libraryPath, EntryPoint = "clang_indexTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
         public static extern int indexTranslationUnit(CXIndexAction @param0, CXClientData @client_data, out IndexerCallbacks @index_callbacks, uint @index_callbacks_size, uint @index_options, CXTranslationUnit @param5);

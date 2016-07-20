@@ -41,6 +41,7 @@
     <Compile Include="EnumVisitor.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="ForwardDeclarationVisitor.cs" />
+    <Compile Include="Generated.Custom.cs" />
     <Compile Include="ICXCursorVisitor.cs" />
     <Compile Include="TypeDefVisitor.cs" />
     <Compile Include="FunctionVisitor.cs" />

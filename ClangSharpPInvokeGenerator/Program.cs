@@ -102,8 +102,8 @@
             foreach (var file in files)
             {
                 CXTranslationUnit translationUnit;
-                CXUnsavedFile unsavedFile;
-                var translationUnitError = clang.parseTranslationUnit2(createIndex, file, arr, 3, out unsavedFile, 0, 0, out translationUnit);
+                CXUnsavedFile[] unsavedFile = new CXUnsavedFile[0];
+                var translationUnitError = clang.parseTranslationUnit2(createIndex, file, arr, 3, unsavedFile, 0, 0, out translationUnit);
                 
                 if (translationUnitError != CXErrorCode.CXError_Success)
                 {
