@@ -244,6 +244,7 @@
                     CommonTypeHandling(clang.getArrayElementType(type), tw);
                     spelling = "[]";
                     break;
+                case CXTypeKind.CXType_Elaborated:
                 case CXTypeKind.CXType_Unexposed: // Often these are enums and canonical type gets you the enum spelling
                     var canonical = clang.getCanonicalType(type);
                     // unexposed decl which turns into a function proto seems to be an un-typedef'd fn pointer
