@@ -1,8 +1,9 @@
-﻿namespace ClangSharpPInvokeGenerator
+namespace ClangSharpPInvokeGenerator
 {
     using System.IO;
     using System.Text;
     using ClangSharp;
+    using System.Collections.Generic;
 
     internal static class Extensions
     {
@@ -117,9 +118,13 @@
             var functionType = clang.getCursorType(cursor);
             var functionName = clang.getCursorSpelling(cursor).ToString();
             var resultType = clang.getCursorResultType(cursor);
+            bool isStringReturn = resultType.IsPtrToConstChar(); // const char* gets special treatment
 
             tw.WriteLine("        [DllImport(libraryPath, EntryPoint = \"" + functionName + "\", CallingConvention = " + functionType.CallingConventionSpelling() + ")]");
-            tw.Write("        public static extern ");
+            if(isStringReturn)
+                tw.Write("        private static extern ");
+            else
+                tw.Write("        public static extern ");
 
             ReturnTypeHelper(resultType, tw);
 
@@ -128,7 +133,10 @@
                 functionName = functionName.Substring(prefixStrip.Length);
             }
 
-            tw.Write(" " + functionName + "(");
+            if (isStringReturn)
+                tw.Write(" _" + functionName + "(");
+            else
+                tw.Write(" " + functionName + "(");
 
             int numArgTypes = clang.getNumArgTypes(functionType);
 
@@ -138,6 +146,36 @@
             }
 
             tw.WriteLine(");");
+            tw.WriteLine();
+
+            if(isStringReturn)
+            {
+                WriteStringReturnWrapperFunction(cursor, tw, functionName);
+            }
+        }
+
+        static void WriteStringReturnWrapperFunction(CXCursor cursor, TextWriter tw, string functionName)
+        {
+            var functionType = clang.getCursorType(cursor);
+            var resultType = clang.getCursorResultType(cursor);
+            bool isStringReturn = resultType.IsPtrToConstChar(); // const char* gets special treatment
+
+            tw.Write("        public static extern string {0}(", functionName);
+
+            int numArgTypes = clang.getNumArgTypes(functionType);
+            for (uint i = 0; i < numArgTypes; ++i)
+            {
+                ArgumentHelperForWrapper(functionType, clang.Cursor_getArgument(cursor, i), tw, i, true);
+            }
+
+            tw.Write(") {{ return Marshal.PtrToStringAnsi(_{0}(", functionName);
+
+            for (uint i = 0; i < numArgTypes; ++i)
+            {
+                ArgumentHelperForWrapper(functionType, clang.Cursor_getArgument(cursor, i), tw, i, false);
+            }
+
+            tw.WriteLine(")); }}", functionName);
             tw.WriteLine();
         }
 
@@ -159,7 +197,7 @@
             switch (resultType.kind)
             {
                 case CXTypeKind.CXType_Pointer:
-                    tw.Write(resultType.IsPtrToConstChar() ? "string" : "IntPtr"); // const char* gets special treatment
+                    tw.Write("IntPtr"); 
                     break;
                 default:
                     CommonTypeHandling(resultType, tw);
@@ -219,6 +257,59 @@
             }
         }
 
+        public static void ArgumentHelperForWrapper(CXType functionType, CXCursor paramCursor, TextWriter tw, uint index, bool printType)
+        {
+            var numArgTypes = clang.getNumArgTypes(functionType);
+            var type = clang.getArgType(functionType, index);
+            var cursorType = clang.getCursorType(paramCursor);
+
+            var spelling = clang.getCursorSpelling(paramCursor).ToString();
+            if (string.IsNullOrEmpty(spelling))
+            {
+                spelling = "param" + index;
+            }
+
+            if (printType)
+            {
+                switch (type.kind)
+                {
+                    case CXTypeKind.CXType_Pointer:
+                        var pointee = clang.getPointeeType(type);
+                        switch (pointee.kind)
+                        {
+                            case CXTypeKind.CXType_Pointer:
+                                tw.Write(pointee.IsPtrToConstChar() && clang.isConstQualifiedType(pointee) != 0 ? "string[]" : "out IntPtr");
+                                break;
+                            case CXTypeKind.CXType_FunctionProto:
+                                tw.Write(clang.getTypeSpelling(cursorType).ToString());
+                                break;
+                            case CXTypeKind.CXType_Void:
+                                tw.Write("IntPtr");
+                                break;
+                            case CXTypeKind.CXType_Char_S:
+                            case CXTypeKind.CXType_WChar:
+                                tw.Write("string");
+                                break;
+                            default:
+                                CommonTypeHandling(pointee, tw, "out ");
+                                break;
+                        }
+                        break;
+                    default:
+                        CommonTypeHandling(type, tw);
+                        break;
+                }
+            }
+
+            tw.Write(" @");
+            tw.Write(spelling);
+
+            if (index != numArgTypes - 1)
+            {
+                tw.Write(", ");
+            }
+        }
+        
         private static void CommonTypeHandling(CXType type, TextWriter tw, string outParam = "")
         {
             bool isConstQualifiedType = clang.isConstQualifiedType(type) != 0;

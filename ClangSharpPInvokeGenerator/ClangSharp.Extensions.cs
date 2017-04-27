@@ -1,10 +1,12 @@
-﻿namespace ClangSharp
+using System.Runtime.InteropServices;
+
+namespace ClangSharp
 {
     public partial struct CXString
     {
         public override string ToString()
         {
-            string retval = clang.getCString(this);
+            string retval = Marshal.PtrToStringAnsi(clang.getCString(this));
             clang.disposeString(this);
             return retval;
         }

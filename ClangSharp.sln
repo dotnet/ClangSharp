@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.20420.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClangSharp", "ClangSharp.csproj", "{6091B9F6-D75E-4457-BF5B-89076FCB262B}"
 EndProject
@@ -10,17 +10,27 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6091B9F6-D75E-4457-BF5B-89076FCB262B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6091B9F6-D75E-4457-BF5B-89076FCB262B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6091B9F6-D75E-4457-BF5B-89076FCB262B}.Debug|x64.ActiveCfg = Debug|x64
+		{6091B9F6-D75E-4457-BF5B-89076FCB262B}.Debug|x64.Build.0 = Debug|x64
 		{6091B9F6-D75E-4457-BF5B-89076FCB262B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6091B9F6-D75E-4457-BF5B-89076FCB262B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6091B9F6-D75E-4457-BF5B-89076FCB262B}.Release|x64.ActiveCfg = Release|x64
+		{6091B9F6-D75E-4457-BF5B-89076FCB262B}.Release|x64.Build.0 = Release|x64
 		{FF792C72-8F27-474E-B6AD-9D3F646BC98D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FF792C72-8F27-474E-B6AD-9D3F646BC98D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF792C72-8F27-474E-B6AD-9D3F646BC98D}.Debug|x64.ActiveCfg = Debug|x64
+		{FF792C72-8F27-474E-B6AD-9D3F646BC98D}.Debug|x64.Build.0 = Debug|x64
 		{FF792C72-8F27-474E-B6AD-9D3F646BC98D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF792C72-8F27-474E-B6AD-9D3F646BC98D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF792C72-8F27-474E-B6AD-9D3F646BC98D}.Release|x64.ActiveCfg = Release|x64
+		{FF792C72-8F27-474E-B6AD-9D3F646BC98D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

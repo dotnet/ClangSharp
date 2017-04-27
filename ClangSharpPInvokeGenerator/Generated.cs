@@ -1251,7 +1251,7 @@ namespace ClangSharp
         private const string libraryPath = "libclang";
 
         [DllImport(libraryPath, EntryPoint = "clang_getCString", CallingConvention = CallingConvention.Cdecl)]
-        public static extern string getCString(CXString @string);
+        public static extern IntPtr getCString(CXString @string);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeString", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeString(CXString @string);
