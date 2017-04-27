@@ -160,7 +160,7 @@ namespace ClangSharpPInvokeGenerator
             var resultType = clang.getCursorResultType(cursor);
             bool isStringReturn = resultType.IsPtrToConstChar(); // const char* gets special treatment
 
-            tw.Write("        public static extern string {0}(", functionName);
+            tw.Write("        public static string {0}(", functionName);
 
             int numArgTypes = clang.getNumArgTypes(functionType);
             for (uint i = 0; i < numArgTypes; ++i)
@@ -239,7 +239,7 @@ namespace ClangSharpPInvokeGenerator
                             tw.Write(type.IsPtrToConstChar() ? "[MarshalAs(UnmanagedType.LPWStr)] string" : "IntPtr");
                             break;
                         default:
-                            CommonTypeHandling(pointee, tw, "out ");
+                            CommonTypeHandling(pointee, tw, "ref ");
                             break;
                     }
                     break;
@@ -314,6 +314,13 @@ namespace ClangSharpPInvokeGenerator
         {
             bool isConstQualifiedType = clang.isConstQualifiedType(type) != 0;
             string spelling;
+
+            // If it's elaborated type, we need to use canonical type
+            if(type.kind == CXTypeKind.CXType_Elaborated)
+            {
+                type = clang.getCanonicalType(type);
+            }
+
             switch (type.kind)
             {
                 case CXTypeKind.CXType_Typedef:

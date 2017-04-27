@@ -1,4 +1,4 @@
-﻿namespace ClangSharp
+namespace ClangSharp
 {
     using System;
     using System.Runtime.InteropServices;
@@ -12,17 +12,17 @@
             public int @Length;
         }
 
-        internal struct _CXIdxEntityInfo
-        {
-            public CXIdxEntityKind @kind;
-            public CXIdxEntityCXXTemplateKind @templateKind;
-            public CXIdxEntityLanguage @lang;
-            public IntPtr @name;
-            public IntPtr @USR;
-            public CXCursor @cursor;
-            public IntPtr @attributes;
-            public uint @numAttributes;
-        }
+        //internal struct _CXIdxEntityInfo
+        //{
+        //    public CXIdxEntityKind @kind;
+        //    public CXIdxEntityCXXTemplateKind @templateKind;
+        //    public CXIdxEntityLanguage @lang;
+        //    public IntPtr @name;
+        //    public IntPtr @USR;
+        //    public CXCursor @cursor;
+        //    public IntPtr @attributes;
+        //    public uint @numAttributes;
+        //}
 
         public static CXTranslationUnit createTranslationUnitFromSourceFile(CXIndex @CIdx, string @source_filename, int @num_clang_command_line_args, string[] @clang_command_line_args, uint @num_unsaved_files, CXUnsavedFile[] @unsaved_files)
         {
@@ -152,69 +152,69 @@
             }
         }
 
-        public static CXIdxClientEntity index_getClientEntity(ref CXIdxEntityInfo @param0)
-        {
-            var temp = new _CXIdxEntityInfo
-            {
-                kind = param0.kind,
-                templateKind = param0.templateKind,
-                lang = param0.lang,
-                cursor = param0.cursor,
-                attributes = param0.attributes,
-                numAttributes = param0.numAttributes
-            };
+        //public static CXIdxClientEntity index_getClientEntity(ref CXIdxEntityInfo @param0)
+        //{
+        //    var temp = new _CXIdxEntityInfo
+        //    {
+        //        kind = param0.kind,
+        //        templateKind = param0.templateKind,
+        //        lang = param0.lang,
+        //        cursor = param0.cursor,
+        //        attributes = param0.attributes,
+        //        numAttributes = param0.numAttributes
+        //    };
 
-            try
-            {
-                temp.name = Marshal.StringToHGlobalAnsi(param0.name);
-                temp.USR = Marshal.StringToHGlobalAnsi(param0.USR);
-                return index_getClientEntity(ref temp);
-            }
-            finally
-            {
-                if (temp.name != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(temp.name);
-                }
+        //    try
+        //    {
+        //        temp.name = Marshal.StringToHGlobalAnsi(param0.name);
+        //        temp.USR = Marshal.StringToHGlobalAnsi(param0.USR);
+        //        return index_getClientEntity(ref temp);
+        //    }
+        //    finally
+        //    {
+        //        if (temp.name != IntPtr.Zero)
+        //        {
+        //            Marshal.FreeHGlobal(temp.name);
+        //        }
 
-                if (temp.USR != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(temp.USR);
-                }
-            }
-        }
+        //        if (temp.USR != IntPtr.Zero)
+        //        {
+        //            Marshal.FreeHGlobal(temp.USR);
+        //        }
+        //    }
+        //}
 
-        public static void index_setClientEntity(ref CXIdxEntityInfo @param0, CXIdxClientEntity @param1)
-        {
-            var temp = new _CXIdxEntityInfo
-            {
-                kind = param0.kind,
-                templateKind = param0.templateKind,
-                lang = param0.lang,
-                cursor = param0.cursor,
-                attributes = param0.attributes,
-                numAttributes = param0.numAttributes
-            };
+        //public static void index_setClientEntity(ref CXIdxEntityInfo @param0, CXIdxClientEntity @param1)
+        //{
+        //    var temp = new _CXIdxEntityInfo
+        //    {
+        //        kind = param0.kind,
+        //        templateKind = param0.templateKind,
+        //        lang = param0.lang,
+        //        cursor = param0.cursor,
+        //        attributes = param0.attributes,
+        //        numAttributes = param0.numAttributes
+        //    };
 
-            try
-            {
-                temp.name = Marshal.StringToHGlobalAnsi(param0.name);
-                temp.USR = Marshal.StringToHGlobalAnsi(param0.USR);
-                index_setClientEntity(ref temp, param1);
-            }
-            finally
-            {
-                if (temp.name != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(temp.name);
-                }
+        //    try
+        //    {
+        //        temp.name = Marshal.StringToHGlobalAnsi(param0.name);
+        //        temp.USR = Marshal.StringToHGlobalAnsi(param0.USR);
+        //        index_setClientEntity(ref temp, param1);
+        //    }
+        //    finally
+        //    {
+        //        if (temp.name != IntPtr.Zero)
+        //        {
+        //            Marshal.FreeHGlobal(temp.name);
+        //        }
 
-                if (temp.USR != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(temp.USR);
-                }
-            }
-        }
+        //        if (temp.USR != IntPtr.Zero)
+        //        {
+        //            Marshal.FreeHGlobal(temp.USR);
+        //        }
+        //    }
+        //}
 
         [DllImport(libraryPath, EntryPoint = "clang_createTranslationUnitFromSourceFile", CallingConvention = CallingConvention.Cdecl)]
         private static extern CXTranslationUnit createTranslationUnitFromSourceFile(CXIndex @CIdx, [MarshalAs(UnmanagedType.LPStr)] string @source_filename, int @num_clang_command_line_args, string[] @clang_command_line_args, uint @num_unsaved_files, [MarshalAs(UnmanagedType.LPArray)] _CXUnsavedFile[] @unsaved_files);
@@ -240,11 +240,11 @@
         [DllImport(libraryPath, EntryPoint = "clang_indexSourceFileFullArgv", CallingConvention = CallingConvention.Cdecl)]
         private static extern int indexSourceFileFullArgv(CXIndexAction @param0, CXClientData @client_data, IntPtr @index_callbacks, uint @index_callbacks_size, uint @index_options, [MarshalAs(UnmanagedType.LPStr)] string @source_filename, string[] @command_line_args, int @num_command_line_args, [MarshalAs(UnmanagedType.LPArray)] _CXUnsavedFile[] @unsaved_files, uint @num_unsaved_files, out CXTranslationUnit @out_TU, uint @TU_options);
 
-        [DllImport(libraryPath, EntryPoint = "clang_index_getClientEntity", CallingConvention = CallingConvention.Cdecl)]
-        private static extern CXIdxClientEntity index_getClientEntity(ref _CXIdxEntityInfo @param0);
+        //[DllImport(libraryPath, EntryPoint = "clang_index_getClientEntity", CallingConvention = CallingConvention.Cdecl)]
+        //private static extern CXIdxClientEntity index_getClientEntity(ref _CXIdxEntityInfo @param0);
 
-        [DllImport(libraryPath, EntryPoint = "clang_index_setClientEntity", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void index_setClientEntity(ref _CXIdxEntityInfo @param0, CXIdxClientEntity @param1);
+        //[DllImport(libraryPath, EntryPoint = "clang_index_setClientEntity", CallingConvention = CallingConvention.Cdecl)]
+        //private static extern void index_setClientEntity(ref _CXIdxEntityInfo @param0, CXIdxClientEntity @param1);
 
         private static void BeginIndexerCallbacksMarshal(out IntPtr result, ref IndexerCallbacks[] index_callbacks)
         {

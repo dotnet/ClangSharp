@@ -6,7 +6,7 @@ namespace ClangSharp
     {
         public override string ToString()
         {
-            string retval = Marshal.PtrToStringAnsi(clang.getCString(this));
+            string retval = clang.getCString(this);
             clang.disposeString(this);
             return retval;
         }
