@@ -1,4 +1,6 @@
-﻿namespace ClangSharp
+using System.Runtime.InteropServices;
+
+namespace ClangSharp
 {
     public partial struct CXString
     {
