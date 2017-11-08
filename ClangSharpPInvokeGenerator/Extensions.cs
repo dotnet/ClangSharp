@@ -20,7 +20,10 @@
                 switch (pointee.kind)
                 {
                     case CXTypeKind.CXType_Char_S:
+                    case CXTypeKind.CXType_WChar:
+                    {
                         return true;
+                    }
                 }
             }
 
@@ -118,7 +121,28 @@
             var functionName = clang.getCursorSpelling(cursor).ToString();
             var resultType = clang.getCursorResultType(cursor);
 
+
             tw.WriteLine("        [DllImport(libraryPath, EntryPoint = \"" + functionName + "\", CallingConvention = " + functionType.CallingConventionSpelling() + ")]");
+
+            //If return type is string then we'll add  a MarshalAs
+            if (resultType.IsPtrToConstChar())
+            {
+                var pointee = clang.getPointeeType(resultType);
+                switch (pointee.kind)
+                {
+                    case CXTypeKind.CXType_Char_S:
+                    {
+                        tw.WriteLine("        [return: MarshalAs(UnmanagedType.LPStr)]");
+                        break;
+                    }
+                    case CXTypeKind.CXType_WChar:
+                    {
+                        tw.WriteLine("        [return: MarshalAs(UnmanagedType.LPWStr)]");
+                        break;
+                    }
+                }
+            }
+
             tw.Write("        public static extern ");
 
             ReturnTypeHelper(resultType, tw);
