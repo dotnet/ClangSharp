@@ -4,11 +4,19 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Text.RegularExpressions;
     using ClangSharp;
 
     public class Program
     {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, uint dwFlags);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool FreeLibrary(IntPtr hModule);
+
         public static void Main(string[] args)
         {
             Regex re = new Regex(@"(?<switch>-{1,2}\S*)(?:[=:]?|\s+)(?<value>[^-\s].*?)?(?=\s+[-]|$)");
@@ -23,6 +31,8 @@
             string libraryPath = string.Empty;
             string prefixStrip = string.Empty;
             string methodClassName = "Methods";
+            string libClangPath = string.Empty;
+            IntPtr libClangHandle = IntPtr.Zero;
 
             foreach (KeyValuePair<string, string> match in matches)
             {
@@ -60,6 +70,11 @@
                 {
                     methodClassName = match.Value;
                 }
+
+                if (string.Equals(match.Key, "--c") || string.Equals(match.Key, "--clangPath"))
+                {
+                    libClangPath = match.Value;
+                }
             }
 
             var errorList = new List<string>();
@@ -90,6 +105,14 @@
                 {
                     Console.WriteLine(error);
                 }
+
+                //Terminate execution as command line arguments are missing
+                Environment.Exit(-1);
+            }
+
+            if(!string.IsNullOrEmpty(libClangPath) && File.Exists(libClangPath) && (libClangPath.EndsWith(".dll") || libClangPath.EndsWith(".so")))
+            {
+                libClangHandle = LoadLibraryEx(libClangPath, IntPtr.Zero, 0x00000008 /* LOAD_WITH_ALTERED_SEARCH_PATH */);
             }
 
             var createIndex = clang.createIndex(0, 0);
@@ -167,6 +190,11 @@
             }
 
             clang.disposeIndex(createIndex);
+
+            if(libClangHandle != IntPtr.Zero)
+            {
+                FreeLibrary(libClangHandle);
+            }
         }
     }
 }
