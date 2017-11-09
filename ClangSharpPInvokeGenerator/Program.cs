@@ -31,6 +31,8 @@
             string libraryPath = string.Empty;
             string prefixStrip = string.Empty;
             string methodClassName = "Methods";
+            string excludeFunctions = "";
+            string[] execludeFunctionsArray = null;
             string libClangPath = string.Empty;
             IntPtr libClangHandle = IntPtr.Zero;
 
@@ -75,6 +77,11 @@
                 {
                     libClangPath = match.Value;
                 }
+
+                if (string.Equals(match.Key, "--e") || string.Equals(match.Key, "--excludeFunctions"))
+                {
+                    excludeFunctions = match.Value;
+                }
             }
 
             var errorList = new List<string>();
@@ -100,7 +107,7 @@
 
             if (errorList.Any())
             {
-                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs]");
+                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs] --excludeFunctions [func1,func2]");
                 foreach (var error in errorList)
                 {
                     Console.WriteLine(error);
@@ -113,6 +120,11 @@
             if(!string.IsNullOrEmpty(libClangPath) && File.Exists(libClangPath) && (libClangPath.EndsWith(".dll") || libClangPath.EndsWith(".so")))
             {
                 libClangHandle = LoadLibraryEx(libClangPath, IntPtr.Zero, 0x00000008 /* LOAD_WITH_ALTERED_SEARCH_PATH */);
+            }
+
+            if(!string.IsNullOrEmpty(excludeFunctions))
+            {
+                execludeFunctionsArray = excludeFunctions.Split(',').Select(x => x.Trim()).ToArray();
             }
 
             var createIndex = clang.createIndex(0, 0);
@@ -174,7 +186,7 @@
                 sw.WriteLine("    public static partial class " + methodClassName);
                 sw.WriteLine("    {");
                 {
-                    var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip);
+                    var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip, execludeFunctionsArray);
                     foreach (var tu in translationUnits)
                     {
                         clang.visitChildren(clang.getTranslationUnitCursor(tu), functionVisitor.Visit, new CXClientData(IntPtr.Zero));
