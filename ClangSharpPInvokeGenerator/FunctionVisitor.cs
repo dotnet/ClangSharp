@@ -13,12 +13,21 @@
 
         private readonly string prefixStrip;
 
-        public FunctionVisitor(TextWriter tw, string libraryPath, string prefixStrip)
+        public FunctionVisitor(TextWriter tw, string libraryPath, string prefixStrip, string[] excludeFunctionsArray)
         {
             this.prefixStrip = prefixStrip;
             this.tw = tw;
             this.tw.WriteLine("        private const string libraryPath = \"" + libraryPath + "\";");
             this.tw.WriteLine();
+
+            if(excludeFunctionsArray != null)
+            {
+                //For all the functions we're excluding add them to the visitedFunctions set so they're ignored
+                foreach(var func in excludeFunctionsArray)
+                {
+                    visitedFunctions.Add(func);
+                }
+            }
         }
 
         public CXChildVisitResult Visit(CXCursor cursor, CXCursor parent, IntPtr data)

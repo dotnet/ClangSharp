@@ -19,6 +19,7 @@ dotnet run -p ClangSharpPInvokeGenerator \
 	--file $2/clang-c/Documentation.h \
 	--file $2/clang-c/CXErrorCode.h \
 	--file $2/clang-c/BuildSystem.h \
-	--file $2/clang-c/CXCompilationDatabase.h
+	--file $2/clang-c/CXCompilationDatabase.h \
+	--excludeFunctions clang_index_getClientEntity,clang_index_setClientEntity,clang_createTranslationUnitFromSourceFile,clang_parseTranslationUnit,clang_parseTranslationUnit2,clang_parseTranslationUnit2FullArgv,clang_reparseTranslationUnit,clang_codeCompleteAt,clang_indexSourceFile,clang_indexSourceFileFullArgv
 
 dotnet build ClangSharp
