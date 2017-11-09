@@ -223,13 +223,6 @@
         {
             bool isConstQualifiedType = clang.isConstQualifiedType(type) != 0;
             string spelling;
-
-            // If it's elaborated type, we need to use canonical type
-            if (type.kind == CXTypeKind.CXType_Elaborated)
-            {
-                type = clang.getCanonicalType(type);
-            }
-
             switch (type.kind)
             {
                 case CXTypeKind.CXType_Typedef:
