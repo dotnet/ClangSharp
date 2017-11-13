@@ -4,11 +4,19 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Text.RegularExpressions;
     using ClangSharp;
 
     public class Program
     {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, uint dwFlags);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool FreeLibrary(IntPtr hModule);
+
         public static void Main(string[] args)
         {
             Regex re = new Regex(@"(?<switch>-{1,2}\S*)(?:[=:]?|\s+)(?<value>[^-\s].*?)?(?=\s+[-]|$)");
@@ -23,6 +31,10 @@
             string libraryPath = string.Empty;
             string prefixStrip = string.Empty;
             string methodClassName = "Methods";
+            string excludeFunctions = "";
+            string[] execludeFunctionsArray = null;
+            string libClangPath = string.Empty;
+            IntPtr libClangHandle = IntPtr.Zero;
 
             foreach (KeyValuePair<string, string> match in matches)
             {
@@ -60,6 +72,16 @@
                 {
                     methodClassName = match.Value;
                 }
+
+                if (string.Equals(match.Key, "--c") || string.Equals(match.Key, "--clangPath"))
+                {
+                    libClangPath = match.Value;
+                }
+
+                if (string.Equals(match.Key, "--e") || string.Equals(match.Key, "--excludeFunctions"))
+                {
+                    excludeFunctions = match.Value;
+                }
             }
 
             var errorList = new List<string>();
@@ -85,11 +107,24 @@
 
             if (errorList.Any())
             {
-                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs]");
+                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs] --excludeFunctions [func1,func2]");
                 foreach (var error in errorList)
                 {
                     Console.WriteLine(error);
                 }
+
+                //Terminate execution as command line arguments are missing
+                Environment.Exit(-1);
+            }
+
+            if(!string.IsNullOrEmpty(libClangPath) && File.Exists(libClangPath) && (libClangPath.EndsWith(".dll") || libClangPath.EndsWith(".so")))
+            {
+                libClangHandle = LoadLibraryEx(libClangPath, IntPtr.Zero, 0x00000008 /* LOAD_WITH_ALTERED_SEARCH_PATH */);
+            }
+
+            if(!string.IsNullOrEmpty(excludeFunctions))
+            {
+                execludeFunctionsArray = excludeFunctions.Split(',').Select(x => x.Trim()).ToArray();
             }
 
             var createIndex = clang.createIndex(0, 0);
@@ -151,7 +186,7 @@
                 sw.WriteLine("    public static partial class " + methodClassName);
                 sw.WriteLine("    {");
                 {
-                    var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip);
+                    var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip, execludeFunctionsArray);
                     foreach (var tu in translationUnits)
                     {
                         clang.visitChildren(clang.getTranslationUnitCursor(tu), functionVisitor.Visit, new CXClientData(IntPtr.Zero));
@@ -167,6 +202,11 @@
             }
 
             clang.disposeIndex(createIndex);
+
+            if(libClangHandle != IntPtr.Zero)
+            {
+                FreeLibrary(libClangHandle);
+            }
         }
     }
 }
