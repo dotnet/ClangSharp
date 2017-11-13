@@ -121,7 +121,6 @@
             var functionName = clang.getCursorSpelling(cursor).ToString();
             var resultType = clang.getCursorResultType(cursor);
 
-
             tw.WriteLine("        [DllImport(libraryPath, EntryPoint = \"" + functionName + "\", CallingConvention = " + functionType.CallingConventionSpelling() + ")]");
 
             //If return type is string then we'll add  a MarshalAs
