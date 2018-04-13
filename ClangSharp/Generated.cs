@@ -23,6 +23,10 @@ namespace ClangSharp
     {
     }
 
+    public partial struct CXTargetInfoImpl
+    {
+    }
+
     public partial struct CXTranslationUnitImpl
     {
     }
@@ -43,18 +47,18 @@ namespace ClangSharp
 
     public partial struct CXFileUniqueID
     {
-        public ulong @data0; public ulong @data1; public ulong @data2;
+        public ulong @data0; public ulong @data1; public ulong @data2; 
     }
 
     public partial struct CXSourceLocation
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
         public uint @int_data;
     }
 
     public partial struct CXSourceRange
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
         public uint @begin_int_data;
         public uint @end_int_data;
     }
@@ -82,7 +86,7 @@ namespace ClangSharp
     {
         public CXCursorKind @kind;
         public int @xdata;
-        public IntPtr @data0; public IntPtr @data1; public IntPtr @data2;
+        public IntPtr @data0; public IntPtr @data1; public IntPtr @data2; 
     }
 
     public partial struct CXPlatformAvailability
@@ -102,12 +106,12 @@ namespace ClangSharp
     public partial struct CXType
     {
         public CXTypeKind @kind;
-        public IntPtr @data0; public IntPtr @data1;
+        public IntPtr @data0; public IntPtr @data1; 
     }
 
     public partial struct CXToken
     {
-        public uint @int_data0; public uint @int_data1; public uint @int_data2; public uint @int_data3;
+        public uint @int_data0; public uint @int_data1; public uint @int_data2; public uint @int_data3; 
         public IntPtr @ptr_data;
     }
 
@@ -131,7 +135,7 @@ namespace ClangSharp
 
     public partial struct CXIdxLoc
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
         public uint @int_data;
     }
 
@@ -309,6 +313,16 @@ namespace ClangSharp
     public partial struct CXIndex
     {
         public CXIndex(IntPtr pointer)
+        {
+            this.Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXTargetInfo
+    {
+        public CXTargetInfo(IntPtr pointer)
         {
             this.Pointer = pointer;
         }
@@ -505,7 +519,7 @@ namespace ClangSharp
         public IntPtr Pointer;
     }
 
-    public enum CXErrorCode : int
+    public enum CXErrorCode : uint
     {
         @CXError_Success = 0,
         @CXError_Failure = 1,
@@ -514,7 +528,7 @@ namespace ClangSharp
         @CXError_ASTReadError = 4,
     }
 
-    public enum CXAvailabilityKind : int
+    public enum CXAvailabilityKind : uint
     {
         @CXAvailability_Available = 0,
         @CXAvailability_Deprecated = 1,
@@ -522,7 +536,20 @@ namespace ClangSharp
         @CXAvailability_NotAccessible = 3,
     }
 
-    public enum CXGlobalOptFlags : int
+    public enum CXCursor_ExceptionSpecificationKind : uint
+    {
+        @CXCursor_ExceptionSpecificationKind_None = 0,
+        @CXCursor_ExceptionSpecificationKind_DynamicNone = 1,
+        @CXCursor_ExceptionSpecificationKind_Dynamic = 2,
+        @CXCursor_ExceptionSpecificationKind_MSAny = 3,
+        @CXCursor_ExceptionSpecificationKind_BasicNoexcept = 4,
+        @CXCursor_ExceptionSpecificationKind_ComputedNoexcept = 5,
+        @CXCursor_ExceptionSpecificationKind_Unevaluated = 6,
+        @CXCursor_ExceptionSpecificationKind_Uninstantiated = 7,
+        @CXCursor_ExceptionSpecificationKind_Unparsed = 8,
+    }
+
+    public enum CXGlobalOptFlags : uint
     {
         @CXGlobalOpt_None = 0,
         @CXGlobalOpt_ThreadBackgroundPriorityForIndexing = 1,
@@ -530,7 +557,7 @@ namespace ClangSharp
         @CXGlobalOpt_ThreadBackgroundPriorityForAll = 3,
     }
 
-    public enum CXDiagnosticSeverity : int
+    public enum CXDiagnosticSeverity : uint
     {
         @CXDiagnostic_Ignored = 0,
         @CXDiagnostic_Note = 1,
@@ -539,7 +566,7 @@ namespace ClangSharp
         @CXDiagnostic_Fatal = 4,
     }
 
-    public enum CXLoadDiag_Error : int
+    public enum CXLoadDiag_Error : uint
     {
         @CXLoadDiag_None = 0,
         @CXLoadDiag_Unknown = 1,
@@ -547,7 +574,7 @@ namespace ClangSharp
         @CXLoadDiag_InvalidFile = 3,
     }
 
-    public enum CXDiagnosticDisplayOptions : int
+    public enum CXDiagnosticDisplayOptions : uint
     {
         @CXDiagnostic_DisplaySourceLocation = 1,
         @CXDiagnostic_DisplayColumn = 2,
@@ -557,7 +584,7 @@ namespace ClangSharp
         @CXDiagnostic_DisplayCategoryName = 32,
     }
 
-    public enum CXTranslationUnit_Flags : int
+    public enum CXTranslationUnit_Flags : uint
     {
         @CXTranslationUnit_None = 0,
         @CXTranslationUnit_DetailedPreprocessingRecord = 1,
@@ -570,14 +597,15 @@ namespace ClangSharp
         @CXTranslationUnit_IncludeBriefCommentsInCodeCompletion = 128,
         @CXTranslationUnit_CreatePreambleOnFirstParse = 256,
         @CXTranslationUnit_KeepGoing = 512,
+        @CXTranslationUnit_SingleFileParse = 1024,
     }
 
-    public enum CXSaveTranslationUnit_Flags : int
+    public enum CXSaveTranslationUnit_Flags : uint
     {
         @CXSaveTranslationUnit_None = 0,
     }
 
-    public enum CXSaveError : int
+    public enum CXSaveError : uint
     {
         @CXSaveError_None = 0,
         @CXSaveError_Unknown = 1,
@@ -585,12 +613,12 @@ namespace ClangSharp
         @CXSaveError_InvalidTU = 3,
     }
 
-    public enum CXReparse_Flags : int
+    public enum CXReparse_Flags : uint
     {
         @CXReparse_None = 0,
     }
 
-    public enum CXTUResourceUsageKind : int
+    public enum CXTUResourceUsageKind : uint
     {
         @CXTUResourceUsage_AST = 1,
         @CXTUResourceUsage_Identifiers = 2,
@@ -612,7 +640,7 @@ namespace ClangSharp
         @CXTUResourceUsage_Last = 14,
     }
 
-    public enum CXCursorKind : int
+    public enum CXCursorKind : uint
     {
         @CXCursor_UnexposedDecl = 1,
         @CXCursor_StructDecl = 2,
@@ -797,7 +825,17 @@ namespace ClangSharp
         @CXCursor_OMPDistributeParallelForSimdDirective = 267,
         @CXCursor_OMPDistributeSimdDirective = 268,
         @CXCursor_OMPTargetParallelForSimdDirective = 269,
-        @CXCursor_LastStmt = 269,
+        @CXCursor_OMPTargetSimdDirective = 270,
+        @CXCursor_OMPTeamsDistributeDirective = 271,
+        @CXCursor_OMPTeamsDistributeSimdDirective = 272,
+        @CXCursor_OMPTeamsDistributeParallelForSimdDirective = 273,
+        @CXCursor_OMPTeamsDistributeParallelForDirective = 274,
+        @CXCursor_OMPTargetTeamsDirective = 275,
+        @CXCursor_OMPTargetTeamsDistributeDirective = 276,
+        @CXCursor_OMPTargetTeamsDistributeParallelForDirective = 277,
+        @CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective = 278,
+        @CXCursor_OMPTargetTeamsDistributeSimdDirective = 279,
+        @CXCursor_LastStmt = 279,
         @CXCursor_TranslationUnit = 300,
         @CXCursor_FirstAttr = 400,
         @CXCursor_UnexposedAttr = 400,
@@ -831,12 +869,13 @@ namespace ClangSharp
         @CXCursor_ModuleImportDecl = 600,
         @CXCursor_TypeAliasTemplateDecl = 601,
         @CXCursor_StaticAssert = 602,
+        @CXCursor_FriendDecl = 603,
         @CXCursor_FirstExtraDecl = 600,
-        @CXCursor_LastExtraDecl = 602,
+        @CXCursor_LastExtraDecl = 603,
         @CXCursor_OverloadCandidate = 700,
     }
 
-    public enum CXLinkageKind : int
+    public enum CXLinkageKind : uint
     {
         @CXLinkage_Invalid = 0,
         @CXLinkage_NoLinkage = 1,
@@ -845,7 +884,7 @@ namespace ClangSharp
         @CXLinkage_External = 4,
     }
 
-    public enum CXVisibilityKind : int
+    public enum CXVisibilityKind : uint
     {
         @CXVisibility_Invalid = 0,
         @CXVisibility_Hidden = 1,
@@ -853,7 +892,7 @@ namespace ClangSharp
         @CXVisibility_Default = 3,
     }
 
-    public enum CXLanguageKind : int
+    public enum CXLanguageKind : uint
     {
         @CXLanguage_Invalid = 0,
         @CXLanguage_C = 1,
@@ -861,7 +900,14 @@ namespace ClangSharp
         @CXLanguage_CPlusPlus = 3,
     }
 
-    public enum CXTypeKind : int
+    public enum CXTLSKind : uint
+    {
+        @CXTLS_None = 0,
+        @CXTLS_Dynamic = 1,
+        @CXTLS_Static = 2,
+    }
+
+    public enum CXTypeKind : uint
     {
         @CXType_Invalid = 0,
         @CXType_Unexposed = 1,
@@ -894,8 +940,10 @@ namespace ClangSharp
         @CXType_ObjCClass = 28,
         @CXType_ObjCSel = 29,
         @CXType_Float128 = 30,
+        @CXType_Half = 31,
+        @CXType_Float16 = 32,
         @CXType_FirstBuiltin = 2,
-        @CXType_LastBuiltin = 29,
+        @CXType_LastBuiltin = 32,
         @CXType_Complex = 100,
         @CXType_Pointer = 101,
         @CXType_BlockPointer = 102,
@@ -916,9 +964,50 @@ namespace ClangSharp
         @CXType_MemberPointer = 117,
         @CXType_Auto = 118,
         @CXType_Elaborated = 119,
+        @CXType_Pipe = 120,
+        @CXType_OCLImage1dRO = 121,
+        @CXType_OCLImage1dArrayRO = 122,
+        @CXType_OCLImage1dBufferRO = 123,
+        @CXType_OCLImage2dRO = 124,
+        @CXType_OCLImage2dArrayRO = 125,
+        @CXType_OCLImage2dDepthRO = 126,
+        @CXType_OCLImage2dArrayDepthRO = 127,
+        @CXType_OCLImage2dMSAARO = 128,
+        @CXType_OCLImage2dArrayMSAARO = 129,
+        @CXType_OCLImage2dMSAADepthRO = 130,
+        @CXType_OCLImage2dArrayMSAADepthRO = 131,
+        @CXType_OCLImage3dRO = 132,
+        @CXType_OCLImage1dWO = 133,
+        @CXType_OCLImage1dArrayWO = 134,
+        @CXType_OCLImage1dBufferWO = 135,
+        @CXType_OCLImage2dWO = 136,
+        @CXType_OCLImage2dArrayWO = 137,
+        @CXType_OCLImage2dDepthWO = 138,
+        @CXType_OCLImage2dArrayDepthWO = 139,
+        @CXType_OCLImage2dMSAAWO = 140,
+        @CXType_OCLImage2dArrayMSAAWO = 141,
+        @CXType_OCLImage2dMSAADepthWO = 142,
+        @CXType_OCLImage2dArrayMSAADepthWO = 143,
+        @CXType_OCLImage3dWO = 144,
+        @CXType_OCLImage1dRW = 145,
+        @CXType_OCLImage1dArrayRW = 146,
+        @CXType_OCLImage1dBufferRW = 147,
+        @CXType_OCLImage2dRW = 148,
+        @CXType_OCLImage2dArrayRW = 149,
+        @CXType_OCLImage2dDepthRW = 150,
+        @CXType_OCLImage2dArrayDepthRW = 151,
+        @CXType_OCLImage2dMSAARW = 152,
+        @CXType_OCLImage2dArrayMSAARW = 153,
+        @CXType_OCLImage2dMSAADepthRW = 154,
+        @CXType_OCLImage2dArrayMSAADepthRW = 155,
+        @CXType_OCLImage3dRW = 156,
+        @CXType_OCLSampler = 157,
+        @CXType_OCLEvent = 158,
+        @CXType_OCLQueue = 159,
+        @CXType_OCLReserveID = 160,
     }
 
-    public enum CXCallingConv : int
+    public enum CXCallingConv : uint
     {
         @CXCallingConv_Default = 0,
         @CXCallingConv_C = 1,
@@ -928,7 +1017,9 @@ namespace ClangSharp
         @CXCallingConv_X86Pascal = 5,
         @CXCallingConv_AAPCS = 6,
         @CXCallingConv_AAPCS_VFP = 7,
+        @CXCallingConv_X86RegCall = 8,
         @CXCallingConv_IntelOclBicc = 9,
+        @CXCallingConv_Win64 = 10,
         @CXCallingConv_X86_64Win64 = 10,
         @CXCallingConv_X86_64SysV = 11,
         @CXCallingConv_X86VectorCall = 12,
@@ -939,7 +1030,7 @@ namespace ClangSharp
         @CXCallingConv_Unexposed = 200,
     }
 
-    public enum CXTemplateArgumentKind : int
+    public enum CXTemplateArgumentKind : uint
     {
         @CXTemplateArgumentKind_Null = 0,
         @CXTemplateArgumentKind_Type = 1,
@@ -962,14 +1053,14 @@ namespace ClangSharp
         @CXTypeLayoutError_InvalidFieldName = -5,
     }
 
-    public enum CXRefQualifierKind : int
+    public enum CXRefQualifierKind : uint
     {
         @CXRefQualifier_None = 0,
         @CXRefQualifier_LValue = 1,
         @CXRefQualifier_RValue = 2,
     }
 
-    public enum CX_CXXAccessSpecifier : int
+    public enum CX_CXXAccessSpecifier : uint
     {
         @CX_CXXInvalidAccessSpecifier = 0,
         @CX_CXXPublic = 1,
@@ -977,7 +1068,7 @@ namespace ClangSharp
         @CX_CXXPrivate = 3,
     }
 
-    public enum CX_StorageClass : int
+    public enum CX_StorageClass : uint
     {
         @CX_SC_Invalid = 0,
         @CX_SC_None = 1,
@@ -989,14 +1080,14 @@ namespace ClangSharp
         @CX_SC_Register = 7,
     }
 
-    public enum CXChildVisitResult : int
+    public enum CXChildVisitResult : uint
     {
         @CXChildVisit_Break = 0,
         @CXChildVisit_Continue = 1,
         @CXChildVisit_Recurse = 2,
     }
 
-    public enum CXObjCPropertyAttrKind : int
+    public enum CXObjCPropertyAttrKind : uint
     {
         @CXObjCPropertyAttr_noattr = 0,
         @CXObjCPropertyAttr_readonly = 1,
@@ -1014,7 +1105,7 @@ namespace ClangSharp
         @CXObjCPropertyAttr_class = 4096,
     }
 
-    public enum CXObjCDeclQualifierKind : int
+    public enum CXObjCDeclQualifierKind : uint
     {
         @CXObjCDeclQualifier_None = 0,
         @CXObjCDeclQualifier_In = 1,
@@ -1025,14 +1116,14 @@ namespace ClangSharp
         @CXObjCDeclQualifier_Oneway = 32,
     }
 
-    public enum CXNameRefFlags : int
+    public enum CXNameRefFlags : uint
     {
         @CXNameRange_WantQualifier = 1,
         @CXNameRange_WantTemplateArgs = 2,
         @CXNameRange_WantSinglePiece = 4,
     }
 
-    public enum CXTokenKind : int
+    public enum CXTokenKind : uint
     {
         @CXToken_Punctuation = 0,
         @CXToken_Keyword = 1,
@@ -1041,7 +1132,7 @@ namespace ClangSharp
         @CXToken_Comment = 4,
     }
 
-    public enum CXCompletionChunkKind : int
+    public enum CXCompletionChunkKind : uint
     {
         @CXCompletionChunk_Optional = 0,
         @CXCompletionChunk_TypedText = 1,
@@ -1066,14 +1157,14 @@ namespace ClangSharp
         @CXCompletionChunk_VerticalSpace = 20,
     }
 
-    public enum CXCodeComplete_Flags : int
+    public enum CXCodeComplete_Flags : uint
     {
         @CXCodeComplete_IncludeMacros = 1,
         @CXCodeComplete_IncludeCodePatterns = 2,
         @CXCodeComplete_IncludeBriefComments = 4,
     }
 
-    public enum CXCompletionContext : int
+    public enum CXCompletionContext : uint
     {
         @CXCompletionContext_Unexposed = 0,
         @CXCompletionContext_AnyType = 1,
@@ -1101,7 +1192,7 @@ namespace ClangSharp
         @CXCompletionContext_Unknown = 4194303,
     }
 
-    public enum CXEvalResultKind : int
+    public enum CXEvalResultKind : uint
     {
         @CXEval_Int = 1,
         @CXEval_Float = 2,
@@ -1112,20 +1203,20 @@ namespace ClangSharp
         @CXEval_UnExposed = 0,
     }
 
-    public enum CXVisitorResult : int
+    public enum CXVisitorResult : uint
     {
         @CXVisit_Break = 0,
         @CXVisit_Continue = 1,
     }
 
-    public enum CXResult : int
+    public enum CXResult : uint
     {
         @CXResult_Success = 0,
         @CXResult_Invalid = 1,
         @CXResult_VisitBreak = 2,
     }
 
-    public enum CXIdxEntityKind : int
+    public enum CXIdxEntityKind : uint
     {
         @CXIdxEntity_Unexposed = 0,
         @CXIdxEntity_Typedef = 1,
@@ -1156,15 +1247,16 @@ namespace ClangSharp
         @CXIdxEntity_CXXInterface = 26,
     }
 
-    public enum CXIdxEntityLanguage : int
+    public enum CXIdxEntityLanguage : uint
     {
         @CXIdxEntityLang_None = 0,
         @CXIdxEntityLang_C = 1,
         @CXIdxEntityLang_ObjC = 2,
         @CXIdxEntityLang_CXX = 3,
+        @CXIdxEntityLang_Swift = 4,
     }
 
-    public enum CXIdxEntityCXXTemplateKind : int
+    public enum CXIdxEntityCXXTemplateKind : uint
     {
         @CXIdxEntity_NonTemplate = 0,
         @CXIdxEntity_Template = 1,
@@ -1172,7 +1264,7 @@ namespace ClangSharp
         @CXIdxEntity_TemplateSpecialization = 3,
     }
 
-    public enum CXIdxAttrKind : int
+    public enum CXIdxAttrKind : uint
     {
         @CXIdxAttr_Unexposed = 0,
         @CXIdxAttr_IBAction = 1,
@@ -1180,25 +1272,25 @@ namespace ClangSharp
         @CXIdxAttr_IBOutletCollection = 3,
     }
 
-    public enum CXIdxDeclInfoFlags : int
+    public enum CXIdxDeclInfoFlags : uint
     {
         @CXIdxDeclFlag_Skipped = 1,
     }
 
-    public enum CXIdxObjCContainerKind : int
+    public enum CXIdxObjCContainerKind : uint
     {
         @CXIdxObjCContainer_ForwardRef = 0,
         @CXIdxObjCContainer_Interface = 1,
         @CXIdxObjCContainer_Implementation = 2,
     }
 
-    public enum CXIdxEntityRefKind : int
+    public enum CXIdxEntityRefKind : uint
     {
         @CXIdxEntityRef_Direct = 1,
         @CXIdxEntityRef_Implicit = 2,
     }
 
-    public enum CXIndexOptFlags : int
+    public enum CXIndexOptFlags : uint
     {
         @CXIndexOpt_None = 0,
         @CXIndexOpt_SuppressRedundantRefs = 1,
@@ -1208,7 +1300,7 @@ namespace ClangSharp
         @CXIndexOpt_SkipParsedBodiesInSession = 16,
     }
 
-    public enum CXCommentKind : int
+    public enum CXCommentKind : uint
     {
         @CXComment_Null = 0,
         @CXComment_Text = 1,
@@ -1225,7 +1317,7 @@ namespace ClangSharp
         @CXComment_FullComment = 12,
     }
 
-    public enum CXCommentInlineCommandRenderKind : int
+    public enum CXCommentInlineCommandRenderKind : uint
     {
         @CXCommentInlineCommandRenderKind_Normal = 0,
         @CXCommentInlineCommandRenderKind_Bold = 1,
@@ -1233,14 +1325,14 @@ namespace ClangSharp
         @CXCommentInlineCommandRenderKind_Emphasized = 3,
     }
 
-    public enum CXCommentParamPassDirection : int
+    public enum CXCommentParamPassDirection : uint
     {
         @CXCommentParamPassDirection_In = 0,
         @CXCommentParamPassDirection_Out = 1,
         @CXCommentParamPassDirection_InOut = 2,
     }
 
-    public enum CXCompilationDatabase_Error : int
+    public enum CXCompilationDatabase_Error : uint
     {
         @CXCompilationDatabase_NoError = 0,
         @CXCompilationDatabase_CanNotLoadDatabase = 1,
@@ -1308,11 +1400,14 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_CXIndex_getGlobalOptions", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint CXIndex_getGlobalOptions(CXIndex @param0);
 
+        [DllImport(libraryPath, EntryPoint = "clang_CXIndex_setInvocationEmissionPathOption", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void CXIndex_setInvocationEmissionPathOption(CXIndex @param0, [MarshalAs(UnmanagedType.LPStr)] string @Path);
+
         [DllImport(libraryPath, EntryPoint = "clang_getFileName", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getFileName(CXFile @SFile);
 
         [DllImport(libraryPath, EntryPoint = "clang_getFileTime", CallingConvention = CallingConvention.Cdecl)]
-        public static extern long getFileTime(CXFile @SFile);
+        public static extern int getFileTime(CXFile @SFile);
 
         [DllImport(libraryPath, EntryPoint = "clang_getFileUniqueID", CallingConvention = CallingConvention.Cdecl)]
         public static extern int getFileUniqueID(CXFile @file, out CXFileUniqueID @outID);
@@ -1383,6 +1478,9 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_getSkippedRanges", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr getSkippedRanges(CXTranslationUnit @tu, CXFile @file);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getAllSkippedRanges", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr getAllSkippedRanges(CXTranslationUnit @tu);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeSourceRangeList", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeSourceRangeList(out CXSourceRangeList @ranges);
@@ -1471,6 +1569,9 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_saveTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
         public static extern int saveTranslationUnit(CXTranslationUnit @TU, [MarshalAs(UnmanagedType.LPStr)] string @FileName, uint @options);
 
+        [DllImport(libraryPath, EntryPoint = "clang_suspendTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint suspendTranslationUnit(CXTranslationUnit @param0);
+
         [DllImport(libraryPath, EntryPoint = "clang_disposeTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeTranslationUnit(CXTranslationUnit @param0);
 
@@ -1486,6 +1587,18 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeCXTUResourceUsage", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeCXTUResourceUsage(CXTUResourceUsage @usage);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getTranslationUnitTargetInfo", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXTargetInfo getTranslationUnitTargetInfo(CXTranslationUnit @CTUnit);
+
+        [DllImport(libraryPath, EntryPoint = "clang_TargetInfo_dispose", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void TargetInfo_dispose(CXTargetInfo @Info);
+
+        [DllImport(libraryPath, EntryPoint = "clang_TargetInfo_getTriple", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString TargetInfo_getTriple(CXTargetInfo @Info);
+
+        [DllImport(libraryPath, EntryPoint = "clang_TargetInfo_getPointerWidth", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TargetInfo_getPointerWidth(CXTargetInfo @Info);
 
         [DllImport(libraryPath, EntryPoint = "clang_getNullCursor", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXCursor getNullCursor();
@@ -1552,6 +1665,9 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorLanguage", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXLanguageKind getCursorLanguage(CXCursor @cursor);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getCursorTLSKind", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXTLSKind getCursorTLSKind(CXCursor @cursor);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXTranslationUnit Cursor_getTranslationUnit(CXCursor @param0);
@@ -1658,6 +1774,12 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_isRestrictQualifiedType", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint isRestrictQualifiedType(CXType @T);
 
+        [DllImport(libraryPath, EntryPoint = "clang_getAddressSpace", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint getAddressSpace(CXType @T);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getTypedefName", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString getTypedefName(CXType @CT);
+
         [DllImport(libraryPath, EntryPoint = "clang_getPointeeType", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXType getPointeeType(CXType @T);
 
@@ -1679,6 +1801,9 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_getResultType", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXType getResultType(CXType @T);
 
+        [DllImport(libraryPath, EntryPoint = "clang_getExceptionSpecificationType", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int getExceptionSpecificationType(CXType @T);
+
         [DllImport(libraryPath, EntryPoint = "clang_getNumArgTypes", CallingConvention = CallingConvention.Cdecl)]
         public static extern int getNumArgTypes(CXType @T);
 
@@ -1690,6 +1815,9 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorResultType", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXType getCursorResultType(CXCursor @C);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getCursorExceptionSpecificationType", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int getCursorExceptionSpecificationType(CXCursor @C);
 
         [DllImport(libraryPath, EntryPoint = "clang_isPODType", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint isPODType(CXType @T);
@@ -1708,6 +1836,9 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_Type_getNamedType", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXType Type_getNamedType(CXType @T);
+
+        [DllImport(libraryPath, EntryPoint = "clang_Type_isTransparentTagTypedef", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint Type_isTransparentTagTypedef(CXType @T);
 
         [DllImport(libraryPath, EntryPoint = "clang_Type_getAlignOf", CallingConvention = CallingConvention.Cdecl)]
         public static extern long Type_getAlignOf(CXType @T);
@@ -1823,6 +1954,9 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_isVariadic", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint Cursor_isVariadic(CXCursor @C);
 
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_isExternalSymbol", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint Cursor_isExternalSymbol(CXCursor @C, out CXString @language, out CXString @definedIn, out uint @isGenerated);
+
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getCommentRange", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXSourceRange Cursor_getCommentRange(CXCursor @C);
 
@@ -1837,6 +1971,9 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getCXXManglings", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Cursor_getCXXManglings(CXCursor @param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_getObjCManglings", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Cursor_getObjCManglings(CXCursor @param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getModule", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXModule Cursor_getModule(CXCursor @C);
@@ -1891,6 +2028,12 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_CXXMethod_isVirtual", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint CXXMethod_isVirtual(CXCursor @C);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CXXRecord_isAbstract", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint CXXRecord_isAbstract(CXCursor @C);
+
+        [DllImport(libraryPath, EntryPoint = "clang_EnumDecl_isScoped", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint EnumDecl_isScoped(CXCursor @C);
 
         [DllImport(libraryPath, EntryPoint = "clang_CXXMethod_isConst", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint CXXMethod_isConst(CXCursor @C);
@@ -2014,6 +2157,15 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsInt", CallingConvention = CallingConvention.Cdecl)]
         public static extern int EvalResult_getAsInt(CXEvalResult @E);
+
+        [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsLongLong", CallingConvention = CallingConvention.Cdecl)]
+        public static extern long EvalResult_getAsLongLong(CXEvalResult @E);
+
+        [DllImport(libraryPath, EntryPoint = "clang_EvalResult_isUnsignedInt", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint EvalResult_isUnsignedInt(CXEvalResult @E);
+
+        [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsUnsigned", CallingConvention = CallingConvention.Cdecl)]
+        public static extern ulong EvalResult_getAsUnsigned(CXEvalResult @E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsDouble", CallingConvention = CallingConvention.Cdecl)]
         public static extern double EvalResult_getAsDouble(CXEvalResult @E);
