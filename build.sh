@@ -23,3 +23,5 @@ dotnet run -p ClangSharpPInvokeGenerator \
 	--excludeFunctions clang_index_getClientEntity,clang_index_setClientEntity,clang_createTranslationUnitFromSourceFile,clang_parseTranslationUnit,clang_parseTranslationUnit2,clang_parseTranslationUnit2FullArgv,clang_reparseTranslationUnit,clang_codeCompleteAt,clang_indexSourceFile,clang_indexSourceFileFullArgv
 
 dotnet build ClangSharp
+
+dotnet test ClangSharp.Test
