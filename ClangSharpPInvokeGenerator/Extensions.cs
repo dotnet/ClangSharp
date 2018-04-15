@@ -226,8 +226,13 @@
         {
             bool isConstQualifiedType = clang.isConstQualifiedType(type) != 0;
             string spelling;
+
             switch (type.kind)
             {
+                // Need to unwrap elaborated types
+                case CXTypeKind.CXType_Elaborated:
+                    CommonTypeHandling(clang.Type_getNamedType(type), tw, outParam);
+                    return;
                 case CXTypeKind.CXType_Typedef:
                     var cursor = clang.getTypeDeclaration(type);
                     if (clang.Location_isInSystemHeader(clang.getCursorLocation(cursor)) != 0)
@@ -247,7 +252,6 @@
                     CommonTypeHandling(clang.getArrayElementType(type), tw);
                     spelling = "[]";
                     break;
-                case CXTypeKind.CXType_Elaborated:
                 case CXTypeKind.CXType_Unexposed: // Often these are enums and canonical type gets you the enum spelling
                     var canonical = clang.getCanonicalType(type);
                     // unexposed decl which turns into a function proto seems to be an un-typedef'd fn pointer
