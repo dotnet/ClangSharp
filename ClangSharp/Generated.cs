@@ -43,18 +43,18 @@ namespace ClangSharp
 
     public partial struct CXFileUniqueID
     {
-        public ulong @data0; public ulong @data1; public ulong @data2; 
+        public ulong @data0; public ulong @data1; public ulong @data2;
     }
 
     public partial struct CXSourceLocation
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
         public uint @int_data;
     }
 
     public partial struct CXSourceRange
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
         public uint @begin_int_data;
         public uint @end_int_data;
     }
@@ -82,7 +82,7 @@ namespace ClangSharp
     {
         public CXCursorKind @kind;
         public int @xdata;
-        public IntPtr @data0; public IntPtr @data1; public IntPtr @data2; 
+        public IntPtr @data0; public IntPtr @data1; public IntPtr @data2;
     }
 
     public partial struct CXPlatformAvailability
@@ -102,12 +102,12 @@ namespace ClangSharp
     public partial struct CXType
     {
         public CXTypeKind @kind;
-        public IntPtr @data0; public IntPtr @data1; 
+        public IntPtr @data0; public IntPtr @data1;
     }
 
     public partial struct CXToken
     {
-        public uint @int_data0; public uint @int_data1; public uint @int_data2; public uint @int_data3; 
+        public uint @int_data0; public uint @int_data1; public uint @int_data2; public uint @int_data3;
         public IntPtr @ptr_data;
     }
 
@@ -131,7 +131,7 @@ namespace ClangSharp
 
     public partial struct CXIdxLoc
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
         public uint @int_data;
     }
 
@@ -1251,6 +1251,7 @@ namespace ClangSharp
         private const string libraryPath = "libclang";
 
         [DllImport(libraryPath, EntryPoint = "clang_getCString", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringReturnMarshaller))]
         public static extern string getCString(CXString @string);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeString", CallingConvention = CallingConvention.Cdecl)]
@@ -1321,6 +1322,10 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_getFile", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXFile getFile(CXTranslationUnit @tu, [MarshalAs(UnmanagedType.LPStr)] string @file_name);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getFileContents", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringReturnMarshaller))]
+        public static extern string getFileContents(CXTranslationUnit @tu, CXFile @file, out int @size);
 
         [DllImport(libraryPath, EntryPoint = "clang_File_isEqual", CallingConvention = CallingConvention.Cdecl)]
         public static extern int File_isEqual(CXFile @file1, CXFile @file2);
@@ -1473,6 +1478,7 @@ namespace ClangSharp
         public static extern uint defaultReparseOptions(CXTranslationUnit @TU);
 
         [DllImport(libraryPath, EntryPoint = "clang_getTUResourceUsageName", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringReturnMarshaller))]
         public static extern string getTUResourceUsageName(CXTUResourceUsageKind @kind);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCXTUResourceUsage", CallingConvention = CallingConvention.Cdecl)]
@@ -2013,6 +2019,7 @@ namespace ClangSharp
         public static extern double EvalResult_getAsDouble(CXEvalResult @E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsStr", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringReturnMarshaller))]
         public static extern string EvalResult_getAsStr(CXEvalResult @E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_dispose", CallingConvention = CallingConvention.Cdecl)]

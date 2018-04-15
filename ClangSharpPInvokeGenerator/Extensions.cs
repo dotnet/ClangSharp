@@ -119,6 +119,9 @@
             var resultType = clang.getCursorResultType(cursor);
 
             tw.WriteLine("        [DllImport(libraryPath, EntryPoint = \"" + functionName + "\", CallingConvention = " + functionType.CallingConventionSpelling() + ")]");
+            if(resultType.IsPtrToConstChar())
+                tw.WriteLine("        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringReturnMarshaller))]");
+
             tw.Write("        public static extern ");
 
             ReturnTypeHelper(resultType, tw);
