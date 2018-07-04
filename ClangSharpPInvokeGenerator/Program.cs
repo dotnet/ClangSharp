@@ -1,4 +1,4 @@
-﻿namespace ClangSharpPInvokeGenerator
+namespace ClangSharpPInvokeGenerator
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +13,7 @@
         {
             Regex re = new Regex(@"(?<switch>-{1,2}\S*)(?:[=:]?|\s+)(?<value>[^-\s].*?)?(?=\s+[-]|$)");
             List<KeyValuePair<string, string>> matches = (from match in re.Matches(string.Join(" ", args)).Cast<Match>()
-                select new KeyValuePair<string, string>(match.Groups["switch"].Value, match.Groups["value"].Value))
+                                                          select new KeyValuePair<string, string>(match.Groups["switch"].Value, match.Groups["value"].Value))
                 .ToList();
 
             var files = new List<string>();
@@ -99,7 +99,7 @@
                 }
             }
 
-            if(!string.IsNullOrEmpty(excludeFunctions))
+            if (!string.IsNullOrEmpty(excludeFunctions))
             {
                 excludeFunctionsArray = excludeFunctions.Split(',').Select(x => x.Trim()).ToArray();
             }
@@ -135,6 +135,8 @@
 
             using (var sw = new StreamWriter(outputFile))
             {
+                sw.NewLine = "\n";
+
                 sw.WriteLine("namespace " + @namespace);
                 sw.WriteLine("{");
 

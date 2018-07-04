@@ -1,8 +1,8 @@
-﻿namespace ClangSharpPInvokeGenerator
+namespace ClangSharpPInvokeGenerator
 {
     using System;
-    using System.IO;
     using System.Collections.Generic;
+    using System.IO;
     using ClangSharp;
 
     internal sealed class TypeDefVisitor : ICXCursorVisitor
@@ -49,7 +49,7 @@
                     var canonical = clang.getCanonicalType(type);
                     if (canonical.kind == CXTypeKind.CXType_Unexposed)
                     {
-                        return CXChildVisitResult.CXChildVisit_Continue; 
+                        return CXChildVisitResult.CXChildVisit_Continue;
                     }
                 }
 
@@ -83,7 +83,7 @@
 
                         uint argumentCounter = 0;
 
-                        clang.visitChildren(cursor, delegate(CXCursor cxCursor, CXCursor parent1, IntPtr ptr)
+                        clang.visitChildren(cursor, delegate (CXCursor cxCursor, CXCursor parent1, IntPtr ptr)
                         {
                             if (cxCursor.kind == CXCursorKind.CXCursor_ParmDecl)
                             {

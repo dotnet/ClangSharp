@@ -1,5 +1,6 @@
-﻿namespace ClangSharpPInvokeGenerator
+namespace ClangSharpPInvokeGenerator
 {
+    using System;
     using System.IO;
     using System.Text;
     using ClangSharp;
@@ -92,13 +93,13 @@
                         sb.Append("public " + elementType.ToPlainTypeString() + " @" + cursorSpelling + i + "; ");
                     }
 
-                    return sb.ToString();
+                    return sb.ToString().TrimEnd();
                 case CXTypeKind.CXType_Pointer:
                     var pointeeType = clang.getCanonicalType(clang.getPointeeType(canonical));
                     switch (pointeeType.kind)
                     {
                         case CXTypeKind.CXType_Char_S:
-                            return "[MarshalAs(UnmanagedType.LPStr)] public string @" + cursorSpelling + ";";
+                            return "[MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string @" + cursorSpelling + ";";
                         case CXTypeKind.CXType_WChar:
                             return "[MarshalAs(UnmanagedType.LPWStr)] public string @" + cursorSpelling + ";";
                         default:
@@ -119,8 +120,8 @@
             var resultType = clang.getCursorResultType(cursor);
 
             tw.WriteLine("        [DllImport(libraryPath, EntryPoint = \"" + functionName + "\", CallingConvention = " + functionType.CallingConventionSpelling() + ")]");
-            if(resultType.IsPtrToConstChar())
-                tw.WriteLine("        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringReturnMarshaller))]");
+            if (resultType.IsPtrToConstChar())
+                tw.WriteLine("        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))]");
 
             tw.Write("        public static extern ");
 
@@ -198,7 +199,7 @@
                             tw.Write("IntPtr");
                             break;
                         case CXTypeKind.CXType_Char_S:
-                            tw.Write(type.IsPtrToConstChar() ? "[MarshalAs(UnmanagedType.LPStr)] string" : "IntPtr"); // if it's not a const, it's best to go with IntPtr
+                            tw.Write(type.IsPtrToConstChar() ? "[MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string" : "IntPtr"); // if it's not a const, it's best to go with IntPtr
                             break;
                         case CXTypeKind.CXType_WChar:
                             tw.Write(type.IsPtrToConstChar() ? "[MarshalAs(UnmanagedType.LPWStr)] string" : "IntPtr");
@@ -235,9 +236,23 @@
                     return;
                 case CXTypeKind.CXType_Typedef:
                     var cursor = clang.getTypeDeclaration(type);
-                    if (clang.Location_isInSystemHeader(clang.getCursorLocation(cursor)) != 0)
+                    var location = clang.getCursorLocation(cursor);
+
+                    // For some reason size_t isn't considered as within a system header.
+                    // We work around this by asking for the file name - if it's unknown, probably it's a system header
+                    var isInSystemHeader = clang.Location_isInSystemHeader(clang.getCursorLocation(cursor)) != 0;
+                    clang.getPresumedLocation(clang.getCursorLocation(cursor), out CXString @filename, out uint @line, out uint @column);
+                    isInSystemHeader |= filename.ToString() == string.Empty;
+
+                    if (isInSystemHeader)
                     {
-                        spelling = clang.getCanonicalType(type).ToPlainTypeString();
+                        // Cross-plat:
+                        // Getting the actual type of a typedef is painful, since platforms don't even agree on the meaning of types;
+                        // 64-bit is "long long" on Windows but "long" on Linux, for historical reasons.
+                        // The easiest way is to just get the size & signed-ness and write the type ourselves
+                        var size = clang.Type_getSizeOf(type);
+                        var signed = !clang.getTypedefDeclUnderlyingType(cursor).ToString().Contains("unsigned");
+                        spelling = GetTypeName(size, signed);
                     }
                     else
                     {
@@ -275,6 +290,47 @@
             }
 
             tw.Write(outParam + spelling);
+        }
+
+        private static string GetTypeName(long size, bool signed)
+        {
+            if (signed)
+            {
+                switch (size)
+                {
+                    case 1:
+                        return "sbyte";
+
+                    case 2:
+                        return "short";
+
+                    case 4:
+                        return "int";
+
+                    case 8:
+                        return "long";
+                }
+            }
+            else
+            {
+
+                switch (size)
+                {
+                    case 1:
+                        return "byte";
+
+                    case 2:
+                        return "ushort";
+
+                    case 4:
+                        return "uint";
+
+                    case 8:
+                        return "ulong";
+                }
+            }
+
+            throw new Exception("Unknown size.");
         }
     }
 }

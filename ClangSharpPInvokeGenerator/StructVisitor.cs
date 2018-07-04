@@ -1,4 +1,4 @@
-﻿namespace ClangSharpPInvokeGenerator
+namespace ClangSharpPInvokeGenerator
 {
     using System;
     using System.Collections.Generic;

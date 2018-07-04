@@ -1,4 +1,4 @@
-﻿namespace ClangSharp
+namespace ClangSharp
 {
     public partial struct CXString
     {

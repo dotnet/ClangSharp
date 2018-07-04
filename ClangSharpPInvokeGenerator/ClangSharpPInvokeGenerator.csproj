@@ -9,4 +9,19 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
+  <!-- libclang name, unlikely to need overriding -->
+  <PropertyGroup Condition="'$(LibClangName)' == ''">
+    <LibClangName>libclang</LibClangName>
+  </PropertyGroup>
+
+  <!-- Auto-detect LLVM... more or less -->
+  <PropertyGroup Condition="'$(LLVMIncludePath)' == ''">
+    <LLVMIncludePath Condition="'$(OS)' == 'Windows_NT'">C:\Program Files\LLVM\include</LLVMIncludePath>
+    <LLVMIncludePath Condition="'$(OS)' != 'Windows_NT'">/usr/lib/llvm-6.0/include</LLVMIncludePath>
+  </PropertyGroup>
+
+  <Target Name="GenerateClangSharp">
+    <Exec Command="dotnet run --m clang --p clang_ --namespace ClangSharp --output ../ClangSharp/Generated.cs --libraryPath $(LibClangName) --include $(LLVMIncludePath) --file $(LLVMIncludePath)/clang-c/Index.h --file $(LLVMIncludePath)/clang-c/CXString.h --file $(LLVMIncludePath)/clang-c/Documentation.h --file $(LLVMIncludePath)/clang-c/CXErrorCode.h --file $(LLVMIncludePath)/clang-c/BuildSystem.h --file $(LLVMIncludePath)/clang-c/CXCompilationDatabase.h --excludeFunctions clang_index_getClientEntity,clang_index_setClientEntity,clang_createTranslationUnitFromSourceFile,clang_parseTranslationUnit,clang_parseTranslationUnit2,clang_parseTranslationUnit2FullArgv,clang_reparseTranslationUnit,clang_codeCompleteAt,clang_indexSourceFile,clang_indexSourceFileFullArgv" />
+  </Target>
+
 </Project>

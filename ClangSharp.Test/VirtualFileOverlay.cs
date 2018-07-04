@@ -4,6 +4,11 @@ using Xunit;
 
 namespace ClangSharp.Test
 {
+    // NOTE: To make those tests work on both Windows and *nix,
+    //       begin any absolute path with "$ROOT$", which the TestVFO infra will replace
+    //       with either "C:" (Windows) or nothing (*nix) so that clang understands the path.
+    //       (Technically, /a/path/like/this is a path relative to the root of the current drive
+    //        on Windows, but clang doesn't seem to support this)
     public class VirtualFileOverlay
     {
         class TestVFO : IDisposable
@@ -14,7 +19,7 @@ namespace ClangSharp.Test
             public TestVFO(string contents)
             {
                 VFO = clang.VirtualFileOverlay_create(0);
-                Contents = contents;
+                Contents = Fix(contents);
             }
 
             ~TestVFO()
@@ -24,14 +29,31 @@ namespace ClangSharp.Test
 
             public void Map(string vPath, string rPath)
             {
+                vPath = Fix(vPath);
+                rPath = Fix(rPath);
+
                 var err = clang.VirtualFileOverlay_addFileMapping(VFO, vPath, rPath);
                 Assert.Equal(CXErrorCode.CXError_Success, err);
             }
 
             public void MapError(string vPath, string rPath, CXErrorCode expErr)
             {
+                vPath = Fix(vPath);
+                rPath = Fix(rPath);
+
                 var err = clang.VirtualFileOverlay_addFileMapping(VFO, vPath, rPath);
                 Assert.Equal(expErr, err);
+            }
+
+            private string Fix(string text)
+            {
+                if (text == null)
+                {
+                    return null;
+                }
+
+                var replacement = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "C:" : "";
+                return text.Replace("$ROOT$", replacement);
             }
 
             bool disposed = false;
@@ -44,10 +66,10 @@ namespace ClangSharp.Test
 
             protected virtual void Dispose(bool disposing)
             {
-                if(disposed)
+                if (disposed)
                     return;
 
-                if(Contents != null)
+                if (Contents != null)
                 {
                     IntPtr bufPtr;
                     uint bufSize = 0;
@@ -72,21 +94,21 @@ namespace ClangSharp.Test
                 + "  'roots': [\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/path/virtual\",\n"
+                + "      'name': \"$ROOT$/path/virtual\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"foo.h\",\n"
-                + "          'external-contents': \"/real/foo.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/foo.h\"\n"
                 + "        }\n"
                 + "      ]\n"
                 + "    }\n"
                 + "  ]\n"
                 + "}\n";
 
-            using(TestVFO T = new TestVFO(contents))
+            using (TestVFO T = new TestVFO(contents))
             {
-                T.Map("/path/virtual/foo.h", "/real/foo.h");
+                T.Map(@"$ROOT$/path/virtual/foo.h", @"$ROOT$/real/foo.h");
             }
         }
 
@@ -99,30 +121,30 @@ namespace ClangSharp.Test
                 + "  'roots': [\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/path/\\u266B\",\n"
+                + "      'name': \"$ROOT$/path/\\u266B\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"\\u2602.h\",\n"
-                + "          'external-contents': \"/real/\\u2602.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/\\u2602.h\"\n"
                 + "        }\n"
                 + "      ]\n"
                 + "    }\n"
                 + "  ]\n"
                 + "}\n";
 
-            using(TestVFO T = new TestVFO(contents))
+            using (TestVFO T = new TestVFO(contents))
             {
-                T.Map("/path/♫/☂.h", "/real/☂.h");
+                T.Map("$ROOT$/path/♫/☂.h", "$ROOT$/real/☂.h");
             }
         }
 
         [Fact]
         public void InvalidArgs()
         {
-            using(TestVFO T = new TestVFO(null))
+            using (TestVFO T = new TestVFO(null))
             {
-                T.MapError("/path/./virtual/../foo.h", "/real/foo.h",
+                T.MapError("$ROOT$/path/./virtual/../foo.h", "$ROOT$/real/foo.h",
                            CXErrorCode.CXError_InvalidArguments);
             }
         }
@@ -136,28 +158,28 @@ namespace ClangSharp.Test
                 + "  'roots': [\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/another/dir\",\n"
+                + "      'name': \"$ROOT$/another/dir\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"foo2.h\",\n"
-                + "          'external-contents': \"/real/foo2.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/foo2.h\"\n"
                 + "        }\n"
                 + "      ]\n"
                 + "    },\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/path/virtual/dir\",\n"
+                + "      'name': \"$ROOT$/path/virtual/dir\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"foo1.h\",\n"
-                + "          'external-contents': \"/real/foo1.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/foo1.h\"\n"
                 + "        },\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"foo3.h\",\n"
-                + "          'external-contents': \"/real/foo3.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/foo3.h\"\n"
                 + "        },\n"
                 + "        {\n"
                 + "          'type': 'directory',\n"
@@ -166,7 +188,7 @@ namespace ClangSharp.Test
                 + "            {\n"
                 + "              'type': 'file',\n"
                 + "              'name': \"foo4.h\",\n"
-                + "              'external-contents': \"/real/foo4.h\"\n"
+                + "              'external-contents': \"$ROOT$/real/foo4.h\"\n"
                 + "            }\n"
                 + "          ]\n"
                 + "        }\n"
@@ -175,12 +197,12 @@ namespace ClangSharp.Test
                 + "  ]\n"
                 + "}\n";
 
-            using(TestVFO T = new TestVFO(contents))
+            using (TestVFO T = new TestVFO(contents))
             {
-                T.Map("/path/virtual/dir/foo1.h", "/real/foo1.h");
-                T.Map("/another/dir/foo2.h", "/real/foo2.h");
-                T.Map("/path/virtual/dir/foo3.h", "/real/foo3.h");
-                T.Map("/path/virtual/dir/in/subdir/foo4.h", "/real/foo4.h");
+                T.Map("$ROOT$/path/virtual/dir/foo1.h", "$ROOT$/real/foo1.h");
+                T.Map("$ROOT$/another/dir/foo2.h", "$ROOT$/real/foo2.h");
+                T.Map("$ROOT$/path/virtual/dir/foo3.h", "$ROOT$/real/foo3.h");
+                T.Map("$ROOT$/path/virtual/dir/in/subdir/foo4.h", "$ROOT$/real/foo4.h");
             }
         }
 
@@ -194,21 +216,21 @@ namespace ClangSharp.Test
                 + "  'roots': [\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/path/virtual\",\n"
+                + "      'name': \"$ROOT$/path/virtual\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"foo.h\",\n"
-                + "          'external-contents': \"/real/foo.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/foo.h\"\n"
                 + "        }\n"
                 + "      ]\n"
                 + "    }\n"
                 + "  ]\n"
                 + "}\n";
 
-            using(TestVFO T = new TestVFO(contents))
+            using (TestVFO T = new TestVFO(contents))
             {
-                T.Map("/path/virtual/foo.h", "/real/foo.h");
+                T.Map("$ROOT$/path/virtual/foo.h", "$ROOT$/real/foo.h");
                 clang.VirtualFileOverlay_setCaseSensitivity(T.VFO, 0);
             }
         }
@@ -222,51 +244,51 @@ namespace ClangSharp.Test
                 + "  'roots': [\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/path/foo\",\n"
+                + "      'name': \"$ROOT$/path/foo\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"bar\",\n"
-                + "          'external-contents': \"/real/bar\"\n"
+                + "          'external-contents': \"$ROOT$/real/bar\"\n"
                 + "        },\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"bar.h\",\n"
-                + "          'external-contents': \"/real/bar.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/bar.h\"\n"
                 + "        }\n"
                 + "      ]\n"
                 + "    },\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/path/foobar\",\n"
+                + "      'name': \"$ROOT$/path/foobar\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"baz.h\",\n"
-                + "          'external-contents': \"/real/baz.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/baz.h\"\n"
                 + "        }\n"
                 + "      ]\n"
                 + "    },\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/path\",\n"
+                + "      'name': \"$ROOT$/path\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"foobarbaz.h\",\n"
-                + "          'external-contents': \"/real/foobarbaz.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/foobarbaz.h\"\n"
                 + "        }\n"
                 + "      ]\n"
                 + "    }\n"
                 + "  ]\n"
                 + "}\n";
 
-            using(TestVFO T = new TestVFO(contents))
+            using (TestVFO T = new TestVFO(contents))
             {
-                T.Map("/path/foo/bar.h", "/real/bar.h");
-                T.Map("/path/foo/bar", "/real/bar");
-                T.Map("/path/foobar/baz.h", "/real/baz.h");
-                T.Map("/path/foobarbaz.h", "/real/foobarbaz.h");
+                T.Map("$ROOT$/path/foo/bar.h", "$ROOT$/real/bar.h");
+                T.Map("$ROOT$/path/foo/bar", "$ROOT$/real/bar");
+                T.Map("$ROOT$/path/foobar/baz.h", "$ROOT$/real/baz.h");
+                T.Map("$ROOT$/path/foobarbaz.h", "$ROOT$/real/foobarbaz.h");
             }
         }
 
@@ -279,12 +301,12 @@ namespace ClangSharp.Test
                 + "  'roots': [\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/path/dir1\",\n"
+                + "      'name': \"$ROOT$/path/dir1\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"foo.h\",\n"
-                + "          'external-contents': \"/real/foo.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/foo.h\"\n"
                 + "        },\n"
                 + "        {\n"
                 + "          'type': 'directory',\n"
@@ -293,7 +315,7 @@ namespace ClangSharp.Test
                 + "            {\n"
                 + "              'type': 'file',\n"
                 + "              'name': \"bar.h\",\n"
-                + "              'external-contents': \"/real/bar.h\"\n"
+                + "              'external-contents': \"$ROOT$/real/bar.h\"\n"
                 + "            }\n"
                 + "          ]\n"
                 + "        }\n"
@@ -301,23 +323,23 @@ namespace ClangSharp.Test
                 + "    },\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/path/dir2\",\n"
+                + "      'name': \"$ROOT$/path/dir2\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"baz.h\",\n"
-                + "          'external-contents': \"/real/baz.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/baz.h\"\n"
                 + "        }\n"
                 + "      ]\n"
                 + "    }\n"
                 + "  ]\n"
                 + "}\n";
 
-            using(TestVFO T = new TestVFO(contents))
+            using (TestVFO T = new TestVFO(contents))
             {
-                T.Map("/path/dir1/foo.h", "/real/foo.h");
-                T.Map("/path/dir1/subdir/bar.h", "/real/bar.h");
-                T.Map("/path/dir2/baz.h", "/real/baz.h");
+                T.Map("$ROOT$/path/dir1/foo.h", "$ROOT$/real/foo.h");
+                T.Map("$ROOT$/path/dir1/subdir/bar.h", "$ROOT$/real/bar.h");
+                T.Map("$ROOT$/path/dir2/baz.h", "$ROOT$/real/baz.h");
             }
         }
 
@@ -330,21 +352,21 @@ namespace ClangSharp.Test
                 + "  'roots': [\n"
                 + "    {\n"
                 + "      'type': 'directory',\n"
-                + "      'name': \"/\",\n"
+                + "      'name': \"$ROOT$/\",\n"
                 + "      'contents': [\n"
                 + "        {\n"
                 + "          'type': 'file',\n"
                 + "          'name': \"foo.h\",\n"
-                + "          'external-contents': \"/real/foo.h\"\n"
+                + "          'external-contents': \"$ROOT$/real/foo.h\"\n"
                 + "        }\n"
                 + "      ]\n"
                 + "    }\n"
                 + "  ]\n"
                 + "}\n";
 
-            using(TestVFO T = new TestVFO(contents))
+            using (TestVFO T = new TestVFO(contents))
             {
-                T.Map("/foo.h", "/real/foo.h");
+                T.Map("$ROOT$/foo.h", "$ROOT$/real/foo.h");
             }
         }
 
@@ -358,7 +380,7 @@ namespace ClangSharp.Test
                 + "  ]\n"
                 + "}\n";
 
-            using(TestVFO T = new TestVFO(contents))
+            using (TestVFO T = new TestVFO(contents))
             {
             }
         }
