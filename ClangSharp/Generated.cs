@@ -23,14 +23,18 @@ namespace ClangSharp
     {
     }
 
+    public partial struct CXTargetInfoImpl
+    {
+    }
+
     public partial struct CXTranslationUnitImpl
     {
     }
 
     public partial struct CXUnsavedFile
     {
-        [MarshalAs(UnmanagedType.LPStr)] public string @Filename;
-        [MarshalAs(UnmanagedType.LPStr)] public string @Contents;
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string @Filename;
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string @Contents;
         public int @Length;
     }
 
@@ -43,18 +47,18 @@ namespace ClangSharp
 
     public partial struct CXFileUniqueID
     {
-        public ulong @data0; public ulong @data1; public ulong @data2; 
+        public ulong @data0; public ulong @data1; public ulong @data2;
     }
 
     public partial struct CXSourceLocation
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
         public uint @int_data;
     }
 
     public partial struct CXSourceRange
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
         public uint @begin_int_data;
         public uint @end_int_data;
     }
@@ -82,7 +86,7 @@ namespace ClangSharp
     {
         public CXCursorKind @kind;
         public int @xdata;
-        public IntPtr @data0; public IntPtr @data1; public IntPtr @data2; 
+        public IntPtr @data0; public IntPtr @data1; public IntPtr @data2;
     }
 
     public partial struct CXPlatformAvailability
@@ -102,12 +106,12 @@ namespace ClangSharp
     public partial struct CXType
     {
         public CXTypeKind @kind;
-        public IntPtr @data0; public IntPtr @data1; 
+        public IntPtr @data0; public IntPtr @data1;
     }
 
     public partial struct CXToken
     {
-        public uint @int_data0; public uint @int_data1; public uint @int_data2; public uint @int_data3; 
+        public uint @int_data0; public uint @int_data1; public uint @int_data2; public uint @int_data3;
         public IntPtr @ptr_data;
     }
 
@@ -131,14 +135,14 @@ namespace ClangSharp
 
     public partial struct CXIdxLoc
     {
-        public IntPtr @ptr_data0; public IntPtr @ptr_data1; 
+        public IntPtr @ptr_data0; public IntPtr @ptr_data1;
         public uint @int_data;
     }
 
     public partial struct CXIdxIncludedFileInfo
     {
         public CXIdxLoc @hashLoc;
-        [MarshalAs(UnmanagedType.LPStr)] public string @filename;
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string @filename;
         public IntPtr @file;
         public int @isImport;
         public int @isAngled;
@@ -165,8 +169,8 @@ namespace ClangSharp
         public CXIdxEntityKind @kind;
         public CXIdxEntityCXXTemplateKind @templateKind;
         public CXIdxEntityLanguage @lang;
-        [MarshalAs(UnmanagedType.LPStr)] public string @name;
-        [MarshalAs(UnmanagedType.LPStr)] public string @USR;
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string @name;
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string @USR;
         public CXCursor @cursor;
         public IntPtr @attributes;
         public uint @numAttributes;
@@ -309,6 +313,16 @@ namespace ClangSharp
     public partial struct CXIndex
     {
         public CXIndex(IntPtr pointer)
+        {
+            this.Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXTargetInfo
+    {
+        public CXTargetInfo(IntPtr pointer)
         {
             this.Pointer = pointer;
         }
@@ -522,6 +536,19 @@ namespace ClangSharp
         @CXAvailability_NotAccessible = 3,
     }
 
+    public enum CXCursor_ExceptionSpecificationKind : int
+    {
+        @CXCursor_ExceptionSpecificationKind_None = 0,
+        @CXCursor_ExceptionSpecificationKind_DynamicNone = 1,
+        @CXCursor_ExceptionSpecificationKind_Dynamic = 2,
+        @CXCursor_ExceptionSpecificationKind_MSAny = 3,
+        @CXCursor_ExceptionSpecificationKind_BasicNoexcept = 4,
+        @CXCursor_ExceptionSpecificationKind_ComputedNoexcept = 5,
+        @CXCursor_ExceptionSpecificationKind_Unevaluated = 6,
+        @CXCursor_ExceptionSpecificationKind_Uninstantiated = 7,
+        @CXCursor_ExceptionSpecificationKind_Unparsed = 8,
+    }
+
     public enum CXGlobalOptFlags : int
     {
         @CXGlobalOpt_None = 0,
@@ -570,6 +597,7 @@ namespace ClangSharp
         @CXTranslationUnit_IncludeBriefCommentsInCodeCompletion = 128,
         @CXTranslationUnit_CreatePreambleOnFirstParse = 256,
         @CXTranslationUnit_KeepGoing = 512,
+        @CXTranslationUnit_SingleFileParse = 1024,
     }
 
     public enum CXSaveTranslationUnit_Flags : int
@@ -797,7 +825,17 @@ namespace ClangSharp
         @CXCursor_OMPDistributeParallelForSimdDirective = 267,
         @CXCursor_OMPDistributeSimdDirective = 268,
         @CXCursor_OMPTargetParallelForSimdDirective = 269,
-        @CXCursor_LastStmt = 269,
+        @CXCursor_OMPTargetSimdDirective = 270,
+        @CXCursor_OMPTeamsDistributeDirective = 271,
+        @CXCursor_OMPTeamsDistributeSimdDirective = 272,
+        @CXCursor_OMPTeamsDistributeParallelForSimdDirective = 273,
+        @CXCursor_OMPTeamsDistributeParallelForDirective = 274,
+        @CXCursor_OMPTargetTeamsDirective = 275,
+        @CXCursor_OMPTargetTeamsDistributeDirective = 276,
+        @CXCursor_OMPTargetTeamsDistributeParallelForDirective = 277,
+        @CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective = 278,
+        @CXCursor_OMPTargetTeamsDistributeSimdDirective = 279,
+        @CXCursor_LastStmt = 279,
         @CXCursor_TranslationUnit = 300,
         @CXCursor_FirstAttr = 400,
         @CXCursor_UnexposedAttr = 400,
@@ -831,8 +869,9 @@ namespace ClangSharp
         @CXCursor_ModuleImportDecl = 600,
         @CXCursor_TypeAliasTemplateDecl = 601,
         @CXCursor_StaticAssert = 602,
+        @CXCursor_FriendDecl = 603,
         @CXCursor_FirstExtraDecl = 600,
-        @CXCursor_LastExtraDecl = 602,
+        @CXCursor_LastExtraDecl = 603,
         @CXCursor_OverloadCandidate = 700,
     }
 
@@ -859,6 +898,13 @@ namespace ClangSharp
         @CXLanguage_C = 1,
         @CXLanguage_ObjC = 2,
         @CXLanguage_CPlusPlus = 3,
+    }
+
+    public enum CXTLSKind : int
+    {
+        @CXTLS_None = 0,
+        @CXTLS_Dynamic = 1,
+        @CXTLS_Static = 2,
     }
 
     public enum CXTypeKind : int
@@ -894,8 +940,10 @@ namespace ClangSharp
         @CXType_ObjCClass = 28,
         @CXType_ObjCSel = 29,
         @CXType_Float128 = 30,
+        @CXType_Half = 31,
+        @CXType_Float16 = 32,
         @CXType_FirstBuiltin = 2,
-        @CXType_LastBuiltin = 29,
+        @CXType_LastBuiltin = 32,
         @CXType_Complex = 100,
         @CXType_Pointer = 101,
         @CXType_BlockPointer = 102,
@@ -916,6 +964,47 @@ namespace ClangSharp
         @CXType_MemberPointer = 117,
         @CXType_Auto = 118,
         @CXType_Elaborated = 119,
+        @CXType_Pipe = 120,
+        @CXType_OCLImage1dRO = 121,
+        @CXType_OCLImage1dArrayRO = 122,
+        @CXType_OCLImage1dBufferRO = 123,
+        @CXType_OCLImage2dRO = 124,
+        @CXType_OCLImage2dArrayRO = 125,
+        @CXType_OCLImage2dDepthRO = 126,
+        @CXType_OCLImage2dArrayDepthRO = 127,
+        @CXType_OCLImage2dMSAARO = 128,
+        @CXType_OCLImage2dArrayMSAARO = 129,
+        @CXType_OCLImage2dMSAADepthRO = 130,
+        @CXType_OCLImage2dArrayMSAADepthRO = 131,
+        @CXType_OCLImage3dRO = 132,
+        @CXType_OCLImage1dWO = 133,
+        @CXType_OCLImage1dArrayWO = 134,
+        @CXType_OCLImage1dBufferWO = 135,
+        @CXType_OCLImage2dWO = 136,
+        @CXType_OCLImage2dArrayWO = 137,
+        @CXType_OCLImage2dDepthWO = 138,
+        @CXType_OCLImage2dArrayDepthWO = 139,
+        @CXType_OCLImage2dMSAAWO = 140,
+        @CXType_OCLImage2dArrayMSAAWO = 141,
+        @CXType_OCLImage2dMSAADepthWO = 142,
+        @CXType_OCLImage2dArrayMSAADepthWO = 143,
+        @CXType_OCLImage3dWO = 144,
+        @CXType_OCLImage1dRW = 145,
+        @CXType_OCLImage1dArrayRW = 146,
+        @CXType_OCLImage1dBufferRW = 147,
+        @CXType_OCLImage2dRW = 148,
+        @CXType_OCLImage2dArrayRW = 149,
+        @CXType_OCLImage2dDepthRW = 150,
+        @CXType_OCLImage2dArrayDepthRW = 151,
+        @CXType_OCLImage2dMSAARW = 152,
+        @CXType_OCLImage2dArrayMSAARW = 153,
+        @CXType_OCLImage2dMSAADepthRW = 154,
+        @CXType_OCLImage2dArrayMSAADepthRW = 155,
+        @CXType_OCLImage3dRW = 156,
+        @CXType_OCLSampler = 157,
+        @CXType_OCLEvent = 158,
+        @CXType_OCLQueue = 159,
+        @CXType_OCLReserveID = 160,
     }
 
     public enum CXCallingConv : int
@@ -928,7 +1017,9 @@ namespace ClangSharp
         @CXCallingConv_X86Pascal = 5,
         @CXCallingConv_AAPCS = 6,
         @CXCallingConv_AAPCS_VFP = 7,
+        @CXCallingConv_X86RegCall = 8,
         @CXCallingConv_IntelOclBicc = 9,
+        @CXCallingConv_Win64 = 10,
         @CXCallingConv_X86_64Win64 = 10,
         @CXCallingConv_X86_64SysV = 11,
         @CXCallingConv_X86VectorCall = 12,
@@ -1162,6 +1253,7 @@ namespace ClangSharp
         @CXIdxEntityLang_C = 1,
         @CXIdxEntityLang_ObjC = 2,
         @CXIdxEntityLang_CXX = 3,
+        @CXIdxEntityLang_Swift = 4,
     }
 
     public enum CXIdxEntityCXXTemplateKind : int
@@ -1251,6 +1343,7 @@ namespace ClangSharp
         private const string libraryPath = "libclang";
 
         [DllImport(libraryPath, EntryPoint = "clang_getCString", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))]
         public static extern string getCString(CXString @string);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeString", CallingConvention = CallingConvention.Cdecl)]
@@ -1266,7 +1359,7 @@ namespace ClangSharp
         public static extern CXVirtualFileOverlay VirtualFileOverlay_create(uint @options);
 
         [DllImport(libraryPath, EntryPoint = "clang_VirtualFileOverlay_addFileMapping", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode VirtualFileOverlay_addFileMapping(CXVirtualFileOverlay @param0, [MarshalAs(UnmanagedType.LPStr)] string @virtualPath, [MarshalAs(UnmanagedType.LPStr)] string @realPath);
+        public static extern CXErrorCode VirtualFileOverlay_addFileMapping(CXVirtualFileOverlay @param0, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @virtualPath, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @realPath);
 
         [DllImport(libraryPath, EntryPoint = "clang_VirtualFileOverlay_setCaseSensitivity", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXErrorCode VirtualFileOverlay_setCaseSensitivity(CXVirtualFileOverlay @param0, int @caseSensitive);
@@ -1284,10 +1377,10 @@ namespace ClangSharp
         public static extern CXModuleMapDescriptor ModuleMapDescriptor_create(uint @options);
 
         [DllImport(libraryPath, EntryPoint = "clang_ModuleMapDescriptor_setFrameworkModuleName", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode ModuleMapDescriptor_setFrameworkModuleName(CXModuleMapDescriptor @param0, [MarshalAs(UnmanagedType.LPStr)] string @name);
+        public static extern CXErrorCode ModuleMapDescriptor_setFrameworkModuleName(CXModuleMapDescriptor @param0, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @name);
 
         [DllImport(libraryPath, EntryPoint = "clang_ModuleMapDescriptor_setUmbrellaHeader", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode ModuleMapDescriptor_setUmbrellaHeader(CXModuleMapDescriptor @param0, [MarshalAs(UnmanagedType.LPStr)] string @name);
+        public static extern CXErrorCode ModuleMapDescriptor_setUmbrellaHeader(CXModuleMapDescriptor @param0, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @name);
 
         [DllImport(libraryPath, EntryPoint = "clang_ModuleMapDescriptor_writeToBuffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXErrorCode ModuleMapDescriptor_writeToBuffer(CXModuleMapDescriptor @param0, uint @options, out IntPtr @out_buffer_ptr, out uint @out_buffer_size);
@@ -1307,6 +1400,9 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_CXIndex_getGlobalOptions", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint CXIndex_getGlobalOptions(CXIndex @param0);
 
+        [DllImport(libraryPath, EntryPoint = "clang_CXIndex_setInvocationEmissionPathOption", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void CXIndex_setInvocationEmissionPathOption(CXIndex @param0, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @Path);
+
         [DllImport(libraryPath, EntryPoint = "clang_getFileName", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getFileName(CXFile @SFile);
 
@@ -1320,7 +1416,11 @@ namespace ClangSharp
         public static extern uint isFileMultipleIncludeGuarded(CXTranslationUnit @tu, CXFile @file);
 
         [DllImport(libraryPath, EntryPoint = "clang_getFile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXFile getFile(CXTranslationUnit @tu, [MarshalAs(UnmanagedType.LPStr)] string @file_name);
+        public static extern CXFile getFile(CXTranslationUnit @tu, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @file_name);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getFileContents", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))]
+        public static extern string getFileContents(CXTranslationUnit @tu, CXFile @file, out ulong @size);
 
         [DllImport(libraryPath, EntryPoint = "clang_File_isEqual", CallingConvention = CallingConvention.Cdecl)]
         public static extern int File_isEqual(CXFile @file1, CXFile @file2);
@@ -1379,6 +1479,9 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_getSkippedRanges", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr getSkippedRanges(CXTranslationUnit @tu, CXFile @file);
 
+        [DllImport(libraryPath, EntryPoint = "clang_getAllSkippedRanges", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr getAllSkippedRanges(CXTranslationUnit @tu);
+
         [DllImport(libraryPath, EntryPoint = "clang_disposeSourceRangeList", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeSourceRangeList(out CXSourceRangeList @ranges);
 
@@ -1389,7 +1492,7 @@ namespace ClangSharp
         public static extern CXDiagnostic getDiagnosticInSet(CXDiagnosticSet @Diags, uint @Index);
 
         [DllImport(libraryPath, EntryPoint = "clang_loadDiagnostics", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXDiagnosticSet loadDiagnostics([MarshalAs(UnmanagedType.LPStr)] string @file, out CXLoadDiag_Error @error, out CXString @errorString);
+        public static extern CXDiagnosticSet loadDiagnostics([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @file, out CXLoadDiag_Error @error, out CXString @errorString);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeDiagnosticSet", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeDiagnosticSet(CXDiagnosticSet @Diags);
@@ -1452,10 +1555,10 @@ namespace ClangSharp
         public static extern CXString getTranslationUnitSpelling(CXTranslationUnit @CTUnit);
 
         [DllImport(libraryPath, EntryPoint = "clang_createTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXTranslationUnit createTranslationUnit(CXIndex @CIdx, [MarshalAs(UnmanagedType.LPStr)] string @ast_filename);
+        public static extern CXTranslationUnit createTranslationUnit(CXIndex @CIdx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @ast_filename);
 
         [DllImport(libraryPath, EntryPoint = "clang_createTranslationUnit2", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode createTranslationUnit2(CXIndex @CIdx, [MarshalAs(UnmanagedType.LPStr)] string @ast_filename, out CXTranslationUnit @out_TU);
+        public static extern CXErrorCode createTranslationUnit2(CXIndex @CIdx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @ast_filename, out CXTranslationUnit @out_TU);
 
         [DllImport(libraryPath, EntryPoint = "clang_defaultEditingTranslationUnitOptions", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint defaultEditingTranslationUnitOptions();
@@ -1464,7 +1567,10 @@ namespace ClangSharp
         public static extern uint defaultSaveOptions(CXTranslationUnit @TU);
 
         [DllImport(libraryPath, EntryPoint = "clang_saveTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int saveTranslationUnit(CXTranslationUnit @TU, [MarshalAs(UnmanagedType.LPStr)] string @FileName, uint @options);
+        public static extern int saveTranslationUnit(CXTranslationUnit @TU, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @FileName, uint @options);
+
+        [DllImport(libraryPath, EntryPoint = "clang_suspendTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint suspendTranslationUnit(CXTranslationUnit @param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeTranslationUnit(CXTranslationUnit @param0);
@@ -1473,6 +1579,7 @@ namespace ClangSharp
         public static extern uint defaultReparseOptions(CXTranslationUnit @TU);
 
         [DllImport(libraryPath, EntryPoint = "clang_getTUResourceUsageName", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))]
         public static extern string getTUResourceUsageName(CXTUResourceUsageKind @kind);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCXTUResourceUsage", CallingConvention = CallingConvention.Cdecl)]
@@ -1480,6 +1587,18 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeCXTUResourceUsage", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeCXTUResourceUsage(CXTUResourceUsage @usage);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getTranslationUnitTargetInfo", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXTargetInfo getTranslationUnitTargetInfo(CXTranslationUnit @CTUnit);
+
+        [DllImport(libraryPath, EntryPoint = "clang_TargetInfo_dispose", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void TargetInfo_dispose(CXTargetInfo @Info);
+
+        [DllImport(libraryPath, EntryPoint = "clang_TargetInfo_getTriple", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString TargetInfo_getTriple(CXTargetInfo @Info);
+
+        [DllImport(libraryPath, EntryPoint = "clang_TargetInfo_getPointerWidth", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TargetInfo_getPointerWidth(CXTargetInfo @Info);
 
         [DllImport(libraryPath, EntryPoint = "clang_getNullCursor", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXCursor getNullCursor();
@@ -1546,6 +1665,9 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorLanguage", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXLanguageKind getCursorLanguage(CXCursor @cursor);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getCursorTLSKind", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXTLSKind getCursorTLSKind(CXCursor @cursor);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXTranslationUnit Cursor_getTranslationUnit(CXCursor @param0);
@@ -1652,6 +1774,12 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_isRestrictQualifiedType", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint isRestrictQualifiedType(CXType @T);
 
+        [DllImport(libraryPath, EntryPoint = "clang_getAddressSpace", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint getAddressSpace(CXType @T);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getTypedefName", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString getTypedefName(CXType @CT);
+
         [DllImport(libraryPath, EntryPoint = "clang_getPointeeType", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXType getPointeeType(CXType @T);
 
@@ -1673,6 +1801,9 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_getResultType", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXType getResultType(CXType @T);
 
+        [DllImport(libraryPath, EntryPoint = "clang_getExceptionSpecificationType", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int getExceptionSpecificationType(CXType @T);
+
         [DllImport(libraryPath, EntryPoint = "clang_getNumArgTypes", CallingConvention = CallingConvention.Cdecl)]
         public static extern int getNumArgTypes(CXType @T);
 
@@ -1684,6 +1815,9 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorResultType", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXType getCursorResultType(CXCursor @C);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getCursorExceptionSpecificationType", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int getCursorExceptionSpecificationType(CXCursor @C);
 
         [DllImport(libraryPath, EntryPoint = "clang_isPODType", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint isPODType(CXType @T);
@@ -1703,6 +1837,9 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_Type_getNamedType", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXType Type_getNamedType(CXType @T);
 
+        [DllImport(libraryPath, EntryPoint = "clang_Type_isTransparentTagTypedef", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint Type_isTransparentTagTypedef(CXType @T);
+
         [DllImport(libraryPath, EntryPoint = "clang_Type_getAlignOf", CallingConvention = CallingConvention.Cdecl)]
         public static extern long Type_getAlignOf(CXType @T);
 
@@ -1713,7 +1850,7 @@ namespace ClangSharp
         public static extern long Type_getSizeOf(CXType @T);
 
         [DllImport(libraryPath, EntryPoint = "clang_Type_getOffsetOf", CallingConvention = CallingConvention.Cdecl)]
-        public static extern long Type_getOffsetOf(CXType @T, [MarshalAs(UnmanagedType.LPStr)] string @S);
+        public static extern long Type_getOffsetOf(CXType @T, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @S);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getOffsetOfField", CallingConvention = CallingConvention.Cdecl)]
         public static extern long Cursor_getOffsetOfField(CXCursor @C);
@@ -1758,22 +1895,22 @@ namespace ClangSharp
         public static extern CXString getCursorUSR(CXCursor @param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCClass", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCClass([MarshalAs(UnmanagedType.LPStr)] string @class_name);
+        public static extern CXString constructUSR_ObjCClass([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @class_name);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCCategory", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCCategory([MarshalAs(UnmanagedType.LPStr)] string @class_name, [MarshalAs(UnmanagedType.LPStr)] string @category_name);
+        public static extern CXString constructUSR_ObjCCategory([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @class_name, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @category_name);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCProtocol", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCProtocol([MarshalAs(UnmanagedType.LPStr)] string @protocol_name);
+        public static extern CXString constructUSR_ObjCProtocol([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @protocol_name);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCIvar", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCIvar([MarshalAs(UnmanagedType.LPStr)] string @name, CXString @classUSR);
+        public static extern CXString constructUSR_ObjCIvar([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @name, CXString @classUSR);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCMethod", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCMethod([MarshalAs(UnmanagedType.LPStr)] string @name, uint @isInstanceMethod, CXString @classUSR);
+        public static extern CXString constructUSR_ObjCMethod([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @name, uint @isInstanceMethod, CXString @classUSR);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCProperty", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCProperty([MarshalAs(UnmanagedType.LPStr)] string @property, CXString @classUSR);
+        public static extern CXString constructUSR_ObjCProperty([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @property, CXString @classUSR);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorSpelling", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getCursorSpelling(CXCursor @param0);
@@ -1817,6 +1954,9 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_isVariadic", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint Cursor_isVariadic(CXCursor @C);
 
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_isExternalSymbol", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint Cursor_isExternalSymbol(CXCursor @C, out CXString @language, out CXString @definedIn, out uint @isGenerated);
+
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getCommentRange", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXSourceRange Cursor_getCommentRange(CXCursor @C);
 
@@ -1831,6 +1971,9 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getCXXManglings", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Cursor_getCXXManglings(CXCursor @param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_getObjCManglings", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr Cursor_getObjCManglings(CXCursor @param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getModule", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXModule Cursor_getModule(CXCursor @C);
@@ -1885,6 +2028,12 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_CXXMethod_isVirtual", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint CXXMethod_isVirtual(CXCursor @C);
+
+        [DllImport(libraryPath, EntryPoint = "clang_CXXRecord_isAbstract", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint CXXRecord_isAbstract(CXCursor @C);
+
+        [DllImport(libraryPath, EntryPoint = "clang_EnumDecl_isScoped", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint EnumDecl_isScoped(CXCursor @C);
 
         [DllImport(libraryPath, EntryPoint = "clang_CXXMethod_isConst", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint CXXMethod_isConst(CXCursor @C);
@@ -2009,17 +2158,27 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsInt", CallingConvention = CallingConvention.Cdecl)]
         public static extern int EvalResult_getAsInt(CXEvalResult @E);
 
+        [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsLongLong", CallingConvention = CallingConvention.Cdecl)]
+        public static extern long EvalResult_getAsLongLong(CXEvalResult @E);
+
+        [DllImport(libraryPath, EntryPoint = "clang_EvalResult_isUnsignedInt", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint EvalResult_isUnsignedInt(CXEvalResult @E);
+
+        [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsUnsigned", CallingConvention = CallingConvention.Cdecl)]
+        public static extern ulong EvalResult_getAsUnsigned(CXEvalResult @E);
+
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsDouble", CallingConvention = CallingConvention.Cdecl)]
         public static extern double EvalResult_getAsDouble(CXEvalResult @E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsStr", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))]
         public static extern string EvalResult_getAsStr(CXEvalResult @E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_dispose", CallingConvention = CallingConvention.Cdecl)]
         public static extern void EvalResult_dispose(CXEvalResult @E);
 
         [DllImport(libraryPath, EntryPoint = "clang_getRemappings", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXRemapping getRemappings([MarshalAs(UnmanagedType.LPStr)] string @path);
+        public static extern CXRemapping getRemappings([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @path);
 
         [DllImport(libraryPath, EntryPoint = "clang_getRemappingsFromFileList", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXRemapping getRemappingsFromFileList(out IntPtr @filePaths, uint @numFiles);
@@ -2190,13 +2349,13 @@ namespace ClangSharp
         public static extern CXString FullComment_getAsXML(CXComment @Comment);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_fromDirectory", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCompilationDatabase CompilationDatabase_fromDirectory([MarshalAs(UnmanagedType.LPStr)] string @BuildDir, out CXCompilationDatabase_Error @ErrorCode);
+        public static extern CXCompilationDatabase CompilationDatabase_fromDirectory([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @BuildDir, out CXCompilationDatabase_Error @ErrorCode);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_dispose", CallingConvention = CallingConvention.Cdecl)]
         public static extern void CompilationDatabase_dispose(CXCompilationDatabase @param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_getCompileCommands", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCompileCommands CompilationDatabase_getCompileCommands(CXCompilationDatabase @param0, [MarshalAs(UnmanagedType.LPStr)] string @CompleteFileName);
+        public static extern CXCompileCommands CompilationDatabase_getCompileCommands(CXCompilationDatabase @param0, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @CompleteFileName);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_getAllCompileCommands", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXCompileCommands CompilationDatabase_getAllCompileCommands(CXCompilationDatabase @param0);

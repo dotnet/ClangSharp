@@ -1,4 +1,4 @@
-﻿namespace ClangSharpPInvokeGenerator
+namespace ClangSharpPInvokeGenerator
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +13,7 @@
         {
             Regex re = new Regex(@"(?<switch>-{1,2}\S*)(?:[=:]?|\s+)(?<value>[^-\s].*?)?(?=\s+[-]|$)");
             List<KeyValuePair<string, string>> matches = (from match in re.Matches(string.Join(" ", args)).Cast<Match>()
-                select new KeyValuePair<string, string>(match.Groups["switch"].Value, match.Groups["value"].Value))
+                                                          select new KeyValuePair<string, string>(match.Groups["switch"].Value, match.Groups["value"].Value))
                 .ToList();
 
             var files = new List<string>();
@@ -23,6 +23,8 @@
             string libraryPath = string.Empty;
             string prefixStrip = string.Empty;
             string methodClassName = "Methods";
+            string excludeFunctions = "";
+            string[] excludeFunctionsArray = null;
 
             foreach (KeyValuePair<string, string> match in matches)
             {
@@ -60,6 +62,11 @@
                 {
                     methodClassName = match.Value;
                 }
+
+                if (string.Equals(match.Key, "--e") || string.Equals(match.Key, "--excludeFunctions"))
+                {
+                    excludeFunctions = match.Value;
+                }
             }
 
             var errorList = new List<string>();
@@ -85,16 +92,21 @@
 
             if (errorList.Any())
             {
-                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs]");
+                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs] --excludeFunctions [func1,func2]");
                 foreach (var error in errorList)
                 {
                     Console.WriteLine(error);
                 }
             }
 
+            if (!string.IsNullOrEmpty(excludeFunctions))
+            {
+                excludeFunctionsArray = excludeFunctions.Split(',').Select(x => x.Trim()).ToArray();
+            }
+
             var createIndex = clang.createIndex(0, 0);
             string[] arr = { "-x", "c++" };
-            
+
             arr = arr.Concat(includeDirs.Select(x => "-I" + x)).ToArray();
 
             List<CXTranslationUnit> translationUnits = new List<CXTranslationUnit>();
@@ -104,7 +116,7 @@
                 CXTranslationUnit translationUnit;
                 CXUnsavedFile[] unsavedFile = new CXUnsavedFile[0];
                 var translationUnitError = clang.parseTranslationUnit2(createIndex, file, arr, 3, unsavedFile, 0, 0, out translationUnit);
-                
+
                 if (translationUnitError != CXErrorCode.CXError_Success)
                 {
                     Console.WriteLine("Error: " + translationUnitError);
@@ -123,6 +135,8 @@
 
             using (var sw = new StreamWriter(outputFile))
             {
+                sw.NewLine = "\n";
+
                 sw.WriteLine("namespace " + @namespace);
                 sw.WriteLine("{");
 
@@ -141,7 +155,7 @@
                 {
                     clang.visitChildren(clang.getTranslationUnitCursor(tu), typeDefVisitor.Visit, new CXClientData(IntPtr.Zero));
                 }
-                
+
                 var enumVisitor = new EnumVisitor(sw);
                 foreach (var tu in translationUnits)
                 {
@@ -151,7 +165,7 @@
                 sw.WriteLine("    public static partial class " + methodClassName);
                 sw.WriteLine("    {");
                 {
-                    var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip);
+                    var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip, excludeFunctionsArray);
                     foreach (var tu in translationUnits)
                     {
                         clang.visitChildren(clang.getTranslationUnitCursor(tu), functionVisitor.Visit, new CXClientData(IntPtr.Zero));

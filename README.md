@@ -6,23 +6,8 @@ If you're on Windows, consider using the [**ClangSharp 3.6 NuGet Package**](http
 
 ## Building ClangSharp
 
-On Linux using Mono:
-
 ```bash
- $ git clone http://github.com/mjsabby/ClangSharp
- $ cd ClangSharp
- $ chmod +x build.sh
- $ ./build.sh /path/to/libclang.so /path/clang/include
-```
-
-On Windows using Microsoft.NET:
-
-**Note:** - you need to run from the Visual Studio Command Prompt of the architecture you want to target.
-
-```bash
- :> git clone http://github.com/mjsabby/ClangSharp
- :> cd ClangSharp
- :> build.bat c:\path\libclang.dll C:\path\to\llvm\include
+dotnet msbuild /t:GenerateClangSharp ClangSharpPInvokeGenerator
 ```
 
 ## Features

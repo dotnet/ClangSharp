@@ -1,4 +1,4 @@
-﻿namespace ClangSharpPInvokeGenerator
+namespace ClangSharpPInvokeGenerator
 {
     using System;
     using System.Collections.Generic;
@@ -52,6 +52,34 @@
                     default:
                         inheritedEnumType = "int";
                         break;
+                }
+
+                // Cross-plat hack:
+                // For whatever reason, libclang detects untyped enums (i.e. your average 'enum X { A, B }')
+                // as uints on Linux and ints on Windows.
+                // Since we want to have the same generated code everywhere, we try to force 'int'
+                // if it doesn't change semantics, i.e. if all enum values are in the right range.
+                // Remember that 2's complement ints use the same binary representation as uints for positive numbers.
+                if (inheritedEnumType == "uint")
+                {
+                    bool hasOneValue = false;
+                    long minValue = long.MaxValue;
+                    long maxValue = long.MinValue;
+                    clang.visitChildren(cursor, (cxCursor, _, __) =>
+                    {
+                        hasOneValue = true;
+
+                        long value = clang.getEnumConstantDeclValue(cxCursor);
+                        minValue = Math.Min(minValue, value);
+                        maxValue = Math.Max(maxValue, value);
+
+                        return CXChildVisitResult.CXChildVisit_Continue;
+                    }, new CXClientData(IntPtr.Zero));
+
+                    if (hasOneValue && minValue >= 0 && maxValue <= int.MaxValue)
+                    {
+                        inheritedEnumType = "int";
+                    }
                 }
 
                 var enumName = clang.getCursorSpelling(cursor).ToString();
