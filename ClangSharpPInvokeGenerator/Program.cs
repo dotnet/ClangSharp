@@ -18,6 +18,7 @@ namespace ClangSharpPInvokeGenerator
 
             var files = new List<string>();
             var includeDirs = new List<string>();
+            var defines = new List<string>();
             string outputFile = string.Empty;
             string @namespace = string.Empty;
             string libraryPath = string.Empty;
@@ -41,6 +42,11 @@ namespace ClangSharpPInvokeGenerator
                 if (string.Equals(match.Key, "--i") || string.Equals(match.Key, "--include"))
                 {
                     includeDirs.Add(match.Value);
+                }
+
+                if (string.Equals(match.Key, "--d") || string.Equals(match.Key, "--define"))
+                {
+                    defines.Add(match.Value);
                 }
 
                 if (string.Equals(match.Key, "--o") || string.Equals(match.Key, "--output"))
@@ -92,7 +98,7 @@ namespace ClangSharpPInvokeGenerator
 
             if (errorList.Any())
             {
-                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs] --excludeFunctions [func1,func2]");
+                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs] --define [compilerDefine] --excludeFunctions [func1,func2]");
                 foreach (var error in errorList)
                 {
                     Console.WriteLine(error);
@@ -108,6 +114,7 @@ namespace ClangSharpPInvokeGenerator
             string[] arr = { "-x", "c++" };
 
             arr = arr.Concat(includeDirs.Select(x => "-I" + x)).ToArray();
+            arr = arr.Concat(defines.Select(x => "-D" + x)).ToArray();
 
             List<CXTranslationUnit> translationUnits = new List<CXTranslationUnit>();
 
