@@ -115,7 +115,7 @@ namespace ClangSharpPInvokeGenerator
             {
                 CXTranslationUnit translationUnit;
                 CXUnsavedFile[] unsavedFile = new CXUnsavedFile[0];
-                var translationUnitError = clang.parseTranslationUnit2(createIndex, file, arr, 3, unsavedFile, 0, 0, out translationUnit);
+                var translationUnitError = clang.parseTranslationUnit2(createIndex, file, arr, arr.Length, unsavedFile, 0, 0, out translationUnit);
 
                 if (translationUnitError != CXErrorCode.CXError_Success)
                 {
