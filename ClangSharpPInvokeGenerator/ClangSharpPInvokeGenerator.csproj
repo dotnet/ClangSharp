@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\ClangSharp\ClangSharp.csproj" />
@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <Target Name="GenerateClangSharp">
-    <Exec Command="dotnet run --m clang --p clang_ --namespace ClangSharp --output ../ClangSharp/Generated.cs --libraryPath $(LibClangName) --include $(LLVMIncludePath) --file $(LLVMIncludePath)/clang-c/Index.h --file $(LLVMIncludePath)/clang-c/CXString.h --file $(LLVMIncludePath)/clang-c/Documentation.h --file $(LLVMIncludePath)/clang-c/CXErrorCode.h --file $(LLVMIncludePath)/clang-c/BuildSystem.h --file $(LLVMIncludePath)/clang-c/CXCompilationDatabase.h --excludeFunctions clang_index_getClientEntity,clang_index_setClientEntity,clang_createTranslationUnitFromSourceFile,clang_parseTranslationUnit,clang_parseTranslationUnit2,clang_parseTranslationUnit2FullArgv,clang_reparseTranslationUnit,clang_codeCompleteAt,clang_indexSourceFile,clang_indexSourceFileFullArgv" />
+    <Exec Command="dotnet run --m clang --p clang_ --namespace ClangSharp --output ../ClangSharp/Generated.cs --libraryPath $(LibClangName) --include $(LLVMIncludePath) --file $(LLVMIncludePath)/clang-c/Index.h --file $(LLVMIncludePath)/clang-c/CXString.h --file $(LLVMIncludePath)/clang-c/Documentation.h --file $(LLVMIncludePath)/clang-c/CXErrorCode.h --file $(LLVMIncludePath)/clang-c/BuildSystem.h --file $(LLVMIncludePath)/clang-c/CXCompilationDatabase.h --excludeFunctions clang_index_getClientEntity,clang_index_setClientEntity,clang_createTranslationUnitFromSourceFile,clang_parseTranslationUnit,clang_parseTranslationUnit2,clang_parseTranslationUnit2FullArgv,clang_reparseTranslationUnit,clang_codeCompleteAt,clang_indexSourceFile,clang_indexSourceFileFullArgv,clang_disposeSourceRangeList,clang_annotateTokens,clang_annotateTokens,clang_disposeTokens,clang_tokenize,clang_disposeStringSet,clang_getCompletionParent,clang_disposeCXPlatformAvailability,clang_getCursorPlatformAvailability" />
   </Target>
 
 </Project>

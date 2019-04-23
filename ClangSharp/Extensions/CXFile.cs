@@ -12,13 +12,7 @@ namespace ClangSharp
 
         public bool Equals(CXFile other) => clang.File_isEqual(this, other) != 0;
 
-        public string GetContents(CXTranslationUnit translationUnit, out ulong size) => clang.getFileContents(translationUnit, this, out size);
-
-        public CXSourceLocation GetLocation(CXTranslationUnit translationUnit, uint line, uint column) => clang.getLocation(translationUnit, this, line, column);
-
-        public CXSourceLocation GetLocationForOffset(CXTranslationUnit translationUnit, uint offset) => clang.getLocationForOffset(translationUnit, this, offset);
-
-        public bool IsMultipleIncludeGuarded(CXTranslationUnit translationUnit) => clang.isFileMultipleIncludeGuarded(translationUnit, this) != 0;
+        public bool GetUniqueId(out CXFileUniqueID id) => clang.getFileUniqueID(this, out id) != 0;
 
         public override string ToString() => Name.ToString();
 

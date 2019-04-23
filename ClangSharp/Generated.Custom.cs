@@ -216,6 +216,30 @@ namespace ClangSharp
             }
         }
 
+        [DllImport(libraryPath, EntryPoint = "clang_disposeSourceRangeList", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void disposeSourceRangeList(ref CXSourceRangeList @ranges);
+
+        [DllImport(libraryPath, EntryPoint = "clang_annotateTokens", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void annotateTokens(CXTranslationUnit @TU, [MarshalAs(UnmanagedType.LPArray)] CXToken[] @Tokens, uint @NumTokens, [MarshalAs(UnmanagedType.LPArray)] CXCursor[] @Cursors);
+
+        [DllImport(libraryPath, EntryPoint = "clang_disposeTokens", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void disposeTokens(CXTranslationUnit @TU, [MarshalAs(UnmanagedType.LPArray)] CXToken[] @Tokens, uint @NumTokens);
+
+        [DllImport(libraryPath, EntryPoint = "clang_tokenize", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void tokenize(CXTranslationUnit @TU, CXSourceRange @Range, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] out CXToken[] @Tokens, out uint @NumTokens);
+
+        [DllImport(libraryPath, EntryPoint = "clang_disposeStringSet", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void disposeStringSet(ref CXStringSet @set);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getCompletionParent", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString getCompletionParent(CXCompletionString @completion_string, ref CXCursorKind @kind);
+
+        [DllImport(libraryPath, EntryPoint = "clang_disposeCXPlatformAvailability", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void disposeCXPlatformAvailability(ref CXPlatformAvailability @availability);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getCursorPlatformAvailability", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int getCursorPlatformAvailability(CXCursor @cursor, [MarshalAs(UnmanagedType.Bool)] out bool @always_deprecated, out CXString @deprecated_message, [MarshalAs(UnmanagedType.Bool)] out bool @always_unavailable, out CXString @unavailable_message, [MarshalAs(UnmanagedType.LPArray)] CXPlatformAvailability[] @availability, int @availability_size);
+
         [DllImport(libraryPath, EntryPoint = "clang_createTranslationUnitFromSourceFile", CallingConvention = CallingConvention.Cdecl)]
         private static extern CXTranslationUnit createTranslationUnitFromSourceFile(CXIndex @CIdx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string @source_filename, int @num_clang_command_line_args, string[] @clang_command_line_args, uint @num_unsaved_files, [MarshalAs(UnmanagedType.LPArray)] _CXUnsavedFile[] @unsaved_files);
 
