@@ -6,17 +6,13 @@ namespace ClangSharp
 {
     public partial struct CXDiagnosticSet : IDisposable, IReadOnlyCollection<CXDiagnostic>
     {
-        public CXDiagnostic this[uint index]
-            => GetDiagnostic(index);
+        public CXDiagnostic this[uint index] => GetDiagnostic(index);
 
-        public int Count
-            => (int)clang.getNumDiagnosticsInSet(this);
+        public int Count => (int)clang.getNumDiagnosticsInSet(this);
 
-        public void Dispose()
-            => clang.disposeDiagnosticSet(this);
+        public void Dispose() => clang.disposeDiagnosticSet(this);
 
-        public CXDiagnostic GetDiagnostic(uint index)
-            => clang.getDiagnosticInSet(this, index);
+        public CXDiagnostic GetDiagnostic(uint index) => clang.getDiagnosticInSet(this, index);
 
         public IEnumerator<CXDiagnostic> GetEnumerator()
         {
@@ -28,7 +24,6 @@ namespace ClangSharp
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
