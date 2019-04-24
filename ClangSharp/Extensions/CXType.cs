@@ -4,8 +4,6 @@ namespace ClangSharp
 {
     public partial struct CXType : IEquatable<CXType>
     {
-        public uint AddressSpace => clang.getAddressSpace(this);
-
         public long AlignOf => clang.Type_getAlignOf(this);
 
         public CXType ArrayElementType => clang.getArrayElementType(this);
@@ -25,6 +23,8 @@ namespace ClangSharp
         public CXCursor_ExceptionSpecificationKind ExceptionSpecificationType => (CXCursor_ExceptionSpecificationKind)clang.getExceptionSpecificationType(this);
 
         public CXCallingConv FunctionTypeCallingConv => clang.getFunctionTypeCallingConv(this);
+
+        public bool IsCanonical => this.Equals(CanonicalType);
 
         public bool IsConstQualified => clang.isConstQualifiedType(this) != 0;
 
@@ -58,21 +58,21 @@ namespace ClangSharp
 
         public CXType ObjCObjectBaseType => clang.Type_getObjCObjectBaseType(this);
 
-        public CXString ObjCEncoding => clang.Type_getObjCEncoding(this);
-
         public CXType PointeeType => clang.getPointeeType(this);
 
         public CXType ResultType => clang.getResultType(this);
 
         public long SizeOf => clang.Type_getSizeOf(this);
 
-        public CXString TypedefName => clang.getTypedefName(this);
-
         public override bool Equals(object obj) => (obj is CXType other) && Equals(other);
 
         public bool Equals(CXType other) => clang.equalTypes(this, other) != 0;
 
+        public uint GetAddressSpace() => clang.getAddressSpace(this);
+
         public CXType GetArgType(uint i) => clang.getArgType(this, i);
+
+        public CXString GetObjCEncoding() => clang.Type_getObjCEncoding(this);
 
         public CXCursor GetObjCProtocolDecl(uint i) => clang.Type_getObjCProtocolDecl(this, i);
 
@@ -81,6 +81,8 @@ namespace ClangSharp
         public long GetOffsetOf(string s) => clang.Type_getOffsetOf(this, s);
 
         public CXType GetTemplateArgumentAsType(uint i) => clang.Type_getTemplateArgumentAsType(this, i);
+
+        public CXString GetTypedefName() => clang.getTypedefName(this);
 
         public CXString Spelling => clang.getTypeSpelling(this);
 

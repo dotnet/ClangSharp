@@ -15,5 +15,7 @@
         public uint GetNumTopLevelHeaders(CXTranslationUnit translationUnit) => clang.Module_getNumTopLevelHeaders(translationUnit, this);
 
         public CXFile GetTopLevelHeader(CXTranslationUnit translationUnit, uint index) => clang.Module_getTopLevelHeader(translationUnit, this, index);
+
+        public override string ToString() => FullName.ToString();
     }
 }
