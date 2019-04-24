@@ -37,12 +37,12 @@ namespace ClangSharpPInvokeGenerator
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
 
-            CXCursorKind curKind = clang.getCursorKind(cursor);
+            CXCursorKind curKind = cursor.kind;
 
             // look only at function decls
             if (curKind == CXCursorKind.CXCursor_FunctionDecl)
             {
-                var functionName = clang.getCursorSpelling(cursor).ToString();
+                var functionName = cursor.Spelling.ToString();
 
                 if (this.visitedFunctions.Contains(functionName))
                 {

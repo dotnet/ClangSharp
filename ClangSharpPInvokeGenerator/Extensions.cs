@@ -9,28 +9,18 @@ namespace ClangSharpPInvokeGenerator
     {
         public static bool IsInSystemHeader(this CXCursor cursor)
         {
-            return clang.Location_isInSystemHeader(clang.getCursorLocation(cursor)) != 0;
+            return cursor.Location.IsInSystemHeader;
         }
 
         public static bool IsPtrToConstChar(this CXType type)
         {
-            var pointee = clang.getPointeeType(type);
-
-            if (clang.isConstQualifiedType(pointee) != 0)
-            {
-                switch (pointee.kind)
-                {
-                    case CXTypeKind.CXType_Char_S:
-                        return true;
-                }
-            }
-
-            return false;
+            var pointee = type.PointeeType;
+            return pointee.IsConstQualified && (pointee.kind == CXTypeKind.CXType_Char_S);
         }
 
         public static string ToPlainTypeString(this CXType type, string unknownType = "UnknownType")
         {
-            var canonical = clang.getCanonicalType(type);
+            var canonical = type.CanonicalType;;
             switch (type.kind)
             {
                 case CXTypeKind.CXType_Bool:
@@ -69,7 +59,7 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_Unexposed:
                     if (canonical.kind == CXTypeKind.CXType_Unexposed)
                     {
-                        return clang.getTypeSpelling(canonical).ToString();
+                        return canonical.Spelling.ToString();
                     }
                     return canonical.ToPlainTypeString();
                 default:
@@ -79,13 +69,13 @@ namespace ClangSharpPInvokeGenerator
 
         public static string ToMarshalString(this CXCursor cursor, string cursorSpelling)
         {
-            var canonical = clang.getCanonicalType(clang.getCursorType(cursor));
+            var canonical = cursor.Type.CanonicalType;
 
             switch (canonical.kind)
             {
                 case CXTypeKind.CXType_ConstantArray:
-                    long arraySize = clang.getArraySize(canonical);
-                    var elementType = clang.getCanonicalType(clang.getArrayElementType(canonical));
+                    long arraySize = canonical.ArraySize;
+                    var elementType = canonical.ArrayElementType.CanonicalType;
 
                     var sb = new StringBuilder();
                     for (int i = 0; i < arraySize; ++i)
@@ -95,7 +85,7 @@ namespace ClangSharpPInvokeGenerator
 
                     return sb.ToString().TrimEnd();
                 case CXTypeKind.CXType_Pointer:
-                    var pointeeType = clang.getCanonicalType(clang.getPointeeType(canonical));
+                    var pointeeType = canonical.PointeeType.CanonicalType;
                     switch (pointeeType.kind)
                     {
                         case CXTypeKind.CXType_Char_S:
@@ -107,7 +97,7 @@ namespace ClangSharpPInvokeGenerator
                     }
                 case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
-                    return "public " + clang.getTypeSpelling(canonical).ToString() + " @" + cursorSpelling + ";";
+                    return "public " + canonical.Spelling.ToString() + " @" + cursorSpelling + ";";
                 default:
                     return "public " + canonical.ToPlainTypeString() + " @" + cursorSpelling + ";";
             }
@@ -115,9 +105,9 @@ namespace ClangSharpPInvokeGenerator
 
         public static void WriteFunctionInfoHelper(CXCursor cursor, TextWriter tw, string prefixStrip)
         {
-            var functionType = clang.getCursorType(cursor);
-            var functionName = clang.getCursorSpelling(cursor).ToString();
-            var resultType = clang.getCursorResultType(cursor);
+            var functionType = cursor.Type;
+            var functionName = cursor.Spelling.ToString();
+            var resultType = cursor.ResultType;
 
             tw.WriteLine("        [DllImport(libraryPath, EntryPoint = \"" + functionName + "\", CallingConvention = " + functionType.CallingConventionSpelling() + ")]");
             if (resultType.IsPtrToConstChar())
@@ -134,11 +124,11 @@ namespace ClangSharpPInvokeGenerator
 
             tw.Write(" " + functionName + "(");
 
-            int numArgTypes = clang.getNumArgTypes(functionType);
+            int numArgTypes = functionType.NumArgTypes;
 
             for (uint i = 0; i < numArgTypes; ++i)
             {
-                ArgumentHelper(functionType, clang.Cursor_getArgument(cursor, i), tw, i);
+                ArgumentHelper(functionType, cursor.GetArgument(i), tw, i);
             }
 
             tw.WriteLine(");");
@@ -147,7 +137,7 @@ namespace ClangSharpPInvokeGenerator
 
         public static string CallingConventionSpelling(this CXType type)
         {
-            var callingConvention = clang.getFunctionTypeCallingConv(type);
+            var callingConvention = type.FunctionTypeCallingConv;
             switch (callingConvention)
             {
                 case CXCallingConv.CXCallingConv_X86StdCall:
@@ -173,11 +163,11 @@ namespace ClangSharpPInvokeGenerator
 
         public static void ArgumentHelper(CXType functionType, CXCursor paramCursor, TextWriter tw, uint index)
         {
-            var numArgTypes = clang.getNumArgTypes(functionType);
-            var type = clang.getArgType(functionType, index);
-            var cursorType = clang.getCursorType(paramCursor);
+            var numArgTypes = functionType.NumArgTypes;
+            var type = functionType.GetArgType(index);
+            var cursorType = paramCursor.Type;
 
-            var spelling = clang.getCursorSpelling(paramCursor).ToString();
+            var spelling = paramCursor.Spelling.ToString();
             if (string.IsNullOrEmpty(spelling))
             {
                 spelling = "param" + index;
@@ -186,14 +176,14 @@ namespace ClangSharpPInvokeGenerator
             switch (type.kind)
             {
                 case CXTypeKind.CXType_Pointer:
-                    var pointee = clang.getPointeeType(type);
+                    var pointee = type.PointeeType;
                     switch (pointee.kind)
                     {
                         case CXTypeKind.CXType_Pointer:
-                            tw.Write(pointee.IsPtrToConstChar() && clang.isConstQualifiedType(pointee) != 0 ? "string[]" : "out IntPtr");
+                            tw.Write(pointee.IsPtrToConstChar() && pointee.IsConstQualified ? "string[]" : "out IntPtr");
                             break;
                         case CXTypeKind.CXType_FunctionProto:
-                            tw.Write(clang.getTypeSpelling(cursorType).ToString());
+                            tw.Write(cursorType.Spelling.ToString());
                             break;
                         case CXTypeKind.CXType_Void:
                             tw.Write("IntPtr");
@@ -225,23 +215,23 @@ namespace ClangSharpPInvokeGenerator
 
         private static void CommonTypeHandling(CXType type, TextWriter tw, string outParam = "")
         {
-            bool isConstQualifiedType = clang.isConstQualifiedType(type) != 0;
+            bool isConstQualifiedType = type.IsConstQualified;
             string spelling;
 
             switch (type.kind)
             {
                 // Need to unwrap elaborated types
                 case CXTypeKind.CXType_Elaborated:
-                    CommonTypeHandling(clang.Type_getNamedType(type), tw, outParam);
+                    CommonTypeHandling(type.NamedType, tw, outParam);
                     return;
                 case CXTypeKind.CXType_Typedef:
-                    var cursor = clang.getTypeDeclaration(type);
-                    var location = clang.getCursorLocation(cursor);
+                    var cursor = type.Declaration;
+                    var location = cursor.Location;
 
                     // For some reason size_t isn't considered as within a system header.
                     // We work around this by asking for the file name - if it's unknown, probably it's a system header
-                    var isInSystemHeader = clang.Location_isInSystemHeader(clang.getCursorLocation(cursor)) != 0;
-                    clang.getPresumedLocation(clang.getCursorLocation(cursor), out CXString @filename, out uint @line, out uint @column);
+                    var isInSystemHeader = cursor.IsInSystemHeader();
+                    cursor.Location.GetPresumedLocation(out CXString @filename, out uint @line, out uint @column);
                     isInSystemHeader |= filename.ToString() == string.Empty;
 
                     if (isInSystemHeader)
@@ -250,25 +240,25 @@ namespace ClangSharpPInvokeGenerator
                         // Getting the actual type of a typedef is painful, since platforms don't even agree on the meaning of types;
                         // 64-bit is "long long" on Windows but "long" on Linux, for historical reasons.
                         // The easiest way is to just get the size & signed-ness and write the type ourselves
-                        var size = clang.Type_getSizeOf(type);
-                        var signed = !clang.getTypedefDeclUnderlyingType(cursor).ToString().Contains("unsigned");
+                        var size = type.SizeOf;
+                        var signed = !cursor.TypedefDeclUnderlyingType.ToString().Contains("unsigned");
                         spelling = GetTypeName(size, signed);
                     }
                     else
                     {
-                        spelling = clang.getCursorSpelling(cursor).ToString();
+                        spelling = cursor.Spelling.ToString();
                     }
                     break;
                 case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
-                    spelling = clang.getTypeSpelling(type).ToString();
+                    spelling = type.Spelling.ToString();
                     break;
                 case CXTypeKind.CXType_IncompleteArray:
-                    CommonTypeHandling(clang.getArrayElementType(type), tw);
+                    CommonTypeHandling(type.ArrayElementType, tw);
                     spelling = "[]";
                     break;
                 case CXTypeKind.CXType_Unexposed: // Often these are enums and canonical type gets you the enum spelling
-                    var canonical = clang.getCanonicalType(type);
+                    var canonical = type.CanonicalType;
                     // unexposed decl which turns into a function proto seems to be an un-typedef'd fn pointer
                     if (canonical.kind == CXTypeKind.CXType_FunctionProto)
                     {
@@ -276,11 +266,11 @@ namespace ClangSharpPInvokeGenerator
                     }
                     else
                     {
-                        spelling = clang.getTypeSpelling(canonical).ToString();
+                        spelling = canonical.Spelling.ToString();
                     }
                     break;
                 default:
-                    spelling = clang.getCanonicalType(type).ToPlainTypeString();
+                    spelling = type.CanonicalType.ToPlainTypeString();
                     break;
             }
 

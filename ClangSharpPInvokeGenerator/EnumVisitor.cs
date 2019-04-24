@@ -23,11 +23,11 @@ namespace ClangSharpPInvokeGenerator
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
 
-            CXCursorKind curKind = clang.getCursorKind(cursor);
+            CXCursorKind curKind = cursor.Kind;
             if (curKind == CXCursorKind.CXCursor_EnumDecl)
             {
                 string inheritedEnumType;
-                CXTypeKind kind = clang.getEnumDeclIntegerType(cursor).kind;
+                CXTypeKind kind = cursor.EnumDecl_IntegerType.kind;
 
                 switch (kind)
                 {
@@ -65,11 +65,11 @@ namespace ClangSharpPInvokeGenerator
                     bool hasOneValue = false;
                     long minValue = long.MaxValue;
                     long maxValue = long.MinValue;
-                    clang.visitChildren(cursor, (cxCursor, _, __) =>
+                    cursor.VisitChildren((cxCursor, _, __) =>
                     {
                         hasOneValue = true;
 
-                        long value = clang.getEnumConstantDeclValue(cxCursor);
+                        long value = cxCursor.EnumConstantDeclValue;
                         minValue = Math.Min(minValue, value);
                         maxValue = Math.Max(maxValue, value);
 
@@ -82,7 +82,7 @@ namespace ClangSharpPInvokeGenerator
                     }
                 }
 
-                var enumName = clang.getCursorSpelling(cursor).ToString();
+                var enumName = cursor.Spelling.ToString();
 
                 // enumName can be empty because of typedef enum { .. } enumName;
                 // so we have to find the sibling, and this is the only way I've found
@@ -90,8 +90,8 @@ namespace ClangSharpPInvokeGenerator
                 if (string.IsNullOrEmpty(enumName))
                 {
                     var forwardDeclaringVisitor = new ForwardDeclarationVisitor(cursor);
-                    clang.visitChildren(clang.getCursorLexicalParent(cursor), forwardDeclaringVisitor.Visit, new CXClientData(IntPtr.Zero));
-                    enumName = clang.getCursorSpelling(forwardDeclaringVisitor.ForwardDeclarationCursor).ToString();
+                    cursor.LexicalParent.VisitChildren(forwardDeclaringVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    enumName = forwardDeclaringVisitor.ForwardDeclarationCursor.Spelling.ToString();
 
                     if (string.IsNullOrEmpty(enumName))
                     {
@@ -111,9 +111,9 @@ namespace ClangSharpPInvokeGenerator
                 this.tw.WriteLine("    {");
 
                 // visit all the enum values
-                clang.visitChildren(cursor, (cxCursor, _, __) =>
+                cursor.VisitChildren((cxCursor, _, __) =>
                 {
-                    this.tw.WriteLine("        @" + clang.getCursorSpelling(cxCursor).ToString() + " = " + clang.getEnumConstantDeclValue(cxCursor) + ",");
+                    this.tw.WriteLine("        @" + cxCursor.Spelling.ToString() + " = " + cxCursor.EnumConstantDeclValue + ",");
                     return CXChildVisitResult.CXChildVisit_Continue;
                 }, new CXClientData(IntPtr.Zero));
 

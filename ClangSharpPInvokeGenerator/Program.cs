@@ -116,7 +116,7 @@ namespace ClangSharpPInvokeGenerator
                 excludeFunctionsArray = excludeFunctions.Split(',').Select(x => x.Trim()).ToArray();
             }
 
-            var createIndex = clang.createIndex(0, 0);
+            var createIndex = CXIndex.Create();
             string[] arr = { "-x", "c++" };
 
             arr = arr.Concat(includeDirs.Select(x => "-I" + x)).ToArray();
@@ -129,18 +129,18 @@ namespace ClangSharpPInvokeGenerator
             {
                 CXTranslationUnit translationUnit;
                 CXUnsavedFile[] unsavedFile = new CXUnsavedFile[0];
-                var translationUnitError = clang.parseTranslationUnit2(createIndex, file, arr, arr.Length, unsavedFile, 0, 0, out translationUnit);
+                var translationUnitError = CXTranslationUnit.Parse(createIndex, file, arr, unsavedFile, CXTranslationUnit_Flags.CXTranslationUnit_None, out translationUnit);
 
                 if (translationUnitError != CXErrorCode.CXError_Success)
                 {
                     Console.WriteLine("Error: " + translationUnitError);
-                    var numDiagnostics = clang.getNumDiagnostics(translationUnit);
+                    var numDiagnostics = translationUnit.NumDiagnostics;
 
                     for (uint i = 0; i < numDiagnostics; ++i)
                     {
-                        var diagnostic = clang.getDiagnostic(translationUnit, i);
-                        Console.WriteLine(clang.getDiagnosticSpelling(diagnostic).ToString());
-                        clang.disposeDiagnostic(diagnostic);
+                        var diagnostic = translationUnit.GetDiagnostic(i);
+                        Console.WriteLine(diagnostic.Spelling.ToString());
+                        diagnostic.Dispose();
                     }
                 }
 
@@ -161,19 +161,19 @@ namespace ClangSharpPInvokeGenerator
                 var structVisitor = new StructVisitor(sw);
                 foreach (var tu in translationUnits)
                 {
-                    clang.visitChildren(clang.getTranslationUnitCursor(tu), structVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    tu.Cursor.VisitChildren(structVisitor.Visit, new CXClientData(IntPtr.Zero));
                 }
 
                 var typeDefVisitor = new TypeDefVisitor(sw);
                 foreach (var tu in translationUnits)
                 {
-                    clang.visitChildren(clang.getTranslationUnitCursor(tu), typeDefVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    tu.Cursor.VisitChildren(typeDefVisitor.Visit, new CXClientData(IntPtr.Zero));
                 }
 
                 var enumVisitor = new EnumVisitor(sw);
                 foreach (var tu in translationUnits)
                 {
-                    clang.visitChildren(clang.getTranslationUnitCursor(tu), enumVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    tu.Cursor.VisitChildren(enumVisitor.Visit, new CXClientData(IntPtr.Zero));
                 }
 
                 sw.WriteLine("    public static partial class " + methodClassName);
@@ -182,7 +182,7 @@ namespace ClangSharpPInvokeGenerator
                     var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip, excludeFunctionsArray);
                     foreach (var tu in translationUnits)
                     {
-                        clang.visitChildren(clang.getTranslationUnitCursor(tu), functionVisitor.Visit, new CXClientData(IntPtr.Zero));
+                        tu.Cursor.VisitChildren(functionVisitor.Visit, new CXClientData(IntPtr.Zero));
                     }
                 }
                 sw.WriteLine("    }");
@@ -191,10 +191,10 @@ namespace ClangSharpPInvokeGenerator
 
             foreach (var tu in translationUnits)
             {
-                clang.disposeTranslationUnit(tu);
+                tu.Dispose();
             }
 
-            clang.disposeIndex(createIndex);
+            createIndex.Dispose();
         }
     }
 }

@@ -23,7 +23,7 @@ namespace ClangSharpPInvokeGenerator
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
 
-            if (clang.equalCursors(cursor, this.beginningCursor) != 0)
+            if (cursor.Equals(beginningCursor))
             {
                 this.beginningCursorReached = true;
                 return CXChildVisitResult.CXChildVisit_Continue;

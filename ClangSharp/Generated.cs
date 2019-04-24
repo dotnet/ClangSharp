@@ -1460,9 +1460,6 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_disposeString", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeString(CXString @string);
 
-        [DllImport(libraryPath, EntryPoint = "clang_disposeStringSet", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeStringSet(out CXStringSet @set);
-
         [DllImport(libraryPath, EntryPoint = "clang_getBuildSessionTimestamp", CallingConvention = CallingConvention.Cdecl)]
         public static extern ulong getBuildSessionTimestamp();
 
@@ -1595,9 +1592,6 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_getAllSkippedRanges", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr getAllSkippedRanges(CXTranslationUnit @tu);
-
-        [DllImport(libraryPath, EntryPoint = "clang_disposeSourceRangeList", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeSourceRangeList(out CXSourceRangeList @ranges);
 
         [DllImport(libraryPath, EntryPoint = "clang_getNumDiagnosticsInSet", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint getNumDiagnosticsInSet(CXDiagnosticSet @Diags);
@@ -1773,12 +1767,6 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorAvailability", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXAvailabilityKind getCursorAvailability(CXCursor @cursor);
-
-        [DllImport(libraryPath, EntryPoint = "clang_getCursorPlatformAvailability", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int getCursorPlatformAvailability(CXCursor @cursor, out int @always_deprecated, out CXString @deprecated_message, out int @always_unavailable, out CXString @unavailable_message, out CXPlatformAvailability @availability, int @availability_size);
-
-        [DllImport(libraryPath, EntryPoint = "clang_disposeCXPlatformAvailability", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeCXPlatformAvailability(out CXPlatformAvailability @availability);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorLanguage", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXLanguageKind getCursorLanguage(CXCursor @cursor);
@@ -2221,15 +2209,6 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_getTokenExtent", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXSourceRange getTokenExtent(CXTranslationUnit @param0, CXToken @param1);
 
-        [DllImport(libraryPath, EntryPoint = "clang_tokenize", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void tokenize(CXTranslationUnit @TU, CXSourceRange @Range, out IntPtr @Tokens, out uint @NumTokens);
-
-        [DllImport(libraryPath, EntryPoint = "clang_annotateTokens", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void annotateTokens(CXTranslationUnit @TU, out CXToken @Tokens, uint @NumTokens, out CXCursor @Cursors);
-
-        [DllImport(libraryPath, EntryPoint = "clang_disposeTokens", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeTokens(CXTranslationUnit @TU, out CXToken @Tokens, uint @NumTokens);
-
         [DllImport(libraryPath, EntryPoint = "clang_getCursorKindSpelling", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getCursorKindSpelling(CXCursorKind @Kind);
 
@@ -2265,9 +2244,6 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionAnnotation", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getCompletionAnnotation(CXCompletionString @completion_string, uint @annotation_number);
-
-        [DllImport(libraryPath, EntryPoint = "clang_getCompletionParent", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getCompletionParent(CXCompletionString @completion_string, out CXCursorKind @kind);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionBriefComment", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getCompletionBriefComment(CXCompletionString @completion_string);

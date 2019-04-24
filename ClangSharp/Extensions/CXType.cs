@@ -86,6 +86,6 @@ namespace ClangSharp
 
         public override string ToString() => Spelling.ToString();
 
-        public uint VisitFields(CXFieldVisitor visitor, CXClientData clientData) => clang.Type_visitFields(this, visitor, clientData);
+        public CXVisitorResult VisitFields(CXFieldVisitor visitor, CXClientData clientData) => (CXVisitorResult)clang.Type_visitFields(this, visitor, clientData);
     }
 }
