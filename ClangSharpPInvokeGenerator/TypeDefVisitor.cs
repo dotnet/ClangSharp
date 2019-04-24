@@ -23,10 +23,10 @@ namespace ClangSharpPInvokeGenerator
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
 
-            CXCursorKind curKind = clang.getCursorKind(cursor);
+            CXCursorKind curKind = cursor.kind;
             if (curKind == CXCursorKind.CXCursor_TypedefDecl)
             {
-                var spelling = clang.getCursorSpelling(cursor).ToString();
+                var spelling = cursor.Spelling.ToString();
 
                 if (this.visitedTypeDefs.Contains(spelling))
                 {
@@ -35,7 +35,7 @@ namespace ClangSharpPInvokeGenerator
 
                 this.visitedTypeDefs.Add(spelling);
 
-                CXType type = clang.getCanonicalType(clang.getTypedefDeclUnderlyingType(cursor));
+                CXType type = cursor.TypedefDeclUnderlyingType.CanonicalType;
 
                 // we handle enums and records in struct and enum visitors with forward declarations also
                 if (type.kind == CXTypeKind.CXType_Record || type.kind == CXTypeKind.CXType_Enum)
@@ -46,7 +46,7 @@ namespace ClangSharpPInvokeGenerator
                 // no idea what this is? -- template stuff?
                 if (type.kind == CXTypeKind.CXType_Unexposed)
                 {
-                    var canonical = clang.getCanonicalType(type);
+                    var canonical = type.CanonicalType;
                     if (canonical.kind == CXTypeKind.CXType_Unexposed)
                     {
                         return CXChildVisitResult.CXChildVisit_Continue;
@@ -55,7 +55,7 @@ namespace ClangSharpPInvokeGenerator
 
                 if (type.kind == CXTypeKind.CXType_Pointer)
                 {
-                    var pointee = clang.getPointeeType(type);
+                    var pointee = type.PointeeType;
                     if (pointee.kind == CXTypeKind.CXType_Record || pointee.kind == CXTypeKind.CXType_Void)
                     {
                         this.tw.WriteLine("    public partial struct " + spelling);
@@ -76,14 +76,14 @@ namespace ClangSharpPInvokeGenerator
                     {
                         this.tw.WriteLine("    [UnmanagedFunctionPointer(" + pointee.CallingConventionSpelling() + ")]");
                         this.tw.Write("    public delegate ");
-                        Extensions.ReturnTypeHelper(clang.getResultType(pointee), tw);
+                        Extensions.ReturnTypeHelper(pointee.ResultType, tw);
                         this.tw.Write(" ");
                         this.tw.Write(spelling);
                         this.tw.Write("(");
 
                         uint argumentCounter = 0;
 
-                        clang.visitChildren(cursor, delegate (CXCursor cxCursor, CXCursor parent1, IntPtr ptr)
+                        cursor.VisitChildren(delegate (CXCursor cxCursor, CXCursor parent1, IntPtr ptr)
                         {
                             if (cxCursor.kind == CXCursorKind.CXCursor_ParmDecl)
                             {
@@ -100,7 +100,7 @@ namespace ClangSharpPInvokeGenerator
                     }
                 }
 
-                if (clang.isPODType(type) != 0)
+                if (type.IsPODType)
                 {
                     var podType = type.ToPlainTypeString();
                     this.tw.WriteLine("    public partial struct " + spelling);

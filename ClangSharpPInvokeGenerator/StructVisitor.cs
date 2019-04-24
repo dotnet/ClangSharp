@@ -29,18 +29,18 @@ namespace ClangSharpPInvokeGenerator
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
 
-            CXCursorKind curKind = clang.getCursorKind(cursor);
+            CXCursorKind curKind = cursor.Kind;
             if (curKind == CXCursorKind.CXCursor_StructDecl)
             {
                 this.fieldPosition = 0;
-                var structName = clang.getCursorSpelling(cursor).ToString();
+                var structName = cursor.Spelling.ToString();
 
                 // struct names can be empty, and so we visit its sibling to find the name
                 if (string.IsNullOrEmpty(structName))
                 {
                     var forwardDeclaringVisitor = new ForwardDeclarationVisitor(cursor);
-                    clang.visitChildren(clang.getCursorSemanticParent(cursor), forwardDeclaringVisitor.Visit, new CXClientData(IntPtr.Zero));
-                    structName = clang.getCursorSpelling(forwardDeclaringVisitor.ForwardDeclarationCursor).ToString();
+                    cursor.SemanticParent.VisitChildren(forwardDeclaringVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    structName = forwardDeclaringVisitor.ForwardDeclarationCursor.Spelling.ToString();
 
                     if (string.IsNullOrEmpty(structName))
                     {
@@ -54,7 +54,7 @@ namespace ClangSharpPInvokeGenerator
                     this.IndentedWriteLine("{");
 
                     this.indentLevel++;
-                    clang.visitChildren(cursor, this.Visit, new CXClientData(IntPtr.Zero));
+                    cursor.VisitChildren(Visit, new CXClientData(IntPtr.Zero));
                     this.indentLevel--;
 
                     this.IndentedWriteLine("}");
@@ -68,7 +68,7 @@ namespace ClangSharpPInvokeGenerator
 
             if (curKind == CXCursorKind.CXCursor_FieldDecl)
             {
-                var fieldName = clang.getCursorSpelling(cursor).ToString();
+                var fieldName = cursor.Spelling.ToString();
                 if (string.IsNullOrEmpty(fieldName))
                 {
                     fieldName = "field" + this.fieldPosition; // what if they have fields called field*? :)
