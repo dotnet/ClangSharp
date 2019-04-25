@@ -60,8 +60,6 @@
 
         public CXComment GetChild(uint index) => clang.Comment_getChild(this, index);
 
-        public CXTranslationUnit GetTranslationUnit() => new CXTranslationUnit(TranslationUnit);
-
         public CXString HtmlStartTag_GetAttrName(uint index) => clang.HTMLStartTag_getAttrName(this, index);
 
         public CXString HtmlStartTag_GetAttrValue(uint index) => clang.HTMLStartTag_getAttrValue(this, index);

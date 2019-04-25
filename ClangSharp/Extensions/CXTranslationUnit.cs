@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace ClangSharp
 {
@@ -48,7 +49,7 @@ namespace ClangSharp
 
         public CXFile GetFile(string fileName) => clang.getFile(this, fileName);
 
-        public string GetFileContents(CXFile file, out ulong size) => clang.getFileContents(this, file, out size);
+        public string GetFileContents(CXFile file, out IntPtr size) => clang.getFileContents(this, file, out size);
 
         public void GetInclusions(CXInclusionVisitor visitor, CXClientData clientData) => clang.getInclusions(this, visitor, clientData);
 
@@ -60,7 +61,7 @@ namespace ClangSharp
 
         public unsafe ref CXSourceRangeList GetSkippedRanges(CXFile file) => ref *(CXSourceRangeList*)clang.getSkippedRanges(this, file);
 
-        public unsafe ref CXToken GetToken(CXSourceLocation sourceLocation) => ref *(CXToken*)clang.getToken(this, sourceLocation);
+        public unsafe ref CXToken GetToken(CXSourceLocation sourceLocation) => ref Unsafe.AsRef<CXToken>(clang.getToken(this, sourceLocation).ToPointer());
 
         public bool IsFileMultipleIncludeGuarded(CXFile file) => clang.isFileMultipleIncludeGuarded(this, file) != 0;
 
