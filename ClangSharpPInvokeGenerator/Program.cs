@@ -158,31 +158,38 @@ namespace ClangSharpPInvokeGenerator
                 sw.WriteLine("    using System.Runtime.InteropServices;");
                 sw.WriteLine();
 
-                var structVisitor = new StructVisitor(sw);
+                var structDeclWriter = new CursorWriter(sw, indentation: 1, (cursor) => cursor.Kind == CXCursorKind.CXCursor_StructDecl);
                 foreach (var tu in translationUnits)
                 {
-                    tu.Cursor.VisitChildren(structVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    tu.Cursor.VisitChildren(structDeclWriter.VisitTranslationUnit, clientData: default);
                 }
 
-                var typeDefVisitor = new TypeDefVisitor(sw);
+                var typedefDeclWriter = new CursorWriter(sw, indentation: 1, (cursor) => cursor.Kind == CXCursorKind.CXCursor_TypedefDecl);
                 foreach (var tu in translationUnits)
                 {
-                    tu.Cursor.VisitChildren(typeDefVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    tu.Cursor.VisitChildren(typedefDeclWriter.VisitTranslationUnit, clientData: default);
                 }
-
-                var enumVisitor = new EnumVisitor(sw);
+                
+                var enumDeclWriter = new CursorWriter(sw, indentation: 1, (cursor) => cursor.Kind == CXCursorKind.CXCursor_EnumDecl);
                 foreach (var tu in translationUnits)
                 {
-                    tu.Cursor.VisitChildren(enumVisitor.Visit, new CXClientData(IntPtr.Zero));
+                    tu.Cursor.VisitChildren(enumDeclWriter.VisitTranslationUnit, new CXClientData(IntPtr.Zero));
                 }
-
+                
                 sw.WriteLine("    public static partial class " + methodClassName);
                 sw.WriteLine("    {");
                 {
-                    var functionVisitor = new FunctionVisitor(sw, libraryPath, prefixStrip, excludeFunctionsArray);
+                    var functionDeclWriter = new CursorWriter(sw, indentation: 2, (cursor) => cursor.Kind == CXCursorKind.CXCursor_FunctionDecl);
+
+                    sw.WriteLine($"        private const string libraryPath = \"{libraryPath}\";");
+                    sw.WriteLine();
+
+                    functionDeclWriter.PrefixStrip = prefixStrip;
+                    functionDeclWriter.ExcludeFunctionsArray = excludeFunctionsArray;
+
                     foreach (var tu in translationUnits)
                     {
-                        tu.Cursor.VisitChildren(functionVisitor.Visit, new CXClientData(IntPtr.Zero));
+                        tu.Cursor.VisitChildren(functionDeclWriter.VisitTranslationUnit, new CXClientData(IntPtr.Zero));
                     }
                 }
                 sw.WriteLine("    }");
