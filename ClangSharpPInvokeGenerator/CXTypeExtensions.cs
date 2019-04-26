@@ -41,9 +41,11 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_Long:
                 case CXTypeKind.CXType_LongLong:
                 case CXTypeKind.CXType_Double:
+                case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
                 case CXTypeKind.CXType_Typedef:
                 case CXTypeKind.CXType_ConstantArray:
+                case CXTypeKind.CXType_IncompleteArray:
                 {
                     return string.Empty;
                 }
@@ -81,6 +83,7 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_LongLong:
                 case CXTypeKind.CXType_Double:
                 case CXTypeKind.CXType_Pointer:
+                case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
                 case CXTypeKind.CXType_Typedef:
                 case CXTypeKind.CXType_FunctionProto:
@@ -118,6 +121,11 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_Void:
                 {
                     return "void";
+                }
+
+                case CXTypeKind.CXType_Bool:
+                {
+                    return "bool";
                 }
 
                 case CXTypeKind.CXType_UShort:
@@ -190,6 +198,7 @@ namespace ClangSharpPInvokeGenerator
                 }
 
                 case CXTypeKind.CXType_ConstantArray:
+                case CXTypeKind.CXType_IncompleteArray:
                 {
                     return type.GetNameForElementType(cursor, type.ElementType);
                 }
@@ -227,6 +236,7 @@ namespace ClangSharpPInvokeGenerator
                     switch (cursor.Kind)
                     {
                         case CXCursorKind.CXCursor_FieldDecl:
+                        case CXCursorKind.CXCursor_FunctionDecl:
                         {
                             return "IntPtr";
                         }
@@ -269,6 +279,11 @@ namespace ClangSharpPInvokeGenerator
                             return "string";
                         }
 
+                        case CXCursorKind.CXCursor_TypedefDecl:
+                        {
+                            return "string";
+                        }
+
                         default:
                         {
                             Unhandled(pointeeType, cursor);
@@ -288,6 +303,7 @@ namespace ClangSharpPInvokeGenerator
                         }
 
                         case CXCursorKind.CXCursor_ParmDecl:
+                        case CXCursorKind.CXCursor_TypedefDecl:
                         {
                             return pointeeType.Declaration.GetTypedefDeclName();
                         }
@@ -335,6 +351,7 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_Enum:
                 case CXTypeKind.CXType_Typedef:
                 case CXTypeKind.CXType_ConstantArray:
+                case CXTypeKind.CXType_IncompleteArray:
                 {
                     return string.Empty;
                 }
@@ -369,6 +386,7 @@ namespace ClangSharpPInvokeGenerator
                     return string.Empty;
                 }
 
+                case CXTypeKind.CXType_UChar:
                 case CXTypeKind.CXType_UShort:
                 case CXTypeKind.CXType_UInt:
                 case CXTypeKind.CXType_ULong:

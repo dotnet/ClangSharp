@@ -160,6 +160,11 @@ namespace ClangSharpPInvokeGenerator
                     return Handle(VisitTypeRef, cursor, parent, data);
                 }
 
+                case CXCursorKind.CXCursor_CompoundStmt:
+                {
+                    return CXChildVisitResult.CXChildVisit_Continue;
+                }
+
                 case CXCursorKind.CXCursor_UnexposedAttr:
                 {
                     return Handle(VisitUnexposedAttr, cursor, parent, data);
@@ -263,6 +268,21 @@ namespace ClangSharpPInvokeGenerator
                 case CXCursorKind.CXCursor_UnexposedDecl:
                 {
                     return Handle(VisitUnexposedDecl, cursor, parent, data);
+                }
+
+                case CXCursorKind.CXCursor_StructDecl:
+                {
+                    return Handle(VisitStructDecl, cursor, parent, data);
+                }
+
+                case CXCursorKind.CXCursor_EnumDecl:
+                {
+                    return Handle(VisitEnumDecl, cursor, parent, data);
+                }
+
+                case CXCursorKind.CXCursor_TypedefDecl:
+                {
+                    return Handle(VisitTypedefDecl, cursor, parent, data);
                 }
 
                 default:

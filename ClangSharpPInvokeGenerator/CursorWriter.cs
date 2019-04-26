@@ -355,6 +355,50 @@ namespace ClangSharpPInvokeGenerator
 
             switch (underlyingType.kind)
             {
+                case CXTypeKind.CXType_Bool:
+                case CXTypeKind.CXType_UShort:
+                case CXTypeKind.CXType_UInt:
+                case CXTypeKind.CXType_ULong:
+                case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Short:
+                case CXTypeKind.CXType_Int:
+                case CXTypeKind.CXType_Long:
+                case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Double:
+                {
+                    WriteIndented("public partial struct");
+                    Write(' ');
+                    WriteLine(cursor.GetTypedefDeclName());
+                    WriteBlockStart();
+                    {
+                        var typeName = underlyingType.GetName(cursor);
+
+                        WriteIndented("public");
+                        Write(' ');
+                        Write(cursor.GetTypedefDeclName());
+                        Write('(');
+                        Write(typeName);
+                        Write(' ');
+                        Write("value");
+                        WriteLine(')');
+                        WriteBlockStart();
+                        {
+                            WriteIndentedLine("Value = value;");
+                        }
+                        WriteBlockEnd();
+                        WriteLine();
+                        WriteIndented("public");
+                        Write(' ');
+                        Write(typeName);
+                        Write(' ');
+                        WriteLine("Value");
+                        Write(';');
+                    }
+                    WriteBlockEnd();
+                    WriteLine();
+                    return true;
+                }
+
                 case CXTypeKind.CXType_Pointer:
                 {
                     return BeginHandleTypedefDeclForPointer(cursor, parent, underlyingType.PointeeType);
@@ -366,6 +410,7 @@ namespace ClangSharpPInvokeGenerator
                     return false;
                 }
 
+                case CXTypeKind.CXType_Typedef:
                 case CXTypeKind.CXType_Elaborated:
                 {
                     return BeginHandleTypedefDecl(cursor, parent, underlyingType.CanonicalType);

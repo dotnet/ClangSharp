@@ -133,7 +133,7 @@ namespace ClangSharpPInvokeGenerator
 
                 if (translationUnitError != CXErrorCode.CXError_Success)
                 {
-                    Console.WriteLine("Error: " + translationUnitError);
+                    Console.WriteLine($"Error: '{translationUnitError}' for '{file}'.");
                     var numDiagnostics = translationUnit.NumDiagnostics;
 
                     for (uint i = 0; i < numDiagnostics; ++i)
@@ -185,7 +185,7 @@ namespace ClangSharpPInvokeGenerator
                     sw.WriteLine();
 
                     functionDeclWriter.PrefixStrip = prefixStrip;
-                    functionDeclWriter.ExcludeFunctionsArray = excludeFunctionsArray;
+                    functionDeclWriter.ExcludeFunctionsArray = excludeFunctionsArray ?? Array.Empty<string>();
 
                     foreach (var tu in translationUnits)
                     {
