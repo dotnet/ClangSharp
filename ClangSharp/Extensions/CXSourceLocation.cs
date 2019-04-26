@@ -23,5 +23,11 @@ namespace ClangSharp
         public void GetPresumedLocation(out CXString fileName, out uint line, out uint column) => clang.getPresumedLocation(this, out fileName, out line, out column);
 
         public void GetSpellingLocation(out CXFile file, out uint line, out uint column, out uint offset) => clang.getSpellingLocation(this, out file, out line, out column, out offset);
+
+        public override string ToString()
+        {
+            GetFileLocation(out var file, out var line, out var column, out _);
+            return $"Line {line}, Column {column} in {file}";
+        }
     }
 }

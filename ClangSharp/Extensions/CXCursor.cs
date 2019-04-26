@@ -76,6 +76,8 @@ namespace ClangSharp
 
         public bool IsBitField => clang.Cursor_isBitField(this) != 0;
 
+        public bool IsCanonical => this.Equals(CanonicalCursor);
+
         public bool IsDeclaration => clang.isDeclaration(Kind) != 0;
 
         public bool IsDefinition => clang.isCursorDefinition(this) != 0;
@@ -98,7 +100,7 @@ namespace ClangSharp
 
         public bool IsObjCOptional => clang.Cursor_isObjCOptional(this) != 0;
 
-        public bool IsPreProcessing => clang.isPreprocessing(Kind) != 0;
+        public bool IsPreprocessing => clang.isPreprocessing(Kind) != 0;
 
         public bool IsReference => clang.isReference(Kind) != 0;
 
@@ -150,8 +152,6 @@ namespace ClangSharp
 
         public CXString RawCommentText => clang.Cursor_getRawCommentText(this);
 
-        public CXType RecieverType => clang.Cursor_getReceiverType(this);
-
         public CXCursor Referenced => clang.getCursorReferenced(this);
 
         public CXType ResultType => clang.getCursorResultType(this);
@@ -200,6 +200,8 @@ namespace ClangSharp
         public CXCursor GetOverloadedDecl(uint index) => clang.getOverloadedDecl(this, index);
 
         public int GetPlatformAvailability(out bool alwaysDeprecated, out CXString deprecatedMessage, out bool alwaysUnavailable, out CXString unavailableMessage, CXPlatformAvailability[] availability) => clang.getCursorPlatformAvailability(this, out alwaysDeprecated, out deprecatedMessage, out alwaysUnavailable, out unavailableMessage, availability, availability.Length);
+
+        public CXType GetRecieverType() => clang.Cursor_getReceiverType(this);
 
         public CXSourceRange GetReferenceNameRange(CXNameRefFlags nameFlags, uint pieceIndex) => clang.getCursorReferenceNameRange(this, (uint)nameFlags, pieceIndex);
 

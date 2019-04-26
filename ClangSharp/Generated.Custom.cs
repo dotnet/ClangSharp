@@ -299,7 +299,7 @@ namespace ClangSharp
             int size = arr.Length;
             for (int i = 0; i < size; ++i)
             {
-                arr[i].Length = unsaved_files[i].Length;
+                arr[i].Length = (int)unsaved_files[i].Length;
                 arr[i].Filename = Marshal.StringToHGlobalAnsi(unsaved_files[i].Filename);
                 arr[i].Contents = Marshal.StringToHGlobalAnsi(unsaved_files[i].Contents);
             }

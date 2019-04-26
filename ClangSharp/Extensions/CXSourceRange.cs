@@ -15,5 +15,10 @@ namespace ClangSharp
         public override bool Equals(object obj) => (obj is CXSourceRange other) && Equals(other);
 
         public bool Equals(CXSourceRange other) => clang.equalRanges(this, other) != 0;
+
+        public override string ToString()
+        {
+            return $"{Start} to {End}";
+        }
     }
 }
