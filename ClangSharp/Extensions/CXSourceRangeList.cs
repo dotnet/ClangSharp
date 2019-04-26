@@ -7,7 +7,7 @@ namespace ClangSharp
 {
     public partial struct CXSourceRangeList : IDisposable, IReadOnlyCollection<CXSourceRange>
     {
-        public unsafe CXSourceRange this[uint index] => Unsafe.Add(ref Unsafe.AsRef<CXSourceRange>(ranges.ToPointer()), (int)index);
+        public unsafe CXSourceRange this[uint index] => ((CXSourceRange*)ranges)[index];
 
         public int Count => (int)count;
 

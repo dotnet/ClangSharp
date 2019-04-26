@@ -61,7 +61,7 @@ namespace ClangSharp
 
         public unsafe ref CXSourceRangeList GetSkippedRanges(CXFile file) => ref *(CXSourceRangeList*)clang.getSkippedRanges(this, file);
 
-        public unsafe ref CXToken GetToken(CXSourceLocation sourceLocation) => ref Unsafe.AsRef<CXToken>(clang.getToken(this, sourceLocation).ToPointer());
+        public unsafe ref CXToken GetToken(CXSourceLocation sourceLocation) => ref *(CXToken*)clang.getToken(this, sourceLocation);
 
         public bool IsFileMultipleIncludeGuarded(CXFile file) => clang.isFileMultipleIncludeGuarded(this, file) != 0;
 
