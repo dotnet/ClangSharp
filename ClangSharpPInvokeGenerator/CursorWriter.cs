@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using ClangSharp;
 
 namespace ClangSharpPInvokeGenerator
@@ -15,10 +14,11 @@ namespace ClangSharpPInvokeGenerator
         private readonly HashSet<CXCursor> _visitedCursors;
         private readonly Func<CXCursor, bool> _predicate;
         private readonly TextWriter _tw;
+        private readonly ConfigurationOptions _config;
 
         private int _indentation;
 
-        public CursorWriter(TextWriter tw, int indentation = 0, Func<CXCursor, bool> predicate = null)
+        public CursorWriter(ConfigurationOptions config, TextWriter tw, int indentation = 0, Func<CXCursor, bool> predicate = null)
         {
             _attachedData = new Dictionary<CXCursor, object>();
             _processingCursors = new Stack<CXCursor>();
@@ -26,13 +26,10 @@ namespace ClangSharpPInvokeGenerator
             _visitedCursors = new HashSet<CXCursor>();
             _predicate = predicate ?? ((cursor) => true);
             _tw = tw;
+            _config = config;
 
             _indentation = indentation;
         }
-
-        public string[] ExcludeFunctionsArray { get; set; }
-
-        public string PrefixStrip { get; set; }
 
         protected override bool BeginHandle(CXCursor cursor, CXCursor parent)
         {
@@ -154,7 +151,7 @@ namespace ClangSharpPInvokeGenerator
 
                         _attachedData.Remove(cursor);
                     }
-                    else if (!ExcludeFunctionsArray.Contains(cursor.GetFunctionDeclName()))
+                    else if (!_config.ExcludedFunctions.Contains(cursor.GetFunctionDeclName()))
                     {
                         Unhandled(cursor, parent);
                     }
@@ -290,7 +287,7 @@ namespace ClangSharpPInvokeGenerator
             var type = cursor.Type;
             var name = cursor.GetFunctionDeclName();
 
-            if (ExcludeFunctionsArray.Contains(name))
+            if (_config.ExcludedFunctions.Contains(name))
             {
                 return false;
             }
@@ -317,7 +314,7 @@ namespace ClangSharpPInvokeGenerator
             Write(' ');
             Write(type.ResultType.GetName(cursor));
             Write(' ');
-            Write(name.StartsWith(PrefixStrip) ? name.Substring(PrefixStrip.Length) : name);
+            Write(name.StartsWith(_config.MethodPrefixToStrip) ? name.Substring(_config.MethodPrefixToStrip.Length) : name);
             Write('(');
 
             return true;
