@@ -424,13 +424,8 @@ namespace ClangSharpPInvokeGenerator
 
         protected CXChildVisitResult Unhandled(CXCursor cursor, CXCursor parent)
         {
-            CXCursorExtensions.Unhandled(cursor, parent);
-            return CXChildVisitResult.CXChildVisit_Break;
-        }
-
-        protected CXChildVisitResult Unhandled(CXType type, CXCursor cursor)
-        {
-            CXTypeExtensions.Unhandled(type, cursor);
+            Debug.WriteLine($"Unhandled cursor kind: {cursor.KindSpelling} in {parent.KindSpelling}.");
+            Debugger.Break();
             return CXChildVisitResult.CXChildVisit_Break;
         }
     }

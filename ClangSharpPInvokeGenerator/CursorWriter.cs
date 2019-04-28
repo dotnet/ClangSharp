@@ -123,8 +123,6 @@ namespace ClangSharpPInvokeGenerator
             switch (cursor.Kind)
             {
                 case CXCursorKind.CXCursor_UnexposedDecl:
-                case CXCursorKind.CXCursor_FieldDecl:
-                case CXCursorKind.CXCursor_EnumConstantDecl:
                 case CXCursorKind.CXCursor_TypeRef:
                 case CXCursorKind.CXCursor_UnexposedAttr:
                 case CXCursorKind.CXCursor_DLLImport:
@@ -140,6 +138,18 @@ namespace ClangSharpPInvokeGenerator
                     break;
                 }
 
+                case CXCursorKind.CXCursor_FieldDecl:
+                {
+                    WriteLine(';');
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_EnumConstantDecl:
+                {
+                    WriteLine(',');
+                    break;
+                }
+
                 case CXCursorKind.CXCursor_FunctionDecl:
                 {
                     if (_attachedData.TryGetValue(cursor, out var data) && (data is AttachedFunctionDeclData functionDeclData))
@@ -151,7 +161,7 @@ namespace ClangSharpPInvokeGenerator
 
                         _attachedData.Remove(cursor);
                     }
-                    else if (!_config.ExcludedFunctions.Contains(cursor.GetFunctionDeclName()))
+                    else if (!_config.ExcludedFunctions.Contains(GetCursorName(cursor)))
                     {
                         Unhandled(cursor, parent);
                     }
@@ -199,10 +209,9 @@ namespace ClangSharpPInvokeGenerator
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_EnumConstantDecl);
 
             WriteIndentation();
-            Write(cursor.GetEnumConstantDeclName());
+            Write(GetCursorName(cursor));
             Write(" = ");
-            Write(cursor.GetEnumConstantDeclValue());
-            WriteLine(',');
+            Write(cursor.EnumConstantDeclValue);
 
             return false;
         }
@@ -213,9 +222,9 @@ namespace ClangSharpPInvokeGenerator
 
             WriteIndented("public enum");
             Write(' ');
-            Write(cursor.GetEnumDeclName());
+            Write(GetCursorName(cursor));
 
-            var integerTypeName = cursor.GetEnumDeclIntegerTypeName();
+            var integerTypeName = GetTypeName(cursor, cursor.EnumDecl_IntegerType);
 
             if (!integerTypeName.Equals("int"))
             {
@@ -235,7 +244,7 @@ namespace ClangSharpPInvokeGenerator
 
             WriteIndentation();
 
-            var marshalAttribute = cursor.Type.GetMarshalAttribute(cursor);
+            var marshalAttribute = GetMarshalAttribute(cursor, cursor.Type);
 
             if (!string.IsNullOrWhiteSpace(marshalAttribute))
             {
@@ -255,9 +264,9 @@ namespace ClangSharpPInvokeGenerator
                 {
                     Write("public");
                     Write(' ');
-                    Write(cursor.GetFieldDeclTypeName());
+                    Write(GetTypeName(cursor, cursor.Type));
                     Write(' ');
-                    Write(cursor.GetFieldDeclName());
+                    Write(GetCursorName(cursor));
                     Write(i);
                     Write(';');
                     Write(' ');
@@ -266,16 +275,14 @@ namespace ClangSharpPInvokeGenerator
 
             Write("public");
             Write(' ');
-            Write(cursor.GetFieldDeclTypeName());
+            Write(GetTypeName(cursor, cursor.Type));
             Write(' ');
-            Write(cursor.GetFieldDeclName());
+            Write(GetCursorName(cursor));
 
             if (lastElement != -1)
             {
                 Write(lastElement);
             }
-            WriteLine(';');
-
             return false;
         }
 
@@ -285,7 +292,7 @@ namespace ClangSharpPInvokeGenerator
             Debug.Assert(cursor.Type.kind == CXTypeKind.CXType_FunctionProto);
 
             var type = cursor.Type;
-            var name = cursor.GetFunctionDeclName();
+            var name = GetCursorName(cursor);
 
             if (_config.ExcludedFunctions.Contains(name))
             {
@@ -297,10 +304,10 @@ namespace ClangSharpPInvokeGenerator
             WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
             Write(name);
             Write("\", CallingConvention = CallingConvention.");
-            Write(type.GetFunctionProtoCallingConventionName(cursor));
+            Write(GetCallingConventionName(cursor, type.FunctionTypeCallingConv));
             WriteLine(")]");
 
-            var marshalAttribute = type.ResultType.GetMarshalAttribute(cursor);
+            var marshalAttribute = GetMarshalAttribute(cursor, type.ResultType);
 
             if (!string.IsNullOrWhiteSpace(marshalAttribute))
             {
@@ -312,7 +319,7 @@ namespace ClangSharpPInvokeGenerator
 
             WriteIndented("public static extern");
             Write(' ');
-            Write(type.ResultType.GetName(cursor));
+            Write(GetTypeName(cursor, type.ResultType));
             Write(' ');
             Write(name.StartsWith(_config.MethodPrefixToStrip) ? name.Substring(_config.MethodPrefixToStrip.Length) : name);
             Write('(');
@@ -326,7 +333,7 @@ namespace ClangSharpPInvokeGenerator
 
             if (_attachedData.TryGetValue(parent, out var data) && (data is AttachedFunctionDeclData functionDeclData))
             {
-                var marshalAttribute = cursor.Type.GetMarshalAttribute(cursor);
+                var marshalAttribute = GetMarshalAttribute(cursor, cursor.Type);
 
                 if (!string.IsNullOrWhiteSpace(marshalAttribute))
                 {
@@ -336,7 +343,7 @@ namespace ClangSharpPInvokeGenerator
                     Write(' ');
                 }
 
-                var parmModifier = cursor.Type.GetParmModifier(cursor);
+                var parmModifier = GetParmModifier(cursor, cursor.Type);
 
                 if (!string.IsNullOrWhiteSpace(parmModifier))
                 {
@@ -344,10 +351,16 @@ namespace ClangSharpPInvokeGenerator
                     Write(' ');
                 }
 
-                Write(cursor.GetParmDeclTypeName());
+                Write(GetTypeName(cursor, cursor.Type));
                 Write(' ');
-                Write(cursor.GetParmDeclName(functionDeclData.ParmCount - functionDeclData.RemainingParmCount));
 
+                var name = GetCursorName(cursor);
+                Write(name);
+
+                if (name.Equals("param"))
+                {
+                    Write(functionDeclData.ParmCount - functionDeclData.RemainingParmCount);
+                }
                 return true;
             }
             else if (parent.Kind != CXCursorKind.CXCursor_ParmDecl)
@@ -364,7 +377,7 @@ namespace ClangSharpPInvokeGenerator
 
             WriteIndented("public partial struct");
             Write(' ');
-            WriteLine(cursor.GetStructDeclName());
+            WriteLine(GetCursorName(cursor));
             WriteBlockStart();
 
             return true;
@@ -389,14 +402,14 @@ namespace ClangSharpPInvokeGenerator
                 {
                     WriteIndented("public partial struct");
                     Write(' ');
-                    WriteLine(cursor.GetTypedefDeclName());
+                    WriteLine(GetCursorName(cursor));
                     WriteBlockStart();
                     {
-                        var typeName = underlyingType.GetName(cursor);
+                        var typeName = GetTypeName(cursor, underlyingType);
 
                         WriteIndented("public");
                         Write(' ');
-                        Write(cursor.GetTypedefDeclName());
+                        Write(GetCursorName(cursor));
                         Write('(');
                         Write(typeName);
                         Write(' ');
@@ -439,7 +452,7 @@ namespace ClangSharpPInvokeGenerator
 
                 default:
                 {
-                    Unhandled(underlyingType, cursor);
+                    Unhandled(cursor, underlyingType);
                     return false;
                 }
             }
@@ -456,12 +469,12 @@ namespace ClangSharpPInvokeGenerator
                 {
                     WriteIndented("public partial struct");
                     Write(' ');
-                    WriteLine(cursor.GetTypedefDeclName());
+                    WriteLine(GetCursorName(cursor));
                     WriteBlockStart();
                     {
                         WriteIndented("public");
                         Write(' ');
-                        Write(cursor.GetTypedefDeclName());
+                        Write(GetCursorName(cursor));
                         WriteLine("(IntPtr pointer)");
                         WriteBlockStart();
                         {
@@ -481,13 +494,13 @@ namespace ClangSharpPInvokeGenerator
                     _attachedData.Add(cursor, new AttachedFunctionDeclData(pointeeType.NumArgTypes));
 
                     WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
-                    Write(pointeeType.GetFunctionProtoCallingConventionName(cursor));
+                    Write(GetCallingConventionName(cursor, pointeeType.FunctionTypeCallingConv));
                     WriteLine(")]");
                     WriteIndented("public delegate");
                     Write(' ');
-                    Write(pointeeType.ResultType.GetName(cursor));
+                    Write(GetTypeName(cursor, pointeeType.ResultType));
                     Write(' ');
-                    Write(cursor.GetTypedefDeclName());
+                    Write(GetCursorName(cursor));
                     Write('(');
 
                     return true;
@@ -500,7 +513,7 @@ namespace ClangSharpPInvokeGenerator
 
                 default:
                 {
-                    Unhandled(pointeeType, cursor);
+                    Unhandled(cursor, pointeeType);
                     return false;
                 }
             }
@@ -510,6 +523,684 @@ namespace ClangSharpPInvokeGenerator
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_TypeRef);
             return true;
+        }
+
+        private string EscapeName(string name)
+        {
+            switch (name)
+            {
+                case "abstract":
+                case "as":
+                case "base":
+                case "bool":
+                case "break":
+                case "byte":
+                case "case":
+                case "catch":
+                case "char":
+                case "checked":
+                case "class":
+                case "const":
+                case "continue":
+                case "decimal":
+                case "default":
+                case "delegate":
+                case "do":
+                case "double":
+                case "else":
+                case "enum":
+                case "event":
+                case "explicit":
+                case "extern":
+                case "false":
+                case "finally":
+                case "fixed":
+                case "float":
+                case "for":
+                case "foreach":
+                case "goto":
+                case "if":
+                case "implicit":
+                case "in":
+                case "int":
+                case "interface":
+                case "internal":
+                case "is":
+                case "lock":
+                case "long":
+                case "namespace":
+                case "new":
+                case "null":
+                case "object":
+                case "operator":
+                case "out":
+                case "override":
+                case "params":
+                case "private":
+                case "protected":
+                case "public":
+                case "readonly":
+                case "ref":
+                case "return":
+                case "sbyte":
+                case "sealed":
+                case "short":
+                case "sizeof":
+                case "stackalloc":
+                case "static":
+                case "string":
+                case "struct":
+                case "switch":
+                case "this":
+                case "throw":
+                case "true":
+                case "try":
+                case "typeof":
+                case "uint":
+                case "ulong":
+                case "unchecked":
+                case "unsafe":
+                case "ushort":
+                case "using":
+                case "using static":
+                case "virtual":
+                case "void":
+                case "volatile":
+                case "while":
+                {
+                    return $"@{name}";
+                }
+
+                default:
+                {
+                    return name;
+                }
+            }
+        }
+
+        private string GetCallingConventionName(CXCursor cursor, CXCallingConv callingConvention)
+        {
+            switch (callingConvention)
+            {
+                case CXCallingConv.CXCallingConv_C:
+                {
+                    return "Cdecl";
+                }
+
+                default:
+                {
+                    Debug.WriteLine($"Unhandled calling convention: {callingConvention} in {cursor.KindSpelling}.");
+                    Debugger.Break();
+                    return string.Empty;
+                }
+            }
+        }
+
+        private string GetCursorName(CXCursor cursor)
+        {
+            switch (cursor.Kind)
+            {
+                case CXCursorKind.CXCursor_StructDecl:
+                case CXCursorKind.CXCursor_EnumDecl:
+                {
+                    var name = cursor.Spelling.ToString();
+
+                    if (string.IsNullOrWhiteSpace(name))
+                    {
+                        name = GetTypeName(cursor, cursor.Type);
+                    }
+
+                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
+                    return EscapeName(name);
+                }
+
+                case CXCursorKind.CXCursor_FieldDecl:
+                case CXCursorKind.CXCursor_EnumConstantDecl:
+                case CXCursorKind.CXCursor_FunctionDecl:
+                {
+                    var name = cursor.Spelling.ToString();
+                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
+                    return EscapeName(name);
+                }
+
+                case CXCursorKind.CXCursor_ParmDecl:
+                {
+                    var name = cursor.Spelling.ToString();
+
+                    if (string.IsNullOrWhiteSpace(name))
+                    {
+                        name = "param";
+                    }
+
+                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
+                    return EscapeName(name);
+                }
+
+                case CXCursorKind.CXCursor_TypedefDecl:
+                {
+                    switch (cursor.Spelling.ToString())
+                    {
+                        case "int8_t":
+                        {
+                            return "sbyte";
+                        }
+
+                        case "int16_t":
+                        {
+                            return "short";
+                        }
+
+                        case "int32_t":
+                        {
+                            return "int";
+                        }
+
+                        case "int64_t":
+                        {
+                            return "long";
+                        }
+
+                        case "intptr_t":
+                        {
+                            return "IntPtr";
+                        }
+
+                        case "size_t":
+                        {
+                            return "IntPtr";
+                        }
+
+                        case "time_t":
+                        {
+                            return "long";
+                        }
+
+                        case "uint8_t":
+                        {
+                            return "byte";
+                        }
+
+                        case "uint16_t":
+                        {
+                            return "ushort";
+                        }
+
+                        case "uint32_t":
+                        {
+                            return "uint";
+                        }
+
+                        case "uint64_t":
+                        {
+                            return "ulong";
+                        }
+
+                        case "uintptr_t":
+                        {
+                            return "UIntPtr";
+                        }
+
+                        default:
+                        {
+                            return GetCursorNameForTypedefDecl(cursor, cursor.TypedefDeclUnderlyingType);
+                        }
+                    }
+                }
+
+                default:
+                {
+                    Unhandled(cursor);
+                    return string.Empty;
+                }
+            }
+        }
+
+        private string GetCursorNameForTypedefDecl(CXCursor cursor, CXType underlyingType)
+        {
+            Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_TypedefDecl);
+
+            switch (underlyingType.kind)
+            {
+                case CXTypeKind.CXType_Bool:
+                case CXTypeKind.CXType_UShort:
+                case CXTypeKind.CXType_UInt:
+                case CXTypeKind.CXType_ULong:
+                case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Short:
+                case CXTypeKind.CXType_Int:
+                case CXTypeKind.CXType_Long:
+                case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Pointer:
+                {
+                    var name = cursor.Spelling.ToString();
+
+                    if (string.IsNullOrWhiteSpace(name))
+                    {
+                        name = GetTypeName(cursor, underlyingType);
+                    }
+
+                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
+                    return EscapeName(name);
+                }
+
+                case CXTypeKind.CXType_Record:
+                case CXTypeKind.CXType_Enum:
+                {
+                    var name = GetTypeName(cursor, underlyingType);
+                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
+                    return EscapeName(name);
+                }
+
+                case CXTypeKind.CXType_Typedef:
+                case CXTypeKind.CXType_Elaborated:
+                {
+                    return GetCursorNameForTypedefDecl(cursor, underlyingType.CanonicalType);
+                }
+
+                default:
+                {
+                    Unhandled(cursor, underlyingType);
+                    return string.Empty;
+                }
+            }
+        }
+
+        private string GetMarshalAttribute(CXCursor cursor, CXType type)
+        {
+            switch (type.kind)
+            {
+                case CXTypeKind.CXType_Void:
+                case CXTypeKind.CXType_UShort:
+                case CXTypeKind.CXType_UInt:
+                case CXTypeKind.CXType_ULong:
+                case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Short:
+                case CXTypeKind.CXType_Int:
+                case CXTypeKind.CXType_Long:
+                case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Double:
+                case CXTypeKind.CXType_Record:
+                case CXTypeKind.CXType_Enum:
+                case CXTypeKind.CXType_Typedef:
+                case CXTypeKind.CXType_ConstantArray:
+                case CXTypeKind.CXType_IncompleteArray:
+                {
+                    return string.Empty;
+                }
+
+                case CXTypeKind.CXType_Pointer:
+                {
+                    return GetMarshalAttributeForPointeeType(cursor, type.PointeeType);
+                }
+
+                case CXTypeKind.CXType_Elaborated:
+                {
+                    return GetMarshalAttribute(cursor, type.CanonicalType);
+                }
+
+                default:
+                {
+                    Unhandled(cursor, type);
+                    return string.Empty;
+                }
+            }
+        }
+
+        private string GetMarshalAttributeForPointeeType(CXCursor cursor, CXType pointeeType)
+        {
+            switch (pointeeType.kind)
+            {
+                case CXTypeKind.CXType_Void:
+                case CXTypeKind.CXType_UShort:
+                case CXTypeKind.CXType_UInt:
+                case CXTypeKind.CXType_ULong:
+                case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Short:
+                case CXTypeKind.CXType_Int:
+                case CXTypeKind.CXType_Long:
+                case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Double:
+                case CXTypeKind.CXType_Pointer:
+                case CXTypeKind.CXType_Record:
+                case CXTypeKind.CXType_Enum:
+                case CXTypeKind.CXType_Typedef:
+                case CXTypeKind.CXType_FunctionProto:
+                {
+                    return string.Empty;
+                }
+
+                case CXTypeKind.CXType_Char_S:
+                {
+                    return "MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))";
+                }
+
+                case CXTypeKind.CXType_WChar:
+                {
+                    return "MarshalAs(UnmanagedType.LPWStr)";
+                }
+
+                case CXTypeKind.CXType_Elaborated:
+                {
+                    return GetMarshalAttributeForPointeeType(cursor, pointeeType.CanonicalType);
+                }
+
+                default:
+                {
+                    Unhandled(cursor, pointeeType);
+                    return string.Empty;
+                }
+            }
+        }
+
+        private string GetParmModifier(CXCursor cursor, CXType type)
+        {
+            switch (type.kind)
+            {
+                case CXTypeKind.CXType_Void:
+                case CXTypeKind.CXType_UShort:
+                case CXTypeKind.CXType_UInt:
+                case CXTypeKind.CXType_ULong:
+                case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Short:
+                case CXTypeKind.CXType_Int:
+                case CXTypeKind.CXType_Long:
+                case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Double:
+                case CXTypeKind.CXType_Enum:
+                case CXTypeKind.CXType_Typedef:
+                case CXTypeKind.CXType_ConstantArray:
+                case CXTypeKind.CXType_IncompleteArray:
+                {
+                    return string.Empty;
+                }
+
+                case CXTypeKind.CXType_Pointer:
+                {
+                    return GetParmModifierForPointeeType(cursor, type.PointeeType);
+                }
+
+                case CXTypeKind.CXType_Elaborated:
+                {
+                    return GetParmModifier(cursor, type.CanonicalType);
+                }
+
+                default:
+                {
+                    Unhandled(cursor, type);
+                    return string.Empty;
+                }
+            }
+        }
+
+        private string GetParmModifierForPointeeType(CXCursor cursor, CXType pointeeType)
+        {
+            switch (pointeeType.kind)
+            {
+                case CXTypeKind.CXType_Void:
+                case CXTypeKind.CXType_Char_S:
+                case CXTypeKind.CXType_WChar:
+                case CXTypeKind.CXType_FunctionProto:
+                {
+                    return string.Empty;
+                }
+
+                case CXTypeKind.CXType_UChar:
+                case CXTypeKind.CXType_UShort:
+                case CXTypeKind.CXType_UInt:
+                case CXTypeKind.CXType_ULong:
+                case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Short:
+                case CXTypeKind.CXType_Int:
+                case CXTypeKind.CXType_Long:
+                case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Double:
+                case CXTypeKind.CXType_Record:
+                case CXTypeKind.CXType_Enum:
+                case CXTypeKind.CXType_Pointer:
+                {
+                    return "out";
+                }
+
+                case CXTypeKind.CXType_Typedef:
+                case CXTypeKind.CXType_Elaborated:
+                {
+                    return GetParmModifierForPointeeType(cursor, pointeeType.CanonicalType);
+                }
+
+                default:
+                {
+                    Unhandled(cursor, pointeeType);
+                    return string.Empty;
+                }
+            }
+        }
+
+        private string GetTypeName(CXCursor cursor, CXType type)
+        {
+            switch (type.kind)
+            {
+                case CXTypeKind.CXType_Void:
+                {
+                    return "void";
+                }
+
+                case CXTypeKind.CXType_Bool:
+                {
+                    return "bool";
+                }
+
+                case CXTypeKind.CXType_UShort:
+                {
+                    return "ushort";
+                }
+
+                case CXTypeKind.CXType_UInt:
+                {
+                    return "uint";
+                }
+
+                case CXTypeKind.CXType_ULong:
+                {
+                    return "uint";
+                }
+
+                case CXTypeKind.CXType_ULongLong:
+                {
+                    return "ulong";
+                }
+
+                case CXTypeKind.CXType_Short:
+                {
+                    return "short";
+                }
+
+                case CXTypeKind.CXType_Int:
+                {
+                    return "int";
+                }
+
+                case CXTypeKind.CXType_Long:
+                {
+                    return "int";
+                }
+
+                case CXTypeKind.CXType_LongLong:
+                {
+                    return "long";
+                }
+
+                case CXTypeKind.CXType_Double:
+                {
+                    return "double";
+                }
+
+                case CXTypeKind.CXType_Pointer:
+                {
+                    return GetTypeNameForPointeeType(cursor, type.PointeeType);
+                }
+
+                case CXTypeKind.CXType_Record:
+                case CXTypeKind.CXType_Enum:
+                case CXTypeKind.CXType_FunctionProto:
+                {
+                    var name = type.Spelling.ToString();
+                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
+                    return name;
+                }
+
+                case CXTypeKind.CXType_Typedef:
+                {
+                    return GetCursorName(type.Declaration);
+                }
+
+                case CXTypeKind.CXType_Elaborated:
+                {
+                    return GetTypeName(cursor, type.CanonicalType);
+                }
+
+                case CXTypeKind.CXType_ConstantArray:
+                case CXTypeKind.CXType_IncompleteArray:
+                {
+                    return GetTypeName(cursor, type.ElementType);
+                }
+
+                default:
+                {
+                    Unhandled(cursor, type);
+                    return string.Empty;
+                }
+            }
+        }
+
+        private string GetTypeNameForPointeeType(CXCursor cursor, CXType pointeeType)
+        {
+            switch (pointeeType.kind)
+            {
+                case CXTypeKind.CXType_Void:
+                case CXTypeKind.CXType_FunctionProto:
+                {
+                    return "IntPtr";
+                }
+
+                case CXTypeKind.CXType_UShort:
+                case CXTypeKind.CXType_UInt:
+                case CXTypeKind.CXType_ULong:
+                case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Short:
+                case CXTypeKind.CXType_Int:
+                case CXTypeKind.CXType_Long:
+                case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Pointer:
+                case CXTypeKind.CXType_Record:
+                case CXTypeKind.CXType_Enum:
+                {
+                    switch (cursor.Kind)
+                    {
+                        case CXCursorKind.CXCursor_FieldDecl:
+                        case CXCursorKind.CXCursor_FunctionDecl:
+                        {
+                            return "IntPtr";
+                        }
+
+                        case CXCursorKind.CXCursor_ParmDecl:
+                        {
+                            return GetTypeName(cursor, pointeeType);
+                        }
+
+                        case CXCursorKind.CXCursor_TypedefDecl:
+                        {
+                            return GetCursorName(cursor);
+                        }
+
+                        default:
+                        {
+                            Unhandled(cursor, pointeeType);
+                            return string.Empty;
+                        }
+                    }
+                }
+
+                case CXTypeKind.CXType_Char_S:
+                {
+                    switch (cursor.Kind)
+                    {
+                        case CXCursorKind.CXCursor_FieldDecl:
+                        case CXCursorKind.CXCursor_FunctionDecl:
+                        {
+                            return "string";
+                        }
+
+                        case CXCursorKind.CXCursor_ParmDecl:
+                        {
+                            if (GetParmModifier(cursor, cursor.Type).Equals("out"))
+                            {
+                                return "IntPtr";
+                            }
+
+                            return "string";
+                        }
+
+                        case CXCursorKind.CXCursor_TypedefDecl:
+                        {
+                            return "string";
+                        }
+
+                        default:
+                        {
+                            Unhandled(cursor, pointeeType);
+                            return string.Empty;
+                        }
+                    }
+                }
+
+                case CXTypeKind.CXType_Typedef:
+                {
+                    switch (cursor.Kind)
+                    {
+                        case CXCursorKind.CXCursor_FieldDecl:
+                        case CXCursorKind.CXCursor_FunctionDecl:
+                        {
+                            return "IntPtr";
+                        }
+
+                        case CXCursorKind.CXCursor_ParmDecl:
+                        case CXCursorKind.CXCursor_TypedefDecl:
+                        {
+                            return GetCursorName(pointeeType.Declaration);
+                        }
+
+                        default:
+                        {
+                            Unhandled(cursor, pointeeType);
+                            return string.Empty;
+                        }
+                    }
+                }
+
+                case CXTypeKind.CXType_Elaborated:
+                {
+                    return GetTypeNameForPointeeType(cursor, pointeeType.CanonicalType);
+                }
+
+                default:
+                {
+                    Unhandled(cursor, pointeeType);
+                    return string.Empty;
+                }
+            }
+        }
+
+        private void Unhandled(CXCursor cursor)
+        {
+            Debug.WriteLine($"Unhandled cursor kind: {cursor.KindSpelling}");
+            Debugger.Break();
+        }
+
+        private CXChildVisitResult Unhandled(CXCursor cursor, CXType type)
+        {
+            Debug.WriteLine($"Unhandled type kind: {type.KindSpelling} in {cursor.KindSpelling}.");
+            Debugger.Break();
+            return CXChildVisitResult.CXChildVisit_Break;
         }
 
         private void WriteBlockStart()
