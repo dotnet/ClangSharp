@@ -7,6 +7,8 @@ namespace ClangSharpPInvokeGenerator
     {
         public List<string> ExcludedFunctions { get; } = new List<string>();
 
+        public bool GenerateUnsafeCode { get; set; } = false;
+
         public string LibraryPath { get; set; } = string.Empty;
 
         public string MethodClassName { get; set; } = "Methods";

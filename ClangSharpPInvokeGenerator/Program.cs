@@ -32,6 +32,24 @@ namespace ClangSharpPInvokeGenerator
                     additionalArgs.Add(match.Value);
                 }
 
+                if (string.Equals(match.Key, "--c") || string.Equals(match.Key, "--config"))
+                {
+                    switch (match.Value.ToLower())
+                    {
+                        case "unsafe":
+                        {
+                            config.GenerateUnsafeCode = true;
+                            break;
+                        }
+
+                        default:
+                        {
+                            errorList.Add($"Error: Unrecognized config option: {match.Value}");
+                            break;
+                        }
+                    }
+                }
+
                 if (string.Equals(match.Key, "--d") || string.Equals(match.Key, "--define"))
                 {
                     defines.Add(match.Value);
@@ -100,7 +118,7 @@ namespace ClangSharpPInvokeGenerator
 
             if (errorList.Any())
             {
-                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs] --define [compilerDefine] --additional [compilerArg] --excludeFunctions [func1,func2]");
+                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs] --define [compilerDefine] --additional [compilerArg] --excludeFunctions [func1,func2] --config [unsafe]");
                 foreach (var error in errorList)
                 {
                     Console.WriteLine(error);

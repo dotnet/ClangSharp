@@ -209,7 +209,7 @@ namespace ClangSharpPInvokeGenerator
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_EnumConstantDecl);
 
             WriteIndentation();
-            Write(GetCursorName(cursor));
+            Write(GetEscapedCursorName(cursor));
             Write(" = ");
             Write(cursor.EnumConstantDeclValue);
 
@@ -222,7 +222,7 @@ namespace ClangSharpPInvokeGenerator
 
             WriteIndented("public enum");
             Write(' ');
-            Write(GetCursorName(cursor));
+            Write(GetEscapedCursorName(cursor));
 
             var integerTypeName = GetTypeName(cursor, cursor.EnumDecl_IntegerType);
 
@@ -266,7 +266,7 @@ namespace ClangSharpPInvokeGenerator
                     Write(' ');
                     Write(GetTypeName(cursor, cursor.Type));
                     Write(' ');
-                    Write(GetCursorName(cursor));
+                    Write(GetEscapedCursorName(cursor));
                     Write(i);
                     Write(';');
                     Write(' ');
@@ -277,7 +277,7 @@ namespace ClangSharpPInvokeGenerator
             Write(' ');
             Write(GetTypeName(cursor, cursor.Type));
             Write(' ');
-            Write(GetCursorName(cursor));
+            Write(GetEscapedCursorName(cursor));
 
             if (lastElement != -1)
             {
@@ -317,11 +317,17 @@ namespace ClangSharpPInvokeGenerator
                 WriteLine();
             }
 
+            if (name.StartsWith(_config.MethodPrefixToStrip))
+            {
+                name = name.Substring(_config.MethodPrefixToStrip.Length);
+            }
+            name = EscapeName(name);
+
             WriteIndented("public static extern");
             Write(' ');
             Write(GetTypeName(cursor, type.ResultType));
             Write(' ');
-            Write(name.StartsWith(_config.MethodPrefixToStrip) ? name.Substring(_config.MethodPrefixToStrip.Length) : name);
+            Write(name);
             Write('(');
 
             return true;
@@ -354,7 +360,7 @@ namespace ClangSharpPInvokeGenerator
                 Write(GetTypeName(cursor, cursor.Type));
                 Write(' ');
 
-                var name = GetCursorName(cursor);
+                var name = GetEscapedCursorName(cursor);
                 Write(name);
 
                 if (name.Equals("param"))
@@ -377,7 +383,7 @@ namespace ClangSharpPInvokeGenerator
 
             WriteIndented("public partial struct");
             Write(' ');
-            WriteLine(GetCursorName(cursor));
+            WriteLine(GetEscapedCursorName(cursor));
             WriteBlockStart();
 
             return true;
@@ -400,36 +406,41 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_LongLong:
                 case CXTypeKind.CXType_Double:
                 {
-                    WriteIndented("public partial struct");
-                    Write(' ');
-                    WriteLine(GetCursorName(cursor));
-                    WriteBlockStart();
+                    if (!_config.GenerateUnsafeCode)
                     {
-                        var typeName = GetTypeName(cursor, underlyingType);
+                        var escapedName = GetEscapedCursorName(cursor);
 
-                        WriteIndented("public");
+                        WriteIndented("public partial struct");
                         Write(' ');
-                        Write(GetCursorName(cursor));
-                        Write('(');
-                        Write(typeName);
-                        Write(' ');
-                        Write("value");
-                        WriteLine(')');
+                        WriteLine(escapedName);
                         WriteBlockStart();
                         {
-                            WriteIndentedLine("Value = value;");
+                            var typeName = GetTypeName(cursor, underlyingType);
+
+                            WriteIndented("public");
+                            Write(' ');
+                            Write(escapedName);
+                            Write('(');
+                            Write(typeName);
+                            Write(' ');
+                            Write("value");
+                            WriteLine(')');
+                            WriteBlockStart();
+                            {
+                                WriteIndentedLine("Value = value;");
+                            }
+                            WriteBlockEnd();
+                            WriteLine();
+                            WriteIndented("public");
+                            Write(' ');
+                            Write(typeName);
+                            Write(' ');
+                            Write("Value");
+                            WriteLine(';');
                         }
                         WriteBlockEnd();
                         WriteLine();
-                        WriteIndented("public");
-                        Write(' ');
-                        Write(typeName);
-                        Write(' ');
-                        Write("Value");
-                        WriteLine(';');
                     }
-                    WriteBlockEnd();
-                    WriteLine();
                     return true;
                 }
 
@@ -467,31 +478,36 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_Void:
                 case CXTypeKind.CXType_Record:
                 {
-                    WriteIndented("public partial struct");
-                    Write(' ');
-                    WriteLine(GetCursorName(cursor));
-                    WriteBlockStart();
+                    if (!_config.GenerateUnsafeCode)
                     {
-                        WriteIndented("public");
+                        WriteIndented("public partial struct");
                         Write(' ');
-                        Write(GetCursorName(cursor));
-                        WriteLine("(IntPtr pointer)");
+                        WriteLine(GetEscapedCursorName(cursor));
                         WriteBlockStart();
                         {
-                            WriteIndentedLine("Pointer = pointer;");
+                            WriteIndented("public");
+                            Write(' ');
+                            Write(GetEscapedCursorName(cursor));
+                            WriteLine("(IntPtr pointer)");
+                            WriteBlockStart();
+                            {
+                                WriteIndentedLine("Pointer = pointer;");
+                            }
+                            WriteBlockEnd();
+                            WriteLine();
+                            WriteIndentedLine("public IntPtr Pointer;");
                         }
                         WriteBlockEnd();
                         WriteLine();
-                        WriteIndentedLine("public IntPtr Pointer;");
                     }
-                    WriteBlockEnd();
-                    WriteLine();
                     return true;
                 }
 
                 case CXTypeKind.CXType_FunctionProto:
                 {
+                    var name = GetCursorName(cursor);
                     _attachedData.Add(cursor, new AttachedFunctionDeclData(pointeeType.NumArgTypes));
+                    name = EscapeName(name);
 
                     WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
                     Write(GetCallingConventionName(cursor, pointeeType.FunctionTypeCallingConv));
@@ -500,7 +516,7 @@ namespace ClangSharpPInvokeGenerator
                     Write(' ');
                     Write(GetTypeName(cursor, pointeeType.ResultType));
                     Write(' ');
-                    Write(GetCursorName(cursor));
+                    Write(name);
                     Write('(');
 
                     return true;
@@ -641,6 +657,7 @@ namespace ClangSharpPInvokeGenerator
             switch (cursor.Kind)
             {
                 case CXCursorKind.CXCursor_StructDecl:
+                case CXCursorKind.CXCursor_UnionDecl:
                 case CXCursorKind.CXCursor_EnumDecl:
                 {
                     var name = cursor.Spelling.ToString();
@@ -651,7 +668,7 @@ namespace ClangSharpPInvokeGenerator
                     }
 
                     Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return EscapeName(name);
+                    return name;
                 }
 
                 case CXCursorKind.CXCursor_FieldDecl:
@@ -660,7 +677,7 @@ namespace ClangSharpPInvokeGenerator
                 {
                     var name = cursor.Spelling.ToString();
                     Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return EscapeName(name);
+                    return name;
                 }
 
                 case CXCursorKind.CXCursor_ParmDecl:
@@ -673,7 +690,7 @@ namespace ClangSharpPInvokeGenerator
                     }
 
                     Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return EscapeName(name);
+                    return name;
                 }
 
                 case CXCursorKind.CXCursor_TypedefDecl:
@@ -706,6 +723,7 @@ namespace ClangSharpPInvokeGenerator
                         }
 
                         case "size_t":
+                        case "SIZE_T":
                         {
                             return "IntPtr";
                         }
@@ -762,25 +780,28 @@ namespace ClangSharpPInvokeGenerator
             switch (underlyingType.kind)
             {
                 case CXTypeKind.CXType_Bool:
+                case CXTypeKind.CXType_UChar:
                 case CXTypeKind.CXType_UShort:
                 case CXTypeKind.CXType_UInt:
                 case CXTypeKind.CXType_ULong:
                 case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_WChar:
                 case CXTypeKind.CXType_Short:
                 case CXTypeKind.CXType_Int:
                 case CXTypeKind.CXType_Long:
                 case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Float:
                 case CXTypeKind.CXType_Pointer:
                 {
                     var name = cursor.Spelling.ToString();
 
-                    if (string.IsNullOrWhiteSpace(name))
+                    if (_config.GenerateUnsafeCode || string.IsNullOrWhiteSpace(name))
                     {
                         name = GetTypeName(cursor, underlyingType);
                     }
 
                     Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return EscapeName(name);
+                    return name;
                 }
 
                 case CXTypeKind.CXType_Record:
@@ -788,7 +809,7 @@ namespace ClangSharpPInvokeGenerator
                 {
                     var name = GetTypeName(cursor, underlyingType);
                     Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return EscapeName(name);
+                    return name;
                 }
 
                 case CXTypeKind.CXType_Typedef:
@@ -805,8 +826,19 @@ namespace ClangSharpPInvokeGenerator
             }
         }
 
+        private string GetEscapedCursorName(CXCursor cursor)
+        {
+            var name = GetCursorName(cursor);
+            return EscapeName(name);
+        }
+
         private string GetMarshalAttribute(CXCursor cursor, CXType type)
         {
+            if (_config.GenerateUnsafeCode)
+            {
+                return string.Empty;
+            }
+
             switch (type.kind)
             {
                 case CXTypeKind.CXType_Void:
@@ -848,6 +880,8 @@ namespace ClangSharpPInvokeGenerator
 
         private string GetMarshalAttributeForPointeeType(CXCursor cursor, CXType pointeeType)
         {
+            Debug.Assert(!_config.GenerateUnsafeCode);
+
             switch (pointeeType.kind)
             {
                 case CXTypeKind.CXType_Void:
@@ -894,6 +928,11 @@ namespace ClangSharpPInvokeGenerator
 
         private string GetParmModifier(CXCursor cursor, CXType type)
         {
+            if (_config.GenerateUnsafeCode)
+            {
+                return string.Empty;
+            }
+
             switch (type.kind)
             {
                 case CXTypeKind.CXType_Void:
@@ -934,6 +973,8 @@ namespace ClangSharpPInvokeGenerator
 
         private string GetParmModifierForPointeeType(CXCursor cursor, CXType pointeeType)
         {
+            Debug.Assert(!_config.GenerateUnsafeCode);
+
             switch (pointeeType.kind)
             {
                 case CXTypeKind.CXType_Void:
@@ -989,6 +1030,11 @@ namespace ClangSharpPInvokeGenerator
                     return "bool";
                 }
 
+                case CXTypeKind.CXType_UChar:
+                {
+                    return "byte";
+                }
+
                 case CXTypeKind.CXType_UShort:
                 {
                     return "ushort";
@@ -1007,6 +1053,11 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_ULongLong:
                 {
                     return "ulong";
+                }
+
+                case CXTypeKind.CXType_WChar:
+                {
+                    return "char";
                 }
 
                 case CXTypeKind.CXType_Short:
@@ -1029,12 +1080,18 @@ namespace ClangSharpPInvokeGenerator
                     return "long";
                 }
 
+                case CXTypeKind.CXType_Float:
+                {
+                    return "float";
+                }
+
                 case CXTypeKind.CXType_Double:
                 {
                     return "double";
                 }
 
                 case CXTypeKind.CXType_Pointer:
+                case CXTypeKind.CXType_LValueReference:
                 {
                     return GetTypeNameForPointeeType(cursor, type.PointeeType);
                 }
@@ -1077,6 +1134,10 @@ namespace ClangSharpPInvokeGenerator
             switch (pointeeType.kind)
             {
                 case CXTypeKind.CXType_Void:
+                {
+                    return _config.GenerateUnsafeCode ? "void*" : "IntPtr";
+                }
+
                 case CXTypeKind.CXType_FunctionProto:
                 {
                     return "IntPtr";
@@ -1099,17 +1160,36 @@ namespace ClangSharpPInvokeGenerator
                         case CXCursorKind.CXCursor_FieldDecl:
                         case CXCursorKind.CXCursor_FunctionDecl:
                         {
-                            return "IntPtr";
+                            var name = "IntPtr";
+
+                            if (_config.GenerateUnsafeCode)
+                            {
+                                name = GetTypeName(cursor, pointeeType);
+                                name += '*';
+                            }
+                            return name;
                         }
 
                         case CXCursorKind.CXCursor_ParmDecl:
                         {
-                            return GetTypeName(cursor, pointeeType);
+                            var name = GetTypeName(cursor, pointeeType);
+
+                            if (_config.GenerateUnsafeCode)
+                            {
+                                name += '*';
+                            }
+                            return name;
                         }
 
                         case CXCursorKind.CXCursor_TypedefDecl:
                         {
-                            return GetCursorName(cursor);
+                            var name = GetCursorName(pointeeType.Declaration);
+
+                            if (_config.GenerateUnsafeCode)
+                            {
+                                name += '*';
+                            }
+                            return name;
                         }
 
                         default:
@@ -1127,22 +1207,23 @@ namespace ClangSharpPInvokeGenerator
                         case CXCursorKind.CXCursor_FieldDecl:
                         case CXCursorKind.CXCursor_FunctionDecl:
                         {
-                            return "string";
+                            return _config.GenerateUnsafeCode ? "byte*" : "string";
                         }
 
                         case CXCursorKind.CXCursor_ParmDecl:
                         {
                             if (GetParmModifier(cursor, cursor.Type).Equals("out"))
                             {
+                                Debug.Assert(!_config.GenerateUnsafeCode);
                                 return "IntPtr";
                             }
 
-                            return "string";
+                            return _config.GenerateUnsafeCode ? "byte*" : "string";
                         }
 
                         case CXCursorKind.CXCursor_TypedefDecl:
                         {
-                            return "string";
+                            return _config.GenerateUnsafeCode ? "byte*" : "string";
                         }
 
                         default:
@@ -1160,13 +1241,26 @@ namespace ClangSharpPInvokeGenerator
                         case CXCursorKind.CXCursor_FieldDecl:
                         case CXCursorKind.CXCursor_FunctionDecl:
                         {
-                            return "IntPtr";
+                            var name = "IntPtr";
+
+                            if (_config.GenerateUnsafeCode)
+                            {
+                                name = GetCursorName(pointeeType.Declaration);
+                                name += '*';
+                            }
+                            return name;
                         }
 
                         case CXCursorKind.CXCursor_ParmDecl:
                         case CXCursorKind.CXCursor_TypedefDecl:
                         {
-                            return GetCursorName(pointeeType.Declaration);
+                            var name = GetCursorName(pointeeType.Declaration);
+
+                            if (_config.GenerateUnsafeCode)
+                            {
+                                name += '*';
+                            }
+                            return name;
                         }
 
                         default:
