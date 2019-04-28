@@ -391,8 +391,8 @@ namespace ClangSharpPInvokeGenerator
                         Write(' ');
                         Write(typeName);
                         Write(' ');
-                        WriteLine("Value");
-                        Write(';');
+                        Write("Value");
+                        WriteLine(';');
                     }
                     WriteBlockEnd();
                     WriteLine();
