@@ -49,6 +49,10 @@ namespace ClangSharpPInvokeGenerator
             {
                 case CXCursorKind.CXCursor_UnexposedDecl:
                 {
+                    if (_predicatedCursors.TryPeek(out var activeCursor) && activeCursor.Equals(cursor))
+                    {
+                        _predicatedCursors.Pop();
+                    }
                     return true;
                 }
 

@@ -167,24 +167,12 @@ namespace ClangSharpPInvokeGenerator
                 sw.WriteLine("    using System.Runtime.InteropServices;");
                 sw.WriteLine();
 
-                var structDeclWriter = new CursorWriter(config, sw, indentation: 1, (cursor) => cursor.Kind == CXCursorKind.CXCursor_StructDecl);
+                var writer = new CursorWriter(config, sw, indentation: 1, (cursor) => cursor.Kind != CXCursorKind.CXCursor_FunctionDecl);
                 foreach (var tu in translationUnits)
                 {
-                    tu.Cursor.VisitChildren(structDeclWriter.VisitTranslationUnit, clientData: default);
+                    tu.Cursor.VisitChildren(writer.VisitTranslationUnit, clientData: default);
                 }
 
-                var typedefDeclWriter = new CursorWriter(config, sw, indentation: 1, (cursor) => cursor.Kind == CXCursorKind.CXCursor_TypedefDecl);
-                foreach (var tu in translationUnits)
-                {
-                    tu.Cursor.VisitChildren(typedefDeclWriter.VisitTranslationUnit, clientData: default);
-                }
-                
-                var enumDeclWriter = new CursorWriter(config, sw, indentation: 1, (cursor) => cursor.Kind == CXCursorKind.CXCursor_EnumDecl);
-                foreach (var tu in translationUnits)
-                {
-                    tu.Cursor.VisitChildren(enumDeclWriter.VisitTranslationUnit, new CXClientData(IntPtr.Zero));
-                }
-                
                 sw.WriteLine("    public static partial class " + config.MethodClassName);
                 sw.WriteLine("    {");
                 {
