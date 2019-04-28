@@ -30,19 +30,9 @@ namespace ClangSharpPInvokeGenerator
 
             foreach (KeyValuePair<string, string> match in matches)
             {
-                if (string.Equals(match.Key, "--n") || string.Equals(match.Key, "--namespace"))
+                if (string.Equals(match.Key, "--a") || string.Equals(match.Key, "--additional"))
                 {
-                    @namespace = match.Value;
-                }
-
-                if (string.Equals(match.Key, "--l") || string.Equals(match.Key, "--libraryPath"))
-                {
-                    libraryPath = match.Value;
-                }
-
-                if (string.Equals(match.Key, "--i") || string.Equals(match.Key, "--include"))
-                {
-                    includeDirs.Add(match.Value);
+                    additionalArgs.Add(match.Value);
                 }
 
                 if (string.Equals(match.Key, "--d") || string.Equals(match.Key, "--define"))
@@ -50,14 +40,9 @@ namespace ClangSharpPInvokeGenerator
                     defines.Add(match.Value);
                 }
 
-                if (string.Equals(match.Key, "--a") || string.Equals(match.Key, "--additional"))
+                if (string.Equals(match.Key, "--e") || string.Equals(match.Key, "--excludeFunctions"))
                 {
-                    additionalArgs.Add(match.Value);
-                }
-
-                if (string.Equals(match.Key, "--o") || string.Equals(match.Key, "--output"))
-                {
-                    outputFile = match.Value;
+                    excludeFunctions = match.Value;
                 }
 
                 if (string.Equals(match.Key, "--f") || string.Equals(match.Key, "--file"))
@@ -65,9 +50,14 @@ namespace ClangSharpPInvokeGenerator
                     files.Add(match.Value);
                 }
 
-                if (string.Equals(match.Key, "--p") || string.Equals(match.Key, "--prefixStrip"))
+                if (string.Equals(match.Key, "--i") || string.Equals(match.Key, "--include"))
                 {
-                    prefixStrip = match.Value;
+                    includeDirs.Add(match.Value);
+                }
+
+                if (string.Equals(match.Key, "--l") || string.Equals(match.Key, "--libraryPath"))
+                {
+                    libraryPath = match.Value;
                 }
 
                 if (string.Equals(match.Key, "--m") || string.Equals(match.Key, "--methodClassName"))
@@ -75,9 +65,19 @@ namespace ClangSharpPInvokeGenerator
                     methodClassName = match.Value;
                 }
 
-                if (string.Equals(match.Key, "--e") || string.Equals(match.Key, "--excludeFunctions"))
+                if (string.Equals(match.Key, "--n") || string.Equals(match.Key, "--namespace"))
                 {
-                    excludeFunctions = match.Value;
+                    @namespace = match.Value;
+                }
+
+                if (string.Equals(match.Key, "--o") || string.Equals(match.Key, "--output"))
+                {
+                    outputFile = match.Value;
+                }
+
+                if (string.Equals(match.Key, "--p") || string.Equals(match.Key, "--prefixStrip"))
+                {
+                    prefixStrip = match.Value;
                 }
             }
 
