@@ -201,9 +201,7 @@ namespace ClangSharpPInvokeGenerator
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_TypedefDecl);
 
-            var name = cursor.Spelling.ToString();
-
-            switch (name)
+            switch (cursor.Spelling.ToString())
             {
                 case "int8_t":
                 {
@@ -264,10 +262,62 @@ namespace ClangSharpPInvokeGenerator
                 {
                     return "UIntPtr";
                 }
-            }
 
-            Debug.Assert(!string.IsNullOrWhiteSpace(name));
-            return EscapeName(name);
+                default:
+                {
+                    return cursor.GetTypedefDeclName(cursor.TypedefDeclUnderlyingType);
+                }
+            }
+        }
+
+        public static string GetTypedefDeclName(this CXCursor cursor, CXType underlyingType)
+        {
+            Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_TypedefDecl);
+
+            switch (underlyingType.kind)
+            {
+                case CXTypeKind.CXType_Bool:
+                case CXTypeKind.CXType_UShort:
+                case CXTypeKind.CXType_UInt:
+                case CXTypeKind.CXType_ULong:
+                case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Short:
+                case CXTypeKind.CXType_Int:
+                case CXTypeKind.CXType_Long:
+                case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Pointer:
+                {
+                    var name = cursor.Spelling.ToString();
+
+                    if (string.IsNullOrWhiteSpace(name))
+                    {
+                        name = underlyingType.GetName(cursor);
+                    }
+
+                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
+                    return EscapeName(name);
+                }
+
+                case CXTypeKind.CXType_Record:
+                case CXTypeKind.CXType_Enum:
+                {
+                    var name = underlyingType.GetName(cursor);
+                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
+                    return EscapeName(name);
+                }
+
+                case CXTypeKind.CXType_Typedef:
+                case CXTypeKind.CXType_Elaborated:
+                {
+                    return GetTypedefDeclName(cursor, underlyingType.CanonicalType);
+                }
+
+                default:
+                {
+                    CXTypeExtensions.Unhandled(underlyingType, cursor);
+                    return string.Empty;
+                }
+            }
         }
 
         public static void Unhandled(CXCursor cursor, CXCursor parent)

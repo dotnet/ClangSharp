@@ -9,7 +9,7 @@ namespace ClangSharpPInvokeGenerator
 {
     internal class CursorWriter : CursorVisitor
     {
-        private readonly Dictionary<CXCursor, (CXTypeKind typeKind, object data)> _attachedData;
+        private readonly Dictionary<CXCursor, object> _attachedData;
         private readonly Stack<CXCursor> _processingCursors;
         private readonly Stack<CXCursor> _predicatedCursors;
         private readonly HashSet<CXCursor> _visitedCursors;
@@ -20,7 +20,7 @@ namespace ClangSharpPInvokeGenerator
 
         public CursorWriter(TextWriter tw, int indentation = 0, Func<CXCursor, bool> predicate = null)
         {
-            _attachedData = new Dictionary<CXCursor, (CXTypeKind, object)>();
+            _attachedData = new Dictionary<CXCursor, object>();
             _processingCursors = new Stack<CXCursor>();
             _predicatedCursors = new Stack<CXCursor>();
             _visitedCursors = new HashSet<CXCursor>();
@@ -144,31 +144,47 @@ namespace ClangSharpPInvokeGenerator
                 }
 
                 case CXCursorKind.CXCursor_FunctionDecl:
-                case CXCursorKind.CXCursor_TypedefDecl:
                 {
-                    if (_attachedData.TryGetValue(cursor, out var attached) && (attached.typeKind == CXTypeKind.CXType_FunctionProto))
+                    if (_attachedData.TryGetValue(cursor, out var data) && (data is AttachedFunctionDeclData functionDeclData))
                     {
-                        Debug.Assert((int)attached.data == 0);
+                        Debug.Assert(functionDeclData.RemainingParmCount == 0);
 
                         WriteLine(");");
                         WriteLine();
 
                         _attachedData.Remove(cursor);
                     }
+                    else if (!ExcludeFunctionsArray.Contains(cursor.GetFunctionDeclName()))
+                    {
+                        Unhandled(cursor, parent);
+                    }
                     break;
                 }
 
                 case CXCursorKind.CXCursor_ParmDecl:
                 {
-                    if (_attachedData.TryGetValue(parent, out var attached) && (attached.typeKind == CXTypeKind.CXType_FunctionProto))
+                    if (_attachedData.TryGetValue(parent, out var data) && (data is AttachedFunctionDeclData functionDeclData))
                     {
-                        var remainingParm = ((int)attached.data) - 1;
+                        functionDeclData.RemainingParmCount -= 1;;
 
-                        if (remainingParm != 0)
+                        if (functionDeclData.RemainingParmCount != 0)
                         {
                             Write(", ");
                         }
-                        _attachedData[parent] = (attached.typeKind, remainingParm);
+                        _attachedData[parent] = functionDeclData;
+                    }
+                    else if (parent.Kind != CXCursorKind.CXCursor_ParmDecl)
+                    {
+                        Unhandled(cursor, parent);
+                    }
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_TypedefDecl:
+                {
+                    if (_attachedData.TryGetValue(cursor, out var data) && (data is AttachedFunctionDeclData functionDeclData))
+                    {
+                        goto case CXCursorKind.CXCursor_FunctionDecl;
                     }
                     break;
                 }
@@ -232,9 +248,13 @@ namespace ClangSharpPInvokeGenerator
                 Write(' ');
             }
 
+            long lastElement = -1;
+
             if (cursor.Type.kind == CXTypeKind.CXType_ConstantArray)
             {
-                for (int i = 0; i < cursor.Type.NumElements; i++)
+                lastElement = cursor.Type.NumElements - 1;
+
+                for (int i = 0; i < lastElement; i++)
                 {
                     Write("public");
                     Write(' ');
@@ -243,18 +263,21 @@ namespace ClangSharpPInvokeGenerator
                     Write(cursor.GetFieldDeclName());
                     Write(i);
                     Write(';');
+                    Write(' ');
                 }
-                WriteLine();
             }
-            else
+
+            Write("public");
+            Write(' ');
+            Write(cursor.GetFieldDeclTypeName());
+            Write(' ');
+            Write(cursor.GetFieldDeclName());
+
+            if (lastElement != -1)
             {
-                Write("public");
-                Write(' ');
-                Write(cursor.GetFieldDeclTypeName());
-                Write(' ');
-                Write(cursor.GetFieldDeclName());
-                WriteLine(';');
+                Write(lastElement);
             }
+            WriteLine(';');
 
             return false;
         }
@@ -272,7 +295,7 @@ namespace ClangSharpPInvokeGenerator
                 return false;
             }
 
-            _attachedData.Add(cursor, (CXTypeKind.CXType_FunctionProto, type.NumArgTypes));
+            _attachedData.Add(cursor, new AttachedFunctionDeclData(type.NumArgTypes));
 
             WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
             Write(name);
@@ -304,11 +327,8 @@ namespace ClangSharpPInvokeGenerator
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_ParmDecl);
 
-            if (_attachedData.TryGetValue(parent, out var attached) && (attached.typeKind == CXTypeKind.CXType_FunctionProto))
+            if (_attachedData.TryGetValue(parent, out var data) && (data is AttachedFunctionDeclData functionDeclData))
             {
-                var remainingParm = ((int)attached.data);
-                var parmCount = parent.Type.NumArgTypes;
-
                 var marshalAttribute = cursor.Type.GetMarshalAttribute(cursor);
 
                 if (!string.IsNullOrWhiteSpace(marshalAttribute))
@@ -329,9 +349,13 @@ namespace ClangSharpPInvokeGenerator
 
                 Write(cursor.GetParmDeclTypeName());
                 Write(' ');
-                Write(cursor.GetParmDeclName(parmCount - remainingParm));
+                Write(cursor.GetParmDeclName(functionDeclData.ParmCount - functionDeclData.RemainingParmCount));
 
                 return true;
+            }
+            else if (parent.Kind != CXCursorKind.CXCursor_ParmDecl)
+            {
+                Unhandled(cursor, parent);
             }
 
             return false;
@@ -457,7 +481,7 @@ namespace ClangSharpPInvokeGenerator
 
                 case CXTypeKind.CXType_FunctionProto:
                 {
-                    _attachedData.Add(cursor, (CXTypeKind.CXType_FunctionProto, pointeeType.NumArgTypes));
+                    _attachedData.Add(cursor, new AttachedFunctionDeclData(pointeeType.NumArgTypes));
 
                     WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
                     Write(pointeeType.GetFunctionProtoCallingConventionName(cursor));
