@@ -205,6 +205,31 @@ namespace ClangSharpPInvokeGenerator
 
             switch (name)
             {
+                case "int8_t":
+                {
+                    return "sbyte";
+                }
+
+                case "int16_t":
+                {
+                    return "short";
+                }
+
+                case "int32_t":
+                {
+                    return "int";
+                }
+
+                case "int64_t":
+                {
+                    return "long";
+                }
+
+                case "intptr_t":
+                {
+                    return "IntPtr";
+                }
+
                 case "size_t":
                 {
                     return "IntPtr";
@@ -213,6 +238,31 @@ namespace ClangSharpPInvokeGenerator
                 case "time_t":
                 {
                     return "long";
+                }
+
+                case "uint8_t":
+                {
+                    return "byte";
+                }
+
+                case "uint16_t":
+                {
+                    return "ushort";
+                }
+
+                case "uint32_t":
+                {
+                    return "uint";
+                }
+
+                case "uint64_t":
+                {
+                    return "ulong";
+                }
+
+                case "uintptr_t":
+                {
+                    return "UIntPtr";
                 }
             }
 
