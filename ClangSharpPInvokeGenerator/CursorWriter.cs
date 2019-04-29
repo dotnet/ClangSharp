@@ -1158,6 +1158,7 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_Pointer:
                 case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
+                case CXTypeKind.CXType_Typedef:
                 {
                     switch (cursor.Kind)
                     {
@@ -1187,6 +1188,11 @@ namespace ClangSharpPInvokeGenerator
 
                         case CXCursorKind.CXCursor_TypedefDecl:
                         {
+                            if (_attachedData.TryGetValue(cursor, out var data) && (data is AttachedFunctionDeclData functionDeclData))
+                            {
+                                goto case CXCursorKind.CXCursor_FunctionDecl;
+                            }
+
                             var name = GetCursorName(pointeeType.Declaration);
 
                             if (_config.GenerateUnsafeCode)
@@ -1228,43 +1234,6 @@ namespace ClangSharpPInvokeGenerator
                         case CXCursorKind.CXCursor_TypedefDecl:
                         {
                             return _config.GenerateUnsafeCode ? "byte*" : "string";
-                        }
-
-                        default:
-                        {
-                            Unhandled(cursor, pointeeType);
-                            return string.Empty;
-                        }
-                    }
-                }
-
-                case CXTypeKind.CXType_Typedef:
-                {
-                    switch (cursor.Kind)
-                    {
-                        case CXCursorKind.CXCursor_FieldDecl:
-                        case CXCursorKind.CXCursor_FunctionDecl:
-                        {
-                            var name = "IntPtr";
-
-                            if (_config.GenerateUnsafeCode)
-                            {
-                                name = GetCursorName(pointeeType.Declaration);
-                                name += '*';
-                            }
-                            return name;
-                        }
-
-                        case CXCursorKind.CXCursor_ParmDecl:
-                        case CXCursorKind.CXCursor_TypedefDecl:
-                        {
-                            var name = GetCursorName(pointeeType.Declaration);
-
-                            if (_config.GenerateUnsafeCode)
-                            {
-                                name += '*';
-                            }
-                            return name;
                         }
 
                         default:
