@@ -375,6 +375,11 @@ namespace ClangSharpPInvokeGenerator
 
             switch (cursor.Kind)
             {
+                case CXCursorKind.CXCursor_UnexposedDecl:
+                {
+                    return Handle(VisitUnexposedDecl, cursor, parent, data);
+                }
+
                 case CXCursorKind.CXCursor_StructDecl:
                 {
                     return Handle(VisitStructDecl, cursor, parent, data);
@@ -393,6 +398,11 @@ namespace ClangSharpPInvokeGenerator
                 case CXCursorKind.CXCursor_TypedefDecl:
                 {
                     return Handle(VisitTypedefDecl, cursor, parent, data);
+                }
+
+                case CXCursorKind.CXCursor_VarDecl:
+                {
+                    return CXChildVisitResult.CXChildVisit_Continue;
                 }
 
                 default:
@@ -424,13 +434,8 @@ namespace ClangSharpPInvokeGenerator
 
         protected CXChildVisitResult Unhandled(CXCursor cursor, CXCursor parent)
         {
-            CXCursorExtensions.Unhandled(cursor, parent);
-            return CXChildVisitResult.CXChildVisit_Break;
-        }
-
-        protected CXChildVisitResult Unhandled(CXType type, CXCursor cursor)
-        {
-            CXTypeExtensions.Unhandled(type, cursor);
+            Debug.WriteLine($"Unhandled cursor kind: {cursor.KindSpelling} in {parent.KindSpelling}.");
+            Debugger.Break();
             return CXChildVisitResult.CXChildVisit_Break;
         }
     }

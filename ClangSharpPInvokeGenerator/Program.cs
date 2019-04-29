@@ -16,33 +16,38 @@ namespace ClangSharpPInvokeGenerator
                                                           select new KeyValuePair<string, string>(match.Groups["switch"].Value, match.Groups["value"].Value))
                 .ToList();
 
+            var additionalArgs = new List<string>();
+            var config = new ConfigurationOptions();
+            var defines = new List<string>();
             var files = new List<string>();
             var includeDirs = new List<string>();
-            var defines = new List<string>();
-            var additionalArgs = new List<string>();
             string outputFile = string.Empty;
-            string @namespace = string.Empty;
-            string libraryPath = string.Empty;
-            string prefixStrip = string.Empty;
-            string methodClassName = "Methods";
-            string excludeFunctions = string.Empty;
-            string[] excludeFunctionsArray = null;
+
+            var errorList = new List<string>();
 
             foreach (KeyValuePair<string, string> match in matches)
             {
-                if (string.Equals(match.Key, "--n") || string.Equals(match.Key, "--namespace"))
+                if (string.Equals(match.Key, "--a") || string.Equals(match.Key, "--additional"))
                 {
-                    @namespace = match.Value;
+                    additionalArgs.Add(match.Value);
                 }
 
-                if (string.Equals(match.Key, "--l") || string.Equals(match.Key, "--libraryPath"))
+                if (string.Equals(match.Key, "--c") || string.Equals(match.Key, "--config"))
                 {
-                    libraryPath = match.Value;
-                }
+                    switch (match.Value.ToLower())
+                    {
+                        case "unsafe":
+                        {
+                            config.GenerateUnsafeCode = true;
+                            break;
+                        }
 
-                if (string.Equals(match.Key, "--i") || string.Equals(match.Key, "--include"))
-                {
-                    includeDirs.Add(match.Value);
+                        default:
+                        {
+                            errorList.Add($"Error: Unrecognized config option: {match.Value}");
+                            break;
+                        }
+                    }
                 }
 
                 if (string.Equals(match.Key, "--d") || string.Equals(match.Key, "--define"))
@@ -50,14 +55,9 @@ namespace ClangSharpPInvokeGenerator
                     defines.Add(match.Value);
                 }
 
-                if (string.Equals(match.Key, "--a") || string.Equals(match.Key, "--additional"))
+                if (string.Equals(match.Key, "--e") || string.Equals(match.Key, "--excludeFunction"))
                 {
-                    additionalArgs.Add(match.Value);
-                }
-
-                if (string.Equals(match.Key, "--o") || string.Equals(match.Key, "--output"))
-                {
-                    outputFile = match.Value;
+                    config.ExcludedFunctions.Add(match.Value);
                 }
 
                 if (string.Equals(match.Key, "--f") || string.Equals(match.Key, "--file"))
@@ -65,29 +65,43 @@ namespace ClangSharpPInvokeGenerator
                     files.Add(match.Value);
                 }
 
-                if (string.Equals(match.Key, "--p") || string.Equals(match.Key, "--prefixStrip"))
+                if (string.Equals(match.Key, "--i") || string.Equals(match.Key, "--include"))
                 {
-                    prefixStrip = match.Value;
+                    includeDirs.Add(match.Value);
+                }
+
+                if (string.Equals(match.Key, "--l") || string.Equals(match.Key, "--libraryPath"))
+                {
+                    config.LibraryPath = match.Value;
                 }
 
                 if (string.Equals(match.Key, "--m") || string.Equals(match.Key, "--methodClassName"))
                 {
-                    methodClassName = match.Value;
+                    config.MethodClassName = match.Value;
                 }
 
-                if (string.Equals(match.Key, "--e") || string.Equals(match.Key, "--excludeFunctions"))
+                if (string.Equals(match.Key, "--n") || string.Equals(match.Key, "--namespace"))
                 {
-                    excludeFunctions = match.Value;
+                    config.Namespace = match.Value;
+                }
+
+                if (string.Equals(match.Key, "--o") || string.Equals(match.Key, "--output"))
+                {
+                    outputFile = match.Value;
+                }
+
+                if (string.Equals(match.Key, "--p") || string.Equals(match.Key, "--prefixStrip"))
+                {
+                    config.MethodPrefixToStrip = match.Value;
                 }
             }
 
-            var errorList = new List<string>();
             if (!files.Any())
             {
                 errorList.Add("Error: No input C/C++ files provided. Use --file or --f");
             }
 
-            if (string.IsNullOrWhiteSpace(@namespace))
+            if (string.IsNullOrWhiteSpace(config.Namespace))
             {
                 errorList.Add("Error: No namespace provided. Use --namespace or --n");
             }
@@ -97,23 +111,18 @@ namespace ClangSharpPInvokeGenerator
                 errorList.Add("Error: No output file location provided. Use --output or --o");
             }
 
-            if (string.IsNullOrWhiteSpace(libraryPath))
+            if (string.IsNullOrWhiteSpace(config.LibraryPath))
             {
                 errorList.Add("Error: No library path location provided. Use --libraryPath or --l");
             }
 
             if (errorList.Any())
             {
-                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs] --define [compilerDefine] --additional [compilerArg] --excludeFunctions [func1,func2]");
+                Console.WriteLine("Usage: ClangPInvokeGenerator --file [fileLocation] --libraryPath [library.dll] --output [output.cs] --namespace [Namespace] --include [headerFileIncludeDirs] --define [compilerDefine] --additional [compilerArg] --excludeFunctions [func1,func2] --config [unsafe]");
                 foreach (var error in errorList)
                 {
                     Console.WriteLine(error);
                 }
-            }
-
-            if (!string.IsNullOrEmpty(excludeFunctions))
-            {
-                excludeFunctionsArray = excludeFunctions.Split(',').Select(x => x.Trim()).ToArray();
             }
 
             var createIndex = CXIndex.Create();
@@ -151,41 +160,33 @@ namespace ClangSharpPInvokeGenerator
             {
                 sw.NewLine = "\n";
 
-                sw.WriteLine("namespace " + @namespace);
+                sw.WriteLine("namespace " + config.Namespace);
                 sw.WriteLine("{");
 
                 sw.WriteLine("    using System;");
                 sw.WriteLine("    using System.Runtime.InteropServices;");
                 sw.WriteLine();
 
-                var structDeclWriter = new CursorWriter(sw, indentation: 1, (cursor) => cursor.Kind == CXCursorKind.CXCursor_StructDecl);
+                var writer = new CursorWriter(config, sw, indentation: 1, (cursor) => cursor.Kind != CXCursorKind.CXCursor_FunctionDecl);
                 foreach (var tu in translationUnits)
                 {
-                    tu.Cursor.VisitChildren(structDeclWriter.VisitTranslationUnit, clientData: default);
+                    tu.Cursor.VisitChildren(writer.VisitTranslationUnit, clientData: default);
                 }
 
-                var typedefDeclWriter = new CursorWriter(sw, indentation: 1, (cursor) => cursor.Kind == CXCursorKind.CXCursor_TypedefDecl);
-                foreach (var tu in translationUnits)
-                {
-                    tu.Cursor.VisitChildren(typedefDeclWriter.VisitTranslationUnit, clientData: default);
-                }
+                sw.Write("    public static ");
                 
-                var enumDeclWriter = new CursorWriter(sw, indentation: 1, (cursor) => cursor.Kind == CXCursorKind.CXCursor_EnumDecl);
-                foreach (var tu in translationUnits)
+                if (config.GenerateUnsafeCode)
                 {
-                    tu.Cursor.VisitChildren(enumDeclWriter.VisitTranslationUnit, new CXClientData(IntPtr.Zero));
+                    sw.Write("unsafe ");
                 }
-                
-                sw.WriteLine("    public static partial class " + methodClassName);
+
+                sw.WriteLine("partial class " + config.MethodClassName);
                 sw.WriteLine("    {");
                 {
-                    var functionDeclWriter = new CursorWriter(sw, indentation: 2, (cursor) => cursor.Kind == CXCursorKind.CXCursor_FunctionDecl);
+                    var functionDeclWriter = new CursorWriter(config, sw, indentation: 2, (cursor) => cursor.Kind == CXCursorKind.CXCursor_FunctionDecl);
 
-                    sw.WriteLine($"        private const string libraryPath = \"{libraryPath}\";");
+                    sw.WriteLine($"        private const string libraryPath = \"{config.LibraryPath}\";");
                     sw.WriteLine();
-
-                    functionDeclWriter.PrefixStrip = prefixStrip;
-                    functionDeclWriter.ExcludeFunctionsArray = excludeFunctionsArray ?? Array.Empty<string>();
 
                     foreach (var tu in translationUnits)
                     {

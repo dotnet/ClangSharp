@@ -3,12 +3,52 @@ namespace ClangSharp
     using System;
     using System.Runtime.InteropServices;
 
+    public partial struct CXIndex
+    {
+        public CXIndex(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
     public partial struct CXTargetInfoImpl
     {
     }
 
+    public partial struct CXTargetInfo
+    {
+        public CXTargetInfo(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
     public partial struct CXTranslationUnitImpl
     {
+    }
+
+    public partial struct CXTranslationUnit
+    {
+        public CXTranslationUnit(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXClientData
+    {
+        public CXClientData(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
     }
 
     public partial struct CXUnsavedFile
@@ -18,11 +58,50 @@ namespace ClangSharp
         public uint Length;
     }
 
+    public enum CXAvailabilityKind
+    {
+        CXAvailability_Available = 0,
+        CXAvailability_Deprecated = 1,
+        CXAvailability_NotAvailable = 2,
+        CXAvailability_NotAccessible = 3,
+    }
+
     public partial struct CXVersion
     {
         public int Major;
         public int Minor;
         public int Subminor;
+    }
+
+    public enum CXCursor_ExceptionSpecificationKind
+    {
+        CXCursor_ExceptionSpecificationKind_None = 0,
+        CXCursor_ExceptionSpecificationKind_DynamicNone = 1,
+        CXCursor_ExceptionSpecificationKind_Dynamic = 2,
+        CXCursor_ExceptionSpecificationKind_MSAny = 3,
+        CXCursor_ExceptionSpecificationKind_BasicNoexcept = 4,
+        CXCursor_ExceptionSpecificationKind_ComputedNoexcept = 5,
+        CXCursor_ExceptionSpecificationKind_Unevaluated = 6,
+        CXCursor_ExceptionSpecificationKind_Uninstantiated = 7,
+        CXCursor_ExceptionSpecificationKind_Unparsed = 8,
+    }
+
+    public enum CXGlobalOptFlags
+    {
+        CXGlobalOpt_None = 0,
+        CXGlobalOpt_ThreadBackgroundPriorityForIndexing = 1,
+        CXGlobalOpt_ThreadBackgroundPriorityForEditing = 2,
+        CXGlobalOpt_ThreadBackgroundPriorityForAll = 3,
+    }
+
+    public partial struct CXFile
+    {
+        public CXFile(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
     }
 
     public partial struct CXFileUniqueID
@@ -49,296 +128,13 @@ namespace ClangSharp
         public IntPtr ranges;
     }
 
-    public partial struct CXTUResourceUsageEntry
+    public enum CXDiagnosticSeverity
     {
-        public CXTUResourceUsageKind kind;
-        public uint amount;
-    }
-
-    public partial struct CXTUResourceUsage
-    {
-        public IntPtr data;
-        public uint numEntries;
-        public IntPtr entries;
-    }
-
-    public partial struct CXCursor
-    {
-        public CXCursorKind kind;
-        public int xdata;
-        public IntPtr data0; public IntPtr data1; public IntPtr data2;
-    }
-
-    public partial struct CXPlatformAvailability
-    {
-        public CXString Platform;
-        public CXVersion Introduced;
-        public CXVersion Deprecated;
-        public CXVersion Obsoleted;
-        public int Unavailable;
-        public CXString Message;
-    }
-
-    public partial struct CXCursorSetImpl
-    {
-    }
-
-    public partial struct CXType
-    {
-        public CXTypeKind kind;
-        public IntPtr data0; public IntPtr data1;
-    }
-
-    public partial struct CXToken
-    {
-        public uint int_data0; public uint int_data1; public uint int_data2; public uint int_data3;
-        public IntPtr ptr_data;
-    }
-
-    public partial struct CXCompletionResult
-    {
-        public CXCursorKind CursorKind;
-        public CXCompletionString CompletionString;
-    }
-
-    public partial struct CXCodeCompleteResults
-    {
-        public IntPtr Results;
-        public uint NumResults;
-    }
-
-    public partial struct CXCursorAndRangeVisitor
-    {
-        public IntPtr context;
-        public IntPtr visit;
-    }
-
-    public partial struct CXIdxLoc
-    {
-        public IntPtr ptr_data0; public IntPtr ptr_data1;
-        public uint int_data;
-    }
-
-    public partial struct CXIdxIncludedFileInfo
-    {
-        public CXIdxLoc hashLoc;
-        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string filename;
-        public CXFile file;
-        public int isImport;
-        public int isAngled;
-        public int isModuleImport;
-    }
-
-    public partial struct CXIdxImportedASTFileInfo
-    {
-        public CXFile file;
-        public CXModule module;
-        public CXIdxLoc loc;
-        public int isImplicit;
-    }
-
-    public partial struct CXIdxAttrInfo
-    {
-        public CXIdxAttrKind kind;
-        public CXCursor cursor;
-        public CXIdxLoc loc;
-    }
-
-    public partial struct CXIdxEntityInfo
-    {
-        public CXIdxEntityKind kind;
-        public CXIdxEntityCXXTemplateKind templateKind;
-        public CXIdxEntityLanguage lang;
-        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string name;
-        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string USR;
-        public CXCursor cursor;
-        public IntPtr attributes;
-        public uint numAttributes;
-    }
-
-    public partial struct CXIdxContainerInfo
-    {
-        public CXCursor cursor;
-    }
-
-    public partial struct CXIdxIBOutletCollectionAttrInfo
-    {
-        public IntPtr attrInfo;
-        public IntPtr objcClass;
-        public CXCursor classCursor;
-        public CXIdxLoc classLoc;
-    }
-
-    public partial struct CXIdxDeclInfo
-    {
-        public IntPtr entityInfo;
-        public CXCursor cursor;
-        public CXIdxLoc loc;
-        public IntPtr semanticContainer;
-        public IntPtr lexicalContainer;
-        public int isRedeclaration;
-        public int isDefinition;
-        public int isContainer;
-        public IntPtr declAsContainer;
-        public int isImplicit;
-        public IntPtr attributes;
-        public uint numAttributes;
-        public uint flags;
-    }
-
-    public partial struct CXIdxObjCContainerDeclInfo
-    {
-        public IntPtr declInfo;
-        public CXIdxObjCContainerKind kind;
-    }
-
-    public partial struct CXIdxBaseClassInfo
-    {
-        public IntPtr @base;
-        public CXCursor cursor;
-        public CXIdxLoc loc;
-    }
-
-    public partial struct CXIdxObjCProtocolRefInfo
-    {
-        public IntPtr protocol;
-        public CXCursor cursor;
-        public CXIdxLoc loc;
-    }
-
-    public partial struct CXIdxObjCProtocolRefListInfo
-    {
-        public IntPtr protocols;
-        public uint numProtocols;
-    }
-
-    public partial struct CXIdxObjCInterfaceDeclInfo
-    {
-        public IntPtr containerInfo;
-        public IntPtr superInfo;
-        public IntPtr protocols;
-    }
-
-    public partial struct CXIdxObjCCategoryDeclInfo
-    {
-        public IntPtr containerInfo;
-        public IntPtr objcClass;
-        public CXCursor classCursor;
-        public CXIdxLoc classLoc;
-        public IntPtr protocols;
-    }
-
-    public partial struct CXIdxObjCPropertyDeclInfo
-    {
-        public IntPtr declInfo;
-        public IntPtr getter;
-        public IntPtr setter;
-    }
-
-    public partial struct CXIdxCXXClassDeclInfo
-    {
-        public IntPtr declInfo;
-        public IntPtr bases;
-        public uint numBases;
-    }
-
-    public partial struct CXIdxEntityRefInfo
-    {
-        public CXIdxEntityRefKind kind;
-        public CXCursor cursor;
-        public CXIdxLoc loc;
-        public IntPtr referencedEntity;
-        public IntPtr parentEntity;
-        public IntPtr container;
-        public CXSymbolRole role;
-    }
-
-    public partial struct IndexerCallbacks
-    {
-        public IntPtr abortQuery;
-        public IntPtr diagnostic;
-        public IntPtr enteredMainFile;
-        public IntPtr ppIncludedFile;
-        public IntPtr importedASTFile;
-        public IntPtr startedTranslationUnit;
-        public IntPtr indexDeclaration;
-        public IntPtr indexEntityReference;
-    }
-
-    public partial struct CXString
-    {
-        public IntPtr data;
-        public uint private_flags;
-    }
-
-    public partial struct CXStringSet
-    {
-        public IntPtr Strings;
-        public uint Count;
-    }
-
-    public partial struct CXComment
-    {
-        public IntPtr ASTNode;
-        public CXTranslationUnit TranslationUnit;
-    }
-
-    public partial struct CXVirtualFileOverlayImpl
-    {
-    }
-
-    public partial struct CXModuleMapDescriptorImpl
-    {
-    }
-
-    public partial struct CXIndex
-    {
-        public CXIndex(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXTargetInfo
-    {
-        public CXTargetInfo(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXTranslationUnit
-    {
-        public CXTranslationUnit(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXClientData
-    {
-        public CXClientData(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXFile
-    {
-        public CXFile(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
+        CXDiagnostic_Ignored = 0,
+        CXDiagnostic_Note = 1,
+        CXDiagnostic_Warning = 2,
+        CXDiagnostic_Error = 3,
+        CXDiagnostic_Fatal = 4,
     }
 
     public partial struct CXDiagnostic
@@ -359,213 +155,6 @@ namespace ClangSharp
         }
 
         public IntPtr Pointer;
-    }
-
-    public partial struct CXCursorSet
-    {
-        public CXCursorSet(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate CXChildVisitResult CXCursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data);
-
-    public partial struct CXPrintingPolicy
-    {
-        public CXPrintingPolicy(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXModule
-    {
-        public CXModule(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXCompletionString
-    {
-        public CXCompletionString(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void CXInclusionVisitor(CXFile included_file, out CXSourceLocation inclusion_stack, uint include_len, CXClientData client_data);
-
-    public partial struct CXEvalResult
-    {
-        public CXEvalResult(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXRemapping
-    {
-        public CXRemapping(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXIdxClientFile
-    {
-        public CXIdxClientFile(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXIdxClientEntity
-    {
-        public CXIdxClientEntity(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXIdxClientContainer
-    {
-        public CXIdxClientContainer(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXIdxClientASTFile
-    {
-        public CXIdxClientASTFile(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXIndexAction
-    {
-        public CXIndexAction(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate CXVisitorResult CXFieldVisitor(CXCursor C, CXClientData client_data);
-
-    public partial struct CXVirtualFileOverlay
-    {
-        public CXVirtualFileOverlay(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXModuleMapDescriptor
-    {
-        public CXModuleMapDescriptor(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXCompilationDatabase
-    {
-        public CXCompilationDatabase(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXCompileCommands
-    {
-        public CXCompileCommands(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public partial struct CXCompileCommand
-    {
-        public CXCompileCommand(IntPtr pointer)
-        {
-            Pointer = pointer;
-        }
-
-        public IntPtr Pointer;
-    }
-
-    public enum CXAvailabilityKind
-    {
-        CXAvailability_Available = 0,
-        CXAvailability_Deprecated = 1,
-        CXAvailability_NotAvailable = 2,
-        CXAvailability_NotAccessible = 3,
-    }
-
-    public enum CXCursor_ExceptionSpecificationKind
-    {
-        CXCursor_ExceptionSpecificationKind_None = 0,
-        CXCursor_ExceptionSpecificationKind_DynamicNone = 1,
-        CXCursor_ExceptionSpecificationKind_Dynamic = 2,
-        CXCursor_ExceptionSpecificationKind_MSAny = 3,
-        CXCursor_ExceptionSpecificationKind_BasicNoexcept = 4,
-        CXCursor_ExceptionSpecificationKind_ComputedNoexcept = 5,
-        CXCursor_ExceptionSpecificationKind_Unevaluated = 6,
-        CXCursor_ExceptionSpecificationKind_Uninstantiated = 7,
-        CXCursor_ExceptionSpecificationKind_Unparsed = 8,
-    }
-
-    public enum CXGlobalOptFlags
-    {
-        CXGlobalOpt_None = 0,
-        CXGlobalOpt_ThreadBackgroundPriorityForIndexing = 1,
-        CXGlobalOpt_ThreadBackgroundPriorityForEditing = 2,
-        CXGlobalOpt_ThreadBackgroundPriorityForAll = 3,
-    }
-
-    public enum CXDiagnosticSeverity
-    {
-        CXDiagnostic_Ignored = 0,
-        CXDiagnostic_Note = 1,
-        CXDiagnostic_Warning = 2,
-        CXDiagnostic_Error = 3,
-        CXDiagnostic_Fatal = 4,
     }
 
     public enum CXLoadDiag_Error
@@ -643,6 +232,19 @@ namespace ClangSharp
         CXTUResourceUsage_MEMORY_IN_BYTES_END = 14,
         CXTUResourceUsage_First = 1,
         CXTUResourceUsage_Last = 14,
+    }
+
+    public partial struct CXTUResourceUsageEntry
+    {
+        public CXTUResourceUsageKind kind;
+        public uint amount;
+    }
+
+    public partial struct CXTUResourceUsage
+    {
+        public IntPtr data;
+        public uint numEntries;
+        public IntPtr entries;
     }
 
     public enum CXCursorKind
@@ -899,6 +501,13 @@ namespace ClangSharp
         CXCursor_OverloadCandidate = 700,
     }
 
+    public partial struct CXCursor
+    {
+        public CXCursorKind kind;
+        public int xdata;
+        public IntPtr data0; public IntPtr data1; public IntPtr data2;
+    }
+
     public enum CXLinkageKind
     {
         CXLinkage_Invalid = 0,
@@ -916,6 +525,16 @@ namespace ClangSharp
         CXVisibility_Default = 3,
     }
 
+    public partial struct CXPlatformAvailability
+    {
+        public CXString Platform;
+        public CXVersion Introduced;
+        public CXVersion Deprecated;
+        public CXVersion Obsoleted;
+        public int Unavailable;
+        public CXString Message;
+    }
+
     public enum CXLanguageKind
     {
         CXLanguage_Invalid = 0,
@@ -929,6 +548,20 @@ namespace ClangSharp
         CXTLS_None = 0,
         CXTLS_Dynamic = 1,
         CXTLS_Static = 2,
+    }
+
+    public partial struct CXCursorSetImpl
+    {
+    }
+
+    public partial struct CXCursorSet
+    {
+        public CXCursorSet(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
     }
 
     public enum CXTypeKind
@@ -1076,6 +709,12 @@ namespace ClangSharp
         CXCallingConv_Unexposed = 200,
     }
 
+    public partial struct CXType
+    {
+        public CXTypeKind kind;
+        public IntPtr data0; public IntPtr data1;
+    }
+
     public enum CXTemplateArgumentKind
     {
         CXTemplateArgumentKind_Null = 0,
@@ -1141,6 +780,19 @@ namespace ClangSharp
         CXChildVisit_Recurse = 2,
     }
 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate CXChildVisitResult CXCursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data);
+
+    public partial struct CXPrintingPolicy
+    {
+        public CXPrintingPolicy(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
     public enum CXPrintingPolicyProperty
     {
         CXPrintingPolicy_Indentation = 0,
@@ -1201,6 +853,16 @@ namespace ClangSharp
         CXObjCDeclQualifier_Oneway = 32,
     }
 
+    public partial struct CXModule
+    {
+        public CXModule(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
     public enum CXNameRefFlags
     {
         CXNameRange_WantQualifier = 1,
@@ -1215,6 +877,28 @@ namespace ClangSharp
         CXToken_Identifier = 2,
         CXToken_Literal = 3,
         CXToken_Comment = 4,
+    }
+
+    public partial struct CXToken
+    {
+        public uint int_data0; public uint int_data1; public uint int_data2; public uint int_data3;
+        public IntPtr ptr_data;
+    }
+
+    public partial struct CXCompletionString
+    {
+        public CXCompletionString(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXCompletionResult
+    {
+        public CXCursorKind CursorKind;
+        public CXCompletionString CompletionString;
     }
 
     public enum CXCompletionChunkKind
@@ -1240,6 +924,12 @@ namespace ClangSharp
         CXCompletionChunk_Equal = 18,
         CXCompletionChunk_HorizontalSpace = 19,
         CXCompletionChunk_VerticalSpace = 20,
+    }
+
+    public partial struct CXCodeCompleteResults
+    {
+        public IntPtr Results;
+        public uint NumResults;
     }
 
     public enum CXCodeComplete_Flags
@@ -1280,6 +970,9 @@ namespace ClangSharp
         CXCompletionContext_Unknown = 8388607,
     }
 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void CXInclusionVisitor(CXFile included_file, out CXSourceLocation inclusion_stack, uint include_len, CXClientData client_data);
+
     public enum CXEvalResultKind
     {
         CXEval_Int = 1,
@@ -1291,10 +984,36 @@ namespace ClangSharp
         CXEval_UnExposed = 0,
     }
 
+    public partial struct CXEvalResult
+    {
+        public CXEvalResult(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXRemapping
+    {
+        public CXRemapping(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
     public enum CXVisitorResult
     {
         CXVisit_Break = 0,
         CXVisit_Continue = 1,
+    }
+
+    public partial struct CXCursorAndRangeVisitor
+    {
+        public IntPtr context;
+        public IntPtr visit;
     }
 
     public enum CXResult
@@ -1302,6 +1021,70 @@ namespace ClangSharp
         CXResult_Success = 0,
         CXResult_Invalid = 1,
         CXResult_VisitBreak = 2,
+    }
+
+    public partial struct CXIdxClientFile
+    {
+        public CXIdxClientFile(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXIdxClientEntity
+    {
+        public CXIdxClientEntity(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXIdxClientContainer
+    {
+        public CXIdxClientContainer(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXIdxClientASTFile
+    {
+        public CXIdxClientASTFile(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXIdxLoc
+    {
+        public IntPtr ptr_data0; public IntPtr ptr_data1;
+        public uint int_data;
+    }
+
+    public partial struct CXIdxIncludedFileInfo
+    {
+        public CXIdxLoc hashLoc;
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string filename;
+        public CXFile file;
+        public int isImport;
+        public int isAngled;
+        public int isModuleImport;
+    }
+
+    public partial struct CXIdxImportedASTFileInfo
+    {
+        public CXFile file;
+        public CXModule module;
+        public CXIdxLoc loc;
+        public int isImplicit;
     }
 
     public enum CXIdxEntityKind
@@ -1360,9 +1143,58 @@ namespace ClangSharp
         CXIdxAttr_IBOutletCollection = 3,
     }
 
+    public partial struct CXIdxAttrInfo
+    {
+        public CXIdxAttrKind kind;
+        public CXCursor cursor;
+        public CXIdxLoc loc;
+    }
+
+    public partial struct CXIdxEntityInfo
+    {
+        public CXIdxEntityKind kind;
+        public CXIdxEntityCXXTemplateKind templateKind;
+        public CXIdxEntityLanguage lang;
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string name;
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string USR;
+        public CXCursor cursor;
+        public IntPtr attributes;
+        public uint numAttributes;
+    }
+
+    public partial struct CXIdxContainerInfo
+    {
+        public CXCursor cursor;
+    }
+
+    public partial struct CXIdxIBOutletCollectionAttrInfo
+    {
+        public IntPtr attrInfo;
+        public IntPtr objcClass;
+        public CXCursor classCursor;
+        public CXIdxLoc classLoc;
+    }
+
     public enum CXIdxDeclInfoFlags
     {
         CXIdxDeclFlag_Skipped = 1,
+    }
+
+    public partial struct CXIdxDeclInfo
+    {
+        public IntPtr entityInfo;
+        public CXCursor cursor;
+        public CXIdxLoc loc;
+        public IntPtr semanticContainer;
+        public IntPtr lexicalContainer;
+        public int isRedeclaration;
+        public int isDefinition;
+        public int isContainer;
+        public IntPtr declAsContainer;
+        public int isImplicit;
+        public IntPtr attributes;
+        public uint numAttributes;
+        public uint flags;
     }
 
     public enum CXIdxObjCContainerKind
@@ -1370,6 +1202,62 @@ namespace ClangSharp
         CXIdxObjCContainer_ForwardRef = 0,
         CXIdxObjCContainer_Interface = 1,
         CXIdxObjCContainer_Implementation = 2,
+    }
+
+    public partial struct CXIdxObjCContainerDeclInfo
+    {
+        public IntPtr declInfo;
+        public CXIdxObjCContainerKind kind;
+    }
+
+    public partial struct CXIdxBaseClassInfo
+    {
+        public IntPtr @base;
+        public CXCursor cursor;
+        public CXIdxLoc loc;
+    }
+
+    public partial struct CXIdxObjCProtocolRefInfo
+    {
+        public IntPtr protocol;
+        public CXCursor cursor;
+        public CXIdxLoc loc;
+    }
+
+    public partial struct CXIdxObjCProtocolRefListInfo
+    {
+        public IntPtr protocols;
+        public uint numProtocols;
+    }
+
+    public partial struct CXIdxObjCInterfaceDeclInfo
+    {
+        public IntPtr containerInfo;
+        public IntPtr superInfo;
+        public IntPtr protocols;
+    }
+
+    public partial struct CXIdxObjCCategoryDeclInfo
+    {
+        public IntPtr containerInfo;
+        public IntPtr objcClass;
+        public CXCursor classCursor;
+        public CXIdxLoc classLoc;
+        public IntPtr protocols;
+    }
+
+    public partial struct CXIdxObjCPropertyDeclInfo
+    {
+        public IntPtr declInfo;
+        public IntPtr getter;
+        public IntPtr setter;
+    }
+
+    public partial struct CXIdxCXXClassDeclInfo
+    {
+        public IntPtr declInfo;
+        public IntPtr bases;
+        public uint numBases;
     }
 
     public enum CXIdxEntityRefKind
@@ -1392,6 +1280,39 @@ namespace ClangSharp
         CXSymbolRole_Implicit = 256,
     }
 
+    public partial struct CXIdxEntityRefInfo
+    {
+        public CXIdxEntityRefKind kind;
+        public CXCursor cursor;
+        public CXIdxLoc loc;
+        public IntPtr referencedEntity;
+        public IntPtr parentEntity;
+        public IntPtr container;
+        public CXSymbolRole role;
+    }
+
+    public partial struct IndexerCallbacks
+    {
+        public IntPtr abortQuery;
+        public IntPtr diagnostic;
+        public IntPtr enteredMainFile;
+        public IntPtr ppIncludedFile;
+        public IntPtr importedASTFile;
+        public IntPtr startedTranslationUnit;
+        public IntPtr indexDeclaration;
+        public IntPtr indexEntityReference;
+    }
+
+    public partial struct CXIndexAction
+    {
+        public CXIndexAction(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
     public enum CXIndexOptFlags
     {
         CXIndexOpt_None = 0,
@@ -1400,6 +1321,27 @@ namespace ClangSharp
         CXIndexOpt_IndexImplicitTemplateInstantiations = 4,
         CXIndexOpt_SuppressWarnings = 8,
         CXIndexOpt_SkipParsedBodiesInSession = 16,
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate CXVisitorResult CXFieldVisitor(CXCursor C, CXClientData client_data);
+
+    public partial struct CXString
+    {
+        public IntPtr data;
+        public uint private_flags;
+    }
+
+    public partial struct CXStringSet
+    {
+        public IntPtr Strings;
+        public uint Count;
+    }
+
+    public partial struct CXComment
+    {
+        public IntPtr ASTNode;
+        public CXTranslationUnit TranslationUnit;
     }
 
     public enum CXCommentKind
@@ -1441,6 +1383,64 @@ namespace ClangSharp
         CXError_Crashed = 2,
         CXError_InvalidArguments = 3,
         CXError_ASTReadError = 4,
+    }
+
+    public partial struct CXVirtualFileOverlayImpl
+    {
+    }
+
+    public partial struct CXVirtualFileOverlay
+    {
+        public CXVirtualFileOverlay(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXModuleMapDescriptorImpl
+    {
+    }
+
+    public partial struct CXModuleMapDescriptor
+    {
+        public CXModuleMapDescriptor(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXCompilationDatabase
+    {
+        public CXCompilationDatabase(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXCompileCommands
+    {
+        public CXCompileCommands(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
+    }
+
+    public partial struct CXCompileCommand
+    {
+        public CXCompileCommand(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
+        public IntPtr Pointer;
     }
 
     public enum CXCompilationDatabase_Error
