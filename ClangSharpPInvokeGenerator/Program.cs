@@ -173,7 +173,14 @@ namespace ClangSharpPInvokeGenerator
                     tu.Cursor.VisitChildren(writer.VisitTranslationUnit, clientData: default);
                 }
 
-                sw.WriteLine("    public static partial class " + config.MethodClassName);
+                sw.Write("    public static ");
+                
+                if (config.GenerateUnsafeCode)
+                {
+                    sw.Write("unsafe ");
+                }
+
+                sw.WriteLine("partial class " + config.MethodClassName);
                 sw.WriteLine("    {");
                 {
                     var functionDeclWriter = new CursorWriter(config, sw, indentation: 2, (cursor) => cursor.Kind == CXCursorKind.CXCursor_FunctionDecl);

@@ -385,7 +385,16 @@ namespace ClangSharpPInvokeGenerator
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_StructDecl);
 
-            WriteIndented("public partial struct");
+            WriteIndented("public");
+
+            if (_config.GenerateUnsafeCode)
+            {
+                Write(' ');
+                Write("unsafe");
+            }
+            Write(' ');
+
+            Write("partial struct");
             Write(' ');
             WriteLine(GetEscapedCursorName(cursor));
             WriteBlockStart();
