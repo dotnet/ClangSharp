@@ -960,8 +960,6 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_Double:
                 case CXTypeKind.CXType_Enum:
                 case CXTypeKind.CXType_Typedef:
-                case CXTypeKind.CXType_ConstantArray:
-                case CXTypeKind.CXType_IncompleteArray:
                 {
                     return string.Empty;
                 }
@@ -969,6 +967,12 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_Pointer:
                 {
                     return GetParmModifierForPointeeType(cursor, type.PointeeType);
+                }
+
+                case CXTypeKind.CXType_ConstantArray:
+                case CXTypeKind.CXType_IncompleteArray:
+                {
+                    return "out";
                 }
 
                 case CXTypeKind.CXType_Elaborated:
