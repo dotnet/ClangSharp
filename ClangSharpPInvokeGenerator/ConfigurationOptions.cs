@@ -1,20 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace ClangSharpPInvokeGenerator
 {
     internal sealed class ConfigurationOptions
     {
-        public List<string> ExcludedFunctions { get; } = new List<string>();
+        public ConfigurationOptions(string[] options)
+        {
+            foreach (var option in options)
+            {
+                if (option.Equals("unsafe"))
+                {
+                    GenerateUnsafeCode = true;
+                }
+            }
+        }
 
-        public bool GenerateUnsafeCode { get; set; } = false;
+        public string[] ExcludedFunctions { get; set; }
 
-        public string LibraryPath { get; set; } = string.Empty;
+        public bool GenerateUnsafeCode { get; set; }
 
-        public string MethodClassName { get; set; } = "Methods";
+        public string LibraryPath { get; set; }
 
-        public string MethodPrefixToStrip { get; set; } = string.Empty;
+        public string MethodClassName { get; set; }
 
-        public string Namespace { get; set; } = string.Empty;
+        public string MethodPrefixToStrip { get; set; }
+
+        public string Namespace { get; set; }
     }
 }
