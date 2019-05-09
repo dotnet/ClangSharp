@@ -46,7 +46,7 @@ namespace ClangSharpPInvokeGenerator
             config.LibraryPath = context.ParseResult.ValueForOption<string>("libraryPath");
             config.MethodClassName = context.ParseResult.ValueForOption<string>("methodClassName");
             config.Namespace = context.ParseResult.ValueForOption<string>("namespace");
-            var outputFile = context.ParseResult.ValueForOption<string>("output");
+            config.OutputLocation = context.ParseResult.ValueForOption<string>("output");
             config.MethodPrefixToStrip = context.ParseResult.ValueForOption<string>("prefixStrip");
 
             var errorList = new List<string>();
@@ -61,7 +61,7 @@ namespace ClangSharpPInvokeGenerator
                 errorList.Add("Error: No namespace provided. Use --namespace or -n");
             }
 
-            if (string.IsNullOrWhiteSpace(outputFile))
+            if (string.IsNullOrWhiteSpace(config.OutputLocation))
             {
                 errorList.Add("Error: No output file location provided. Use --output or -o");
             }
@@ -83,84 +83,39 @@ namespace ClangSharpPInvokeGenerator
                 return -1;
             }
 
-                var createIndex = CXIndex.Create();
             string[] arr = { "-x", "c++" };
 
             arr = arr.Concat(includeDirs.Select(x => "-I" + x)).ToArray();
             arr = arr.Concat(defines.Select(x => "-D" + x)).ToArray();
             arr = arr.Concat(additionalArgs).ToArray();
 
-            var translationUnits = new List<CXTranslationUnit>();
-
-            foreach (var file in files)
+            using (var createIndex = CXIndex.Create())
+            using (var writer = new CursorWriter(config))
             {
-                CXTranslationUnit translationUnit;
-                CXUnsavedFile[] unsavedFile = new CXUnsavedFile[0];
-                var translationUnitError = CXTranslationUnit.Parse(createIndex, file, arr, unsavedFile, CXTranslationUnit_Flags.CXTranslationUnit_None, out translationUnit);
-
-                if (translationUnitError != CXErrorCode.CXError_Success)
+                foreach (var file in files)
                 {
-                    Console.WriteLine($"Error: '{translationUnitError}' for '{file}'.");
-                    var numDiagnostics = translationUnit.NumDiagnostics;
+                    var translationUnitError = CXTranslationUnit.Parse(createIndex, file, arr, Array.Empty<CXUnsavedFile>(), CXTranslationUnit_Flags.CXTranslationUnit_None, out CXTranslationUnit translationUnit);
 
-                    for (uint i = 0; i < numDiagnostics; ++i)
+                    if (translationUnitError != CXErrorCode.CXError_Success)
                     {
-                        var diagnostic = translationUnit.GetDiagnostic(i);
-                        Console.WriteLine(diagnostic.Spelling.ToString());
-                        diagnostic.Dispose();
+                        Console.WriteLine($"Error: '{translationUnitError}' for '{file}'.");
+                        var numDiagnostics = translationUnit.NumDiagnostics;
+
+                        for (uint i = 0; i < numDiagnostics; ++i)
+                        {
+                            var diagnostic = translationUnit.GetDiagnostic(i);
+                            Console.WriteLine(diagnostic.Spelling.ToString());
+                            diagnostic.Dispose();
+                        }
+                    }
+
+                    using (translationUnit)
+                    {
+                        translationUnit.Cursor.VisitChildren(writer.VisitTranslationUnit, clientData: default);
                     }
                 }
-
-                translationUnits.Add(translationUnit);
             }
 
-            using (var sw = new StreamWriter(outputFile))
-            {
-                sw.NewLine = "\n";
-
-                sw.WriteLine("namespace " + config.Namespace);
-                sw.WriteLine("{");
-
-                sw.WriteLine("    using System;");
-                sw.WriteLine("    using System.Runtime.InteropServices;");
-                sw.WriteLine();
-
-                var writer = new CursorWriter(config, sw, indentation: 1, (cursor) => cursor.Kind != CXCursorKind.CXCursor_FunctionDecl);
-                foreach (var tu in translationUnits)
-                {
-                    tu.Cursor.VisitChildren(writer.VisitTranslationUnit, clientData: default);
-                }
-
-                sw.Write("    public static ");
-
-                if (config.GenerateUnsafeCode)
-                {
-                    sw.Write("unsafe ");
-                }
-
-                sw.WriteLine("partial class " + config.MethodClassName);
-                sw.WriteLine("    {");
-                {
-                    var functionDeclWriter = new CursorWriter(config, sw, indentation: 2, (cursor) => cursor.Kind == CXCursorKind.CXCursor_FunctionDecl);
-
-                    sw.WriteLine($"        private const string libraryPath = \"{config.LibraryPath}\";");
-                    sw.WriteLine();
-
-                    foreach (var tu in translationUnits)
-                    {
-                        tu.Cursor.VisitChildren(functionDeclWriter.VisitTranslationUnit, new CXClientData(IntPtr.Zero));
-                    }
-                }
-                sw.WriteLine("    }");
-                sw.WriteLine("}");
-            }
-
-            foreach (var tu in translationUnits)
-            {
-                tu.Dispose();
-            }
-
-            createIndex.Dispose();
             return 0;
         }
 
@@ -298,7 +253,7 @@ namespace ClangSharpPInvokeGenerator
             argument.Name = "file";
             argument.SetDefaultValue(string.Empty);
 
-            var option = new Option("--output", "The output file to write the generated bindings to.", argument);
+            var option = new Option("--output", "The output location to write the generated bindings to.", argument);
             option.AddAlias("--o");
 
             rootCommand.AddOption(option);
