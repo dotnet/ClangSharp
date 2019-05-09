@@ -7,29 +7,49 @@ using ClangSharp;
 
 namespace ClangSharpPInvokeGenerator
 {
-    internal class CursorWriter : CursorVisitor
+    internal class CursorWriter : CursorVisitor, IDisposable
     {
         private readonly Dictionary<CXCursor, object> _attachedData;
+        private readonly Dictionary<string, int> _outputFilesAndIndentation;
         private readonly Stack<CXCursor> _processingCursors;
         private readonly Stack<CXCursor> _predicatedCursors;
         private readonly HashSet<CXCursor> _visitedCursors;
         private readonly Func<CXCursor, bool> _predicate;
-        private readonly TextWriter _tw;
         private readonly ConfigurationOptions _config;
+        private readonly string _outputLocation;
 
+        private string _outputFile;
+        private TextWriter _tw;
         private int _indentation;
 
-        public CursorWriter(ConfigurationOptions config, TextWriter tw, int indentation = 0, Func<CXCursor, bool> predicate = null)
+        public CursorWriter(ConfigurationOptions config, string outputLocation, Func<CXCursor, bool> predicate = null)
         {
             _attachedData = new Dictionary<CXCursor, object>();
+            _outputFilesAndIndentation = new Dictionary<string, int>();
             _processingCursors = new Stack<CXCursor>();
             _predicatedCursors = new Stack<CXCursor>();
             _visitedCursors = new HashSet<CXCursor>();
             _predicate = predicate ?? ((cursor) => true);
-            _tw = tw;
             _config = config;
+            _outputLocation = outputLocation;
+        }
 
-            _indentation = indentation;
+        public void Dispose()
+        {
+            Debug.Assert(_tw is null);
+
+            foreach (var outputFileAndIndentation in _outputFilesAndIndentation)
+            {
+                using (_tw = new StreamWriter(outputFileAndIndentation.Key, append: true))
+                {
+                    _indentation = outputFileAndIndentation.Value;
+
+                    while (_indentation != 0)
+                    {
+                        WriteBlockEnd();
+                    }
+                }
+            }
         }
 
         protected override bool BeginHandle(CXCursor cursor, CXCursor parent)
@@ -113,6 +133,8 @@ namespace ClangSharpPInvokeGenerator
 
         protected override void EndHandle(CXCursor cursor, CXCursor parent)
         {
+            bool finalize = false;
+
             if (!_processingCursors.TryPeek(out var processingCursor) || !cursor.Equals(processingCursor))
             {
                 return;
@@ -123,6 +145,7 @@ namespace ClangSharpPInvokeGenerator
             if (_predicatedCursors.TryPeek(out var activeCursor) && cursor.Equals(activeCursor))
             {
                 _predicatedCursors.Pop();
+                finalize = true;
             }
 
             switch (cursor.Kind)
@@ -132,6 +155,7 @@ namespace ClangSharpPInvokeGenerator
                 case CXCursorKind.CXCursor_UnexposedAttr:
                 case CXCursorKind.CXCursor_DLLImport:
                 {
+                    finalize = false;
                     break;
                 }
 
@@ -139,19 +163,22 @@ namespace ClangSharpPInvokeGenerator
                 case CXCursorKind.CXCursor_EnumDecl:
                 {
                     WriteBlockEnd();
-                    WriteLine();
                     break;
                 }
 
                 case CXCursorKind.CXCursor_FieldDecl:
                 {
                     WriteLine(';');
+
+                    finalize = false;
                     break;
                 }
 
                 case CXCursorKind.CXCursor_EnumConstantDecl:
                 {
                     WriteLine(',');
+
+                    finalize = false;
                     break;
                 }
 
@@ -162,7 +189,6 @@ namespace ClangSharpPInvokeGenerator
                         Debug.Assert(functionDeclData.RemainingParmCount == 0);
 
                         WriteLine(");");
-                        WriteLine();
 
                         _attachedData.Remove(cursor);
                     }
@@ -189,6 +215,8 @@ namespace ClangSharpPInvokeGenerator
                     {
                         Unhandled(cursor, parent);
                     }
+
+                    finalize = false;
                     break;
                 }
 
@@ -207,14 +235,21 @@ namespace ClangSharpPInvokeGenerator
                     break;
                 }
             }
+
+            if (finalize)
+            {
+                FinalizeTextWriter();
+            }
         }
 
         private bool BeginHandleEnumConstantDecl(CXCursor cursor, CXCursor parent)
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_EnumConstantDecl);
 
+            var name = GetCursorName(cursor);
+
             WriteIndentation();
-            Write(GetEscapedCursorName(cursor));
+            Write(EscapeName(name));
             Write(" = ");
             Write(cursor.EnumConstantDeclValue);
 
@@ -225,9 +260,12 @@ namespace ClangSharpPInvokeGenerator
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_EnumDecl);
 
+            var name = GetCursorName(cursor);
+            InitializeTextWriter(name);
+
             WriteIndented("public enum");
             Write(' ');
-            Write(GetEscapedCursorName(cursor));
+            Write(EscapeName(name));
 
             var integerTypeName = GetTypeName(cursor, cursor.EnumDecl_IntegerType);
 
@@ -261,6 +299,9 @@ namespace ClangSharpPInvokeGenerator
 
             long lastElement = -1;
 
+            var name = GetCursorName(cursor);
+            var escapedName = EscapeName(name);
+
             if (cursor.Type.kind == CXTypeKind.CXType_ConstantArray)
             {
                 lastElement = cursor.Type.NumElements - 1;
@@ -271,7 +312,7 @@ namespace ClangSharpPInvokeGenerator
                     Write(' ');
                     Write(GetTypeName(cursor, cursor.Type));
                     Write(' ');
-                    Write(GetEscapedCursorName(cursor));
+                    Write(escapedName);
                     Write(i);
                     Write(';');
                     Write(' ');
@@ -282,7 +323,7 @@ namespace ClangSharpPInvokeGenerator
             Write(' ');
             Write(GetTypeName(cursor, cursor.Type));
             Write(' ');
-            Write(GetEscapedCursorName(cursor));
+            Write(escapedName);
 
             if (lastElement != -1)
             {
@@ -303,6 +344,7 @@ namespace ClangSharpPInvokeGenerator
             {
                 return false;
             }
+            InitializeTextWriter(_config.MethodClassName);
 
             _attachedData.Add(cursor, new AttachedFunctionDeclData(type.NumArgTypes));
 
@@ -365,8 +407,8 @@ namespace ClangSharpPInvokeGenerator
                 Write(GetTypeName(cursor, cursor.Type));
                 Write(' ');
 
-                var name = GetEscapedCursorName(cursor);
-                Write(name);
+                var name = GetCursorName(cursor);
+                Write(EscapeName(name));
 
                 if (name.Equals("param"))
                 {
@@ -386,6 +428,9 @@ namespace ClangSharpPInvokeGenerator
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_StructDecl);
 
+            var name = GetCursorName(cursor);
+            InitializeTextWriter(name);
+
             WriteIndented("public");
 
             if (_config.GenerateUnsafeCode)
@@ -397,7 +442,7 @@ namespace ClangSharpPInvokeGenerator
 
             Write("partial struct");
             Write(' ');
-            WriteLine(GetEscapedCursorName(cursor));
+            WriteLine(EscapeName(name));
             WriteBlockStart();
 
             return true;
@@ -422,7 +467,8 @@ namespace ClangSharpPInvokeGenerator
                 {
                     if (!_config.GenerateUnsafeCode)
                     {
-                        var escapedName = GetEscapedCursorName(cursor);
+                        var name = GetCursorName(cursor);
+                        var escapedName = EscapeName(name);
 
                         WriteIndented("public partial struct");
                         Write(' ');
@@ -453,7 +499,6 @@ namespace ClangSharpPInvokeGenerator
                             WriteLine(';');
                         }
                         WriteBlockEnd();
-                        WriteLine();
                     }
                     return true;
                 }
@@ -494,14 +539,19 @@ namespace ClangSharpPInvokeGenerator
                 {
                     if (!_config.GenerateUnsafeCode)
                     {
+                        var name = GetCursorName(cursor);
+                        InitializeTextWriter(name);
+
+                        var escapedName = EscapeName(name);
+
                         WriteIndented("public partial struct");
                         Write(' ');
-                        WriteLine(GetEscapedCursorName(cursor));
+                        WriteLine(escapedName);
                         WriteBlockStart();
                         {
                             WriteIndented("public");
                             Write(' ');
-                            Write(GetEscapedCursorName(cursor));
+                            Write(escapedName);
                             WriteLine("(IntPtr pointer)");
                             WriteBlockStart();
                             {
@@ -512,7 +562,6 @@ namespace ClangSharpPInvokeGenerator
                             WriteIndentedLine("public IntPtr Pointer;");
                         }
                         WriteBlockEnd();
-                        WriteLine();
                     }
                     return true;
                 }
@@ -520,8 +569,10 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_FunctionProto:
                 {
                     var name = GetCursorName(cursor);
+                    InitializeTextWriter(name);
+
                     _attachedData.Add(cursor, new AttachedFunctionDeclData(pointeeType.NumArgTypes));
-                    name = EscapeName(name);
+                    var escapedName = EscapeName(name);
 
                     WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
                     Write(GetCallingConventionName(cursor, pointeeType.FunctionTypeCallingConv));
@@ -530,7 +581,7 @@ namespace ClangSharpPInvokeGenerator
                     Write(' ');
                     Write(GetTypeName(cursor, pointeeType.ResultType));
                     Write(' ');
-                    Write(name);
+                    Write(escapedName);
                     Write('(');
 
                     return true;
@@ -646,6 +697,24 @@ namespace ClangSharpPInvokeGenerator
                     return name;
                 }
             }
+        }
+
+        private void FinalizeTextWriter()
+        {
+            Debug.Assert((_outputFile is null) == (_tw is null));
+
+            if (_outputFile is null)
+            {
+                return;
+            }
+
+            _outputFilesAndIndentation[_outputFile] = _indentation;
+            _indentation = 0;
+
+            _tw.Dispose();
+            _tw = null;
+
+            _outputFile = null;
         }
 
         private string GetCallingConventionName(CXCursor cursor, CXCallingConv callingConvention)
@@ -838,12 +907,6 @@ namespace ClangSharpPInvokeGenerator
                     return string.Empty;
                 }
             }
-        }
-
-        private string GetEscapedCursorName(CXCursor cursor)
-        {
-            var name = GetCursorName(cursor);
-            return EscapeName(name);
         }
 
         private string GetMarshalAttribute(CXCursor cursor, CXType type)
@@ -1269,6 +1332,69 @@ namespace ClangSharpPInvokeGenerator
                     return string.Empty;
                 }
             }
+        }
+
+        private void InitializeTextWriter(string name)
+        {
+            Debug.Assert((_outputFile is null) == (_tw is null));
+
+            if (_tw != null)
+            {
+                return;
+            }
+
+            var outputFile = _outputLocation;
+
+            if (_config.GenerateMultipleFiles)
+            {
+                Directory.CreateDirectory(outputFile);
+                outputFile = Path.Combine(outputFile, $"{name}.cs");
+            }
+            else if (name.Equals(_config.MethodClassName))
+            {
+                outputFile = Path.ChangeExtension(outputFile, $"{_config.MethodClassName}{Path.GetExtension(outputFile)}");
+            }
+
+            var append = _outputFilesAndIndentation.TryGetValue(outputFile, out _indentation);
+            Debug.Assert((_indentation != 0) == append);
+
+            _tw = new StreamWriter(outputFile, append);
+            _tw.NewLine = "\n";
+            _outputFile = outputFile;
+
+            if (!append)
+            {
+                WriteIndented("namespace");
+                Write(' ');
+                WriteLine(_config.Namespace);
+                WriteBlockStart();
+                WriteIndentedLine("using System;");
+                WriteIndentedLine("using System.Runtime.InteropServices;");
+
+                if (name.Equals(_config.MethodClassName))
+                {
+                    WriteLine();
+                    WriteIndented("public static");
+                    Write(' ');
+                    
+                    if (_config.GenerateUnsafeCode)
+                    {
+                        Write("unsafe");
+                        Write(' ');
+                    }
+
+                    Write("partial class");
+                    Write(' ');
+                    WriteLine(_config.MethodClassName);
+                    WriteBlockStart();
+                    WriteIndented("private const string libraryPath = ");
+                    Write('"');
+                    Write(_config.LibraryPath);
+                    Write('"');
+                    WriteLine(';');
+                }
+            }
+            WriteLine();
         }
 
         private void Unhandled(CXCursor cursor)

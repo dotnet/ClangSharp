@@ -8,6 +8,11 @@ namespace ClangSharpPInvokeGenerator
         {
             foreach (var option in options)
             {
+                if (option.EndsWith("multi-file"))
+                {
+                    GenerateMultipleFiles = true;
+                }
+
                 if (option.Equals("unsafe"))
                 {
                     GenerateUnsafeCode = true;
@@ -16,6 +21,8 @@ namespace ClangSharpPInvokeGenerator
         }
 
         public string[] ExcludedFunctions { get; set; }
+
+        public bool GenerateMultipleFiles { get; set; }
 
         public bool GenerateUnsafeCode { get; set; }
 
