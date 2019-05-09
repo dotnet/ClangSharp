@@ -46,7 +46,7 @@ namespace ClangSharpPInvokeGenerator
             config.LibraryPath = context.ParseResult.ValueForOption<string>("libraryPath");
             config.MethodClassName = context.ParseResult.ValueForOption<string>("methodClassName");
             config.Namespace = context.ParseResult.ValueForOption<string>("namespace");
-            var outputLocation = context.ParseResult.ValueForOption<string>("output");
+            config.OutputLocation = context.ParseResult.ValueForOption<string>("output");
             config.MethodPrefixToStrip = context.ParseResult.ValueForOption<string>("prefixStrip");
 
             var errorList = new List<string>();
@@ -61,7 +61,7 @@ namespace ClangSharpPInvokeGenerator
                 errorList.Add("Error: No namespace provided. Use --namespace or -n");
             }
 
-            if (string.IsNullOrWhiteSpace(outputLocation))
+            if (string.IsNullOrWhiteSpace(config.OutputLocation))
             {
                 errorList.Add("Error: No output file location provided. Use --output or -o");
             }
@@ -90,7 +90,7 @@ namespace ClangSharpPInvokeGenerator
             arr = arr.Concat(additionalArgs).ToArray();
 
             using (var createIndex = CXIndex.Create())
-            using (var writer = new CursorWriter(config, outputLocation))
+            using (var writer = new CursorWriter(config))
             {
                 foreach (var file in files)
                 {

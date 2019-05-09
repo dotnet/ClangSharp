@@ -33,5 +33,7 @@ namespace ClangSharpPInvokeGenerator
         public string MethodPrefixToStrip { get; set; }
 
         public string Namespace { get; set; }
+
+        public string OutputLocation { get; set; }
     }
 }
