@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -8,22 +9,22 @@ namespace ClangSharpPInvokeGenerator
     {
         private string _outputFile;
         private StringBuilder _output;
-        private int _indentation;
+        private SortedSet<string> _usings;
         private ConfigurationOptions _config;
+        private int _indentation;
 
         public OutputBuilder(string outputFile, ConfigurationOptions config, bool isMethodClass)
         {
             _outputFile = outputFile;
             _output = new StringBuilder();
-            _indentation = 0;
+            _usings = new SortedSet<string>();
             _config = config;
+            _indentation = 0;
 
             WriteIndented("namespace");
             Write(' ');
             WriteLine(_config.Namespace);
             WriteBlockStart();
-            WriteIndentedLine("using System;");
-            WriteIndentedLine("using System.Runtime.InteropServices;");
 
             if (isMethodClass)
             {
@@ -46,10 +47,16 @@ namespace ClangSharpPInvokeGenerator
                 Write(_config.LibraryPath);
                 Write('"');
                 WriteLine(';');
+                WriteLine();
             }
         }
 
         public string OutputFile => _outputFile;
+
+        public void AddUsing(string @namespace)
+        {
+            _usings.Add(@namespace);
+        }
 
         public void Dispose()
         {
@@ -60,6 +67,19 @@ namespace ClangSharpPInvokeGenerator
 
             using (var sw = new StreamWriter(_outputFile))
             {
+                if (_usings.Count != 0)
+                {
+                    foreach (var @using in _usings)
+                    {
+                        sw.Write("using");
+                        sw.Write(' ');
+                        sw.Write(@using);
+                        sw.WriteLine(';');
+                    }
+
+                    sw.WriteLine();
+                }
+
                 sw.Write(_output);
             }
 

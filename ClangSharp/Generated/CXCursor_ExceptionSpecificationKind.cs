@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CXCursor_ExceptionSpecificationKind
     {
         CXCursor_ExceptionSpecificationKind_None = 0,

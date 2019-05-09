@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CXTypeNullabilityKind
     {
         CXTypeNullability_NonNull = 0,

@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CXObjCPropertyAttrKind
     {
         CXObjCPropertyAttr_noattr = 0,

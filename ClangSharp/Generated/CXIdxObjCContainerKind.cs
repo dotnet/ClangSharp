@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CXIdxObjCContainerKind
     {
         CXIdxObjCContainer_ForwardRef = 0,

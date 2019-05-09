@@ -1,8 +1,7 @@
+using System;
+
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public partial struct CXTranslationUnit
     {
         public CXTranslationUnit(IntPtr pointer)

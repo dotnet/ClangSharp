@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CXLinkageKind
     {
         CXLinkage_Invalid = 0,

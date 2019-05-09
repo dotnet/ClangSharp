@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CXTranslationUnit_Flags
     {
         CXTranslationUnit_None = 0,

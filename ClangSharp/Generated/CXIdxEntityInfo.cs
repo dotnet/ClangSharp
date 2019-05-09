@@ -1,8 +1,8 @@
+using System;
+using System.Runtime.InteropServices;
+
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public partial struct CXIdxEntityInfo
     {
         public CXIdxEntityKind kind;

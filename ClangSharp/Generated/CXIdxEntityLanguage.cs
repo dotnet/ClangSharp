@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CXIdxEntityLanguage
     {
         CXIdxEntityLang_None = 0,

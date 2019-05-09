@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CXObjCDeclQualifierKind
     {
         CXObjCDeclQualifier_None = 0,

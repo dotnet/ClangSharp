@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CXIndexOptFlags
     {
         CXIndexOpt_None = 0,

@@ -288,6 +288,8 @@ namespace ClangSharpPInvokeGenerator
 
             if (!string.IsNullOrWhiteSpace(marshalAttribute))
             {
+                _outputBuilder.AddUsing("System.Runtime.InteropServices");
+
                 _outputBuilder.Write('[');
                 _outputBuilder.Write(marshalAttribute);
                 _outputBuilder.Write(']');
@@ -344,6 +346,8 @@ namespace ClangSharpPInvokeGenerator
             InitializeOutputBuilder(_config.MethodClassName);
 
             _attachedData.Add(cursor, new AttachedFunctionDeclData(type.NumArgTypes));
+
+            _outputBuilder.AddUsing("System.Runtime.InteropServices");
 
             _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
             _outputBuilder.Write(name);
@@ -541,6 +545,8 @@ namespace ClangSharpPInvokeGenerator
 
                         var escapedName = EscapeName(name);
 
+                        _outputBuilder.AddUsing("System");
+
                         _outputBuilder.WriteIndented("public partial struct");
                         _outputBuilder.Write(' ');
                         _outputBuilder.WriteLine(escapedName);
@@ -570,6 +576,8 @@ namespace ClangSharpPInvokeGenerator
 
                     _attachedData.Add(cursor, new AttachedFunctionDeclData(pointeeType.NumArgTypes));
                     var escapedName = EscapeName(name);
+
+                    _outputBuilder.AddUsing("System.Runtime.InteropServices");
 
                     _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
                     _outputBuilder.Write(GetCallingConventionName(cursor, pointeeType.FunctionTypeCallingConv));
@@ -781,12 +789,14 @@ namespace ClangSharpPInvokeGenerator
 
                         case "intptr_t":
                         {
+                            _outputBuilder.AddUsing("System");
                             return "IntPtr";
                         }
 
                         case "size_t":
                         case "SIZE_T":
                         {
+                            _outputBuilder.AddUsing("System");
                             return "IntPtr";
                         }
 
@@ -817,6 +827,7 @@ namespace ClangSharpPInvokeGenerator
 
                         case "uintptr_t":
                         {
+                            _outputBuilder.AddUsing("System");
                             return "UIntPtr";
                         }
 
@@ -1195,11 +1206,18 @@ namespace ClangSharpPInvokeGenerator
             {
                 case CXTypeKind.CXType_Void:
                 {
-                    return _config.GenerateUnsafeCode ? "void*" : "IntPtr";
+                    if (_config.GenerateUnsafeCode)
+                    {
+                        return "void*";
+                    }
+
+                    _outputBuilder.AddUsing("System");
+                    return "IntPtr";
                 }
 
                 case CXTypeKind.CXType_FunctionProto:
                 {
+                    _outputBuilder.AddUsing("System");
                     return "IntPtr";
                 }
 
@@ -1228,6 +1246,11 @@ namespace ClangSharpPInvokeGenerator
                                 name = GetTypeName(cursor, pointeeType);
                                 name += '*';
                             }
+                            else
+                            {
+                                _outputBuilder.AddUsing("System");
+                            }
+
                             return name;
                         }
 
@@ -1281,6 +1304,7 @@ namespace ClangSharpPInvokeGenerator
                             if (GetParmModifier(cursor, cursor.Type).Equals("out"))
                             {
                                 Debug.Assert(!_config.GenerateUnsafeCode);
+                                _outputBuilder.AddUsing("System");
                                 return "IntPtr";
                             }
 
@@ -1337,9 +1361,12 @@ namespace ClangSharpPInvokeGenerator
                 _outputBuilder = new OutputBuilder(outputFile, _config, isMethodClass);
                 _outputBuilders.Add(outputFile, _outputBuilder);
             }
+            else
+            {
+                _outputBuilder.WriteLine();
+            }
 
             Debug.Assert(outputFile.Equals(_outputBuilder.OutputFile));
-            _outputBuilder.WriteLine();
         }
 
         private void Unhandled(CXCursor cursor)

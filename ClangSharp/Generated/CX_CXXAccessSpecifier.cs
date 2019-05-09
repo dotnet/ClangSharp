@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CX_CXXAccessSpecifier
     {
         CX_CXXInvalidAccessSpecifier = 0,

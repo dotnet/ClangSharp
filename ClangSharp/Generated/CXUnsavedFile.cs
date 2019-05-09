@@ -1,8 +1,7 @@
+using System.Runtime.InteropServices;
+
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public partial struct CXUnsavedFile
     {
         [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string Filename;

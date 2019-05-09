@@ -1,8 +1,7 @@
+using System;
+
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public partial struct CXModuleMapDescriptor
     {
         public CXModuleMapDescriptor(IntPtr pointer)

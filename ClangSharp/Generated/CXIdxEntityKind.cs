@@ -1,8 +1,5 @@
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public enum CXIdxEntityKind
     {
         CXIdxEntity_Unexposed = 0,

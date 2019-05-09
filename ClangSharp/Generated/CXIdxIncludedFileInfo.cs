@@ -1,8 +1,7 @@
+using System.Runtime.InteropServices;
+
 namespace ClangSharp
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     public partial struct CXIdxIncludedFileInfo
     {
         public CXIdxLoc hashLoc;
