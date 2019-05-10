@@ -65,6 +65,8 @@ namespace ClangSharpPInvokeGenerator
                 WriteBlockEnd();
             }
 
+            Directory.CreateDirectory(Path.GetDirectoryName(_outputFile));
+
             using (var sw = new StreamWriter(_outputFile))
             {
                 if (_usings.Count != 0)

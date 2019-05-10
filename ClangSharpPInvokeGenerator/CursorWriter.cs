@@ -469,6 +469,8 @@ namespace ClangSharpPInvokeGenerator
                     if (!_config.GenerateUnsafeCode)
                     {
                         var name = GetCursorName(cursor);
+                        InitializeOutputBuilder(name);
+
                         var escapedName = EscapeName(name);
 
                         _outputBuilder.WriteIndented("public partial struct");
@@ -1355,6 +1357,8 @@ namespace ClangSharpPInvokeGenerator
             {
                 outputFile = Path.ChangeExtension(outputFile, $"{_config.MethodClassName}{Path.GetExtension(outputFile)}");
             }
+
+            outputFile = outputFile.Replace(':', '_');
 
             if (!_outputBuilders.TryGetValue(outputFile, out _outputBuilder))
             {
