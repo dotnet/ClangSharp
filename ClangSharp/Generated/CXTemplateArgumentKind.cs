@@ -2,15 +2,15 @@ namespace ClangSharp
 {
     public enum CXTemplateArgumentKind
     {
-        CXTemplateArgumentKind_Null = 0,
-        CXTemplateArgumentKind_Type = 1,
-        CXTemplateArgumentKind_Declaration = 2,
-        CXTemplateArgumentKind_NullPtr = 3,
-        CXTemplateArgumentKind_Integral = 4,
-        CXTemplateArgumentKind_Template = 5,
-        CXTemplateArgumentKind_TemplateExpansion = 6,
-        CXTemplateArgumentKind_Expression = 7,
-        CXTemplateArgumentKind_Pack = 8,
-        CXTemplateArgumentKind_Invalid = 9,
+        CXTemplateArgumentKind_Null,
+        CXTemplateArgumentKind_Type,
+        CXTemplateArgumentKind_Declaration,
+        CXTemplateArgumentKind_NullPtr,
+        CXTemplateArgumentKind_Integral,
+        CXTemplateArgumentKind_Template,
+        CXTemplateArgumentKind_TemplateExpansion,
+        CXTemplateArgumentKind_Expression,
+        CXTemplateArgumentKind_Pack,
+        CXTemplateArgumentKind_Invalid,
     }
 }

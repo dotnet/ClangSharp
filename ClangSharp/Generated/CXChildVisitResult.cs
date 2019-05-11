@@ -2,8 +2,8 @@ namespace ClangSharp
 {
     public enum CXChildVisitResult
     {
-        CXChildVisit_Break = 0,
-        CXChildVisit_Continue = 1,
-        CXChildVisit_Recurse = 2,
+        CXChildVisit_Break,
+        CXChildVisit_Continue,
+        CXChildVisit_Recurse,
     }
 }

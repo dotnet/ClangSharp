@@ -2,10 +2,10 @@ namespace ClangSharp
 {
     public enum CXCodeComplete_Flags
     {
-        CXCodeComplete_IncludeMacros = 1,
-        CXCodeComplete_IncludeCodePatterns = 2,
-        CXCodeComplete_IncludeBriefComments = 4,
-        CXCodeComplete_SkipPreamble = 8,
-        CXCodeComplete_IncludeCompletionsWithFixIts = 16,
+        CXCodeComplete_IncludeMacros = 0x01,
+        CXCodeComplete_IncludeCodePatterns = 0x02,
+        CXCodeComplete_IncludeBriefComments = 0x04,
+        CXCodeComplete_SkipPreamble = 0x08,
+        CXCodeComplete_IncludeCompletionsWithFixIts = 0x10,
     }
 }

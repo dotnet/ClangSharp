@@ -2,9 +2,9 @@ namespace ClangSharp
 {
     public enum CXVisibilityKind
     {
-        CXVisibility_Invalid = 0,
-        CXVisibility_Hidden = 1,
-        CXVisibility_Protected = 2,
-        CXVisibility_Default = 3,
+        CXVisibility_Invalid,
+        CXVisibility_Hidden,
+        CXVisibility_Protected,
+        CXVisibility_Default,
     }
 }
