@@ -334,7 +334,7 @@ namespace ClangSharpPInvokeGenerator
         private bool BeginHandleFunctionDecl(CXCursor cursor, CXCursor parent)
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_FunctionDecl);
-            Debug.Assert(cursor.Type.kind == CXTypeKind.CXType_FunctionProto);
+            Debug.Assert((cursor.Type.kind == CXTypeKind.CXType_FunctionProto) || ((cursor.Type.kind == CXTypeKind.CXType_Attributed) && (cursor.Type.ModifierType.kind == CXTypeKind.CXType_FunctionProto)));
 
             var type = cursor.Type;
             var name = GetCursorName(cursor);
@@ -1329,6 +1329,11 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_Elaborated:
                 {
                     return GetTypeNameForPointeeType(cursor, pointeeType.CanonicalType);
+                }
+
+                case CXTypeKind.CXType_Attributed:
+                {
+                    return GetTypeNameForPointeeType(cursor, pointeeType.ModifierType);
                 }
 
                 default:

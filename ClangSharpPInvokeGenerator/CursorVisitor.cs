@@ -258,7 +258,7 @@ namespace ClangSharpPInvokeGenerator
         {
             Debug.Assert(parent.Kind == CXCursorKind.CXCursor_TranslationUnit);
 
-            if (cursor.Location.IsInSystemHeader || !cursor.Location.IsFromMainFile)
+            if (!cursor.Location.IsFromMainFile)
             {
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
