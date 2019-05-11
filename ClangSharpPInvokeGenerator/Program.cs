@@ -89,12 +89,17 @@ namespace ClangSharpPInvokeGenerator
             arr = arr.Concat(defines.Select(x => "-D" + x)).ToArray();
             arr = arr.Concat(additionalArgs).ToArray();
 
+            var translationFlags = CXTranslationUnit_Flags.CXTranslationUnit_None;
+            translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_SkipFunctionBodies;                   // Don't traverse function bodies
+            translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
+            translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
+
             using (var createIndex = CXIndex.Create())
             using (var writer = new CursorWriter(config))
             {
                 foreach (var file in files)
                 {
-                    var translationUnitError = CXTranslationUnit.Parse(createIndex, file, arr, Array.Empty<CXUnsavedFile>(), CXTranslationUnit_Flags.CXTranslationUnit_None, out CXTranslationUnit translationUnit);
+                    var translationUnitError = CXTranslationUnit.Parse(createIndex, file, arr, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit translationUnit);
 
                     if (translationUnitError != CXErrorCode.CXError_Success)
                     {

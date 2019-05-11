@@ -2,9 +2,9 @@ namespace ClangSharp
 {
     public enum CXCommentInlineCommandRenderKind
     {
-        CXCommentInlineCommandRenderKind_Normal = 0,
-        CXCommentInlineCommandRenderKind_Bold = 1,
-        CXCommentInlineCommandRenderKind_Monospaced = 2,
-        CXCommentInlineCommandRenderKind_Emphasized = 3,
+        CXCommentInlineCommandRenderKind_Normal,
+        CXCommentInlineCommandRenderKind_Bold,
+        CXCommentInlineCommandRenderKind_Monospaced,
+        CXCommentInlineCommandRenderKind_Emphasized,
     }
 }

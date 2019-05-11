@@ -27,6 +27,11 @@ namespace ClangSharpPInvokeGenerator
                     return Handle(VisitParenExpr, cursor, parent, data);
                 }
 
+                case CXCursorKind.CXCursor_BinaryOperator:
+                {
+                    return Handle(VisitBinaryOperator, cursor, parent, data);
+                }
+
                 default:
                 {
                     return Unhandled(cursor, parent);
@@ -89,6 +94,11 @@ namespace ClangSharpPInvokeGenerator
                 case CXCursorKind.CXCursor_BinaryOperator:
                 {
                     return Handle(VisitBinaryOperator, cursor, parent, data);
+                }
+
+                case CXCursorKind.CXCursor_UnexposedExpr:
+                {
+                    return Handle(VisitUnexposedExpr, cursor, parent, data);
                 }
 
                 default:
@@ -258,7 +268,7 @@ namespace ClangSharpPInvokeGenerator
         {
             Debug.Assert(parent.Kind == CXCursorKind.CXCursor_TranslationUnit);
 
-            if (cursor.Location.IsInSystemHeader || !cursor.Location.IsFromMainFile)
+            if (!cursor.Location.IsFromMainFile)
             {
                 return CXChildVisitResult.CXChildVisit_Continue;
             }
@@ -403,6 +413,24 @@ namespace ClangSharpPInvokeGenerator
                 case CXCursorKind.CXCursor_VarDecl:
                 {
                     return CXChildVisitResult.CXChildVisit_Continue;
+                }
+
+                default:
+                {
+                    return Unhandled(cursor, parent);
+                }
+            }
+        }
+
+        public CXChildVisitResult VisitUnexposedExpr(CXCursor cursor, CXCursor parent, CXClientData data)
+        {
+            Debug.Assert(parent.Kind == CXCursorKind.CXCursor_UnexposedExpr);
+
+            switch (cursor.Kind)
+            {
+                case CXCursorKind.CXCursor_IntegerLiteral:
+                {
+                    return Handle(VisitIntegerLiteral, cursor, parent, data);
                 }
 
                 default:

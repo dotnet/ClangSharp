@@ -67,11 +67,7 @@ namespace ClangSharpPInvokeGenerator
             {
                 case CXCursorKind.CXCursor_UnexposedDecl:
                 {
-                    if (_predicatedCursors.TryPeek(out var activeCursor) && activeCursor.Equals(cursor))
-                    {
-                        _predicatedCursors.Pop();
-                    }
-                    return true;
+                    return BeginHandleUnexposedDecl(cursor, parent);
                 }
 
                 case CXCursorKind.CXCursor_StructDecl:
@@ -114,6 +110,36 @@ namespace ClangSharpPInvokeGenerator
                     return BeginHandleTypeRef(cursor, parent);
                 }
 
+                case CXCursorKind.CXCursor_UnexposedExpr:
+                {
+                    return BeginHandleUnexposedExpr(cursor, parent);
+                }
+
+                case CXCursorKind.CXCursor_DeclRefExpr:
+                {
+                    return BeginHandleDeclRefExpr(cursor, parent);
+                }
+
+                case CXCursorKind.CXCursor_IntegerLiteral:
+                {
+                    return BeginHandleIntegerLiteral(cursor, parent);
+                }
+
+                case CXCursorKind.CXCursor_ParenExpr:
+                {
+                    return BeginHandleParenExpr(cursor, parent);
+                }
+
+                case CXCursorKind.CXCursor_UnaryOperator:
+                {
+                    return BeginHandleUnaryOperator(cursor, parent);
+                }
+
+                case CXCursorKind.CXCursor_BinaryOperator:
+                {
+                    return BeginHandleBinaryOperator(cursor, parent);
+                }
+
                 case CXCursorKind.CXCursor_UnexposedAttr:
                 case CXCursorKind.CXCursor_DLLImport:
                 {
@@ -149,6 +175,9 @@ namespace ClangSharpPInvokeGenerator
             {
                 case CXCursorKind.CXCursor_UnexposedDecl:
                 case CXCursorKind.CXCursor_TypeRef:
+                case CXCursorKind.CXCursor_UnexposedExpr:
+                case CXCursorKind.CXCursor_DeclRefExpr:
+                case CXCursorKind.CXCursor_IntegerLiteral:
                 case CXCursorKind.CXCursor_UnexposedAttr:
                 case CXCursorKind.CXCursor_DLLImport:
                 {
@@ -174,7 +203,6 @@ namespace ClangSharpPInvokeGenerator
                 case CXCursorKind.CXCursor_EnumConstantDecl:
                 {
                     _outputBuilder.WriteLine(',');
-
                     clearOutputBuilder = false;
                     break;
                 }
@@ -208,7 +236,7 @@ namespace ClangSharpPInvokeGenerator
                         }
                         _attachedData[parent] = functionDeclData;
                     }
-                    else if (parent.Kind != CXCursorKind.CXCursor_ParmDecl)
+                    else if ((parent.Kind != CXCursorKind.CXCursor_FieldDecl) && (parent.Kind != CXCursorKind.CXCursor_ParmDecl))
                     {
                         Unhandled(cursor, parent);
                     }
@@ -226,6 +254,32 @@ namespace ClangSharpPInvokeGenerator
                     break;
                 }
 
+                case CXCursorKind.CXCursor_ParenExpr:
+                {
+                    _outputBuilder.Write(')');
+                    clearOutputBuilder = false;
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_UnaryOperator:
+                case CXCursorKind.CXCursor_BinaryOperator:
+                {
+                    // Clang currently uses the PostChildrenVisitor which clears data0
+                    cursor.data0 = IntPtr.Zero;
+
+                    if (_attachedData.TryGetValue(cursor, out var data) && (data is AttachedOperatorData operatorData))
+                    {
+                        Debug.Assert(operatorData.RemainingOperandCount == 0);
+                        _attachedData.Remove(cursor);
+                    }
+                    else
+                    {
+                        Unhandled(cursor, parent);
+                    }
+                    clearOutputBuilder = false;
+                    break;
+                }
+
                 default:
                 {
                     Unhandled(cursor, parent);
@@ -239,146 +293,335 @@ namespace ClangSharpPInvokeGenerator
             }
         }
 
+        private bool BeginHandleBinaryOperator(CXCursor cursor, CXCursor parent)
+        {
+            Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_BinaryOperator);
+
+            if (_attachedData.TryGetValue(parent, out var data) && !(data is AttachedOperatorData))
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+
+            if (parent.Kind == CXCursorKind.CXCursor_EnumConstantDecl)
+            {
+                _outputBuilder.Write(" = ");
+            }
+            else if (parent.Kind == CXCursorKind.CXCursor_BinaryOperator)
+            {
+                var operatorData = (AttachedOperatorData)(_attachedData[parent]);
+                operatorData.RemainingOperandCount--;
+                _attachedData[parent] = operatorData;
+            }
+            else if (parent.Kind != CXCursorKind.CXCursor_ParenExpr)
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+
+            var translationUnit = cursor.TranslationUnit;
+            translationUnit.Tokenize(cursor.Extent, out CXToken[] tokens);
+
+            Debug.Assert(tokens.Length >= 3);
+
+            var operatorIndex = GetOperatorIndex(cursor, tokens);
+            Debug.Assert(tokens[operatorIndex].Kind == CXTokenKind.CXToken_Punctuation);
+            var @operator = tokens[operatorIndex].GetSpelling(translationUnit).ToString();
+
+            // Clang currently uses the PostChildrenVisitor which clears data0
+            cursor.data0 = IntPtr.Zero;
+
+            _attachedData.Add(cursor, new AttachedOperatorData(cursor.Kind, @operator));
+            return true;
+        }
+
+        private bool BeginHandleDeclRefExpr(CXCursor cursor, CXCursor parent)
+        {
+            Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_DeclRefExpr);
+
+            var translationUnit = cursor.TranslationUnit;
+            translationUnit.Tokenize(cursor.Extent, out CXToken[] tokens);
+
+            Debug.Assert(tokens.Length == 1);
+            Debug.Assert(tokens[0].Kind == CXTokenKind.CXToken_Identifier);
+
+            var identifier = tokens[0].GetSpelling(translationUnit).ToString();
+
+            if (!_attachedData.TryGetValue(parent, out var data))
+            {
+                if (parent.Kind == CXCursorKind.CXCursor_EnumConstantDecl)
+                {
+                    _outputBuilder.Write(" = ");
+                    _outputBuilder.Write(identifier);
+                    return true;
+                }
+                else
+                {
+                    Unhandled(cursor, parent);
+                    return false;
+                }
+            }
+
+            if (data is AttachedOperatorData operatorData)
+            {
+                return HandleAttachedOperatorData(parent, identifier, operatorData);
+            }
+            else
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+        }
+
         private bool BeginHandleEnumConstantDecl(CXCursor cursor, CXCursor parent)
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_EnumConstantDecl);
 
-            var name = GetCursorName(cursor);
+            if (_attachedData.TryGetValue(parent, out var data))
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+            else
+            {
+                var name = GetCursorName(cursor);
 
-            _outputBuilder.WriteIndentation();
-            _outputBuilder.Write(EscapeName(name));
-            _outputBuilder.Write(" = ");
-            _outputBuilder.Write(cursor.EnumConstantDeclValue);
+                _outputBuilder.WriteIndentation();
+                _outputBuilder.Write(EscapeName(name));
 
-            return false;
+                return true;
+            }
         }
 
         private bool BeginHandleEnumDecl(CXCursor cursor, CXCursor parent)
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_EnumDecl);
 
-            var name = GetCursorName(cursor);
-            InitializeOutputBuilder(name);
-
-            _outputBuilder.WriteIndented("public enum");
-            _outputBuilder.Write(' ');
-            _outputBuilder.Write(EscapeName(name));
-
-            var integerTypeName = GetTypeName(cursor, cursor.EnumDecl_IntegerType);
-
-            if (!integerTypeName.Equals("int"))
+            if (_attachedData.TryGetValue(parent, out var data))
             {
-                _outputBuilder.Write(" : ");
-                _outputBuilder.Write(integerTypeName);
+                Unhandled(cursor, parent);
+                return false;
             }
+            else
+            {
+                var name = GetCursorName(cursor);
+                InitializeOutputBuilder(name);
 
-            _outputBuilder.WriteLine();
-            _outputBuilder.WriteBlockStart();
+                _outputBuilder.WriteIndented("public enum");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write(EscapeName(name));
 
-            return true;
+                var integerTypeName = GetTypeName(cursor, cursor.EnumDecl_IntegerType);
+
+                if (!integerTypeName.Equals("int"))
+                {
+                    _outputBuilder.Write(" : ");
+                    _outputBuilder.Write(integerTypeName);
+                }
+
+                _outputBuilder.WriteLine();
+                _outputBuilder.WriteBlockStart();
+
+                return true;
+            }
         }
 
         private bool BeginHandleFieldDecl(CXCursor cursor, CXCursor parent)
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_FieldDecl);
 
-            _outputBuilder.WriteIndentation();
-
-            var marshalAttribute = GetMarshalAttribute(cursor, cursor.Type);
-
-            if (!string.IsNullOrWhiteSpace(marshalAttribute))
+            if (_attachedData.TryGetValue(parent, out var data))
             {
-                _outputBuilder.AddUsing("System.Runtime.InteropServices");
-
-                _outputBuilder.Write('[');
-                _outputBuilder.Write(marshalAttribute);
-                _outputBuilder.Write(']');
-                _outputBuilder.Write(' ');
+                Unhandled(cursor, parent);
+                return false;
             }
-
-            long lastElement = -1;
-
-            var name = GetCursorName(cursor);
-            var escapedName = EscapeName(name);
-
-            if (cursor.Type.kind == CXTypeKind.CXType_ConstantArray)
+            else
             {
-                lastElement = cursor.Type.NumElements - 1;
+                _outputBuilder.WriteIndentation();
 
-                for (int i = 0; i < lastElement; i++)
+                var marshalAttribute = GetMarshalAttribute(cursor, cursor.Type);
+
+                if (!string.IsNullOrWhiteSpace(marshalAttribute))
                 {
-                    _outputBuilder.Write("public");
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(GetTypeName(cursor, cursor.Type));
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(escapedName);
-                    _outputBuilder.Write(i);
-                    _outputBuilder.Write(';');
+                    _outputBuilder.AddUsing("System.Runtime.InteropServices");
+
+                    _outputBuilder.Write('[');
+                    _outputBuilder.Write(marshalAttribute);
+                    _outputBuilder.Write(']');
                     _outputBuilder.Write(' ');
                 }
-            }
 
-            _outputBuilder.Write("public");
-            _outputBuilder.Write(' ');
-            _outputBuilder.Write(GetTypeName(cursor, cursor.Type));
-            _outputBuilder.Write(' ');
-            _outputBuilder.Write(escapedName);
+                long lastElement = -1;
 
-            if (lastElement != -1)
-            {
-                _outputBuilder.Write(lastElement);
+                var name = GetCursorName(cursor);
+                var escapedName = EscapeName(name);
+
+                if (cursor.Type.kind == CXTypeKind.CXType_ConstantArray)
+                {
+                    lastElement = cursor.Type.NumElements - 1;
+
+                    for (int i = 0; i < lastElement; i++)
+                    {
+                        _outputBuilder.Write("public");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(GetTypeName(cursor, cursor.Type));
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(escapedName);
+                        _outputBuilder.Write(i);
+                        _outputBuilder.Write(';');
+                        _outputBuilder.Write(' ');
+                    }
+                }
+
+                _outputBuilder.Write("public");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write(GetTypeName(cursor, cursor.Type));
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write(escapedName);
+
+                if (lastElement != -1)
+                {
+                    _outputBuilder.Write(lastElement);
+                }
+
+                return true;
             }
-            return false;
         }
 
         private bool BeginHandleFunctionDecl(CXCursor cursor, CXCursor parent)
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_FunctionDecl);
-            Debug.Assert(cursor.Type.kind == CXTypeKind.CXType_FunctionProto);
+            Debug.Assert((cursor.Type.kind == CXTypeKind.CXType_FunctionProto) || ((cursor.Type.kind == CXTypeKind.CXType_Attributed) && (cursor.Type.ModifierType.kind == CXTypeKind.CXType_FunctionProto)));
 
-            var type = cursor.Type;
-            var name = GetCursorName(cursor);
+            if (_attachedData.TryGetValue(parent, out var data))
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+            else
+            {
+                var type = cursor.Type;
+                var name = GetCursorName(cursor);
 
-            if (_config.ExcludedFunctions.Contains(name))
+                if (_config.ExcludedFunctions.Contains(name))
+                {
+                    return false;
+                }
+                InitializeOutputBuilder(_config.MethodClassName);
+
+                _attachedData.Add(cursor, new AttachedFunctionDeclData(type.NumArgTypes));
+
+                _outputBuilder.AddUsing("System.Runtime.InteropServices");
+
+                _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
+                _outputBuilder.Write(name);
+                _outputBuilder.Write("\", CallingConvention = CallingConvention.");
+                _outputBuilder.Write(GetCallingConventionName(cursor, type.FunctionTypeCallingConv));
+                _outputBuilder.WriteLine(")]");
+
+                var marshalAttribute = GetMarshalAttribute(cursor, type.ResultType);
+
+                if (!string.IsNullOrWhiteSpace(marshalAttribute))
+                {
+                    _outputBuilder.WriteIndented("[return: ");
+                    _outputBuilder.Write(marshalAttribute);
+                    _outputBuilder.Write(']');
+                    _outputBuilder.WriteLine();
+                }
+
+                if (name.StartsWith(_config.MethodPrefixToStrip))
+                {
+                    name = name.Substring(_config.MethodPrefixToStrip.Length);
+                }
+                name = EscapeName(name);
+
+                _outputBuilder.WriteIndented("public static extern");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write(GetTypeName(cursor, type.ResultType));
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write(name);
+                _outputBuilder.Write('(');
+
+                return true;
+            }
+        }
+
+        private bool BeginHandleIntegerLiteral(CXCursor cursor, CXCursor parent)
+        {
+            Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_IntegerLiteral);
+
+            if (parent.Kind == CXCursorKind.CXCursor_FieldDecl)
             {
                 return false;
             }
-            InitializeOutputBuilder(_config.MethodClassName);
 
-            _attachedData.Add(cursor, new AttachedFunctionDeclData(type.NumArgTypes));
+            var translationUnit = cursor.TranslationUnit;
+            translationUnit.Tokenize(cursor.Extent, out CXToken[] tokens);
 
-            _outputBuilder.AddUsing("System.Runtime.InteropServices");
+            Debug.Assert(tokens.Length == 1);
+            Debug.Assert(tokens[0].Kind == CXTokenKind.CXToken_Literal);
 
-            _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
-            _outputBuilder.Write(name);
-            _outputBuilder.Write("\", CallingConvention = CallingConvention.");
-            _outputBuilder.Write(GetCallingConventionName(cursor, type.FunctionTypeCallingConv));
-            _outputBuilder.WriteLine(")]");
+            var literal = tokens[0].GetSpelling(translationUnit).ToString();
 
-            var marshalAttribute = GetMarshalAttribute(cursor, type.ResultType);
-
-            if (!string.IsNullOrWhiteSpace(marshalAttribute))
+            if (!_attachedData.TryGetValue(parent, out var data))
             {
-                _outputBuilder.WriteIndented("[return: ");
-                _outputBuilder.Write(marshalAttribute);
-                _outputBuilder.Write(']');
-                _outputBuilder.WriteLine();
+                if (parent.Kind == CXCursorKind.CXCursor_EnumConstantDecl)
+                {
+                    _outputBuilder.Write(" = ");
+                    _outputBuilder.Write(literal);
+                    return true;
+                }
+                else if (parent.Kind == CXCursorKind.CXCursor_UnexposedExpr)
+                {
+                    _outputBuilder.Write(literal);
+                    return true;
+                }
+                else
+                {
+                    Unhandled(cursor, parent);
+                    return false;
+                }
             }
 
-            if (name.StartsWith(_config.MethodPrefixToStrip))
+            if (data is AttachedOperatorData operatorData)
             {
-                name = name.Substring(_config.MethodPrefixToStrip.Length);
+                return HandleAttachedOperatorData(parent, literal, operatorData);
             }
-            name = EscapeName(name);
+            else
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+        }
 
-            _outputBuilder.WriteIndented("public static extern");
-            _outputBuilder.Write(' ');
-            _outputBuilder.Write(GetTypeName(cursor, type.ResultType));
-            _outputBuilder.Write(' ');
-            _outputBuilder.Write(name);
-            _outputBuilder.Write('(');
+        private bool BeginHandleParenExpr(CXCursor cursor, CXCursor parent)
+        {
+            Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_ParenExpr);
 
-            return true;
+            if (!_attachedData.TryGetValue(parent, out var data))
+            {
+                if (parent.Kind == CXCursorKind.CXCursor_EnumConstantDecl)
+                {
+                    _outputBuilder.Write(" = ");
+                    _outputBuilder.Write('(');
+                    return true;
+                }
+                else
+                {
+                    Unhandled(cursor, parent);
+                    return false;
+                }
+            }
+
+            if (data is AttachedOperatorData operatorData)
+            {
+                return HandleAttachedOperatorData(parent, "(", operatorData);
+            }
+            else
+            {
+                Unhandled(cursor, parent);
+                return false; 
+            }
         }
 
         private bool BeginHandleParmDecl(CXCursor cursor, CXCursor parent)
@@ -417,116 +660,136 @@ namespace ClangSharpPInvokeGenerator
                 }
                 return true;
             }
-            else if (parent.Kind != CXCursorKind.CXCursor_ParmDecl)
+            else if ((parent.Kind == CXCursorKind.CXCursor_FieldDecl) || (parent.Kind == CXCursorKind.CXCursor_ParmDecl))
+            {
+                return true;
+            }
+            else
             {
                 Unhandled(cursor, parent);
+                return false;
             }
-
-            return false;
         }
 
         private bool BeginHandleStructDecl(CXCursor cursor, CXCursor parent)
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_StructDecl);
 
-            var name = GetCursorName(cursor);
-            InitializeOutputBuilder(name);
-
-            _outputBuilder.WriteIndented("public");
-
-            if (_config.GenerateUnsafeCode)
+            if (_attachedData.TryGetValue(parent, out var data))
             {
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("unsafe");
+                Unhandled(cursor, parent);
+                return false;
             }
-            _outputBuilder.Write(' ');
+            else
+            {
+                var name = GetCursorName(cursor);
+                InitializeOutputBuilder(name);
 
-            _outputBuilder.Write("partial struct");
-            _outputBuilder.Write(' ');
-            _outputBuilder.WriteLine(EscapeName(name));
-            _outputBuilder.WriteBlockStart();
+                _outputBuilder.WriteIndented("public");
 
-            return true;
+                if (_config.GenerateUnsafeCode)
+                {
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write("unsafe");
+                }
+                _outputBuilder.Write(' ');
+
+                _outputBuilder.Write("partial struct");
+                _outputBuilder.Write(' ');
+                _outputBuilder.WriteLine(EscapeName(name));
+                _outputBuilder.WriteBlockStart();
+
+                return true;
+            }
         }
 
         private bool BeginHandleTypedefDecl(CXCursor cursor, CXCursor parent, CXType underlyingType)
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_TypedefDecl);
 
-            switch (underlyingType.kind)
+            if (_attachedData.TryGetValue(parent, out var data))
             {
-                case CXTypeKind.CXType_Bool:
-                case CXTypeKind.CXType_UShort:
-                case CXTypeKind.CXType_UInt:
-                case CXTypeKind.CXType_ULong:
-                case CXTypeKind.CXType_ULongLong:
-                case CXTypeKind.CXType_Short:
-                case CXTypeKind.CXType_Int:
-                case CXTypeKind.CXType_Long:
-                case CXTypeKind.CXType_LongLong:
-                case CXTypeKind.CXType_Double:
+                Unhandled(cursor, parent);
+                return false;
+            }
+            else
+            {
+                switch (underlyingType.kind)
                 {
-                    if (!_config.GenerateUnsafeCode)
+                    case CXTypeKind.CXType_Bool:
+                    case CXTypeKind.CXType_UShort:
+                    case CXTypeKind.CXType_UInt:
+                    case CXTypeKind.CXType_ULong:
+                    case CXTypeKind.CXType_ULongLong:
+                    case CXTypeKind.CXType_Short:
+                    case CXTypeKind.CXType_Int:
+                    case CXTypeKind.CXType_Long:
+                    case CXTypeKind.CXType_LongLong:
+                    case CXTypeKind.CXType_Double:
                     {
-                        var name = GetCursorName(cursor);
-                        InitializeOutputBuilder(name);
-
-                        var escapedName = EscapeName(name);
-
-                        _outputBuilder.WriteIndented("public partial struct");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.WriteLine(escapedName);
-                        _outputBuilder.WriteBlockStart();
+                        if (!_config.GenerateUnsafeCode)
                         {
-                            var typeName = GetTypeName(cursor, underlyingType);
+                            var name = GetCursorName(cursor);
+                            InitializeOutputBuilder(name);
 
-                            _outputBuilder.WriteIndented("public");
+                            var escapedName = EscapeName(name);
+
+                            _outputBuilder.WriteIndented("public partial struct");
                             _outputBuilder.Write(' ');
-                            _outputBuilder.Write(escapedName);
-                            _outputBuilder.Write('(');
-                            _outputBuilder.Write(typeName);
-                            _outputBuilder.Write(' ');
-                            _outputBuilder.Write("value");
-                            _outputBuilder.WriteLine(')');
+                            _outputBuilder.WriteLine(escapedName);
                             _outputBuilder.WriteBlockStart();
                             {
-                                _outputBuilder.WriteIndentedLine("Value = value;");
+                                var typeName = GetTypeName(cursor, underlyingType);
+
+                                _outputBuilder.WriteIndented("public");
+                                _outputBuilder.Write(' ');
+                                _outputBuilder.Write(escapedName);
+                                _outputBuilder.Write('(');
+                                _outputBuilder.Write(typeName);
+                                _outputBuilder.Write(' ');
+                                _outputBuilder.Write("value");
+                                _outputBuilder.WriteLine(')');
+                                _outputBuilder.WriteBlockStart();
+                                {
+                                    _outputBuilder.WriteIndentedLine("Value = value;");
+                                }
+                                _outputBuilder.WriteBlockEnd();
+                                _outputBuilder.WriteLine();
+                                _outputBuilder.WriteIndented("public");
+                                _outputBuilder.Write(' ');
+                                _outputBuilder.Write(typeName);
+                                _outputBuilder.Write(' ');
+                                _outputBuilder.Write("Value");
+                                _outputBuilder.WriteLine(';');
                             }
                             _outputBuilder.WriteBlockEnd();
-                            _outputBuilder.WriteLine();
-                            _outputBuilder.WriteIndented("public");
-                            _outputBuilder.Write(' ');
-                            _outputBuilder.Write(typeName);
-                            _outputBuilder.Write(' ');
-                            _outputBuilder.Write("Value");
-                            _outputBuilder.WriteLine(';');
                         }
-                        _outputBuilder.WriteBlockEnd();
+                        return true;
                     }
-                    return true;
-                }
 
-                case CXTypeKind.CXType_Pointer:
-                {
-                    return BeginHandleTypedefDeclForPointer(cursor, parent, underlyingType.PointeeType);
-                }
+                    case CXTypeKind.CXType_Pointer:
+                    {
+                        return BeginHandleTypedefDeclForPointer(cursor, parent, underlyingType.PointeeType);
+                    }
 
-                case CXTypeKind.CXType_Record:
-                case CXTypeKind.CXType_Enum:
-                {
-                    return false;
-                }
+                    case CXTypeKind.CXType_Record:
+                    case CXTypeKind.CXType_Enum:
+                    {
+                        // We recurse the struct and record declarations directly
+                        return false;
+                    }
 
-                case CXTypeKind.CXType_Typedef:
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    return BeginHandleTypedefDecl(cursor, parent, underlyingType.CanonicalType);
-                }
+                    case CXTypeKind.CXType_Typedef:
+                    case CXTypeKind.CXType_Elaborated:
+                    {
+                        return BeginHandleTypedefDecl(cursor, parent, underlyingType.CanonicalType);
+                    }
 
-                default:
-                {
-                    Unhandled(cursor, underlyingType);
-                    return false;
+                    default:
+                    {
+                        Unhandled(cursor, underlyingType);
+                        return false;
+                    }
                 }
             }
         }
@@ -535,74 +798,82 @@ namespace ClangSharpPInvokeGenerator
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_TypedefDecl);
 
-            switch (pointeeType.kind)
+            if (_attachedData.TryGetValue(parent, out var data))
             {
-                case CXTypeKind.CXType_Void:
-                case CXTypeKind.CXType_Record:
+                Unhandled(cursor, parent);
+                return false;
+            }
+            else
+            {
+                switch (pointeeType.kind)
                 {
-                    if (!_config.GenerateUnsafeCode)
+                    case CXTypeKind.CXType_Void:
+                    case CXTypeKind.CXType_Record:
+                    {
+                        if (!_config.GenerateUnsafeCode)
+                        {
+                            var name = GetCursorName(cursor);
+                            InitializeOutputBuilder(name);
+
+                            var escapedName = EscapeName(name);
+
+                            _outputBuilder.AddUsing("System");
+
+                            _outputBuilder.WriteIndented("public partial struct");
+                            _outputBuilder.Write(' ');
+                            _outputBuilder.WriteLine(escapedName);
+                            _outputBuilder.WriteBlockStart();
+                            {
+                                _outputBuilder.WriteIndented("public");
+                                _outputBuilder.Write(' ');
+                                _outputBuilder.Write(escapedName);
+                                _outputBuilder.WriteLine("(IntPtr pointer)");
+                                _outputBuilder.WriteBlockStart();
+                                {
+                                    _outputBuilder.WriteIndentedLine("Pointer = pointer;");
+                                }
+                                _outputBuilder.WriteBlockEnd();
+                                _outputBuilder.WriteLine();
+                                _outputBuilder.WriteIndentedLine("public IntPtr Pointer;");
+                            }
+                            _outputBuilder.WriteBlockEnd();
+                        }
+                        return true;
+                    }
+
+                    case CXTypeKind.CXType_FunctionProto:
                     {
                         var name = GetCursorName(cursor);
                         InitializeOutputBuilder(name);
 
+                        _attachedData.Add(cursor, new AttachedFunctionDeclData(pointeeType.NumArgTypes));
                         var escapedName = EscapeName(name);
 
-                        _outputBuilder.AddUsing("System");
+                        _outputBuilder.AddUsing("System.Runtime.InteropServices");
 
-                        _outputBuilder.WriteIndented("public partial struct");
+                        _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
+                        _outputBuilder.Write(GetCallingConventionName(cursor, pointeeType.FunctionTypeCallingConv));
+                        _outputBuilder.WriteLine(")]");
+                        _outputBuilder.WriteIndented("public delegate");
                         _outputBuilder.Write(' ');
-                        _outputBuilder.WriteLine(escapedName);
-                        _outputBuilder.WriteBlockStart();
-                        {
-                            _outputBuilder.WriteIndented("public");
-                            _outputBuilder.Write(' ');
-                            _outputBuilder.Write(escapedName);
-                            _outputBuilder.WriteLine("(IntPtr pointer)");
-                            _outputBuilder.WriteBlockStart();
-                            {
-                                _outputBuilder.WriteIndentedLine("Pointer = pointer;");
-                            }
-                            _outputBuilder.WriteBlockEnd();
-                            _outputBuilder.WriteLine();
-                            _outputBuilder.WriteIndentedLine("public IntPtr Pointer;");
-                        }
-                        _outputBuilder.WriteBlockEnd();
+                        _outputBuilder.Write(GetTypeName(cursor, pointeeType.ResultType));
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(escapedName);
+                        _outputBuilder.Write('(');
+
+                        return true;
                     }
-                    return true;
-                }
 
-                case CXTypeKind.CXType_FunctionProto:
-                {
-                    var name = GetCursorName(cursor);
-                    InitializeOutputBuilder(name);
+                    case CXTypeKind.CXType_Elaborated:
+                    {
+                        return BeginHandleTypedefDeclForPointer(cursor, parent, pointeeType.CanonicalType);
+                    }
 
-                    _attachedData.Add(cursor, new AttachedFunctionDeclData(pointeeType.NumArgTypes));
-                    var escapedName = EscapeName(name);
-
-                    _outputBuilder.AddUsing("System.Runtime.InteropServices");
-
-                    _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
-                    _outputBuilder.Write(GetCallingConventionName(cursor, pointeeType.FunctionTypeCallingConv));
-                    _outputBuilder.WriteLine(")]");
-                    _outputBuilder.WriteIndented("public delegate");
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(GetTypeName(cursor, pointeeType.ResultType));
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(escapedName);
-                    _outputBuilder.Write('(');
-
-                    return true;
-                }
-
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    return BeginHandleTypedefDeclForPointer(cursor, parent, pointeeType.CanonicalType);
-                }
-
-                default:
-                {
-                    Unhandled(cursor, pointeeType);
-                    return false;
+                    default:
+                    {
+                        Unhandled(cursor, pointeeType);
+                        return false;
+                    }
                 }
             }
         }
@@ -610,7 +881,96 @@ namespace ClangSharpPInvokeGenerator
         private bool BeginHandleTypeRef(CXCursor cursor, CXCursor parent)
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_TypeRef);
-            return true;
+
+            if (_attachedData.TryGetValue(parent, out var data) && !(data is AttachedFunctionDeclData))
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        private bool BeginHandleUnaryOperator(CXCursor cursor, CXCursor parent)
+        {
+            Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_UnaryOperator);
+
+            if (_attachedData.TryGetValue(parent, out var data))
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+            else
+            {
+                if (parent.Kind == CXCursorKind.CXCursor_EnumConstantDecl)
+                {
+                    _outputBuilder.Write(" = ");
+                }
+                else
+                {
+                    Unhandled(cursor, parent);
+                    return false;
+                }
+
+                var translationUnit = cursor.TranslationUnit;
+                translationUnit.Tokenize(cursor.Extent, out CXToken[] tokens);
+
+                Debug.Assert(tokens.Length >= 2);
+
+                var operatorIndex = GetOperatorIndex(cursor, tokens);
+                Debug.Assert(tokens[operatorIndex].Kind == CXTokenKind.CXToken_Punctuation);
+                var @operator = tokens[operatorIndex].GetSpelling(translationUnit).ToString();
+
+                // Clang currently uses the PostChildrenVisitor which clears data0
+                cursor.data0 = IntPtr.Zero;
+
+                _attachedData.Add(cursor, new AttachedOperatorData(cursor.Kind, @operator));
+
+                return true;
+            }
+        }
+
+        private bool BeginHandleUnexposedDecl(CXCursor cursor, CXCursor parent)
+        {
+            if (_attachedData.TryGetValue(parent, out var data))
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+            else
+            {
+                if (_predicatedCursors.TryPeek(out var activeCursor) && activeCursor.Equals(cursor))
+                {
+                    _predicatedCursors.Pop();
+                }
+
+                return true;
+            }
+        }
+
+        private bool BeginHandleUnexposedExpr(CXCursor cursor, CXCursor parent)
+        {
+            if (_attachedData.TryGetValue(parent, out var data))
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+            else
+            {
+                if (parent.Kind == CXCursorKind.CXCursor_EnumConstantDecl)
+                {
+                    _outputBuilder.Write(" = ");
+                }
+                else
+                {
+                    Unhandled(cursor, parent);
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         private string EscapeName(string name)
@@ -736,7 +1096,16 @@ namespace ClangSharpPInvokeGenerator
 
                     if (string.IsNullOrWhiteSpace(name))
                     {
-                        name = GetTypeName(cursor, cursor.Type);
+                        if (cursor.IsAnonymous)
+                        {
+                            cursor.Location.GetFileLocation(out var file, out var _, out var _, out var offset);
+                            var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
+                            name = $"__Anonymous{cursor.Type.KindSpelling}_{fileName}_{offset}";
+                        }
+                        else
+                        {
+                            name = GetTypeName(cursor, cursor.Type);
+                        }
                     }
 
                     Debug.Assert(!string.IsNullOrWhiteSpace(name));
@@ -993,6 +1362,76 @@ namespace ClangSharpPInvokeGenerator
                     return string.Empty;
                 }
             }
+        }
+
+        private int GetOperatorIndex(CXCursor cursor, CXToken[] tokens)
+        {
+            Debug.Assert((cursor.Kind == CXCursorKind.CXCursor_UnaryOperator) || (cursor.Kind == CXCursorKind.CXCursor_BinaryOperator));
+
+            int operatorIndex = -1;
+            int parenDepth = 0;
+
+            var translationUnit = cursor.TranslationUnit;
+
+            for (int index = 0; index < tokens.Length; index++)
+            {
+                var token = tokens[index];
+
+                if (token.Kind != CXTokenKind.CXToken_Punctuation)
+                {
+                    continue;
+                }
+
+                var punctuation = tokens[index].GetSpelling(translationUnit).ToString();
+
+                switch (punctuation)
+                {
+                    case "(":
+                    {
+                        parenDepth++;
+                        break;
+                    }
+
+                    case ")":
+                    {
+                        parenDepth--;
+                        break;
+                    }
+
+                    case "-":
+                    {
+                        if (parenDepth == 0)
+                        {
+                            return index;
+                        }
+
+                        break;
+                    }
+
+                    case "|":
+                    case "<<":
+                    {
+                        Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_BinaryOperator);
+
+                        if (parenDepth == 0)
+                        {
+                            return index;
+                        }
+
+                        break;
+                    }
+
+                    default:
+                    {
+                        Debug.WriteLine($"Unhandled punctuation kind: {punctuation}.");
+                        Debugger.Break();
+                        break;
+                    }
+                }
+            }
+
+            Debug.Assert(operatorIndex != -1);
+            return operatorIndex;
         }
 
         private string GetParmModifier(CXCursor cursor, CXType type)
@@ -1331,12 +1770,56 @@ namespace ClangSharpPInvokeGenerator
                     return GetTypeNameForPointeeType(cursor, pointeeType.CanonicalType);
                 }
 
+                case CXTypeKind.CXType_Attributed:
+                {
+                    return GetTypeNameForPointeeType(cursor, pointeeType.ModifierType);
+                }
+
                 default:
                 {
                     Unhandled(cursor, pointeeType);
                     return string.Empty;
                 }
             }
+        }
+
+        private bool HandleAttachedOperatorData(CXCursor parent, string token, AttachedOperatorData operatorData)
+        {
+            if (operatorData.Kind == CXCursorKind.CXCursor_UnaryOperator)
+            {
+                if (IsUnaryPrefixOperator(operatorData.Operator))
+                {
+                    _outputBuilder.Write(operatorData.Operator);
+                    _outputBuilder.Write(token);
+                }
+                else
+                {
+                    _outputBuilder.Write(token);
+                    _outputBuilder.Write(operatorData.Operator);
+                }
+            }
+            else
+            {
+                Debug.Assert(operatorData.Kind == CXCursorKind.CXCursor_BinaryOperator);
+
+                if (operatorData.RemainingOperandCount == 1)
+                {
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(operatorData.Operator);
+                    _outputBuilder.Write(' ');
+                }
+                else
+                {
+                    Debug.Assert(operatorData.RemainingOperandCount == 2);
+                }
+
+                _outputBuilder.Write(token);
+            }
+
+            operatorData.RemainingOperandCount--;
+            _attachedData[parent] = operatorData;
+
+            return true;
         }
 
         private void InitializeOutputBuilder(string name)
@@ -1358,8 +1841,6 @@ namespace ClangSharpPInvokeGenerator
                 outputFile = Path.ChangeExtension(outputFile, $"{_config.MethodClassName}{Path.GetExtension(outputFile)}");
             }
 
-            outputFile = outputFile.Replace(':', '_');
-
             if (!_outputBuilders.TryGetValue(outputFile, out _outputBuilder))
             {
                 _outputBuilder = new OutputBuilder(outputFile, _config, isMethodClass);
@@ -1371,6 +1852,24 @@ namespace ClangSharpPInvokeGenerator
             }
 
             Debug.Assert(outputFile.Equals(_outputBuilder.OutputFile));
+        }
+
+        private bool IsUnaryPrefixOperator(string @operator)
+        {
+            switch (@operator)
+            {
+                case "-":
+                {
+                    return true;
+                }
+
+                default:
+                {
+                    Debug.WriteLine($"Unhandled operator kind: {@operator}.");
+                    Debugger.Break();
+                    return false;
+                }
+            }
         }
 
         private void Unhandled(CXCursor cursor)
