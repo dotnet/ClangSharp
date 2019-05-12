@@ -52,6 +52,19 @@ namespace ClangSharpPInvokeGenerator
             }
         }
 
+        public CXChildVisitResult VisitDLLExport(CXCursor cursor, CXCursor parent, CXClientData data)
+        {
+            Debug.Assert(parent.Kind == CXCursorKind.CXCursor_DLLExport);
+
+            switch (cursor.Kind)
+            {
+                default:
+                {
+                    return Unhandled(cursor, parent);
+                }
+            }
+        }
+
         public CXChildVisitResult VisitDLLImport(CXCursor cursor, CXCursor parent, CXClientData data)
         {
             Debug.Assert(parent.Kind == CXCursorKind.CXCursor_DLLImport);
@@ -170,14 +183,14 @@ namespace ClangSharpPInvokeGenerator
                     return Handle(VisitTypeRef, cursor, parent, data);
                 }
 
-                case CXCursorKind.CXCursor_CompoundStmt:
-                {
-                    return CXChildVisitResult.CXChildVisit_Continue;
-                }
-
                 case CXCursorKind.CXCursor_UnexposedAttr:
                 {
                     return Handle(VisitUnexposedAttr, cursor, parent, data);
+                }
+
+                case CXCursorKind.CXCursor_DLLExport:
+                {
+                    return Handle(VisitDLLExport, cursor, parent, data);
                 }
 
                 case CXCursorKind.CXCursor_DLLImport:
@@ -293,6 +306,11 @@ namespace ClangSharpPInvokeGenerator
                 case CXCursorKind.CXCursor_TypedefDecl:
                 {
                     return Handle(VisitTypedefDecl, cursor, parent, data);
+                }
+
+                case CXCursorKind.CXCursor_VarDecl:
+                {
+                    return Handle(VisitVarDecl, cursor, parent, data);
                 }
 
                 default:
@@ -412,7 +430,7 @@ namespace ClangSharpPInvokeGenerator
 
                 case CXCursorKind.CXCursor_VarDecl:
                 {
-                    return CXChildVisitResult.CXChildVisit_Continue;
+                    return Handle(VisitVarDecl, cursor, parent, data);
                 }
 
                 default:
@@ -433,6 +451,19 @@ namespace ClangSharpPInvokeGenerator
                     return Handle(VisitIntegerLiteral, cursor, parent, data);
                 }
 
+                default:
+                {
+                    return Unhandled(cursor, parent);
+                }
+            }
+        }
+
+        public CXChildVisitResult VisitVarDecl(CXCursor cursor, CXCursor parent, CXClientData data)
+        {
+            Debug.Assert(parent.Kind == CXCursorKind.CXCursor_VarDecl);
+
+            switch (cursor.Kind)
+            {
                 default:
                 {
                     return Unhandled(cursor, parent);

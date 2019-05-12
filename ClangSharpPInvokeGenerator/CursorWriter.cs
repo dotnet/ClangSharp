@@ -141,9 +141,18 @@ namespace ClangSharpPInvokeGenerator
                 }
 
                 case CXCursorKind.CXCursor_UnexposedAttr:
+                {
+                    return BeginHandleUnexposedAttr(cursor, parent);
+                }
+
+                case CXCursorKind.CXCursor_DLLExport:
+                {
+                    return BeginHandleDLLExport(cursor, parent);
+                }
+
                 case CXCursorKind.CXCursor_DLLImport:
                 {
-                    return false;
+                    return BeginHandleDLLImport(cursor, parent);
                 }
 
                 default:
@@ -179,6 +188,7 @@ namespace ClangSharpPInvokeGenerator
                 case CXCursorKind.CXCursor_DeclRefExpr:
                 case CXCursorKind.CXCursor_IntegerLiteral:
                 case CXCursorKind.CXCursor_UnexposedAttr:
+                case CXCursorKind.CXCursor_DLLExport:
                 case CXCursorKind.CXCursor_DLLImport:
                 {
                     clearOutputBuilder = false;
@@ -373,6 +383,38 @@ namespace ClangSharpPInvokeGenerator
             }
         }
 
+        private bool BeginHandleDLLExport(CXCursor cursor, CXCursor parent)
+        {
+            Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_DLLExport);
+
+            if (_attachedData.TryGetValue(parent, out var data) && (data is AttachedFunctionDeclData functionDeclData))
+            {
+                functionDeclData.IsDllExport = true;
+                return true;
+            }
+            else
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+        }
+
+        private bool BeginHandleDLLImport(CXCursor cursor, CXCursor parent)
+        {
+            Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_DLLImport);
+
+            if (_attachedData.TryGetValue(parent, out var data) && (data is AttachedFunctionDeclData functionDeclData))
+            {
+                functionDeclData.IsDllImport = true;
+                return true;
+            }
+            else
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+        }
+
         private bool BeginHandleEnumConstantDecl(CXCursor cursor, CXCursor parent)
         {
             Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_EnumConstantDecl);
@@ -508,6 +550,11 @@ namespace ClangSharpPInvokeGenerator
                     return false;
                 }
                 InitializeOutputBuilder(_config.MethodClassName);
+
+                // TODO: We should probably build the function declaration in the attached data
+                // and ultimately print it out when we are done handling everything. This would
+                // allow us to validate things like "is it a valid dll import" or add additional
+                // information like "is it deprecated".
 
                 _attachedData.Add(cursor, new AttachedFunctionDeclData(type.NumArgTypes));
 
@@ -662,6 +709,7 @@ namespace ClangSharpPInvokeGenerator
             }
             else if ((parent.Kind == CXCursorKind.CXCursor_FieldDecl) || (parent.Kind == CXCursorKind.CXCursor_ParmDecl))
             {
+                // TODO: We should properly handle inline function pointers for fields and method parameters
                 return true;
             }
             else
@@ -889,6 +937,7 @@ namespace ClangSharpPInvokeGenerator
             }
             else
             {
+                // TODO: Should probably have more checks around the type ref to ensure we don't miss anything
                 return true;
             }
         }
@@ -932,6 +981,47 @@ namespace ClangSharpPInvokeGenerator
             }
         }
 
+        private bool BeginHandleUnexposedAttr(CXCursor cursor, CXCursor parent)
+        {
+            Debug.Assert(cursor.Kind == CXCursorKind.CXCursor_UnexposedAttr);
+
+            if (_attachedData.TryGetValue(parent, out var data) && (data is AttachedFunctionDeclData functionDeclData))
+            {
+                var translationUnit = cursor.TranslationUnit;
+                translationUnit.Tokenize(cursor.Extent, out CXToken[] tokens);
+
+                if (tokens is null)
+                {
+                    var token = translationUnit.GetToken(cursor.Location);
+                    Debug.Assert(!token.Equals(default(CXToken)));
+                    tokens = new CXToken[] { token };
+                }
+                Debug.Assert(tokens.Length == 1);
+
+                if (tokens[0].Kind != CXTokenKind.CXToken_Identifier)
+                {
+                    Unhandled(cursor, parent);
+                    return false;
+                }
+
+                var identifier = tokens[0].GetSpelling(translationUnit).ToString();
+
+                if (identifier != "deprecated")
+                {
+                    Unhandled(cursor, parent);
+                    return false;
+                }
+
+                functionDeclData.IsDeprecated = true;
+                return true;
+            }
+            else
+            {
+                Unhandled(cursor, parent);
+                return false;
+            }
+        }
+
         private bool BeginHandleUnexposedDecl(CXCursor cursor, CXCursor parent)
         {
             if (_attachedData.TryGetValue(parent, out var data))
@@ -941,6 +1031,9 @@ namespace ClangSharpPInvokeGenerator
             }
             else
             {
+                // TODO: We should validate the type of unexposed decl. It looks like these are
+                // normally just extern "C" declarations.
+
                 if (_predicatedCursors.TryPeek(out var activeCursor) && activeCursor.Equals(cursor))
                 {
                     _predicatedCursors.Pop();
@@ -959,6 +1052,8 @@ namespace ClangSharpPInvokeGenerator
             }
             else
             {
+                // TODO: We should probably check the type of unexposed expression
+
                 if (parent.Kind == CXCursorKind.CXCursor_EnumConstantDecl)
                 {
                     _outputBuilder.Write(" = ");
@@ -1565,6 +1660,11 @@ namespace ClangSharpPInvokeGenerator
                 case CXTypeKind.CXType_ULongLong:
                 {
                     return "ulong";
+                }
+
+                case CXTypeKind.CXType_Char_S:
+                {
+                    return "sbyte";
                 }
 
                 case CXTypeKind.CXType_WChar:
