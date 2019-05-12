@@ -83,13 +83,18 @@ namespace ClangSharpPInvokeGenerator
                 return -1;
             }
 
-            string[] arr = { "-x", "c++" };
+            var arr = new string[]
+            {
+                "-xc++",                                // The input files are C++
+                "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
+            };
 
             arr = arr.Concat(includeDirs.Select(x => "-I" + x)).ToArray();
             arr = arr.Concat(defines.Select(x => "-D" + x)).ToArray();
             arr = arr.Concat(additionalArgs).ToArray();
 
             var translationFlags = CXTranslationUnit_Flags.CXTranslationUnit_None;
+
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_SkipFunctionBodies;                   // Don't traverse function bodies
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
@@ -100,18 +105,35 @@ namespace ClangSharpPInvokeGenerator
                 foreach (var file in files)
                 {
                     var translationUnitError = CXTranslationUnit.Parse(createIndex, file, arr, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit translationUnit);
+                    bool skipProcessing = false;
 
                     if (translationUnitError != CXErrorCode.CXError_Success)
                     {
-                        Console.WriteLine($"Error: '{translationUnitError}' for '{file}'.");
-                        var numDiagnostics = translationUnit.NumDiagnostics;
+                        Console.WriteLine($"Error: Parsing failed for '{file}' due to '{translationUnitError}'.");
+                        skipProcessing = true;
+                    }
+                    else if (translationUnit.NumDiagnostics != 0)
+                    {
+                        Console.WriteLine($"Diagnostics for '{file}':");
 
-                        for (uint i = 0; i < numDiagnostics; ++i)
+                        for (uint i = 0; i < translationUnit.NumDiagnostics; ++i)
                         {
-                            var diagnostic = translationUnit.GetDiagnostic(i);
-                            Console.WriteLine(diagnostic.Spelling.ToString());
-                            diagnostic.Dispose();
+                            using (var diagnostic = translationUnit.GetDiagnostic(i))
+                            {
+                                Console.Write("    ");
+                                Console.WriteLine(diagnostic.Format(CXDiagnosticDisplayOptions.CXDiagnostic_DisplayOption).ToString());
+
+                                skipProcessing |= (diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Error);
+                                skipProcessing |= (diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Fatal);
+                            }
                         }
+                    }
+
+                    if (skipProcessing)
+                    {
+                        Console.WriteLine($"Skipping '{file}' due to one or more errors listed above.");
+                        Console.WriteLine();
+                        continue;
                     }
 
                     using (translationUnit)
