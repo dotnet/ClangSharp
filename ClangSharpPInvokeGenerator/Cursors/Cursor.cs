@@ -412,7 +412,7 @@ namespace ClangSharpPInvokeGenerator
 
             _canonicalCursor = new Lazy<Cursor>(() => {
                 var cursor = TranslationUnit.GetOrCreateCursor(handle.CanonicalCursor, () => Create(handle.CanonicalCursor, this));
-                cursor?.Visit(clientData: default);
+                cursor.Visit(clientData: default);
                 return cursor;
             });
         }

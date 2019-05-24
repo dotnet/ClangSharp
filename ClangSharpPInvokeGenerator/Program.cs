@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ClangSharp;
@@ -100,11 +99,11 @@ namespace ClangSharpPInvokeGenerator
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
             using (var createIndex = CXIndex.Create())
-            using (var writer = new CursorWriter(config))
+            using (var cursorWriter = new CursorWriter(config))
             {
                 foreach (var file in files)
                 {
-                    var translationUnitError = CXTranslationUnit.Parse(createIndex, file, arr, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit translationUnit);
+                    var translationUnitError = CXTranslationUnit.Parse(createIndex, file, arr, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit translationUnitHandle);
                     bool skipProcessing = false;
 
                     if (translationUnitError != CXErrorCode.CXError_Success)
@@ -112,13 +111,13 @@ namespace ClangSharpPInvokeGenerator
                         Console.WriteLine($"Error: Parsing failed for '{file}' due to '{translationUnitError}'.");
                         skipProcessing = true;
                     }
-                    else if (translationUnit.NumDiagnostics != 0)
+                    else if (translationUnitHandle.NumDiagnostics != 0)
                     {
                         Console.WriteLine($"Diagnostics for '{file}':");
 
-                        for (uint i = 0; i < translationUnit.NumDiagnostics; ++i)
+                        for (uint i = 0; i < translationUnitHandle.NumDiagnostics; ++i)
                         {
-                            using (var diagnostic = translationUnit.GetDiagnostic(i))
+                            using (var diagnostic = translationUnitHandle.GetDiagnostic(i))
                             {
                                 Console.Write("    ");
                                 Console.WriteLine(diagnostic.Format(CXDiagnosticDisplayOptions.CXDiagnostic_DisplayOption).ToString());
@@ -136,9 +135,11 @@ namespace ClangSharpPInvokeGenerator
                         continue;
                     }
 
-                    using (translationUnit)
+                    using (translationUnitHandle)
                     {
-                        translationUnit.Cursor.VisitChildren(writer.VisitTranslationUnit, clientData: default);
+                        var translationUnit = new TranslationUnit(translationUnitHandle.Cursor);
+                        translationUnit.Visit(clientData: default);
+                        cursorWriter.Visit(translationUnit);
                     }
                 }
             }
