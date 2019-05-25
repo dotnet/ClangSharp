@@ -117,6 +117,7 @@ namespace ClangSharpPInvokeGenerator
         {
             if (_visitedCursors.ContainsKey(cursor.Handle))
             {
+                Debug.WriteLine("Attempting to add an already visited cursor.");
                 Debugger.Break();
             }
             _visitedCursors.Add(cursor.Handle, cursor);
@@ -126,6 +127,7 @@ namespace ClangSharpPInvokeGenerator
         {
             if (_visitedTypes.ContainsKey(type.Handle))
             {
+                Debug.WriteLine("Attempting to add an already visited type.");
                 Debugger.Break();
             }
             _visitedTypes.Add(type.Handle, type);

@@ -6,6 +6,49 @@ namespace ClangSharpPInvokeGenerator
 {
     internal class Ref : Cursor
     {
+        public static new Ref Create(CXCursor handle, Cursor parent)
+        {
+            switch (handle.Kind)
+            {
+                case CXCursorKind.CXCursor_TypeRef:
+                {
+                    return new TypeRef(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_CXXBaseSpecifier:
+                {
+                    return new CXXBaseSpecifier(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_TemplateRef:
+                {
+                    return new TemplateRef(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_NamespaceRef:
+                {
+                    return new NamespaceRef(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_MemberRef:
+                {
+                    return new MemberRef(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_OverloadedDeclRef:
+                {
+                    return new OverloadedDeclRef(handle, parent);
+                }
+
+                default:
+                {
+                    Debug.WriteLine($"Unhandled reference kind: {handle.KindSpelling}.");
+                    Debugger.Break();
+                    return new Ref(handle, parent);
+                }
+            }
+        }
+
         private readonly Lazy<Type> _type;
 
         protected Ref(CXCursor handle, Cursor parent) : base(handle, parent)

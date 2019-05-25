@@ -6,6 +6,59 @@ namespace ClangSharpPInvokeGenerator
 {
     internal class Stmt : Cursor
     {
+        public static new Stmt Create(CXCursor handle, Cursor parent)
+        {
+            switch (handle.Kind)
+            {
+                case CXCursorKind.CXCursor_CompoundStmt:
+                {
+                    return new CompoundStmt(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_IfStmt:
+                {
+                    return new IfStmt(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_DoStmt:
+                {
+                    return new DoStmt(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_ForStmt:
+                {
+                    return new ForStmt(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_BreakStmt:
+                {
+                    return new BreakStmt(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_ReturnStmt:
+                {
+                    return new ReturnStmt(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_NullStmt:
+                {
+                    return new NullStmt(handle, parent);
+                }
+
+                case CXCursorKind.CXCursor_DeclStmt:
+                {
+                    return new DeclStmt(handle, parent);
+                }
+
+                default:
+                {
+                    Debug.WriteLine($"Unhandled statement kind: {handle.KindSpelling}.");
+                    Debugger.Break();
+                    return new Stmt(handle, parent);
+                }
+            }
+        }
+
         protected Stmt(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.IsStatement);
