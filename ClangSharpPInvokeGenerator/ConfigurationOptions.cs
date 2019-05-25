@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ClangSharpPInvokeGenerator
+﻿namespace ClangSharpPInvokeGenerator
 {
     internal sealed class ConfigurationOptions
     {
