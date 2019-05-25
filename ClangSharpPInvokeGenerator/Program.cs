@@ -12,7 +12,7 @@ namespace ClangSharpPInvokeGenerator
     {
         private static RootCommand s_rootCommand;
 
-        public static async Task<int> Main(string[] args)
+        public static async Task<int> Main(params string[] args)
         {
             s_rootCommand = new RootCommand();
             {
