@@ -41,7 +41,16 @@ namespace ClangSharpPInvokeGenerator
         {
             Debug.Assert(_outputBuilder is null);
             _visitedCursors.Add(translationUnit);
-            VisitChildren(translationUnit);
+
+            foreach (var child in translationUnit.Children)
+            {
+                if (!child.IsFromMainFile)
+                {
+                    continue;
+                }
+
+                Visit(child, translationUnit);
+            }
         }
 
         private string EscapeName(string name)
@@ -971,7 +980,7 @@ namespace ClangSharpPInvokeGenerator
 
             foreach (var child in cursor.Children)
             {
-                Debug.Assert(_visitedCursors.Contains(child));
+                Debug.Assert(_visitedCursors.Contains(child) || !child.IsFromMainFile);
             }
         }
 

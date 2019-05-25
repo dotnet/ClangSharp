@@ -19,11 +19,6 @@ namespace ClangSharpPInvokeGenerator
         {
             ValidateVisit(ref handle);
 
-            if (!childHandle.Location.IsFromMainFile)
-            {
-                return CXChildVisitResult.CXChildVisit_Continue;
-            }
-
             switch (childHandle.Kind)
             {
                 case CXCursorKind.CXCursor_UnexposedDecl:

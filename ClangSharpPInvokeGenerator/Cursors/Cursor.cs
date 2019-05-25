@@ -365,7 +365,7 @@ namespace ClangSharpPInvokeGenerator
 
                 case CXCursorKind.CXCursor_StaticAssert:
                 {
-                    return new DLLImport(handle, parent);
+                    return new StaticAssert(handle, parent);
                 }
 
                 case CXCursorKind.CXCursor_TypeAliasTemplateDecl:
@@ -424,6 +424,8 @@ namespace ClangSharpPInvokeGenerator
         public CXSourceRange Extent => Handle.Extent;
 
         public CXCursor Handle { get; }
+
+        public bool IsFromMainFile => Location.IsFromMainFile;
 
         public CXCursorKind Kind => Handle.Kind;
 
