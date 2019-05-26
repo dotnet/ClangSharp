@@ -20,4 +20,10 @@
     <ProjectReference Include="..\ClangSharp.PInvokeGenerator\ClangSharp.PInvokeGenerator.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ClangUnsavedFile.h">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

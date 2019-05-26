@@ -7,6 +7,7 @@ namespace ClangSharp.Test
 {
     public abstract class PInvokeGeneratorTest
     {
+        protected const string DefaultInputFileName = "ClangUnsavedFile.h";
         protected const string DefaultLibraryPath = "ClangSharpPInvokeGenerator";
         protected const string DefaultNamespaceName = "ClangSharp.Test";
 
@@ -25,14 +26,13 @@ namespace ClangSharp.Test
             // Ideally we would also have the input file be a MemoryStream. Unfortunately,
             // Clang currently requires that all files exist on disk before Parse is called.
 
-            using (var inputFile = new TemporaryFile())
             using (var outputStream = new MemoryStream())
             {
-                await inputFile.WriteAllText(inputContents);
+                var unsavedInputFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
                 var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName());
 
                 using (var pinvokeGenerator = new PInvokeGenerator(config, ((path) => (outputStream, leaveOpen: true))))
-                using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, inputFile.Path, DefaultClangCommandLineArgs, Array.Empty<CXUnsavedFile>(), DefaultTranslationUnitFlags))
+                using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, new CXUnsavedFile[] { unsavedInputFile }, DefaultTranslationUnitFlags))
                 {
                     pinvokeGenerator.GenerateBindings(translationUnitHandle);
                 }
