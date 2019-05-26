@@ -55,6 +55,9 @@ namespace ClangSharp
 
         public void Close()
         {
+            OutputBuilder methodClassOutputBuilder = null;
+            bool emitNamespaceDeclaration = true;
+
             foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
             {
                 var outputPath = _config.OutputLocation;
@@ -63,14 +66,33 @@ namespace ClangSharp
                 if (_config.GenerateMultipleFiles)
                 {
                     outputPath = Path.Combine(outputPath, $"{outputBuilder.Name}.cs");
+                    emitNamespaceDeclaration = true;
                 }
                 else if (isMethodClass)
                 {
-                    outputPath = Path.ChangeExtension(outputPath, $"{_config.MethodClassName}{Path.GetExtension(outputPath)}");
+                    methodClassOutputBuilder = outputBuilder;
+                    continue;
                 }
 
                 var (stream, leaveStreamOpen) = _outputStreamFactory(outputPath);
-                CloseOutputBuilder(stream, outputBuilder, isMethodClass, leaveStreamOpen);
+                CloseOutputBuilder(stream, outputBuilder, isMethodClass, leaveStreamOpen, emitNamespaceDeclaration);
+                emitNamespaceDeclaration = false;
+            }
+
+            if (!_config.GenerateMultipleFiles)
+            {
+                var outputPath = _config.OutputLocation;
+                var (stream, leaveStreamOpen) = _outputStreamFactory(outputPath);
+
+                if (methodClassOutputBuilder != null)
+                {
+                    CloseOutputBuilder(stream, methodClassOutputBuilder, isMethodClass: true, leaveStreamOpen: true, emitNamespaceDeclaration);
+                }
+
+                using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
+                {
+                    sw.WriteLine('}');
+                }
             }
 
             _diagnostics.Clear();
@@ -140,7 +162,7 @@ namespace ClangSharp
             }
         }
 
-        private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen)
+        private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen, bool emitNamespaceDeclaration)
         {
             if (stream is null)
             {
@@ -169,10 +191,17 @@ namespace ClangSharp
 
                 var indentationString = outputBuilder.IndentationString;
 
-                sw.Write("namespace");
-                sw.Write(' ');
-                sw.WriteLine(Config.Namespace);
-                sw.WriteLine('{');
+                if (emitNamespaceDeclaration)
+                {
+                    sw.Write("namespace");
+                    sw.Write(' ');
+                    sw.WriteLine(Config.Namespace);
+                    sw.WriteLine('{');
+                }
+                else
+                {
+                    sw.WriteLine();
+                }
 
                 if (isMethodClass)
                 {
@@ -221,7 +250,11 @@ namespace ClangSharp
                     sw.Write(outputBuilder.IndentationString);
                     sw.WriteLine('}');
                 }
-                sw.WriteLine('}');
+
+                if (_config.GenerateMultipleFiles)
+                {
+                    sw.WriteLine('}');
+                }
             }
         }
 
@@ -515,17 +548,21 @@ namespace ClangSharp
             switch (underlyingType.Kind)
             {
                 case CXTypeKind.CXType_Bool:
+                case CXTypeKind.CXType_Char_U:
                 case CXTypeKind.CXType_UChar:
                 case CXTypeKind.CXType_UShort:
                 case CXTypeKind.CXType_UInt:
                 case CXTypeKind.CXType_ULong:
                 case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Char_S:
+                case CXTypeKind.CXType_SChar:
                 case CXTypeKind.CXType_WChar:
                 case CXTypeKind.CXType_Short:
                 case CXTypeKind.CXType_Int:
                 case CXTypeKind.CXType_Long:
                 case CXTypeKind.CXType_LongLong:
                 case CXTypeKind.CXType_Float:
+                case CXTypeKind.CXType_Double:
                 case CXTypeKind.CXType_Pointer:
                 {
                     var name = typedefDecl.Spelling;
@@ -572,14 +609,19 @@ namespace ClangSharp
             switch (type.Kind)
             {
                 case CXTypeKind.CXType_Void:
+                case CXTypeKind.CXType_Char_U:
+                case CXTypeKind.CXType_UChar:
                 case CXTypeKind.CXType_UShort:
                 case CXTypeKind.CXType_UInt:
                 case CXTypeKind.CXType_ULong:
                 case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Char_S:
+                case CXTypeKind.CXType_SChar:
                 case CXTypeKind.CXType_Short:
                 case CXTypeKind.CXType_Int:
                 case CXTypeKind.CXType_Long:
                 case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Float:
                 case CXTypeKind.CXType_Double:
                 case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
@@ -588,6 +630,11 @@ namespace ClangSharp
                 case CXTypeKind.CXType_IncompleteArray:
                 {
                     return string.Empty;
+                }
+
+                case CXTypeKind.CXType_Bool:
+                {
+                    return "MarshalAs(UnmanagedType.U1)";
                 }
 
                 case CXTypeKind.CXType_Pointer:
@@ -615,14 +662,18 @@ namespace ClangSharp
             switch (pointeeType.Kind)
             {
                 case CXTypeKind.CXType_Void:
+                case CXTypeKind.CXType_Bool:
+                case CXTypeKind.CXType_UChar:
                 case CXTypeKind.CXType_UShort:
                 case CXTypeKind.CXType_UInt:
                 case CXTypeKind.CXType_ULong:
                 case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_SChar:
                 case CXTypeKind.CXType_Short:
                 case CXTypeKind.CXType_Int:
                 case CXTypeKind.CXType_Long:
                 case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Float:
                 case CXTypeKind.CXType_Double:
                 case CXTypeKind.CXType_Pointer:
                 case CXTypeKind.CXType_Record:
@@ -633,6 +684,7 @@ namespace ClangSharp
                     return string.Empty;
                 }
 
+                case CXTypeKind.CXType_Char_U:
                 case CXTypeKind.CXType_Char_S:
                 {
                     return "MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))";
@@ -666,15 +718,23 @@ namespace ClangSharp
             switch (type.Kind)
             {
                 case CXTypeKind.CXType_Void:
+                case CXTypeKind.CXType_Bool:
+                case CXTypeKind.CXType_Char_U:
+                case CXTypeKind.CXType_UChar:
                 case CXTypeKind.CXType_UShort:
                 case CXTypeKind.CXType_UInt:
                 case CXTypeKind.CXType_ULong:
                 case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Char_S:
+                case CXTypeKind.CXType_SChar:
+                case CXTypeKind.CXType_WChar:
                 case CXTypeKind.CXType_Short:
                 case CXTypeKind.CXType_Int:
                 case CXTypeKind.CXType_Long:
                 case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Float:
                 case CXTypeKind.CXType_Double:
+                case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
                 case CXTypeKind.CXType_Typedef:
                 {
@@ -712,6 +772,7 @@ namespace ClangSharp
             switch (pointeeType.Kind)
             {
                 case CXTypeKind.CXType_Void:
+                case CXTypeKind.CXType_Char_U:
                 case CXTypeKind.CXType_Char_S:
                 case CXTypeKind.CXType_WChar:
                 case CXTypeKind.CXType_FunctionProto:
@@ -719,19 +780,22 @@ namespace ClangSharp
                     return string.Empty;
                 }
 
+                case CXTypeKind.CXType_Bool:
                 case CXTypeKind.CXType_UChar:
                 case CXTypeKind.CXType_UShort:
                 case CXTypeKind.CXType_UInt:
                 case CXTypeKind.CXType_ULong:
                 case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_SChar:
                 case CXTypeKind.CXType_Short:
                 case CXTypeKind.CXType_Int:
                 case CXTypeKind.CXType_Long:
                 case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Float:
                 case CXTypeKind.CXType_Double:
+                case CXTypeKind.CXType_Pointer:
                 case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
-                case CXTypeKind.CXType_Pointer:
                 {
                     return "out";
                 }
@@ -764,6 +828,7 @@ namespace ClangSharp
                     return "bool";
                 }
 
+                case CXTypeKind.CXType_Char_U:
                 case CXTypeKind.CXType_UChar:
                 {
                     return "byte";
@@ -790,6 +855,7 @@ namespace ClangSharp
                 }
 
                 case CXTypeKind.CXType_Char_S:
+                case CXTypeKind.CXType_SChar:
                 {
                     return "sbyte";
                 }
@@ -884,20 +950,18 @@ namespace ClangSharp
                     return "IntPtr";
                 }
 
-                case CXTypeKind.CXType_FunctionProto:
-                {
-                    _outputBuilder.AddUsingDirective("System");
-                    return "IntPtr";
-                }
-
+                case CXTypeKind.CXType_UChar:
                 case CXTypeKind.CXType_UShort:
                 case CXTypeKind.CXType_UInt:
                 case CXTypeKind.CXType_ULong:
                 case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_SChar:
                 case CXTypeKind.CXType_Short:
                 case CXTypeKind.CXType_Int:
                 case CXTypeKind.CXType_Long:
                 case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Float:
+                case CXTypeKind.CXType_Double:
                 case CXTypeKind.CXType_Pointer:
                 case CXTypeKind.CXType_Record:
                 case CXTypeKind.CXType_Enum:
@@ -962,6 +1026,7 @@ namespace ClangSharp
                     }
                 }
 
+                case CXTypeKind.CXType_Char_U:
                 case CXTypeKind.CXType_Char_S:
                 {
                     switch (decl.Kind)
@@ -996,6 +1061,12 @@ namespace ClangSharp
                             return string.Empty;
                         }
                     }
+                }
+
+                case CXTypeKind.CXType_FunctionProto:
+                {
+                    _outputBuilder.AddUsingDirective("System");
+                    return "IntPtr";
                 }
 
                 case CXTypeKind.CXType_Elaborated:
@@ -1482,14 +1553,20 @@ namespace ClangSharp
             switch (underlyingType.Kind)
             {
                 case CXTypeKind.CXType_Bool:
+                case CXTypeKind.CXType_Char_U:
+                case CXTypeKind.CXType_UChar:
                 case CXTypeKind.CXType_UShort:
                 case CXTypeKind.CXType_UInt:
                 case CXTypeKind.CXType_ULong:
                 case CXTypeKind.CXType_ULongLong:
+                case CXTypeKind.CXType_Char_S:
+                case CXTypeKind.CXType_SChar:
+                case CXTypeKind.CXType_WChar:
                 case CXTypeKind.CXType_Short:
                 case CXTypeKind.CXType_Int:
                 case CXTypeKind.CXType_Long:
                 case CXTypeKind.CXType_LongLong:
+                case CXTypeKind.CXType_Float:
                 case CXTypeKind.CXType_Double:
                 {
                     if (!_config.GenerateUnsafeCode)
