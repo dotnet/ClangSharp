@@ -21,15 +21,22 @@ namespace ClangSharp.Test
             "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
         };
 
-        protected async Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents)
+        protected Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents)
         {
-            // Ideally we would also have the input file be a MemoryStream. Unfortunately,
-            // Clang currently requires that all files exist on disk before Parse is called.
+            return ValidateGeneratedBindings(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None);
+        }
 
+        protected Task ValidateUnsafeGeneratedBindings(string inputContents, string expectedOutputContents)
+        {
+            return ValidateGeneratedBindings(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateUnsafeCode);
+        }
+
+        private async Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions)
+        {
             using (var outputStream = new MemoryStream())
             {
                 var unsavedInputFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
-                var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName());
+                var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName(), configOptions);
 
                 using (var pinvokeGenerator = new PInvokeGenerator(config, ((path) => (outputStream, leaveOpen: true))))
                 using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, new CXUnsavedFile[] { unsavedInputFile }, DefaultTranslationUnitFlags))
