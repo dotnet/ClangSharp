@@ -16,7 +16,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharpPInvokeGenerator.Test
+            var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public enum MyEnum
     {
@@ -41,7 +41,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharpPInvokeGenerator.Test
+            var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public enum MyEnum
     {
@@ -66,7 +66,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharpPInvokeGenerator.Test
+            var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public enum MyEnum : byte
     {

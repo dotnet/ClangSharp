@@ -10,6 +10,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.PInvokeGenerator
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.PInvokeGenerator.Test", "ClangSharp.PInvokeGenerator.Test\ClangSharp.PInvokeGenerator.Test.csproj", "{0F4159AF-BC55-4C98-A248-67B9B4D229F1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClangSharpPInvokeGenerator", "ClangSharpPInvokeGenerator\ClangSharpPInvokeGenerator.csproj", "{D1FDD6AE-6F18-4991-8CE4-B8C930C177FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{0F4159AF-BC55-4C98-A248-67B9B4D229F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F4159AF-BC55-4C98-A248-67B9B4D229F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F4159AF-BC55-4C98-A248-67B9B4D229F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1FDD6AE-6F18-4991-8CE4-B8C930C177FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1FDD6AE-6F18-4991-8CE4-B8C930C177FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1FDD6AE-6F18-4991-8CE4-B8C930C177FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1FDD6AE-6F18-4991-8CE4-B8C930C177FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

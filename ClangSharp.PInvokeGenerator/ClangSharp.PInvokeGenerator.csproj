@@ -1,41 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <PackageReference Include="System.CommandLine.Experimental" Version="0.2.0-alpha.19174.3" />
-  </ItemGroup>
+  <PropertyGroup>
+    <RootNamespace>ClangSharp</RootNamespace>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ClangSharp\ClangSharp.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <RootNamespace>ClangSharp</RootNamespace>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-  </PropertyGroup>
-
-  <!-- libclang name, unlikely to need overriding -->
-  <PropertyGroup Condition="'$(LibClangName)' == ''">
-    <LibClangName>libclang</LibClangName>
-  </PropertyGroup>
-
-  <!-- libllvm name, unlikely to need overriding -->
-  <PropertyGroup Condition="'$(LibLLVMName)' == ''">
-      <LibLLVMName>libLLVM</LibLLVMName>
-  </PropertyGroup>
-
-  <!-- Auto-detect LLVM... more or less -->
-  <PropertyGroup Condition="'$(LLVMIncludePath)' == ''">
-    <LLVMIncludePath Condition="'$(OS)' == 'Windows_NT'">C:\Program Files\LLVM\include</LLVMIncludePath>
-    <LLVMIncludePath Condition="'$(OS)' != 'Windows_NT'">/usr/lib/llvm-8/include</LLVMIncludePath>
-  </PropertyGroup>
-
-  <Target Name="GenerateClangSharp">
-      <Exec Command="dotnet run --m clang --p clang_ --namespace ClangSharp --output &quot;$(OutDir)/ClangSharp/Generated/&quot; --config multi-file --libraryPath &quot;$(LibClangName)&quot; --include &quot;$(LLVMIncludePath)&quot; --file &quot;$(LLVMIncludePath)/clang-c/Index.h&quot; --file &quot;$(LLVMIncludePath)/clang-c/CXString.h&quot; --file &quot;$(LLVMIncludePath)/clang-c/Documentation.h&quot; --file &quot;$(LLVMIncludePath)/clang-c/CXErrorCode.h&quot; --file &quot;$(LLVMIncludePath)/clang-c/BuildSystem.h&quot; --file &quot;$(LLVMIncludePath)/clang-c/CXCompilationDatabase.h&quot; --e clang_index_getClientEntity --e clang_index_setClientEntity --e clang_createTranslationUnitFromSourceFile --e clang_parseTranslationUnit --e clang_parseTranslationUnit2 --e clang_parseTranslationUnit2FullArgv --e clang_reparseTranslationUnit --e clang_codeCompleteAt --e clang_indexSourceFile --e clang_indexSourceFileFullArgv --e clang_disposeSourceRangeList --e clang_annotateTokens --e clang_annotateTokens --e clang_disposeTokens --e clang_tokenize --e clang_disposeStringSet --e clang_getCompletionParent --e clang_disposeCXPlatformAvailability --e clang_getCursorPlatformAvailability" />
-  </Target>
-
-  <Target Name="GenerateLLVMSharp">
-      <Exec Command="dotnet run --m LLVM --p LLVM --namespace LLVMSharp --output &quot;$(OutDir)/LLVMSharp/Generated/&quot; --config multi-file --libraryPath &quot;$(LibLLVMName)&quot; --include &quot;$(LLVMIncludePath)&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Analysis.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/BitReader.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/BitWriter.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Comdat.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Core.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/DataTypes.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/DebugInfo.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Disassembler.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/DisassemblerTypes.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Error.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/ErrorHandling.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/ExecutionEngine.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Initialization.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/IRReader.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Linker.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/LinkTimeOptimizer.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/lto.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Object.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/OptRemarks.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/OrcBindings.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Support.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Target.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/TargetMachine.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Types.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Transforms/AggressiveInstCombine.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Transforms/Coroutines.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Transforms/InstCombine.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Transforms/IPO.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Transforms/PassManagerBuilder.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Transforms/Scalar.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Transforms/Utils.h&quot; --file &quot;$(LLVMIncludePath)/llvm-c/Transforms/Vectorize.h&quot; --e LLVMDisasmInstruction --e LLVMGetBufferStart --e LLVMGetDiagInfoDescription --e LLVMGetDefaultTargetTriple --e LLVMCopyStringRepOfTargetData --e LLVMGetTargetMachineTriple --e LLVMGetTargetMachineCPU --e LLVMGetTargetMachineFeatureString --e LLVMPrintTypeToString --e LLVMCreateMessage --e LLVMDisposeMessage --e LLVMPrintModuleToString --e LLVMPrintValueToString --e LLVMOrcDisposeMangledSymbol --e LLVMTargetMachineEmitToFile --e LLVMInitializeCore --e LLVMAddInstructionCombiningPass" />
-  </Target>
 
 </Project>

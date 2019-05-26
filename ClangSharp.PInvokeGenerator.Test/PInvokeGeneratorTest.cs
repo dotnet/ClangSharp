@@ -4,47 +4,38 @@ using Xunit;
 
 namespace ClangSharp.Test
 {
-    public abstract class PInvokeGeneratorTest : IDisposable
+    public abstract class PInvokeGeneratorTest
     {
-        private TemporaryFile _inputFile = new TemporaryFile();
-        private TemporaryFile _outputFile = new TemporaryFile();
+        protected const string DefaultLibraryPath = "ClangSharpPInvokeGenerator";
+        protected const string DefaultNamespaceName = "ClangSharp.Test";
 
-        public TemporaryFile InputFile => _inputFile;
+        protected const CXTranslationUnit_Flags DefaultTranslationUnitFlags = CXTranslationUnit_Flags.CXTranslationUnit_SkipFunctionBodies          // Don't traverse function bodies
+                                                                            | CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes      // Include attributed types in CXType
+                                                                            | CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;    // Implicit attributes should be visited
 
-        public TemporaryFile OutputFile => _outputFile;
-
-        public void Dispose()
+        protected static readonly string[] DefaultClangCommandLineArgs = new string[]
         {
-            if (_inputFile != null)
-            {
-                _inputFile.Dispose();
-                _inputFile = null;
-            }
-
-            if (_outputFile != null)
-            {
-                _outputFile.Dispose();
-                _outputFile = null;
-            }
-        }
+            "-xc++",                                // The input files are C++
+            "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
+        };
 
         protected async Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents)
         {
-            await InputFile.WriteAllText(inputContents);
-            await GenerateBindings();
+            using (var inputFile = new TemporaryFile())
+            using (var outputFile = new TemporaryFile())
+            {
+                await inputFile.WriteAllText(inputContents);
+                var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, outputFile.Path);
 
-            var actualOutputContents = await OutputFile.ReadAllText();
-            Assert.Equal(expectedOutputContents, actualOutputContents);
-        }
+                using (var pinvokeGenerator = new PInvokeGenerator(config))
+                using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, inputFile.Path, DefaultClangCommandLineArgs, Array.Empty<CXUnsavedFile>(), DefaultTranslationUnitFlags))
+                {
+                    pinvokeGenerator.GenerateBindings(translationUnitHandle);
+                }
 
-        protected async Task GenerateBindings()
-        {
-            await Program.Main(
-                "-f", InputFile.Path,
-                "-l", "ClangSharpPInvokeGenerator.Test",
-                "-n", "ClangSharpPInvokeGenerator.Test",
-                "-o", OutputFile.Path
-            );
+                var actualOutputContents = await outputFile.ReadAllText();
+                Assert.Equal(expectedOutputContents, actualOutputContents);
+            }
         }
     }
 }

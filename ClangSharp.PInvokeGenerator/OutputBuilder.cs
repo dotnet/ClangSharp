@@ -10,10 +10,10 @@ namespace ClangSharp
         private string _outputFile;
         private StringBuilder _output;
         private SortedSet<string> _usings;
-        private ConfigurationOptions _config;
+        private PInvokeGeneratorConfiguration _config;
         private int _indentation;
 
-        public OutputBuilder(string outputFile, ConfigurationOptions config, bool isMethodClass)
+        public OutputBuilder(string outputFile, PInvokeGeneratorConfiguration config, bool isMethodClass)
         {
             _outputFile = outputFile;
             _output = new StringBuilder();

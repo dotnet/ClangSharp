@@ -3,42 +3,74 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace ClangSharp
 {
-    internal sealed class CursorWriter : IDisposable
+    public class PInvokeGenerator : IDisposable
     {
+        private readonly CXIndex _index;
         private readonly Dictionary<string, OutputBuilder> _outputBuilders;
         private readonly HashSet<Cursor> _visitedCursors;
-        private readonly ConfigurationOptions _config;
+        private readonly PInvokeGeneratorConfiguration _config;
 
         private OutputBuilder _outputBuilder;
         private int _outputBuilderUsers;
+        private bool _disposed;
 
-        public CursorWriter(ConfigurationOptions config)
+        public PInvokeGenerator(PInvokeGeneratorConfiguration config)
         {
+            _index = CXIndex.Create();
             _outputBuilders = new Dictionary<string, OutputBuilder>();
             _visitedCursors = new HashSet<Cursor>();
             _config = config;
         }
 
-        public void Dispose()
+        ~PInvokeGenerator()
         {
-            Debug.Assert(_outputBuilder is null);
-
-            foreach (var outputBuilder in _outputBuilders)
-            {
-                Debug.Assert(outputBuilder.Key.Equals(outputBuilder.Value.OutputFile));
-                outputBuilder.Value.Dispose();
-            }
-
-            _outputBuilders.Clear();
-            _visitedCursors.Clear();
+            Dispose(isDisposing: false);
         }
 
-        public void Visit(TranslationUnit translationUnit)
+        public CXIndex IndexHandle => _index;
+
+        public void Dispose()
+        {
+            Dispose(isDisposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void GenerateBindings(CXTranslationUnit translationUnitHandle)
         {
             Debug.Assert(_outputBuilder is null);
+
+            if (translationUnitHandle.NumDiagnostics != 0)
+            {
+                var errorDiagnostics = new StringBuilder();
+                errorDiagnostics.AppendLine($"The provided {nameof(CXTranslationUnit)} has the following diagnostics which prevent its use:");
+                var invalidTranslationUnitHandle = false;
+
+                for (uint i = 0; i < translationUnitHandle.NumDiagnostics; ++i)
+                {
+                    using (var diagnostic = translationUnitHandle.GetDiagnostic(i))
+                    {
+                        if ((diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Error) || (diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Fatal))
+                        {
+                            invalidTranslationUnitHandle = true;
+                            errorDiagnostics.Append(' ', 4);
+                            errorDiagnostics.AppendLine(diagnostic.Format(CXDiagnosticDisplayOptions.CXDiagnostic_DisplayOption).ToString());
+                        }
+                    }
+                }
+
+                if (invalidTranslationUnitHandle)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(translationUnitHandle), errorDiagnostics.ToString());
+                }
+            }
+
+            var translationUnit = new TranslationUnit(translationUnitHandle.Cursor);
+            translationUnit.Visit(clientData: default);
+
             _visitedCursors.Add(translationUnit);
 
             foreach (var child in translationUnit.Children)
@@ -50,6 +82,31 @@ namespace ClangSharp
 
                 Visit(child, translationUnit);
             }
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            Debug.Assert(_outputBuilder is null);
+
+            if (_disposed)
+            {
+                return;
+            }
+            _disposed = true;
+
+            if (isDisposing)
+            {
+                foreach (var outputBuilder in _outputBuilders)
+                {
+                    Debug.Assert(outputBuilder.Key.Equals(outputBuilder.Value.OutputFile));
+                    outputBuilder.Value.Dispose();
+                }
+
+                _outputBuilders.Clear();
+                _visitedCursors.Clear();
+            }
+
+            _index.Dispose();
         }
 
         private string EscapeName(string name)
