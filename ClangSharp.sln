@@ -6,9 +6,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp", "ClangSharp\Cl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.Test", "ClangSharp.Test\ClangSharp.Test.csproj", "{EAE33CD4-CC2B-4A2E-B3CE-6EBF6C87DCF2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharpPInvokeGenerator", "ClangSharpPInvokeGenerator\ClangSharpPInvokeGenerator.csproj", "{4E3FE01B-89FA-4E5B-856C-34A5E29110A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.PInvokeGenerator", "ClangSharp.PInvokeGenerator\ClangSharp.PInvokeGenerator.csproj", "{4E3FE01B-89FA-4E5B-856C-34A5E29110A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharpPInvokeGenerator.Test", "ClangSharpPInvokeGenerator.Test\ClangSharpPInvokeGenerator.Test.csproj", "{0F4159AF-BC55-4C98-A248-67B9B4D229F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.PInvokeGenerator.Test", "ClangSharp.PInvokeGenerator.Test\ClangSharp.PInvokeGenerator.Test.csproj", "{0F4159AF-BC55-4C98-A248-67B9B4D229F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
