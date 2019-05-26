@@ -9,9 +9,12 @@ namespace ClangSharp
 {
     public sealed class PInvokeGenerator : IDisposable
     {
+        private const int DefaultStreamWriterBufferSize = 1024;
+        private static readonly Encoding DefaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
         private readonly CXIndex _index;
         private readonly OutputBuilderFactory _outputBuilderFactory;
-        private readonly Func<string, Stream> _outputStreamFactory;
+        private readonly Func<string, (Stream stream, bool leaveOpen)> _outputStreamFactory;
         private readonly HashSet<Cursor> _visitedCursors;
         private readonly List<Diagnostic> _diagnostics;
         private readonly PInvokeGeneratorConfiguration _config;
@@ -20,7 +23,7 @@ namespace ClangSharp
         private int _outputBuilderUsers;
         private bool _disposed;
 
-        public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null)
+        public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, (Stream stream, bool leaveOpen)> outputStreamFactory = null)
         {
             if (config is null)
             {
@@ -29,7 +32,11 @@ namespace ClangSharp
 
             _index = CXIndex.Create();
             _outputBuilderFactory = new OutputBuilderFactory();
-            _outputStreamFactory = outputStreamFactory ?? ((path) => new FileStream(path, FileMode.OpenOrCreate));
+            _outputStreamFactory = outputStreamFactory ?? ((path) => {
+                var directoryPath = Path.GetDirectoryName(path);
+                Directory.CreateDirectory(directoryPath);
+                return (new FileStream(path, FileMode.Create), leaveOpen: false);
+            });
             _visitedCursors = new HashSet<Cursor>();
             _diagnostics = new List<Diagnostic>();
             _config = config;
@@ -62,10 +69,8 @@ namespace ClangSharp
                     outputPath = Path.ChangeExtension(outputPath, $"{_config.MethodClassName}{Path.GetExtension(outputPath)}");
                 }
 
-                using (var stream = _outputStreamFactory(outputPath))
-                {
-                    CloseOutputBuilder(stream, outputBuilder, isMethodClass);
-                }
+                var (stream, leaveStreamOpen) = _outputStreamFactory(outputPath);
+                CloseOutputBuilder(stream, outputBuilder, isMethodClass, leaveStreamOpen);
             }
 
             _diagnostics.Clear();
@@ -128,10 +133,14 @@ namespace ClangSharp
         {
             var diagnostic = new Diagnostic(level, message, cursor.Location);
             _diagnostics.Add(diagnostic);
-            Debugger.Break();
+
+            if (level != DiagnosticLevel.Info)
+            {
+                Debugger.Break();
+            }
         }
 
-        private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass)
+        private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen)
         {
             if (stream is null)
             {
@@ -143,7 +152,7 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(outputBuilder));
             }
 
-            using (var sw = new StreamWriter(stream))
+            using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
             {
                 if (outputBuilder.UsingDirectives.Any())
                 {
@@ -164,7 +173,6 @@ namespace ClangSharp
                 sw.Write(' ');
                 sw.WriteLine(Config.Namespace);
                 sw.WriteLine('{');
-                sw.Write(indentationString);
 
                 if (isMethodClass)
                 {
@@ -197,8 +205,15 @@ namespace ClangSharp
 
                 foreach (var line in outputBuilder.Contents)
                 {
-                    sw.Write(indentationString);
-                    sw.WriteLine(line);
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        sw.WriteLine();
+                    }
+                    else
+                    {
+                        sw.Write(indentationString);
+                        sw.WriteLine(line);
+                    }
                 }
 
                 if (isMethodClass)
@@ -376,7 +391,7 @@ namespace ClangSharp
                             decl.Location.GetFileLocation(out var file, out var _, out var _, out var offset);
                             var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
                             name = $"__Anonymous{decl.Type.KindSpelling}_{fileName}_{offset}";
-                            AddDiagnostic(DiagnosticLevel.Warning, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.'", decl);
+                            AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.'", decl);
                         }
                         else
                         {

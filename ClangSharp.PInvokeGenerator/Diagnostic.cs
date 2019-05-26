@@ -6,7 +6,7 @@ namespace ClangSharp
     {
         private readonly DiagnosticLevel _level;
         private readonly string _message;
-        private readonly CXSourceLocation _location;
+        private readonly string _location;
 
         public Diagnostic(DiagnosticLevel level, string message, CXSourceLocation location)
         {
@@ -17,18 +17,18 @@ namespace ClangSharp
 
             _level = level;
             _message = message;
-            _location = location;
+            _location = location.ToString();
         }
 
         public DiagnosticLevel Level => _level;
 
-        public CXSourceLocation Location => _location;
+        public string Location => _location;
 
         public string Message => _message;
 
         public override string ToString()
         {
-            return $"{_level} ({_location.ToString()}): {_message}";
+            return $"{_level} ({_location}): {_message}";
         }
     }
 }

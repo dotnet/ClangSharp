@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -21,19 +22,23 @@ namespace ClangSharp.Test
 
         protected async Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents)
         {
+            // Ideally we would also have the input file be a MemoryStream. Unfortunately,
+            // Clang currently requires that all files exist on disk before Parse is called.
+
             using (var inputFile = new TemporaryFile())
-            using (var outputFile = new TemporaryFile())
+            using (var outputStream = new MemoryStream())
             {
                 await inputFile.WriteAllText(inputContents);
-                var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, outputFile.Path);
+                var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName());
 
-                using (var pinvokeGenerator = new PInvokeGenerator(config))
+                using (var pinvokeGenerator = new PInvokeGenerator(config, ((path) => (outputStream, leaveOpen: true))))
                 using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, inputFile.Path, DefaultClangCommandLineArgs, Array.Empty<CXUnsavedFile>(), DefaultTranslationUnitFlags))
                 {
                     pinvokeGenerator.GenerateBindings(translationUnitHandle);
                 }
 
-                var actualOutputContents = await outputFile.ReadAllText();
+                outputStream.Position = 0;
+                var actualOutputContents = await new StreamReader(outputStream).ReadToEndAsync();
                 Assert.Equal(expectedOutputContents, actualOutputContents);
             }
         }

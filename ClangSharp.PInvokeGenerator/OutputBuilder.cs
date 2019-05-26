@@ -26,7 +26,7 @@ namespace ClangSharp
             _indentationString = indentationString;
         }
 
-        public IEnumerable<string> Contents => _contents.Append(_currentLine.ToString());
+        public IEnumerable<string> Contents => _contents;
 
         public string IndentationString => _indentationString;
 

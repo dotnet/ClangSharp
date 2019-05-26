@@ -155,6 +155,7 @@ namespace ClangSharp
 
                     using (translationUnitHandle)
                     {
+                        Console.WriteLine($"Processing '{file}'");
                         pinvokeGenerator.GenerateBindings(translationUnitHandle);
                     }
                 }
