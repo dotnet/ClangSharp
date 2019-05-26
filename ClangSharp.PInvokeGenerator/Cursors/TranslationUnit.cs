@@ -6,109 +6,34 @@ namespace ClangSharp
 {
     internal sealed class TranslationUnit : Cursor
     {
-        private readonly Dictionary<CXCursor, Cursor> _visitedCursors = new Dictionary<CXCursor, Cursor>();
-        private readonly Dictionary<CXType, Type> _visitedTypes = new Dictionary<CXType, Type>();
+        private readonly Dictionary<CXCursor, Cursor> _visitedCursors;
+        private readonly Dictionary<CXType, Type> _visitedTypes;
+        private readonly List<Decl> _declarations;
 
         public TranslationUnit(CXCursor handle) : base(handle, parent: null)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_TranslationUnit);
+
+            _visitedCursors = new Dictionary<CXCursor, Cursor>();
+            _visitedTypes = new Dictionary<CXType, Type>();
+            _declarations = new List<Decl>();
         }
+
+        public IReadOnlyList<Decl> Declarations => _declarations;
 
         protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
         {
             ValidateVisit(ref handle);
 
-            switch (childHandle.Kind)
+            if (childHandle.IsDeclaration)
             {
-                case CXCursorKind.CXCursor_UnexposedDecl:
-                {
-                    return GetOrAddChild<UnexposedDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_StructDecl:
-                {
-                    return GetOrAddChild<StructDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_UnionDecl:
-                {
-                    return GetOrAddChild<UnionDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_ClassDecl:
-                {
-                    return GetOrAddChild<ClassDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_EnumDecl:
-                {
-                    return GetOrAddChild<EnumDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_FunctionDecl:
-                {
-                    return GetOrAddChild<FunctionDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_VarDecl:
-                {
-                    return GetOrAddChild<VarDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_TypedefDecl:
-                {
-                    return GetOrAddChild<TypedefDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_CXXMethod:
-                {
-                    return GetOrAddChild<CXXMethod>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_Namespace:
-                {
-                    return GetOrAddChild<Namespace>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_Constructor:
-                {
-                    return GetOrAddChild<Constructor>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_Destructor:
-                {
-                    return GetOrAddChild<Destructor>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_ConversionFunction:
-                {
-                    return GetOrAddChild<ConversionFunction>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_FunctionTemplate:
-                {
-                    return GetOrAddChild<FunctionTemplate>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_ClassTemplate:
-                {
-                    return GetOrAddChild<ClassTemplate>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_UsingDeclaration:
-                {
-                    return GetOrAddChild<UsingDeclaration>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_TypeAliasDecl:
-                {
-                    return GetOrAddChild<TypeAliasDecl>(childHandle).Visit(clientData);
-                }
-
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
+                var decl = GetOrAddChild<Decl>(childHandle);
+                _declarations.Add(decl);
+                return decl.Visit(clientData);
+            }
+            else
+            {
+                return base.VisitChildren(childHandle, handle, clientData);
             }
         }
 
