@@ -3,6 +3,19 @@
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>ClangSharp are strongly-typed safe Clang bindings written in C# for .NET and Mono, tested on Linux and Windows. ClangSharp is self-hosted and ClangSharp auto-generates itself parsing LLVM-C header files.</Description>
+    <Version>3.9.0</Version>
+    <PackageLicenseUrl>https://github.com/microsoft/ClangSharp/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/microsoft/ClangSharp.git</RepositoryUrl>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>http://www.clangsharp.org/</PackageProjectUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+      <Content Include="ClangSharp.targets" Pack="true" PackagePath="build"/>
+      <Content Include="x64\libclang.dll" Pack="true" PackagePath="content\x64"/>
+      <Content Include="x86\libclang.dll" Pack="true" PackagePath="content\x86"/>
+  </ItemGroup>
 
 </Project>
