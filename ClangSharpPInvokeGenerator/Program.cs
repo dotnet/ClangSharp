@@ -113,6 +113,8 @@ namespace ClangSharp
 
             var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedFunctions, methodClassName, methodPrefixToStrip);
 
+            int exitCode = 0;
+
             using (var pinvokeGenerator = new PInvokeGenerator(config))
             {
                 foreach (var file in files)
@@ -146,6 +148,8 @@ namespace ClangSharp
                     {
                         Console.WriteLine($"Skipping '{file}' due to one or more errors listed above.");
                         Console.WriteLine();
+
+                        exitCode = -1;
                         continue;
                     }
 
@@ -154,9 +158,39 @@ namespace ClangSharp
                         pinvokeGenerator.GenerateBindings(translationUnitHandle);
                     }
                 }
+
+                if (pinvokeGenerator.Diagnostics.Count != 0)
+                {
+                    Console.WriteLine("Diagnostics for binding generation:");
+
+                    foreach (var diagnostic in pinvokeGenerator.Diagnostics)
+                    {
+                        Console.Write("    ");
+                        Console.WriteLine(diagnostic);
+
+                        if (diagnostic.Level == DiagnosticLevel.Warning)
+                        {
+                            if (exitCode >= 0)
+                            {
+                                exitCode++;
+                            }
+                        }
+                        else if (diagnostic.Level == DiagnosticLevel.Error)
+                        {
+                            if (exitCode >= 0)
+                            {
+                                exitCode = -1;
+                            }
+                            else
+                            {
+                                exitCode--;
+                            }
+                        }
+                    }
+                }
             }
 
-            return 0;
+            return exitCode;
         }
 
         private static void AddAdditionalOption(RootCommand rootCommand)

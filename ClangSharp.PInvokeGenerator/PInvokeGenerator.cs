@@ -13,6 +13,7 @@ namespace ClangSharp
         private readonly OutputBuilderFactory _outputBuilderFactory;
         private readonly Func<string, Stream> _outputStreamFactory;
         private readonly HashSet<Cursor> _visitedCursors;
+        private readonly List<Diagnostic> _diagnostics;
         private readonly PInvokeGeneratorConfiguration _config;
 
         private OutputBuilder _outputBuilder;
@@ -30,6 +31,7 @@ namespace ClangSharp
             _outputBuilderFactory = new OutputBuilderFactory();
             _outputStreamFactory = outputStreamFactory ?? ((path) => new FileStream(path, FileMode.OpenOrCreate));
             _visitedCursors = new HashSet<Cursor>();
+            _diagnostics = new List<Diagnostic>();
             _config = config;
         }
 
@@ -39,6 +41,8 @@ namespace ClangSharp
         }
 
         public PInvokeGeneratorConfiguration Config => _config;
+
+        public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
 
         public CXIndex IndexHandle => _index;
 
@@ -64,6 +68,7 @@ namespace ClangSharp
                 }
             }
 
+            _diagnostics.Clear();
             _outputBuilderFactory.Clear();
             _visitedCursors.Clear();
         }
@@ -117,6 +122,13 @@ namespace ClangSharp
 
                 Visit(child, translationUnit);
             }
+        }
+
+        private void AddDiagnostic(DiagnosticLevel level, string message, Cursor cursor)
+        {
+            var diagnostic = new Diagnostic(level, message, cursor.Location);
+            _diagnostics.Add(diagnostic);
+            Debugger.Break();
         }
 
         private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass)
@@ -318,11 +330,31 @@ namespace ClangSharp
                     return "Cdecl";
                 }
 
+                case CXCallingConv.CXCallingConv_X86StdCall:
+                {
+                    return "StdCall";
+                }
+
+                case CXCallingConv.CXCallingConv_X86FastCall:
+                {
+                    return "FastCall";
+                }
+
+                case CXCallingConv.CXCallingConv_X86ThisCall:
+                {
+                    return "ThisCall";
+                }
+
+                case CXCallingConv.CXCallingConv_Win64:
+                {
+                    return "Winapi";
+                }
+
                 default:
                 {
-                    Debug.WriteLine($"Unhandled calling convention: {callingConvention} in {cursor.KindSpelling}.");
-                    Debugger.Break();
-                    return string.Empty;
+                    var name = "WinApi";
+                    AddDiagnostic(DiagnosticLevel.Info, $"Unsupported calling convention: '{callingConvention}'. Falling back to '{name}'.", cursor);
+                    return name;
                 }
             }
         }
@@ -344,6 +376,7 @@ namespace ClangSharp
                             decl.Location.GetFileLocation(out var file, out var _, out var _, out var offset);
                             var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
                             name = $"__Anonymous{decl.Type.KindSpelling}_{fileName}_{offset}";
+                            AddDiagnostic(DiagnosticLevel.Warning, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.'", decl);
                         }
                         else
                         {
@@ -455,8 +488,9 @@ namespace ClangSharp
 
                 default:
                 {
-                    Unhandled(decl);
-                    return string.Empty;
+                    var name = decl.Spelling;
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported declaration: '{decl.KindSpelling}'. Falling back to '{name}'.", decl);
+                    return name;
                 }
             }
         }
@@ -506,8 +540,9 @@ namespace ClangSharp
 
                 default:
                 {
-                    Unhandled(typedefDecl, underlyingType);
-                    return string.Empty;
+                    var name = typedefDecl.Spelling;
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported underlying type: '{underlyingType.KindSpelling}'. Falling back to '{name}'.", typedefDecl);
+                    return name;
                 }
             }
         }
@@ -552,7 +587,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    Unhandled(decl, type);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back to no marshalling.", decl);
                     return string.Empty;
                 }
             }
@@ -600,7 +635,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    Unhandled(decl, pointeeType);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Falling back to no marshalling.", decl);
                     return string.Empty;
                 }
             }
@@ -649,7 +684,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    Unhandled(decl, type);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back to no parameter modifier.", decl);
                     return string.Empty;
                 }
             }
@@ -694,7 +729,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    Unhandled(decl, pointeeType);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Falling back to no parameter modifier.", decl);
                     return string.Empty;
                 }
             }
@@ -812,8 +847,9 @@ namespace ClangSharp
 
                 default:
                 {
-                    Unhandled(decl, type);
-                    return string.Empty;
+                    var name = type.Spelling;
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back '{name}'.", decl);
+                    return name;
                 }
             }
         }
@@ -904,7 +940,8 @@ namespace ClangSharp
 
                         default:
                         {
-                            Unhandled(decl, pointeeType);
+                            var name = "IntPtr";
+                            AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported declaration: '{decl.KindSpelling}'. Falling back '{name}'.", decl);
                             return string.Empty;
                         }
                     }
@@ -939,7 +976,8 @@ namespace ClangSharp
 
                         default:
                         {
-                            Unhandled(decl, pointeeType);
+                            var name = "IntPtr";
+                            AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported declaration: '{decl.KindSpelling}'. Falling back '{name}'.", decl);
                             return string.Empty;
                         }
                     }
@@ -957,7 +995,8 @@ namespace ClangSharp
 
                 default:
                 {
-                    Unhandled(decl, pointeeType);
+                    var name = "IntPtr";
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Falling back '{name}'.", decl);
                     return string.Empty;
                 }
             }
@@ -992,18 +1031,6 @@ namespace ClangSharp
                 _outputBuilder = null;
             }
             _outputBuilderUsers--;
-        }
-
-        private void Unhandled(Cursor cursor)
-        {
-            Debug.WriteLine($"Unhandled cursor kind: {cursor.KindSpelling}");
-            Debugger.Break();
-        }
-
-        private void Unhandled(Cursor cursor, Type type)
-        {
-            Debug.WriteLine($"Unhandled type kind: {type.KindSpelling} in {cursor.KindSpelling}.");
-            Debugger.Break();
         }
 
         private void Visit(Cursor cursor, Cursor parent)
@@ -1120,15 +1147,9 @@ namespace ClangSharp
 
                 default:
                 {
-                    Debug.WriteLine($"Unhandled cursor kind: {cursor.KindSpelling} in {parent.KindSpelling}.");
-                    Debugger.Break();
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported cursor: '{cursor.KindSpelling}'. Generated bindings may be incomplete.", cursor);
                     break;
                 }
-            }
-
-            foreach (var child in cursor.Children)
-            {
-                Debug.Assert(_visitedCursors.Contains(child) || !child.IsFromMainFile);
             }
         }
 
@@ -1406,8 +1427,7 @@ namespace ClangSharp
             }
             else
             {
-                Debug.WriteLine($"Unhandled parent kind: {parent.KindSpelling} in {parmDecl.KindSpelling}.");
-                Debugger.Break();
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported '{parmDecl.KindSpelling}' parent: '{parent.KindSpelling}'. Generated bindings may be incomplete.", parmDecl);
             }
         }
 
@@ -1523,18 +1543,12 @@ namespace ClangSharp
 
                 default:
                 {
-                    Unhandled(typedefDecl, underlyingType);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
                     break;
                 }
             }
 
             VisitChildren(typedefDecl);
-        }
-
-        private void VisitTypeRef(TypeRef typeRef, Cursor parent)
-        {
-            Debug.Assert(typeRef.Children.Count == 0);
-            Debug.Assert((parent is FieldDecl) || (parent is FunctionDecl) || (parent is ParmDecl) || (parent is TypedefDecl));
         }
 
         private void VisitTypedefDeclForPointer(TypedefDecl typedefDecl, Cursor parent, Type pointeeType)
@@ -1616,10 +1630,16 @@ namespace ClangSharp
 
                 default:
                 {
-                    Unhandled(typedefDecl, pointeeType);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
                     break;
                 }
             }
+        }
+
+        private void VisitTypeRef(TypeRef typeRef, Cursor parent)
+        {
+            Debug.Assert(typeRef.Children.Count == 0);
+            Debug.Assert((parent is FieldDecl) || (parent is FunctionDecl) || (parent is ParmDecl) || (parent is TypedefDecl));
         }
 
         private void VisitUnaryOperator(UnaryOperator unaryOperator, Cursor parent)
