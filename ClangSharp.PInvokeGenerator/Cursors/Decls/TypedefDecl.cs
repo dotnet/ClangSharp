@@ -24,81 +24,21 @@ namespace ClangSharp
         {
             ValidateVisit(ref handle);
 
-            switch (childHandle.Kind)
+            if (childHandle.IsDeclaration)
             {
-                case CXCursorKind.CXCursor_StructDecl:
+                switch (childHandle.Kind)
                 {
-                    return GetOrAddChild<StructDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_UnionDecl:
-                {
-                    return GetOrAddChild<UnionDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_EnumDecl:
-                {
-                    return GetOrAddChild<EnumDecl>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_ParmDecl:
-                {
-                    var parmDecl = GetOrAddChild<ParmDecl>(childHandle);
-                    parmDecl.Index = _parmDecls.Count;
-                    _parmDecls.Add(parmDecl);
-                    return parmDecl.Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_TypeRef:
-                {
-                    return GetOrAddChild<TypeRef>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_TemplateRef:
-                {
-                    return GetOrAddChild<TemplateRef>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_NamespaceRef:
-                {
-                    return GetOrAddChild<NamespaceRef>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_IntegerLiteral:
-                {
-                    return GetOrAddChild<IntegerLiteral>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_UnaryOperator:
-                {
-                    return GetOrAddChild<UnaryOperator>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_BinaryOperator:
-                {
-                    return GetOrAddChild<BinaryOperator>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_ConditionalOperator:
-                {
-                    return GetOrAddChild<ConditionalOperator>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_CXXNullPtrLiteralExpr:
-                {
-                    return GetOrAddChild<CXXNullPtrLiteralExpr>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_UnaryExpr:
-                {
-                    return GetOrAddChild<UnaryExpr>(childHandle).Visit(clientData);
-                }
-
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
+                    case CXCursorKind.CXCursor_ParmDecl:
+                    {
+                        var parmDecl = GetOrAddChild<ParmDecl>(childHandle);
+                        parmDecl.Index = _parmDecls.Count;
+                        _parmDecls.Add(parmDecl);
+                        return parmDecl.Visit(clientData);
+                    }
                 }
             }
+
+            return base.VisitChildren(childHandle, handle, clientData);
         }
     }
 }

@@ -74,10 +74,8 @@ namespace ClangSharp
 
                 return expr.Visit(clientData);
             }
-            else
-            {
-                return base.VisitChildren(childHandle, handle, clientData);
-            }
+
+            return base.VisitChildren(childHandle, handle, clientData);
         }
 
         private int GetOperatorIndex(CXToken[] tokens)

@@ -31,10 +31,8 @@ namespace ClangSharp
                 _declarations.Add(decl);
                 return decl.Visit(clientData);
             }
-            else
-            {
-                return base.VisitChildren(childHandle, handle, clientData);
-            }
+
+            return base.VisitChildren(childHandle, handle, clientData);
         }
 
         internal void AddVisitedCursor(Cursor cursor)

@@ -33,79 +33,14 @@ namespace ClangSharp
         {
             ValidateVisit(ref handle);
 
-            Expr expr;
-
-            switch (childHandle.Kind)
+            if (childHandle.IsExpression)
             {
-                case CXCursorKind.CXCursor_UnexposedExpr:
-                {
-                    expr = GetOrAddChild<UnexposedExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_DeclRefExpr:
-                {
-                    expr = GetOrAddChild<DeclRefExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_IntegerLiteral:
-                {
-                    expr = GetOrAddChild<IntegerLiteral>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CharacterLiteral:
-                {
-                    expr = GetOrAddChild<CharacterLiteral>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ParenExpr:
-                {
-                    expr = GetOrAddChild<ParenExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_UnaryOperator:
-                {
-                    expr = GetOrAddChild<UnaryOperator>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_BinaryOperator:
-                {
-                    expr = GetOrAddChild<BinaryOperator>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ConditionalOperator:
-                {
-                    expr = GetOrAddChild<ConditionalOperator>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CStyleCastExpr:
-                {
-                    expr = GetOrAddChild<CStyleCastExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXBoolLiteralExpr:
-                {
-                    expr = GetOrAddChild<CXXBoolLiteralExpr>(childHandle);
-                    break;
-                }
-
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
+                var expr = GetOrAddChild<UnexposedExpr>(childHandle);
+                Expr = expr;
+                return expr.Visit(clientData);
             }
 
-            Debug.Assert(expr != null);
-            Expr = expr;
-            return expr.Visit(clientData);
+            return base.VisitChildren(childHandle, handle, clientData);
         }
     }
 }

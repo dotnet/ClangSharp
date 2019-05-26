@@ -24,20 +24,14 @@ namespace ClangSharp
         {
             ValidateVisit(ref handle);
 
-            switch (childHandle.Kind)
+            if (childHandle.Kind == CXCursorKind.CXCursor_EnumConstantDecl)
             {
-                case CXCursorKind.CXCursor_EnumConstantDecl:
-                {
-                    var enumConstantDecl = GetOrAddChild<EnumConstantDecl>(childHandle);
-                    _enumConstantDecls.Add(enumConstantDecl);
-                    return enumConstantDecl.Visit(clientData);
-                }
-
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
+                var enumConstantDecl = GetOrAddChild<EnumConstantDecl>(childHandle);
+                _enumConstantDecls.Add(enumConstantDecl);
+                return enumConstantDecl.Visit(clientData);
             }
+
+            return base.VisitChildren(childHandle, handle, clientData);
         }
     }
 }

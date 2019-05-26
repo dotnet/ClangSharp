@@ -1370,8 +1370,6 @@ namespace ClangSharp
 
         private void VisitFunctionDecl(FunctionDecl functionDecl, Cursor parent)
         {
-            Debug.Assert(functionDecl.DLLExport is null);
-
             var type = functionDecl.Type;
             var name = GetCursorName(functionDecl);
 
@@ -1393,11 +1391,6 @@ namespace ClangSharp
                 _outputBuilder.Write("\", CallingConvention = CallingConvention.");
                 _outputBuilder.Write(GetCallingConventionName(functionDecl, type.CallingConv));
                 _outputBuilder.WriteLine(")]");
-
-                if (functionDecl.DLLImport != null)
-                {
-                    _visitedCursors.Add(functionDecl.DLLImport);
-                }
 
                 var marshalAttribute = GetMarshalAttribute(functionDecl, type.ResultType);
 
