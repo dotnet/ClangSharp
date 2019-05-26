@@ -1,118 +1,81 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace ClangSharp
 {
-    internal sealed class OutputBuilder : IDisposable
+    public sealed class OutputBuilder
     {
-        private string _outputFile;
-        private StringBuilder _output;
-        private SortedSet<string> _usings;
-        private PInvokeGeneratorConfiguration _config;
-        private int _indentation;
+        public const string DefaultIndentationString = "    ";
 
-        public OutputBuilder(string outputFile, PInvokeGeneratorConfiguration config, bool isMethodClass)
+        private readonly string _name;
+        private readonly List<string> _contents;
+        private readonly StringBuilder _currentLine;
+        private readonly SortedSet<string> _usingDirectives;
+        private readonly string _indentationString;
+
+        private int _indentationLevel;
+
+        public OutputBuilder(string name, string indentationString = DefaultIndentationString)
         {
-            _outputFile = outputFile;
-            _output = new StringBuilder();
-            _usings = new SortedSet<string>();
-            _config = config;
-            _indentation = 0;
-
-            WriteIndented("namespace");
-            Write(' ');
-            WriteLine(_config.Namespace);
-            WriteBlockStart();
-
-            if (isMethodClass)
-            {
-                WriteLine();
-                WriteIndented("public static");
-                Write(' ');
-
-                if (_config.GenerateUnsafeCode)
-                {
-                    Write("unsafe");
-                    Write(' ');
-                }
-
-                Write("partial class");
-                Write(' ');
-                WriteLine(_config.MethodClassName);
-                WriteBlockStart();
-                WriteIndented("private const string libraryPath = ");
-                Write('"');
-                Write(_config.LibraryPath);
-                Write('"');
-                WriteLine(';');
-                WriteLine();
-            }
+            _name = name;
+            _contents = new List<string>();
+            _currentLine = new StringBuilder();
+            _usingDirectives = new SortedSet<string>();
+            _indentationString = indentationString;
         }
 
-        public string OutputFile => _outputFile;
+        public IEnumerable<string> Contents => _contents.Append(_currentLine.ToString());
 
-        public void AddUsing(string @namespace)
+        public string IndentationString => _indentationString;
+
+        public string Name => _name;
+
+        public IEnumerable<string> UsingDirectives => _usingDirectives;
+
+        public void AddUsingDirective(string namespaceName)
         {
-            _usings.Add(@namespace);
+            _usingDirectives.Add(namespaceName);
         }
 
-        public void Dispose()
+        public void DecreaseIndentation()
         {
-            while (_indentation != 0)
+            if (_indentationLevel == 0)
             {
-                WriteBlockEnd();
+                throw new InvalidOperationException();
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(_outputFile));
+            _indentationLevel--;
+        }
 
-            using (var sw = new StreamWriter(_outputFile))
-            {
-                if (_usings.Count != 0)
-                {
-                    foreach (var @using in _usings)
-                    {
-                        sw.Write("using");
-                        sw.Write(' ');
-                        sw.Write(@using);
-                        sw.WriteLine(';');
-                    }
-
-                    sw.WriteLine();
-                }
-
-                sw.Write(_output);
-            }
-
-            _outputFile = null;
-            _output = null;
-            _indentation = 0;
-            _config = null;
+        public void IncreaseIndentation()
+        {
+            _indentationLevel++;
         }
 
         public void WriteBlockStart()
         {
             WriteIndentedLine('{');
-            _indentation++;
+            IncreaseIndentation();
         }
 
         public void WriteBlockEnd()
         {
-            _indentation--;
+            DecreaseIndentation();
             WriteIndentedLine('}');
         }
 
         public void Write<T>(T value)
         {
-            _output.Append(value);
+            _currentLine.Append(value);
         }
 
         public void WriteIndentation()
         {
-            for (var i = 0; i < _indentation; i++)
+            for (var i = 0; i < _indentationLevel; i++)
             {
-                _output.Append("    ");
+                _currentLine.Append(_indentationString);
             }
         }
 
@@ -136,7 +99,8 @@ namespace ClangSharp
 
         public void WriteLine()
         {
-            _output.AppendLine();
+            _contents.Add(_currentLine.ToString());
+            _currentLine.Clear();
         }
     }
 }

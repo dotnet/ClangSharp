@@ -7,10 +7,11 @@ using System.Text;
 
 namespace ClangSharp
 {
-    public class PInvokeGenerator : IDisposable
+    public sealed class PInvokeGenerator : IDisposable
     {
         private readonly CXIndex _index;
-        private readonly Dictionary<string, OutputBuilder> _outputBuilders;
+        private readonly OutputBuilderFactory _outputBuilderFactory;
+        private readonly Func<string, Stream> _outputStreamFactory;
         private readonly HashSet<Cursor> _visitedCursors;
         private readonly PInvokeGeneratorConfiguration _config;
 
@@ -18,10 +19,16 @@ namespace ClangSharp
         private int _outputBuilderUsers;
         private bool _disposed;
 
-        public PInvokeGenerator(PInvokeGeneratorConfiguration config)
+        public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null)
         {
+            if (config is null)
+            {
+                throw new ArgumentNullException(nameof(config));
+            }
+
             _index = CXIndex.Create();
-            _outputBuilders = new Dictionary<string, OutputBuilder>();
+            _outputBuilderFactory = new OutputBuilderFactory();
+            _outputStreamFactory = outputStreamFactory ?? ((path) => new FileStream(path, FileMode.OpenOrCreate));
             _visitedCursors = new HashSet<Cursor>();
             _config = config;
         }
@@ -31,7 +38,35 @@ namespace ClangSharp
             Dispose(isDisposing: false);
         }
 
+        public PInvokeGeneratorConfiguration Config => _config;
+
         public CXIndex IndexHandle => _index;
+
+        public void Close()
+        {
+            foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
+            {
+                var outputPath = _config.OutputLocation;
+                var isMethodClass = _config.MethodClassName.Equals(outputBuilder.Name);
+
+                if (_config.GenerateMultipleFiles)
+                {
+                    outputPath = Path.Combine(outputPath, $"{outputBuilder.Name}.cs");
+                }
+                else if (isMethodClass)
+                {
+                    outputPath = Path.ChangeExtension(outputPath, $"{_config.MethodClassName}{Path.GetExtension(outputPath)}");
+                }
+
+                using (var stream = _outputStreamFactory(outputPath))
+                {
+                    CloseOutputBuilder(stream, outputBuilder, isMethodClass);
+                }
+            }
+
+            _outputBuilderFactory.Clear();
+            _visitedCursors.Clear();
+        }
 
         public void Dispose()
         {
@@ -84,7 +119,86 @@ namespace ClangSharp
             }
         }
 
-        protected virtual void Dispose(bool isDisposing)
+        private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass)
+        {
+            if (stream is null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            if (outputBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(outputBuilder));
+            }
+
+            using (var sw = new StreamWriter(stream))
+            {
+                if (outputBuilder.UsingDirectives.Any())
+                {
+                    foreach (var usingDirective in outputBuilder.UsingDirectives)
+                    {
+                        sw.Write("using");
+                        sw.Write(' ');
+                        sw.Write(usingDirective);
+                        sw.WriteLine(';');
+                    }
+
+                    sw.WriteLine();
+                }
+
+                var indentationString = outputBuilder.IndentationString;
+
+                sw.Write("namespace");
+                sw.Write(' ');
+                sw.WriteLine(Config.Namespace);
+                sw.WriteLine('{');
+                sw.Write(indentationString);
+
+                if (isMethodClass)
+                {
+                    sw.Write(indentationString);
+                    sw.Write("public static");
+                    sw.Write(' ');
+
+                    if (Config.GenerateUnsafeCode)
+                    {
+                        sw.Write("unsafe");
+                        sw.Write(' ');
+                    }
+
+                    sw.Write("partial class");
+                    sw.Write(' ');
+                    sw.WriteLine(Config.MethodClassName);
+                    sw.Write(indentationString);
+                    sw.WriteLine('{');
+
+                    indentationString += outputBuilder.IndentationString;
+
+                    sw.Write(indentationString);
+                    sw.Write("private const string libraryPath = ");
+                    sw.Write('"');
+                    sw.Write(Config.LibraryPath);
+                    sw.Write('"');
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                }
+
+                foreach (var line in outputBuilder.Contents)
+                {
+                    sw.Write(indentationString);
+                    sw.WriteLine(line);
+                }
+
+                if (isMethodClass)
+                {
+                    sw.Write(outputBuilder.IndentationString);
+                    sw.WriteLine('}');
+                }
+                sw.WriteLine('}');
+            }
+        }
+
+        private void Dispose(bool isDisposing)
         {
             Debug.Assert(_outputBuilder is null);
 
@@ -96,14 +210,7 @@ namespace ClangSharp
 
             if (isDisposing)
             {
-                foreach (var outputBuilder in _outputBuilders)
-                {
-                    Debug.Assert(outputBuilder.Key.Equals(outputBuilder.Value.OutputFile));
-                    outputBuilder.Value.Dispose();
-                }
-
-                _outputBuilders.Clear();
-                _visitedCursors.Clear();
+                Close();
             }
 
             _index.Dispose();
@@ -202,15 +309,6 @@ namespace ClangSharp
             }
         }
 
-        private void FinalizeOutputBuilder()
-        {
-            if (_outputBuilderUsers == 1)
-            {
-                _outputBuilder = null;
-            }
-            _outputBuilderUsers--;
-        }
-
         private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention)
         {
             switch (callingConvention)
@@ -305,14 +403,14 @@ namespace ClangSharp
 
                         case "intptr_t":
                         {
-                            _outputBuilder.AddUsing("System");
+                            _outputBuilder.AddUsingDirective("System");
                             return "IntPtr";
                         }
 
                         case "size_t":
                         case "SIZE_T":
                         {
-                            _outputBuilder.AddUsing("System");
+                            _outputBuilder.AddUsingDirective("System");
                             return "IntPtr";
                         }
 
@@ -343,7 +441,7 @@ namespace ClangSharp
 
                         case "uintptr_t":
                         {
-                            _outputBuilder.AddUsing("System");
+                            _outputBuilder.AddUsingDirective("System");
                             return "UIntPtr";
                         }
 
@@ -731,13 +829,13 @@ namespace ClangSharp
                         return "void*";
                     }
 
-                    _outputBuilder.AddUsing("System");
+                    _outputBuilder.AddUsingDirective("System");
                     return "IntPtr";
                 }
 
                 case CXTypeKind.CXType_FunctionProto:
                 {
-                    _outputBuilder.AddUsing("System");
+                    _outputBuilder.AddUsingDirective("System");
                     return "IntPtr";
                 }
 
@@ -768,7 +866,7 @@ namespace ClangSharp
                             }
                             else
                             {
-                                _outputBuilder.AddUsing("System");
+                                _outputBuilder.AddUsingDirective("System");
                             }
 
                             return name;
@@ -827,7 +925,7 @@ namespace ClangSharp
                             if (GetParmModifier(decl, decl.Type).Equals("out"))
                             {
                                 Debug.Assert(!_config.GenerateUnsafeCode);
-                                _outputBuilder.AddUsing("System");
+                                _outputBuilder.AddUsingDirective("System");
                                 return "IntPtr";
                             }
 
@@ -865,7 +963,7 @@ namespace ClangSharp
             }
         }
 
-        private void InitializeOutputBuilder(string name)
+        private void StartUsingOutputBuilder(string name)
         {
             if (_outputBuilder != null)
             {
@@ -876,30 +974,24 @@ namespace ClangSharp
 
             Debug.Assert(_outputBuilderUsers == 0);
 
-            var outputFile = _config.OutputLocation;
-            var isMethodClass = name.Equals(_config.MethodClassName);
-
-            if (_config.GenerateMultipleFiles)
+            if (!_outputBuilderFactory.TryGetOutputBuilder(name, out _outputBuilder))
             {
-                outputFile = Path.Combine(outputFile, $"{name}.cs");
-            }
-            else if (isMethodClass)
-            {
-                outputFile = Path.ChangeExtension(outputFile, $"{_config.MethodClassName}{Path.GetExtension(outputFile)}");
-            }
-
-            if (!_outputBuilders.TryGetValue(outputFile, out _outputBuilder))
-            {
-                _outputBuilder = new OutputBuilder(outputFile, _config, isMethodClass);
-                _outputBuilders.Add(outputFile, _outputBuilder);
+                _outputBuilder = _outputBuilderFactory.Create(name);
             }
             else
             {
                 _outputBuilder.WriteLine();
             }
             _outputBuilderUsers++;
+        }
 
-            Debug.Assert(outputFile.Equals(_outputBuilder.OutputFile));
+        private void StopUsingOutputBuilder()
+        {
+            if (_outputBuilderUsers == 1)
+            {
+                _outputBuilder = null;
+            }
+            _outputBuilderUsers--;
         }
 
         private void Unhandled(Cursor cursor)
@@ -1088,7 +1180,7 @@ namespace ClangSharp
         private void VisitEnumDecl(EnumDecl enumDecl, Cursor parent)
         {
             var name = GetCursorName(enumDecl);
-            InitializeOutputBuilder(name);
+            StartUsingOutputBuilder(name);
             {
                 _outputBuilder.WriteIndented("public enum");
                 _outputBuilder.Write(' ');
@@ -1113,7 +1205,7 @@ namespace ClangSharp
 
                 _outputBuilder.WriteBlockEnd();
             }
-            FinalizeOutputBuilder();
+            StopUsingOutputBuilder();
         }
 
         private void VisitFieldDecl(FieldDecl fieldDecl, Cursor parent)
@@ -1124,7 +1216,7 @@ namespace ClangSharp
 
             if (!string.IsNullOrWhiteSpace(marshalAttribute))
             {
-                _outputBuilder.AddUsing("System.Runtime.InteropServices");
+                _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
                 _outputBuilder.Write('[');
                 _outputBuilder.Write(marshalAttribute);
@@ -1185,9 +1277,9 @@ namespace ClangSharp
                 return;
             }
 
-            InitializeOutputBuilder(_config.MethodClassName);
+            StartUsingOutputBuilder(_config.MethodClassName);
             {
-                _outputBuilder.AddUsing("System.Runtime.InteropServices");
+                _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
                 _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
                 _outputBuilder.Write(name);
@@ -1231,7 +1323,7 @@ namespace ClangSharp
 
                 _outputBuilder.WriteLine(");");
             }
-            FinalizeOutputBuilder();
+            StopUsingOutputBuilder();
         }
 
         private void VisitIntegerLiteral(IntegerLiteral integerLiteral, Cursor parent)
@@ -1323,7 +1415,7 @@ namespace ClangSharp
         {
             var name = GetCursorName(structDecl);
 
-            InitializeOutputBuilder(name);
+            StartUsingOutputBuilder(name);
             {
                 _outputBuilder.WriteIndented("public");
 
@@ -1347,7 +1439,7 @@ namespace ClangSharp
 
                 _outputBuilder.WriteBlockEnd();
             }
-            FinalizeOutputBuilder();
+            StopUsingOutputBuilder();
         }
 
         private void VisitTypedefDecl(TypedefDecl typedefDecl, Cursor parent, Type underlyingType)
@@ -1369,7 +1461,7 @@ namespace ClangSharp
                     {
                         var name = GetCursorName(typedefDecl);
 
-                        InitializeOutputBuilder(name);
+                        StartUsingOutputBuilder(name);
                         {
 
                             var escapedName = EscapeName(name);
@@ -1404,7 +1496,7 @@ namespace ClangSharp
                             }
                             _outputBuilder.WriteBlockEnd();
                         }
-                        FinalizeOutputBuilder();
+                        StopUsingOutputBuilder();
                     }
                     break;
                 }
@@ -1455,11 +1547,11 @@ namespace ClangSharp
                     if (!_config.GenerateUnsafeCode)
                     {
                         var name = GetCursorName(typedefDecl);
-                        InitializeOutputBuilder(name);
+                        StartUsingOutputBuilder(name);
                         {
                             var escapedName = EscapeName(name);
 
-                            _outputBuilder.AddUsing("System");
+                            _outputBuilder.AddUsingDirective("System");
 
                             _outputBuilder.WriteIndented("public partial struct");
                             _outputBuilder.Write(' ');
@@ -1480,7 +1572,7 @@ namespace ClangSharp
                             }
                             _outputBuilder.WriteBlockEnd();
                         }
-                        FinalizeOutputBuilder();
+                        StopUsingOutputBuilder();
                     }
                     break;
                 }
@@ -1488,11 +1580,11 @@ namespace ClangSharp
                 case CXTypeKind.CXType_FunctionProto:
                 {
                     var name = GetCursorName(typedefDecl);
-                    InitializeOutputBuilder(name);
+                    StartUsingOutputBuilder(name);
                     {
                         var escapedName = EscapeName(name);
 
-                        _outputBuilder.AddUsing("System.Runtime.InteropServices");
+                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
                         _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
                         _outputBuilder.Write(GetCallingConventionName(typedefDecl, pointeeType.CallingConv));
@@ -1512,7 +1604,7 @@ namespace ClangSharp
 
                         _outputBuilder.WriteLine(");");
                     }
-                    FinalizeOutputBuilder();
+                    StopUsingOutputBuilder();
                     break;
                 }
 
