@@ -64,73 +64,16 @@ namespace ClangSharp
         {
             ValidateVisit(ref handle);
 
-            Expr expr;
-
-            switch (childHandle.Kind)
+            if (childHandle.IsExpression)
             {
-                case CXCursorKind.CXCursor_UnexposedExpr:
-                {
-                    expr = GetOrAddChild<UnexposedExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_DeclRefExpr:
-                {
-                    expr = GetOrAddChild<DeclRefExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CallExpr:
-                {
-                    expr = GetOrAddChild<CallExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_IntegerLiteral:
-                {
-                    expr = GetOrAddChild<IntegerLiteral>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_FloatingLiteral:
-                {
-                    expr = GetOrAddChild<FloatingLiteral>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ParenExpr:
-                {
-                    expr = GetOrAddChild<ParenExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CStyleCastExpr:
-                {
-                    expr = GetOrAddChild<CStyleCastExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXStaticCastExpr:
-                {
-                    expr = GetOrAddChild<CXXStaticCastExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXThisExpr:
-                {
-                    expr = GetOrAddChild<CXXThisExpr>(childHandle);
-                    break;
-                }
-
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
+                var expr = GetOrAddChild<Expr>(childHandle);
+                Expr = expr;
+                return expr.Visit(clientData);
             }
-
-            Debug.Assert(expr != null);
-            Expr = expr;
-            return expr.Visit(clientData);
+            else
+            {
+                return base.VisitChildren(childHandle, handle, clientData);
+            }
         }
 
         private int GetOperatorIndex(CXToken[] tokens)

@@ -22,18 +22,5 @@ namespace ClangSharp
         }
 
         public string RawValue => _rawValue.Value;
-
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
-        {
-            ValidateVisit(ref handle);
-
-            switch (childHandle.Kind)
-            {
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
-            }
-        }
     }
 }
