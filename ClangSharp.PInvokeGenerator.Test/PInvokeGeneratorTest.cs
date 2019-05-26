@@ -35,6 +35,7 @@ namespace ClangSharp.Test
                 using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, new CXUnsavedFile[] { unsavedInputFile }, DefaultTranslationUnitFlags))
                 {
                     pinvokeGenerator.GenerateBindings(translationUnitHandle);
+                    Assert.Empty(pinvokeGenerator.Diagnostics);
                 }
 
                 outputStream.Position = 0;
