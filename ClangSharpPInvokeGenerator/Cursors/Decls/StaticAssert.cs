@@ -3,7 +3,7 @@ using ClangSharp;
 
 namespace ClangSharpPInvokeGenerator
 {
-    internal class StaticAssert : Cursor
+    internal class StaticAssert : Decl
     {
         public StaticAssert(CXCursor handle, Cursor parent) : base(handle, parent)
         {

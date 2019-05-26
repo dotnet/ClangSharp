@@ -19,11 +19,6 @@ namespace ClangSharpPInvokeGenerator
         {
             ValidateVisit(ref handle);
 
-            if (!childHandle.Location.IsFromMainFile)
-            {
-                return CXChildVisitResult.CXChildVisit_Continue;
-            }
-
             switch (childHandle.Kind)
             {
                 case CXCursorKind.CXCursor_UnexposedDecl:
@@ -122,6 +117,7 @@ namespace ClangSharpPInvokeGenerator
         {
             if (_visitedCursors.ContainsKey(cursor.Handle))
             {
+                Debug.WriteLine("Attempting to add an already visited cursor.");
                 Debugger.Break();
             }
             _visitedCursors.Add(cursor.Handle, cursor);
@@ -131,6 +127,7 @@ namespace ClangSharpPInvokeGenerator
         {
             if (_visitedTypes.ContainsKey(type.Handle))
             {
+                Debug.WriteLine("Attempting to add an already visited type.");
                 Debugger.Break();
             }
             _visitedTypes.Add(type.Handle, type);

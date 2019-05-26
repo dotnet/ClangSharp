@@ -12,7 +12,7 @@ namespace ClangSharpPInvokeGenerator
     {
         private static RootCommand s_rootCommand;
 
-        public static async Task<int> Main(string[] args)
+        public static async Task<int> Main(params string[] args)
         {
             s_rootCommand = new RootCommand();
             {
@@ -37,16 +37,18 @@ namespace ClangSharpPInvokeGenerator
         public static int Run(InvocationContext context)
         {
             var additionalArgs = context.ParseResult.ValueForOption<string[]>("additional");
-            var config = new ConfigurationOptions(context.ParseResult.ValueForOption<string[]>("config"));
+            var config = new ConfigurationOptions(context.ParseResult.ValueForOption<string[]>("config"))
+            {
+                ExcludedFunctions = context.ParseResult.ValueForOption<string[]>("excludeFunction"),
+                LibraryPath = context.ParseResult.ValueForOption<string>("libraryPath"),
+                MethodClassName = context.ParseResult.ValueForOption<string>("methodClassName"),
+                Namespace = context.ParseResult.ValueForOption<string>("namespace"),
+                OutputLocation = context.ParseResult.ValueForOption<string>("output"),
+                MethodPrefixToStrip = context.ParseResult.ValueForOption<string>("prefixStrip"),
+            };
             var defines = context.ParseResult.ValueForOption<string[]>("define");
-            config.ExcludedFunctions = context.ParseResult.ValueForOption<string[]>("excludeFunction");
             var files = context.ParseResult.ValueForOption<string[]>("file");
             var includeDirs = context.ParseResult.ValueForOption<string[]>("include");
-            config.LibraryPath = context.ParseResult.ValueForOption<string>("libraryPath");
-            config.MethodClassName = context.ParseResult.ValueForOption<string>("methodClassName");
-            config.Namespace = context.ParseResult.ValueForOption<string>("namespace");
-            config.OutputLocation = context.ParseResult.ValueForOption<string>("output");
-            config.MethodPrefixToStrip = context.ParseResult.ValueForOption<string>("prefixStrip");
 
             var errorList = new List<string>();
 
@@ -151,12 +153,12 @@ namespace ClangSharpPInvokeGenerator
         {
             var argument = new Argument();
             argument.ArgumentType = typeof(string);
-            argument.Arity = ArgumentArity.ZeroOrMore;
+            argument.Arity = ArgumentArity.OneOrMore;
             argument.Name = "arg";
             argument.SetDefaultValue(Array.Empty<string>());
 
             var option = new Option("--additional", "An argument to pass to Clang when parsing the input files.", argument);
-            option.AddAlias("--a");
+            option.AddAlias("-a");
 
             rootCommand.AddOption(option);
         }
@@ -165,12 +167,12 @@ namespace ClangSharpPInvokeGenerator
         {
             var argument = new Argument();
             argument.ArgumentType = typeof(string);
-            argument.Arity = ArgumentArity.ZeroOrMore;
+            argument.Arity = ArgumentArity.OneOrMore;
             argument.Name = "config";
             argument.SetDefaultValue(Array.Empty<string>());
 
             var option = new Option("--config", "A configuration option that controls how the bindings are generated.", argument);
-            option.AddAlias("--c");
+            option.AddAlias("-c");
 
             rootCommand.AddOption(option);
         }
@@ -179,12 +181,12 @@ namespace ClangSharpPInvokeGenerator
         {
             var argument = new Argument();
             argument.ArgumentType = typeof(string);
-            argument.Arity = ArgumentArity.ZeroOrMore;
+            argument.Arity = ArgumentArity.OneOrMore;
             argument.Name = "macro";
             argument.SetDefaultValue(Array.Empty<string>());
 
             var option = new Option("--define", "A macro for Clang to define when parsing the input files.", argument);
-            option.AddAlias("--d");
+            option.AddAlias("-d");
 
             rootCommand.AddOption(option);
         }
@@ -193,12 +195,12 @@ namespace ClangSharpPInvokeGenerator
         {
             var argument = new Argument();
             argument.ArgumentType = typeof(string);
-            argument.Arity = ArgumentArity.ZeroOrMore;
+            argument.Arity = ArgumentArity.OneOrMore;
             argument.Name = "name";
             argument.SetDefaultValue(Array.Empty<string>());
 
             var option = new Option("--excludeFunction", "A function to exclude from binding generation.", argument);
-            option.AddAlias("--e");
+            option.AddAlias("-e");
 
             rootCommand.AddOption(option);
         }
@@ -212,7 +214,7 @@ namespace ClangSharpPInvokeGenerator
             argument.SetDefaultValue(Array.Empty<string>());
 
             var option = new Option("--file", "A file to parse and generate bindings for.", argument);
-            option.AddAlias("--f");
+            option.AddAlias("-f");
 
             rootCommand.AddOption(option);
         }
@@ -221,12 +223,12 @@ namespace ClangSharpPInvokeGenerator
         {
             var argument = new Argument();
             argument.ArgumentType = typeof(string);
-            argument.Arity = ArgumentArity.ZeroOrMore;
+            argument.Arity = ArgumentArity.OneOrMore;
             argument.Name = "directory";
             argument.SetDefaultValue(Array.Empty<string>());
 
             var option = new Option("--include", "A directory for clang to use when resolving #include directives.", argument);
-            option.AddAlias("--i");
+            option.AddAlias("-i");
 
             rootCommand.AddOption(option);
         }
@@ -240,7 +242,7 @@ namespace ClangSharpPInvokeGenerator
             argument.SetDefaultValue(string.Empty);
 
             var option = new Option("--libraryPath", "The string to use in the DllImport attribute used when generating bindings.", argument);
-            option.AddAlias("--l");
+            option.AddAlias("-l");
 
             rootCommand.AddOption(option);
         }
@@ -249,12 +251,12 @@ namespace ClangSharpPInvokeGenerator
         {
             var argument = new Argument();
             argument.ArgumentType = typeof(string);
-            argument.Arity = ArgumentArity.ZeroOrOne;
+            argument.Arity = ArgumentArity.ExactlyOne;
             argument.Name = "className";
             argument.SetDefaultValue("Methods");
 
             var option = new Option("--methodClassName", "The name of the static class that will contain the generated method bindings.", argument);
-            option.AddAlias("--m");
+            option.AddAlias("-m");
 
             rootCommand.AddOption(option);
         }
@@ -268,7 +270,7 @@ namespace ClangSharpPInvokeGenerator
             argument.SetDefaultValue(string.Empty);
 
             var option = new Option("--namespace", "The namespace in which to place the generated bindings.", argument);
-            option.AddAlias("--n");
+            option.AddAlias("-n");
 
             rootCommand.AddOption(option);
         }
@@ -282,7 +284,7 @@ namespace ClangSharpPInvokeGenerator
             argument.SetDefaultValue(string.Empty);
 
             var option = new Option("--output", "The output location to write the generated bindings to.", argument);
-            option.AddAlias("--o");
+            option.AddAlias("-o");
 
             rootCommand.AddOption(option);
         }
@@ -296,7 +298,7 @@ namespace ClangSharpPInvokeGenerator
             argument.SetDefaultValue(string.Empty);
 
             var option = new Option("--prefixStrip", "The prefix to strip from the generated method bindings.", argument);
-            option.AddAlias("--p");
+            option.AddAlias("-p");
 
             rootCommand.AddOption(option);
         }
