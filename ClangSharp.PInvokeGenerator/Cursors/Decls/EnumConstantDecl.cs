@@ -2,7 +2,7 @@
 
 namespace ClangSharp
 {
-    internal sealed class EnumConstantDecl : Decl
+    internal sealed class EnumConstantDecl : ValueDecl
     {
         private Expr _expr;
 
@@ -35,7 +35,7 @@ namespace ClangSharp
 
             if (childHandle.IsExpression)
             {
-                var expr = GetOrAddChild<UnexposedExpr>(childHandle);
+                var expr = GetOrAddChild<Expr>(childHandle);
                 Expr = expr;
                 return expr.Visit(clientData);
             }

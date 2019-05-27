@@ -2,9 +2,9 @@
 
 namespace ClangSharp
 {
-    internal sealed class CXXAccessSpecifier : Decl
+    internal sealed class AccessSpecDecl : Decl
     {
-        public CXXAccessSpecifier(CXCursor handle, Cursor parent) : base(handle, parent)
+        public AccessSpecDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_CXXAccessSpecifier);
         }

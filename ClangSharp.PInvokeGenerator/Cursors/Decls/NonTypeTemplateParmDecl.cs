@@ -2,9 +2,9 @@
 
 namespace ClangSharp
 {
-    internal sealed class NonTypeTemplateParameter : Decl
+    internal sealed class NonTypeTemplateParmDecl : DeclaratorDecl
     {
-        public NonTypeTemplateParameter(CXCursor handle, Cursor parent) : base(handle, parent)
+        public NonTypeTemplateParmDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_NonTypeTemplateParameter);
         }

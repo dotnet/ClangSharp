@@ -130,8 +130,6 @@ namespace ClangSharp
             {
                 default:
                 {
-                    Debug.WriteLine($"Unhandled cursor kind: {childHandle.KindSpelling} in {KindSpelling}.");
-                    Debugger.Break();
                     return GetOrAddChild<Cursor>(childHandle).Visit(clientData);
                 }
             }

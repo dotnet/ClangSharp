@@ -2,7 +2,7 @@
 
 namespace ClangSharp
 {
-    internal sealed class FieldDecl : Decl
+    internal sealed class FieldDecl : DeclaratorDecl
     {
         public FieldDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {

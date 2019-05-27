@@ -2,9 +2,9 @@
 
 namespace ClangSharp
 {
-    internal sealed class TemplateTypeParameter : Decl
+    internal sealed class TemplateTypeParmDecl : TypeDecl
     {
-        public TemplateTypeParameter(CXCursor handle, Cursor parent) : base(handle, parent)
+        public TemplateTypeParmDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_TemplateTypeParameter);
         }

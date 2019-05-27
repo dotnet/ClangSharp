@@ -407,60 +407,35 @@ namespace ClangSharp
             }
         }
 
-        private string GetCursorName(Decl decl)
+        private string GetCursorName(NamedDecl namedDecl)
         {
-            switch (decl.Kind)
+            var name = string.Empty;
+
+            if (namedDecl is TagDecl tagDecl)
             {
-                case CXCursorKind.CXCursor_StructDecl:
-                case CXCursorKind.CXCursor_UnionDecl:
-                case CXCursorKind.CXCursor_EnumDecl:
+                if (tagDecl.IsAnonymous)
                 {
-                    var name = decl.Spelling;
-
-                    if (string.IsNullOrWhiteSpace(name))
-                    {
-                        if (decl.IsAnonymous)
-                        {
-                            decl.Location.GetFileLocation(out var file, out var _, out var _, out var offset);
-                            var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
-                            name = $"__Anonymous{decl.Type.KindSpelling}_{fileName}_{offset}";
-                            AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.'", decl);
-                        }
-                        else
-                        {
-                            name = GetTypeName(decl, decl.Type);
-                        }
-                    }
-
-                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return name;
+                    namedDecl.Location.GetFileLocation(out var file, out var _, out var _, out var offset);
+                    var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
+                    name = $"__Anonymous{tagDecl.Type.KindSpelling}_{fileName}_{offset}";
+                    AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.'", namedDecl);
                 }
-
-                case CXCursorKind.CXCursor_FieldDecl:
-                case CXCursorKind.CXCursor_EnumConstantDecl:
-                case CXCursorKind.CXCursor_FunctionDecl:
+                else
                 {
-                    var name = decl.Spelling;
-                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return name;
+                    name = GetTypeName(namedDecl, tagDecl.Type);
                 }
+            }
+            else
+            {
+                name = namedDecl.Spelling;
 
-                case CXCursorKind.CXCursor_ParmDecl:
+                if ((namedDecl is ParmVarDecl parmVarDecl) && string.IsNullOrWhiteSpace(name))
                 {
-                    var name = decl.Spelling;
-
-                    if (string.IsNullOrWhiteSpace(name))
-                    {
-                        name = "param";
-                    }
-
-                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return name;
+                    name = "param";
                 }
-
-                case CXCursorKind.CXCursor_TypedefDecl:
+                else if (namedDecl is TypedefDecl typedefDecl)
                 {
-                    switch (decl.Spelling)
+                    switch (name)
                     {
                         case "int8_t":
                         {
@@ -528,19 +503,14 @@ namespace ClangSharp
 
                         default:
                         {
-                            var typedefDecl = (TypedefDecl)decl;
                             return GetCursorName(typedefDecl, typedefDecl.UnderlyingType);
                         }
                     }
                 }
-
-                default:
-                {
-                    var name = decl.Spelling;
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported declaration: '{decl.KindSpelling}'. Falling back to '{name}'.", decl);
-                    return name;
-                }
             }
+
+            Debug.Assert(!string.IsNullOrWhiteSpace(name));
+            return name;
         }
 
         private string GetCursorName(TypedefDecl typedefDecl, Type underlyingType)
@@ -912,7 +882,7 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_Typedef:
                 {
-                    return GetCursorName(type.DeclarationCursor);
+                    return GetCursorName((NamedDecl)type.DeclarationCursor);
                 }
 
                 case CXTypeKind.CXType_Elaborated:
@@ -1008,7 +978,7 @@ namespace ClangSharp
                                 goto case CXCursorKind.CXCursor_FunctionDecl;
                             }
 
-                            var name = GetCursorName(pointeeType.DeclarationCursor);
+                            var name = GetCursorName((NamedDecl)pointeeType.DeclarationCursor);
 
                             if (_config.GenerateUnsafeCode)
                             {
@@ -1039,7 +1009,7 @@ namespace ClangSharp
 
                         case CXCursorKind.CXCursor_ParmDecl:
                         {
-                            if (GetParmModifier(decl, decl.Type).Equals("out"))
+                            if (GetParmModifier(decl, ((ParmVarDecl)decl).Type).Equals("out"))
                             {
                                 Debug.Assert(!_config.GenerateUnsafeCode);
                                 _outputBuilder.AddUsingDirective("System");
@@ -1135,6 +1105,7 @@ namespace ClangSharp
                 case CXCursorKind.CXCursor_UnexposedDecl:
                 case CXCursorKind.CXCursor_UnexposedExpr:
                 case CXCursorKind.CXCursor_UnexposedAttr:
+                case CXCursorKind.CXCursor_DLLImport:
                 {
                     VisitChildren(cursor);
                     break;
@@ -1177,7 +1148,7 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_ParmDecl:
                 {
-                    var parmDecl = (ParmDecl)cursor;
+                    var parmDecl = (ParmVarDecl)cursor;
                     VisitParmDecl(parmDecl, parent);
                     break;
                 }
@@ -1449,7 +1420,7 @@ namespace ClangSharp
             Debug.Assert(parenExpr.Children.Count == 1);
         }
 
-        private void VisitParmDecl(ParmDecl parmDecl, Cursor parent)
+        private void VisitParmDecl(ParmVarDecl parmDecl, Cursor parent)
         {
             int lastIndex = -1;
 
@@ -1499,7 +1470,7 @@ namespace ClangSharp
                     _outputBuilder.Write(", ");
                 }
             }
-            else if ((parent is FieldDecl) || (parent is ParmDecl))
+            else if ((parent is FieldDecl) || (parent is ParmVarDecl))
             {
                 // TODO: We should properly handle inline function pointers for fields and method parameters
                 VisitChildren(parmDecl);
@@ -1724,7 +1695,7 @@ namespace ClangSharp
         private void VisitTypeRef(TypeRef typeRef, Cursor parent)
         {
             Debug.Assert(typeRef.Children.Count == 0);
-            Debug.Assert((parent is FieldDecl) || (parent is FunctionDecl) || (parent is ParmDecl) || (parent is TypedefDecl));
+            Debug.Assert((parent is FieldDecl) || (parent is FunctionDecl) || (parent is ParmVarDecl) || (parent is TypedefDecl));
         }
 
         private void VisitUnaryOperator(UnaryOperator unaryOperator, Cursor parent)

@@ -2,7 +2,7 @@
 
 namespace ClangSharp
 {
-    internal sealed class UnionDecl : Decl
+    internal sealed class UnionDecl : CXXRecordDecl
     {
         public UnionDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {

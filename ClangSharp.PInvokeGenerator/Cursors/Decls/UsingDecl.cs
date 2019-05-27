@@ -2,9 +2,9 @@
 
 namespace ClangSharp
 {
-    internal sealed class UsingDeclaration : Decl
+    internal sealed class UsingDecl : NamedDecl
     {
-        public UsingDeclaration(CXCursor handle, Cursor parent) : base(handle, parent)
+        public UsingDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_UsingDeclaration);
         }

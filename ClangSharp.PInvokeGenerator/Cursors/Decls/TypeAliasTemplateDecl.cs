@@ -2,7 +2,7 @@
 
 namespace ClangSharp
 {
-    internal sealed class TypeAliasTemplateDecl : Decl
+    internal sealed class TypeAliasTemplateDecl : RedeclarableTemplateDecl
     {
         public TypeAliasTemplateDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {

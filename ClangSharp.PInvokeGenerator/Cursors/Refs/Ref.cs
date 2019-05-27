@@ -48,13 +48,22 @@ namespace ClangSharp
             }
         }
 
+        private readonly Lazy<Cursor> _definition;
         private readonly Lazy<Type> _type;
 
         protected Ref(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.IsReference);
+
+            _definition = new Lazy<Cursor>(() => {
+                var cursor = TranslationUnit.GetOrCreateCursor(handle.Definition, () => Create(handle.Definition, this));
+                cursor.Visit(clientData: default);
+                return cursor;
+            });
             _type = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.Type, () => Type.Create(Handle.Type, TranslationUnit)));
         }
+
+        public Cursor Definition => _definition.Value;
 
         public Type Type => _type.Value;
     }

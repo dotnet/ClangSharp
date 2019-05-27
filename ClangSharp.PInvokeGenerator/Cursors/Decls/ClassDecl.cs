@@ -2,7 +2,7 @@
 
 namespace ClangSharp
 {
-    internal sealed class ClassDecl : Decl
+    internal sealed class ClassDecl : CXXRecordDecl
     {
         public ClassDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {

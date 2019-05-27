@@ -2,9 +2,9 @@
 
 namespace ClangSharp
 {
-    internal class StaticAssert : Decl
+    internal sealed class StaticAssertDecl : Decl
     {
-        public StaticAssert(CXCursor handle, Cursor parent) : base(handle, parent)
+        public StaticAssertDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_StaticAssert);
         }

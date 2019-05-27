@@ -2,14 +2,13 @@
 
 namespace ClangSharp
 {
-    internal sealed class ParmDecl : Decl
+    internal sealed class ParmVarDecl : VarDecl
     {
-        private int _index;
+        private int _index = -1;
 
-        public ParmDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        public ParmVarDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_ParmDecl);
-            _index = -1;
         }
 
         public int Index

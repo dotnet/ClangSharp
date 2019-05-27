@@ -2,9 +2,9 @@
 
 namespace ClangSharp
 {
-    internal sealed class Destructor : Decl
+    internal sealed class CXXDestructorDecl : CXXMethodDecl
     {
-        public Destructor(CXCursor handle, Cursor parent) : base(handle, parent)
+        public CXXDestructorDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_Destructor);
         }

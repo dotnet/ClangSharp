@@ -8,5 +8,9 @@ namespace ClangSharp
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_CXXBaseSpecifier);
         }
+
+        public CX_CXXAccessSpecifier AccessSpecifier => Handle.CXXAccessSpecifier;
+
+        public bool IsVirtual => Handle.IsVirtualBase;
     }
 }

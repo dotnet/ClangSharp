@@ -2,9 +2,9 @@
 
 namespace ClangSharp
 {
-    internal sealed class ClassTemplate : Decl
+    internal sealed class ClassTemplateDecl : RedeclarableTemplateDecl
     {
-        public ClassTemplate(CXCursor handle, Cursor parent) : base(handle, parent)
+        public ClassTemplateDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_ClassTemplate);
         }

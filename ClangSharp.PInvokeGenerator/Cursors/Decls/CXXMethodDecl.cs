@@ -2,11 +2,10 @@
 
 namespace ClangSharp
 {
-    internal sealed class CXXMethod : Decl
+    internal class CXXMethodDecl : FunctionDecl
     {
-        public CXXMethod(CXCursor handle, Cursor parent) : base(handle, parent)
+        public CXXMethodDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_CXXMethod);
         }
 
         public bool IsConst => Handle.CXXMethod_IsConst;

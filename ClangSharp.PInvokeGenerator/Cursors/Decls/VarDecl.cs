@@ -1,12 +1,9 @@
-﻿using System.Diagnostics;
-
-namespace ClangSharp
+﻿namespace ClangSharp
 {
-    internal sealed class VarDecl : Decl
+    internal class VarDecl : DeclaratorDecl
     {
         public VarDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_VarDecl);
         }
     }
 }
