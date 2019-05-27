@@ -13,6 +13,8 @@ namespace ClangSharp
             _fieldDecls = new List<FieldDecl>();
         }
 
+        public bool IsAbstract => Handle.CXXRecord_IsAbstract;
+
         public IReadOnlyList<FieldDecl> FieldDecls => _fieldDecls;
 
         protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)

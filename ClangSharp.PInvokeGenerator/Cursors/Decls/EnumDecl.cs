@@ -20,6 +20,8 @@ namespace ClangSharp
 
         public Type IntegerType => _integerType.Value;
 
+        public bool IsScoped => Handle.EnumDecl_IsScoped;
+
         protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
         {
             ValidateVisit(ref handle);

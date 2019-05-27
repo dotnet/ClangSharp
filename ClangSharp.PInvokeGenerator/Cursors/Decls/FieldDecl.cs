@@ -8,5 +8,11 @@ namespace ClangSharp
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_FieldDecl);
         }
+
+        public int BitWidth => Handle.FieldDeclBitWidth;
+
+        public bool IsBitField => Handle.IsBitField;
+
+        public bool IsMutable => Handle.CXXField_IsMutable;
     }
 }

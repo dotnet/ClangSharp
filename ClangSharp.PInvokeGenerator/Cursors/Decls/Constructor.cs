@@ -8,5 +8,13 @@ namespace ClangSharp
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_Constructor);
         }
+
+        public bool IsConvertingConstructor => Handle.CXXConstructor_IsConvertingConstructor;
+
+        public bool IsCopyConstructor => Handle.CXXConstructor_IsCopyConstructor;
+
+        public bool IsDefaultConstructor => Handle.CXXConstructor_IsDefaultConstructor;
+
+        public bool IsMoveConstructor => Handle.CXXConstructor_IsMoveConstructor;
     }
 }
