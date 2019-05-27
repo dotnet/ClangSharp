@@ -1,12 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
 using System.Threading.Tasks;
-using ClangSharp;
 
-namespace ClangSharpPInvokeGenerator
+namespace ClangSharp
 {
     public class Program
     {
@@ -37,18 +36,16 @@ namespace ClangSharpPInvokeGenerator
         public static int Run(InvocationContext context)
         {
             var additionalArgs = context.ParseResult.ValueForOption<string[]>("additional");
-            var config = new ConfigurationOptions(context.ParseResult.ValueForOption<string[]>("config"))
-            {
-                ExcludedFunctions = context.ParseResult.ValueForOption<string[]>("excludeFunction"),
-                LibraryPath = context.ParseResult.ValueForOption<string>("libraryPath"),
-                MethodClassName = context.ParseResult.ValueForOption<string>("methodClassName"),
-                Namespace = context.ParseResult.ValueForOption<string>("namespace"),
-                OutputLocation = context.ParseResult.ValueForOption<string>("output"),
-                MethodPrefixToStrip = context.ParseResult.ValueForOption<string>("prefixStrip"),
-            };
+            var configSwitches = context.ParseResult.ValueForOption<string[]>("config");
             var defines = context.ParseResult.ValueForOption<string[]>("define");
+            var excludedFunctions = context.ParseResult.ValueForOption<string[]>("excludeFunction");
             var files = context.ParseResult.ValueForOption<string[]>("file");
             var includeDirs = context.ParseResult.ValueForOption<string[]>("include");
+            var libraryPath = context.ParseResult.ValueForOption<string>("libraryPath");
+            var methodClassName = context.ParseResult.ValueForOption<string>("methodClassName");
+            var methodPrefixToStrip = context.ParseResult.ValueForOption<string>("prefixStrip");
+            var namespaceName = context.ParseResult.ValueForOption<string>("namespace");
+            var outputLocation = context.ParseResult.ValueForOption<string>("output");
 
             var errorList = new List<string>();
 
@@ -57,19 +54,19 @@ namespace ClangSharpPInvokeGenerator
                 errorList.Add("Error: No input C/C++ files provided. Use --file or -f");
             }
 
-            if (string.IsNullOrWhiteSpace(config.Namespace))
+            if (string.IsNullOrWhiteSpace(libraryPath))
+            {
+                errorList.Add("Error: No library path location provided. Use --libraryPath or -l");
+            }
+
+            if (string.IsNullOrWhiteSpace(namespaceName))
             {
                 errorList.Add("Error: No namespace provided. Use --namespace or -n");
             }
 
-            if (string.IsNullOrWhiteSpace(config.OutputLocation))
+            if (string.IsNullOrWhiteSpace(outputLocation))
             {
                 errorList.Add("Error: No output file location provided. Use --output or -o");
-            }
-
-            if (string.IsNullOrWhiteSpace(config.LibraryPath))
-            {
-                errorList.Add("Error: No library path location provided. Use --libraryPath or -l");
             }
 
             if (errorList.Any())
@@ -84,15 +81,15 @@ namespace ClangSharpPInvokeGenerator
                 return -1;
             }
 
-            var arr = new string[]
+            var clangCommandLineArgs = new string[]
             {
                 "-xc++",                                // The input files are C++
                 "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
             };
 
-            arr = arr.Concat(includeDirs.Select(x => "-I" + x)).ToArray();
-            arr = arr.Concat(defines.Select(x => "-D" + x)).ToArray();
-            arr = arr.Concat(additionalArgs).ToArray();
+            clangCommandLineArgs = clangCommandLineArgs.Concat(includeDirs.Select(x => "-I" + x)).ToArray();
+            clangCommandLineArgs = clangCommandLineArgs.Concat(defines.Select(x => "-D" + x)).ToArray();
+            clangCommandLineArgs = clangCommandLineArgs.Concat(additionalArgs).ToArray();
 
             var translationFlags = CXTranslationUnit_Flags.CXTranslationUnit_None;
 
@@ -100,13 +97,30 @@ namespace ClangSharpPInvokeGenerator
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            using (var createIndex = CXIndex.Create())
-            using (var cursorWriter = new CursorWriter(config))
+            var configOptions = PInvokeGeneratorConfigurationOptions.None;
+
+            foreach (var configSwitch in configSwitches)
+            {
+                if (configSwitch.EndsWith("multi-file"))
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
+                }
+                else if (configSwitch.Equals("unsafe"))
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateUnsafeCode;
+                }
+            }
+
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedFunctions, methodClassName, methodPrefixToStrip);
+
+            int exitCode = 0;
+
+            using (var pinvokeGenerator = new PInvokeGenerator(config))
             {
                 foreach (var file in files)
                 {
-                    var translationUnitError = CXTranslationUnit.Parse(createIndex, file, arr, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit translationUnitHandle);
-                    bool skipProcessing = false;
+                    var translationUnitError = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, file, clangCommandLineArgs, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit translationUnitHandle);
+                    var skipProcessing = false;
 
                     if (translationUnitError != CXErrorCode.CXError_Success)
                     {
@@ -134,19 +148,50 @@ namespace ClangSharpPInvokeGenerator
                     {
                         Console.WriteLine($"Skipping '{file}' due to one or more errors listed above.");
                         Console.WriteLine();
+
+                        exitCode = -1;
                         continue;
                     }
 
                     using (translationUnitHandle)
                     {
-                        var translationUnit = new TranslationUnit(translationUnitHandle.Cursor);
-                        translationUnit.Visit(clientData: default);
-                        cursorWriter.Visit(translationUnit);
+                        Console.WriteLine($"Processing '{file}'");
+                        pinvokeGenerator.GenerateBindings(translationUnitHandle);
+                    }
+                }
+
+                if (pinvokeGenerator.Diagnostics.Count != 0)
+                {
+                    Console.WriteLine("Diagnostics for binding generation:");
+
+                    foreach (var diagnostic in pinvokeGenerator.Diagnostics)
+                    {
+                        Console.Write("    ");
+                        Console.WriteLine(diagnostic);
+
+                        if (diagnostic.Level == DiagnosticLevel.Warning)
+                        {
+                            if (exitCode >= 0)
+                            {
+                                exitCode++;
+                            }
+                        }
+                        else if (diagnostic.Level == DiagnosticLevel.Error)
+                        {
+                            if (exitCode >= 0)
+                            {
+                                exitCode = -1;
+                            }
+                            else
+                            {
+                                exitCode--;
+                            }
+                        }
                     }
                 }
             }
 
-            return 0;
+            return exitCode;
         }
 
         private static void AddAdditionalOption(RootCommand rootCommand)

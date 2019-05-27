@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp
 {
-
     public static partial class clang
     {
         private const string libraryPath = "libclang";

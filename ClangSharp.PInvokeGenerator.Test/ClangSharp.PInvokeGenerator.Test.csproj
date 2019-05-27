@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
+    <RootNamespace>ClangSharp.Test</RootNamespace>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
@@ -16,7 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ClangSharp\ClangSharp.csproj" />
+    <ProjectReference Include="..\ClangSharp.PInvokeGenerator\ClangSharp.PInvokeGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ClangUnsavedFile.h">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
