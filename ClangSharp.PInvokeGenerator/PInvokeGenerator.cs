@@ -1496,7 +1496,7 @@ namespace ClangSharp
                 _outputBuilder.WriteLine(EscapeName(name));
                 _outputBuilder.WriteBlockStart();
 
-                foreach (var fieldDecl in recordDecl.FieldDecls)
+                foreach (var fieldDecl in recordDecl.Fields)
                 {
                     Visit(fieldDecl, recordDecl);
                 }

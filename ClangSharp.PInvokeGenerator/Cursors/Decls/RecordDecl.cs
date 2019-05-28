@@ -4,7 +4,7 @@ namespace ClangSharp
 {
     internal class RecordDecl : TagDecl
     {
-        private readonly List<FieldDecl> _fieldDecls = new List<FieldDecl>();
+        private readonly List<FieldDecl> _fields = new List<FieldDecl>();
 
         public RecordDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
@@ -16,7 +16,7 @@ namespace ClangSharp
 
         public bool IsUnion => Kind == CXCursorKind.CXCursor_UnionDecl;
 
-        public IReadOnlyList<FieldDecl> FieldDecls => _fieldDecls;
+        public IReadOnlyList<FieldDecl> Fields => _fields;
 
         protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
         {
@@ -24,15 +24,14 @@ namespace ClangSharp
 
             if (childHandle.IsDeclaration)
             {
-                switch (childHandle.Kind)
+                var decl = GetOrAddDecl<Decl>(childHandle);
+
+                if (decl is FieldDecl fieldDecl)
                 {
-                    case CXCursorKind.CXCursor_FieldDecl:
-                    {
-                        var fieldDecl = GetOrAddChild<FieldDecl>(childHandle);
-                        _fieldDecls.Add(fieldDecl);
-                        return fieldDecl.Visit(clientData);
-                    }
+                    _fields.Add(fieldDecl);
                 }
+
+                return decl.Visit(clientData);
             }
 
             return base.VisitChildren(childHandle, handle, clientData);

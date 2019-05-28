@@ -40,14 +40,12 @@ namespace ClangSharp
             }
         }
 
-        private readonly List<Cursor> _children;
+        private readonly List<Cursor> _children = new List<Cursor>();
         private bool _visited;
 
         protected Cursor(CXCursor handle, Cursor parent)
         {
             Debug.Assert(!handle.IsNull);
-
-            _children = new List<Cursor>();
 
             Handle = handle;
             Parent = parent;
@@ -122,14 +120,7 @@ namespace ClangSharp
         protected virtual CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
         {
             ValidateVisit(ref handle);
-
-            switch (childHandle.Kind)
-            {
-                default:
-                {
-                    return GetOrAddChild<Cursor>(childHandle).Visit(clientData);
-                }
-            }
+            return GetOrAddChild<Cursor>(childHandle).Visit(clientData);
         }
 
         protected virtual void ValidateVisit(ref CXCursor handle)

@@ -20,15 +20,14 @@ namespace ClangSharp
 
             if (childHandle.IsDeclaration)
             {
-                switch (childHandle.Kind)
+                var decl = GetOrAddChild<Decl>(childHandle);
+
+                if (decl is ParmVarDecl parmVarDecl)
                 {
-                    case CXCursorKind.CXCursor_ParmDecl:
-                    {
-                        var parmDecl = GetOrAddChild<ParmVarDecl>(childHandle);
-                        _parameters.Add(parmDecl);
-                        return parmDecl.Visit(clientData);
-                    }
+                    _parameters.Add(parmVarDecl);
                 }
+
+                return decl.Visit(clientData);
             }
 
             return base.VisitChildren(childHandle, handle, clientData);

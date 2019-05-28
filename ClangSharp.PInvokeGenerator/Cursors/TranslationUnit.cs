@@ -6,9 +6,9 @@ namespace ClangSharp
 {
     internal sealed class TranslationUnit : Cursor
     {
+        private readonly List<Decl> _declarations = new List<Decl>();
         private readonly Dictionary<CXCursor, Cursor> _visitedCursors = new Dictionary<CXCursor, Cursor>();
         private readonly Dictionary<CXType, Type> _visitedTypes = new Dictionary<CXType, Type>();
-        private readonly List<Decl> _declarations = new List<Decl>();
 
         public TranslationUnit(CXCursor handle) : base(handle, parent: null)
         {

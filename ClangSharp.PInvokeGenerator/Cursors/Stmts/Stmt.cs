@@ -7,6 +7,11 @@ namespace ClangSharp
     {
         public static new Stmt Create(CXCursor handle, Cursor parent)
         {
+            if (handle.IsExpression)
+            {
+                return Expr.Create(handle, parent);
+            }
+
             switch (handle.Kind)
             {
                 case CXCursorKind.CXCursor_CompoundStmt:

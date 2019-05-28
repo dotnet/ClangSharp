@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace ClangSharp
+﻿namespace ClangSharp
 {
     internal class CXXMethodDecl : FunctionDecl
     {

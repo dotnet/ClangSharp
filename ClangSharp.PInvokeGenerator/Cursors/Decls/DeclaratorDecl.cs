@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ClangSharp
+﻿namespace ClangSharp
 {
     internal class DeclaratorDecl : ValueDecl
     {

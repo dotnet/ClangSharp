@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace ClangSharp
 {
     internal class FunctionDecl : DeclaratorDecl
     {
+        private readonly List<Decl> _declarations = new List<Decl>();
         private readonly ParmVarDecl[] _parameters;
+        private readonly Lazy<Type> _returnType;
         private readonly Lazy<Cursor> _specializedTemplate;
 
-        private bool _isDllExport;
-        private bool _isDllImport;
+        private Stmt _body;
 
         public FunctionDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
@@ -25,6 +27,8 @@ namespace ClangSharp
                 parmVarDecl.Visit(clientData: default);
             }
 
+            _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.ResultType, () => Type.Create(Handle.ResultType, TranslationUnit)));
+
             _specializedTemplate = new Lazy<Cursor>(() => {
                 var cursor = TranslationUnit.GetOrCreateCursor(handle.SpecializedCursorTemplate, () => Create(handle.SpecializedCursorTemplate, this));
                 cursor.Visit(clientData: default);
@@ -32,11 +36,13 @@ namespace ClangSharp
             });
         }
 
+        public IReadOnlyList<Decl> Declarations => _declarations;
+
         public string DisplayName => Handle.DisplayName.ToString();
 
-        public bool HasDllExport => _isDllExport;
+        public bool HasDllExport => HasAttrs && Attributes.Any((attr) => attr is DLLExport);
 
-        public bool HasDllImport => _isDllImport;
+        public bool HasDllImport => HasAttrs && Attributes.Any((attr) => attr is DLLImport);
 
         public bool IsInlined => Handle.IsFunctionInlined;
 
@@ -47,6 +53,8 @@ namespace ClangSharp
         public int NumTemplateArguments => Handle.NumTemplateArguments;
 
         public IReadOnlyList<ParmVarDecl> Parameters => _parameters;
+
+        public Type ReturnType => _returnType.Value;
 
         public Cursor SpecializedTemplate => _specializedTemplate.Value;
 
@@ -60,26 +68,30 @@ namespace ClangSharp
 
         public long GetTemplateArgumentValue(uint i) => Handle.GetTemplateArgumentValue(i);
 
+        protected TDecl GetOrAddDecl<TDecl>(CXCursor childHandle)
+            where TDecl : Decl
+        {
+            var decl = GetOrAddChild<Decl>(childHandle);
+            _declarations.Add(decl);
+            return (TDecl)decl;
+        }
+
         protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
         {
             ValidateVisit(ref handle);
 
-            if (childHandle.IsAttribute)
+            if (childHandle.IsDeclaration)
             {
-                switch (childHandle.Kind)
-                {
-                    case CXCursorKind.CXCursor_DLLExport:
-                    {
-                        _isDllExport = true;
-                        break;
-                    }
+                return GetOrAddDecl<Decl>(childHandle).Visit(clientData);
+            }
+            else if (childHandle.IsStatement || childHandle.IsExpression)
+            {
+                var stmt = GetOrAddChild<Stmt>(childHandle);
 
-                    case CXCursorKind.CXCursor_DLLImport:
-                    {
-                        _isDllImport = true;
-                        break;
-                    }
-                }
+                Debug.Assert(_body is null);
+                _body = stmt;
+
+                return stmt.Visit(clientData);
             }
 
             return base.VisitChildren(childHandle, handle, clientData);

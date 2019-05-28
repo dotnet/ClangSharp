@@ -8,6 +8,8 @@
 
         public CXLinkageKind Linkage => Handle.Linkage;
 
+        public string Name => Spelling;
+
         public CXVisibilityKind Visibility => Handle.Visibility;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace ClangSharp
@@ -161,6 +162,7 @@ namespace ClangSharp
             }
         }
 
+        private readonly List<Attr> _attributes = new List<Attr>();
         private readonly Lazy<Cursor> _canonical;
         private readonly Lazy<Cursor> _definition;
         private readonly Lazy<Cursor> _lexicalParent;
@@ -187,6 +189,8 @@ namespace ClangSharp
         }
 
         public CX_CXXAccessSpecifier AccessSpecifier => Handle.CXXAccessSpecifier;
+
+        public IReadOnlyList<Attr> Attributes => _attributes;
 
         public CXAvailabilityKind Availability => Handle.Availability;
 
@@ -215,5 +219,19 @@ namespace ClangSharp
         public CXComment ParsedComment => Handle.ParsedComment;
 
         public string RawCommentText => Handle.RawCommentText.ToString();
+
+        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        {
+            ValidateVisit(ref handle);
+
+            if (childHandle.IsAttribute)
+            {
+                var attr = GetOrAddChild<Attr>(childHandle);
+                _attributes.Add(attr);
+                return attr.Visit(clientData);
+            }
+
+            return base.VisitChildren(childHandle, handle, clientData);
+        }
     }
 }
