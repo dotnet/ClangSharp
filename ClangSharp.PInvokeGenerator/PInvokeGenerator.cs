@@ -413,6 +413,8 @@ namespace ClangSharp
 
             if (namedDecl is TagDecl tagDecl)
             {
+                name = namedDecl.Spelling;
+
                 if (tagDecl.IsAnonymous)
                 {
                     namedDecl.Location.GetFileLocation(out var file, out var _, out var _, out var offset);
@@ -420,7 +422,7 @@ namespace ClangSharp
                     name = $"__Anonymous{tagDecl.Type.KindSpelling}_{fileName}_{offset}";
                     AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.'", namedDecl);
                 }
-                else
+                else if (string.IsNullOrWhiteSpace(name))
                 {
                     name = GetTypeName(namedDecl, tagDecl.Type);
                 }
@@ -1064,6 +1066,8 @@ namespace ClangSharp
             {
                 Debug.Assert(_outputBuilderUsers >= 1);
                 _outputBuilderUsers++;
+
+                _outputBuilder.WriteLine();
                 return;
             }
 
