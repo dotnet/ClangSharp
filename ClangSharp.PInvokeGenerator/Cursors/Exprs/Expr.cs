@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace ClangSharp
 {
-    internal class Expr : Cursor
+    internal class Expr : ValueStmt
     {
         public static new Expr Create(CXCursor handle, Cursor parent)
         {
@@ -21,7 +21,7 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_MemberRefExpr:
                 {
-                    return new MemberRefExpr(handle, parent);
+                    return new MemberExpr(handle, parent);
                 }
 
                 case CXCursorKind.CXCursor_CallExpr:
@@ -116,7 +116,7 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_UnaryExpr:
                 {
-                    return new UnaryExpr(handle, parent);
+                    return new UnaryExprOrTypeTraitExpr(handle, parent);
                 }
 
                 case CXCursorKind.CXCursor_PackExpansionExpr:
@@ -138,13 +138,24 @@ namespace ClangSharp
             }
         }
 
+        private readonly Lazy<Cursor> _definition;
         private readonly Lazy<Type> _type;
 
         protected Expr(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.IsExpression);
+
+            _definition = new Lazy<Cursor>(() => {
+                var cursor = TranslationUnit.GetOrCreateCursor(handle.Definition, () => Create(handle.Definition, this));
+                cursor.Visit(clientData: default);
+                return cursor;
+            });
             _type = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.Type, () => Type.Create(Handle.Type, TranslationUnit)));
         }
+
+        public Cursor Definition => _definition.Value;
+
+        public bool IsDynamicCall => Handle.IsDynamicCall;
 
         public Type Type => _type.Value;
 

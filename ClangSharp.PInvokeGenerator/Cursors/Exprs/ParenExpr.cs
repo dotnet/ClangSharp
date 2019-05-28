@@ -4,82 +4,23 @@ namespace ClangSharp
 {
     internal sealed class ParenExpr : Expr
     {
+        private Expr _subExpr;
+
         public ParenExpr(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_ParenExpr);
         }
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        public Expr SubExpr => _subExpr;
+
+        protected override Expr GetOrAddExpr(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var expr = base.GetOrAddExpr(childHandle);
 
-            switch (childHandle.Kind)
-            {
-                case CXCursorKind.CXCursor_DeclRefExpr:
-                {
-                    return GetOrAddChild<DeclRefExpr>(childHandle).Visit(clientData);
-                }
+            Debug.Assert(_subExpr is null);
+            _subExpr = expr;
 
-                case CXCursorKind.CXCursor_CallExpr:
-                {
-                    return GetOrAddChild<CallExpr>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_IntegerLiteral:
-                {
-                    return GetOrAddChild<IntegerLiteral>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_FloatingLiteral:
-                {
-                    return GetOrAddChild<FloatingLiteral>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_StringLiteral:
-                {
-                    return GetOrAddChild<StringLiteral>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_CharacterLiteral:
-                {
-                    return GetOrAddChild<CharacterLiteral>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_ParenExpr:
-                {
-                    return GetOrAddChild<ParenExpr>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_UnaryOperator:
-                {
-                    return GetOrAddChild<UnaryOperator>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_ArraySubscriptExpr:
-                {
-                    return GetOrAddChild<ArraySubscriptExpr>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_BinaryOperator:
-                {
-                    return GetOrAddChild<BinaryOperator>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_ConditionalOperator:
-                {
-                    return GetOrAddChild<ConditionalOperator>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_CStyleCastExpr:
-                {
-                    return GetOrAddChild<CStyleCastExpr>(childHandle).Visit(clientData);
-                }
-
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
-            }
+            return expr;
         }
     }
 }

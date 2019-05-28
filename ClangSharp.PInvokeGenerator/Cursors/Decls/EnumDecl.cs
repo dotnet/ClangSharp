@@ -4,40 +4,33 @@ using System.Diagnostics;
 
 namespace ClangSharp
 {
-    internal sealed class EnumDecl : Decl
+    internal sealed class EnumDecl : TagDecl
     {
-        private readonly List<EnumConstantDecl> _enumConstantDecls;
+        private readonly List<EnumConstantDecl> _enumerators = new List<EnumConstantDecl>();
         private readonly Lazy<Type> _integerType;
 
         public EnumDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_EnumDecl);
-            _enumConstantDecls = new List<EnumConstantDecl>();
             _integerType = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.EnumDecl_IntegerType, () => Type.Create(Handle.EnumDecl_IntegerType, TranslationUnit)));
         }
 
-        public IReadOnlyList<EnumConstantDecl> EnumConstantDecls => _enumConstantDecls;
+        public IReadOnlyList<EnumConstantDecl> Enumerators => _enumerators;
 
         public Type IntegerType => _integerType.Value;
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        public bool IsScoped => Handle.EnumDecl_IsScoped;
+
+        protected override Decl GetOrAddDecl(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var decl = base.GetOrAddDecl(childHandle);
 
-            switch (childHandle.Kind)
+            if (decl is EnumConstantDecl enumConstantDecl)
             {
-                case CXCursorKind.CXCursor_EnumConstantDecl:
-                {
-                    var enumConstantDecl = GetOrAddChild<EnumConstantDecl>(childHandle);
-                    _enumConstantDecls.Add(enumConstantDecl);
-                    return enumConstantDecl.Visit(clientData);
-                }
-
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
+                _enumerators.Add(enumConstantDecl);
             }
+
+            return decl;
         }
     }
 }

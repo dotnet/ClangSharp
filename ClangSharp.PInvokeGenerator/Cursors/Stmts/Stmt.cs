@@ -7,6 +7,11 @@ namespace ClangSharp
     {
         public static new Stmt Create(CXCursor handle, Cursor parent)
         {
+            if (handle.IsExpression)
+            {
+                return Expr.Create(handle, parent);
+            }
+
             switch (handle.Kind)
             {
                 case CXCursorKind.CXCursor_CompoundStmt:
@@ -60,7 +65,7 @@ namespace ClangSharp
 
         protected Stmt(CXCursor handle, Cursor parent) : base(handle, parent)
         {
-            Debug.Assert(handle.IsStatement);
+            Debug.Assert(handle.IsStatement || (this is ValueStmt));
         }
 
         protected override void ValidateVisit(ref CXCursor handle)

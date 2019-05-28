@@ -6,16 +6,16 @@ namespace ClangSharp
     internal sealed class UnaryOperator : Expr
     {
         private readonly Lazy<bool> _isPrefix;
-        private readonly Lazy<string> _operator;
+        private readonly Lazy<string> _opcode;
 
-        private Expr _expr;
+        private Expr _subExpr;
 
         public UnaryOperator(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_UnaryOperator);
 
             _isPrefix = new Lazy<bool>(() => {
-                switch (Operator)
+                switch (Opcode)
                 {
                     case "-":
                     {
@@ -24,14 +24,14 @@ namespace ClangSharp
 
                     default:
                     {
-                        Debug.WriteLine($"Unhandled operator kind: {Operator}.");
+                        Debug.WriteLine($"Unhandled operator kind: {Opcode}.");
                         Debugger.Break();
                         return false;
                     }
                 }
             });
 
-            _operator = new Lazy<string>(() => {
+            _opcode = new Lazy<string>(() => {
                 var tokens = TranslationUnit.Tokenize(this);
 
                 Debug.Assert(tokens.Length >= 2);
@@ -42,95 +42,22 @@ namespace ClangSharp
             });
         }
 
-        public Expr Expr
-        {
-            get
-            {
-                return _expr;
-            }
-
-            set
-            {
-                Debug.Assert(_expr is null);
-                _expr = value;
-            }
-        }
-
         public bool IsPrefix => _isPrefix.Value;
 
-        public string Operator => _operator.Value;
+        public bool IsPostfix => !_isPrefix.Value;
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        public string Opcode => _opcode.Value;
+
+        public Expr SubExpr => _subExpr;
+
+        protected override Expr GetOrAddExpr(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var expr = base.GetOrAddExpr(childHandle);
 
-            Expr expr;
+            Debug.Assert(_subExpr is null);
+            _subExpr = expr;
 
-            switch (childHandle.Kind)
-            {
-                case CXCursorKind.CXCursor_UnexposedExpr:
-                {
-                    expr = GetOrAddChild<UnexposedExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_DeclRefExpr:
-                {
-                    expr = GetOrAddChild<DeclRefExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CallExpr:
-                {
-                    expr = GetOrAddChild<CallExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_IntegerLiteral:
-                {
-                    expr = GetOrAddChild<IntegerLiteral>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_FloatingLiteral:
-                {
-                    expr = GetOrAddChild<FloatingLiteral>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ParenExpr:
-                {
-                    expr = GetOrAddChild<ParenExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CStyleCastExpr:
-                {
-                    expr = GetOrAddChild<CStyleCastExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXStaticCastExpr:
-                {
-                    expr = GetOrAddChild<CXXStaticCastExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXThisExpr:
-                {
-                    expr = GetOrAddChild<CXXThisExpr>(childHandle);
-                    break;
-                }
-
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
-            }
-
-            Debug.Assert(expr != null);
-            Expr = expr;
-            return expr.Visit(clientData);
+            return expr;
         }
 
         private int GetOperatorIndex(CXToken[] tokens)

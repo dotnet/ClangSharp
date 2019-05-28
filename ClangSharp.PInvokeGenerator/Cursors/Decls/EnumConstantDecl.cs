@@ -2,110 +2,29 @@
 
 namespace ClangSharp
 {
-    internal sealed class EnumConstantDecl : Decl
+    internal sealed class EnumConstantDecl : ValueDecl
     {
-        private Expr _expr;
+        private Expr _initExpr;
 
         public EnumConstantDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_EnumConstantDecl);
         }
 
-        public Expr Expr
+        public Expr InitExpr => _initExpr;
+
+        public long InitVal => Handle.EnumConstantDeclValue;
+
+        public ulong UnsignedInitVal => Handle.EnumConstantDeclUnsignedValue;
+
+        protected override Expr GetOrAddExpr(CXCursor childHandle)
         {
-            get
-            {
-                return _expr;
-            }
+            var expr = base.GetOrAddExpr(childHandle);
 
-            set
-            {
-                Debug.Assert(_expr is null);
-                _expr = value;
-            }
-        }
+            Debug.Assert(_initExpr is null);
+            _initExpr = expr;
 
-        public ulong UnsignedValue => Handle.EnumConstantDeclUnsignedValue;
-
-        public long Value => Handle.EnumConstantDeclValue;
-
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
-        {
-            ValidateVisit(ref handle);
-
-            Expr expr;
-
-            switch (childHandle.Kind)
-            {
-                case CXCursorKind.CXCursor_UnexposedExpr:
-                {
-                    expr = GetOrAddChild<UnexposedExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_DeclRefExpr:
-                {
-                    expr = GetOrAddChild<DeclRefExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_IntegerLiteral:
-                {
-                    expr = GetOrAddChild<IntegerLiteral>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CharacterLiteral:
-                {
-                    expr = GetOrAddChild<CharacterLiteral>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ParenExpr:
-                {
-                    expr = GetOrAddChild<ParenExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_UnaryOperator:
-                {
-                    expr = GetOrAddChild<UnaryOperator>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_BinaryOperator:
-                {
-                    expr = GetOrAddChild<BinaryOperator>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ConditionalOperator:
-                {
-                    expr = GetOrAddChild<ConditionalOperator>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CStyleCastExpr:
-                {
-                    expr = GetOrAddChild<CStyleCastExpr>(childHandle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXBoolLiteralExpr:
-                {
-                    expr = GetOrAddChild<CXXBoolLiteralExpr>(childHandle);
-                    break;
-                }
-
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
-            }
-
-            Debug.Assert(expr != null);
-            Expr = expr;
-            return expr.Visit(clientData);
+            return expr;
         }
     }
 }

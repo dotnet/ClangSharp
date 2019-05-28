@@ -1,119 +1,98 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace ClangSharp
 {
-    internal sealed class FunctionDecl : Decl
+    internal class FunctionDecl : DeclaratorDecl
     {
-        private readonly List<ParmDecl> _parmDecls;
+        private readonly List<Decl> _declarations = new List<Decl>();
+        private readonly ParmVarDecl[] _parameters;
+        private readonly Lazy<Type> _returnType;
+        private readonly Lazy<Cursor> _specializedTemplate;
 
-        private DLLExport _dllExport;
-        private DLLImport _dllImport;
+        private Stmt _body;
 
         public FunctionDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_FunctionDecl);
-            _parmDecls = new List<ParmDecl>();
+            _parameters = new ParmVarDecl[Handle.NumArguments];
+
+            for (uint index = 0; index < Handle.NumArguments; index++)
+            {
+                var parameterHandle = Handle.GetArgument(index);
+                var parmVarDecl = (ParmVarDecl)GetOrAddDecl(parameterHandle);
+
+                _parameters[index] = parmVarDecl;
+                parmVarDecl.Visit(clientData: default);
+            }
+
+            _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.ResultType, () => Type.Create(Handle.ResultType, TranslationUnit)));
+
+            _specializedTemplate = new Lazy<Cursor>(() => {
+                var cursor = TranslationUnit.GetOrCreateCursor(handle.SpecializedCursorTemplate, () => Create(handle.SpecializedCursorTemplate, this));
+                cursor.Visit(clientData: default);
+                return cursor;
+            });
         }
 
-        public DLLExport DLLExport
-        {
-            get
-            {
-                return _dllExport;
-            }
+        public IReadOnlyList<Decl> Declarations => _declarations;
 
-            set
-            {
-                Debug.Assert((_dllExport is null) && (_dllImport is null));
-                _dllExport = value;
-            }
+        public string DisplayName => Handle.DisplayName.ToString();
+
+        public bool HasDllExport => HasAttrs && Attributes.Any((attr) => attr is DLLExport);
+
+        public bool HasDllImport => HasAttrs && Attributes.Any((attr) => attr is DLLImport);
+
+        public bool IsInlined => Handle.IsFunctionInlined;
+
+        public bool IsVariadic => Handle.IsVariadic;
+
+        public string Mangling => Handle.Mangling.ToString();
+
+        public int NumTemplateArguments => Handle.NumTemplateArguments;
+
+        public IReadOnlyList<ParmVarDecl> Parameters => _parameters;
+
+        public Type ReturnType => _returnType.Value;
+
+        public Cursor SpecializedTemplate => _specializedTemplate.Value;
+
+        public CX_StorageClass StorageClass => Handle.StorageClass;
+
+        public CXSourceRange GetSpellingNameRange(uint pieceIndex, uint options) => Handle.GetSpellingNameRange(pieceIndex, options);
+
+        public CXTemplateArgumentKind GetTemplateArgumentKind(uint i) => Handle.GetTemplateArgumentKind(i);
+
+        public ulong GetTemplateArgumentUnsignedValue(uint i) => Handle.GetTemplateArgumentUnsignedValue(i);
+
+        public long GetTemplateArgumentValue(uint i) => Handle.GetTemplateArgumentValue(i);
+
+        protected override Decl GetOrAddDecl(CXCursor childHandle)
+        {
+            var decl = base.GetOrAddDecl(childHandle);
+            _declarations.Add(decl);
+            return decl;
         }
 
-        public DLLImport DLLImport
+        protected override Expr GetOrAddExpr(CXCursor childHandle)
         {
-            get
-            {
-                return _dllImport;
-            }
+            var expr = base.GetOrAddExpr(childHandle);
 
-            set
-            {
-                Debug.Assert((_dllExport is null) && (_dllImport is null));
-                _dllImport = value;
-            }
+            Debug.Assert(_body is null);
+            _body = expr;
+
+            return expr;
         }
 
-        public IReadOnlyList<ParmDecl> ParmDecls => _parmDecls;
-
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected override Stmt GetOrAddStmt(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var stmt = base.GetOrAddStmt(childHandle);
 
-            switch (childHandle.Kind)
-            {
-                case CXCursorKind.CXCursor_ParmDecl:
-                {
-                    var parmDecl = GetOrAddChild<ParmDecl>(childHandle);
-                    parmDecl.Index = _parmDecls.Count;
-                    _parmDecls.Add(parmDecl);
-                    return parmDecl.Visit(clientData);
-                }
+            Debug.Assert(_body is null);
+            _body = stmt;
 
-                case CXCursorKind.CXCursor_TypeRef:
-                {
-                    return GetOrAddChild<TypeRef>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_NamespaceRef:
-                {
-                    return GetOrAddChild<NamespaceRef>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_CompoundStmt:
-                {
-                    return GetOrAddChild<CompoundStmt>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_UnexposedAttr:
-                {
-                    return GetOrAddChild<UnexposedAttr>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_PureAttr:
-                {
-                    return GetOrAddChild<PureAttr>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_ConstAttr:
-                {
-                    return GetOrAddChild<ConstAttr>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_VisibilityAttr:
-                {
-                    return GetOrAddChild<VisibilityAttr>(childHandle).Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_DLLExport:
-                {
-                    var dllExport = GetOrAddChild<DLLExport>(childHandle);
-                    DLLExport = dllExport;
-                    return dllExport.Visit(clientData);
-                }
-
-                case CXCursorKind.CXCursor_DLLImport:
-                {
-                    var dllImport = GetOrAddChild<DLLImport>(childHandle);
-                    DLLImport = dllImport;
-                    return dllImport.Visit(clientData);
-                }
-
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
-            }
+            return stmt;
         }
     }
 }

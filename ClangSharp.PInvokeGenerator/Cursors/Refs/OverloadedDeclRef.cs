@@ -1,25 +1,26 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace ClangSharp
 {
     internal sealed class OverloadedDeclRef : Ref
     {
+        private readonly Decl[] _overloadedDecls;
+
         public OverloadedDeclRef(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_OverloadedDeclRef);
-        }
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
-        {
-            ValidateVisit(ref handle);
+            _overloadedDecls = new Decl[Handle.NumOverloadedDecls];
 
-            switch (childHandle.Kind)
+            for (uint index = 0; index < Handle.NumArguments; index++)
             {
-                default:
-                {
-                    return base.VisitChildren(childHandle, handle, clientData);
-                }
+                var declHandle = Handle.GetOverloadedDecl(index);
+                var decl = GetOrAddDecl(declHandle);
+                decl.Visit(clientData: default);
             }
         }
+
+        public IReadOnlyList<Decl> OverloadedDecls => _overloadedDecls;
     }
 }
