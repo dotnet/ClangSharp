@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace ClangSharp
 {
@@ -41,7 +41,6 @@ namespace ClangSharp
         }
 
         private readonly List<Cursor> _children;
-        private readonly Lazy<Cursor> _canonicalCursor;
         private bool _visited;
 
         protected Cursor(CXCursor handle, Cursor parent)
@@ -64,15 +63,7 @@ namespace ClangSharp
                 TranslationUnit = parent.TranslationUnit;
             }
             TranslationUnit.AddVisitedCursor(this);
-
-            _canonicalCursor = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(handle.CanonicalCursor, () => Create(handle.CanonicalCursor, this));
-                cursor.Visit(clientData: default);
-                return cursor;
-            });
         }
-
-        public Cursor CanonicalCursor => _canonicalCursor.Value;
 
         public IReadOnlyList<Cursor> Children => _children;
 
@@ -112,6 +103,12 @@ namespace ClangSharp
             // CXChildVisit_Break for some calls, such as if they have no children.
 
             return CXChildVisitResult.CXChildVisit_Continue;
+        }
+
+        protected TCursor GetChild<TCursor>(CXCursor childHandle)
+            where TCursor : Cursor
+        {
+            return (TCursor)_children.Where((childCursor) => childCursor.Handle.Equals(childHandle)).Single();
         }
 
         protected TCursor GetOrAddChild<TCursor>(CXCursor childHandle)

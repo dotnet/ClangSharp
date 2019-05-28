@@ -15,18 +15,21 @@ namespace ClangSharp
                 }
 
                 case CXCursorKind.CXCursor_StructDecl:
-                {
-                    return new StructDecl(handle, parent);
-                }
-
                 case CXCursorKind.CXCursor_UnionDecl:
-                {
-                    return new UnionDecl(handle, parent);
-                }
-
                 case CXCursorKind.CXCursor_ClassDecl:
                 {
-                    return new ClassDecl(handle, parent);
+                    if (handle.Language == CXLanguageKind.CXLanguage_C)
+                    {
+                        return new RecordDecl(handle, parent);
+                    }
+                    else if (handle.Language == CXLanguageKind.CXLanguage_CPlusPlus)
+                    {
+                        return new CXXRecordDecl(handle, parent);
+                    }
+                    else
+                    {
+                        goto default;
+                    }
                 }
 
                 case CXCursorKind.CXCursor_EnumDecl:
@@ -158,14 +161,26 @@ namespace ClangSharp
             }
         }
 
+        private readonly Lazy<Cursor> _canonical;
         private readonly Lazy<Cursor> _definition;
+        private readonly Lazy<Cursor> _lexicalParent;
 
         protected Decl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.IsDeclaration);
 
+            _canonical = new Lazy<Cursor>(() => {
+                var cursor = TranslationUnit.GetOrCreateCursor(handle.CanonicalCursor, () => Create(handle.CanonicalCursor, this));
+                cursor.Visit(clientData: default);
+                return cursor;
+            });
             _definition = new Lazy<Cursor>(() => {
                 var cursor = TranslationUnit.GetOrCreateCursor(Handle.Definition, () => Create(Handle.Definition, this));
+                cursor.Visit(clientData: default);
+                return cursor;
+            });
+            _lexicalParent = new Lazy<Cursor>(() => {
+                var cursor = TranslationUnit.GetOrCreateCursor(Handle.LexicalParent, () => Create(Handle.LexicalParent, this));
                 cursor.Visit(clientData: default);
                 return cursor;
             });
@@ -177,6 +192,8 @@ namespace ClangSharp
 
         public string BriefCommentText => Handle.BriefCommentText.ToString();
 
+        public Cursor Canonical => _canonical.Value;
+
         public CXSourceRange CommentRange => Handle.CommentRange;
 
         public Cursor Definition => _definition.Value;
@@ -185,6 +202,18 @@ namespace ClangSharp
 
         public bool HasAttrs => Handle.HasAttrs;
 
+        public bool IsCanonical => Handle.IsCanonical;
+
         public bool IsDefinition => Handle.IsDefinition;
+
+        public bool IsInvalid => Handle.IsInvalidDeclaration;
+
+        public CXLanguageKind Language => Handle.Language;
+
+        public Cursor LexicalParent => _lexicalParent.Value;
+
+        public CXComment ParsedComment => Handle.ParsedComment;
+
+        public string RawCommentText => Handle.RawCommentText.ToString();
     }
 }

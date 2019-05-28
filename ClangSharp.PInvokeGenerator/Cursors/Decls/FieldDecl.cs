@@ -14,5 +14,7 @@ namespace ClangSharp
         public bool IsBitField => Handle.IsBitField;
 
         public bool IsMutable => Handle.CXXField_IsMutable;
+
+        public long Offset => Handle.OffsetOfField;
     }
 }

@@ -1,23 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace ClangSharp
 {
     internal sealed class TypedefDecl : TypedefNameDecl
     {
-        private readonly List<ParmVarDecl> _parmDecls = new List<ParmVarDecl>();
-        private readonly Lazy<Type> _underlyingType;
+        private readonly List<ParmVarDecl> _parameters = new List<ParmVarDecl>();
 
         public TypedefDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_TypedefDecl);
-            _underlyingType = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.TypedefDeclUnderlyingType, () => Type.Create(Handle.TypedefDeclUnderlyingType, TranslationUnit)));
         }
 
-        public IReadOnlyList<ParmVarDecl> ParmDecls => _parmDecls;
-
-        public Type UnderlyingType => _underlyingType.Value;
+        public IReadOnlyList<ParmVarDecl> Parameters => _parameters;
 
         protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
         {
@@ -30,8 +25,7 @@ namespace ClangSharp
                     case CXCursorKind.CXCursor_ParmDecl:
                     {
                         var parmDecl = GetOrAddChild<ParmVarDecl>(childHandle);
-                        parmDecl.Index = _parmDecls.Count;
-                        _parmDecls.Add(parmDecl);
+                        _parameters.Add(parmDecl);
                         return parmDecl.Visit(clientData);
                     }
                 }

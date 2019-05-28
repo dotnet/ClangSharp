@@ -6,9 +6,15 @@ namespace ClangSharp
     {
         private readonly List<FieldDecl> _fieldDecls = new List<FieldDecl>();
 
-        protected RecordDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        public RecordDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
         }
+
+        public bool IsClass => Kind == CXCursorKind.CXCursor_ClassDecl;
+
+        public bool IsStruct => Kind == CXCursorKind.CXCursor_StructDecl;
+
+        public bool IsUnion => Kind == CXCursorKind.CXCursor_UnionDecl;
 
         public IReadOnlyList<FieldDecl> FieldDecls => _fieldDecls;
 

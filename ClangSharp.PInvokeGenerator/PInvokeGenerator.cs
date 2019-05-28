@@ -1111,10 +1111,11 @@ namespace ClangSharp
                     break;
                 }
 
+                case CXCursorKind.CXCursor_ClassDecl:
                 case CXCursorKind.CXCursor_StructDecl:
                 {
-                    var structDecl = (StructDecl)cursor;
-                    VisitStructDecl(structDecl, parent);
+                    var recordDecl = (RecordDecl)cursor;
+                    VisitRecordDecl(recordDecl, parent);
                     break;
                 }
 
@@ -1148,8 +1149,8 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_ParmDecl:
                 {
-                    var parmDecl = (ParmVarDecl)cursor;
-                    VisitParmDecl(parmDecl, parent);
+                    var parmVarDecl = (ParmVarDecl)cursor;
+                    VisitParmVarDecl(parmVarDecl, parent);
                     break;
                 }
 
@@ -1386,9 +1387,13 @@ namespace ClangSharp
                 _outputBuilder.Write(name);
                 _outputBuilder.Write('(');
 
-                foreach (var parmDecl in functionDecl.ParmDecls)
+                var lastIndex = functionDecl.Parameters.Count - 1;
+
+                for (int i = 0; i <= lastIndex; i++)
                 {
-                    Visit(parmDecl, functionDecl);
+                    var parmVarDecl = functionDecl.Parameters[i];
+                    _visitedCursors.Add(parmVarDecl);
+                    VisitParmVarDecl(parmVarDecl, functionDecl, i, lastIndex);
                 }
                 VisitChildren(functionDecl);
 
@@ -1420,57 +1425,9 @@ namespace ClangSharp
             Debug.Assert(parenExpr.Children.Count == 1);
         }
 
-        private void VisitParmDecl(ParmVarDecl parmDecl, Cursor parent)
+        private void VisitParmVarDecl(ParmVarDecl parmDecl, Cursor parent)
         {
-            int lastIndex = -1;
-
-            if (parent is FunctionDecl functionDecl)
-            {
-                lastIndex = functionDecl.ParmDecls.Count - 1;
-            }
-            else if (parent is TypedefDecl typedefDecl)
-            {
-                lastIndex = typedefDecl.ParmDecls.Count - 1;
-            }
-
-            if (lastIndex != -1)
-            {
-                var marshalAttribute = GetMarshalAttribute(parmDecl, parmDecl.Type);
-
-                if (!string.IsNullOrWhiteSpace(marshalAttribute))
-                {
-                    _outputBuilder.Write("[");
-                    _outputBuilder.Write(marshalAttribute);
-                    _outputBuilder.Write(']');
-                    _outputBuilder.Write(' ');
-                }
-
-                var parmModifier = GetParmModifier(parmDecl, parmDecl.Type);
-
-                if (!string.IsNullOrWhiteSpace(parmModifier))
-                {
-                    _outputBuilder.Write(parmModifier);
-                    _outputBuilder.Write(' ');
-                }
-
-                _outputBuilder.Write(GetTypeName(parmDecl, parmDecl.Type));
-                _outputBuilder.Write(' ');
-
-                var name = GetCursorName(parmDecl);
-                _outputBuilder.Write(EscapeName(name));
-
-                if (name.Equals("param"))
-                {
-                    _outputBuilder.Write(parmDecl.Index);
-                }
-                VisitChildren(parmDecl);
-
-                if (parmDecl.Index != lastIndex)
-                {
-                    _outputBuilder.Write(", ");
-                }
-            }
-            else if ((parent is FieldDecl) || (parent is ParmVarDecl))
+            if ((parent is FieldDecl) || (parent is ParmVarDecl))
             {
                 // TODO: We should properly handle inline function pointers for fields and method parameters
                 VisitChildren(parmDecl);
@@ -1481,9 +1438,47 @@ namespace ClangSharp
             }
         }
 
-        private void VisitStructDecl(StructDecl structDecl, Cursor parent)
+        private void VisitParmVarDecl(ParmVarDecl parmDecl, Cursor parent, int index, int lastIndex)
         {
-            var name = GetCursorName(structDecl);
+            var marshalAttribute = GetMarshalAttribute(parmDecl, parmDecl.Type);
+
+            if (!string.IsNullOrWhiteSpace(marshalAttribute))
+            {
+                _outputBuilder.Write("[");
+                _outputBuilder.Write(marshalAttribute);
+                _outputBuilder.Write(']');
+                _outputBuilder.Write(' ');
+            }
+
+            var parmModifier = GetParmModifier(parmDecl, parmDecl.Type);
+
+            if (!string.IsNullOrWhiteSpace(parmModifier))
+            {
+                _outputBuilder.Write(parmModifier);
+                _outputBuilder.Write(' ');
+            }
+
+            _outputBuilder.Write(GetTypeName(parmDecl, parmDecl.Type));
+            _outputBuilder.Write(' ');
+
+            var name = GetCursorName(parmDecl);
+            _outputBuilder.Write(EscapeName(name));
+
+            if (name.Equals("param"))
+            {
+                _outputBuilder.Write(index);
+            }
+            VisitChildren(parmDecl);
+
+            if (index != lastIndex)
+            {
+                _outputBuilder.Write(", ");
+            }
+        }
+
+        private void VisitRecordDecl(RecordDecl recordDecl, Cursor parent)
+        {
+            var name = GetCursorName(recordDecl);
 
             StartUsingOutputBuilder(name);
             {
@@ -1501,11 +1496,11 @@ namespace ClangSharp
                 _outputBuilder.WriteLine(EscapeName(name));
                 _outputBuilder.WriteBlockStart();
 
-                foreach (var fieldDecl in structDecl.FieldDecls)
+                foreach (var fieldDecl in recordDecl.FieldDecls)
                 {
-                    Visit(fieldDecl, structDecl);
+                    Visit(fieldDecl, recordDecl);
                 }
-                VisitChildren(structDecl);
+                VisitChildren(recordDecl);
 
                 _outputBuilder.WriteBlockEnd();
             }
@@ -1666,9 +1661,13 @@ namespace ClangSharp
                         _outputBuilder.Write(escapedName);
                         _outputBuilder.Write('(');
 
-                        foreach (var parmDecl in typedefDecl.ParmDecls)
+                        var lastIndex = typedefDecl.Parameters.Count - 1;
+
+                        for (int i = 0; i <= lastIndex; i++)
                         {
-                            Visit(parmDecl, typedefDecl);
+                            var parmVarDecl = typedefDecl.Parameters[i];
+                            _visitedCursors.Add(parmVarDecl);
+                            VisitParmVarDecl(parmVarDecl, typedefDecl, i, lastIndex);
                         }
                         VisitChildren(typedefDecl);
 

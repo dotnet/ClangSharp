@@ -8,5 +8,7 @@ namespace ClangSharp
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_ClassTemplate);
         }
+
+        public string DisplayName => Handle.DisplayName.ToString();
     }
 }

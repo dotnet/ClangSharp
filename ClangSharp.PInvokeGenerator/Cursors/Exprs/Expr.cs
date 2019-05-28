@@ -21,7 +21,7 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_MemberRefExpr:
                 {
-                    return new MemberRefExpr(handle, parent);
+                    return new MemberExpr(handle, parent);
                 }
 
                 case CXCursorKind.CXCursor_CallExpr:
