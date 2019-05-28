@@ -51,6 +51,57 @@ namespace ClangSharp.Test
         [InlineData("unsigned short", "ushort")]
         [InlineData("unsigned int", "uint")]
         [InlineData("unsigned long long", "ulong")]
+        public async Task NestedTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} r;
+    {nativeType} g;
+    {nativeType} b;
+
+    struct MyNestedStruct
+    {{
+        {nativeType} r;
+        {nativeType} g;
+        {nativeType} b;
+        {nativeType} a;
+    }};
+}};
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        public {expectedManagedType} r;
+        public {expectedManagedType} g;
+        public {expectedManagedType} b;
+
+        public partial struct MyNestedStruct
+        {{
+            public {expectedManagedType} r;
+            public {expectedManagedType} g;
+            public {expectedManagedType} b;
+            public {expectedManagedType} a;
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("unsigned char", "byte")]
+        [InlineData("double", "double")]
+        [InlineData("short", "short")]
+        [InlineData("int", "int")]
+        [InlineData("long long", "long")]
+        [InlineData("char", "sbyte")]
+        [InlineData("float", "float")]
+        [InlineData("unsigned short", "ushort")]
+        [InlineData("unsigned int", "uint")]
+        [InlineData("unsigned long long", "ulong")]
         public async Task TypedefTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef {nativeType} MyTypedefAlias;
