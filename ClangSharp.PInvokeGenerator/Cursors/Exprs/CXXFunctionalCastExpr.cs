@@ -2,7 +2,7 @@
 
 namespace ClangSharp
 {
-    internal sealed class CXXFunctionalCastExpr : Expr
+    internal sealed class CXXFunctionalCastExpr : ExplicitCastExpr
     {
         public CXXFunctionalCastExpr(CXCursor handle, Cursor parent) : base(handle, parent)
         {

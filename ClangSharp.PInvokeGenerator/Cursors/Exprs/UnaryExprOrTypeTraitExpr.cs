@@ -2,9 +2,9 @@
 
 namespace ClangSharp
 {
-    internal sealed class UnaryExpr : Expr
+    internal sealed class UnaryExprOrTypeTraitExpr : Expr
     {
-        public UnaryExpr(CXCursor handle, Cursor parent) : base(handle, parent)
+        public UnaryExprOrTypeTraitExpr(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_UnaryExpr);
         }

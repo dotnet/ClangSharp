@@ -2,7 +2,7 @@
 
 namespace ClangSharp
 {
-    internal sealed class ConditionalOperator : Expr
+    internal sealed class ConditionalOperator : AbstractConditionalOperator
     {
         public ConditionalOperator(CXCursor handle, Cursor parent) : base(handle, parent)
         {

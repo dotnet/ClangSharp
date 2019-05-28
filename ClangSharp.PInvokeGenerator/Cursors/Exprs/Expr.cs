@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace ClangSharp
 {
-    internal class Expr : Cursor
+    internal class Expr : ValueStmt
     {
         public static new Expr Create(CXCursor handle, Cursor parent)
         {
@@ -116,7 +116,7 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_UnaryExpr:
                 {
-                    return new UnaryExpr(handle, parent);
+                    return new UnaryExprOrTypeTraitExpr(handle, parent);
                 }
 
                 case CXCursorKind.CXCursor_PackExpansionExpr:

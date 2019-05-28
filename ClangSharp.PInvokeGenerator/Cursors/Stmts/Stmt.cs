@@ -60,7 +60,7 @@ namespace ClangSharp
 
         protected Stmt(CXCursor handle, Cursor parent) : base(handle, parent)
         {
-            Debug.Assert(handle.IsStatement);
+            Debug.Assert(handle.IsStatement || (this is ValueStmt));
         }
 
         protected override void ValidateVisit(ref CXCursor handle)
