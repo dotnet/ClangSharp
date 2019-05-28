@@ -5,13 +5,13 @@ namespace ClangSharp
 {
     internal sealed class IntegerLiteral : Expr
     {
-        private readonly Lazy<string> _rawValue;
+        private readonly Lazy<string> _value;
 
         public IntegerLiteral(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_IntegerLiteral);
 
-            _rawValue = new Lazy<string>(() => {
+            _value = new Lazy<string>(() => {
                 var tokens = TranslationUnit.Tokenize(this);
 
                 Debug.Assert(tokens.Length == 1);
@@ -21,6 +21,6 @@ namespace ClangSharp
             });
         }
 
-        public string RawValue => _rawValue.Value;
+        public string Value => _value.Value;
     }
 }

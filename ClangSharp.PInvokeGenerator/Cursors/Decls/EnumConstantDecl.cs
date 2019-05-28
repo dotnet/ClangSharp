@@ -4,30 +4,18 @@ namespace ClangSharp
 {
     internal sealed class EnumConstantDecl : ValueDecl
     {
-        private Expr _expr;
+        private Expr _initExpr;
 
         public EnumConstantDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_EnumConstantDecl);
         }
 
-        public Expr Expr
-        {
-            get
-            {
-                return _expr;
-            }
+        public Expr InitExpr => _initExpr;
 
-            set
-            {
-                Debug.Assert(_expr is null);
-                _expr = value;
-            }
-        }
+        public long InitVal => Handle.EnumConstantDeclValue;
 
-        public ulong UnsignedValue => Handle.EnumConstantDeclUnsignedValue;
-
-        public long Value => Handle.EnumConstantDeclValue;
+        public ulong UnsignedInitVal => Handle.EnumConstantDeclUnsignedValue;
 
         protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
         {
@@ -36,7 +24,10 @@ namespace ClangSharp
             if (childHandle.IsExpression)
             {
                 var expr = GetOrAddChild<Expr>(childHandle);
-                Expr = expr;
+
+                Debug.Assert(_initExpr is null);
+                _initExpr = expr;
+
                 return expr.Visit(clientData);
             }
 

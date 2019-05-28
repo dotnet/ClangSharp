@@ -6,16 +6,16 @@ namespace ClangSharp
     internal sealed class UnaryOperator : Expr
     {
         private readonly Lazy<bool> _isPrefix;
-        private readonly Lazy<string> _operator;
+        private readonly Lazy<string> _opcode;
 
-        private Expr _expr;
+        private Expr _subExpr;
 
         public UnaryOperator(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_UnaryOperator);
 
             _isPrefix = new Lazy<bool>(() => {
-                switch (Operator)
+                switch (Opcode)
                 {
                     case "-":
                     {
@@ -24,14 +24,14 @@ namespace ClangSharp
 
                     default:
                     {
-                        Debug.WriteLine($"Unhandled operator kind: {Operator}.");
+                        Debug.WriteLine($"Unhandled operator kind: {Opcode}.");
                         Debugger.Break();
                         return false;
                     }
                 }
             });
 
-            _operator = new Lazy<string>(() => {
+            _opcode = new Lazy<string>(() => {
                 var tokens = TranslationUnit.Tokenize(this);
 
                 Debug.Assert(tokens.Length >= 2);
@@ -42,23 +42,13 @@ namespace ClangSharp
             });
         }
 
-        public Expr Expr
-        {
-            get
-            {
-                return _expr;
-            }
-
-            set
-            {
-                Debug.Assert(_expr is null);
-                _expr = value;
-            }
-        }
-
         public bool IsPrefix => _isPrefix.Value;
 
-        public string Operator => _operator.Value;
+        public bool IsPostfix => !_isPrefix.Value;
+
+        public string Opcode => _opcode.Value;
+
+        public Expr SubExpr => _subExpr;
 
         protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
         {
@@ -67,7 +57,10 @@ namespace ClangSharp
             if (childHandle.IsExpression)
             {
                 var expr = GetOrAddChild<Expr>(childHandle);
-                Expr = expr;
+
+                Debug.Assert(_subExpr is null);
+                _subExpr = expr;
+
                 return expr.Visit(clientData);
             }
 

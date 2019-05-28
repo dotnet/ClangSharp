@@ -5,16 +5,16 @@ namespace ClangSharp
 {
     internal sealed class BinaryOperator : Expr
     {
-        private readonly Lazy<string> _operator;
+        private readonly Lazy<string> _opcode;
 
-        private Expr _lhsExpr;
-        private Expr _rhsExpr;
+        private Expr _lhs;
+        private Expr _rhs;
 
         public BinaryOperator(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_BinaryOperator);
 
-            _operator = new Lazy<string>(() => {
+            _opcode = new Lazy<string>(() => {
                 var tokens = TranslationUnit.Tokenize(this);
 
                 Debug.Assert(tokens.Length >= 3);
@@ -25,35 +25,11 @@ namespace ClangSharp
             });
         }
 
-        public Expr LhsExpr
-        {
-            get
-            {
-                return _lhsExpr;
-            }
+        public Expr LHS => _lhs;
 
-            set
-            {
-                Debug.Assert((_lhsExpr is null) && (_rhsExpr is null));
-                _lhsExpr = value;
-            }
-        }
+        public string Opcode => _opcode.Value;
 
-        public string Operator => _operator.Value;
-
-        public Expr RhsExpr
-        {
-            get
-            {
-                return _rhsExpr;
-            }
-
-            set
-            {
-                Debug.Assert((_lhsExpr != null) && (_rhsExpr is null));
-                _rhsExpr = value;
-            }
-        }
+        public Expr RHS => _rhs;
 
         protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
         {
@@ -63,13 +39,14 @@ namespace ClangSharp
             {
                 var expr = GetOrAddChild<Expr>(childHandle);
 
-                if (LhsExpr is null)
+                if (_lhs is null)
                 {
-                    LhsExpr = expr;
+                    _lhs = expr;
                 }
                 else
                 {
-                    RhsExpr = expr;
+                    Debug.Assert(_rhs is null);
+                    _rhs = expr;
                 }
 
                 return expr.Visit(clientData);

@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     internal sealed class EnumDecl : TagDecl
     {
-        private readonly List<EnumConstantDecl> _enumConstantDecls = new List<EnumConstantDecl>();
+        private readonly List<EnumConstantDecl> _enumerators = new List<EnumConstantDecl>();
         private readonly Lazy<Type> _integerType;
 
         public EnumDecl(CXCursor handle, Cursor parent) : base(handle, parent)
@@ -15,7 +15,7 @@ namespace ClangSharp
             _integerType = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.EnumDecl_IntegerType, () => Type.Create(Handle.EnumDecl_IntegerType, TranslationUnit)));
         }
 
-        public IReadOnlyList<EnumConstantDecl> EnumConstantDecls => _enumConstantDecls;
+        public IReadOnlyList<EnumConstantDecl> Enumerators => _enumerators;
 
         public Type IntegerType => _integerType.Value;
 
@@ -25,11 +25,16 @@ namespace ClangSharp
         {
             ValidateVisit(ref handle);
 
-            if (childHandle.Kind == CXCursorKind.CXCursor_EnumConstantDecl)
+            if (childHandle.IsDeclaration)
             {
-                var enumConstantDecl = GetOrAddChild<EnumConstantDecl>(childHandle);
-                _enumConstantDecls.Add(enumConstantDecl);
-                return enumConstantDecl.Visit(clientData);
+                var decl = GetOrAddDecl<Decl>(childHandle);
+
+                if (decl is EnumConstantDecl enumConstantDecl)
+                {
+                    _enumerators.Add(enumConstantDecl);
+                }
+
+                return decl.Visit(clientData);
             }
 
             return base.VisitChildren(childHandle, handle, clientData);

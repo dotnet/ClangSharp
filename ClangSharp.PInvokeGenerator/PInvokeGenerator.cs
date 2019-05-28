@@ -140,14 +140,14 @@ namespace ClangSharp
 
             _visitedCursors.Add(translationUnit);
 
-            foreach (var child in translationUnit.Children)
+            foreach (var declaration in translationUnit.Declarations)
             {
-                if (!child.IsFromMainFile)
+                if (!declaration.IsFromMainFile)
                 {
                     continue;
                 }
 
-                Visit(child, translationUnit);
+                Visit(declaration, translationUnit);
             }
         }
 
@@ -1100,143 +1100,82 @@ namespace ClangSharp
 
             _visitedCursors.Add(cursor);
 
-            switch (cursor.Kind)
+            if (cursor is Attr attr)
             {
-                case CXCursorKind.CXCursor_UnexposedDecl:
-                case CXCursorKind.CXCursor_UnexposedExpr:
-                case CXCursorKind.CXCursor_UnexposedAttr:
-                case CXCursorKind.CXCursor_DLLImport:
-                {
-                    VisitChildren(cursor);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ClassDecl:
-                case CXCursorKind.CXCursor_StructDecl:
-                {
-                    var recordDecl = (RecordDecl)cursor;
-                    VisitRecordDecl(recordDecl, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_EnumDecl:
-                {
-                    var enumDecl = (EnumDecl)cursor;
-                    VisitEnumDecl(enumDecl, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_FieldDecl:
-                {
-                    var fieldDecl = (FieldDecl)cursor;
-                    VisitFieldDecl(fieldDecl, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_EnumConstantDecl:
-                {
-                    var enumConstantDecl = (EnumConstantDecl)cursor;
-                    VisitEnumConstantDecl(enumConstantDecl, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_FunctionDecl:
-                {
-                    var functionDecl = (FunctionDecl)cursor;
-                    VisitFunctionDecl(functionDecl, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ParmDecl:
-                {
-                    var parmVarDecl = (ParmVarDecl)cursor;
-                    VisitParmVarDecl(parmVarDecl, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_TypedefDecl:
-                {
-                    var typedefDecl = (TypedefDecl)cursor;
-                    VisitTypedefDecl(typedefDecl, parent, typedefDecl.UnderlyingType);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_TypeRef:
-                {
-                    var typeRef = (TypeRef)cursor;
-                    VisitTypeRef(typeRef, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_DeclRefExpr:
-                {
-                    var declRefExpr = (DeclRefExpr)cursor;
-                    VisitDeclRefExpr(declRefExpr, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_IntegerLiteral:
-                {
-                    var integerLiteral = (IntegerLiteral)cursor;
-                    VisitIntegerLiteral(integerLiteral, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ParenExpr:
-                {
-                    var parenExpr = (ParenExpr)cursor;
-                    VisitParenExpr(parenExpr, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_UnaryOperator:
-                {
-                    var unaryOperator = (UnaryOperator)cursor;
-                    VisitUnaryOperator(unaryOperator, parent);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_BinaryOperator:
-                {
-                    var binaryOperator = (BinaryOperator)cursor;
-                    VisitBinaryOperator(binaryOperator, parent);
-                    break;
-                }
-
-                default:
-                {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported cursor: '{cursor.KindSpelling}'. Generated bindings may be incomplete.", cursor);
-                    break;
-                }
+                VisitAttr(attr, parent);
             }
+            else if (cursor is Decl decl)
+            {
+                VisitDecl(decl, parent);
+            }
+            else if (cursor is Ref @ref)
+            {
+                VisitRef(@ref, parent);
+            }
+            else if (cursor is Stmt stmt)
+            {
+                VisitStmt(stmt, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported cursor: '{cursor.KindSpelling}'. Generated bindings may be incomplete.", cursor);
+            }
+        }
+
+        private void VisitAttr(Attr attr, Cursor parent)
+        {
+            // We don't consider most attributes particularly important and so we do nothing
         }
 
         private void VisitBinaryOperator(BinaryOperator binaryOperator, Cursor parent)
         {
-            Debug.Assert((parent is EnumConstantDecl) || (parent is Expr));
-
-            Visit(binaryOperator.LhsExpr, binaryOperator);
+            Visit(binaryOperator.LHS, binaryOperator);
             _outputBuilder.Write(' ');
-            _outputBuilder.Write(binaryOperator.Operator);
+            _outputBuilder.Write(binaryOperator.Opcode);
             _outputBuilder.Write(' ');
-            Visit(binaryOperator.RhsExpr, binaryOperator);
-
-            Debug.Assert(binaryOperator.Children.Count == 2);
+            Visit(binaryOperator.RHS, binaryOperator);
         }
 
-        private void VisitChildren(Cursor parent)
+        private void VisitDecl(Decl decl, Cursor parent)
         {
-            foreach (var child in parent.Children)
+            if (decl is NamedDecl namedDecl)
             {
-                Visit(child, parent);
+                VisitNamedDecl(namedDecl, parent);
+            }
+            else if (decl is UnexposedDecl unexposedDecl)
+            {
+                VisitUnexposedDecl(unexposedDecl, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declaration: '{decl.KindSpelling}'. Generated bindings may be incomplete.", decl);
+            }
+        }
+
+        private void VisitDeclaratorDecl(DeclaratorDecl declaratorDecl, Cursor parent)
+        {
+            if (declaratorDecl is FieldDecl fieldDecl)
+            {
+                VisitFieldDecl(fieldDecl, parent);
+            }
+            else if (declaratorDecl is FunctionDecl functionDecl)
+            {
+                VisitFunctionDecl(functionDecl, parent);
+            }
+            else if (declaratorDecl is VarDecl varDecl)
+            {
+                VisitVarDecl(varDecl, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declarator declaration: '{declaratorDecl.KindSpelling}'. Generated bindings may be incomplete.", declaratorDecl);
             }
         }
 
         private void VisitDeclRefExpr(DeclRefExpr declRefExpr, Cursor parent)
         {
-            Debug.Assert((parent is EnumConstantDecl) || (parent is Expr));
-            _outputBuilder.Write(declRefExpr.Identifier);
-            Debug.Assert(declRefExpr.Children.Count == 0);
+            var name = GetCursorName(declRefExpr.Decl);
+            _outputBuilder.Write(EscapeName(name));
         }
 
         private void VisitEnumConstantDecl(EnumConstantDecl enumConstantDecl, Cursor parent)
@@ -1246,12 +1185,11 @@ namespace ClangSharp
             _outputBuilder.WriteIndentation();
             _outputBuilder.Write(EscapeName(name));
 
-            if (enumConstantDecl.Expr != null)
+            if (enumConstantDecl.InitExpr != null)
             {
                 _outputBuilder.Write(" = ");
-                Visit(enumConstantDecl.Expr, enumConstantDecl);
+                Visit(enumConstantDecl.InitExpr, enumConstantDecl);
             }
-            VisitChildren(enumConstantDecl);
 
             _outputBuilder.WriteLine(',');
         }
@@ -1259,6 +1197,7 @@ namespace ClangSharp
         private void VisitEnumDecl(EnumDecl enumDecl, Cursor parent)
         {
             var name = GetCursorName(enumDecl);
+
             StartUsingOutputBuilder(name);
             {
                 _outputBuilder.WriteIndented("public enum");
@@ -1276,15 +1215,51 @@ namespace ClangSharp
                 _outputBuilder.WriteLine();
                 _outputBuilder.WriteBlockStart();
 
-                foreach (var enumConstantDecl in enumDecl.EnumConstantDecls)
+                foreach (var enumerator in enumDecl.Enumerators)
                 {
-                    Visit(enumConstantDecl, enumDecl);
+                    Visit(enumerator, enumDecl);
                 }
-                VisitChildren(enumDecl);
+
+                foreach (var declaration in enumDecl.Declarations)
+                {
+                    Visit(declaration, enumDecl);
+                }
 
                 _outputBuilder.WriteBlockEnd();
             }
             StopUsingOutputBuilder();
+        }
+
+        private void VisitExpr(Expr expr, Cursor parent)
+        {
+            if (expr is BinaryOperator binaryOperator)
+            {
+                VisitBinaryOperator(binaryOperator, parent);
+            }
+            else if (expr is DeclRefExpr declRefExpr)
+            {
+                VisitDeclRefExpr(declRefExpr, parent);
+            }
+            else if (expr is IntegerLiteral integerLiteral)
+            {
+                VisitIntegerLiteral(integerLiteral, parent);
+            }
+            else if (expr is ParenExpr parenExpr)
+            {
+                VisitParenExpr(parenExpr, parent);
+            }
+            else if (expr is UnaryOperator unaryOperator)
+            {
+                VisitUnaryOperator(unaryOperator, parent);
+            }
+            else if (expr is UnexposedExpr unexposedExpr)
+            {
+                VisitUnexposedExpr(unexposedExpr, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported expression: '{expr.KindSpelling}'. Generated bindings may be incomplete.", expr);
+            }
         }
 
         private void VisitFieldDecl(FieldDecl fieldDecl, Cursor parent)
@@ -1335,27 +1310,24 @@ namespace ClangSharp
             {
                 _outputBuilder.Write(lastElement);
             }
-            VisitChildren(fieldDecl);
 
             _outputBuilder.WriteLine(';');
         }
 
         private void VisitFunctionDecl(FunctionDecl functionDecl, Cursor parent)
         {
-            var type = functionDecl.Type;
             var name = GetCursorName(functionDecl);
 
             if (_config.ExcludedFunctions.Contains(name))
             {
-                foreach (var child in functionDecl.Children)
-                {
-                    _visitedCursors.Add(child);
-                }
                 return;
             }
 
             StartUsingOutputBuilder(_config.MethodClassName);
             {
+                var type = functionDecl.Type;
+                var returnType = functionDecl.ReturnType;
+
                 _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
                 _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
@@ -1364,7 +1336,7 @@ namespace ClangSharp
                 _outputBuilder.Write(GetCallingConventionName(functionDecl, type.CallingConv));
                 _outputBuilder.WriteLine(")]");
 
-                var marshalAttribute = GetMarshalAttribute(functionDecl, type.ResultType);
+                var marshalAttribute = GetMarshalAttribute(functionDecl, returnType);
 
                 if (!string.IsNullOrWhiteSpace(marshalAttribute))
                 {
@@ -1378,13 +1350,12 @@ namespace ClangSharp
                 {
                     name = name.Substring(_config.MethodPrefixToStrip.Length);
                 }
-                name = EscapeName(name);
 
                 _outputBuilder.WriteIndented("public static extern");
                 _outputBuilder.Write(' ');
-                _outputBuilder.Write(GetTypeName(functionDecl, type.ResultType));
+                _outputBuilder.Write(GetTypeName(functionDecl, returnType));
                 _outputBuilder.Write(' ');
-                _outputBuilder.Write(name);
+                _outputBuilder.Write(EscapeName(name));
                 _outputBuilder.Write('(');
 
                 var lastIndex = functionDecl.Parameters.Count - 1;
@@ -1395,52 +1366,48 @@ namespace ClangSharp
                     _visitedCursors.Add(parmVarDecl);
                     VisitParmVarDecl(parmVarDecl, functionDecl, i, lastIndex);
                 }
-                VisitChildren(functionDecl);
 
                 _outputBuilder.WriteLine(");");
+
+                foreach (var declaration in functionDecl.Declarations)
+                {
+                    Visit(declaration, functionDecl);
+                }
             }
             StopUsingOutputBuilder();
         }
 
         private void VisitIntegerLiteral(IntegerLiteral integerLiteral, Cursor parent)
         {
-            if (parent is FieldDecl)
-            {
-                return;
-            }
+            _outputBuilder.Write(integerLiteral.Value);
+        }
 
-            Debug.Assert((parent is EnumConstantDecl) || (parent is Expr));
-            _outputBuilder.Write(integerLiteral.RawValue);
-            Debug.Assert(integerLiteral.Children.Count == 0);
+        private void VisitNamedDecl(NamedDecl namedDecl, Cursor parent)
+        {
+            if (namedDecl is TypeDecl typeDecl)
+            {
+                VisitTypeDecl(typeDecl, parent);
+            }
+            else if (namedDecl is ValueDecl valueDecl)
+            {
+                VisitValueDecl(valueDecl, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported named declaration: '{namedDecl.KindSpelling}'. Generated bindings may be incomplete.", namedDecl);
+            }
         }
 
         private void VisitParenExpr(ParenExpr parenExpr, Cursor parent)
         {
-            Debug.Assert((parent is EnumConstantDecl) || (parent is Expr));
-
             _outputBuilder.Write('(');
-            VisitChildren(parenExpr);
+            Visit(parenExpr.SubExpr, parenExpr);
             _outputBuilder.Write(')');
-
-            Debug.Assert(parenExpr.Children.Count == 1);
         }
 
-        private void VisitParmVarDecl(ParmVarDecl parmDecl, Cursor parent)
+        private void VisitParmVarDecl(ParmVarDecl parmVarDecl, Cursor parent, int index, int lastIndex)
         {
-            if ((parent is FieldDecl) || (parent is ParmVarDecl))
-            {
-                // TODO: We should properly handle inline function pointers for fields and method parameters
-                VisitChildren(parmDecl);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported '{parmDecl.KindSpelling}' parent: '{parent.KindSpelling}'. Generated bindings may be incomplete.", parmDecl);
-            }
-        }
-
-        private void VisitParmVarDecl(ParmVarDecl parmDecl, Cursor parent, int index, int lastIndex)
-        {
-            var marshalAttribute = GetMarshalAttribute(parmDecl, parmDecl.Type);
+            var marshalAttribute = GetMarshalAttribute(parmVarDecl, parmVarDecl.Type);
 
             if (!string.IsNullOrWhiteSpace(marshalAttribute))
             {
@@ -1450,7 +1417,7 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
             }
 
-            var parmModifier = GetParmModifier(parmDecl, parmDecl.Type);
+            var parmModifier = GetParmModifier(parmVarDecl, parmVarDecl.Type);
 
             if (!string.IsNullOrWhiteSpace(parmModifier))
             {
@@ -1458,17 +1425,16 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
             }
 
-            _outputBuilder.Write(GetTypeName(parmDecl, parmDecl.Type));
+            _outputBuilder.Write(GetTypeName(parmVarDecl, parmVarDecl.Type));
             _outputBuilder.Write(' ');
 
-            var name = GetCursorName(parmDecl);
+            var name = GetCursorName(parmVarDecl);
             _outputBuilder.Write(EscapeName(name));
 
             if (name.Equals("param"))
             {
                 _outputBuilder.Write(index);
             }
-            VisitChildren(parmDecl);
 
             if (index != lastIndex)
             {
@@ -1496,15 +1462,80 @@ namespace ClangSharp
                 _outputBuilder.WriteLine(EscapeName(name));
                 _outputBuilder.WriteBlockStart();
 
-                foreach (var fieldDecl in recordDecl.Fields)
+                foreach (var field in recordDecl.Fields)
                 {
-                    Visit(fieldDecl, recordDecl);
+                    Visit(field, recordDecl);
                 }
-                VisitChildren(recordDecl);
+
+                foreach (var declaration in recordDecl.Declarations)
+                {
+                    Visit(declaration, recordDecl);
+                }
 
                 _outputBuilder.WriteBlockEnd();
             }
             StopUsingOutputBuilder();
+        }
+
+        private void VisitRef(Ref @ref, Cursor parent)
+        {
+            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported reference: '{@ref.KindSpelling}'. Generated bindings may be incomplete.", @ref);
+        }
+
+        private void VisitStmt(Stmt stmt, Cursor parent)
+        {
+            if (stmt is Expr expr)
+            {
+                VisitExpr(expr, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.KindSpelling}'. Generated bindings may be incomplete.", stmt);
+            }
+        }
+
+        private void VisitTagDecl(TagDecl tagDecl, Cursor parent)
+        {
+            if (tagDecl is RecordDecl recordDecl)
+            {
+                VisitRecordDecl(recordDecl, parent);
+            }
+            else if (tagDecl is EnumDecl enumDecl)
+            {
+                VisitEnumDecl(enumDecl, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported tag declaration: '{tagDecl.KindSpelling}'. Generated bindings may be incomplete.", tagDecl);
+            }
+        }
+
+        private void VisitTypeDecl(TypeDecl typeDecl, Cursor parent)
+        {
+            if (typeDecl is TagDecl tagDecl)
+            {
+                VisitTagDecl(tagDecl, parent);
+            }
+            else if (typeDecl is TypedefNameDecl typedefNameDecl)
+            {
+                VisitTypedefNameDecl(typedefNameDecl, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported type declaration: '{typeDecl.KindSpelling}'. Generated bindings may be incomplete.", typeDecl);
+            }
+        }
+
+        private void VisitTypedefNameDecl(TypedefNameDecl typedefNameDecl, Cursor parent)
+        {
+            if (typedefNameDecl is TypedefDecl typedefDecl)
+            {
+                VisitTypedefDecl(typedefDecl, parent, typedefDecl.UnderlyingType);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported typedef name declaration: '{typedefNameDecl.KindSpelling}'. Generated bindings may be incomplete.", typedefNameDecl);
+            }
         }
 
         private void VisitTypedefDecl(TypedefDecl typedefDecl, Cursor parent, Type underlyingType)
@@ -1598,8 +1629,6 @@ namespace ClangSharp
                     break;
                 }
             }
-
-            VisitChildren(typedefDecl);
         }
 
         private void VisitTypedefDeclForPointer(TypedefDecl typedefDecl, Cursor parent, Type pointeeType)
@@ -1669,7 +1698,6 @@ namespace ClangSharp
                             _visitedCursors.Add(parmVarDecl);
                             VisitParmVarDecl(parmVarDecl, typedefDecl, i, lastIndex);
                         }
-                        VisitChildren(typedefDecl);
 
                         _outputBuilder.WriteLine(");");
                     }
@@ -1691,29 +1719,55 @@ namespace ClangSharp
             }
         }
 
-        private void VisitTypeRef(TypeRef typeRef, Cursor parent)
-        {
-            Debug.Assert(typeRef.Children.Count == 0);
-            Debug.Assert((parent is FieldDecl) || (parent is FunctionDecl) || (parent is ParmVarDecl) || (parent is TypedefDecl));
-        }
-
         private void VisitUnaryOperator(UnaryOperator unaryOperator, Cursor parent)
         {
-            Debug.Assert((parent is EnumConstantDecl) || (parent is Expr));
-
             if (unaryOperator.IsPrefix)
             {
-                _outputBuilder.Write(unaryOperator.Operator);
-                Visit(unaryOperator.Expr, unaryOperator);
+                _outputBuilder.Write(unaryOperator.Opcode);
+                Visit(unaryOperator.SubExpr, unaryOperator);
             }
             else
             {
-                Visit(unaryOperator.Expr, unaryOperator);
-                _outputBuilder.Write(unaryOperator.Operator);
+                Visit(unaryOperator.SubExpr, unaryOperator);
+                _outputBuilder.Write(unaryOperator.Opcode);
             }
+        }
 
+        private void VisitValueDecl(ValueDecl valueDecl, Cursor parent)
+        {
+            if (valueDecl is DeclaratorDecl declaratorDecl)
+            {
+                VisitDeclaratorDecl(declaratorDecl, parent);
+            }
+            else if (valueDecl is EnumConstantDecl enumConstantDecl)
+            {
+                VisitEnumConstantDecl(enumConstantDecl, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported value declaration: '{valueDecl.KindSpelling}'. Generated bindings may be incomplete.", valueDecl);
+            }
+        }
 
-            Debug.Assert(unaryOperator.Children.Count == 1);
+        private void VisitVarDecl(VarDecl varDecl, Cursor parent)
+        {
+            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration: '{varDecl.KindSpelling}'. Generated bindings may be incomplete.", varDecl);
+        }
+
+        private void VisitUnexposedDecl(UnexposedDecl unexposedDecl, Cursor parent)
+        {
+            foreach (var declaration in unexposedDecl.Declarations)
+            {
+                Visit(declaration, unexposedDecl);
+            }
+        }
+
+        private void VisitUnexposedExpr(UnexposedExpr unexposedExpr, Cursor parent)
+        {
+            foreach (var child in unexposedExpr.Children)
+            {
+                Visit(child, unexposedExpr);
+            }
         }
     }
 }
