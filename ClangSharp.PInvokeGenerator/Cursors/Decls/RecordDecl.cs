@@ -18,23 +18,16 @@ namespace ClangSharp
 
         public IReadOnlyList<FieldDecl> Fields => _fields;
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected override Decl GetOrAddDecl(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var decl = base.GetOrAddDecl(childHandle);
 
-            if (childHandle.IsDeclaration)
+            if (decl is FieldDecl fieldDecl)
             {
-                var decl = GetOrAddDecl<Decl>(childHandle);
-
-                if (decl is FieldDecl fieldDecl)
-                {
-                    _fields.Add(fieldDecl);
-                }
-
-                return decl.Visit(clientData);
+                _fields.Add(fieldDecl);
             }
 
-            return base.VisitChildren(childHandle, handle, clientData);
+            return decl;
         }
     }
 }

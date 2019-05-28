@@ -21,23 +21,16 @@ namespace ClangSharp
 
         public bool IsScoped => Handle.EnumDecl_IsScoped;
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected override Decl GetOrAddDecl(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var decl = base.GetOrAddDecl(childHandle);
 
-            if (childHandle.IsDeclaration)
+            if (decl is EnumConstantDecl enumConstantDecl)
             {
-                var decl = GetOrAddDecl<Decl>(childHandle);
-
-                if (decl is EnumConstantDecl enumConstantDecl)
-                {
-                    _enumerators.Add(enumConstantDecl);
-                }
-
-                return decl.Visit(clientData);
+                _enumerators.Add(enumConstantDecl);
             }
 
-            return base.VisitChildren(childHandle, handle, clientData);
+            return decl;
         }
     }
 }

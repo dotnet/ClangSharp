@@ -40,49 +40,43 @@ namespace ClangSharp
 
         public Cursor SpecializedTemplate => _specializedTemplate.Value;
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected override Decl GetOrAddDecl(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var decl = base.GetOrAddDecl(childHandle);
 
-            if (childHandle.IsDeclaration)
+            if (decl is CXXMethodDecl cxxMethodDecl)
             {
-                var decl = GetOrAddDecl<Decl>(childHandle);
-
-                if (decl is CXXMethodDecl cxxMethodDecl)
+                if (decl is CXXConstructorDecl cxxConstructorDecl)
                 {
-                    if (decl is CXXConstructorDecl cxxConstructorDecl)
-                    {
-                        _constructors.Add(cxxConstructorDecl);
-                    }
-                    else if (decl is CXXDestructorDecl cxxDestructorDecl)
-                    {
-                        Debug.Assert(_destructor is null);
-                        _destructor = cxxDestructorDecl;
-                    }
-
-                    _methods.Add(cxxMethodDecl);
+                    _constructors.Add(cxxConstructorDecl);
+                }
+                else if (decl is CXXDestructorDecl cxxDestructorDecl)
+                {
+                    Debug.Assert(_destructor is null);
+                    _destructor = cxxDestructorDecl;
                 }
 
-                return decl.Visit(clientData);
+                _methods.Add(cxxMethodDecl);
             }
-            else if (childHandle.IsReference)
+
+            return decl;
+        }
+
+        protected override Ref GetOrAddRef(CXCursor childHandle)
+        {
+            var @ref = base.GetOrAddRef(childHandle);
+
+            if (@ref is CXXBaseSpecifier cxxBaseSpecifier)
             {
-                var @ref = GetOrAddChild<Ref>(childHandle);
-
-                if (@ref is CXXBaseSpecifier cxxBaseSpecifier)
+                if (cxxBaseSpecifier.IsVirtual)
                 {
-                    if (cxxBaseSpecifier.IsVirtual)
-                    {
-                        _virtualBases.Add(cxxBaseSpecifier);
-                    }
-
-                    _bases.Add(cxxBaseSpecifier);
+                    _virtualBases.Add(cxxBaseSpecifier);
                 }
 
-                return @ref.Visit(clientData);
+                _bases.Add(cxxBaseSpecifier);
             }
 
-            return base.VisitChildren(childHandle, handle, clientData);
+            return @ref;
         }
     }
 }

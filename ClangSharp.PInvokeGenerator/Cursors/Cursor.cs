@@ -103,29 +103,81 @@ namespace ClangSharp
             return CXChildVisitResult.CXChildVisit_Continue;
         }
 
-        protected TCursor GetChild<TCursor>(CXCursor childHandle)
-            where TCursor : Cursor
+        protected virtual Attr GetOrAddAttr(CXCursor childHandle)
         {
-            return (TCursor)_children.Where((childCursor) => childCursor.Handle.Equals(childHandle)).Single();
+            Debug.Assert(childHandle.IsAttribute);
+            return (Attr)GetOrAddCursor(childHandle);
         }
 
-        protected TCursor GetOrAddChild<TCursor>(CXCursor childHandle)
-            where TCursor : Cursor
+        protected virtual Cursor GetOrAddCursor(CXCursor childHandle)
         {
             var childCursor = TranslationUnit.GetOrCreateCursor(childHandle, () => Create(childHandle, this));
             _children.Add(childCursor);
-            return (TCursor)childCursor;
+            return childCursor;
         }
 
-        protected virtual CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected virtual Decl GetOrAddDecl(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
-            return GetOrAddChild<Cursor>(childHandle).Visit(clientData);
+            Debug.Assert(childHandle.IsDeclaration);
+            return (Decl)GetOrAddCursor(childHandle);
+        }
+
+        protected virtual Expr GetOrAddExpr(CXCursor childHandle)
+        {
+            Debug.Assert(childHandle.IsExpression);
+            return (Expr)GetOrAddCursor(childHandle);
+        }
+
+        protected virtual Ref GetOrAddRef(CXCursor childHandle)
+        {
+            Debug.Assert(childHandle.IsReference);
+            return (Ref)GetOrAddCursor(childHandle);
+        }
+
+        protected virtual Stmt GetOrAddStmt(CXCursor childHandle)
+        {
+            if (childHandle.IsExpression)
+            {
+                return GetOrAddExpr(childHandle);
+            }
+
+            Debug.Assert(childHandle.IsStatement);
+            return (Stmt)GetOrAddCursor(childHandle);
         }
 
         protected virtual void ValidateVisit(ref CXCursor handle)
         {
             Debug.Assert(handle.Equals(Handle));
+        }
+
+        private CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        {
+            ValidateVisit(ref handle);
+
+            if (childHandle.IsDeclaration)
+            {
+                return GetOrAddDecl(childHandle).Visit(clientData);
+            }
+            else if (childHandle.IsReference)
+            {
+                return GetOrAddRef(childHandle).Visit(clientData);
+            }
+            else if (childHandle.IsExpression)
+            {
+                return GetOrAddExpr(childHandle).Visit(clientData);
+            }
+            else if (childHandle.IsStatement)
+            {
+                return GetOrAddStmt(childHandle).Visit(clientData);
+            }
+            else if (childHandle.IsAttribute)
+            {
+                return GetOrAddAttr(childHandle).Visit(clientData);
+            }
+            else
+            {
+                return GetOrAddCursor(childHandle).Visit(clientData);
+            }
         }
     }
 }

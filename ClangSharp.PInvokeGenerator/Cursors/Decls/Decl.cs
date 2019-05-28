@@ -220,18 +220,14 @@ namespace ClangSharp
 
         public string RawCommentText => Handle.RawCommentText.ToString();
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected override Attr GetOrAddAttr(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var attr = base.GetOrAddAttr(childHandle);
 
-            if (childHandle.IsAttribute)
-            {
-                var attr = GetOrAddChild<Attr>(childHandle);
-                _attributes.Add(attr);
-                return attr.Visit(clientData);
-            }
+            Debug.Assert(!_attributes.Contains(attr));
+            _attributes.Add(attr);
 
-            return base.VisitChildren(childHandle, handle, clientData);
+            return attr;
         }
     }
 }

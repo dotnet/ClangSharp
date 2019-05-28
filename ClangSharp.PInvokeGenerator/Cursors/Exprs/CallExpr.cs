@@ -18,7 +18,7 @@ namespace ClangSharp
             for (uint index = 0; index < Handle.NumArguments; index++)
             {
                 var argumentHandle = Handle.GetArgument(index);
-                var expr = GetOrAddChild<Expr>(argumentHandle);
+                var expr = GetOrAddExpr(argumentHandle);
 
                 _arguments[index] = expr;
                 expr.Visit(clientData: default);

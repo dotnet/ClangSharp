@@ -16,7 +16,7 @@ namespace ClangSharp
             for (uint index = 0; index < Handle.NumArguments; index++)
             {
                 var declHandle = Handle.GetOverloadedDecl(index);
-                var decl = GetOrAddChild<Decl>(declHandle);
+                var decl = GetOrAddDecl(declHandle);
                 decl.Visit(clientData: default);
             }
         }

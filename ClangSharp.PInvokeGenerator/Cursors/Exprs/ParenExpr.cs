@@ -13,21 +13,14 @@ namespace ClangSharp
 
         public Expr SubExpr => _subExpr;
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected override Expr GetOrAddExpr(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var expr = base.GetOrAddExpr(childHandle);
 
-            if (childHandle.IsExpression)
-            {
-                var expr = GetOrAddChild<Expr>(childHandle);
+            Debug.Assert(_subExpr is null);
+            _subExpr = expr;
 
-                Debug.Assert(_subExpr is null);
-                _subExpr = expr;
-
-                return expr.Visit(clientData);
-            }
-
-            return base.VisitChildren(childHandle, handle, clientData);
+            return expr;
         }
     }
 }

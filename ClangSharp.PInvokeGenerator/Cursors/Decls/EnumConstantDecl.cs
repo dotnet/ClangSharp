@@ -17,21 +17,14 @@ namespace ClangSharp
 
         public ulong UnsignedInitVal => Handle.EnumConstantDeclUnsignedValue;
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected override Expr GetOrAddExpr(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var expr = base.GetOrAddExpr(childHandle);
 
-            if (childHandle.IsExpression)
-            {
-                var expr = GetOrAddChild<Expr>(childHandle);
+            Debug.Assert(_initExpr is null);
+            _initExpr = expr;
 
-                Debug.Assert(_initExpr is null);
-                _initExpr = expr;
-
-                return expr.Visit(clientData);
-            }
-
-            return base.VisitChildren(childHandle, handle, clientData);
+            return expr;
         }
     }
 }

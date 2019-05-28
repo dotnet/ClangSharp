@@ -21,7 +21,7 @@ namespace ClangSharp
             for (uint index = 0; index < Handle.NumArguments; index++)
             {
                 var parameterHandle = Handle.GetArgument(index);
-                var parmVarDecl = GetOrAddChild<ParmVarDecl>(parameterHandle);
+                var parmVarDecl = (ParmVarDecl)GetOrAddDecl(parameterHandle);
 
                 _parameters[index] = parmVarDecl;
                 parmVarDecl.Visit(clientData: default);
@@ -68,33 +68,31 @@ namespace ClangSharp
 
         public long GetTemplateArgumentValue(uint i) => Handle.GetTemplateArgumentValue(i);
 
-        protected TDecl GetOrAddDecl<TDecl>(CXCursor childHandle)
-            where TDecl : Decl
+        protected override Decl GetOrAddDecl(CXCursor childHandle)
         {
-            var decl = GetOrAddChild<Decl>(childHandle);
+            var decl = base.GetOrAddDecl(childHandle);
             _declarations.Add(decl);
-            return (TDecl)decl;
+            return decl;
         }
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected override Expr GetOrAddExpr(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var expr = base.GetOrAddExpr(childHandle);
 
-            if (childHandle.IsDeclaration)
-            {
-                return GetOrAddDecl<Decl>(childHandle).Visit(clientData);
-            }
-            else if (childHandle.IsStatement || childHandle.IsExpression)
-            {
-                var stmt = GetOrAddChild<Stmt>(childHandle);
+            Debug.Assert(_body is null);
+            _body = expr;
 
-                Debug.Assert(_body is null);
-                _body = stmt;
+            return expr;
+        }
 
-                return stmt.Visit(clientData);
-            }
+        protected override Stmt GetOrAddStmt(CXCursor childHandle)
+        {
+            var stmt = base.GetOrAddStmt(childHandle);
 
-            return base.VisitChildren(childHandle, handle, clientData);
+            Debug.Assert(_body is null);
+            _body = stmt;
+
+            return stmt;
         }
     }
 }

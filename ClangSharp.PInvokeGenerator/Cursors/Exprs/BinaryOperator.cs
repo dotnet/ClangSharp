@@ -31,28 +31,21 @@ namespace ClangSharp
 
         public Expr RHS => _rhs;
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected override Expr GetOrAddExpr(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var expr = base.GetOrAddExpr(childHandle);
 
-            if (childHandle.IsExpression)
+            if (_lhs is null)
             {
-                var expr = GetOrAddChild<Expr>(childHandle);
-
-                if (_lhs is null)
-                {
-                    _lhs = expr;
-                }
-                else
-                {
-                    Debug.Assert(_rhs is null);
-                    _rhs = expr;
-                }
-
-                return expr.Visit(clientData);
+                _lhs = expr;
+            }
+            else
+            {
+                Debug.Assert(_rhs is null);
+                _rhs = expr;
             }
 
-            return base.VisitChildren(childHandle, handle, clientData);
+            return expr;
         }
 
         private int GetOperatorIndex(CXToken[] tokens)

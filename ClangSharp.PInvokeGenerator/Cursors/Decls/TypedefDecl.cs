@@ -14,23 +14,16 @@ namespace ClangSharp
 
         public IReadOnlyList<ParmVarDecl> Parameters => _parameters;
 
-        protected override CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
+        protected override Decl GetOrAddDecl(CXCursor childHandle)
         {
-            ValidateVisit(ref handle);
+            var decl = base.GetOrAddDecl(childHandle);
 
-            if (childHandle.IsDeclaration)
+            if (decl is ParmVarDecl parmVarDecl)
             {
-                var decl = GetOrAddChild<Decl>(childHandle);
-
-                if (decl is ParmVarDecl parmVarDecl)
-                {
-                    _parameters.Add(parmVarDecl);
-                }
-
-                return decl.Visit(clientData);
+                _parameters.Add(parmVarDecl);
             }
 
-            return base.VisitChildren(childHandle, handle, clientData);
+            return decl;
         }
     }
 }
