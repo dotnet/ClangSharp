@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ClangSharp.Test
@@ -55,6 +56,16 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
+        [Fact]
+        public async Task ExcludeTest()
+        {
+            var inputContents = "typedef enum MyEnum MyEnum;";
+            var expectedOutputContents = string.Empty;
+
+            var excludedNames = new string[] { "MyEnum" };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+        }
+
         [Theory]
         [InlineData("unsigned char", "byte")]
         [InlineData("short", "short")]
@@ -88,7 +99,7 @@ namespace ClangSharp.Test
         }
 
         [Fact]
-        public async Task SkipNoDefinitionTest()
+        public async Task NoDefinitionTest()
         {
             var inputContents = "typedef enum MyEnum MyEnum;";
 
@@ -101,6 +112,23 @@ namespace ClangSharp.Test
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task RemapTest()
+        {
+            var inputContents = "typedef enum _MyEnum MyEnum;";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public enum MyEnum
+    {{
+    }}
+}}
+";
+
+            var remappedNames = new Dictionary<string, string> { ["_MyEnum"] = "MyEnum" };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
         }
 
         [Fact]

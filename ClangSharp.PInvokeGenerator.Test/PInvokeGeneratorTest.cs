@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
@@ -21,22 +21,22 @@ namespace ClangSharp.Test
             "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
         };
 
-        protected Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents)
+        protected Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null)
         {
-            return ValidateGeneratedBindings(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None);
+            return ValidateGeneratedBindings(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None, excludedNames, remappedNames);
         }
 
-        protected Task ValidateUnsafeGeneratedBindings(string inputContents, string expectedOutputContents)
+        protected Task ValidateUnsafeGeneratedBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null)
         {
-            return ValidateGeneratedBindings(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateUnsafeCode);
+            return ValidateGeneratedBindings(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateUnsafeCode, excludedNames, remappedNames);
         }
 
-        private async Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions)
+        private async Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions, string[] excludedNames, IReadOnlyDictionary<string, string> remappedNames)
         {
             using (var outputStream = new MemoryStream())
             {
                 var unsavedInputFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
-                var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName(), configOptions);
+                var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName(), configOptions, excludedNames, methodClassName: null, methodPrefixToStrip: null, remappedNames);
 
                 using (var pinvokeGenerator = new PInvokeGenerator(config, ((path) => (outputStream, leaveOpen: true))))
                 using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, new CXUnsavedFile[] { unsavedInputFile }, DefaultTranslationUnitFlags))

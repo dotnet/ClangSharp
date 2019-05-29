@@ -154,6 +154,12 @@ namespace ClangSharp
         private void AddDiagnostic(DiagnosticLevel level, string message, Cursor cursor)
         {
             var diagnostic = new Diagnostic(level, message, cursor.Location);
+
+            if (_diagnostics.Contains(diagnostic))
+            {
+                return;
+            }
+
             _diagnostics.Add(diagnostic);
 
             if (level != DiagnosticLevel.Info)
@@ -786,6 +792,30 @@ namespace ClangSharp
             }
         }
 
+        private string GetRemappedCursorName(NamedDecl namedDecl)
+        {
+            var name = GetCursorName(namedDecl);
+
+            if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
+            {
+                remappedName = name;
+            }
+
+            return remappedName;
+        }
+
+        private string GetRemappedTypeName(Decl decl, Type type)
+        {
+            var name = GetTypeName(decl, type);
+
+            if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
+            {
+                remappedName = name;
+            }
+
+            return remappedName;
+        }
+
         private string GetTypeName(Decl decl, Type type)
         {
             switch (type.Kind)
@@ -980,7 +1010,7 @@ namespace ClangSharp
                                 goto case CXCursorKind.CXCursor_FunctionDecl;
                             }
 
-                            var name = GetCursorName((NamedDecl)pointeeType.DeclarationCursor);
+                            var name = GetRemappedCursorName((NamedDecl)pointeeType.DeclarationCursor);
 
                             if (_config.GenerateUnsafeCode)
                             {
@@ -1178,13 +1208,13 @@ namespace ClangSharp
 
         private void VisitDeclRefExpr(DeclRefExpr declRefExpr, Cursor parent)
         {
-            var name = GetCursorName(declRefExpr.Decl);
+            var name = GetRemappedCursorName(declRefExpr.Decl);
             _outputBuilder.Write(EscapeName(name));
         }
 
         private void VisitEnumConstantDecl(EnumConstantDecl enumConstantDecl, Cursor parent)
         {
-            var name = GetCursorName(enumConstantDecl);
+            var name = GetRemappedCursorName(enumConstantDecl);
 
             _outputBuilder.WriteIndentation();
             _outputBuilder.Write(EscapeName(name));
@@ -1200,7 +1230,7 @@ namespace ClangSharp
 
         private void VisitEnumDecl(EnumDecl enumDecl, Cursor parent)
         {
-            var name = GetCursorName(enumDecl);
+            var name = GetRemappedCursorName(enumDecl);
 
             StartUsingOutputBuilder(name);
             {
@@ -1208,7 +1238,7 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(EscapeName(name));
 
-                var integerTypeName = GetTypeName(enumDecl, enumDecl.IntegerType);
+                var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType);
 
                 if (!integerTypeName.Equals("int"))
                 {
@@ -1284,7 +1314,7 @@ namespace ClangSharp
 
             long lastElement = -1;
 
-            var name = GetCursorName(fieldDecl);
+            var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
 
             if (fieldDecl.Type.Kind == CXTypeKind.CXType_ConstantArray)
@@ -1295,7 +1325,7 @@ namespace ClangSharp
                 {
                     _outputBuilder.Write("public");
                     _outputBuilder.Write(' ');
-                    _outputBuilder.Write(GetTypeName(fieldDecl, fieldDecl.Type));
+                    _outputBuilder.Write(GetRemappedTypeName(fieldDecl, fieldDecl.Type));
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(escapedName);
                     _outputBuilder.Write(i);
@@ -1306,7 +1336,7 @@ namespace ClangSharp
 
             _outputBuilder.Write("public");
             _outputBuilder.Write(' ');
-            _outputBuilder.Write(GetTypeName(fieldDecl, fieldDecl.Type));
+            _outputBuilder.Write(GetRemappedTypeName(fieldDecl, fieldDecl.Type));
             _outputBuilder.Write(' ');
             _outputBuilder.Write(escapedName);
 
@@ -1320,12 +1350,7 @@ namespace ClangSharp
 
         private void VisitFunctionDecl(FunctionDecl functionDecl, Cursor parent)
         {
-            var name = GetCursorName(functionDecl);
-
-            if (_config.ExcludedFunctions.Contains(name))
-            {
-                return;
-            }
+            var name = GetRemappedCursorName(functionDecl);
 
             StartUsingOutputBuilder(_config.MethodClassName);
             {
@@ -1357,7 +1382,7 @@ namespace ClangSharp
 
                 _outputBuilder.WriteIndented("public static extern");
                 _outputBuilder.Write(' ');
-                _outputBuilder.Write(GetTypeName(functionDecl, returnType));
+                _outputBuilder.Write(GetRemappedTypeName(functionDecl, returnType));
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(EscapeName(name));
                 _outputBuilder.Write('(');
@@ -1388,6 +1413,16 @@ namespace ClangSharp
 
         private void VisitNamedDecl(NamedDecl namedDecl, Cursor parent)
         {
+            // We get the non-remapped name for the purpose of exclusion
+            // checks to ensure that users can remove no-definition declarations
+            // in favor of remapped anonymous declarations.
+            var name = GetCursorName(namedDecl);
+
+            if (_config.ExcludedNames.Contains(name))
+            {
+                return;
+            }
+
             if (namedDecl is TypeDecl typeDecl)
             {
                 VisitTypeDecl(typeDecl, parent);
@@ -1429,10 +1464,10 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
             }
 
-            _outputBuilder.Write(GetTypeName(parmVarDecl, parmVarDecl.Type));
+            _outputBuilder.Write(GetRemappedTypeName(parmVarDecl, parmVarDecl.Type));
             _outputBuilder.Write(' ');
 
-            var name = GetCursorName(parmVarDecl);
+            var name = GetRemappedCursorName(parmVarDecl);
             _outputBuilder.Write(EscapeName(name));
 
             if (name.Equals("param"))
@@ -1448,7 +1483,7 @@ namespace ClangSharp
 
         private void VisitRecordDecl(RecordDecl recordDecl, Cursor parent)
         {
-            var name = GetCursorName(recordDecl);
+            var name = GetRemappedCursorName(recordDecl);
 
             StartUsingOutputBuilder(name);
             {
@@ -1576,7 +1611,7 @@ namespace ClangSharp
                 {
                     if (!_config.GenerateUnsafeCode)
                     {
-                        var name = GetCursorName(typedefDecl);
+                        var name = GetRemappedCursorName(typedefDecl);
 
                         StartUsingOutputBuilder(name);
                         {
@@ -1588,7 +1623,7 @@ namespace ClangSharp
                             _outputBuilder.WriteLine(escapedName);
                             _outputBuilder.WriteBlockStart();
                             {
-                                var typeName = GetTypeName(typedefDecl, underlyingType);
+                                var typeName = GetRemappedTypeName(typedefDecl, underlyingType);
 
                                 _outputBuilder.WriteIndented("public");
                                 _outputBuilder.Write(' ');
@@ -1655,7 +1690,7 @@ namespace ClangSharp
                 {
                     if (!_config.GenerateUnsafeCode)
                     {
-                        var name = GetCursorName(typedefDecl);
+                        var name = GetRemappedCursorName(typedefDecl);
                         StartUsingOutputBuilder(name);
                         {
                             var escapedName = EscapeName(name);
@@ -1688,7 +1723,7 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_FunctionProto:
                 {
-                    var name = GetCursorName(typedefDecl);
+                    var name = GetRemappedCursorName(typedefDecl);
                     StartUsingOutputBuilder(name);
                     {
                         var escapedName = EscapeName(name);
@@ -1700,7 +1735,7 @@ namespace ClangSharp
                         _outputBuilder.WriteLine(")]");
                         _outputBuilder.WriteIndented("public delegate");
                         _outputBuilder.Write(' ');
-                        _outputBuilder.Write(GetTypeName(typedefDecl, pointeeType.ResultType));
+                        _outputBuilder.Write(GetRemappedTypeName(typedefDecl, pointeeType.ResultType));
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write(escapedName);
                         _outputBuilder.Write('(');
