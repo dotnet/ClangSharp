@@ -1322,11 +1322,6 @@ namespace ClangSharp
         {
             var name = GetCursorName(functionDecl);
 
-            if (_config.ExcludedFunctions.Contains(name))
-            {
-                return;
-            }
-
             StartUsingOutputBuilder(_config.MethodClassName);
             {
                 var type = functionDecl.Type;
@@ -1388,6 +1383,13 @@ namespace ClangSharp
 
         private void VisitNamedDecl(NamedDecl namedDecl, Cursor parent)
         {
+            var name = GetCursorName(namedDecl);
+
+            if (_config.ExcludedNames.Contains(name))
+            {
+                return;
+            }
+
             if (namedDecl is TypeDecl typeDecl)
             {
                 VisitTypeDecl(typeDecl, parent);

@@ -8,11 +8,11 @@ namespace ClangSharp
 
         private readonly PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedFunctions = null, string methodClassName = null, string methodPrefixToStrip = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string methodClassName = null, string methodPrefixToStrip = null)
         {
-            if (excludedFunctions is null)
+            if (excludedNames is null)
             {
-                excludedFunctions = Array.Empty<string>();
+                excludedNames = Array.Empty<string>();
             }
 
             if (string.IsNullOrWhiteSpace(libraryPath))
@@ -42,7 +42,7 @@ namespace ClangSharp
 
             _options = options;
 
-            ExcludedFunctions = excludedFunctions;
+            ExcludedNames = excludedNames;
             LibraryPath = libraryPath;
             MethodClassName = methodClassName;
             MethodPrefixToStrip = methodPrefixToStrip;
@@ -50,7 +50,7 @@ namespace ClangSharp
             OutputLocation = outputLocation;
         }
 
-        public string[] ExcludedFunctions { get; }
+        public string[] ExcludedNames { get; }
 
         public bool GenerateMultipleFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles);
 
