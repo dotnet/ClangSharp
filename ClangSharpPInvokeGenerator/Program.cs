@@ -29,6 +29,7 @@ namespace ClangSharp
                 AddNamespaceOption(s_rootCommand);
                 AddOutputOption(s_rootCommand);
                 AddPrefixStripOption(s_rootCommand);
+                AddRemapOption(s_rootCommand);
             }
             return await s_rootCommand.InvokeAsync(args);
         }
@@ -46,6 +47,7 @@ namespace ClangSharp
             var methodPrefixToStrip = context.ParseResult.ValueForOption<string>("prefixStrip");
             var namespaceName = context.ParseResult.ValueForOption<string>("namespace");
             var outputLocation = context.ParseResult.ValueForOption<string>("output");
+            var remappedNameValuePairs = context.ParseResult.ValueForOption<string[]>("remap");
 
             var errorList = new List<string>();
 
@@ -67,6 +69,21 @@ namespace ClangSharp
             if (string.IsNullOrWhiteSpace(outputLocation))
             {
                 errorList.Add("Error: No output file location provided. Use --output or -o");
+            }
+
+            var remappedNames = new Dictionary<string, string>();
+
+            foreach (var remappedNameValuePair in remappedNameValuePairs)
+            {
+                var parts = remappedNameValuePair.Split('=');
+
+                if (parts.Length != 2)
+                {
+                    errorList.Add($"Error: Invalid remap argument: {remappedNameValuePair}. Expected 'name=value'");
+                    continue;
+                }
+
+                remappedNames[parts[0].TrimEnd()] = parts[1].TrimStart();
             }
 
             if (errorList.Any())
@@ -111,7 +128,7 @@ namespace ClangSharp
                 }
             }
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, methodClassName, methodPrefixToStrip);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, methodClassName, methodPrefixToStrip, remappedNames);
 
             int exitCode = 0;
 
@@ -344,6 +361,20 @@ namespace ClangSharp
 
             var option = new Option("--prefixStrip", "The prefix to strip from the generated method bindings.", argument);
             option.AddAlias("-p");
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddRemapOption(RootCommand rootCommand)
+        {
+            var argument = new Argument();
+            argument.ArgumentType = typeof(string);
+            argument.Arity = ArgumentArity.OneOrMore;
+            argument.Name = "name=value";
+            argument.SetDefaultValue(Array.Empty<string>());
+
+            var option = new Option("--remap", "A declaration name to be remapped to another name during binding generation.", argument);
+            option.AddAlias("-r");
 
             rootCommand.AddOption(option);
         }

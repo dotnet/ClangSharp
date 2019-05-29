@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ClangSharp
 {
@@ -8,7 +9,7 @@ namespace ClangSharp
 
         private readonly PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string methodClassName = null, string methodPrefixToStrip = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null)
         {
             if (excludedNames is null)
             {
@@ -40,6 +41,11 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(outputLocation));
             }
 
+            if (remappedNames is null)
+            {
+                remappedNames = new Dictionary<string, string>();
+            }
+
             _options = options;
 
             ExcludedNames = excludedNames;
@@ -48,6 +54,7 @@ namespace ClangSharp
             MethodPrefixToStrip = methodPrefixToStrip;
             Namespace = namespaceName;
             OutputLocation = outputLocation;
+            RemappedNames = remappedNames;
         }
 
         public string[] ExcludedNames { get; }
@@ -65,5 +72,7 @@ namespace ClangSharp
         public string Namespace { get; }
 
         public string OutputLocation { get; }
+
+        public IReadOnlyDictionary<string, string> RemappedNames { get; }
     }
 }

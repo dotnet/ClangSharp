@@ -2,7 +2,7 @@
 
 namespace ClangSharp
 {
-    public sealed class Diagnostic
+    public sealed class Diagnostic : IEquatable<Diagnostic>
     {
         private readonly DiagnosticLevel _level;
         private readonly string _message;
@@ -25,6 +25,18 @@ namespace ClangSharp
         public string Location => _location;
 
         public string Message => _message;
+
+        public override bool Equals(object obj)
+        {
+            return (obj is Diagnostic other) && Equals(other);
+        }
+
+        public bool Equals(Diagnostic other)
+        {
+            return (_level == other.Level)
+                && (_location == other.Location)
+                && (_message == other.Message);
+        }
 
         public override string ToString()
         {
