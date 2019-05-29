@@ -79,7 +79,7 @@ namespace ClangSharp
                 emitNamespaceDeclaration = false;
             }
 
-            if (!_config.GenerateMultipleFiles)
+            if (!_config.GenerateMultipleFiles && _outputBuilderFactory.OutputBuilders.Any())
             {
                 var outputPath = _config.OutputLocation;
                 var (stream, leaveStreamOpen) = _outputStreamFactory(outputPath);
@@ -1500,6 +1500,17 @@ namespace ClangSharp
 
         private void VisitTagDecl(TagDecl tagDecl, Cursor parent)
         {
+            if (!tagDecl.IsDefinition && (tagDecl.Definition != null))
+            {
+                // We don't want to generate bindings for anything
+                // that is not itself a definition and that has a
+                // definition that can be resolved. This ensures we
+                // still generate bindings for things which are used
+                // as opaque handles, but which aren't ever defined.
+
+                return;
+            }
+
             if (tagDecl is RecordDecl recordDecl)
             {
                 VisitRecordDecl(recordDecl, parent);

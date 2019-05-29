@@ -28,14 +28,14 @@ namespace ClangSharp
 
             translationUnit.AddVisitedType(this);
 
-            _canonicalType = new Lazy<Type>(() => translationUnit.GetOrCreateType(handle.CanonicalType, () => Create(handle.CanonicalType, translationUnit)));
-            _elementType = new Lazy<Type>(() => translationUnit.GetOrCreateType(handle.ElementType, () => Create(handle.ElementType, translationUnit)));
-            _modifierType = new Lazy<Type>(() => translationUnit.GetOrCreateType(handle.ModifierType, () => Create(handle.ModifierType, translationUnit)));
-            _pointeeType = new Lazy<Type>(() => translationUnit.GetOrCreateType(handle.PointeeType, () => Create(handle.PointeeType, translationUnit)));
-            _resultType = new Lazy<Type>(() => translationUnit.GetOrCreateType(handle.ResultType, () => Create(handle.ResultType, translationUnit)));
+            _canonicalType = new Lazy<Type>(() => translationUnit.GetOrCreateType(Handle.CanonicalType, () => Create(Handle.CanonicalType, translationUnit)));
+            _elementType = new Lazy<Type>(() => translationUnit.GetOrCreateType(Handle.ElementType, () => Create(Handle.ElementType, translationUnit)));
+            _modifierType = new Lazy<Type>(() => translationUnit.GetOrCreateType(Handle.ModifierType, () => Create(Handle.ModifierType, translationUnit)));
+            _pointeeType = new Lazy<Type>(() => translationUnit.GetOrCreateType(Handle.PointeeType, () => Create(Handle.PointeeType, translationUnit)));
+            _resultType = new Lazy<Type>(() => translationUnit.GetOrCreateType(Handle.ResultType, () => Create(Handle.ResultType, translationUnit)));
 
             _declarationCursor = new Lazy<Decl>(() => {
-                var cursor = translationUnit.GetOrCreateCursor(handle.Declaration, () => Cursor.Create(handle.Declaration, translationUnit));
+                var cursor = translationUnit.GetOrCreateCursor(Handle.Declaration, () => Cursor.Create(Handle.Declaration, translationUnit));
                 cursor?.Visit(clientData: default);
                 return (Decl)cursor;
             });

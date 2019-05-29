@@ -12,8 +12,8 @@ namespace ClangSharp
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_DeclRefExpr);
 
             _decl = new Lazy<ValueDecl>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(handle.Referenced, () => ClangSharp.Decl.Create(handle.Referenced, this));
-                cursor.Visit(clientData: default);
+                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Referenced, () => ClangSharp.Decl.Create(Handle.Referenced, this));
+                cursor?.Visit(clientData: default);
                 return (ValueDecl)cursor;
             });
         }

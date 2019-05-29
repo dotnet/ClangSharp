@@ -57,13 +57,13 @@ namespace ClangSharp
             Debug.Assert(handle.IsReference);
 
             _definition = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(handle.Definition, () => Create(handle.Definition, this));
-                cursor.Visit(clientData: default);
+                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Definition, () => Create(Handle.Definition, this));
+                cursor?.Visit(clientData: default);
                 return cursor;
             });
             _referenced = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(handle.Referenced, () => Create(handle.Referenced, this));
-                cursor.Visit(clientData: default);
+                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Referenced, () => Create(Handle.Referenced, this));
+                cursor?.Visit(clientData: default);
                 return cursor;
             });
             _type = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.Type, () => Type.Create(Handle.Type, TranslationUnit)));

@@ -26,8 +26,8 @@ namespace ClangSharp
 
             _referenced = new Lazy<Cursor>(() =>
             {
-                var cursor = TranslationUnit.GetOrCreateCursor(handle.Referenced, () => Create(handle.Referenced, this));
-                cursor.Visit(clientData: default);
+                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Referenced, () => Create(Handle.Referenced, this));
+                cursor?.Visit(clientData: default);
                 return cursor;
             });
         }
