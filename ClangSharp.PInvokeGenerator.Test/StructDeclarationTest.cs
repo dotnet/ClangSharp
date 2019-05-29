@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ClangSharp.Test
@@ -45,7 +46,9 @@ namespace ClangSharp.Test
         {
             var inputContents = "typedef struct MyStruct MyStruct;";
             var expectedOutputContents = string.Empty;
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: "MyStruct");
+
+            var excludedNames = new string[] { "MyStruct" };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
         }
 
         [Theory]
@@ -112,6 +115,23 @@ namespace ClangSharp.Test
 }}
 ";
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task RemapTest()
+        {
+            var inputContents = "typedef struct _MyStruct MyStruct;";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+    }}
+}}
+";
+
+            var remappedNames = new Dictionary<string, string> { ["_MyStruct"] = "MyStruct" };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
         }
 
         [Theory]
