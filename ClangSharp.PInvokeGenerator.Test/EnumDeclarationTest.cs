@@ -86,5 +86,48 @@ namespace ClangSharp.Test
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
+
+        [Fact]
+        public async Task SkipNoDefinitionTest()
+        {
+            var inputContents = "typedef enum MyEnum MyEnum;";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public enum MyEnum
+    {{
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task SkipNonDefinitionTest()
+        {
+            var inputContents = $@"typedef enum MyEnum MyEnum;
+
+enum MyEnum
+{{
+    MyEnum_Value0,
+    MyEnum_Value1,
+    MyEnum_Value2,
+}};
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public enum MyEnum
+    {{
+        MyEnum_Value0,
+        MyEnum_Value1,
+        MyEnum_Value2,
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
     }
 }
