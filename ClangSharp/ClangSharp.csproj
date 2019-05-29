@@ -13,9 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <Content Include="ClangSharp.targets" Pack="true" PackagePath="build"/>
-      <Content Include="x64\libclang.dll" Pack="true" PackagePath="content\x64"/>
-      <Content Include="x86\libclang.dll" Pack="true" PackagePath="content\x86"/>
+    <PackageReference Include="libclang.runtime" Version="8.*" />
   </ItemGroup>
 
 </Project>
