@@ -55,6 +55,14 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
+        [Fact]
+        public async Task ExcludeTest()
+        {
+            var inputContents = "typedef enum MyEnum MyEnum;";
+            var expectedOutputContents = string.Empty;
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: "MyEnum");
+        }
+
         [Theory]
         [InlineData("unsigned char", "byte")]
         [InlineData("short", "short")]
@@ -88,7 +96,7 @@ namespace ClangSharp.Test
         }
 
         [Fact]
-        public async Task SkipNoDefinitionTest()
+        public async Task NoDefinitionTest()
         {
             var inputContents = "typedef enum MyEnum MyEnum;";
 
