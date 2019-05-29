@@ -163,27 +163,21 @@ namespace ClangSharp
         }
 
         private readonly List<Attr> _attributes = new List<Attr>();
-        private readonly Lazy<Cursor> _canonical;
-        private readonly Lazy<Cursor> _definition;
+        private readonly Lazy<Decl> _canonical;
         private readonly Lazy<Cursor> _lexicalParent;
 
         protected Decl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.IsDeclaration);
 
-            _canonical = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(handle.CanonicalCursor, () => Create(handle.CanonicalCursor, this));
-                cursor.Visit(clientData: default);
-                return cursor;
-            });
-            _definition = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Definition, () => Create(Handle.Definition, this));
-                cursor.Visit(clientData: default);
-                return cursor;
+            _canonical = new Lazy<Decl>(() => {
+                var cursor = TranslationUnit.GetOrCreateCursor(Handle.CanonicalCursor, () => Create(Handle.CanonicalCursor, this));
+                cursor?.Visit(clientData: default);
+                return (Decl)cursor;
             });
             _lexicalParent = new Lazy<Cursor>(() => {
                 var cursor = TranslationUnit.GetOrCreateCursor(Handle.LexicalParent, () => Create(Handle.LexicalParent, this));
-                cursor.Visit(clientData: default);
+                cursor?.Visit(clientData: default);
                 return cursor;
             });
         }
@@ -196,19 +190,15 @@ namespace ClangSharp
 
         public string BriefCommentText => Handle.BriefCommentText.ToString();
 
-        public Cursor Canonical => _canonical.Value;
+        public Decl Canonical => _canonical.Value;
 
         public CXSourceRange CommentRange => Handle.CommentRange;
-
-        public Cursor Definition => _definition.Value;
 
         public int ExceptionSpecificationType => Handle.ExceptionSpecificationType;
 
         public bool HasAttrs => Handle.HasAttrs;
 
         public bool IsCanonical => Handle.IsCanonical;
-
-        public bool IsDefinition => Handle.IsDefinition;
 
         public bool IsInvalid => Handle.IsInvalidDeclaration;
 

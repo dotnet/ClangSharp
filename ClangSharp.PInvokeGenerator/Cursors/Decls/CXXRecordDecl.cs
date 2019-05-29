@@ -18,8 +18,8 @@ namespace ClangSharp
         public CXXRecordDecl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             _specializedTemplate = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(handle.SpecializedCursorTemplate, () => Create(handle.SpecializedCursorTemplate, this));
-                cursor.Visit(clientData: default);
+                var cursor = TranslationUnit.GetOrCreateCursor(Handle.SpecializedCursorTemplate, () => Create(Handle.SpecializedCursorTemplate, this));
+                cursor?.Visit(clientData: default);
                 return cursor;
             });
         }

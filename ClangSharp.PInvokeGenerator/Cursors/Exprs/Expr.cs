@@ -146,8 +146,8 @@ namespace ClangSharp
             Debug.Assert(handle.IsExpression);
 
             _definition = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(handle.Definition, () => Create(handle.Definition, this));
-                cursor.Visit(clientData: default);
+                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Definition, () => Create(Handle.Definition, this));
+                cursor?.Visit(clientData: default);
                 return cursor;
             });
             _type = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.Type, () => Type.Create(Handle.Type, TranslationUnit)));
