@@ -7,7 +7,9 @@ namespace ClangSharp
     internal sealed class CallExpr : Expr
     {
         private readonly Expr[] _arguments;
-        private readonly Lazy<Cursor> _referenced;
+        private readonly Lazy<Decl> _calleeDecl;
+
+        private Expr _callee;
 
         public CallExpr(CXCursor handle, Cursor parent) : base(handle, parent)
         {
@@ -24,18 +26,20 @@ namespace ClangSharp
                 expr.Visit(clientData: default);
             }
 
-            _referenced = new Lazy<Cursor>(() =>
+            _calleeDecl = new Lazy<Decl>(() =>
             {
                 var cursor = TranslationUnit.GetOrCreateCursor(Handle.Referenced, () => Create(Handle.Referenced, this));
                 cursor?.Visit(clientData: default);
-                return cursor;
+                return (Decl)cursor;
             });
         }
 
         public IReadOnlyList<Expr> Arguments => _arguments;
 
-        public Cursor Referenced => _referenced.Value;
+        public Decl CalleeDecl => _calleeDecl.Value;
 
-        public CXSourceRange GetReferenceNameRange(CXNameRefFlags nameFlags, uint pieceIndex) => Handle.GetReferenceNameRange(nameFlags, pieceIndex);
+        public FunctionDecl DirectCallee => CalleeDecl as FunctionDecl;
+
+        public CXSourceRange GetCalleeDeclNameRange(CXNameRefFlags nameFlags, uint pieceIndex) => Handle.GetReferenceNameRange(nameFlags, pieceIndex);
     }
 }

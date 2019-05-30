@@ -375,6 +375,16 @@ namespace ClangSharp
             }
         }
 
+        private string EscapeAndStripName(string name)
+        {
+            if (name.StartsWith(_config.MethodPrefixToStrip))
+            {
+                name = name.Substring(_config.MethodPrefixToStrip.Length);
+            }
+
+            return EscapeName(name);
+        }
+
         private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention)
         {
             switch (callingConvention)
@@ -1170,6 +1180,42 @@ namespace ClangSharp
             Visit(binaryOperator.RHS, binaryOperator);
         }
 
+        private void VisitCallExpr(CallExpr callExpr, Cursor parent)
+        {
+            var calleeDecl = callExpr.CalleeDecl;
+
+            if (calleeDecl is FunctionDecl functionDecl)
+            {
+                var name = GetRemappedCursorName(functionDecl);
+
+                _outputBuilder.WriteIndented(EscapeAndStripName(name));
+                _outputBuilder.Write('(');
+
+                foreach (var argument in callExpr.Arguments)
+                {
+                    Visit(argument, callExpr);
+                }
+
+                _outputBuilder.WriteLine(");");
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.KindSpelling}'. Generated bindings may be incomplete.", calleeDecl);
+            }
+        }
+
+        private void VisitCompoundStmt(CompoundStmt compoundStmt, Cursor parent)
+        {
+            _outputBuilder.WriteBlockStart();
+
+            foreach (var stmt in compoundStmt.Body)
+            {
+                Visit(stmt, parent);
+            }
+
+            _outputBuilder.WriteBlockEnd();
+        }
+
         private void VisitDecl(Decl decl, Cursor parent)
         {
             if (decl is NamedDecl namedDecl)
@@ -1270,6 +1316,10 @@ namespace ClangSharp
             {
                 VisitBinaryOperator(binaryOperator, parent);
             }
+            else if (expr is CallExpr callExpr)
+            {
+                VisitCallExpr(callExpr, parent);
+            }
             else if (expr is DeclRefExpr declRefExpr)
             {
                 VisitDeclRefExpr(declRefExpr, parent);
@@ -1356,14 +1406,18 @@ namespace ClangSharp
             {
                 var type = functionDecl.Type;
                 var returnType = functionDecl.ReturnType;
+                var body = functionDecl.Body;
 
-                _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                if (body is null)
+                {
+                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
-                _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
-                _outputBuilder.Write(name);
-                _outputBuilder.Write("\", CallingConvention = CallingConvention.");
-                _outputBuilder.Write(GetCallingConventionName(functionDecl, type.CallingConv));
-                _outputBuilder.WriteLine(")]");
+                    _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
+                    _outputBuilder.Write(name);
+                    _outputBuilder.Write("\", CallingConvention = CallingConvention.");
+                    _outputBuilder.Write(GetCallingConventionName(functionDecl, type.CallingConv));
+                    _outputBuilder.WriteLine(")]");
+                }
 
                 var marshalAttribute = GetMarshalAttribute(functionDecl, returnType);
 
@@ -1375,16 +1429,18 @@ namespace ClangSharp
                     _outputBuilder.WriteLine();
                 }
 
-                if (name.StartsWith(_config.MethodPrefixToStrip))
+                _outputBuilder.WriteIndented("public static");
+                _outputBuilder.Write(' ');
+
+                if (body is null)
                 {
-                    name = name.Substring(_config.MethodPrefixToStrip.Length);
+                    _outputBuilder.Write("extern");
+                    _outputBuilder.Write(' ');
                 }
 
-                _outputBuilder.WriteIndented("public static extern");
-                _outputBuilder.Write(' ');
                 _outputBuilder.Write(GetRemappedTypeName(functionDecl, returnType));
                 _outputBuilder.Write(' ');
-                _outputBuilder.Write(EscapeName(name));
+                _outputBuilder.Write(EscapeAndStripName(name));
                 _outputBuilder.Write('(');
 
                 var lastIndex = functionDecl.Parameters.Count - 1;
@@ -1396,7 +1452,27 @@ namespace ClangSharp
                     VisitParmVarDecl(parmVarDecl, functionDecl, i, lastIndex);
                 }
 
-                _outputBuilder.WriteLine(");");
+                _outputBuilder.Write(")");
+
+                if (body is null)
+                {
+                    _outputBuilder.WriteLine(';');
+                }
+                else
+                {
+                    _outputBuilder.WriteLine();
+
+                    if (body is CompoundStmt)
+                    {
+                        Visit(body, functionDecl);
+                    }
+                    else
+                    {
+                        _outputBuilder.WriteBlockStart();
+                        Visit(body, functionDecl);
+                        _outputBuilder.WriteBlockEnd();
+                    }
+                }
 
                 foreach (var declaration in functionDecl.Declarations)
                 {
@@ -1521,11 +1597,30 @@ namespace ClangSharp
             AddDiagnostic(DiagnosticLevel.Error, $"Unsupported reference: '{@ref.KindSpelling}'. Generated bindings may be incomplete.", @ref);
         }
 
+        private void VisitReturnStmt(ReturnStmt returnStmt, Cursor parent)
+        {
+            Debug.Assert(returnStmt.RetValue != null);
+
+            _outputBuilder.WriteIndented("return");
+            _outputBuilder.Write(' ');
+
+            Visit(returnStmt.RetValue, returnStmt);
+            _outputBuilder.WriteLine(';');
+        }
+
         private void VisitStmt(Stmt stmt, Cursor parent)
         {
-            if (stmt is Expr expr)
+            if (stmt is CompoundStmt compoundStmt)
             {
-                VisitExpr(expr, parent);
+                VisitCompoundStmt(compoundStmt, parent);
+            }
+            else if (stmt is ReturnStmt returnStmt)
+            {
+                VisitReturnStmt(returnStmt, parent);
+            }
+            else if (stmt is ValueStmt valueStmt)
+            {
+                VisitValueStmt(valueStmt, parent);
             }
             else
             {
@@ -1796,6 +1891,18 @@ namespace ClangSharp
             else
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported value declaration: '{valueDecl.KindSpelling}'. Generated bindings may be incomplete.", valueDecl);
+            }
+        }
+
+        private void VisitValueStmt(ValueStmt valueStmt, Cursor parent)
+        {
+            if (valueStmt is Expr expr)
+            {
+                VisitExpr(expr, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported value statement: '{valueStmt.KindSpelling}'. Generated bindings may be incomplete.", valueStmt);
             }
         }
 
