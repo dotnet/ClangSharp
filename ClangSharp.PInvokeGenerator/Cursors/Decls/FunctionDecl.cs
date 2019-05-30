@@ -36,6 +36,8 @@ namespace ClangSharp
             });
         }
 
+        public Stmt Body => _body;
+
         public IReadOnlyList<Decl> Declarations => _declarations;
 
         public string DisplayName => Handle.DisplayName.ToString();
