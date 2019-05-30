@@ -11,8 +11,7 @@ namespace ClangSharp.Test
         protected const string DefaultLibraryPath = "ClangSharpPInvokeGenerator";
         protected const string DefaultNamespaceName = "ClangSharp.Test";
 
-        protected const CXTranslationUnit_Flags DefaultTranslationUnitFlags = CXTranslationUnit_Flags.CXTranslationUnit_SkipFunctionBodies          // Don't traverse function bodies
-                                                                            | CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes      // Include attributed types in CXType
+        protected const CXTranslationUnit_Flags DefaultTranslationUnitFlags = CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes      // Include attributed types in CXType
                                                                             | CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;    // Implicit attributes should be visited
 
         protected static readonly string[] DefaultClangCommandLineArgs = new string[]
