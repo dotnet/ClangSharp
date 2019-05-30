@@ -1417,16 +1417,16 @@ namespace ClangSharp
                     _outputBuilder.Write("\", CallingConvention = CallingConvention.");
                     _outputBuilder.Write(GetCallingConventionName(functionDecl, type.CallingConv));
                     _outputBuilder.WriteLine(")]");
-                }
 
-                var marshalAttribute = GetMarshalAttribute(functionDecl, returnType);
+                    var marshalAttribute = GetMarshalAttribute(functionDecl, returnType);
 
-                if (!string.IsNullOrWhiteSpace(marshalAttribute))
-                {
-                    _outputBuilder.WriteIndented("[return: ");
-                    _outputBuilder.Write(marshalAttribute);
-                    _outputBuilder.Write(']');
-                    _outputBuilder.WriteLine();
+                    if (!string.IsNullOrWhiteSpace(marshalAttribute))
+                    {
+                        _outputBuilder.WriteIndented("[return: ");
+                        _outputBuilder.Write(marshalAttribute);
+                        _outputBuilder.Write(']');
+                        _outputBuilder.WriteLine();
+                    }
                 }
 
                 _outputBuilder.WriteIndented("public static");
@@ -1522,14 +1522,17 @@ namespace ClangSharp
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl, Cursor parent, int index, int lastIndex)
         {
-            var marshalAttribute = GetMarshalAttribute(parmVarDecl, parmVarDecl.Type);
-
-            if (!string.IsNullOrWhiteSpace(marshalAttribute))
+            if ((parent is FunctionDecl functionDecl) && (functionDecl.Body is null))
             {
-                _outputBuilder.Write("[");
-                _outputBuilder.Write(marshalAttribute);
-                _outputBuilder.Write(']');
-                _outputBuilder.Write(' ');
+                var marshalAttribute = GetMarshalAttribute(parmVarDecl, parmVarDecl.Type);
+
+                if (!string.IsNullOrWhiteSpace(marshalAttribute))
+                {
+                    _outputBuilder.Write("[");
+                    _outputBuilder.Write(marshalAttribute);
+                    _outputBuilder.Write(']');
+                    _outputBuilder.Write(' ');
+                }
             }
 
             var parmModifier = GetParmModifier(parmVarDecl, parmVarDecl.Type);

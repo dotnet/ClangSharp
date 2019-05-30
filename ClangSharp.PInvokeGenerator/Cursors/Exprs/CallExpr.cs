@@ -9,8 +9,6 @@ namespace ClangSharp
         private readonly Expr[] _arguments;
         private readonly Lazy<Decl> _calleeDecl;
 
-        private Expr _callee;
-
         public CallExpr(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_CallExpr);

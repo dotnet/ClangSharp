@@ -1,44 +1,15 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace ClangSharp
 {
-    internal class BinaryOperator : Expr
+    internal sealed class CompoundAssignOperator : BinaryOperator
     {
-        private readonly Lazy<string> _opcode;
-
-        private Expr _lhs;
-        private Expr _rhs;
-
-        public BinaryOperator(CXCursor handle, Cursor parent) : base(handle, parent)
+        public CompoundAssignOperator(CXCursor handle, Cursor parent) : base(handle, parent)
         {
-            _opcode = new Lazy<string>(GetOpcode);
+            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_CompoundAssignOperator);
         }
 
-        public Expr LHS => _lhs;
-
-        public string Opcode => _opcode.Value;
-
-        public Expr RHS => _rhs;
-
-        protected override Expr GetOrAddExpr(CXCursor childHandle)
-        {
-            var expr = base.GetOrAddExpr(childHandle);
-
-            if (_lhs is null)
-            {
-                _lhs = expr;
-            }
-            else
-            {
-                Debug.Assert(_rhs is null);
-                _rhs = expr;
-            }
-
-            return expr;
-        }
-
-        protected virtual string GetOpcode()
+        protected override string GetOpcode()
         {
             var tokens = TranslationUnit.Tokenize(this);
 
@@ -60,25 +31,16 @@ namespace ClangSharp
 
                 switch (punctuation)
                 {
-                    case "!=":
-                    case "%":
-                    case "&":
-                    case "&&":
-                    case "*":
-                    case "+":
-                    case "-":
-                    case "/":
-                    case "<":
-                    case "<<":
-                    case "<=":
-                    case "=":
-                    case "==":
-                    case ">":
-                    case ">>":
-                    case ">=":
-                    case "^":
-                    case "|":
-                    case "||":
+                    case "%=":
+                    case "&=":
+                    case "*=":
+                    case "+=":
+                    case "-=":
+                    case "/=":
+                    case "<<=":
+                    case ">>=":
+                    case "^=":
+                    case "|=":
                     {
                         if (parenDepth == 0)
                         {

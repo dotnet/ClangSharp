@@ -5,48 +5,19 @@ namespace ClangSharp
 {
     internal sealed class UnaryOperator : Expr
     {
-        private readonly Lazy<bool> _isPrefix;
-        private readonly Lazy<string> _opcode;
+        private readonly Lazy<(string Opcode, bool IsPrefix)> _opcode;
 
         private Expr _subExpr;
 
         public UnaryOperator(CXCursor handle, Cursor parent) : base(handle, parent)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_UnaryOperator);
-
-            _isPrefix = new Lazy<bool>(() => {
-                switch (Opcode)
-                {
-                    case "-":
-                    {
-                        return true;
-                    }
-
-                    default:
-                    {
-                        Debug.WriteLine($"Unhandled operator kind: {Opcode}.");
-                        Debugger.Break();
-                        return false;
-                    }
-                }
-            });
-
-            _opcode = new Lazy<string>(() => {
-                var tokens = TranslationUnit.Tokenize(this);
-
-                Debug.Assert(tokens.Length >= 2);
-
-                var operatorIndex = GetOperatorIndex(tokens);
-                Debug.Assert(tokens[operatorIndex].Kind == CXTokenKind.CXToken_Punctuation);
-                return tokens[operatorIndex].GetSpelling(Handle.TranslationUnit).ToString();
-            });
+            _opcode = new Lazy<(string Opcode, bool IsPrefix)>(GetOpcode);
         }
 
-        public bool IsPrefix => _isPrefix.Value;
+        public bool IsPrefix => _opcode.Value.IsPrefix;
 
-        public bool IsPostfix => !_isPrefix.Value;
-
-        public string Opcode => _opcode.Value;
+        public string Opcode => _opcode.Value.Opcode;
 
         public Expr SubExpr => _subExpr;
 
@@ -60,12 +31,17 @@ namespace ClangSharp
             return expr;
         }
 
-        private int GetOperatorIndex(CXToken[] tokens)
+        private (string Opcode, bool IsPrefix) GetOpcode()
         {
+            var tokens = TranslationUnit.Tokenize(this);
+
+            Debug.Assert(tokens.Length >= 2);
+
             int operatorIndex = -1;
             int parenDepth = 0;
+            bool isPrefix = false;
 
-            for (int index = 0; index < tokens.Length; index++)
+            for (int index = 0; (index < tokens.Length) && (operatorIndex == -1); index++)
             {
                 var token = tokens[index];
 
@@ -78,6 +54,21 @@ namespace ClangSharp
 
                 switch (punctuation)
                 {
+                    case "!":
+                    case "&":
+                    case "*":
+                    case "+":
+                    case "-":
+                    case "~":
+                    {
+                        if (parenDepth == 0)
+                        {
+                            operatorIndex = index;
+                            isPrefix = true;
+                        }
+                        break;
+                    }
+
                     case "(":
                     {
                         parenDepth++;
@@ -90,13 +81,14 @@ namespace ClangSharp
                         break;
                     }
 
-                    case "-":
+                    case "++":
+                    case "--":
                     {
                         if (parenDepth == 0)
                         {
-                            return index;
+                            operatorIndex = index;
+                            isPrefix = ((index + 1) != tokens.Length);
                         }
-
                         break;
                     }
 
@@ -110,7 +102,10 @@ namespace ClangSharp
             }
 
             Debug.Assert(operatorIndex != -1);
-            return operatorIndex;
+            Debug.Assert(tokens[operatorIndex].Kind == CXTokenKind.CXToken_Punctuation);
+
+            var opcode = tokens[operatorIndex].GetSpelling(Handle.TranslationUnit).ToString();
+            return (opcode, isPrefix);
         }
     }
 }

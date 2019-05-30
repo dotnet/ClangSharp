@@ -69,6 +69,11 @@ namespace ClangSharp
                     return new BinaryOperator(handle, parent);
                 }
 
+                case CXCursorKind.CXCursor_CompoundAssignOperator:
+                {
+                    return new CompoundAssignOperator(handle, parent);
+                }
+
                 case CXCursorKind.CXCursor_ConditionalOperator:
                 {
                     return new ConditionalOperator(handle, parent);
