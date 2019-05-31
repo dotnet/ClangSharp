@@ -455,6 +455,12 @@ namespace ClangSharp
             }
         }
 
+        private string GetArtificalFixedSizedBufferName(FieldDecl fieldDecl)
+        {
+            var name = GetRemappedCursorName(fieldDecl);
+            return $"_{name}_e__FixedBuffer";
+        }
+
         private string GetCursorName(NamedDecl namedDecl)
         {
             var name = string.Empty;
@@ -1132,6 +1138,33 @@ namespace ClangSharp
             }
         }
 
+        private bool IsSupportedFixedSizedBufferType(string typeName)
+        {
+            switch (typeName)
+            {
+                case "bool":
+                case "byte":
+                case "char":
+                case "double":
+                case "float":
+                case "int":
+                case "long":
+                case "sbyte":
+                case "short":
+                case "ushort":
+                case "uint":
+                case "ulong":
+                {
+                    return true;
+                }
+
+                default:
+                {
+                    return false;
+                }
+            }
+        }
+
         private void StartUsingOutputBuilder(string name)
         {
             if (_outputBuilder != null)
@@ -1387,7 +1420,8 @@ namespace ClangSharp
         {
             _outputBuilder.WriteIndentation();
 
-            var marshalAttribute = GetMarshalAttribute(fieldDecl, fieldDecl.Type);
+            var type = fieldDecl.Type;
+            var marshalAttribute = GetMarshalAttribute(fieldDecl, type);
 
             if (!string.IsNullOrWhiteSpace(marshalAttribute))
             {
@@ -1399,37 +1433,65 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
             }
 
-            long lastElement = -1;
-
             var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
+            var typeName = GetRemappedTypeName(fieldDecl, type);
 
-            if (fieldDecl.Type.Kind == CXTypeKind.CXType_ConstantArray)
+            if (type.Kind == CXTypeKind.CXType_ConstantArray)
             {
-                lastElement = fieldDecl.Type.NumElements - 1;
-
-                for (int i = 0; i < lastElement; i++)
+                if (_config.GenerateUnsafeCode)
                 {
+                    if (IsSupportedFixedSizedBufferType(typeName))
+                    {
+                        _outputBuilder.Write("public fixed");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(typeName);
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(escapedName);
+                        _outputBuilder.Write('[');
+                        _outputBuilder.Write(type.NumElements);
+                        _outputBuilder.Write(']');
+                    }
+                    else
+                    {
+                        _outputBuilder.Write("public");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(GetArtificalFixedSizedBufferName(fieldDecl));
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(escapedName);
+                    }
+                }
+                else
+                {
+                    long lastElement = type.NumElements - 1;
+
+                    for (int i = 0; i < lastElement; i++)
+                    {
+                        _outputBuilder.Write("public");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(typeName);
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(escapedName);
+                        _outputBuilder.Write(i);
+                        _outputBuilder.Write(';');
+                        _outputBuilder.Write(' ');
+                    }
+
                     _outputBuilder.Write("public");
                     _outputBuilder.Write(' ');
-                    _outputBuilder.Write(GetRemappedTypeName(fieldDecl, fieldDecl.Type));
+                    _outputBuilder.Write(typeName);
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(escapedName);
-                    _outputBuilder.Write(i);
-                    _outputBuilder.Write(';');
-                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(lastElement);
                 }
             }
-
-            _outputBuilder.Write("public");
-            _outputBuilder.Write(' ');
-            _outputBuilder.Write(GetRemappedTypeName(fieldDecl, fieldDecl.Type));
-            _outputBuilder.Write(' ');
-            _outputBuilder.Write(escapedName);
-
-            if (lastElement != -1)
+            else
             {
-                _outputBuilder.Write(lastElement);
+                _outputBuilder.Write("public");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write(typeName);
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write(escapedName);
             }
 
             _outputBuilder.WriteLine(';');
@@ -1682,6 +1744,49 @@ namespace ClangSharp
                 foreach (var declaration in recordDecl.Declarations)
                 {
                     Visit(declaration, recordDecl);
+                }
+
+                if (_config.GenerateUnsafeCode)
+                {
+                    foreach (var constantArray in recordDecl.ConstantArrays)
+                    {
+                        var type = constantArray.Type;
+                        var typeName = GetRemappedTypeName(constantArray, constantArray.Type);
+
+                        if (IsSupportedFixedSizedBufferType(typeName))
+                        {
+                            continue;
+                        }
+
+                        _outputBuilder.WriteLine();
+                        _outputBuilder.WriteIndented("public partial struct");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.WriteLine(GetArtificalFixedSizedBufferName(constantArray));
+                        _outputBuilder.WriteBlockStart();
+
+                        for (int i = 0; i < type.NumElements; i++)
+                        {
+                            _outputBuilder.WriteIndented("public");
+                            _outputBuilder.Write(' ');
+                            _outputBuilder.Write(typeName);
+                            _outputBuilder.Write(' ');
+                            _outputBuilder.Write('e');
+                            _outputBuilder.Write(i);
+                            _outputBuilder.WriteLine(';');
+                        }
+
+                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+
+                        _outputBuilder.WriteLine();
+                        _outputBuilder.WriteIndented("public ref");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(typeName);
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("this[int index] => ref MemoryMarshal.CreateSpan(ref e0, ");
+                        _outputBuilder.Write(type.NumElements);
+                        _outputBuilder.WriteLine(")[index];");
+                        _outputBuilder.WriteBlockEnd();
+                    }
                 }
 
                 _outputBuilder.WriteBlockEnd();
