@@ -14,7 +14,7 @@ namespace ClangSharp
 
         private readonly CXIndex _index;
         private readonly OutputBuilderFactory _outputBuilderFactory;
-        private readonly Func<string, (Stream stream, bool leaveOpen)> _outputStreamFactory;
+        private readonly Func<string, Stream> _outputStreamFactory;
         private readonly HashSet<Cursor> _visitedCursors;
         private readonly List<Diagnostic> _diagnostics;
         private readonly PInvokeGeneratorConfiguration _config;
@@ -23,7 +23,7 @@ namespace ClangSharp
         private int _outputBuilderUsers;
         private bool _disposed;
 
-        public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, (Stream stream, bool leaveOpen)> outputStreamFactory = null)
+        public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null)
         {
             if (config is null)
             {
@@ -35,7 +35,7 @@ namespace ClangSharp
             _outputStreamFactory = outputStreamFactory ?? ((path) => {
                 var directoryPath = Path.GetDirectoryName(path);
                 Directory.CreateDirectory(directoryPath);
-                return (new FileStream(path, FileMode.Create), leaveOpen: false);
+                return new FileStream(path, FileMode.Create);
             });
             _visitedCursors = new HashSet<Cursor>();
             _diagnostics = new List<Diagnostic>();
@@ -55,8 +55,43 @@ namespace ClangSharp
 
         public void Close()
         {
+            Stream stream = null;
             OutputBuilder methodClassOutputBuilder = null;
             bool emitNamespaceDeclaration = true;
+            bool leaveStreamOpen = false;
+
+            if (!_config.GenerateMultipleFiles)
+            {
+                var outputPath = _config.OutputLocation;
+                stream = _outputStreamFactory(outputPath);
+                leaveStreamOpen = true;
+
+                var usingDirectives = Enumerable.Empty<string>();
+
+                foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
+                {
+                    usingDirectives = usingDirectives.Concat(outputBuilder.UsingDirectives);
+                }
+
+                usingDirectives = usingDirectives.Distinct()
+                                                 .OrderBy((usingDirective) => usingDirective);
+
+                if (usingDirectives.Any())
+                {
+                    using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
+                    {
+                        foreach (var usingDirective in usingDirectives)
+                        {
+                            sw.Write("using");
+                            sw.Write(' ');
+                            sw.Write(usingDirective);
+                            sw.WriteLine(';');
+                        }
+
+                        sw.WriteLine();
+                    }
+                }
+            }
 
             foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
             {
@@ -66,6 +101,7 @@ namespace ClangSharp
                 if (_config.GenerateMultipleFiles)
                 {
                     outputPath = Path.Combine(outputPath, $"{outputBuilder.Name}.cs");
+                    stream = _outputStreamFactory(outputPath);
                     emitNamespaceDeclaration = true;
                 }
                 else if (isMethodClass)
@@ -74,19 +110,15 @@ namespace ClangSharp
                     continue;
                 }
 
-                var (stream, leaveStreamOpen) = _outputStreamFactory(outputPath);
                 CloseOutputBuilder(stream, outputBuilder, isMethodClass, leaveStreamOpen, emitNamespaceDeclaration);
                 emitNamespaceDeclaration = false;
             }
 
-            if (!_config.GenerateMultipleFiles && _outputBuilderFactory.OutputBuilders.Any())
+            if (leaveStreamOpen && _outputBuilderFactory.OutputBuilders.Any())
             {
-                var outputPath = _config.OutputLocation;
-                var (stream, leaveStreamOpen) = _outputStreamFactory(outputPath);
-
                 if (methodClassOutputBuilder != null)
                 {
-                    CloseOutputBuilder(stream, methodClassOutputBuilder, isMethodClass: true, leaveStreamOpen: true, emitNamespaceDeclaration);
+                    CloseOutputBuilder(stream, methodClassOutputBuilder, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
                 }
 
                 using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
@@ -182,7 +214,7 @@ namespace ClangSharp
 
             using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
             {
-                if (outputBuilder.UsingDirectives.Any())
+                if (outputBuilder.UsingDirectives.Any() && _config.GenerateMultipleFiles)
                 {
                     foreach (var usingDirective in outputBuilder.UsingDirectives)
                     {
