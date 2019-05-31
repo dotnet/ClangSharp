@@ -2007,7 +2007,18 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration: '{varDecl.KindSpelling}'. Generated bindings may be incomplete.", varDecl);
+                var name = GetRemappedCursorName(varDecl);
+
+                StartUsingOutputBuilder(_config.MethodClassName);
+                {
+                    _outputBuilder.WriteIndented("// public static extern");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(GetRemappedTypeName(varDecl, varDecl.Type));
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(EscapeName(name));
+                    _outputBuilder.WriteLine(';');
+                }
+                StopUsingOutputBuilder();
             }
         }
 
