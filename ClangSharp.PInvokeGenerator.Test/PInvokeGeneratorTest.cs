@@ -37,7 +37,7 @@ namespace ClangSharp.Test
                 var unsavedInputFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
                 var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName(), configOptions, excludedNames, methodClassName: null, methodPrefixToStrip: null, remappedNames);
 
-                using (var pinvokeGenerator = new PInvokeGenerator(config, ((path) => (outputStream, leaveOpen: true))))
+                using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))
                 using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, new CXUnsavedFile[] { unsavedInputFile }, DefaultTranslationUnitFlags))
                 {
                     pinvokeGenerator.GenerateBindings(translationUnitHandle);
