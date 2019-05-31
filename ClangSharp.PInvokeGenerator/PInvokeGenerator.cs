@@ -1443,13 +1443,9 @@ namespace ClangSharp
                 _outputBuilder.Write(EscapeAndStripName(name));
                 _outputBuilder.Write('(');
 
-                var lastIndex = functionDecl.Parameters.Count - 1;
-
-                for (int i = 0; i <= lastIndex; i++)
+                foreach (var parmVarDecl in functionDecl.Parameters)
                 {
-                    var parmVarDecl = functionDecl.Parameters[i];
-                    _visitedCursors.Add(parmVarDecl);
-                    VisitParmVarDecl(parmVarDecl, functionDecl, i, lastIndex);
+                    Visit(parmVarDecl, functionDecl);
                 }
 
                 _outputBuilder.Write(")");
@@ -1520,9 +1516,25 @@ namespace ClangSharp
             _outputBuilder.Write(')');
         }
 
-        private void VisitParmVarDecl(ParmVarDecl parmVarDecl, Cursor parent, int index, int lastIndex)
+        private void VisitParmVarDecl(ParmVarDecl parmVarDecl, Cursor parent)
         {
-            if ((parent is FunctionDecl functionDecl) && (functionDecl.Body is null))
+            if (parent is FunctionDecl functionDecl)
+            {
+                VisitParmVarDecl(parmVarDecl, functionDecl);
+            }
+            else if (parent is TypedefDecl typedefDecl)
+            {
+                VisitParmVarDecl(parmVarDecl, typedefDecl);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{parent.KindSpelling}'. Generated bindings may be incomplete.", parent);
+            }
+        }
+
+        private void VisitParmVarDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
+        {
+            if (functionDecl.Body is null)
             {
                 var marshalAttribute = GetMarshalAttribute(parmVarDecl, parmVarDecl.Type);
 
@@ -1548,6 +1560,51 @@ namespace ClangSharp
 
             var name = GetRemappedCursorName(parmVarDecl);
             _outputBuilder.Write(EscapeName(name));
+
+            var parameters = functionDecl.Parameters;
+            var index = parameters.IndexOf(parmVarDecl);
+            var lastIndex = parameters.Count - 1;
+
+            if (name.Equals("param"))
+            {
+                _outputBuilder.Write(index);
+            }
+
+            if (index != lastIndex)
+            {
+                _outputBuilder.Write(", ");
+            }
+        }
+
+        private void VisitParmVarDecl(ParmVarDecl parmVarDecl, TypedefDecl typedefDecl)
+        {
+            var marshalAttribute = GetMarshalAttribute(parmVarDecl, parmVarDecl.Type);
+
+            if (!string.IsNullOrWhiteSpace(marshalAttribute))
+            {
+                _outputBuilder.Write("[");
+                _outputBuilder.Write(marshalAttribute);
+                _outputBuilder.Write(']');
+                _outputBuilder.Write(' ');
+            }
+
+            var parmModifier = GetParmModifier(parmVarDecl, parmVarDecl.Type);
+
+            if (!string.IsNullOrWhiteSpace(parmModifier))
+            {
+                _outputBuilder.Write(parmModifier);
+                _outputBuilder.Write(' ');
+            }
+
+            _outputBuilder.Write(GetRemappedTypeName(parmVarDecl, parmVarDecl.Type));
+            _outputBuilder.Write(' ');
+
+            var name = GetRemappedCursorName(parmVarDecl);
+            _outputBuilder.Write(EscapeName(name));
+
+            var parameters = typedefDecl.Parameters;
+            var index = parameters.IndexOf(parmVarDecl);
+            var lastIndex = parameters.Count - 1;
 
             if (name.Equals("param"))
             {
@@ -1678,12 +1735,17 @@ namespace ClangSharp
         {
             if (typedefNameDecl is TypedefDecl typedefDecl)
             {
-                VisitTypedefDecl(typedefDecl, parent, typedefDecl.UnderlyingType);
+                VisitTypedefDecl(typedefDecl, parent);
             }
             else
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported typedef name declaration: '{typedefNameDecl.KindSpelling}'. Generated bindings may be incomplete.", typedefNameDecl);
             }
+        }
+
+        private void VisitTypedefDecl(TypedefDecl typedefDecl, Cursor parent)
+        {
+            VisitTypedefDecl(typedefDecl, parent, typedefDecl.UnderlyingType);
         }
 
         private void VisitTypedefDecl(TypedefDecl typedefDecl, Cursor parent, Type underlyingType)
@@ -1838,13 +1900,9 @@ namespace ClangSharp
                         _outputBuilder.Write(escapedName);
                         _outputBuilder.Write('(');
 
-                        var lastIndex = typedefDecl.Parameters.Count - 1;
-
-                        for (int i = 0; i <= lastIndex; i++)
+                        foreach (var parmVarDecl in typedefDecl.Parameters)
                         {
-                            var parmVarDecl = typedefDecl.Parameters[i];
-                            _visitedCursors.Add(parmVarDecl);
-                            VisitParmVarDecl(parmVarDecl, typedefDecl, i, lastIndex);
+                            Visit(parmVarDecl, typedefDecl);
                         }
 
                         _outputBuilder.WriteLine(");");
@@ -1911,7 +1969,14 @@ namespace ClangSharp
 
         private void VisitVarDecl(VarDecl varDecl, Cursor parent)
         {
-            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration: '{varDecl.KindSpelling}'. Generated bindings may be incomplete.", varDecl);
+            if (varDecl is ParmVarDecl parmVarDecl)
+            {
+                VisitParmVarDecl(parmVarDecl, parent);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration: '{varDecl.KindSpelling}'. Generated bindings may be incomplete.", varDecl);
+            }
         }
 
         private void VisitUnexposedDecl(UnexposedDecl unexposedDecl, Cursor parent)
