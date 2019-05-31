@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace ClangSharp.Test
+namespace ClangSharp.UnitTests
 {
     // This is not ported from libclangtest but instead created to test Unicode stuff
     public class TranslationUnit

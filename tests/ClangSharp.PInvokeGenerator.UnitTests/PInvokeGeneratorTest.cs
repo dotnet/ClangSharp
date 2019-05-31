@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace ClangSharp.Test
+namespace ClangSharp.UnitTests
 {
     public abstract class PInvokeGeneratorTest
     {
