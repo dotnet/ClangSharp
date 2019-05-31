@@ -1250,7 +1250,12 @@ namespace ClangSharp
 
         private void VisitDecl(Decl decl, Cursor parent)
         {
-            if (decl is NamedDecl namedDecl)
+            if (decl is AccessSpecDecl accessSpecDecl)
+            {
+                // Access specifications are also exposed as a queryable property
+                // on the declarations they impact, so we don't need to do anything
+            }
+            else if (decl is NamedDecl namedDecl)
             {
                 VisitNamedDecl(namedDecl, parent);
             }
