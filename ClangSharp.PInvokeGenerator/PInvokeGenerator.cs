@@ -1766,7 +1766,7 @@ namespace ClangSharp
 
                         for (int i = 0; i < type.NumElements; i++)
                         {
-                            _outputBuilder.WriteIndented("public");
+                            _outputBuilder.WriteIndented("private");
                             _outputBuilder.Write(' ');
                             _outputBuilder.Write(typeName);
                             _outputBuilder.Write(' ');
