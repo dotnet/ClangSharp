@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ClangSharp.UnitTests</RootNamespace>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="ClangUnsavedFile.h" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\sources\ClangSharp.PInvokeGenerator\ClangSharp.PInvokeGenerator.csproj" />
+  </ItemGroup>
+
+</Project>

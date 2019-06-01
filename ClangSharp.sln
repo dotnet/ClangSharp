@@ -2,15 +2,45 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp", "ClangSharp\ClangSharp.csproj", "{0FD900AC-F002-4E0F-8E5A-B3465EF6ABA6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{14B849D1-0F45-4449-B3F6-A1A920B3C442}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		build.cmd = build.cmd
+		build.sh = build.sh
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		LICENSE.txt = LICENSE.txt
+		pack.cmd = pack.cmd
+		pack.sh = pack.sh
+		README.md = README.md
+		restore.cmd = restore.cmd
+		restore.sh = restore.sh
+		test.cmd = test.cmd
+		test.sh = test.sh
+	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.Test", "ClangSharp.Test\ClangSharp.Test.csproj", "{EAE33CD4-CC2B-4A2E-B3CE-6EBF6C87DCF2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sources", "sources", "{732BA761-B58E-4C34-9C96-097382A55A7A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.PInvokeGenerator", "ClangSharp.PInvokeGenerator\ClangSharp.PInvokeGenerator.csproj", "{4E3FE01B-89FA-4E5B-856C-34A5E29110A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp", "sources\ClangSharp\ClangSharp.csproj", "{A9D62BAC-5F38-4A37-8911-1F5952955C78}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.PInvokeGenerator.Test", "ClangSharp.PInvokeGenerator.Test\ClangSharp.PInvokeGenerator.Test.csproj", "{0F4159AF-BC55-4C98-A248-67B9B4D229F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.PInvokeGenerator", "sources\ClangSharp.PInvokeGenerator\ClangSharp.PInvokeGenerator.csproj", "{6B0EF5A7-5CD4-42E1-8B5A-98B60A570198}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClangSharpPInvokeGenerator", "ClangSharpPInvokeGenerator\ClangSharpPInvokeGenerator.csproj", "{D1FDD6AE-6F18-4991-8CE4-B8C930C177FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharpPInvokeGenerator", "sources\ClangSharpPInvokeGenerator\ClangSharpPInvokeGenerator.csproj", "{784B45C6-7A20-4F1C-A258-D81CDD9562A6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{394E17BB-B1EA-4A98-98C8-78ACD44182FC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.UnitTests", "tests\ClangSharp.UnitTests\ClangSharp.UnitTests.csproj", "{4D0B43E1-921A-469F-A847-4473B2AF5172}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.PInvokeGenerator.UnitTests", "tests\ClangSharp.PInvokeGenerator.UnitTests\ClangSharp.PInvokeGenerator.UnitTests.csproj", "{9D29BA0E-79C6-484E-B630-86A9510F1B74}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{2F805BB5-6089-44E3-8DD0-72104DBB29F0}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\build.ps1 = scripts\build.ps1
+		scripts\build.sh = scripts\build.sh
+		scripts\cibuild.cmd = scripts\cibuild.cmd
+		scripts\cibuild.sh = scripts\cibuild.sh
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,29 +48,36 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0FD900AC-F002-4E0F-8E5A-B3465EF6ABA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0FD900AC-F002-4E0F-8E5A-B3465EF6ABA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0FD900AC-F002-4E0F-8E5A-B3465EF6ABA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0FD900AC-F002-4E0F-8E5A-B3465EF6ABA6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EAE33CD4-CC2B-4A2E-B3CE-6EBF6C87DCF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EAE33CD4-CC2B-4A2E-B3CE-6EBF6C87DCF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EAE33CD4-CC2B-4A2E-B3CE-6EBF6C87DCF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EAE33CD4-CC2B-4A2E-B3CE-6EBF6C87DCF2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4E3FE01B-89FA-4E5B-856C-34A5E29110A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4E3FE01B-89FA-4E5B-856C-34A5E29110A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4E3FE01B-89FA-4E5B-856C-34A5E29110A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4E3FE01B-89FA-4E5B-856C-34A5E29110A9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0F4159AF-BC55-4C98-A248-67B9B4D229F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F4159AF-BC55-4C98-A248-67B9B4D229F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F4159AF-BC55-4C98-A248-67B9B4D229F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0F4159AF-BC55-4C98-A248-67B9B4D229F1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D1FDD6AE-6F18-4991-8CE4-B8C930C177FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D1FDD6AE-6F18-4991-8CE4-B8C930C177FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D1FDD6AE-6F18-4991-8CE4-B8C930C177FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D1FDD6AE-6F18-4991-8CE4-B8C930C177FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9D62BAC-5F38-4A37-8911-1F5952955C78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9D62BAC-5F38-4A37-8911-1F5952955C78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9D62BAC-5F38-4A37-8911-1F5952955C78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9D62BAC-5F38-4A37-8911-1F5952955C78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B0EF5A7-5CD4-42E1-8B5A-98B60A570198}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B0EF5A7-5CD4-42E1-8B5A-98B60A570198}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B0EF5A7-5CD4-42E1-8B5A-98B60A570198}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B0EF5A7-5CD4-42E1-8B5A-98B60A570198}.Release|Any CPU.Build.0 = Release|Any CPU
+		{784B45C6-7A20-4F1C-A258-D81CDD9562A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{784B45C6-7A20-4F1C-A258-D81CDD9562A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{784B45C6-7A20-4F1C-A258-D81CDD9562A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{784B45C6-7A20-4F1C-A258-D81CDD9562A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D0B43E1-921A-469F-A847-4473B2AF5172}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D0B43E1-921A-469F-A847-4473B2AF5172}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D0B43E1-921A-469F-A847-4473B2AF5172}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D0B43E1-921A-469F-A847-4473B2AF5172}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D29BA0E-79C6-484E-B630-86A9510F1B74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D29BA0E-79C6-484E-B630-86A9510F1B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D29BA0E-79C6-484E-B630-86A9510F1B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D29BA0E-79C6-484E-B630-86A9510F1B74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A9D62BAC-5F38-4A37-8911-1F5952955C78} = {732BA761-B58E-4C34-9C96-097382A55A7A}
+		{6B0EF5A7-5CD4-42E1-8B5A-98B60A570198} = {732BA761-B58E-4C34-9C96-097382A55A7A}
+		{784B45C6-7A20-4F1C-A258-D81CDD9562A6} = {732BA761-B58E-4C34-9C96-097382A55A7A}
+		{4D0B43E1-921A-469F-A847-4473B2AF5172} = {394E17BB-B1EA-4A98-98C8-78ACD44182FC}
+		{9D29BA0E-79C6-484E-B630-86A9510F1B74} = {394E17BB-B1EA-4A98-98C8-78ACD44182FC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9D18E0B-5409-457D-B5F3-0E217136BB01}

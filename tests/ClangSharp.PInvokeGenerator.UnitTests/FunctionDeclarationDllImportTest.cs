@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Xunit;
 
-namespace ClangSharp.Test
+namespace ClangSharp.UnitTests
 {
     public sealed class FunctionDeclarationDllImportTest : PInvokeGeneratorTest
     {

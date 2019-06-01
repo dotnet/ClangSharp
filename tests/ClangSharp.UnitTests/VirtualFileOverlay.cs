@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Xunit;
 
-namespace ClangSharp.Test
+namespace ClangSharp.UnitTests
 {
     // NOTE: To make those tests work on both Windows and *nix,
     //       begin any absolute path with "$ROOT$", which the TestVFO infra will replace

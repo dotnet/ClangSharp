@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Xunit;
 
-namespace ClangSharp.Test
+namespace ClangSharp.UnitTests
 {
     public class ModuleMapDescriptor
     {
