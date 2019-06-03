@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ClangSharp
 {
@@ -40,7 +40,7 @@ namespace ClangSharp
 
         public CXString KindSpelling => clang.getTypeKindSpelling(kind);
 
-        public CXType ModifierType => clang.Type_getModifiedType(this);
+        public CXType ModifiedType => clang.Type_getModifiedType(this);
 
         public CXType NamedType => clang.Type_getNamedType(this);
 

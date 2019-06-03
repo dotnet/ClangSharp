@@ -670,7 +670,8 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_Pointer:
                 {
-                    return GetMarshalAttributeForPointeeType(decl, type.PointeeType);
+                    var pointerType = (PointerType)type;
+                    return GetMarshalAttributeForPointeeType(decl, pointerType.PointeeType);
                 }
 
                 case CXTypeKind.CXType_Elaborated:
@@ -774,7 +775,8 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_Pointer:
                 {
-                    return GetParmModifierForPointeeType(decl, type.PointeeType);
+                    var pointerType = (PointerType)type;
+                    return GetParmModifierForPointeeType(decl, pointerType.PointeeType);
                 }
 
                 case CXTypeKind.CXType_ConstantArray:
@@ -951,9 +953,15 @@ namespace ClangSharp
                 }
 
                 case CXTypeKind.CXType_Pointer:
+                {
+                    var pointerType = (PointerType)type;
+                    return GetTypeNameForPointeeType(decl, pointerType.PointeeType);
+                }
+
                 case CXTypeKind.CXType_LValueReference:
                 {
-                    return GetTypeNameForPointeeType(decl, type.PointeeType);
+                    var referenceType = (ReferenceType)type;
+                    return GetTypeNameForPointeeType(decl, referenceType.PointeeType);
                 }
 
                 case CXTypeKind.CXType_Record:
@@ -967,7 +975,8 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_Typedef:
                 {
-                    return GetCursorName((NamedDecl)type.DeclarationCursor);
+                    var typedefType = (TypedefType)type;
+                    return GetCursorName(typedefType.Decl);
                 }
 
                 case CXTypeKind.CXType_Elaborated:
@@ -978,7 +987,8 @@ namespace ClangSharp
                 case CXTypeKind.CXType_ConstantArray:
                 case CXTypeKind.CXType_IncompleteArray:
                 {
-                    return GetTypeName(decl, type.ElementType);
+                    var arrayType = (ArrayType)type;
+                    return GetTypeName(decl, arrayType.ElementType);
                 }
 
                 default:
@@ -1058,12 +1068,13 @@ namespace ClangSharp
                             var typedefDecl = (TypedefDecl)decl;
                             var underlyingType = typedefDecl.UnderlyingType;
 
-                            if ((underlyingType.Kind == CXTypeKind.CXType_Pointer) && (underlyingType.PointeeType.Kind == CXTypeKind.CXType_FunctionProto))
+                            if ((underlyingType is PointerType pointerType) && (pointerType.PointeeType is FunctionProtoType))
                             {
                                 goto case CXCursorKind.CXCursor_FunctionDecl;
                             }
 
-                            var name = GetRemappedCursorName((NamedDecl)pointeeType.DeclarationCursor);
+                            var tagType = (TagType)pointeeType;
+                            var name = GetRemappedCursorName(tagType.Decl); ;
 
                             if (_config.GenerateUnsafeCode)
                             {
@@ -1131,7 +1142,8 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_Attributed:
                 {
-                    return GetTypeNameForPointeeType(decl, pointeeType.ModifierType);
+                    var attributedType = (AttributedType)pointeeType;
+                    return GetTypeNameForPointeeType(decl, attributedType.ModifiedType);
                 }
 
                 default:
@@ -1442,7 +1454,7 @@ namespace ClangSharp
             var escapedName = EscapeName(name);
             var typeName = GetRemappedTypeName(fieldDecl, type);
 
-            if (type.Kind == CXTypeKind.CXType_ConstantArray)
+            if (type is ConstantArrayType constantArrayType)
             {
                 if (_config.GenerateUnsafeCode)
                 {
@@ -1454,7 +1466,7 @@ namespace ClangSharp
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write(escapedName);
                         _outputBuilder.Write('[');
-                        _outputBuilder.Write(type.NumElements);
+                        _outputBuilder.Write(constantArrayType.Size);
                         _outputBuilder.Write(']');
                     }
                     else
@@ -1468,7 +1480,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    long lastElement = type.NumElements - 1;
+                    long lastElement = constantArrayType.Size - 1;
 
                     for (int i = 0; i < lastElement; i++)
                     {
@@ -1508,7 +1520,7 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(_config.MethodClassName);
             {
-                var type = functionDecl.Type;
+                var functionType = functionDecl.FunctionType;
                 var returnType = functionDecl.ReturnType;
                 var body = functionDecl.Body;
 
@@ -1519,7 +1531,7 @@ namespace ClangSharp
                     _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
                     _outputBuilder.Write(name);
                     _outputBuilder.Write("\", CallingConvention = CallingConvention.");
-                    _outputBuilder.Write(GetCallingConventionName(functionDecl, type.CallingConv));
+                    _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
                     _outputBuilder.WriteLine(")]");
 
                     var marshalAttribute = GetMarshalAttribute(functionDecl, returnType);
@@ -1755,7 +1767,7 @@ namespace ClangSharp
                 {
                     foreach (var constantArray in recordDecl.ConstantArrays)
                     {
-                        var type = constantArray.Type;
+                        var constantArrayType = (ConstantArrayType)constantArray.Type;
                         var typeName = GetRemappedTypeName(constantArray, constantArray.Type);
 
                         if (IsSupportedFixedSizedBufferType(typeName))
@@ -1769,7 +1781,7 @@ namespace ClangSharp
                         _outputBuilder.WriteLine(GetArtificalFixedSizedBufferName(constantArray));
                         _outputBuilder.WriteBlockStart();
 
-                        for (int i = 0; i < type.NumElements; i++)
+                        for (int i = 0; i < constantArrayType.Size; i++)
                         {
                             _outputBuilder.WriteIndented("private");
                             _outputBuilder.Write(' ');
@@ -1788,7 +1800,7 @@ namespace ClangSharp
                         _outputBuilder.Write(typeName);
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write("this[int index] => ref MemoryMarshal.CreateSpan(ref e0, ");
-                        _outputBuilder.Write(type.NumElements);
+                        _outputBuilder.Write(constantArrayType.Size);
                         _outputBuilder.WriteLine(")[index];");
                         _outputBuilder.WriteBlockEnd();
                     }
@@ -1962,7 +1974,8 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_Pointer:
                 {
-                    VisitTypedefDeclForPointer(typedefDecl, parent, underlyingType.PointeeType);
+                    var pointerType = (PointerType)underlyingType;
+                    VisitTypedefDeclForPointer(typedefDecl, parent, pointerType.PointeeType);
                     break;
                 }
 
@@ -2031,6 +2044,8 @@ namespace ClangSharp
                 case CXTypeKind.CXType_FunctionProto:
                 {
                     var name = GetRemappedCursorName(typedefDecl);
+                    var functionType = (FunctionType)pointeeType;
+
                     StartUsingOutputBuilder(name);
                     {
                         var escapedName = EscapeName(name);
@@ -2038,11 +2053,11 @@ namespace ClangSharp
                         _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
                         _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
-                        _outputBuilder.Write(GetCallingConventionName(typedefDecl, pointeeType.CallingConv));
+                        _outputBuilder.Write(GetCallingConventionName(typedefDecl, functionType.CallConv));
                         _outputBuilder.WriteLine(")]");
                         _outputBuilder.WriteIndented("public delegate");
                         _outputBuilder.Write(' ');
-                        _outputBuilder.Write(GetRemappedTypeName(typedefDecl, pointeeType.ResultType));
+                        _outputBuilder.Write(GetRemappedTypeName(typedefDecl, functionType.ReturnType));
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write(escapedName);
                         _outputBuilder.Write('(');

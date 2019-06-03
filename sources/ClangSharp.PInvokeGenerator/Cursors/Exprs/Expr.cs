@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 
 namespace ClangSharp
@@ -144,7 +144,6 @@ namespace ClangSharp
         }
 
         private readonly Lazy<Cursor> _definition;
-        private readonly Lazy<Type> _type;
 
         protected Expr(CXCursor handle, Cursor parent) : base(handle, parent)
         {
@@ -155,14 +154,15 @@ namespace ClangSharp
                 cursor?.Visit(clientData: default);
                 return cursor;
             });
-            _type = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.Type, () => Type.Create(Handle.Type, TranslationUnit)));
+
+            Type = TranslationUnit.GetOrCreateType(Handle.Type, () => Type.Create(Handle.Type, TranslationUnit));
         }
 
         public Cursor Definition => _definition.Value;
 
         public bool IsDynamicCall => Handle.IsDynamicCall;
 
-        public Type Type => _type.Value;
+        public Type Type { get; }
 
         protected override void ValidateVisit(ref CXCursor handle)
         {
