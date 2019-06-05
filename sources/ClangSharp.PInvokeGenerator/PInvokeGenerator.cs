@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -80,6 +80,8 @@ namespace ClangSharp
                 {
                     using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
                     {
+                        sw.NewLine = "\n";
+
                         foreach (var usingDirective in usingDirectives)
                         {
                             sw.Write("using");
@@ -123,6 +125,7 @@ namespace ClangSharp
 
                 using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
                 {
+                    sw.NewLine = "\n";
                     sw.WriteLine('}');
                 }
             }
@@ -214,6 +217,8 @@ namespace ClangSharp
 
             using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
             {
+                sw.NewLine = "\n";
+
                 if (outputBuilder.UsingDirectives.Any() && _config.GenerateMultipleFiles)
                 {
                     foreach (var usingDirective in outputBuilder.UsingDirectives)
