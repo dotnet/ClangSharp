@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -117,7 +117,7 @@ namespace ClangSharp
 
             foreach (var configSwitch in configSwitches)
             {
-                if (configSwitch.EndsWith("multi-file"))
+                if (configSwitch.Equals("multi-file"))
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
                 }
