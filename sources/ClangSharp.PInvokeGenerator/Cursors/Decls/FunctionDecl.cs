@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,7 +9,6 @@ namespace ClangSharp
     {
         private readonly List<Decl> _declarations = new List<Decl>();
         private readonly ParmVarDecl[] _parameters;
-        private readonly Lazy<Type> _returnType;
         private readonly Lazy<Cursor> _specializedTemplate;
 
         private Stmt _body;
@@ -27,7 +26,7 @@ namespace ClangSharp
                 parmVarDecl.Visit(clientData: default);
             }
 
-            _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreateType(Handle.ResultType, () => Type.Create(Handle.ResultType, TranslationUnit)));
+            ReturnType = TranslationUnit.GetOrCreateType(Handle.ResultType, () => Type.Create(Handle.ResultType, TranslationUnit));
 
             _specializedTemplate = new Lazy<Cursor>(() => {
                 var cursor = TranslationUnit.GetOrCreateCursor(Handle.SpecializedCursorTemplate, () => Create(Handle.SpecializedCursorTemplate, this));
@@ -41,6 +40,8 @@ namespace ClangSharp
         public IReadOnlyList<Decl> Declarations => _declarations;
 
         public string DisplayName => Handle.DisplayName.ToString();
+
+        public FunctionType FunctionType => (FunctionType)Type;
 
         public bool HasDllExport => HasAttrs && Attributes.Any((attr) => attr is DLLExport);
 
@@ -56,7 +57,7 @@ namespace ClangSharp
 
         public IReadOnlyList<ParmVarDecl> Parameters => _parameters;
 
-        public Type ReturnType => _returnType.Value;
+        public Type ReturnType { get; }
 
         public Cursor SpecializedTemplate => _specializedTemplate.Value;
 

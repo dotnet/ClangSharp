@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -80,6 +80,8 @@ namespace ClangSharp
                 {
                     using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
                     {
+                        sw.NewLine = "\n";
+
                         foreach (var usingDirective in usingDirectives)
                         {
                             sw.Write("using");
@@ -123,6 +125,7 @@ namespace ClangSharp
 
                 using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
                 {
+                    sw.NewLine = "\n";
                     sw.WriteLine('}');
                 }
             }
@@ -214,6 +217,8 @@ namespace ClangSharp
 
             using (var sw = new StreamWriter(stream, DefaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen))
             {
+                sw.NewLine = "\n";
+
                 if (outputBuilder.UsingDirectives.Any() && _config.GenerateMultipleFiles)
                 {
                     foreach (var usingDirective in outputBuilder.UsingDirectives)
@@ -463,105 +468,31 @@ namespace ClangSharp
 
         private string GetCursorName(NamedDecl namedDecl)
         {
-            var name = string.Empty;
+            var name = namedDecl.Name;
 
-            if (namedDecl is TagDecl tagDecl)
+            if (string.IsNullOrWhiteSpace(name))
             {
-                name = namedDecl.Spelling;
-
-                if (tagDecl.IsAnonymous)
+                if (namedDecl is TypeDecl typeDecl)
                 {
-                    namedDecl.Location.GetFileLocation(out var file, out var _, out var _, out var offset);
-                    var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
-                    name = $"__Anonymous{tagDecl.Type.KindSpelling}_{fileName}_{offset}";
-                    AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.'", namedDecl);
+                    if ((typeDecl is TagDecl tagDecl) && tagDecl.IsAnonymous)
+                    {
+                        namedDecl.Location.GetFileLocation(out var file, out var _, out var _, out var offset);
+                        var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
+                        name = $"__Anonymous{tagDecl.Type.KindSpelling}_{fileName}_{offset}";
+                        AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.'", namedDecl);
+                    }
+                    else
+                    {
+                        name = GetTypeName(namedDecl, typeDecl.Type);
+                    }
                 }
-                else if (string.IsNullOrWhiteSpace(name))
-                {
-                    name = GetTypeName(namedDecl, tagDecl.Type);
-                }
-            }
-            else
-            {
-                name = namedDecl.Spelling;
-
-                if ((namedDecl is ParmVarDecl parmVarDecl) && string.IsNullOrWhiteSpace(name))
+                else if (namedDecl is ParmVarDecl)
                 {
                     name = "param";
                 }
-                else if (namedDecl is TypedefDecl typedefDecl)
+                else
                 {
-                    switch (name)
-                    {
-                        case "int8_t":
-                        {
-                            return "sbyte";
-                        }
-
-                        case "int16_t":
-                        {
-                            return "short";
-                        }
-
-                        case "int32_t":
-                        {
-                            return "int";
-                        }
-
-                        case "int64_t":
-                        {
-                            return "long";
-                        }
-
-                        case "intptr_t":
-                        {
-                            _outputBuilder.AddUsingDirective("System");
-                            return "IntPtr";
-                        }
-
-                        case "size_t":
-                        case "SIZE_T":
-                        {
-                            _outputBuilder.AddUsingDirective("System");
-                            return "IntPtr";
-                        }
-
-                        case "time_t":
-                        {
-                            return "long";
-                        }
-
-                        case "uint8_t":
-                        {
-                            return "byte";
-                        }
-
-                        case "uint16_t":
-                        {
-                            return "ushort";
-                        }
-
-                        case "uint32_t":
-                        {
-                            return "uint";
-                        }
-
-                        case "uint64_t":
-                        {
-                            return "ulong";
-                        }
-
-                        case "uintptr_t":
-                        {
-                            _outputBuilder.AddUsingDirective("System");
-                            return "UIntPtr";
-                        }
-
-                        default:
-                        {
-                            return GetCursorName(typedefDecl, typedefDecl.UnderlyingType);
-                        }
-                    }
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.KindSpelling}'.", namedDecl);
                 }
             }
 
@@ -569,63 +500,7 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetCursorName(TypedefDecl typedefDecl, Type underlyingType)
-        {
-            switch (underlyingType.Kind)
-            {
-                case CXTypeKind.CXType_Bool:
-                case CXTypeKind.CXType_Char_U:
-                case CXTypeKind.CXType_UChar:
-                case CXTypeKind.CXType_UShort:
-                case CXTypeKind.CXType_UInt:
-                case CXTypeKind.CXType_ULong:
-                case CXTypeKind.CXType_ULongLong:
-                case CXTypeKind.CXType_Char_S:
-                case CXTypeKind.CXType_SChar:
-                case CXTypeKind.CXType_WChar:
-                case CXTypeKind.CXType_Short:
-                case CXTypeKind.CXType_Int:
-                case CXTypeKind.CXType_Long:
-                case CXTypeKind.CXType_LongLong:
-                case CXTypeKind.CXType_Float:
-                case CXTypeKind.CXType_Double:
-                case CXTypeKind.CXType_Pointer:
-                {
-                    var name = typedefDecl.Spelling;
-
-                    if (_config.GenerateUnsafeCode || string.IsNullOrWhiteSpace(name))
-                    {
-                        name = GetTypeName(typedefDecl, underlyingType);
-                    }
-
-                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return name;
-                }
-
-                case CXTypeKind.CXType_Record:
-                case CXTypeKind.CXType_Enum:
-                {
-                    var name = GetTypeName(typedefDecl, underlyingType);
-                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return name;
-                }
-
-                case CXTypeKind.CXType_Typedef:
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    return GetCursorName(typedefDecl, underlyingType.CanonicalType);
-                }
-
-                default:
-                {
-                    var name = typedefDecl.Spelling;
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported underlying type: '{underlyingType.KindSpelling}'. Falling back to '{name}'.", typedefDecl);
-                    return name;
-                }
-            }
-        }
-
-        private string GetMarshalAttribute(Decl decl, Type type)
+        private string GetMarshalAttribute(NamedDecl namedDecl, Type type)
         {
             if (_config.GenerateUnsafeCode)
             {
@@ -665,23 +540,25 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_Pointer:
                 {
-                    return GetMarshalAttributeForPointeeType(decl, type.PointeeType);
+                    var pointerType = (PointerType)type;
+                    return GetMarshalAttributeForPointeeType(namedDecl, pointerType.PointeeType);
                 }
 
                 case CXTypeKind.CXType_Elaborated:
                 {
-                    return GetMarshalAttribute(decl, type.CanonicalType);
+                    var elaboratedType = (ElaboratedType)type;
+                    return GetMarshalAttribute(namedDecl, elaboratedType.NamedType);
                 }
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back to no marshalling.", decl);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back to no marshalling.", namedDecl);
                     return string.Empty;
                 }
             }
         }
 
-        private string GetMarshalAttributeForPointeeType(Decl decl, Type pointeeType)
+        private string GetMarshalAttributeForPointeeType(NamedDecl namedDecl, Type pointeeType)
         {
             Debug.Assert(!_config.GenerateUnsafeCode);
 
@@ -723,18 +600,19 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_Elaborated:
                 {
-                    return GetMarshalAttributeForPointeeType(decl, pointeeType.CanonicalType);
+                    var elaboratedType = (ElaboratedType)pointeeType;
+                    return GetMarshalAttributeForPointeeType(namedDecl, elaboratedType.NamedType);
                 }
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Falling back to no marshalling.", decl);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Falling back to no marshalling.", namedDecl);
                     return string.Empty;
                 }
             }
         }
 
-        private string GetParmModifier(Decl decl, Type type)
+        private string GetParmModifier(NamedDecl namedDecl, Type type)
         {
             if (_config.GenerateUnsafeCode)
             {
@@ -769,7 +647,8 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_Pointer:
                 {
-                    return GetParmModifierForPointeeType(decl, type.PointeeType);
+                    var pointerType = (PointerType)type;
+                    return GetParmModifierForPointeeType(namedDecl, pointerType.PointeeType);
                 }
 
                 case CXTypeKind.CXType_ConstantArray:
@@ -780,18 +659,19 @@ namespace ClangSharp
 
                 case CXTypeKind.CXType_Elaborated:
                 {
-                    return GetParmModifier(decl, type.CanonicalType);
+                    var elaboratedType = (ElaboratedType)type;
+                    return GetParmModifier(namedDecl, elaboratedType.NamedType);
                 }
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back to no parameter modifier.", decl);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back to no parameter modifier.", namedDecl);
                     return string.Empty;
                 }
             }
         }
 
-        private string GetParmModifierForPointeeType(Decl decl, Type pointeeType)
+        private string GetParmModifierForPointeeType(NamedDecl namedDecl, Type pointeeType)
         {
             Debug.Assert(!_config.GenerateUnsafeCode);
 
@@ -827,14 +707,20 @@ namespace ClangSharp
                 }
 
                 case CXTypeKind.CXType_Typedef:
+                {
+                    var typedefType = (TypedefType)pointeeType;
+                    return GetParmModifierForPointeeType(namedDecl, typedefType.UnderlyingType);
+                }
+
                 case CXTypeKind.CXType_Elaborated:
                 {
-                    return GetParmModifierForPointeeType(decl, pointeeType.CanonicalType);
+                    var elaboratedType = (ElaboratedType)pointeeType;
+                    return GetParmModifierForPointeeType(namedDecl, elaboratedType.NamedType);
                 }
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Falling back to no parameter modifier.", decl);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Falling back to no parameter modifier.", namedDecl);
                     return string.Empty;
                 }
             }
@@ -843,299 +729,336 @@ namespace ClangSharp
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
             var name = GetCursorName(namedDecl);
+            return GetRemappedName(name);
+        }
 
+        private string GetRemappedName(string name)
+        {
             if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
             {
                 remappedName = name;
             }
 
-            return remappedName;
-        }
-
-        private string GetRemappedTypeName(Decl decl, Type type)
-        {
-            var name = GetTypeName(decl, type);
-
-            if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
+            if (remappedName.Equals("IntPtr") || remappedName.Equals("UIntPtr"))
             {
-                remappedName = name;
+                _outputBuilder.AddUsingDirective("System");
             }
 
             return remappedName;
         }
 
-        private string GetTypeName(Decl decl, Type type)
+        private string GetRemappedTypeName(NamedDecl namedDecl, Type type)
         {
-            switch (type.Kind)
-            {
-                case CXTypeKind.CXType_Void:
-                {
-                    return "void";
-                }
-
-                case CXTypeKind.CXType_Bool:
-                {
-                    return "bool";
-                }
-
-                case CXTypeKind.CXType_Char_U:
-                case CXTypeKind.CXType_UChar:
-                {
-                    return "byte";
-                }
-
-                case CXTypeKind.CXType_UShort:
-                {
-                    return "ushort";
-                }
-
-                case CXTypeKind.CXType_UInt:
-                {
-                    return "uint";
-                }
-
-                case CXTypeKind.CXType_ULong:
-                {
-                    return "uint";
-                }
-
-                case CXTypeKind.CXType_ULongLong:
-                {
-                    return "ulong";
-                }
-
-                case CXTypeKind.CXType_Char_S:
-                case CXTypeKind.CXType_SChar:
-                {
-                    return "sbyte";
-                }
-
-                case CXTypeKind.CXType_WChar:
-                {
-                    return "char";
-                }
-
-                case CXTypeKind.CXType_Short:
-                {
-                    return "short";
-                }
-
-                case CXTypeKind.CXType_Int:
-                {
-                    return "int";
-                }
-
-                case CXTypeKind.CXType_Long:
-                {
-                    return "int";
-                }
-
-                case CXTypeKind.CXType_LongLong:
-                {
-                    return "long";
-                }
-
-                case CXTypeKind.CXType_Float:
-                {
-                    return "float";
-                }
-
-                case CXTypeKind.CXType_Double:
-                {
-                    return "double";
-                }
-
-                case CXTypeKind.CXType_Pointer:
-                case CXTypeKind.CXType_LValueReference:
-                {
-                    return GetTypeNameForPointeeType(decl, type.PointeeType);
-                }
-
-                case CXTypeKind.CXType_Record:
-                case CXTypeKind.CXType_Enum:
-                case CXTypeKind.CXType_FunctionProto:
-                {
-                    var name = type.Spelling;
-                    Debug.Assert(!string.IsNullOrWhiteSpace(name));
-                    return name;
-                }
-
-                case CXTypeKind.CXType_Typedef:
-                {
-                    return GetCursorName((NamedDecl)type.DeclarationCursor);
-                }
-
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    return GetTypeName(decl, type.CanonicalType);
-                }
-
-                case CXTypeKind.CXType_ConstantArray:
-                case CXTypeKind.CXType_IncompleteArray:
-                {
-                    return GetTypeName(decl, type.ElementType);
-                }
-
-                default:
-                {
-                    var name = type.Spelling;
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back '{name}'.", decl);
-                    return name;
-                }
-            }
+            var name = GetTypeName(namedDecl, type);
+            return GetRemappedName(name);
         }
 
-        private string GetTypeNameForPointeeType(Decl decl, Type pointeeType)
+        private string GetTypeName(NamedDecl namedDecl, Type type)
         {
-            switch (pointeeType.Kind)
+            var name = type.Spelling;
+
+            if (type is ArrayType arrayType)
             {
-                case CXTypeKind.CXType_Void:
+                name = GetTypeName(namedDecl, arrayType.ElementType);
+            }
+            else if (type is BuiltinType)
+            {
+                switch (type.Kind)
                 {
-                    if (_config.GenerateUnsafeCode)
+                    case CXTypeKind.CXType_Void:
                     {
-                        return "void*";
+                        name = "void";
+                        break;
                     }
 
-                    _outputBuilder.AddUsingDirective("System");
-                    return "IntPtr";
-                }
-
-                case CXTypeKind.CXType_UChar:
-                case CXTypeKind.CXType_UShort:
-                case CXTypeKind.CXType_UInt:
-                case CXTypeKind.CXType_ULong:
-                case CXTypeKind.CXType_ULongLong:
-                case CXTypeKind.CXType_SChar:
-                case CXTypeKind.CXType_Short:
-                case CXTypeKind.CXType_Int:
-                case CXTypeKind.CXType_Long:
-                case CXTypeKind.CXType_LongLong:
-                case CXTypeKind.CXType_Float:
-                case CXTypeKind.CXType_Double:
-                case CXTypeKind.CXType_Pointer:
-                case CXTypeKind.CXType_Record:
-                case CXTypeKind.CXType_Enum:
-                case CXTypeKind.CXType_Typedef:
-                {
-                    switch (decl.Kind)
+                    case CXTypeKind.CXType_Bool:
                     {
-                        case CXCursorKind.CXCursor_FieldDecl:
-                        case CXCursorKind.CXCursor_FunctionDecl:
-                        {
-                            var name = "IntPtr";
-
-                            if (_config.GenerateUnsafeCode)
-                            {
-                                name = GetTypeName(decl, pointeeType);
-                                name += '*';
-                            }
-                            else
-                            {
-                                _outputBuilder.AddUsingDirective("System");
-                            }
-
-                            return name;
-                        }
-
-                        case CXCursorKind.CXCursor_ParmDecl:
-                        {
-                            var name = GetTypeName(decl, pointeeType);
-
-                            if (_config.GenerateUnsafeCode)
-                            {
-                                name += '*';
-                            }
-                            return name;
-                        }
-
-                        case CXCursorKind.CXCursor_TypedefDecl:
-                        {
-                            var typedefDecl = (TypedefDecl)decl;
-                            var underlyingType = typedefDecl.UnderlyingType;
-
-                            if ((underlyingType.Kind == CXTypeKind.CXType_Pointer) && (underlyingType.PointeeType.Kind == CXTypeKind.CXType_FunctionProto))
-                            {
-                                goto case CXCursorKind.CXCursor_FunctionDecl;
-                            }
-
-                            var name = GetRemappedCursorName((NamedDecl)pointeeType.DeclarationCursor);
-
-                            if (_config.GenerateUnsafeCode)
-                            {
-                                name += '*';
-                            }
-                            return name;
-                        }
-
-                        default:
-                        {
-                            var name = "IntPtr";
-                            AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported declaration: '{decl.KindSpelling}'. Falling back '{name}'.", decl);
-                            return string.Empty;
-                        }
+                        name = "bool";
+                        break;
                     }
-                }
 
-                case CXTypeKind.CXType_Char_U:
-                case CXTypeKind.CXType_Char_S:
-                {
-                    switch (decl.Kind)
+                    case CXTypeKind.CXType_Char_U:
+                    case CXTypeKind.CXType_UChar:
                     {
-                        case CXCursorKind.CXCursor_FieldDecl:
-                        case CXCursorKind.CXCursor_FunctionDecl:
-                        {
-                            return _config.GenerateUnsafeCode ? "byte*" : "string";
-                        }
-
-                        case CXCursorKind.CXCursor_ParmDecl:
-                        {
-                            if (GetParmModifier(decl, ((ParmVarDecl)decl).Type).Equals("out"))
-                            {
-                                Debug.Assert(!_config.GenerateUnsafeCode);
-                                _outputBuilder.AddUsingDirective("System");
-                                return "IntPtr";
-                            }
-
-                            return _config.GenerateUnsafeCode ? "byte*" : "string";
-                        }
-
-                        case CXCursorKind.CXCursor_TypedefDecl:
-                        {
-                            return _config.GenerateUnsafeCode ? "byte*" : "string";
-                        }
-
-                        default:
-                        {
-                            var name = "IntPtr";
-                            AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported declaration: '{decl.KindSpelling}'. Falling back '{name}'.", decl);
-                            return string.Empty;
-                        }
+                        name = "byte";
+                        break;
                     }
-                }
 
-                case CXTypeKind.CXType_FunctionProto:
-                {
-                    _outputBuilder.AddUsingDirective("System");
-                    return "IntPtr";
-                }
+                    case CXTypeKind.CXType_UShort:
+                    {
+                        name = "ushort";
+                        break;
+                    }
 
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    return GetTypeNameForPointeeType(decl, pointeeType.CanonicalType);
-                }
+                    case CXTypeKind.CXType_UInt:
+                    {
+                        name = "uint";
+                        break;
+                    }
 
-                case CXTypeKind.CXType_Attributed:
-                {
-                    return GetTypeNameForPointeeType(decl, pointeeType.ModifierType);
-                }
+                    case CXTypeKind.CXType_ULong:
+                    {
+                        name = "uint";
+                        break;
+                    }
 
-                default:
-                {
-                    var name = "IntPtr";
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Falling back '{name}'.", decl);
-                    return string.Empty;
+                    case CXTypeKind.CXType_ULongLong:
+                    {
+                        name = "ulong";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_Char_S:
+                    case CXTypeKind.CXType_SChar:
+                    {
+                        name = "sbyte";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_WChar:
+                    {
+                        name = "char";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_Short:
+                    {
+                        name = "short";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_Int:
+                    {
+                        name = "int";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_Long:
+                    {
+                        name = "int";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_LongLong:
+                    {
+                        name = "long";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_Float:
+                    {
+                        name = "float";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_Double:
+                    {
+                        name = "double";
+                        break;
+                    }
+
+                    default:
+                    {
+                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported builtin type: '{type.KindSpelling}'. Falling back '{name}'.", namedDecl);
+                        break;
+                    }
                 }
             }
+            else if (type is ElaboratedType elaboratedType)
+            {
+                name = GetTypeName(namedDecl, elaboratedType.NamedType);
+            }
+            else if (type is PointerType pointerType)
+            {
+                name = GetTypeNameForPointeeType(namedDecl, pointerType.PointeeType);
+            }
+            else if (type is ReferenceType referenceType)
+            {
+                name = GetTypeNameForPointeeType(namedDecl, referenceType.PointeeType);
+            }
+            else if (type is TypedefType typedefType)
+            {
+                if (!_config.GenerateUnsafeCode)
+                {
+                    name = GetTypeNameForUnderlyingType(namedDecl, typedefType.UnderlyingType);
+
+                    if (string.IsNullOrWhiteSpace(name))
+                    {
+                        name = GetRemappedCursorName(typedefType.Decl);
+                    }
+                }
+
+                switch (name)
+                {
+                    case "int8_t":
+                    {
+                        name = "sbyte";
+                        break;
+                    }
+
+                    case "int16_t":
+                    {
+                        name = "short";
+                        break;
+                    }
+
+                    case "int32_t":
+                    {
+                        name = "int";
+                        break;
+                    }
+
+                    case "int64_t":
+                    case "time_t":
+                    {
+                        name = "long";
+                        break;
+                    }
+
+                    case "intptr_t":
+                    case "ptrdiff_t":
+                    {
+                        name = "IntPtr";
+                        break;
+                    }
+
+                    case "size_t":
+                    case "uintptr_t":
+                    {
+                        name = "UIntPtr";
+                        break;
+                    }
+
+                    case "uint8_t":
+                    {
+                        name = "byte";
+                        break;
+                    }
+
+                    case "uint16_t":
+                    {
+                        name = "ushort";
+                        break;
+                    }
+
+                    case "uint32_t":
+                    {
+                        name = "uint";
+                        break;
+                    }
+
+                    case "uint64_t":
+                    {
+                        name = "ulong";
+                        break;
+                    }
+
+                    default:
+                    {
+                        if (_config.GenerateUnsafeCode)
+                        {
+                            name = GetTypeName(namedDecl, typedefType.UnderlyingType);
+                        }
+                        break;
+                    }
+                }
+            }
+            else if (!(type is FunctionType) && !(type is TagType))
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back '{name}'.", namedDecl);
+            }
+
+            Debug.Assert(!string.IsNullOrWhiteSpace(name));
+            return name;
+        }
+
+        private string GetTypeNameForPointeeType(NamedDecl namedDecl, Type pointeeType)
+        {
+            string name;
+
+            if (pointeeType is FunctionType)
+            {
+                name = "IntPtr";
+            }
+            else if (_config.GenerateUnsafeCode)
+            {
+                name = GetTypeName(namedDecl, pointeeType);
+                name += '*';
+            }
+            else if (pointeeType is AttributedType attributedType)
+            {
+                name = GetTypeNameForPointeeType(namedDecl, attributedType.ModifiedType);
+            }
+            else if (pointeeType is BuiltinType)
+            {
+                switch (pointeeType.Kind)
+                {
+                    case CXTypeKind.CXType_Void:
+                    {
+                        name = "IntPtr";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_Char_U:
+                    case CXTypeKind.CXType_Char_S:
+                    {
+                        if ((namedDecl is ParmVarDecl parmVarDecl) && (GetParmModifier(namedDecl, parmVarDecl.Type).Equals("out")))
+                        {
+                            name = "IntPtr";
+                        }
+                        else
+                        {
+                            name = "string";
+                        }
+                        break;
+                    }
+
+                    default:
+                    {
+                        name = (namedDecl is ParmVarDecl) ? GetTypeName(namedDecl, pointeeType) : "IntPtr";
+                        break;
+                    }
+                }
+            }
+            else if (pointeeType is ElaboratedType elaboratedType)
+            {
+                name = GetTypeNameForPointeeType(namedDecl, elaboratedType.NamedType);
+            }
+            else if (namedDecl is ParmVarDecl)
+            {
+                name = GetTypeName(namedDecl, pointeeType);
+            }
+            else
+            {
+                name = "IntPtr";
+            }
+
+            Debug.Assert(!string.IsNullOrWhiteSpace(name));
+            return name;
+        }
+
+        private string GetTypeNameForUnderlyingType(NamedDecl namedDecl, Type underlyingType)
+        {
+            string name;
+
+            if (underlyingType is ElaboratedType elaboratedType)
+            {
+                name = GetTypeNameForUnderlyingType(namedDecl, elaboratedType.NamedType);
+            }
+            else if (underlyingType is TagType tagType)
+            {
+                name = GetRemappedCursorName(tagType.Decl);
+            }
+            else if (underlyingType is TypedefType typedefType)
+            {
+                name = GetTypeNameForUnderlyingType(namedDecl, typedefType.UnderlyingType);
+            }
+            else
+            {
+                name = string.Empty;
+            }
+
+            return name;
         }
 
         private bool IsSupportedFixedSizedBufferType(string typeName)
@@ -1437,7 +1360,7 @@ namespace ClangSharp
             var escapedName = EscapeName(name);
             var typeName = GetRemappedTypeName(fieldDecl, type);
 
-            if (type.Kind == CXTypeKind.CXType_ConstantArray)
+            if (type is ConstantArrayType constantArrayType)
             {
                 if (_config.GenerateUnsafeCode)
                 {
@@ -1449,7 +1372,7 @@ namespace ClangSharp
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write(escapedName);
                         _outputBuilder.Write('[');
-                        _outputBuilder.Write(type.NumElements);
+                        _outputBuilder.Write(constantArrayType.Size);
                         _outputBuilder.Write(']');
                     }
                     else
@@ -1463,7 +1386,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    long lastElement = type.NumElements - 1;
+                    long lastElement = constantArrayType.Size - 1;
 
                     for (int i = 0; i < lastElement; i++)
                     {
@@ -1503,7 +1426,7 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(_config.MethodClassName);
             {
-                var type = functionDecl.Type;
+                var functionType = functionDecl.FunctionType;
                 var returnType = functionDecl.ReturnType;
                 var body = functionDecl.Body;
 
@@ -1514,7 +1437,7 @@ namespace ClangSharp
                     _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
                     _outputBuilder.Write(name);
                     _outputBuilder.Write("\", CallingConvention = CallingConvention.");
-                    _outputBuilder.Write(GetCallingConventionName(functionDecl, type.CallingConv));
+                    _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
                     _outputBuilder.WriteLine(")]");
 
                     var marshalAttribute = GetMarshalAttribute(functionDecl, returnType);
@@ -1750,7 +1673,7 @@ namespace ClangSharp
                 {
                     foreach (var constantArray in recordDecl.ConstantArrays)
                     {
-                        var type = constantArray.Type;
+                        var constantArrayType = (ConstantArrayType)constantArray.Type;
                         var typeName = GetRemappedTypeName(constantArray, constantArray.Type);
 
                         if (IsSupportedFixedSizedBufferType(typeName))
@@ -1764,7 +1687,7 @@ namespace ClangSharp
                         _outputBuilder.WriteLine(GetArtificalFixedSizedBufferName(constantArray));
                         _outputBuilder.WriteBlockStart();
 
-                        for (int i = 0; i < type.NumElements; i++)
+                        for (int i = 0; i < constantArrayType.Size; i++)
                         {
                             _outputBuilder.WriteIndented("private");
                             _outputBuilder.Write(' ');
@@ -1783,7 +1706,7 @@ namespace ClangSharp
                         _outputBuilder.Write(typeName);
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write("this[int index] => ref MemoryMarshal.CreateSpan(ref e0, ");
-                        _outputBuilder.Write(type.NumElements);
+                        _outputBuilder.Write(constantArrayType.Size);
                         _outputBuilder.WriteLine(")[index];");
                         _outputBuilder.WriteBlockEnd();
                     }
@@ -1877,7 +1800,7 @@ namespace ClangSharp
         {
             if (typedefNameDecl is TypedefDecl typedefDecl)
             {
-                VisitTypedefDecl(typedefDecl, parent);
+                VisitTypedefDecl(typedefDecl, parent, typedefDecl.UnderlyingType);
             }
             else
             {
@@ -1885,185 +1808,142 @@ namespace ClangSharp
             }
         }
 
-        private void VisitTypedefDecl(TypedefDecl typedefDecl, Cursor parent)
-        {
-            VisitTypedefDecl(typedefDecl, parent, typedefDecl.UnderlyingType);
-        }
-
         private void VisitTypedefDecl(TypedefDecl typedefDecl, Cursor parent, Type underlyingType)
         {
-            switch (underlyingType.Kind)
+            if (_config.GenerateUnsafeCode)
             {
-                case CXTypeKind.CXType_Bool:
-                case CXTypeKind.CXType_Char_U:
-                case CXTypeKind.CXType_UChar:
-                case CXTypeKind.CXType_UShort:
-                case CXTypeKind.CXType_UInt:
-                case CXTypeKind.CXType_ULong:
-                case CXTypeKind.CXType_ULongLong:
-                case CXTypeKind.CXType_Char_S:
-                case CXTypeKind.CXType_SChar:
-                case CXTypeKind.CXType_WChar:
-                case CXTypeKind.CXType_Short:
-                case CXTypeKind.CXType_Int:
-                case CXTypeKind.CXType_Long:
-                case CXTypeKind.CXType_LongLong:
-                case CXTypeKind.CXType_Float:
-                case CXTypeKind.CXType_Double:
-                {
-                    if (!_config.GenerateUnsafeCode)
-                    {
-                        var name = GetRemappedCursorName(typedefDecl);
-
-                        StartUsingOutputBuilder(name);
-                        {
-
-                            var escapedName = EscapeName(name);
-
-                            _outputBuilder.WriteIndented("public partial struct");
-                            _outputBuilder.Write(' ');
-                            _outputBuilder.WriteLine(escapedName);
-                            _outputBuilder.WriteBlockStart();
-                            {
-                                var typeName = GetRemappedTypeName(typedefDecl, underlyingType);
-
-                                _outputBuilder.WriteIndented("public");
-                                _outputBuilder.Write(' ');
-                                _outputBuilder.Write(escapedName);
-                                _outputBuilder.Write('(');
-                                _outputBuilder.Write(typeName);
-                                _outputBuilder.Write(' ');
-                                _outputBuilder.Write("value");
-                                _outputBuilder.WriteLine(')');
-                                _outputBuilder.WriteBlockStart();
-                                {
-                                    _outputBuilder.WriteIndentedLine("Value = value;");
-                                }
-                                _outputBuilder.WriteBlockEnd();
-                                _outputBuilder.WriteLine();
-                                _outputBuilder.WriteIndented("public");
-                                _outputBuilder.Write(' ');
-                                _outputBuilder.Write(typeName);
-                                _outputBuilder.Write(' ');
-                                _outputBuilder.Write("Value");
-                                _outputBuilder.WriteLine(';');
-                            }
-                            _outputBuilder.WriteBlockEnd();
-                        }
-                        StopUsingOutputBuilder();
-                    }
-                    break;
-                }
-
-                case CXTypeKind.CXType_Pointer:
-                {
-                    VisitTypedefDeclForPointer(typedefDecl, parent, underlyingType.PointeeType);
-                    break;
-                }
-
-                case CXTypeKind.CXType_Record:
-                case CXTypeKind.CXType_Enum:
-                {
-                    // We recurse the struct and record declarations directly
-                    break;
-                }
-
-                case CXTypeKind.CXType_Typedef:
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    VisitTypedefDecl(typedefDecl, parent, underlyingType.CanonicalType);
-                    break;
-                }
-
-                default:
-                {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
-                    break;
-                }
+                return;
             }
-        }
 
-        private void VisitTypedefDeclForPointer(TypedefDecl typedefDecl, Cursor parent, Type pointeeType)
-        {
-            switch (pointeeType.Kind)
+            if (underlyingType is BuiltinType)
             {
-                case CXTypeKind.CXType_Void:
-                case CXTypeKind.CXType_Record:
+                var name = GetRemappedCursorName(typedefDecl);
+
+                StartUsingOutputBuilder(name);
                 {
-                    if (!_config.GenerateUnsafeCode)
+
+                    var escapedName = EscapeName(name);
+
+                    _outputBuilder.WriteIndented("public partial struct");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.WriteLine(escapedName);
+                    _outputBuilder.WriteBlockStart();
                     {
-                        var name = GetRemappedCursorName(typedefDecl);
-                        StartUsingOutputBuilder(name);
-                        {
-                            var escapedName = EscapeName(name);
+                        var typeName = GetRemappedTypeName(typedefDecl, underlyingType);
 
-                            _outputBuilder.AddUsingDirective("System");
-
-                            _outputBuilder.WriteIndented("public partial struct");
-                            _outputBuilder.Write(' ');
-                            _outputBuilder.WriteLine(escapedName);
-                            _outputBuilder.WriteBlockStart();
-                            {
-                                _outputBuilder.WriteIndented("public");
-                                _outputBuilder.Write(' ');
-                                _outputBuilder.Write(escapedName);
-                                _outputBuilder.WriteLine("(IntPtr pointer)");
-                                _outputBuilder.WriteBlockStart();
-                                {
-                                    _outputBuilder.WriteIndentedLine("Pointer = pointer;");
-                                }
-                                _outputBuilder.WriteBlockEnd();
-                                _outputBuilder.WriteLine();
-                                _outputBuilder.WriteIndentedLine("public IntPtr Pointer;");
-                            }
-                            _outputBuilder.WriteBlockEnd();
-                        }
-                        StopUsingOutputBuilder();
-                    }
-                    break;
-                }
-
-                case CXTypeKind.CXType_FunctionProto:
-                {
-                    var name = GetRemappedCursorName(typedefDecl);
-                    StartUsingOutputBuilder(name);
-                    {
-                        var escapedName = EscapeName(name);
-
-                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-
-                        _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
-                        _outputBuilder.Write(GetCallingConventionName(typedefDecl, pointeeType.CallingConv));
-                        _outputBuilder.WriteLine(")]");
-                        _outputBuilder.WriteIndented("public delegate");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(GetRemappedTypeName(typedefDecl, pointeeType.ResultType));
+                        _outputBuilder.WriteIndented("public");
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write(escapedName);
                         _outputBuilder.Write('(');
-
-                        foreach (var parmVarDecl in typedefDecl.Parameters)
+                        _outputBuilder.Write(typeName);
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("value");
+                        _outputBuilder.WriteLine(')');
+                        _outputBuilder.WriteBlockStart();
                         {
-                            Visit(parmVarDecl, typedefDecl);
+                            _outputBuilder.WriteIndentedLine("Value = value;");
                         }
-
-                        _outputBuilder.WriteLine(");");
+                        _outputBuilder.WriteBlockEnd();
+                        _outputBuilder.WriteLine();
+                        _outputBuilder.WriteIndented("public");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(typeName);
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("Value");
+                        _outputBuilder.WriteLine(';');
                     }
-                    StopUsingOutputBuilder();
-                    break;
+                    _outputBuilder.WriteBlockEnd();
                 }
+                StopUsingOutputBuilder();
+            }
+            else if (underlyingType is ElaboratedType elaboratedType)
+            {
+                VisitTypedefDecl(typedefDecl, parent, elaboratedType.NamedType);
+            }
+            else if (underlyingType is PointerType pointerType)
+            {
+                VisitTypedefDeclForPointeeType(typedefDecl, parent, pointerType.PointeeType);
+            }
+            else if (underlyingType is TypedefType typedefType)
+            {
+                VisitTypedefDecl(typedefDecl, parent, typedefType.UnderlyingType);
+            }
+            else if (!(underlyingType is TagType))
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
+            }
+        }
 
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    VisitTypedefDeclForPointer(typedefDecl, parent, pointeeType.CanonicalType);
-                    break;
-                }
+        private void VisitTypedefDeclForPointeeType(TypedefDecl typedefDecl, Cursor parent, Type pointeeType)
+        {
+            Debug.Assert(!_config.GenerateUnsafeCode);
 
-                default:
+            if ((pointeeType is BuiltinType) || (pointeeType is TagType))
+            {
+                var name = GetRemappedCursorName(typedefDecl);
+                StartUsingOutputBuilder(name);
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
-                    break;
+                    var escapedName = EscapeName(name);
+
+                    _outputBuilder.AddUsingDirective("System");
+
+                    _outputBuilder.WriteIndented("public partial struct");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.WriteLine(escapedName);
+                    _outputBuilder.WriteBlockStart();
+                    {
+                        _outputBuilder.WriteIndented("public");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(escapedName);
+                        _outputBuilder.WriteLine("(IntPtr pointer)");
+                        _outputBuilder.WriteBlockStart();
+                        {
+                            _outputBuilder.WriteIndentedLine("Pointer = pointer;");
+                        }
+                        _outputBuilder.WriteBlockEnd();
+                        _outputBuilder.WriteLine();
+                        _outputBuilder.WriteIndentedLine("public IntPtr Pointer;");
+                    }
+                    _outputBuilder.WriteBlockEnd();
                 }
+                StopUsingOutputBuilder();
+            }
+            else if (pointeeType is ElaboratedType elaboratedType)
+            {
+                VisitTypedefDeclForPointeeType(typedefDecl, parent, elaboratedType.NamedType);
+            }
+            else if (pointeeType is FunctionType functionType)
+            {
+                var name = GetRemappedCursorName(typedefDecl);
+
+                StartUsingOutputBuilder(name);
+                {
+                    var escapedName = EscapeName(name);
+
+                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+
+                    _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
+                    _outputBuilder.Write(GetCallingConventionName(typedefDecl, functionType.CallConv));
+                    _outputBuilder.WriteLine(")]");
+                    _outputBuilder.WriteIndented("public delegate");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(GetRemappedTypeName(typedefDecl, functionType.ReturnType));
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(escapedName);
+                    _outputBuilder.Write('(');
+
+                    foreach (var parmVarDecl in typedefDecl.Parameters)
+                    {
+                        Visit(parmVarDecl, typedefDecl);
+                    }
+
+                    _outputBuilder.WriteLine(");");
+                }
+                StopUsingOutputBuilder();
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ClangSharp
 {
@@ -48,7 +48,7 @@ namespace ClangSharp
 
         public CXFile GetFile(string fileName) => clang.getFile(this, fileName);
 
-        public string GetFileContents(CXFile file, out IntPtr size) => clang.getFileContents(this, file, out size);
+        public string GetFileContents(CXFile file, out UIntPtr size) => clang.getFileContents(this, file, out size);
 
         public void GetInclusions(CXInclusionVisitor visitor, CXClientData clientData) => clang.getInclusions(this, visitor, clientData);
 

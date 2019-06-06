@@ -39,7 +39,7 @@ namespace ClangSharp
 
         [DllImport(libraryPath, EntryPoint = "clang_getFileContents", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))]
-        public static extern string getFileContents(CXTranslationUnit tu, CXFile file, out IntPtr size);
+        public static extern string getFileContents(CXTranslationUnit tu, CXFile file, out UIntPtr size);
 
         [DllImport(libraryPath, EntryPoint = "clang_File_isEqual", CallingConvention = CallingConvention.Cdecl)]
         public static extern int File_isEqual(CXFile file1, CXFile file2);

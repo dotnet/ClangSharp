@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="Properties/launchsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.CommandLine.Experimental" />
   </ItemGroup>
 
