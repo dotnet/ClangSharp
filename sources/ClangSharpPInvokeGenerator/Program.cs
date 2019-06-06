@@ -100,6 +100,7 @@ namespace ClangSharp
 
             var clangCommandLineArgs = new string[]
             {
+                "-std=c++11",                           // The input files should be compiled for C++ 11
                 "-xc++",                                // The input files are C++
                 "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
             };
