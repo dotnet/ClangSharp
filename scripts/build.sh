@@ -194,16 +194,19 @@ LogDir="$ArtifactsDir/log"
 CreateDirectory "$LogDir"
 
 if [[ ! -z "$architecture" ]]; then
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+  export DOTNET_CLI_TELEMETRY_OPTOUT=1
+  export DOTNET_MULTILEVEL_LOOKUP=0
+  export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
-  DotNetInstallScript="$ArtifactsDir/dotnet-install.ps1"
+  DotNetInstallScript="$ArtifactsDir/dotnet-install.sh"
   wget -O "$DotNetInstallScript" "https://dot.net/v1/dotnet-install.sh"
 
   DotNetInstallDirectory="$ArtifactsDir/dotnet"
   CreateDirectory "$DotNetInstallDirectory"
 
-  . "$DotNetInstallScript" --channel 2.0 --version latest --install-dir "$DotNetInstallDirectory" --architecture "$architecture"
+  . "$DotNetInstallScript" --channel release/3.0.1xx --version latest --install-dir "$DotNetInstallDirectory" --architecture "$architecture"
   . "$DotNetInstallScript" --channel 2.1 --version latest --install-dir "$DotNetInstallDirectory" --architecture "$architecture" --runtime dotnet
+  . "$DotNetInstallScript" --channel 2.0 --version latest --install-dir "$DotNetInstallDirectory" --architecture "$architecture" --runtime dotnet
 
   PATH="$DotNetInstallDirectory:$PATH:"
 fi

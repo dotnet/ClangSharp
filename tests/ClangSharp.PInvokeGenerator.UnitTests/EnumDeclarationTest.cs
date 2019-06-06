@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -9,7 +9,7 @@ namespace ClangSharp.UnitTests
         [Fact]
         public async Task BasicTest()
         {
-            var inputContents = @"enum MyEnum
+            var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -34,7 +34,7 @@ namespace ClangSharp.UnitTests
         [Fact]
         public async Task BasicValueTest()
         {
-            var inputContents = @"enum MyEnum
+            var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value1 = 1,
     MyEnum_Value2,
@@ -59,7 +59,14 @@ namespace ClangSharp.UnitTests
         [Fact]
         public async Task ExcludeTest()
         {
-            var inputContents = "typedef enum MyEnum MyEnum;";
+            var inputContents = @"enum MyEnum : int
+{
+    MyEnum_Value0,
+    MyEnum_Value1,
+    MyEnum_Value2,
+};
+";
+
             var expectedOutputContents = string.Empty;
 
             var excludedNames = new string[] { "MyEnum" };
@@ -99,63 +106,29 @@ namespace ClangSharp.UnitTests
         }
 
         [Fact]
-        public async Task NoDefinitionTest()
-        {
-            var inputContents = "typedef enum MyEnum MyEnum;";
-
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public enum MyEnum
-    {{
-    }}
-}}
-";
-
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
-        }
-
-        [Fact]
         public async Task RemapTest()
         {
-            var inputContents = "typedef enum _MyEnum MyEnum;";
+            var inputContents = @"typedef enum _MyEnum : int
+{
+    MyEnum_Value1,
+    MyEnum_Value2,
+    MyEnum_Value3,
+} MyEnum;
+";
 
             var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public enum MyEnum
     {{
+        MyEnum_Value1,
+        MyEnum_Value2,
+        MyEnum_Value3,
     }}
 }}
 ";
 
             var remappedNames = new Dictionary<string, string> { ["_MyEnum"] = "MyEnum" };
             await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
-        }
-
-        [Fact]
-        public async Task SkipNonDefinitionTest()
-        {
-            var inputContents = $@"typedef enum MyEnum MyEnum;
-
-enum MyEnum
-{{
-    MyEnum_Value0,
-    MyEnum_Value1,
-    MyEnum_Value2,
-}};
-";
-
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public enum MyEnum
-    {{
-        MyEnum_Value0,
-        MyEnum_Value1,
-        MyEnum_Value2,
-    }}
-}}
-";
-
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
     }
 }

@@ -110,7 +110,9 @@ try {
   Create-Directory -Path $LogDir
 
   if ($architecture -ne "") {
-    $DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 1
+    $env:DOTNET_CLI_TELEMETRY_OPTOUT = 1
+    $env:DOTNET_MULTILEVEL_LOOKUP = 0
+    $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 1
 
     $DotNetInstallScript = Join-Path -Path $ArtifactsDir -ChildPath "dotnet-install.ps1"
     Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile $DotNetInstallScript -UseBasicParsing
@@ -118,8 +120,9 @@ try {
     $DotNetInstallDirectory = Join-Path -Path $ArtifactsDir -ChildPath "dotnet"
     Create-Directory -Path $DotNetInstallDirectory
 
-    & $DotNetInstallScript -Channel 2.0 -Version latest -InstallDir $DotNetInstallDirectory -Architecture $architecture
+    & $DotNetInstallScript -Channel release/3.0.1xx -Version latest -InstallDir $DotNetInstallDirectory -Architecture $architecture
     & $DotNetInstallScript -Channel 2.1 -Version latest -InstallDir $DotNetInstallDirectory -Architecture $architecture -Runtime dotnet
+    & $DotNetInstallScript -Channel 2.0 -Version latest -InstallDir $DotNetInstallDirectory -Architecture $architecture -Runtime dotnet
 
     $env:PATH="$DotNetInstallDirectory;$env:PATH"
   }
