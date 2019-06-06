@@ -70,3 +70,25 @@ jobs:
       targetType: filePath
       filePath: ./scripts/cibuild.sh
       arguments: '--configuration Release --architecture x64'
+
+- job: macos_1014_debug_x64
+  pool:
+    name: Hosted macOS
+  steps:
+  - task: Bash@3
+    displayName: 'Run scripts/cibuild.sh'
+    inputs:
+      targetType: filePath
+      filePath: ./scripts/cibuild.sh
+      arguments: '--configuration Debug --architecture x64'
+
+- job: macos_1014_release_x64
+  pool:
+    name: Hosted macOS
+  steps:
+  - task: Bash@3
+    displayName: 'Run scripts/cibuild.sh'
+    inputs:
+      targetType: filePath
+      filePath: ./scripts/cibuild.sh
+      arguments: '--configuration Release --architecture x64'
