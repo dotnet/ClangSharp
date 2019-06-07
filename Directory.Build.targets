@@ -15,6 +15,11 @@
     <DefineConstants>$(DefineConstants);$(OS)</DefineConstants>
   </PropertyGroup>
 
+  <!-- Settings that allow testing to work by default -->
+  <PropertyGroup>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
+  </PropertyGroup>
+
   <!-- Tool versions for tool references across all projects -->
   <ItemGroup>
     <DotNetCliToolReference Update="dotnet-xunit" Version="2.3.1" />
@@ -24,10 +29,10 @@
   <ItemGroup>
     <PackageReference Update="libClang" Version="5.0.0" NoWarn="NU1701" />
     <PackageReference Update="Microsoft.Net.Compilers.Toolset" Version="3.2.0-beta1-final" />
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="15.6.0" />
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.1.1" />
     <PackageReference Update="System.CommandLine.Experimental" Version="0.2.0-alpha.19174.3" />
-    <PackageReference Update="xunit" Version="2.3.1" />
-    <PackageReference Update="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Update="xunit" Version="2.4.1" />
+    <PackageReference Update="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
 
 </Project>
