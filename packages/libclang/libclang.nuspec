@@ -7,15 +7,18 @@
     <owners>Microsoft and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">Apache-2.0</license>
-    <projectUrl>https://github.com/llvm-mirror/clang</projectUrl>
+    <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>
     <description>Multi-platform native library for libclang.</description>
     <copyright>Copyright © University of Illinois at Urbana-Champaign</copyright>
-    <repository type="git" url="https://github.com/llvm-mirror/clang" />
+    <repository type="git" url="https://github.com/llvm-mirror/clang" branch="release_80" />
     <dependencies>
       <group targetFramework=".NETStandard1.0">
         <dependency id="Microsoft.NETCore.Platforms" version="1.0.1" />
       </group>
       <group targetFramework=".NETStandard2.0" />
     </dependencies>
-  </metadata>
+  </metadata><files>
+    <file src="LICENSE.TXT" target="LICENSE.TXT" />
+    <file src="runtime.json" target="runtime.json" />
+  </files>
 </package>

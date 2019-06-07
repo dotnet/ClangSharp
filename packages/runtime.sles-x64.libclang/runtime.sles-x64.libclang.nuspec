@@ -7,9 +7,13 @@
     <owners>Microsoft and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">Apache-2.0</license>
-    <projectUrl>https://github.com/llvm-mirror/clang</projectUrl>
+    <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>
     <description>sles x64 native library for libclang.</description>
     <copyright>Copyright © University of Illinois at Urbana-Champaign</copyright>
-    <repository type="git" url="https://github.com/llvm-mirror/clang" />
+    <repository type="git" url="https://github.com/llvm-mirror/clang" branch="release_80" />
   </metadata>
+  <files>
+    <file src="..\libclang\LICENSE.TXT" target="LICENSE.TXT" />
+    <file src="runtimes\sles-x64\native\libclang.so" target="runtimes\sles-x64\native\libclang.so" />
+  </files>
 </package>
