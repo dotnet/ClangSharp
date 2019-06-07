@@ -52,70 +52,59 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang", "libclang", "{C8
 		packages\libclang\runtime.json = packages\libclang\runtime.json
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.freebsd.11-x64.libclang", "runtime.freebsd.11-x64.libclang", "{C90094F6-26DF-4B2C-BD61-540D4CE988A4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.11-x64", "libclang.runtime.freebsd.11-x64", "{C90094F6-26DF-4B2C-BD61-540D4CE988A4}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.freebsd.11-x64.libclang\LICENSE.TXT = packages\runtime.freebsd.11-x64.libclang\LICENSE.TXT
-		packages\runtime.freebsd.11-x64.libclang\runtime.freebsd.11-x64.libclang.nuspec = packages\runtime.freebsd.11-x64.libclang\runtime.freebsd.11-x64.libclang.nuspec
+		packages\libclang.runtime.freebsd.11-x64\libclang.runtime.freebsd.11-x64.nuspec = packages\libclang.runtime.freebsd.11-x64\libclang.runtime.freebsd.11-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.freebsd.11-x86.libclang", "runtime.freebsd.11-x86.libclang", "{C57B4A74-2791-44C3-92D3-9B8AD5993F27}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.11-x86", "libclang.runtime.freebsd.11-x86", "{C57B4A74-2791-44C3-92D3-9B8AD5993F27}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.freebsd.11-x86.libclang\LICENSE.TXT = packages\runtime.freebsd.11-x86.libclang\LICENSE.TXT
-		packages\runtime.freebsd.11-x86.libclang\runtime.freebsd.11-x86.libclang.nuspec = packages\runtime.freebsd.11-x86.libclang\runtime.freebsd.11-x86.libclang.nuspec
+		packages\libclang.runtime.freebsd.11-x86\libclang.runtime.freebsd.11-x86.nuspec = packages\libclang.runtime.freebsd.11-x86\libclang.runtime.freebsd.11-x86.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.linux-arm.libclang", "runtime.linux-arm.libclang", "{F9915660-2229-418C-B269-83FE74C1943E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.linux-arm", "libclang.runtime.linux-arm", "{F9915660-2229-418C-B269-83FE74C1943E}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.linux-arm.libclang\LICENSE.TXT = packages\runtime.linux-arm.libclang\LICENSE.TXT
-		packages\runtime.linux-arm.libclang\runtime.linux-arm.libclang.nuspec = packages\runtime.linux-arm.libclang\runtime.linux-arm.libclang.nuspec
+		packages\libclang.runtime.linux-arm\libclang.runtime.linux-arm.nuspec = packages\libclang.runtime.linux-arm\libclang.runtime.linux-arm.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.linux-arm64.libclang", "runtime.linux-arm64.libclang", "{7D89072F-8E3E-4009-BCCD-5D3C69F88042}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.linux-arm64", "libclang.runtime.linux-arm64", "{7D89072F-8E3E-4009-BCCD-5D3C69F88042}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.linux-arm64.libclang\LICENSE.TXT = packages\runtime.linux-arm64.libclang\LICENSE.TXT
-		packages\runtime.linux-arm64.libclang\runtime.linux-arm64.libclang.nuspec = packages\runtime.linux-arm64.libclang\runtime.linux-arm64.libclang.nuspec
+		packages\libclang.runtime.linux-arm64\libclang.runtime.linux-arm64.nuspec = packages\libclang.runtime.linux-arm64\libclang.runtime.linux-arm64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.osx-x64.libclang", "runtime.osx-x64.libclang", "{8006B5D7-5E0E-4A0A-884F-62C5216144EE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.osx-x64", "libclang.runtime.osx-x64", "{8006B5D7-5E0E-4A0A-884F-62C5216144EE}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.osx-x64.libclang\LICENSE.TXT = packages\runtime.osx-x64.libclang\LICENSE.TXT
-		packages\runtime.osx-x64.libclang\runtime.osx-x64.libclang.nuspec = packages\runtime.osx-x64.libclang\runtime.osx-x64.libclang.nuspec
+		packages\libclang.runtime.osx-x64\libclang.runtime.osx-x64.nuspec = packages\libclang.runtime.osx-x64\libclang.runtime.osx-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.sles-x64.libclang", "runtime.sles-x64.libclang", "{C0D4BF1E-CFDA-4E9D-9A15-2A1FDA7D56C2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.sles-x64", "libclang.runtime.sles-x64", "{C0D4BF1E-CFDA-4E9D-9A15-2A1FDA7D56C2}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.sles-x64.libclang\LICENSE.TXT = packages\runtime.sles-x64.libclang\LICENSE.TXT
-		packages\runtime.sles-x64.libclang\runtime.sles-x64.libclang.nuspec = packages\runtime.sles-x64.libclang\runtime.sles-x64.libclang.nuspec
+		packages\libclang.runtime.sles-x64\libclang.runtime.sles-x64.nuspec = packages\libclang.runtime.sles-x64\libclang.runtime.sles-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.ubuntu.14.04-x64.libclang", "runtime.ubuntu.14.04-x64.libclang", "{9F9CD2A9-475B-4D9A-AFB6-958B71AC0111}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.14.04-x64", "libclang.runtime.ubuntu.14.04-x64", "{9F9CD2A9-475B-4D9A-AFB6-958B71AC0111}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.ubuntu.14.04-x64.libclang\LICENSE.TXT = packages\runtime.ubuntu.14.04-x64.libclang\LICENSE.TXT
-		packages\runtime.ubuntu.14.04-x64.libclang\runtime.ubuntu.14.04-x64.libclang.nuspec = packages\runtime.ubuntu.14.04-x64.libclang\runtime.ubuntu.14.04-x64.libclang.nuspec
+		packages\libclang.runtime.ubuntu.14.04-x64\libclang.runtime.ubuntu.14.04-x64.nuspec = packages\libclang.runtime.ubuntu.14.04-x64\libclang.runtime.ubuntu.14.04-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.ubuntu.16.04-x64.libclang", "runtime.ubuntu.16.04-x64.libclang", "{6185B159-5F40-4D96-AD52-EB2D37241E25}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.16.04-x64", "libclang.runtime.ubuntu.16.04-x64", "{6185B159-5F40-4D96-AD52-EB2D37241E25}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.ubuntu.16.04-x64.libclang\LICENSE.TXT = packages\runtime.ubuntu.16.04-x64.libclang\LICENSE.TXT
-		packages\runtime.ubuntu.16.04-x64.libclang\runtime.ubuntu.16.04-x64.libclang.nuspec = packages\runtime.ubuntu.16.04-x64.libclang\runtime.ubuntu.16.04-x64.libclang.nuspec
+		packages\libclang.runtime.ubuntu.16.04-x64\libclang.runtime.ubuntu.16.04-x64.nuspec = packages\libclang.runtime.ubuntu.16.04-x64\libclang.runtime.ubuntu.16.04-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.ubuntu.18.04-x64.libclang", "runtime.ubuntu.18.04-x64.libclang", "{8756B75F-F244-43AD-9C79-1610059BDF36}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.18.04-x64", "libclang.runtime.ubuntu.18.04-x64", "{8756B75F-F244-43AD-9C79-1610059BDF36}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.ubuntu.18.04-x64.libclang\LICENSE.TXT = packages\runtime.ubuntu.18.04-x64.libclang\LICENSE.TXT
-		packages\runtime.ubuntu.18.04-x64.libclang\runtime.ubuntu.18.04-x64.libclang.nuspec = packages\runtime.ubuntu.18.04-x64.libclang\runtime.ubuntu.18.04-x64.libclang.nuspec
+		packages\libclang.runtime.ubuntu.18.04-x64\libclang.runtime.ubuntu.18.04-x64.nuspec = packages\libclang.runtime.ubuntu.18.04-x64\libclang.runtime.ubuntu.18.04-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.win-x64.libclang", "runtime.win-x64.libclang", "{4A298C7E-BF4D-418D-B70D-FE6D6F8097FD}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.win-x64", "libclang.runtime.win-x64", "{4A298C7E-BF4D-418D-B70D-FE6D6F8097FD}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.win-x64.libclang\LICENSE.TXT = packages\runtime.win-x64.libclang\LICENSE.TXT
-		packages\runtime.win-x64.libclang\runtime.win-x64.libclang.nuspec = packages\runtime.win-x64.libclang\runtime.win-x64.libclang.nuspec
+		packages\libclang.runtime.win-x64\libclang.runtime.win-x64.nuspec = packages\libclang.runtime.win-x64\libclang.runtime.win-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime.win-x86.libclang", "runtime.win-x86.libclang", "{98BDA79D-8D81-4381-B794-65BAF82349D4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.win-x86", "libclang.runtime.win-x86", "{98BDA79D-8D81-4381-B794-65BAF82349D4}"
 	ProjectSection(SolutionItems) = preProject
-		packages\runtime.win-x86.libclang\LICENSE.TXT = packages\runtime.win-x86.libclang\LICENSE.TXT
-		packages\runtime.win-x86.libclang\runtime.win-x86.libclang.nuspec = packages\runtime.win-x86.libclang\runtime.win-x86.libclang.nuspec
+		packages\libclang.runtime.win-x86\libclang.runtime.win-x86.nuspec = packages\libclang.runtime.win-x86\libclang.runtime.win-x86.nuspec
 	EndProjectSection
 EndProject
 Global
