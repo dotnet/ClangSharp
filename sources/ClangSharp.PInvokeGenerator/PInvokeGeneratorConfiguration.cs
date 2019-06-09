@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ClangSharp
@@ -60,8 +60,6 @@ namespace ClangSharp
         public string[] ExcludedNames { get; }
 
         public bool GenerateMultipleFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles);
-
-        public bool GenerateUnsafeCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateUnsafeCode);
 
         public string LibraryPath { get;}
 

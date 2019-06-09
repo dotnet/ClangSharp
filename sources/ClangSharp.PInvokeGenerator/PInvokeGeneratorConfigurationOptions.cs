@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ClangSharp
 {
@@ -8,7 +8,5 @@ namespace ClangSharp
         None = 0x00000000,
 
         GenerateMultipleFiles = 0x00000001,
-
-        GenerateUnsafeCode = 0x00000002,
     }
 }

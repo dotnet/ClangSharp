@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -84,7 +84,25 @@ struct MyOtherStruct
 
     public partial struct MyOtherStruct
     {{
-        public MyStruct c0; public MyStruct c1; public MyStruct c2;
+        public _c_e__FixedBuffer c;
+
+        public partial struct _c_e__FixedBuffer
+        {{
+            private MyStruct e0;
+            private MyStruct e1;
+            private MyStruct e2;
+
+            public unsafe ref MyStruct this[int index]
+            {{
+                get
+                {{
+                    fixed (MyStruct* pThis = &e0)
+                    {{
+                        return ref pThis[index];
+                    }}
+                }}
+            }}
+        }}
     }}
 }}
 ";
@@ -113,9 +131,9 @@ struct MyOtherStruct
 
             var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
-    public partial struct MyStruct
+    public unsafe partial struct MyStruct
     {{
-        public {expectedManagedType} c0; public {expectedManagedType} c1; public {expectedManagedType} c2;
+        public fixed {expectedManagedType} c[3];
     }}
 }}
 ";
@@ -268,137 +286,7 @@ struct MyStruct
 
             var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
-    public partial struct MyTypedefAlias
-    {{
-        public MyTypedefAlias({expectedManagedType} value)
-        {{
-            Value = value;
-        }}
-
-        public {expectedManagedType} Value;
-    }}
-
     public partial struct MyStruct
-    {{
-        public MyTypedefAlias r;
-        public MyTypedefAlias g;
-        public MyTypedefAlias b;
-    }}
-}}
-";
-
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
-        }
-
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task UnsafeFixedSizedBufferNonPrimitiveTest(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
-{{
-    {nativeType} value;
-}};
-
-struct MyOtherStruct
-{{
-    MyStruct c[3];
-}};
-";
-
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{{
-    public unsafe partial struct MyStruct
-    {{
-        public {expectedManagedType} value;
-    }}
-
-    public unsafe partial struct MyOtherStruct
-    {{
-        public _c_e__FixedBuffer c;
-
-        public partial struct _c_e__FixedBuffer
-        {{
-            private MyStruct e0;
-            private MyStruct e1;
-            private MyStruct e2;
-
-            public ref MyStruct this[int index] => ref MemoryMarshal.CreateSpan(ref e0, 3)[index];
-        }}
-    }}
-}}
-";
-
-            await ValidateUnsafeGeneratedBindings(inputContents, expectedOutputContents);
-        }
-
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task UnsafeFixedSizedBufferPrimitiveTest(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
-{{
-    {nativeType} c[3];
-}};
-";
-
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public unsafe partial struct MyStruct
-    {{
-        public fixed {expectedManagedType} c[3];
-    }}
-}}
-";
-
-            await ValidateUnsafeGeneratedBindings(inputContents, expectedOutputContents);
-        }
-
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task UnsafeTypedefTest(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef {nativeType} MyTypedefAlias;
-
-struct MyStruct
-{{
-    MyTypedefAlias r;
-    MyTypedefAlias g;
-    MyTypedefAlias b;
-}};
-";
-
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public unsafe partial struct MyStruct
     {{
         public {expectedManagedType} r;
         public {expectedManagedType} g;
@@ -407,7 +295,7 @@ struct MyStruct
 }}
 ";
 
-            await ValidateUnsafeGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
     }
 }

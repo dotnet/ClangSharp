@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -172,7 +172,7 @@ void MyFunction()
         }
 
         [Fact]
-        public async Task UnaryOperatorAddrOfUnsafeTest()
+        public async Task UnaryOperatorAddrOfTest()
         {
             var inputContents = @"int* MyFunction(int value)
 {
@@ -194,11 +194,11 @@ void MyFunction()
 }
 ";
 
-            await ValidateUnsafeGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
         [Fact]
-        public async Task UnaryOperatorDerefUnsafeTest()
+        public async Task UnaryOperatorDerefTest()
         {
             var inputContents = @"int MyFunction(int* value)
 {
@@ -220,7 +220,7 @@ void MyFunction()
 }
 ";
 
-            await ValidateUnsafeGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
         [Fact]
