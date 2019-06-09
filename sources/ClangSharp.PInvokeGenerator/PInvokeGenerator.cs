@@ -424,6 +424,54 @@ namespace ClangSharp
             return EscapeName(name);
         }
 
+        private string GetAccessSpecifierName(NamedDecl namedDecl)
+        {
+            string name;
+
+            switch (namedDecl.AccessSpecifier)
+            {
+                case CX_CXXAccessSpecifier.CX_CXXInvalidAccessSpecifier:
+                {
+                    // Top level declarations will have an invalid access specifier
+                    name = "public";
+                    break;
+                }
+
+                case CX_CXXAccessSpecifier.CX_CXXPublic:
+                {
+                    name = "public";
+                    break;
+                }
+
+                case CX_CXXAccessSpecifier.CX_CXXProtected:
+                {
+                    name = "protected";
+                    break;
+                }
+
+                case CX_CXXAccessSpecifier.CX_CXXPrivate:
+                {
+                    name = "private";
+                    break;
+                }
+
+                default:
+                {
+                    name = "internal";
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unknown access specifier: '{namedDecl.AccessSpecifier}'. Falling back to '{name}'.", namedDecl);
+                    break;
+                }
+            }
+
+            return name;
+        }
+
+        private string GetArtificalFixedSizedBufferName(FieldDecl fieldDecl)
+        {
+            var name = GetRemappedCursorName(fieldDecl);
+            return $"_{name}_e__FixedBuffer";
+        }
+
         private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention)
         {
             switch (callingConvention)
@@ -460,12 +508,6 @@ namespace ClangSharp
                     return name;
                 }
             }
-        }
-
-        private string GetArtificalFixedSizedBufferName(FieldDecl fieldDecl)
-        {
-            var name = GetRemappedCursorName(fieldDecl);
-            return $"_{name}_e__FixedBuffer";
         }
 
         private string GetCursorName(NamedDecl namedDecl)
@@ -972,7 +1014,9 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
-                _outputBuilder.WriteIndented("public enum");
+                _outputBuilder.WriteIndented(GetAccessSpecifierName(enumDecl));
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("enum");
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(EscapeName(name));
 
@@ -1042,19 +1086,20 @@ namespace ClangSharp
 
         private void VisitFieldDecl(FieldDecl fieldDecl, Cursor parent)
         {
-            _outputBuilder.WriteIndentation();
-
             var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
 
             var type = fieldDecl.Type;
             var typeName = GetRemappedTypeName(fieldDecl, type);
 
+            _outputBuilder.WriteIndented(GetAccessSpecifierName(fieldDecl));
+            _outputBuilder.Write(' ');
+
             if (type is ConstantArrayType constantArrayType)
             {
                 if (IsSupportedFixedSizedBufferType(typeName))
                 {
-                    _outputBuilder.Write("public fixed");
+                    _outputBuilder.Write("fixed");
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(typeName);
                     _outputBuilder.Write(' ');
@@ -1065,8 +1110,6 @@ namespace ClangSharp
                 }
                 else
                 {
-                    _outputBuilder.Write("public");
-                    _outputBuilder.Write(' ');
                     _outputBuilder.Write(GetArtificalFixedSizedBufferName(fieldDecl));
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(escapedName);
@@ -1074,8 +1117,6 @@ namespace ClangSharp
             }
             else
             {
-                _outputBuilder.Write("public");
-                _outputBuilder.Write(' ');
                 _outputBuilder.Write(typeName);
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(escapedName);
@@ -1105,7 +1146,9 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(")]");
                 }
 
-                _outputBuilder.WriteIndented("public static");
+                _outputBuilder.WriteIndented(GetAccessSpecifierName(functionDecl));
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("static");
                 _outputBuilder.Write(' ');
 
                 if (body is null)
@@ -1267,7 +1310,7 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
-                _outputBuilder.WriteIndented("public");
+                _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
                 _outputBuilder.Write(' ');
 
                 if (IsUnsafe(recordDecl))
@@ -1303,7 +1346,7 @@ namespace ClangSharp
                     bool isUnsafe = typeName.Contains('*');
 
                     _outputBuilder.WriteLine();
-                    _outputBuilder.WriteIndented("public");
+                    _outputBuilder.WriteIndented(GetAccessSpecifierName(constantArray));
                     _outputBuilder.Write(' ');
 
                     if (isUnsafe)
@@ -1486,18 +1529,22 @@ namespace ClangSharp
 
                 StartUsingOutputBuilder(name);
                 {
-                    var escapedName = EscapeName(name);
-
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
                     _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
                     _outputBuilder.Write(GetCallingConventionName(typedefDecl, functionType.CallConv));
                     _outputBuilder.WriteLine(")]");
-                    _outputBuilder.WriteIndented("public delegate");
+
+                    var returnType = functionType.ReturnType;
+                    var returnTypeName = GetRemappedTypeName(typedefDecl, returnType);
+
+                    _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
                     _outputBuilder.Write(' ');
-                    _outputBuilder.Write(GetRemappedTypeName(typedefDecl, functionType.ReturnType));
+                    _outputBuilder.Write("delegate");
                     _outputBuilder.Write(' ');
-                    _outputBuilder.Write(escapedName);
+                    _outputBuilder.Write(returnTypeName);
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(EscapeName(name));
                     _outputBuilder.Write('(');
 
                     foreach (var parmVarDecl in typedefDecl.Parameters)
