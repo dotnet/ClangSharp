@@ -118,6 +118,8 @@ namespace ClangSharp
 
         public CXType Handle { get; }
 
+        public bool IsConstQualified => Handle.IsConstQualified;
+
         public CXTypeKind Kind => Handle.kind;
 
         public string KindSpelling => Handle.KindSpelling.ToString();

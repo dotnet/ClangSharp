@@ -634,13 +634,15 @@ namespace ClangSharp
 
                 if (mayNeedFixup && (elementType is BuiltinType))
                 {
-                    // We want to taked mapped builtin types into consideration as part of the returned native type name
-                    nativeTypeName = nativeTypeName.Replace(nativeElementTypeName, name);
-
-                    if ((arrayType is ConstantArrayType) && IsSupportedFixedSizedBufferType(name) && !nativeTypeName.Contains("const "))
+                    if ((arrayType is ConstantArrayType) && IsSupportedFixedSizedBufferType(name))
                     {
                         // We don't want to bloat metadata when the native type has a direct managed equivalent.
                         nativeTypeName = string.Empty;
+                    }
+                    else
+                    {
+                        // We want to taked mapped builtin types into consideration as part of the returned native type name
+                        nativeTypeName = nativeTypeName.Replace(nativeElementTypeName, name);
                     }
                 }
             }
@@ -648,16 +650,14 @@ namespace ClangSharp
             {
                 if (nativeTypeName.Equals(name))
                 {
-                    if (preserveMatchingNativeTypeName)
-                    {
-                        // We want to strip the const qualification as we want it
-                        // preserved when doing text replacements elsewhere in the logic.
-                        nativeTypeName = nativeTypeName.Replace("const ", "");
-                    }
-                    else
+                    if (!preserveMatchingNativeTypeName)
                     {
                         // We don't want to bloat metadata when the native type is built-in
                         nativeTypeName = string.Empty;
+                    }
+                    else if (type.IsConstQualified)
+                    {
+                        nativeTypeName = nativeTypeName.Replace("const ", "");
                     }
                 }
 
@@ -769,15 +769,46 @@ namespace ClangSharp
                     // We don't want to bloat metadata when the native type is elaborated
                     nativeTypeName = string.Empty;
                 }
-                name = GetTypeName(namedDecl, elaboratedType.NamedType, ref nativeTypeName);
+                name = GetTypeName(namedDecl, elaboratedType.NamedType, ref nativeTypeName, preserveMatchingNativeTypeName);
             }
             else if (type is PointerType pointerType)
             {
-                name = GetTypeNameForPointeeType(namedDecl, name, pointerType.PointeeType, ref nativeTypeName);
-            }
-            else if (type is ReferenceType referenceType)
-            {
-                name = GetTypeNameForPointeeType(namedDecl, name, referenceType.PointeeType, ref nativeTypeName);
+                var pointeeType = pointerType.PointeeType;
+
+                if (pointeeType is FunctionType)
+                {
+                    name = "IntPtr";
+                }
+                else
+                {
+                    bool mayNeedFixup = nativeTypeName.Equals(name);
+
+                    var nativePointeeTypeName = string.Empty;
+                    name = GetTypeName(namedDecl, pointeeType, ref nativePointeeTypeName, preserveMatchingNativeTypeName: true);
+
+                    if (mayNeedFixup)
+                    {
+                        if (!preserveMatchingNativeTypeName)
+                        {
+                            // We want to taked mapped builtin types into consideration as part of the returned native type name
+                            nativeTypeName = nativeTypeName.Replace(nativePointeeTypeName, name);
+                        }
+                        else
+                        {
+                            if (pointeeType.IsConstQualified)
+                            {
+                                nativeTypeName = nativeTypeName.Replace("const ", "");
+                            }
+
+                            if (type.IsConstQualified)
+                            {
+                                nativeTypeName = nativeTypeName.Replace("*const", "*");
+                            }
+                        }
+                    }
+
+                    name += '*';
+                }
             }
             else if (type is TypedefType typedefType)
             {
@@ -804,7 +835,7 @@ namespace ClangSharp
 
                     default:
                     {
-                        name = GetTypeName(namedDecl, typedefType.UnderlyingType, ref nativeTypeName);
+                        name = GetTypeName(namedDecl, typedefType.UnderlyingType, ref nativeTypeName, preserveMatchingNativeTypeName);
                         break;
                     }
                 }
@@ -822,30 +853,6 @@ namespace ClangSharp
 
             Debug.Assert(!string.IsNullOrWhiteSpace(name));
             return name;
-        }
-
-        private string GetTypeNameForPointeeType(NamedDecl namedDecl, string name, Type pointeeType, ref string nativeTypeName)
-        {
-            if (pointeeType is FunctionType)
-            {
-                return "IntPtr";
-            }
-            else
-            {
-                bool mayNeedFixup = nativeTypeName.Equals(name);
-
-                var nativePointeeTypeName = string.Empty;
-                name = GetTypeName(namedDecl, pointeeType, ref nativePointeeTypeName, preserveMatchingNativeTypeName: true);
-
-                if (mayNeedFixup && (pointeeType is BuiltinType))
-                {
-                    // We want to taked mapped builtin types into consideration as part of the returned native type name
-                    nativeTypeName = nativeTypeName.Replace(nativePointeeTypeName, name);
-                }
-
-                name += '*';
-                return name;
-            }
         }
 
         private bool IsSupportedFixedSizedBufferType(string typeName)
