@@ -52,6 +52,8 @@ jobs:
 - job: ubuntu_1604_debug_x64
   pool:
     name: Hosted Ubuntu 1604
+  variables:
+    RuntimeIdentifier: ubuntu.16.04-x64
   steps:
   - task: Bash@3
     displayName: 'Run scripts/cibuild.sh'
@@ -63,6 +65,8 @@ jobs:
 - job: ubuntu_1604_release_x64
   pool:
     name: Hosted Ubuntu 1604
+  variables:
+    RuntimeIdentifier: ubuntu.16.04-x64
   steps:
   - task: Bash@3
     displayName: 'Run scripts/cibuild.sh'
