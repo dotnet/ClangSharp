@@ -935,6 +935,27 @@ namespace ClangSharp
             return false;
         }
 
+        private bool IsUnsafe(TypedefDecl typedefDecl, FunctionType functionType)
+        {
+            var returnType = functionType.ReturnType;
+            var returnTypeName = GetRemappedTypeName(typedefDecl, returnType, out _);
+
+            if (returnTypeName.Contains('*'))
+            {
+                return true;
+            }
+
+            foreach (var parmVarDecl in typedefDecl.Parameters)
+            {
+                if (IsUnsafe(parmVarDecl))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void StartUsingOutputBuilder(string name)
         {
             if (_outputBuilder != null)
@@ -1670,6 +1691,13 @@ namespace ClangSharp
 
                     _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
                     _outputBuilder.Write(' ');
+
+                    if (IsUnsafe(typedefDecl, functionType))
+                    {
+                        _outputBuilder.Write("unsafe");
+                        _outputBuilder.Write(' ');
+                    }
+
                     _outputBuilder.Write("delegate");
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(returnTypeName);
