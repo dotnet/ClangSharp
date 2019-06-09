@@ -654,33 +654,13 @@ namespace ClangSharp
             }
             else if (type is TypedefType typedefType)
             {
+                // We intercept some well known types that have variable sizes
+                // to ensure that we can treat them correctly. Otherwise, they
+                // will resolve to a particular platform size, based on whatever
+                // parameters were passed into clang.
+
                 switch (name)
                 {
-                    case "int8_t":
-                    {
-                        name = "sbyte";
-                        break;
-                    }
-
-                    case "int16_t":
-                    {
-                        name = "short";
-                        break;
-                    }
-
-                    case "int32_t":
-                    {
-                        name = "int";
-                        break;
-                    }
-
-                    case "int64_t":
-                    case "time_t":
-                    {
-                        name = "long";
-                        break;
-                    }
-
                     case "intptr_t":
                     case "ptrdiff_t":
                     {
@@ -692,30 +672,6 @@ namespace ClangSharp
                     case "uintptr_t":
                     {
                         name = "UIntPtr";
-                        break;
-                    }
-
-                    case "uint8_t":
-                    {
-                        name = "byte";
-                        break;
-                    }
-
-                    case "uint16_t":
-                    {
-                        name = "ushort";
-                        break;
-                    }
-
-                    case "uint32_t":
-                    {
-                        name = "uint";
-                        break;
-                    }
-
-                    case "uint64_t":
-                    {
-                        name = "ulong";
                         break;
                     }
 
