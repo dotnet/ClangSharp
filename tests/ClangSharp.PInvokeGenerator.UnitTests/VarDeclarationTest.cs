@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ClangSharp.UnitTests
@@ -11,7 +11,7 @@ namespace ClangSharp.UnitTests
         [InlineData("short", "short")]
         [InlineData("int", "int")]
         [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
+        [InlineData("signed char", "sbyte")]
         [InlineData("float", "float")]
         [InlineData("unsigned short", "ushort")]
         [InlineData("unsigned int", "uint")]

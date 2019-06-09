@@ -12,7 +12,7 @@ namespace ClangSharp.UnitTests
         [InlineData("short", "short")]
         [InlineData("int", "int")]
         [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
+        [InlineData("signed char", "sbyte")]
         [InlineData("float", "float")]
         [InlineData("unsigned short", "ushort")]
         [InlineData("unsigned int", "uint")]
@@ -32,7 +32,9 @@ namespace ClangSharp.UnitTests
     public partial struct MyStruct
     {{
         public {expectedManagedType} r;
+
         public {expectedManagedType} g;
+
         public {expectedManagedType} b;
     }}
 }}
@@ -57,7 +59,7 @@ namespace ClangSharp.UnitTests
         [InlineData("short", "short")]
         [InlineData("int", "int")]
         [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
+        [InlineData("signed char", "sbyte")]
         [InlineData("float", "float")]
         [InlineData("unsigned short", "ushort")]
         [InlineData("unsigned int", "uint")]
@@ -84,6 +86,7 @@ struct MyOtherStruct
 
     public partial struct MyOtherStruct
     {{
+        [NativeTypeName(""MyStruct[3]"")]
         public _c_e__FixedBuffer c;
 
         public partial struct _c_e__FixedBuffer
@@ -116,7 +119,7 @@ struct MyOtherStruct
         [InlineData("short", "short")]
         [InlineData("int", "int")]
         [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
+        [InlineData("signed char", "sbyte")]
         [InlineData("float", "float")]
         [InlineData("unsigned short", "ushort")]
         [InlineData("unsigned int", "uint")]
@@ -147,7 +150,7 @@ struct MyOtherStruct
         [InlineData("short", "short")]
         [InlineData("int", "int")]
         [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
+        [InlineData("signed char", "sbyte")]
         [InlineData("float", "float")]
         [InlineData("unsigned short", "ushort")]
         [InlineData("unsigned int", "uint")]
@@ -175,14 +178,19 @@ struct MyOtherStruct
     public partial struct MyStruct
     {{
         public {expectedManagedType} r;
+
         public {expectedManagedType} g;
+
         public {expectedManagedType} b;
 
         public partial struct MyNestedStruct
         {{
             public {expectedManagedType} r;
+
             public {expectedManagedType} g;
+
             public {expectedManagedType} b;
+
             public {expectedManagedType} a;
         }}
     }}
@@ -230,7 +238,7 @@ struct MyOtherStruct
         [InlineData("short", "short")]
         [InlineData("int", "int")]
         [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
+        [InlineData("signed char", "sbyte")]
         [InlineData("float", "float")]
         [InlineData("unsigned short", "ushort")]
         [InlineData("unsigned int", "uint")]
@@ -252,7 +260,9 @@ struct MyStruct
     public partial struct MyStruct
     {{
         public {expectedManagedType} r;
+
         public {expectedManagedType} g;
+
         public {expectedManagedType} b;
     }}
 }}
@@ -267,7 +277,7 @@ struct MyStruct
         [InlineData("short", "short")]
         [InlineData("int", "int")]
         [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
+        [InlineData("signed char", "sbyte")]
         [InlineData("float", "float")]
         [InlineData("unsigned short", "ushort")]
         [InlineData("unsigned int", "uint")]
@@ -288,8 +298,13 @@ struct MyStruct
 {{
     public partial struct MyStruct
     {{
+        [NativeTypeName(""MyTypedefAlias"")]
         public {expectedManagedType} r;
+
+        [NativeTypeName(""MyTypedefAlias"")]
         public {expectedManagedType} g;
+
+        [NativeTypeName(""MyTypedefAlias"")]
         public {expectedManagedType} b;
     }}
 }}

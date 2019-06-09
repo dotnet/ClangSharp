@@ -204,6 +204,45 @@ namespace ClangSharp
             }
         }
 
+        private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
+        {
+            if (string.IsNullOrWhiteSpace(nativeTypeName))
+            {
+                return;
+            }
+
+            if (prefix is null)
+            {
+                _outputBuilder.WriteIndentation();
+            }
+            else
+            {
+                _outputBuilder.Write(prefix);
+            }
+
+            _outputBuilder.Write('[');
+
+            if (attributePrefix != null)
+            {
+                _outputBuilder.Write(attributePrefix);
+            }
+
+            _outputBuilder.Write("NativeTypeName(");
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(nativeTypeName);
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(")]");
+
+            if (postfix is null)
+            {
+                _outputBuilder.WriteLine();
+            }
+            else
+            {
+                _outputBuilder.Write(postfix);
+            }
+        }
+
         private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen, bool emitNamespaceDeclaration)
         {
             if (stream is null)
@@ -527,7 +566,9 @@ namespace ClangSharp
                     }
                     else
                     {
-                        name = GetTypeName(namedDecl, typeDecl.Type);
+                        var nativeTypeName = string.Empty;
+                        name = GetTypeName(namedDecl, typeDecl.Type, ref nativeTypeName);
+                        Debug.Assert(string.IsNullOrWhiteSpace(nativeTypeName));
                     }
                 }
                 else if (namedDecl is ParmVarDecl)
@@ -565,22 +606,61 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedTypeName(NamedDecl namedDecl, Type type)
+        private string GetRemappedTypeName(NamedDecl namedDecl, Type type, out string nativeTypeName)
         {
-            var name = GetTypeName(namedDecl, type);
+            nativeTypeName = string.Empty;
+            var name = GetTypeName(namedDecl, type, ref nativeTypeName);
             return GetRemappedName(name);
         }
 
-        private string GetTypeName(NamedDecl namedDecl, Type type)
+        private string GetTypeName(NamedDecl namedDecl, Type type, ref string nativeTypeName, bool preserveMatchingNativeTypeName = false)
         {
-            var name = type.Spelling;
+            var name = type.Spelling
+                           .Replace(" *", "*")
+                           .Replace(" [", "[");
+
+            if (string.IsNullOrWhiteSpace(nativeTypeName))
+            {
+                nativeTypeName = name;
+            }
 
             if (type is ArrayType arrayType)
             {
-                name = GetTypeName(namedDecl, arrayType.ElementType);
+                var elementType = arrayType.ElementType;
+                bool mayNeedFixup = nativeTypeName.Equals(name);
+
+                var nativeElementTypeName = string.Empty;
+                name = GetTypeName(namedDecl, elementType, ref nativeElementTypeName, preserveMatchingNativeTypeName: true);
+
+                if (mayNeedFixup && (elementType is BuiltinType))
+                {
+                    // We want to taked mapped builtin types into consideration as part of the returned native type name
+                    nativeTypeName = nativeTypeName.Replace(nativeElementTypeName, name);
+
+                    if ((arrayType is ConstantArrayType) && IsSupportedFixedSizedBufferType(name) && !nativeTypeName.Contains("const "))
+                    {
+                        // We don't want to bloat metadata when the native type has a direct managed equivalent.
+                        nativeTypeName = string.Empty;
+                    }
+                }
             }
             else if (type is BuiltinType)
             {
+                if (nativeTypeName.Equals(name))
+                {
+                    if (preserveMatchingNativeTypeName)
+                    {
+                        // We want to strip the const qualification as we want it
+                        // preserved when doing text replacements elsewhere in the logic.
+                        nativeTypeName = nativeTypeName.Replace("const ", "");
+                    }
+                    else
+                    {
+                        // We don't want to bloat metadata when the native type is built-in
+                        nativeTypeName = string.Empty;
+                    }
+                }
+
                 switch (type.Kind)
                 {
                     case CXTypeKind.CXType_Void:
@@ -684,15 +764,20 @@ namespace ClangSharp
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                name = GetTypeName(namedDecl, elaboratedType.NamedType);
+                if (nativeTypeName.Equals(name) && !preserveMatchingNativeTypeName)
+                {
+                    // We don't want to bloat metadata when the native type is elaborated
+                    nativeTypeName = string.Empty;
+                }
+                name = GetTypeName(namedDecl, elaboratedType.NamedType, ref nativeTypeName);
             }
             else if (type is PointerType pointerType)
             {
-                name = GetTypeNameForPointeeType(namedDecl, pointerType.PointeeType);
+                name = GetTypeNameForPointeeType(namedDecl, name, pointerType.PointeeType, ref nativeTypeName);
             }
             else if (type is ReferenceType referenceType)
             {
-                name = GetTypeNameForPointeeType(namedDecl, referenceType.PointeeType);
+                name = GetTypeNameForPointeeType(namedDecl, name, referenceType.PointeeType, ref nativeTypeName);
             }
             else if (type is TypedefType typedefType)
             {
@@ -719,7 +804,7 @@ namespace ClangSharp
 
                     default:
                     {
-                        name = GetTypeName(namedDecl, typedefType.UnderlyingType);
+                        name = GetTypeName(namedDecl, typedefType.UnderlyingType, ref nativeTypeName);
                         break;
                     }
                 }
@@ -729,11 +814,17 @@ namespace ClangSharp
                 AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back '{name}'.", namedDecl);
             }
 
+            if (nativeTypeName.Equals(name) && !preserveMatchingNativeTypeName)
+            {
+                // We don't want to bloat metadata when the native type name matches the managed type name
+                nativeTypeName = string.Empty;
+            }
+
             Debug.Assert(!string.IsNullOrWhiteSpace(name));
             return name;
         }
 
-        private string GetTypeNameForPointeeType(NamedDecl namedDecl, Type pointeeType)
+        private string GetTypeNameForPointeeType(NamedDecl namedDecl, string name, Type pointeeType, ref string nativeTypeName)
         {
             if (pointeeType is FunctionType)
             {
@@ -741,7 +832,17 @@ namespace ClangSharp
             }
             else
             {
-                var name = GetTypeName(namedDecl, pointeeType);
+                bool mayNeedFixup = nativeTypeName.Equals(name);
+
+                var nativePointeeTypeName = string.Empty;
+                name = GetTypeName(namedDecl, pointeeType, ref nativePointeeTypeName, preserveMatchingNativeTypeName: true);
+
+                if (mayNeedFixup && (pointeeType is BuiltinType))
+                {
+                    // We want to taked mapped builtin types into consideration as part of the returned native type name
+                    nativeTypeName = nativeTypeName.Replace(nativePointeeTypeName, name);
+                }
+
                 name += '*';
                 return name;
             }
@@ -777,7 +878,7 @@ namespace ClangSharp
         private bool IsUnsafe(FieldDecl fieldDecl)
         {
             var type = fieldDecl.Type;
-            var typeName = GetRemappedTypeName(fieldDecl, type);
+            var typeName = GetRemappedTypeName(fieldDecl, type, out _);
 
             if (type is ConstantArrayType constantArrayType)
             {
@@ -790,7 +891,7 @@ namespace ClangSharp
         private bool IsUnsafe(FunctionDecl functionDecl)
         {
             var returnType = functionDecl.ReturnType;
-            var returnTypeName = GetRemappedTypeName(functionDecl, returnType);
+            var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out _);
 
             if (returnTypeName.Contains('*'))
             {
@@ -811,7 +912,7 @@ namespace ClangSharp
         private bool IsUnsafe(ParmVarDecl parmVarDecl)
         {
             var type = parmVarDecl.Type;
-            var typeName = GetRemappedTypeName(parmVarDecl, type);
+            var typeName = GetRemappedTypeName(parmVarDecl, type, out _);
             return typeName.Contains('*');
         }
 
@@ -1014,13 +1115,14 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
+                var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
+                AddNativeTypeNameAttribute(nativeTypeName);
+
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(enumDecl));
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write("enum");
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(EscapeName(name));
-
-                var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType);
 
                 if (!integerTypeName.Equals("int"))
                 {
@@ -1090,7 +1192,8 @@ namespace ClangSharp
             var escapedName = EscapeName(name);
 
             var type = fieldDecl.Type;
-            var typeName = GetRemappedTypeName(fieldDecl, type);
+            var typeName = GetRemappedTypeName(fieldDecl, type, out var nativeTypeName);
+            AddNativeTypeNameAttribute(nativeTypeName);
 
             _outputBuilder.WriteIndented(GetAccessSpecifierName(fieldDecl));
             _outputBuilder.Write(' ');
@@ -1132,7 +1235,6 @@ namespace ClangSharp
             StartUsingOutputBuilder(_config.MethodClassName);
             {
                 var functionType = functionDecl.FunctionType;
-                var returnType = functionDecl.ReturnType;
                 var body = functionDecl.Body;
 
                 if (body is null)
@@ -1145,6 +1247,10 @@ namespace ClangSharp
                     _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
                     _outputBuilder.WriteLine(")]");
                 }
+
+                var returnType = functionDecl.ReturnType;
+                var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out var nativeTypeName);
+                AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
 
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(functionDecl));
                 _outputBuilder.Write(' ');
@@ -1162,7 +1268,7 @@ namespace ClangSharp
                     _isMethodClassUnsafe = true;
                 }
 
-                _outputBuilder.Write(GetRemappedTypeName(functionDecl, returnType));
+                _outputBuilder.Write(returnTypeName);
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(EscapeAndStripName(name));
                 _outputBuilder.Write('(');
@@ -1258,7 +1364,11 @@ namespace ClangSharp
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
         {
-            _outputBuilder.Write(GetRemappedTypeName(parmVarDecl, parmVarDecl.Type));
+            var type = parmVarDecl.Type;
+            var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
+            AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
+
+            _outputBuilder.Write(typeName);
             _outputBuilder.Write(' ');
 
             var name = GetRemappedCursorName(parmVarDecl);
@@ -1282,7 +1392,11 @@ namespace ClangSharp
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl, TypedefDecl typedefDecl)
         {
-            _outputBuilder.Write(GetRemappedTypeName(parmVarDecl, parmVarDecl.Type));
+            var type = parmVarDecl.Type;
+            var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
+            AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
+
+            _outputBuilder.Write(typeName);
             _outputBuilder.Write(' ');
 
             var name = GetRemappedCursorName(parmVarDecl);
@@ -1324,9 +1438,17 @@ namespace ClangSharp
                 _outputBuilder.WriteLine(EscapeName(name));
                 _outputBuilder.WriteBlockStart();
 
-                foreach (var field in recordDecl.Fields)
+                var fields = recordDecl.Fields;
+
+                if (fields.Count != 0)
                 {
-                    Visit(field, recordDecl);
+                    Visit(fields[0], recordDecl);
+
+                    for (int i = 1; i < fields.Count; i++)
+                    {
+                        _outputBuilder.WriteLine();
+                        Visit(fields[i], recordDecl);
+                    }
                 }
 
                 foreach (var declaration in recordDecl.Declarations)
@@ -1336,8 +1458,8 @@ namespace ClangSharp
 
                 foreach (var constantArray in recordDecl.ConstantArrays)
                 {
-                    var constantArrayType = (ConstantArrayType)constantArray.Type;
-                    var typeName = GetRemappedTypeName(constantArray, constantArray.Type);
+                    var type = (ConstantArrayType)constantArray.Type;
+                    var typeName = GetRemappedTypeName(constantArray, constantArray.Type, out _);
 
                     if (IsSupportedFixedSizedBufferType(typeName))
                     {
@@ -1360,7 +1482,7 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(GetArtificalFixedSizedBufferName(constantArray));
                     _outputBuilder.WriteBlockStart();
 
-                    for (int i = 0; i < constantArrayType.Size; i++)
+                    for (int i = 0; i < type.Size; i++)
                     {
                         _outputBuilder.WriteIndented("private");
                         _outputBuilder.Write(' ');
@@ -1536,7 +1658,8 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(")]");
 
                     var returnType = functionType.ReturnType;
-                    var returnTypeName = GetRemappedTypeName(typedefDecl, returnType);
+                    var returnTypeName = GetRemappedTypeName(typedefDecl, returnType, out var nativeTypeName);
+                    AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
 
                     _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
                     _outputBuilder.Write(' ');
@@ -1616,9 +1739,13 @@ namespace ClangSharp
 
                 StartUsingOutputBuilder(_config.MethodClassName);
                 {
+                    var type = varDecl.Type;
+                    var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
+                    AddNativeTypeNameAttribute(nativeTypeName, prefix: "// ");
+
                     _outputBuilder.WriteIndented("// public static extern");
                     _outputBuilder.Write(' ');
-                    _outputBuilder.Write(GetRemappedTypeName(varDecl, varDecl.Type));
+                    _outputBuilder.Write(typeName);
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(EscapeName(name));
                     _outputBuilder.WriteLine(';');

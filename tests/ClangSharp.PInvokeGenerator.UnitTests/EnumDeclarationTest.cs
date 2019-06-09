@@ -77,7 +77,7 @@ namespace ClangSharp.UnitTests
         [InlineData("unsigned char", "byte")]
         [InlineData("short", "short")]
         [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
+        [InlineData("signed char", "sbyte")]
         [InlineData("unsigned short", "ushort")]
         [InlineData("unsigned int", "uint")]
         [InlineData("unsigned long long", "ulong")]
