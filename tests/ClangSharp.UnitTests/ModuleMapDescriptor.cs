@@ -1,5 +1,5 @@
 using System;
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace ClangSharp.UnitTests
@@ -17,18 +17,15 @@ namespace ClangSharp.UnitTests
                 + "  module * { export * }\n"
                 + "}\n";
 
-            CXModuleMapDescriptor mmd = clang.ModuleMapDescriptor_create(0);
+            using (var mmd = CXModuleMapDescriptor.Create(options: 0))
+            {
+                mmd.SetFrameworkModuleName("TestFrame");
+                mmd.SetUmbrellaHeader("TestFrame.h");
 
-            clang.ModuleMapDescriptor_setFrameworkModuleName(mmd, "TestFrame");
-            clang.ModuleMapDescriptor_setUmbrellaHeader(mmd, "TestFrame.h");
-
-            IntPtr bufPtr;
-            uint bufSize = 0;
-            clang.ModuleMapDescriptor_writeToBuffer(mmd, 0, out bufPtr, out bufSize);
-            var bufStr = Marshal.PtrToStringAnsi(bufPtr, (int)bufSize);
-            Assert.Equal(contents, bufStr);
-            clang.free(bufPtr);
-            clang.ModuleMapDescriptor_dispose(mmd);
+                Span<byte> buffer = mmd.WriteToBuffer(options: 0, errorCode: out _);
+                Assert.Equal(contents, buffer.AsString());
+                buffer.ClangFree();
+            }
         }
     }
 }

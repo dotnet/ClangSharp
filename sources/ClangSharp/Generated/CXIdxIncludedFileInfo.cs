@@ -1,14 +1,19 @@
-using System.Runtime.InteropServices;
-
 namespace ClangSharp
 {
-    public partial struct CXIdxIncludedFileInfo
+    public unsafe partial struct CXIdxIncludedFileInfo
     {
         public CXIdxLoc hashLoc;
-        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string filename;
-        public CXFile file;
+
+        [NativeTypeName("const sbyte*")]
+        public sbyte* filename;
+
+        [NativeTypeName("CXFile")]
+        public void* file;
+
         public int isImport;
+
         public int isAngled;
+
         public int isModuleImport;
     }
 }

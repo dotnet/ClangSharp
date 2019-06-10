@@ -1690,6 +1690,13 @@ namespace ClangSharp
                     AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
 
                     _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
+
+                    if (IsUnsafe(typedefDecl, functionType))
+                    {
+                        _outputBuilder.Write("unsafe");
+                        _outputBuilder.Write(' ');
+                    }
+
                     _outputBuilder.Write(' ');
 
                     if (IsUnsafe(typedefDecl, functionType))

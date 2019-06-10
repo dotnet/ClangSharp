@@ -1,17 +1,24 @@
-using System;
-using System.Runtime.InteropServices;
-
 namespace ClangSharp
 {
-    public partial struct CXIdxEntityInfo
+    public unsafe partial struct CXIdxEntityInfo
     {
         public CXIdxEntityKind kind;
+
         public CXIdxEntityCXXTemplateKind templateKind;
+
         public CXIdxEntityLanguage lang;
-        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string name;
-        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string USR;
+
+        [NativeTypeName("const sbyte*")]
+        public sbyte* name;
+
+        [NativeTypeName("const sbyte*")]
+        public sbyte* USR;
+
         public CXCursor cursor;
-        public IntPtr attributes;
+
+        [NativeTypeName("const CXIdxAttrInfo*const*")]
+        public CXIdxAttrInfo** attributes;
+
         public uint numAttributes;
     }
 }

@@ -1,10 +1,10 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXIdxObjCProtocolRefListInfo
+    public unsafe partial struct CXIdxObjCProtocolRefListInfo
     {
-        public IntPtr protocols;
+        [NativeTypeName("const CXIdxObjCProtocolRefInfo*const*")]
+        public CXIdxObjCProtocolRefInfo** protocols;
+
         public uint numProtocols;
     }
 }

@@ -3,5 +3,5 @@ using System.Runtime.InteropServices;
 namespace ClangSharp
 {
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void CXInclusionVisitor(CXFile included_file, out CXSourceLocation inclusion_stack, uint include_len, CXClientData client_data);
+    public unsafe delegate void CXInclusionVisitor([NativeTypeName("CXFile")] void* included_file, CXSourceLocation* inclusion_stack, uint include_len, [NativeTypeName("CXClientData")] void* client_data);
 }

@@ -1,8 +1,9 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp
 {
-    public partial struct CXType : IEquatable<CXType>
+    public unsafe partial struct CXType : IEquatable<CXType>
     {
         public long AlignOf => clang.Type_getAlignOf(this);
 
@@ -78,7 +79,13 @@ namespace ClangSharp
 
         public CXType GetObjCTypeArg(uint i) => clang.Type_getObjCTypeArg(this, i);
 
-        public long GetOffsetOf(string s) => clang.Type_getOffsetOf(this, s);
+        public long GetOffsetOf(string s)
+        {
+            using (var marshaledS = new MarshaledString(s))
+            {
+                return clang.Type_getOffsetOf(this, marshaledS);
+            }
+        }
 
         public CXType GetTemplateArgumentAsType(uint i) => clang.Type_getTemplateArgumentAsType(this, i);
 
@@ -88,6 +95,12 @@ namespace ClangSharp
 
         public override string ToString() => Spelling.ToString();
 
-        public CXVisitorResult VisitFields(CXFieldVisitor visitor, CXClientData clientData) => (CXVisitorResult)clang.Type_visitFields(this, visitor, clientData);
+        public CXVisitorResult VisitFields(CXFieldVisitor visitor, CXClientData clientData)
+        {
+            var pVisitor = Marshal.GetFunctionPointerForDelegate(visitor);
+            var result = (CXVisitorResult)clang.Type_visitFields(this, pVisitor, clientData);
+            GC.KeepAlive(visitor);
+            return result;
+        }
     }
 }

@@ -1,10 +1,9 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXCodeCompleteResults
+    public unsafe partial struct CXCodeCompleteResults
     {
-        public IntPtr Results;
+        public CXCompletionResult* Results;
+
         public uint NumResults;
     }
 }

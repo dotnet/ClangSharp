@@ -1,11 +1,12 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXIdxCXXClassDeclInfo
+    public unsafe partial struct CXIdxCXXClassDeclInfo
     {
-        public IntPtr declInfo;
-        public IntPtr bases;
+        public CXIdxDeclInfo* declInfo;
+
+        [NativeTypeName("const CXIdxBaseClassInfo*const*")]
+        public CXIdxBaseClassInfo** bases;
+
         public uint numBases;
     }
 }

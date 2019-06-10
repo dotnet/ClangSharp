@@ -1,13 +1,15 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXIdxObjCCategoryDeclInfo
+    public unsafe partial struct CXIdxObjCCategoryDeclInfo
     {
-        public IntPtr containerInfo;
-        public IntPtr objcClass;
+        public CXIdxObjCContainerDeclInfo* containerInfo;
+
+        public CXIdxEntityInfo* objcClass;
+
         public CXCursor classCursor;
+
         public CXIdxLoc classLoc;
-        public IntPtr protocols;
+
+        public CXIdxObjCProtocolRefListInfo* protocols;
     }
 }

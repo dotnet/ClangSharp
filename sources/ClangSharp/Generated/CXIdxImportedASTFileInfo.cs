@@ -1,10 +1,15 @@
 namespace ClangSharp
 {
-    public partial struct CXIdxImportedASTFileInfo
+    public unsafe partial struct CXIdxImportedASTFileInfo
     {
-        public CXFile file;
-        public CXModule module;
+        [NativeTypeName("CXFile")]
+        public void* file;
+
+        [NativeTypeName("CXModule")]
+        public void* module;
+
         public CXIdxLoc loc;
+
         public int isImplicit;
     }
 }

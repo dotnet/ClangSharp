@@ -2,9 +2,11 @@ using System;
 
 namespace ClangSharp
 {
-    public partial struct CXCursorAndRangeVisitor
+    public unsafe partial struct CXCursorAndRangeVisitor
     {
-        public IntPtr context;
+        public void* context;
+
+        [NativeTypeName("enum CXVisitorResult (*)(void*, CXCursor, CXSourceRange)")]
         public IntPtr visit;
     }
 }

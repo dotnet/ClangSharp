@@ -21,6 +21,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sources", "sources", "{732BA761-B58E-4C34-9C96-097382A55A7A}"
+	ProjectSection(SolutionItems) = preProject
+		sources\Directory.Build.props = sources\Directory.Build.props
+		sources\Directory.Build.targets = sources\Directory.Build.targets
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp", "sources\ClangSharp\ClangSharp.csproj", "{A9D62BAC-5F38-4A37-8911-1F5952955C78}"
 EndProject
@@ -29,6 +33,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharpPInvokeGenerator", "sources\ClangSharpPInvokeGenerator\ClangSharpPInvokeGenerator.csproj", "{784B45C6-7A20-4F1C-A258-D81CDD9562A6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{394E17BB-B1EA-4A98-98C8-78ACD44182FC}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Directory.Build.props = tests\Directory.Build.props
+		tests\Directory.Build.targets = tests\Directory.Build.targets
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.UnitTests", "tests\ClangSharp.UnitTests\ClangSharp.UnitTests.csproj", "{4D0B43E1-921A-469F-A847-4473B2AF5172}"
 EndProject

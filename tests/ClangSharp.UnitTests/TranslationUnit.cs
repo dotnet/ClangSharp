@@ -14,7 +14,7 @@ namespace ClangSharp.UnitTests
         public void Basic(string name)
         {
             // Create a unique directory
-            var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var dir = Path.GetRandomFileName();
             Directory.CreateDirectory(dir);
 
             try
@@ -23,13 +23,12 @@ namespace ClangSharp.UnitTests
                 var file = new FileInfo(Path.Combine(dir, name + ".c"));
                 File.WriteAllText(file.FullName, "int main() { return 0; }");
 
-                var index = clang.createIndex(0, 0);
-                var translationUnit = clang.parseTranslationUnit(index, file.FullName, new string[0], 0, new CXUnsavedFile[0], 0, 0);
-                var clangFile = clang.getFile(translationUnit, file.FullName);
-                var clangFileName = clang.getFileName(clangFile);
-                var clangFileNameString = clang.getCString(clangFileName);
-
-                Assert.Equal(file.FullName, clangFileNameString);
+                using (var index = CXIndex.Create())
+                using (var translationUnit = CXTranslationUnit.Parse(index, file.FullName, Array.Empty<string>(), Array.Empty<CXUnsavedFile>(), CXTranslationUnit_Flags.CXTranslationUnit_None))
+                {
+                    var clangFile = translationUnit.GetFile(file.FullName);
+                    Assert.Equal(file.FullName, clangFile.Name.CString);
+                }
             }
             finally
             {
@@ -44,7 +43,7 @@ namespace ClangSharp.UnitTests
         public void BasicWrapper(string name)
         {
             // Create a unique directory
-            var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var dir = Path.GetRandomFileName();
             Directory.CreateDirectory(dir);
 
             try

@@ -1,10 +1,9 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXToken
+    public unsafe partial struct CXToken
     {
-        public uint int_data0; public uint int_data1; public uint int_data2; public uint int_data3;
-        public IntPtr ptr_data;
+        public fixed uint int_data[4];
+
+        public void* ptr_data;
     }
 }

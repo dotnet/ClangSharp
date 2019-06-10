@@ -1,10 +1,9 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXSourceRangeList
+    public unsafe partial struct CXSourceRangeList
     {
         public uint count;
-        public IntPtr ranges;
+
+        public CXSourceRange* ranges;
     }
 }

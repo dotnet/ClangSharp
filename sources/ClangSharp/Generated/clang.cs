@@ -3,49 +3,52 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp
 {
-    public static partial class clang
+    public static unsafe partial class clang
     {
         private const string libraryPath = "libclang";
 
         [DllImport(libraryPath, EntryPoint = "clang_createIndex", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXIndex createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics);
+        [return: NativeTypeName("CXIndex")]
+        public static extern void* createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeIndex", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeIndex(CXIndex index);
+        public static extern void disposeIndex([NativeTypeName("CXIndex")] void* index);
 
         [DllImport(libraryPath, EntryPoint = "clang_CXIndex_setGlobalOptions", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void CXIndex_setGlobalOptions(CXIndex param0, uint options);
+        public static extern void CXIndex_setGlobalOptions([NativeTypeName("CXIndex")] void* param0, uint options);
 
         [DllImport(libraryPath, EntryPoint = "clang_CXIndex_getGlobalOptions", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint CXIndex_getGlobalOptions(CXIndex param0);
+        public static extern uint CXIndex_getGlobalOptions([NativeTypeName("CXIndex")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CXIndex_setInvocationEmissionPathOption", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void CXIndex_setInvocationEmissionPathOption(CXIndex param0, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string Path);
+        public static extern void CXIndex_setInvocationEmissionPathOption([NativeTypeName("CXIndex")] void* param0, [NativeTypeName("const sbyte*")] sbyte* Path);
 
         [DllImport(libraryPath, EntryPoint = "clang_getFileName", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getFileName(CXFile SFile);
+        public static extern CXString getFileName([NativeTypeName("CXFile")] void* SFile);
 
         [DllImport(libraryPath, EntryPoint = "clang_getFileTime", CallingConvention = CallingConvention.Cdecl)]
-        public static extern long getFileTime(CXFile SFile);
+        [return: NativeTypeName("time_t")]
+        public static extern long getFileTime([NativeTypeName("CXFile")] void* SFile);
 
         [DllImport(libraryPath, EntryPoint = "clang_getFileUniqueID", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int getFileUniqueID(CXFile file, out CXFileUniqueID outID);
+        public static extern int getFileUniqueID([NativeTypeName("CXFile")] void* file, CXFileUniqueID* outID);
 
         [DllImport(libraryPath, EntryPoint = "clang_isFileMultipleIncludeGuarded", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint isFileMultipleIncludeGuarded(CXTranslationUnit tu, CXFile file);
+        public static extern uint isFileMultipleIncludeGuarded([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* tu, [NativeTypeName("CXFile")] void* file);
 
         [DllImport(libraryPath, EntryPoint = "clang_getFile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXFile getFile(CXTranslationUnit tu, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string file_name);
+        [return: NativeTypeName("CXFile")]
+        public static extern void* getFile([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* tu, [NativeTypeName("const sbyte*")] sbyte* file_name);
 
         [DllImport(libraryPath, EntryPoint = "clang_getFileContents", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))]
-        public static extern string getFileContents(CXTranslationUnit tu, CXFile file, out UIntPtr size);
+        [return: NativeTypeName("const sbyte*")]
+        public static extern sbyte* getFileContents([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* tu, [NativeTypeName("CXFile")] void* file, UIntPtr* size);
 
         [DllImport(libraryPath, EntryPoint = "clang_File_isEqual", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int File_isEqual(CXFile file1, CXFile file2);
+        public static extern int File_isEqual([NativeTypeName("CXFile")] void* file1, [NativeTypeName("CXFile")] void* file2);
 
         [DllImport(libraryPath, EntryPoint = "clang_File_tryGetRealPathName", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString File_tryGetRealPathName(CXFile file);
+        public static extern CXString File_tryGetRealPathName([NativeTypeName("CXFile")] void* file);
 
         [DllImport(libraryPath, EntryPoint = "clang_getNullLocation", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXSourceLocation getNullLocation();
@@ -54,10 +57,10 @@ namespace ClangSharp
         public static extern uint equalLocations(CXSourceLocation loc1, CXSourceLocation loc2);
 
         [DllImport(libraryPath, EntryPoint = "clang_getLocation", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXSourceLocation getLocation(CXTranslationUnit tu, CXFile file, uint line, uint column);
+        public static extern CXSourceLocation getLocation([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* tu, [NativeTypeName("CXFile")] void* file, uint line, uint column);
 
         [DllImport(libraryPath, EntryPoint = "clang_getLocationForOffset", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXSourceLocation getLocationForOffset(CXTranslationUnit tu, CXFile file, uint offset);
+        public static extern CXSourceLocation getLocationForOffset([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* tu, [NativeTypeName("CXFile")] void* file, uint offset);
 
         [DllImport(libraryPath, EntryPoint = "clang_Location_isInSystemHeader", CallingConvention = CallingConvention.Cdecl)]
         public static extern int Location_isInSystemHeader(CXSourceLocation location);
@@ -78,19 +81,19 @@ namespace ClangSharp
         public static extern int Range_isNull(CXSourceRange range);
 
         [DllImport(libraryPath, EntryPoint = "clang_getExpansionLocation", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void getExpansionLocation(CXSourceLocation location, out CXFile file, out uint line, out uint column, out uint offset);
+        public static extern void getExpansionLocation(CXSourceLocation location, void** file, uint* line, uint* column, uint* offset);
 
         [DllImport(libraryPath, EntryPoint = "clang_getPresumedLocation", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void getPresumedLocation(CXSourceLocation location, out CXString filename, out uint line, out uint column);
+        public static extern void getPresumedLocation(CXSourceLocation location, CXString* filename, uint* line, uint* column);
 
         [DllImport(libraryPath, EntryPoint = "clang_getInstantiationLocation", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void getInstantiationLocation(CXSourceLocation location, out CXFile file, out uint line, out uint column, out uint offset);
+        public static extern void getInstantiationLocation(CXSourceLocation location, void** file, uint* line, uint* column, uint* offset);
 
         [DllImport(libraryPath, EntryPoint = "clang_getSpellingLocation", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void getSpellingLocation(CXSourceLocation location, out CXFile file, out uint line, out uint column, out uint offset);
+        public static extern void getSpellingLocation(CXSourceLocation location, void** file, uint* line, uint* column, uint* offset);
 
         [DllImport(libraryPath, EntryPoint = "clang_getFileLocation", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void getFileLocation(CXSourceLocation location, out CXFile file, out uint line, out uint column, out uint offset);
+        public static extern void getFileLocation(CXSourceLocation location, void** file, uint* line, uint* column, uint* offset);
 
         [DllImport(libraryPath, EntryPoint = "clang_getRangeStart", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXSourceLocation getRangeStart(CXSourceRange range);
@@ -99,131 +102,158 @@ namespace ClangSharp
         public static extern CXSourceLocation getRangeEnd(CXSourceRange range);
 
         [DllImport(libraryPath, EntryPoint = "clang_getSkippedRanges", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr getSkippedRanges(CXTranslationUnit tu, CXFile file);
+        public static extern CXSourceRangeList* getSkippedRanges([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* tu, [NativeTypeName("CXFile")] void* file);
 
         [DllImport(libraryPath, EntryPoint = "clang_getAllSkippedRanges", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr getAllSkippedRanges(CXTranslationUnit tu);
+        public static extern CXSourceRangeList* getAllSkippedRanges([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* tu);
+
+        [DllImport(libraryPath, EntryPoint = "clang_disposeSourceRangeList", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void disposeSourceRangeList(CXSourceRangeList* ranges);
 
         [DllImport(libraryPath, EntryPoint = "clang_getNumDiagnosticsInSet", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint getNumDiagnosticsInSet(CXDiagnosticSet Diags);
+        public static extern uint getNumDiagnosticsInSet([NativeTypeName("CXDiagnosticSet")] void* Diags);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticInSet", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXDiagnostic getDiagnosticInSet(CXDiagnosticSet Diags, uint Index);
+        [return: NativeTypeName("CXDiagnostic")]
+        public static extern void* getDiagnosticInSet([NativeTypeName("CXDiagnosticSet")] void* Diags, uint Index);
 
         [DllImport(libraryPath, EntryPoint = "clang_loadDiagnostics", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXDiagnosticSet loadDiagnostics([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string file, out CXLoadDiag_Error error, out CXString errorString);
+        [return: NativeTypeName("CXDiagnosticSet")]
+        public static extern void* loadDiagnostics([NativeTypeName("const sbyte*")] sbyte* file, CXLoadDiag_Error* error, CXString* errorString);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeDiagnosticSet", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeDiagnosticSet(CXDiagnosticSet Diags);
+        public static extern void disposeDiagnosticSet([NativeTypeName("CXDiagnosticSet")] void* Diags);
 
         [DllImport(libraryPath, EntryPoint = "clang_getChildDiagnostics", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXDiagnosticSet getChildDiagnostics(CXDiagnostic D);
+        [return: NativeTypeName("CXDiagnosticSet")]
+        public static extern void* getChildDiagnostics([NativeTypeName("CXDiagnostic")] void* D);
 
         [DllImport(libraryPath, EntryPoint = "clang_getNumDiagnostics", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint getNumDiagnostics(CXTranslationUnit Unit);
+        public static extern uint getNumDiagnostics([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* Unit);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnostic", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXDiagnostic getDiagnostic(CXTranslationUnit Unit, uint Index);
+        [return: NativeTypeName("CXDiagnostic")]
+        public static extern void* getDiagnostic([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* Unit, uint Index);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticSetFromTU", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXDiagnosticSet getDiagnosticSetFromTU(CXTranslationUnit Unit);
+        [return: NativeTypeName("CXDiagnosticSet")]
+        public static extern void* getDiagnosticSetFromTU([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* Unit);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeDiagnostic", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeDiagnostic(CXDiagnostic Diagnostic);
+        public static extern void disposeDiagnostic([NativeTypeName("CXDiagnostic")] void* Diagnostic);
 
         [DllImport(libraryPath, EntryPoint = "clang_formatDiagnostic", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString formatDiagnostic(CXDiagnostic Diagnostic, uint Options);
+        public static extern CXString formatDiagnostic([NativeTypeName("CXDiagnostic")] void* Diagnostic, uint Options);
 
         [DllImport(libraryPath, EntryPoint = "clang_defaultDiagnosticDisplayOptions", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint defaultDiagnosticDisplayOptions();
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticSeverity", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXDiagnosticSeverity getDiagnosticSeverity(CXDiagnostic param0);
+        public static extern CXDiagnosticSeverity getDiagnosticSeverity([NativeTypeName("CXDiagnostic")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticLocation", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXSourceLocation getDiagnosticLocation(CXDiagnostic param0);
+        public static extern CXSourceLocation getDiagnosticLocation([NativeTypeName("CXDiagnostic")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticSpelling", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getDiagnosticSpelling(CXDiagnostic param0);
+        public static extern CXString getDiagnosticSpelling([NativeTypeName("CXDiagnostic")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticOption", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getDiagnosticOption(CXDiagnostic Diag, out CXString Disable);
+        public static extern CXString getDiagnosticOption([NativeTypeName("CXDiagnostic")] void* Diag, CXString* Disable);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticCategory", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint getDiagnosticCategory(CXDiagnostic param0);
+        public static extern uint getDiagnosticCategory([NativeTypeName("CXDiagnostic")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticCategoryName", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getDiagnosticCategoryName(uint Category);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticCategoryText", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getDiagnosticCategoryText(CXDiagnostic param0);
+        public static extern CXString getDiagnosticCategoryText([NativeTypeName("CXDiagnostic")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticNumRanges", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint getDiagnosticNumRanges(CXDiagnostic param0);
+        public static extern uint getDiagnosticNumRanges([NativeTypeName("CXDiagnostic")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticRange", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXSourceRange getDiagnosticRange(CXDiagnostic Diagnostic, uint Range);
+        public static extern CXSourceRange getDiagnosticRange([NativeTypeName("CXDiagnostic")] void* Diagnostic, uint Range);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticNumFixIts", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint getDiagnosticNumFixIts(CXDiagnostic Diagnostic);
+        public static extern uint getDiagnosticNumFixIts([NativeTypeName("CXDiagnostic")] void* Diagnostic);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDiagnosticFixIt", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getDiagnosticFixIt(CXDiagnostic Diagnostic, uint FixIt, out CXSourceRange ReplacementRange);
+        public static extern CXString getDiagnosticFixIt([NativeTypeName("CXDiagnostic")] void* Diagnostic, uint FixIt, CXSourceRange* ReplacementRange);
 
         [DllImport(libraryPath, EntryPoint = "clang_getTranslationUnitSpelling", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getTranslationUnitSpelling(CXTranslationUnit CTUnit);
+        public static extern CXString getTranslationUnitSpelling([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* CTUnit);
+
+        [DllImport(libraryPath, EntryPoint = "clang_createTranslationUnitFromSourceFile", CallingConvention = CallingConvention.Cdecl)]
+        [return: NativeTypeName("CXTranslationUnit")]
+        public static extern CXTranslationUnitImpl* createTranslationUnitFromSourceFile([NativeTypeName("CXIndex")] void* CIdx, [NativeTypeName("const sbyte*")] sbyte* source_filename, int num_clang_command_line_args, [NativeTypeName("const sbyte*const*")] sbyte** clang_command_line_args, uint num_unsaved_files, CXUnsavedFile* unsaved_files);
 
         [DllImport(libraryPath, EntryPoint = "clang_createTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXTranslationUnit createTranslationUnit(CXIndex CIdx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string ast_filename);
+        [return: NativeTypeName("CXTranslationUnit")]
+        public static extern CXTranslationUnitImpl* createTranslationUnit([NativeTypeName("CXIndex")] void* CIdx, [NativeTypeName("const sbyte*")] sbyte* ast_filename);
 
         [DllImport(libraryPath, EntryPoint = "clang_createTranslationUnit2", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode createTranslationUnit2(CXIndex CIdx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string ast_filename, out CXTranslationUnit out_TU);
+        public static extern CXErrorCode createTranslationUnit2([NativeTypeName("CXIndex")] void* CIdx, [NativeTypeName("const sbyte*")] sbyte* ast_filename, CXTranslationUnitImpl** out_TU);
 
         [DllImport(libraryPath, EntryPoint = "clang_defaultEditingTranslationUnitOptions", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint defaultEditingTranslationUnitOptions();
 
+        [DllImport(libraryPath, EntryPoint = "clang_parseTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
+        [return: NativeTypeName("CXTranslationUnit")]
+        public static extern CXTranslationUnitImpl* parseTranslationUnit([NativeTypeName("CXIndex")] void* CIdx, [NativeTypeName("const sbyte*")] sbyte* source_filename, [NativeTypeName("const sbyte*const*")] sbyte** command_line_args, int num_command_line_args, CXUnsavedFile* unsaved_files, uint num_unsaved_files, uint options);
+
+        [DllImport(libraryPath, EntryPoint = "clang_parseTranslationUnit2", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXErrorCode parseTranslationUnit2([NativeTypeName("CXIndex")] void* CIdx, [NativeTypeName("const sbyte*")] sbyte* source_filename, [NativeTypeName("const sbyte*const*")] sbyte** command_line_args, int num_command_line_args, CXUnsavedFile* unsaved_files, uint num_unsaved_files, uint options, CXTranslationUnitImpl** out_TU);
+
+        [DllImport(libraryPath, EntryPoint = "clang_parseTranslationUnit2FullArgv", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXErrorCode parseTranslationUnit2FullArgv([NativeTypeName("CXIndex")] void* CIdx, [NativeTypeName("const sbyte*")] sbyte* source_filename, [NativeTypeName("const sbyte*const*")] sbyte** command_line_args, int num_command_line_args, CXUnsavedFile* unsaved_files, uint num_unsaved_files, uint options, CXTranslationUnitImpl** out_TU);
+
         [DllImport(libraryPath, EntryPoint = "clang_defaultSaveOptions", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint defaultSaveOptions(CXTranslationUnit TU);
+        public static extern uint defaultSaveOptions([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU);
 
         [DllImport(libraryPath, EntryPoint = "clang_saveTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int saveTranslationUnit(CXTranslationUnit TU, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string FileName, uint options);
+        public static extern int saveTranslationUnit([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, [NativeTypeName("const sbyte*")] sbyte* FileName, uint options);
 
         [DllImport(libraryPath, EntryPoint = "clang_suspendTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint suspendTranslationUnit(CXTranslationUnit param0);
+        public static extern uint suspendTranslationUnit([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeTranslationUnit(CXTranslationUnit param0);
+        public static extern void disposeTranslationUnit([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_defaultReparseOptions", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint defaultReparseOptions(CXTranslationUnit TU);
+        public static extern uint defaultReparseOptions([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU);
+
+        [DllImport(libraryPath, EntryPoint = "clang_reparseTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int reparseTranslationUnit([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, uint num_unsaved_files, CXUnsavedFile* unsaved_files, uint options);
 
         [DllImport(libraryPath, EntryPoint = "clang_getTUResourceUsageName", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))]
-        public static extern string getTUResourceUsageName(CXTUResourceUsageKind kind);
+        [return: NativeTypeName("const sbyte*")]
+        public static extern sbyte* getTUResourceUsageName(CXTUResourceUsageKind kind);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCXTUResourceUsage", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXTUResourceUsage getCXTUResourceUsage(CXTranslationUnit TU);
+        public static extern CXTUResourceUsage getCXTUResourceUsage([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeCXTUResourceUsage", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeCXTUResourceUsage(CXTUResourceUsage usage);
 
         [DllImport(libraryPath, EntryPoint = "clang_getTranslationUnitTargetInfo", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXTargetInfo getTranslationUnitTargetInfo(CXTranslationUnit CTUnit);
+        [return: NativeTypeName("CXTargetInfo")]
+        public static extern CXTargetInfoImpl* getTranslationUnitTargetInfo([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* CTUnit);
 
         [DllImport(libraryPath, EntryPoint = "clang_TargetInfo_dispose", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void TargetInfo_dispose(CXTargetInfo Info);
+        public static extern void TargetInfo_dispose([NativeTypeName("CXTargetInfo")] CXTargetInfoImpl* Info);
 
         [DllImport(libraryPath, EntryPoint = "clang_TargetInfo_getTriple", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString TargetInfo_getTriple(CXTargetInfo Info);
+        public static extern CXString TargetInfo_getTriple([NativeTypeName("CXTargetInfo")] CXTargetInfoImpl* Info);
 
         [DllImport(libraryPath, EntryPoint = "clang_TargetInfo_getPointerWidth", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TargetInfo_getPointerWidth(CXTargetInfo Info);
+        public static extern int TargetInfo_getPointerWidth([NativeTypeName("CXTargetInfo")] CXTargetInfoImpl* Info);
 
         [DllImport(libraryPath, EntryPoint = "clang_getNullCursor", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXCursor getNullCursor();
 
         [DllImport(libraryPath, EntryPoint = "clang_getTranslationUnitCursor", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCursor getTranslationUnitCursor(CXTranslationUnit param0);
+        public static extern CXCursor getTranslationUnitCursor([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_equalCursors", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint equalCursors(CXCursor param0, CXCursor param1);
@@ -279,6 +309,12 @@ namespace ClangSharp
         [DllImport(libraryPath, EntryPoint = "clang_getCursorAvailability", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXAvailabilityKind getCursorAvailability(CXCursor cursor);
 
+        [DllImport(libraryPath, EntryPoint = "clang_getCursorPlatformAvailability", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int getCursorPlatformAvailability(CXCursor cursor, int* always_deprecated, CXString* deprecated_message, int* always_unavailable, CXString* unavailable_message, CXPlatformAvailability* availability, int availability_size);
+
+        [DllImport(libraryPath, EntryPoint = "clang_disposeCXPlatformAvailability", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void disposeCXPlatformAvailability(CXPlatformAvailability* availability);
+
         [DllImport(libraryPath, EntryPoint = "clang_getCursorLanguage", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXLanguageKind getCursorLanguage(CXCursor cursor);
 
@@ -286,19 +322,21 @@ namespace ClangSharp
         public static extern CXTLSKind getCursorTLSKind(CXCursor cursor);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXTranslationUnit Cursor_getTranslationUnit(CXCursor param0);
+        [return: NativeTypeName("CXTranslationUnit")]
+        public static extern CXTranslationUnitImpl* Cursor_getTranslationUnit(CXCursor param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_createCXCursorSet", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCursorSet createCXCursorSet();
+        [return: NativeTypeName("CXCursorSet")]
+        public static extern CXCursorSetImpl* createCXCursorSet();
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeCXCursorSet", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeCXCursorSet(CXCursorSet cset);
+        public static extern void disposeCXCursorSet([NativeTypeName("CXCursorSet")] CXCursorSetImpl* cset);
 
         [DllImport(libraryPath, EntryPoint = "clang_CXCursorSet_contains", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint CXCursorSet_contains(CXCursorSet cset, CXCursor cursor);
+        public static extern uint CXCursorSet_contains([NativeTypeName("CXCursorSet")] CXCursorSetImpl* cset, CXCursor cursor);
 
         [DllImport(libraryPath, EntryPoint = "clang_CXCursorSet_insert", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint CXCursorSet_insert(CXCursorSet cset, CXCursor cursor);
+        public static extern uint CXCursorSet_insert([NativeTypeName("CXCursorSet")] CXCursorSetImpl* cset, CXCursor cursor);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorSemanticParent", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXCursor getCursorSemanticParent(CXCursor cursor);
@@ -307,16 +345,17 @@ namespace ClangSharp
         public static extern CXCursor getCursorLexicalParent(CXCursor cursor);
 
         [DllImport(libraryPath, EntryPoint = "clang_getOverriddenCursors", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void getOverriddenCursors(CXCursor cursor, out CXCursor overridden, out uint num_overridden);
+        public static extern void getOverriddenCursors(CXCursor cursor, CXCursor** overridden, uint* num_overridden);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeOverriddenCursors", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeOverriddenCursors(out CXCursor overridden);
+        public static extern void disposeOverriddenCursors(CXCursor* overridden);
 
         [DllImport(libraryPath, EntryPoint = "clang_getIncludedFile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXFile getIncludedFile(CXCursor cursor);
+        [return: NativeTypeName("CXFile")]
+        public static extern void* getIncludedFile(CXCursor cursor);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursor", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCursor getCursor(CXTranslationUnit param0, CXSourceLocation param1);
+        public static extern CXCursor getCursor([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0, CXSourceLocation param1);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorLocation", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXSourceLocation getCursorLocation(CXCursor param0);
@@ -484,7 +523,7 @@ namespace ClangSharp
         public static extern long Type_getSizeOf(CXType T);
 
         [DllImport(libraryPath, EntryPoint = "clang_Type_getOffsetOf", CallingConvention = CallingConvention.Cdecl)]
-        public static extern long Type_getOffsetOf(CXType T, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string S);
+        public static extern long Type_getOffsetOf(CXType T, [NativeTypeName("const sbyte*")] sbyte* S);
 
         [DllImport(libraryPath, EntryPoint = "clang_Type_getModifiedType", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXType Type_getModifiedType(CXType T);
@@ -526,28 +565,28 @@ namespace ClangSharp
         public static extern CXType getIBOutletCollectionType(CXCursor param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_visitChildren", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint visitChildren(CXCursor parent, CXCursorVisitor visitor, CXClientData client_data);
+        public static extern uint visitChildren(CXCursor parent, [NativeTypeName("CXCursorVisitor")] IntPtr visitor, [NativeTypeName("CXClientData")] void* client_data);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorUSR", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getCursorUSR(CXCursor param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCClass", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCClass([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string class_name);
+        public static extern CXString constructUSR_ObjCClass([NativeTypeName("const sbyte*")] sbyte* class_name);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCCategory", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCCategory([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string class_name, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string category_name);
+        public static extern CXString constructUSR_ObjCCategory([NativeTypeName("const sbyte*")] sbyte* class_name, [NativeTypeName("const sbyte*")] sbyte* category_name);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCProtocol", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCProtocol([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string protocol_name);
+        public static extern CXString constructUSR_ObjCProtocol([NativeTypeName("const sbyte*")] sbyte* protocol_name);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCIvar", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCIvar([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string name, CXString classUSR);
+        public static extern CXString constructUSR_ObjCIvar([NativeTypeName("const sbyte*")] sbyte* name, CXString classUSR);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCMethod", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCMethod([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string name, uint isInstanceMethod, CXString classUSR);
+        public static extern CXString constructUSR_ObjCMethod([NativeTypeName("const sbyte*")] sbyte* name, uint isInstanceMethod, CXString classUSR);
 
         [DllImport(libraryPath, EntryPoint = "clang_constructUSR_ObjCProperty", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString constructUSR_ObjCProperty([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string property, CXString classUSR);
+        public static extern CXString constructUSR_ObjCProperty([NativeTypeName("const sbyte*")] sbyte* property, CXString classUSR);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorSpelling", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getCursorSpelling(CXCursor param0);
@@ -556,19 +595,20 @@ namespace ClangSharp
         public static extern CXSourceRange Cursor_getSpellingNameRange(CXCursor param0, uint pieceIndex, uint options);
 
         [DllImport(libraryPath, EntryPoint = "clang_PrintingPolicy_getProperty", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint PrintingPolicy_getProperty(CXPrintingPolicy Policy, CXPrintingPolicyProperty Property);
+        public static extern uint PrintingPolicy_getProperty([NativeTypeName("CXPrintingPolicy")] void* Policy, CXPrintingPolicyProperty Property);
 
         [DllImport(libraryPath, EntryPoint = "clang_PrintingPolicy_setProperty", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void PrintingPolicy_setProperty(CXPrintingPolicy Policy, CXPrintingPolicyProperty Property, uint Value);
+        public static extern void PrintingPolicy_setProperty([NativeTypeName("CXPrintingPolicy")] void* Policy, CXPrintingPolicyProperty Property, uint Value);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorPrintingPolicy", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXPrintingPolicy getCursorPrintingPolicy(CXCursor param0);
+        [return: NativeTypeName("CXPrintingPolicy")]
+        public static extern void* getCursorPrintingPolicy(CXCursor param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_PrintingPolicy_dispose", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void PrintingPolicy_dispose(CXPrintingPolicy Policy);
+        public static extern void PrintingPolicy_dispose([NativeTypeName("CXPrintingPolicy")] void* Policy);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorPrettyPrinted", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getCursorPrettyPrinted(CXCursor Cursor, CXPrintingPolicy Policy);
+        public static extern CXString getCursorPrettyPrinted(CXCursor Cursor, [NativeTypeName("CXPrintingPolicy")] void* Policy);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorDisplayName", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getCursorDisplayName(CXCursor param0);
@@ -613,7 +653,7 @@ namespace ClangSharp
         public static extern uint Cursor_isVariadic(CXCursor C);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_isExternalSymbol", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint Cursor_isExternalSymbol(CXCursor C, out CXString language, out CXString definedIn, out uint isGenerated);
+        public static extern uint Cursor_isExternalSymbol(CXCursor C, CXString* language, CXString* definedIn, uint* isGenerated);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getCommentRange", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXSourceRange Cursor_getCommentRange(CXCursor C);
@@ -628,37 +668,42 @@ namespace ClangSharp
         public static extern CXString Cursor_getMangling(CXCursor param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getCXXManglings", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Cursor_getCXXManglings(CXCursor param0);
+        public static extern CXStringSet* Cursor_getCXXManglings(CXCursor param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getObjCManglings", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Cursor_getObjCManglings(CXCursor param0);
+        public static extern CXStringSet* Cursor_getObjCManglings(CXCursor param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getModule", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXModule Cursor_getModule(CXCursor C);
+        [return: NativeTypeName("CXModule")]
+        public static extern void* Cursor_getModule(CXCursor C);
 
         [DllImport(libraryPath, EntryPoint = "clang_getModuleForFile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXModule getModuleForFile(CXTranslationUnit param0, CXFile param1);
+        [return: NativeTypeName("CXModule")]
+        public static extern void* getModuleForFile([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0, [NativeTypeName("CXFile")] void* param1);
 
         [DllImport(libraryPath, EntryPoint = "clang_Module_getASTFile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXFile Module_getASTFile(CXModule Module);
+        [return: NativeTypeName("CXFile")]
+        public static extern void* Module_getASTFile([NativeTypeName("CXModule")] void* Module);
 
         [DllImport(libraryPath, EntryPoint = "clang_Module_getParent", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXModule Module_getParent(CXModule Module);
+        [return: NativeTypeName("CXModule")]
+        public static extern void* Module_getParent([NativeTypeName("CXModule")] void* Module);
 
         [DllImport(libraryPath, EntryPoint = "clang_Module_getName", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString Module_getName(CXModule Module);
+        public static extern CXString Module_getName([NativeTypeName("CXModule")] void* Module);
 
         [DllImport(libraryPath, EntryPoint = "clang_Module_getFullName", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString Module_getFullName(CXModule Module);
+        public static extern CXString Module_getFullName([NativeTypeName("CXModule")] void* Module);
 
         [DllImport(libraryPath, EntryPoint = "clang_Module_isSystem", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int Module_isSystem(CXModule Module);
+        public static extern int Module_isSystem([NativeTypeName("CXModule")] void* Module);
 
         [DllImport(libraryPath, EntryPoint = "clang_Module_getNumTopLevelHeaders", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint Module_getNumTopLevelHeaders(CXTranslationUnit param0, CXModule Module);
+        public static extern uint Module_getNumTopLevelHeaders([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0, [NativeTypeName("CXModule")] void* Module);
 
         [DllImport(libraryPath, EntryPoint = "clang_Module_getTopLevelHeader", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXFile Module_getTopLevelHeader(CXTranslationUnit param0, CXModule Module, uint Index);
+        [return: NativeTypeName("CXFile")]
+        public static extern void* Module_getTopLevelHeader([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0, [NativeTypeName("CXModule")] void* Module, uint Index);
 
         [DllImport(libraryPath, EntryPoint = "clang_CXXConstructor_isConvertingConstructor", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint CXXConstructor_isConvertingConstructor(CXCursor C);
@@ -706,94 +751,112 @@ namespace ClangSharp
         public static extern CXSourceRange getCursorReferenceNameRange(CXCursor C, uint NameFlags, uint PieceIndex);
 
         [DllImport(libraryPath, EntryPoint = "clang_getToken", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr getToken(CXTranslationUnit TU, CXSourceLocation Location);
+        public static extern CXToken* getToken([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, CXSourceLocation Location);
 
         [DllImport(libraryPath, EntryPoint = "clang_getTokenKind", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXTokenKind getTokenKind(CXToken param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_getTokenSpelling", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getTokenSpelling(CXTranslationUnit param0, CXToken param1);
+        public static extern CXString getTokenSpelling([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0, CXToken param1);
 
         [DllImport(libraryPath, EntryPoint = "clang_getTokenLocation", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXSourceLocation getTokenLocation(CXTranslationUnit param0, CXToken param1);
+        public static extern CXSourceLocation getTokenLocation([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0, CXToken param1);
 
         [DllImport(libraryPath, EntryPoint = "clang_getTokenExtent", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXSourceRange getTokenExtent(CXTranslationUnit param0, CXToken param1);
+        public static extern CXSourceRange getTokenExtent([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0, CXToken param1);
+
+        [DllImport(libraryPath, EntryPoint = "clang_tokenize", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void tokenize([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, CXSourceRange Range, CXToken** Tokens, uint* NumTokens);
+
+        [DllImport(libraryPath, EntryPoint = "clang_annotateTokens", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void annotateTokens([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, CXToken* Tokens, uint NumTokens, CXCursor* Cursors);
+
+        [DllImport(libraryPath, EntryPoint = "clang_disposeTokens", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void disposeTokens([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, CXToken* Tokens, uint NumTokens);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorKindSpelling", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getCursorKindSpelling(CXCursorKind Kind);
 
         [DllImport(libraryPath, EntryPoint = "clang_getDefinitionSpellingAndExtent", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void getDefinitionSpellingAndExtent(CXCursor param0, out IntPtr startBuf, out IntPtr endBuf, out uint startLine, out uint startColumn, out uint endLine, out uint endColumn);
+        public static extern void getDefinitionSpellingAndExtent(CXCursor param0, [NativeTypeName("const sbyte**")] sbyte** startBuf, [NativeTypeName("const sbyte**")] sbyte** endBuf, uint* startLine, uint* startColumn, uint* endLine, uint* endColumn);
 
         [DllImport(libraryPath, EntryPoint = "clang_enableStackTraces", CallingConvention = CallingConvention.Cdecl)]
         public static extern void enableStackTraces();
 
         [DllImport(libraryPath, EntryPoint = "clang_executeOnThread", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void executeOnThread(IntPtr fn, IntPtr user_data, uint stack_size);
+        public static extern void executeOnThread([NativeTypeName("void (*)(void*)")] IntPtr fn, void* user_data, uint stack_size);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionChunkKind", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCompletionChunkKind getCompletionChunkKind(CXCompletionString completion_string, uint chunk_number);
+        public static extern CXCompletionChunkKind getCompletionChunkKind([NativeTypeName("CXCompletionString")] void* completion_string, uint chunk_number);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionChunkText", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getCompletionChunkText(CXCompletionString completion_string, uint chunk_number);
+        public static extern CXString getCompletionChunkText([NativeTypeName("CXCompletionString")] void* completion_string, uint chunk_number);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionChunkCompletionString", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCompletionString getCompletionChunkCompletionString(CXCompletionString completion_string, uint chunk_number);
+        [return: NativeTypeName("CXCompletionString")]
+        public static extern void* getCompletionChunkCompletionString([NativeTypeName("CXCompletionString")] void* completion_string, uint chunk_number);
 
         [DllImport(libraryPath, EntryPoint = "clang_getNumCompletionChunks", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint getNumCompletionChunks(CXCompletionString completion_string);
+        public static extern uint getNumCompletionChunks([NativeTypeName("CXCompletionString")] void* completion_string);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionPriority", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint getCompletionPriority(CXCompletionString completion_string);
+        public static extern uint getCompletionPriority([NativeTypeName("CXCompletionString")] void* completion_string);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionAvailability", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXAvailabilityKind getCompletionAvailability(CXCompletionString completion_string);
+        public static extern CXAvailabilityKind getCompletionAvailability([NativeTypeName("CXCompletionString")] void* completion_string);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionNumAnnotations", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint getCompletionNumAnnotations(CXCompletionString completion_string);
+        public static extern uint getCompletionNumAnnotations([NativeTypeName("CXCompletionString")] void* completion_string);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionAnnotation", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getCompletionAnnotation(CXCompletionString completion_string, uint annotation_number);
+        public static extern CXString getCompletionAnnotation([NativeTypeName("CXCompletionString")] void* completion_string, uint annotation_number);
+
+        [DllImport(libraryPath, EntryPoint = "clang_getCompletionParent", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXString getCompletionParent([NativeTypeName("CXCompletionString")] void* completion_string, CXCursorKind* kind);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionBriefComment", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getCompletionBriefComment(CXCompletionString completion_string);
+        public static extern CXString getCompletionBriefComment([NativeTypeName("CXCompletionString")] void* completion_string);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCursorCompletionString", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCompletionString getCursorCompletionString(CXCursor cursor);
+        [return: NativeTypeName("CXCompletionString")]
+        public static extern void* getCursorCompletionString(CXCursor cursor);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionNumFixIts", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint getCompletionNumFixIts(out CXCodeCompleteResults results, uint completion_index);
+        public static extern uint getCompletionNumFixIts(CXCodeCompleteResults* results, uint completion_index);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCompletionFixIt", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString getCompletionFixIt(out CXCodeCompleteResults results, uint completion_index, uint fixit_index, out CXSourceRange replacement_range);
+        public static extern CXString getCompletionFixIt(CXCodeCompleteResults* results, uint completion_index, uint fixit_index, CXSourceRange* replacement_range);
 
         [DllImport(libraryPath, EntryPoint = "clang_defaultCodeCompleteOptions", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint defaultCodeCompleteOptions();
 
+        [DllImport(libraryPath, EntryPoint = "clang_codeCompleteAt", CallingConvention = CallingConvention.Cdecl)]
+        public static extern CXCodeCompleteResults* codeCompleteAt([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, [NativeTypeName("const sbyte*")] sbyte* complete_filename, uint complete_line, uint complete_column, CXUnsavedFile* unsaved_files, uint num_unsaved_files, uint options);
+
         [DllImport(libraryPath, EntryPoint = "clang_sortCodeCompletionResults", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void sortCodeCompletionResults(out CXCompletionResult Results, uint NumResults);
+        public static extern void sortCodeCompletionResults(CXCompletionResult* Results, uint NumResults);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeCodeCompleteResults", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void disposeCodeCompleteResults(out CXCodeCompleteResults Results);
+        public static extern void disposeCodeCompleteResults(CXCodeCompleteResults* Results);
 
         [DllImport(libraryPath, EntryPoint = "clang_codeCompleteGetNumDiagnostics", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint codeCompleteGetNumDiagnostics(out CXCodeCompleteResults Results);
+        public static extern uint codeCompleteGetNumDiagnostics(CXCodeCompleteResults* Results);
 
         [DllImport(libraryPath, EntryPoint = "clang_codeCompleteGetDiagnostic", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXDiagnostic codeCompleteGetDiagnostic(out CXCodeCompleteResults Results, uint Index);
+        [return: NativeTypeName("CXDiagnostic")]
+        public static extern void* codeCompleteGetDiagnostic(CXCodeCompleteResults* Results, uint Index);
 
         [DllImport(libraryPath, EntryPoint = "clang_codeCompleteGetContexts", CallingConvention = CallingConvention.Cdecl)]
-        public static extern ulong codeCompleteGetContexts(out CXCodeCompleteResults Results);
+        public static extern ulong codeCompleteGetContexts(CXCodeCompleteResults* Results);
 
         [DllImport(libraryPath, EntryPoint = "clang_codeCompleteGetContainerKind", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCursorKind codeCompleteGetContainerKind(out CXCodeCompleteResults Results, out uint IsIncomplete);
+        public static extern CXCursorKind codeCompleteGetContainerKind(CXCodeCompleteResults* Results, uint* IsIncomplete);
 
         [DllImport(libraryPath, EntryPoint = "clang_codeCompleteGetContainerUSR", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString codeCompleteGetContainerUSR(out CXCodeCompleteResults Results);
+        public static extern CXString codeCompleteGetContainerUSR(CXCodeCompleteResults* Results);
 
         [DllImport(libraryPath, EntryPoint = "clang_codeCompleteGetObjCSelector", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString codeCompleteGetObjCSelector(out CXCodeCompleteResults Results);
+        public static extern CXString codeCompleteGetObjCSelector(CXCodeCompleteResults* Results);
 
         [DllImport(libraryPath, EntryPoint = "clang_getClangVersion", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXString getClangVersion();
@@ -802,111 +865,132 @@ namespace ClangSharp
         public static extern void toggleCrashRecovery(uint isEnabled);
 
         [DllImport(libraryPath, EntryPoint = "clang_getInclusions", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void getInclusions(CXTranslationUnit tu, CXInclusionVisitor visitor, CXClientData client_data);
+        public static extern void getInclusions([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* tu, [NativeTypeName("CXInclusionVisitor")] IntPtr visitor, [NativeTypeName("CXClientData")] void* client_data);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_Evaluate", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXEvalResult Cursor_Evaluate(CXCursor C);
+        [return: NativeTypeName("CXEvalResult")]
+        public static extern void* Cursor_Evaluate(CXCursor C);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getKind", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXEvalResultKind EvalResult_getKind(CXEvalResult E);
+        public static extern CXEvalResultKind EvalResult_getKind([NativeTypeName("CXEvalResult")] void* E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsInt", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int EvalResult_getAsInt(CXEvalResult E);
+        public static extern int EvalResult_getAsInt([NativeTypeName("CXEvalResult")] void* E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsLongLong", CallingConvention = CallingConvention.Cdecl)]
-        public static extern long EvalResult_getAsLongLong(CXEvalResult E);
+        public static extern long EvalResult_getAsLongLong([NativeTypeName("CXEvalResult")] void* E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_isUnsignedInt", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint EvalResult_isUnsignedInt(CXEvalResult E);
+        public static extern uint EvalResult_isUnsignedInt([NativeTypeName("CXEvalResult")] void* E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsUnsigned", CallingConvention = CallingConvention.Cdecl)]
-        public static extern ulong EvalResult_getAsUnsigned(CXEvalResult E);
+        public static extern ulong EvalResult_getAsUnsigned([NativeTypeName("CXEvalResult")] void* E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsDouble", CallingConvention = CallingConvention.Cdecl)]
-        public static extern double EvalResult_getAsDouble(CXEvalResult E);
+        public static extern double EvalResult_getAsDouble([NativeTypeName("CXEvalResult")] void* E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_getAsStr", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))]
-        public static extern string EvalResult_getAsStr(CXEvalResult E);
+        [return: NativeTypeName("const sbyte*")]
+        public static extern sbyte* EvalResult_getAsStr([NativeTypeName("CXEvalResult")] void* E);
 
         [DllImport(libraryPath, EntryPoint = "clang_EvalResult_dispose", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void EvalResult_dispose(CXEvalResult E);
+        public static extern void EvalResult_dispose([NativeTypeName("CXEvalResult")] void* E);
 
         [DllImport(libraryPath, EntryPoint = "clang_getRemappings", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXRemapping getRemappings([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string path);
+        [return: NativeTypeName("CXRemapping")]
+        public static extern void* getRemappings([NativeTypeName("const sbyte*")] sbyte* path);
 
         [DllImport(libraryPath, EntryPoint = "clang_getRemappingsFromFileList", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXRemapping getRemappingsFromFileList(out IntPtr filePaths, uint numFiles);
+        [return: NativeTypeName("CXRemapping")]
+        public static extern void* getRemappingsFromFileList([NativeTypeName("const sbyte**")] sbyte** filePaths, uint numFiles);
 
         [DllImport(libraryPath, EntryPoint = "clang_remap_getNumFiles", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint remap_getNumFiles(CXRemapping param0);
+        public static extern uint remap_getNumFiles([NativeTypeName("CXRemapping")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_remap_getFilenames", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void remap_getFilenames(CXRemapping param0, uint index, out CXString original, out CXString transformed);
+        public static extern void remap_getFilenames([NativeTypeName("CXRemapping")] void* param0, uint index, CXString* original, CXString* transformed);
 
         [DllImport(libraryPath, EntryPoint = "clang_remap_dispose", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void remap_dispose(CXRemapping param0);
+        public static extern void remap_dispose([NativeTypeName("CXRemapping")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_findReferencesInFile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXResult findReferencesInFile(CXCursor cursor, CXFile file, CXCursorAndRangeVisitor visitor);
+        public static extern CXResult findReferencesInFile(CXCursor cursor, [NativeTypeName("CXFile")] void* file, CXCursorAndRangeVisitor visitor);
 
         [DllImport(libraryPath, EntryPoint = "clang_findIncludesInFile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXResult findIncludesInFile(CXTranslationUnit TU, CXFile file, CXCursorAndRangeVisitor visitor);
+        public static extern CXResult findIncludesInFile([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, [NativeTypeName("CXFile")] void* file, CXCursorAndRangeVisitor visitor);
 
         [DllImport(libraryPath, EntryPoint = "clang_index_isEntityObjCContainerKind", CallingConvention = CallingConvention.Cdecl)]
         public static extern int index_isEntityObjCContainerKind(CXIdxEntityKind param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_index_getObjCContainerDeclInfo", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr index_getObjCContainerDeclInfo(out CXIdxDeclInfo param0);
+        public static extern CXIdxObjCContainerDeclInfo* index_getObjCContainerDeclInfo(CXIdxDeclInfo* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_index_getObjCInterfaceDeclInfo", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr index_getObjCInterfaceDeclInfo(out CXIdxDeclInfo param0);
+        public static extern CXIdxObjCInterfaceDeclInfo* index_getObjCInterfaceDeclInfo(CXIdxDeclInfo* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_index_getObjCCategoryDeclInfo", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr index_getObjCCategoryDeclInfo(out CXIdxDeclInfo param0);
+        public static extern CXIdxObjCCategoryDeclInfo* index_getObjCCategoryDeclInfo(CXIdxDeclInfo* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_index_getObjCProtocolRefListInfo", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr index_getObjCProtocolRefListInfo(out CXIdxDeclInfo param0);
+        public static extern CXIdxObjCProtocolRefListInfo* index_getObjCProtocolRefListInfo(CXIdxDeclInfo* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_index_getObjCPropertyDeclInfo", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr index_getObjCPropertyDeclInfo(out CXIdxDeclInfo param0);
+        public static extern CXIdxObjCPropertyDeclInfo* index_getObjCPropertyDeclInfo(CXIdxDeclInfo* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_index_getIBOutletCollectionAttrInfo", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr index_getIBOutletCollectionAttrInfo(out CXIdxAttrInfo param0);
+        public static extern CXIdxIBOutletCollectionAttrInfo* index_getIBOutletCollectionAttrInfo(CXIdxAttrInfo* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_index_getCXXClassDeclInfo", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr index_getCXXClassDeclInfo(out CXIdxDeclInfo param0);
+        public static extern CXIdxCXXClassDeclInfo* index_getCXXClassDeclInfo(CXIdxDeclInfo* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_index_getClientContainer", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXIdxClientContainer index_getClientContainer(out CXIdxContainerInfo param0);
+        [return: NativeTypeName("CXIdxClientContainer")]
+        public static extern void* index_getClientContainer(CXIdxContainerInfo* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_index_setClientContainer", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void index_setClientContainer(out CXIdxContainerInfo param0, CXIdxClientContainer param1);
+        public static extern void index_setClientContainer(CXIdxContainerInfo* param0, [NativeTypeName("CXIdxClientContainer")] void* param1);
+
+        [DllImport(libraryPath, EntryPoint = "clang_index_getClientEntity", CallingConvention = CallingConvention.Cdecl)]
+        [return: NativeTypeName("CXIdxClientEntity")]
+        public static extern void* index_getClientEntity(CXIdxEntityInfo* param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_index_setClientEntity", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void index_setClientEntity(CXIdxEntityInfo* param0, [NativeTypeName("CXIdxClientEntity")] void* param1);
 
         [DllImport(libraryPath, EntryPoint = "clang_IndexAction_create", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXIndexAction IndexAction_create(CXIndex CIdx);
+        [return: NativeTypeName("CXIndexAction")]
+        public static extern void* IndexAction_create([NativeTypeName("CXIndex")] void* CIdx);
 
         [DllImport(libraryPath, EntryPoint = "clang_IndexAction_dispose", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void IndexAction_dispose(CXIndexAction param0);
+        public static extern void IndexAction_dispose([NativeTypeName("CXIndexAction")] void* param0);
+
+        [DllImport(libraryPath, EntryPoint = "clang_indexSourceFile", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int indexSourceFile([NativeTypeName("CXIndexAction")] void* param0, [NativeTypeName("CXClientData")] void* client_data, IndexerCallbacks* index_callbacks, uint index_callbacks_size, uint index_options, [NativeTypeName("const sbyte*")] sbyte* source_filename, [NativeTypeName("const sbyte*const*")] sbyte** command_line_args, int num_command_line_args, CXUnsavedFile* unsaved_files, uint num_unsaved_files, CXTranslationUnitImpl** out_TU, uint TU_options);
+
+        [DllImport(libraryPath, EntryPoint = "clang_indexSourceFileFullArgv", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int indexSourceFileFullArgv([NativeTypeName("CXIndexAction")] void* param0, [NativeTypeName("CXClientData")] void* client_data, IndexerCallbacks* index_callbacks, uint index_callbacks_size, uint index_options, [NativeTypeName("const sbyte*")] sbyte* source_filename, [NativeTypeName("const sbyte*const*")] sbyte** command_line_args, int num_command_line_args, CXUnsavedFile* unsaved_files, uint num_unsaved_files, CXTranslationUnitImpl** out_TU, uint TU_options);
 
         [DllImport(libraryPath, EntryPoint = "clang_indexTranslationUnit", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int indexTranslationUnit(CXIndexAction param0, CXClientData client_data, out IndexerCallbacks index_callbacks, uint index_callbacks_size, uint index_options, CXTranslationUnit param5);
+        public static extern int indexTranslationUnit([NativeTypeName("CXIndexAction")] void* param0, [NativeTypeName("CXClientData")] void* client_data, IndexerCallbacks* index_callbacks, uint index_callbacks_size, uint index_options, [NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param5);
 
         [DllImport(libraryPath, EntryPoint = "clang_indexLoc_getFileLocation", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void indexLoc_getFileLocation(CXIdxLoc loc, out CXIdxClientFile indexFile, out CXFile file, out uint line, out uint column, out uint offset);
+        public static extern void indexLoc_getFileLocation(CXIdxLoc loc, void** indexFile, void** file, uint* line, uint* column, uint* offset);
 
         [DllImport(libraryPath, EntryPoint = "clang_indexLoc_getCXSourceLocation", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXSourceLocation indexLoc_getCXSourceLocation(CXIdxLoc loc);
 
         [DllImport(libraryPath, EntryPoint = "clang_Type_visitFields", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint Type_visitFields(CXType T, CXFieldVisitor visitor, CXClientData client_data);
+        public static extern uint Type_visitFields(CXType T, [NativeTypeName("CXFieldVisitor")] IntPtr visitor, [NativeTypeName("CXClientData")] void* client_data);
 
         [DllImport(libraryPath, EntryPoint = "clang_getCString", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))]
-        public static extern string getCString(CXString @string);
+        [return: NativeTypeName("const sbyte*")]
+        public static extern sbyte* getCString(CXString @string);
 
         [DllImport(libraryPath, EntryPoint = "clang_disposeString", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disposeString(CXString @string);
+
+        [DllImport(libraryPath, EntryPoint = "clang_disposeStringSet", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void disposeStringSet(CXStringSet* set);
 
         [DllImport(libraryPath, EntryPoint = "clang_Cursor_getParsedComment", CallingConvention = CallingConvention.Cdecl)]
         public static extern CXComment Cursor_getParsedComment(CXCursor C);
@@ -1014,78 +1098,84 @@ namespace ClangSharp
         public static extern ulong getBuildSessionTimestamp();
 
         [DllImport(libraryPath, EntryPoint = "clang_VirtualFileOverlay_create", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXVirtualFileOverlay VirtualFileOverlay_create(uint options);
+        [return: NativeTypeName("CXVirtualFileOverlay")]
+        public static extern CXVirtualFileOverlayImpl* VirtualFileOverlay_create(uint options);
 
         [DllImport(libraryPath, EntryPoint = "clang_VirtualFileOverlay_addFileMapping", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode VirtualFileOverlay_addFileMapping(CXVirtualFileOverlay param0, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string virtualPath, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string realPath);
+        public static extern CXErrorCode VirtualFileOverlay_addFileMapping([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0, [NativeTypeName("const sbyte*")] sbyte* virtualPath, [NativeTypeName("const sbyte*")] sbyte* realPath);
 
         [DllImport(libraryPath, EntryPoint = "clang_VirtualFileOverlay_setCaseSensitivity", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode VirtualFileOverlay_setCaseSensitivity(CXVirtualFileOverlay param0, int caseSensitive);
+        public static extern CXErrorCode VirtualFileOverlay_setCaseSensitivity([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0, int caseSensitive);
 
         [DllImport(libraryPath, EntryPoint = "clang_VirtualFileOverlay_writeToBuffer", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode VirtualFileOverlay_writeToBuffer(CXVirtualFileOverlay param0, uint options, out IntPtr out_buffer_ptr, out uint out_buffer_size);
+        public static extern CXErrorCode VirtualFileOverlay_writeToBuffer([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0, uint options, sbyte** out_buffer_ptr, uint* out_buffer_size);
 
         [DllImport(libraryPath, EntryPoint = "clang_free", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void free(IntPtr buffer);
+        public static extern void free(void* buffer);
 
         [DllImport(libraryPath, EntryPoint = "clang_VirtualFileOverlay_dispose", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void VirtualFileOverlay_dispose(CXVirtualFileOverlay param0);
+        public static extern void VirtualFileOverlay_dispose([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_ModuleMapDescriptor_create", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXModuleMapDescriptor ModuleMapDescriptor_create(uint options);
+        [return: NativeTypeName("CXModuleMapDescriptor")]
+        public static extern CXModuleMapDescriptorImpl* ModuleMapDescriptor_create(uint options);
 
         [DllImport(libraryPath, EntryPoint = "clang_ModuleMapDescriptor_setFrameworkModuleName", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode ModuleMapDescriptor_setFrameworkModuleName(CXModuleMapDescriptor param0, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string name);
+        public static extern CXErrorCode ModuleMapDescriptor_setFrameworkModuleName([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0, [NativeTypeName("const sbyte*")] sbyte* name);
 
         [DllImport(libraryPath, EntryPoint = "clang_ModuleMapDescriptor_setUmbrellaHeader", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode ModuleMapDescriptor_setUmbrellaHeader(CXModuleMapDescriptor param0, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string name);
+        public static extern CXErrorCode ModuleMapDescriptor_setUmbrellaHeader([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0, [NativeTypeName("const sbyte*")] sbyte* name);
 
         [DllImport(libraryPath, EntryPoint = "clang_ModuleMapDescriptor_writeToBuffer", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXErrorCode ModuleMapDescriptor_writeToBuffer(CXModuleMapDescriptor param0, uint options, out IntPtr out_buffer_ptr, out uint out_buffer_size);
+        public static extern CXErrorCode ModuleMapDescriptor_writeToBuffer([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0, uint options, sbyte** out_buffer_ptr, uint* out_buffer_size);
 
         [DllImport(libraryPath, EntryPoint = "clang_ModuleMapDescriptor_dispose", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ModuleMapDescriptor_dispose(CXModuleMapDescriptor param0);
+        public static extern void ModuleMapDescriptor_dispose([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_fromDirectory", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCompilationDatabase CompilationDatabase_fromDirectory([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string BuildDir, out CXCompilationDatabase_Error ErrorCode);
+        [return: NativeTypeName("CXCompilationDatabase")]
+        public static extern void* CompilationDatabase_fromDirectory([NativeTypeName("const sbyte*")] sbyte* BuildDir, CXCompilationDatabase_Error* ErrorCode);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_dispose", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void CompilationDatabase_dispose(CXCompilationDatabase param0);
+        public static extern void CompilationDatabase_dispose([NativeTypeName("CXCompilationDatabase")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_getCompileCommands", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCompileCommands CompilationDatabase_getCompileCommands(CXCompilationDatabase param0, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] string CompleteFileName);
+        [return: NativeTypeName("CXCompileCommands")]
+        public static extern void* CompilationDatabase_getCompileCommands([NativeTypeName("CXCompilationDatabase")] void* param0, [NativeTypeName("const sbyte*")] sbyte* CompleteFileName);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompilationDatabase_getAllCompileCommands", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCompileCommands CompilationDatabase_getAllCompileCommands(CXCompilationDatabase param0);
+        [return: NativeTypeName("CXCompileCommands")]
+        public static extern void* CompilationDatabase_getAllCompileCommands([NativeTypeName("CXCompilationDatabase")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompileCommands_dispose", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void CompileCommands_dispose(CXCompileCommands param0);
+        public static extern void CompileCommands_dispose([NativeTypeName("CXCompileCommands")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompileCommands_getSize", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint CompileCommands_getSize(CXCompileCommands param0);
+        public static extern uint CompileCommands_getSize([NativeTypeName("CXCompileCommands")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompileCommands_getCommand", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXCompileCommand CompileCommands_getCommand(CXCompileCommands param0, uint I);
+        [return: NativeTypeName("CXCompileCommand")]
+        public static extern void* CompileCommands_getCommand([NativeTypeName("CXCompileCommands")] void* param0, uint I);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getDirectory", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString CompileCommand_getDirectory(CXCompileCommand param0);
+        public static extern CXString CompileCommand_getDirectory([NativeTypeName("CXCompileCommand")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getFilename", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString CompileCommand_getFilename(CXCompileCommand param0);
+        public static extern CXString CompileCommand_getFilename([NativeTypeName("CXCompileCommand")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getNumArgs", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint CompileCommand_getNumArgs(CXCompileCommand param0);
+        public static extern uint CompileCommand_getNumArgs([NativeTypeName("CXCompileCommand")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getArg", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString CompileCommand_getArg(CXCompileCommand param0, uint I);
+        public static extern CXString CompileCommand_getArg([NativeTypeName("CXCompileCommand")] void* param0, uint I);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getNumMappedSources", CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint CompileCommand_getNumMappedSources(CXCompileCommand param0);
+        public static extern uint CompileCommand_getNumMappedSources([NativeTypeName("CXCompileCommand")] void* param0);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getMappedSourcePath", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString CompileCommand_getMappedSourcePath(CXCompileCommand param0, uint I);
+        public static extern CXString CompileCommand_getMappedSourcePath([NativeTypeName("CXCompileCommand")] void* param0, uint I);
 
         [DllImport(libraryPath, EntryPoint = "clang_CompileCommand_getMappedSourceContent", CallingConvention = CallingConvention.Cdecl)]
-        public static extern CXString CompileCommand_getMappedSourceContent(CXCompileCommand param0, uint I);
+        public static extern CXString CompileCommand_getMappedSourceContent([NativeTypeName("CXCompileCommand")] void* param0, uint I);
     }
 }

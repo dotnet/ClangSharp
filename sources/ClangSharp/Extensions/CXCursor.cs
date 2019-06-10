@@ -1,8 +1,9 @@
-﻿using System;
+using System;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp
 {
-    public partial struct CXCursor : IEquatable<CXCursor>
+    public unsafe partial struct CXCursor : IEquatable<CXCursor>
     {
         public static CXCursor Null => clang.getNullCursor();
 
@@ -14,7 +15,7 @@ namespace ClangSharp
 
         public CXSourceRange CommentRange => clang.Cursor_getCommentRange(this);
 
-        public CXCompletionString CompletionString => clang.getCursorCompletionString(this);
+        public CXCompletionString CompletionString => (CXCompletionString)clang.getCursorCompletionString(this);
 
         public CX_CXXAccessSpecifier CXXAccessSpecifier => clang.getCXXAccessSpecifier(this);
 
@@ -28,7 +29,7 @@ namespace ClangSharp
 
         public bool CXXField_IsMutable => clang.CXXField_isMutable(this) != 0;
 
-        public unsafe ref CXStringSet CXXManglings => ref *(CXStringSet*)clang.Cursor_getCXXManglings(this);
+        public unsafe ref CXStringSet CXXManglings => ref *clang.Cursor_getCXXManglings(this);
 
         public bool CXXMethod_IsConst => clang.CXXMethod_isConst(this) != 0;
 
@@ -56,7 +57,7 @@ namespace ClangSharp
 
         public bool EnumDecl_IsScoped => clang.EnumDecl_isScoped(this) != 0;
 
-        public CXEvalResult Evaluate => clang.Cursor_Evaluate(this);
+        public CXEvalResult Evaluate => (CXEvalResult)clang.Cursor_Evaluate(this);
 
         public int ExceptionSpecificationType => clang.getCursorExceptionSpecificationType(this);
 
@@ -68,7 +69,7 @@ namespace ClangSharp
 
         public CXType IBOutletCollectionType => clang.getIBOutletCollectionType(this);
 
-        public CXFile IncludedFile => clang.getIncludedFile(this);
+        public CXFile IncludedFile => (CXFile)clang.getIncludedFile(this);
 
         public bool IsAnonymous => clang.Cursor_isAnonymous(this) != 0;
 
@@ -128,7 +129,7 @@ namespace ClangSharp
 
         public CXString Mangling => clang.Cursor_getMangling(this);
 
-        public CXModule Module => clang.Cursor_getModule(this);
+        public CXModule Module => (CXModule)clang.Cursor_getModule(this);
 
         public int NumArguments => clang.Cursor_getNumArguments(this);
 
@@ -138,7 +139,7 @@ namespace ClangSharp
 
         public CXObjCDeclQualifierKind ObjCDeclQualifiers => (CXObjCDeclQualifierKind)clang.Cursor_getObjCDeclQualifiers(this);
 
-        public unsafe ref CXStringSet ObjCManglings => ref *(CXStringSet*)clang.Cursor_getObjCManglings(this);
+        public unsafe ref CXStringSet ObjCManglings => ref *clang.Cursor_getObjCManglings(this);
 
         public CXString ObjCPropertyGetterName => clang.Cursor_getObjCPropertyGetterName(this);
 
@@ -190,16 +191,34 @@ namespace ClangSharp
 
         public bool GetIsExternalSymbol(out CXString language, out CXString definedIn, out bool isGenerated)
         {
-            var result = clang.Cursor_isExternalSymbol(this, out language, out definedIn, out uint isGeneratedOut);
-            isGenerated = isGeneratedOut != 0;
-            return result != 0;
+            fixed (CXString* pLanguage = &language)
+            fixed (CXString* pDefinedIn = &definedIn)
+            {
+                uint isGeneratedOut;
+                var result = clang.Cursor_isExternalSymbol(this, pLanguage, pDefinedIn, &isGeneratedOut);
+                isGenerated = isGeneratedOut != 0;
+                return result != 0;
+            }
         }
 
         public CXObjCPropertyAttrKind GetObjCPropertyAttributes(uint reserved) => (CXObjCPropertyAttrKind)clang.Cursor_getObjCPropertyAttributes(this, reserved);
 
         public CXCursor GetOverloadedDecl(uint index) => clang.getOverloadedDecl(this, index);
 
-        public int GetPlatformAvailability(out bool alwaysDeprecated, out CXString deprecatedMessage, out bool alwaysUnavailable, out CXString unavailableMessage, CXPlatformAvailability[] availability) => clang.getCursorPlatformAvailability(this, out alwaysDeprecated, out deprecatedMessage, out alwaysUnavailable, out unavailableMessage, availability, availability.Length);
+        public int GetPlatformAvailability(out bool alwaysDeprecated, out CXString deprecatedMessage, out bool alwaysUnavailable, out CXString unavailableMessage, CXPlatformAvailability[] availability)
+        {
+            fixed (CXString* pDeprecatedMessage = &deprecatedMessage)
+            fixed (CXString* pUnavailableMessage = &unavailableMessage)
+            fixed (CXPlatformAvailability* pAvailability = availability)
+            {
+                int alwaysDeprecatedOut;
+                int alwaysUnavailableOut;
+                var result = clang.getCursorPlatformAvailability(this, &alwaysDeprecatedOut, pDeprecatedMessage, &alwaysUnavailableOut, pUnavailableMessage, pAvailability, availability.Length);
+                alwaysDeprecated = alwaysDeprecatedOut != 0;
+                alwaysUnavailable = alwaysUnavailableOut != 0;
+                return result;
+            }
+        }
 
         public CXType GetRecieverType() => clang.Cursor_getReceiverType(this);
 
@@ -217,6 +236,13 @@ namespace ClangSharp
 
         public override string ToString() => Spelling.ToString();
 
-        public CXChildVisitResult VisitChildren(CXCursorVisitor visitor, CXClientData clientData) => (CXChildVisitResult)clang.visitChildren(this, visitor, clientData);
+        public CXChildVisitResult VisitChildren(CXCursorVisitor visitor, CXClientData clientData)
+        {
+            var pVisitor = Marshal.GetFunctionPointerForDelegate(visitor);
+            var result = (CXChildVisitResult)clang.visitChildren(this, pVisitor, clientData);
+
+            GC.KeepAlive(visitor);
+            return result;
+        }
     }
 }

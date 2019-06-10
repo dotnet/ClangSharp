@@ -1,20 +1,26 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace ClangSharp
 {
-    public partial struct CXStringSet : IDisposable, IReadOnlyCollection<CXString>
+    public unsafe partial struct CXStringSet : IDisposable, IReadOnlyCollection<CXString>
     {
-        public unsafe CXString this[uint index] => ((CXString*)Strings)[index];
+        public CXString this[uint index] => Strings[index];
 
         int IReadOnlyCollection<CXString>.Count => (int)Count;
 
-        public void Dispose() => clang.disposeStringSet(ref this);
+        public void Dispose()
+        {
+            fixed (CXStringSet* pThis = &this)
+            {
+                clang.disposeStringSet(pThis);
+            }
+        }
 
         public IEnumerator<CXString> GetEnumerator()
         {
-            var count = (uint)Count;
+            var count = Count;
 
             for (var index = 0u; index < count; index++)
             {

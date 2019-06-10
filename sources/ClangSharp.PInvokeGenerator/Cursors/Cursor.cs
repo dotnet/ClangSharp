@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace ClangSharp
 {
-    internal class Cursor
+    internal unsafe class Cursor
     {
         public static Cursor Create(CXCursor handle, Cursor parent)
         {
@@ -82,10 +83,9 @@ namespace ClangSharp
 
         public TranslationUnit TranslationUnit { get; }
 
-        public CXToken[] Tokenize(Cursor cursor)
+        public Span<CXToken> Tokenize(Cursor cursor)
         {
-            Handle.TranslationUnit.Tokenize(cursor.Extent, out CXToken[] tokens);
-            return tokens;
+            return Handle.TranslationUnit.Tokenize(cursor.Extent);
         }
 
         public CXChildVisitResult Visit(CXClientData clientData)
@@ -147,6 +147,11 @@ namespace ClangSharp
         protected virtual void ValidateVisit(ref CXCursor handle)
         {
             Debug.Assert(handle.Equals(Handle));
+        }
+
+        private unsafe CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, void* clientData)
+        {
+            return VisitChildren(childHandle, handle, (CXClientData)clientData);
         }
 
         private CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)

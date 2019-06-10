@@ -1,11 +1,13 @@
-using System.Runtime.InteropServices;
-
 namespace ClangSharp
 {
-    public partial struct CXUnsavedFile
+    public unsafe partial struct CXUnsavedFile
     {
-        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string Filename;
-        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))] public string Contents;
+        [NativeTypeName("const sbyte*")]
+        public sbyte* Filename;
+
+        [NativeTypeName("const sbyte*")]
+        public sbyte* Contents;
+
         public uint Length;
     }
 }

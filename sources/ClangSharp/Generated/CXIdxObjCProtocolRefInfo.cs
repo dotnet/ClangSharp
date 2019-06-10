@@ -1,11 +1,11 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXIdxObjCProtocolRefInfo
+    public unsafe partial struct CXIdxObjCProtocolRefInfo
     {
-        public IntPtr protocol;
+        public CXIdxEntityInfo* protocol;
+
         public CXCursor cursor;
+
         public CXIdxLoc loc;
     }
 }

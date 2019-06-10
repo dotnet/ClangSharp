@@ -1,6 +1,6 @@
 ﻿namespace ClangSharp
 {
-    public partial struct CXCompletionString
+    public unsafe partial struct CXCompletionString
     {
         public CXAvailabilityKind Availability => clang.getCompletionAvailability(this);
 
@@ -14,12 +14,18 @@
 
         public CXString GetAnnotation(uint index) => clang.getCompletionAnnotation(this, index);
 
-        public CXCompletionString GetChunkCompletionString(uint index) => clang.getCompletionChunkCompletionString(this, index);
+        public CXCompletionString GetChunkCompletionString(uint index) => (CXCompletionString)clang.getCompletionChunkCompletionString(this, index);
 
         public CXCompletionChunkKind GetChunkKind(uint index) => clang.getCompletionChunkKind(this, index);
 
         public CXString GetChunkText(uint index) => clang.getCompletionChunkText(this, index);
 
-        public CXString GetParent(ref CXCursorKind kind) => clang.getCompletionParent(this, ref kind);
+        public CXString GetParent(out CXCursorKind kind)
+        {
+            fixed (CXCursorKind* pKind = &kind)
+            {
+                return clang.getCompletionParent(this, pKind);
+            }
+        }
     }
 }
