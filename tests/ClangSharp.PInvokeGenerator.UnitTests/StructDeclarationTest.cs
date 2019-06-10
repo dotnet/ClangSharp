@@ -91,9 +91,9 @@ struct MyOtherStruct
 
         public partial struct _c_e__FixedBuffer
         {{
-            private MyStruct e0;
-            private MyStruct e1;
-            private MyStruct e2;
+            internal MyStruct e0;
+            internal MyStruct e1;
+            internal MyStruct e2;
 
             public unsafe ref MyStruct this[int index]
             {{
