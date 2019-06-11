@@ -2,11 +2,12 @@ namespace ClangSharp
 {
     public partial struct CXCursor
     {
+        [NativeTypeName("enum CXCursorKind")]
         public CXCursorKind kind;
 
         public int xdata;
 
-        [NativeTypeName("const void*[3]")]
+        [NativeTypeName("const void *[3]")]
         public _data_e__FixedBuffer data;
 
         public unsafe partial struct _data_e__FixedBuffer

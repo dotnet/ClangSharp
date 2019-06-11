@@ -566,8 +566,7 @@ namespace ClangSharp
                     }
                     else
                     {
-                        var nativeTypeName = string.Empty;
-                        name = GetTypeName(namedDecl, typeDecl.Type, ref nativeTypeName);
+                        name = GetTypeName(namedDecl, typeDecl.Type, out var nativeTypeName);
                         Debug.Assert(string.IsNullOrWhiteSpace(nativeTypeName));
                     }
                 }
@@ -608,59 +607,21 @@ namespace ClangSharp
 
         private string GetRemappedTypeName(NamedDecl namedDecl, Type type, out string nativeTypeName)
         {
-            nativeTypeName = string.Empty;
-            var name = GetTypeName(namedDecl, type, ref nativeTypeName);
+            var name = GetTypeName(namedDecl, type, out nativeTypeName);
             return GetRemappedName(name);
         }
 
-        private string GetTypeName(NamedDecl namedDecl, Type type, ref string nativeTypeName, bool preserveMatchingNativeTypeName = false)
+        private string GetTypeName(NamedDecl namedDecl, Type type, out string nativeTypeName)
         {
-            var name = type.Spelling
-                           .Replace(" *", "*")
-                           .Replace(" [", "[");
-
-            if (string.IsNullOrWhiteSpace(nativeTypeName))
-            {
-                nativeTypeName = name;
-            }
+            var name = type.Spelling;
+            nativeTypeName = name;
 
             if (type is ArrayType arrayType)
             {
-                var elementType = arrayType.ElementType;
-                bool mayNeedFixup = nativeTypeName.Equals(name);
-
-                var nativeElementTypeName = string.Empty;
-                name = GetTypeName(namedDecl, elementType, ref nativeElementTypeName, preserveMatchingNativeTypeName: true);
-
-                if (mayNeedFixup && (elementType is BuiltinType))
-                {
-                    if ((arrayType is ConstantArrayType) && IsSupportedFixedSizedBufferType(name))
-                    {
-                        // We don't want to bloat metadata when the native type has a direct managed equivalent.
-                        nativeTypeName = string.Empty;
-                    }
-                    else
-                    {
-                        // We want to taked mapped builtin types into consideration as part of the returned native type name
-                        nativeTypeName = nativeTypeName.Replace(nativeElementTypeName, name);
-                    }
-                }
+                name = GetTypeName(namedDecl, arrayType.ElementType, out var nativeElementTypeName);
             }
             else if (type is BuiltinType)
             {
-                if (nativeTypeName.Equals(name))
-                {
-                    if (!preserveMatchingNativeTypeName)
-                    {
-                        // We don't want to bloat metadata when the native type is built-in
-                        nativeTypeName = string.Empty;
-                    }
-                    else if (type.IsConstQualified)
-                    {
-                        nativeTypeName = nativeTypeName.Replace("const ", "");
-                    }
-                }
-
                 switch (type.Kind)
                 {
                     case CXTypeKind.CXType_Void:
@@ -764,12 +725,7 @@ namespace ClangSharp
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                if (nativeTypeName.Equals(name) && !preserveMatchingNativeTypeName)
-                {
-                    // We don't want to bloat metadata when the native type is elaborated
-                    nativeTypeName = string.Empty;
-                }
-                name = GetTypeName(namedDecl, elaboratedType.NamedType, ref nativeTypeName, preserveMatchingNativeTypeName);
+                name = GetTypeName(namedDecl, elaboratedType.NamedType, out var nativeNamedTypeName);
             }
             else if (type is PointerType pointerType)
             {
@@ -781,32 +737,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    bool mayNeedFixup = nativeTypeName.Equals(name);
-
-                    var nativePointeeTypeName = string.Empty;
-                    name = GetTypeName(namedDecl, pointeeType, ref nativePointeeTypeName, preserveMatchingNativeTypeName: true);
-
-                    if (mayNeedFixup)
-                    {
-                        if (!preserveMatchingNativeTypeName)
-                        {
-                            // We want to taked mapped builtin types into consideration as part of the returned native type name
-                            nativeTypeName = nativeTypeName.Replace(nativePointeeTypeName, name);
-                        }
-                        else
-                        {
-                            if (pointeeType.IsConstQualified)
-                            {
-                                nativeTypeName = nativeTypeName.Replace("const ", "");
-                            }
-
-                            if (type.IsConstQualified)
-                            {
-                                nativeTypeName = nativeTypeName.Replace("*const", "*");
-                            }
-                        }
-                    }
-
+                    name = GetTypeName(namedDecl, pointeeType, out var nativePointeeTypeName);
                     name += '*';
                 }
             }
@@ -835,7 +766,7 @@ namespace ClangSharp
 
                     default:
                     {
-                        name = GetTypeName(namedDecl, typedefType.UnderlyingType, ref nativeTypeName, preserveMatchingNativeTypeName);
+                        name = GetTypeName(namedDecl, typedefType.UnderlyingType, out var nativeUnderlyingTypeName);
                         break;
                     }
                 }
@@ -845,13 +776,13 @@ namespace ClangSharp
                 AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back '{name}'.", namedDecl);
             }
 
-            if (nativeTypeName.Equals(name) && !preserveMatchingNativeTypeName)
+            Debug.Assert(!string.IsNullOrWhiteSpace(name));
+            Debug.Assert(!string.IsNullOrWhiteSpace(nativeTypeName));
+
+            if (nativeTypeName.Equals(name))
             {
-                // We don't want to bloat metadata when the native type name matches the managed type name
                 nativeTypeName = string.Empty;
             }
-
-            Debug.Assert(!string.IsNullOrWhiteSpace(name));
             return name;
         }
 

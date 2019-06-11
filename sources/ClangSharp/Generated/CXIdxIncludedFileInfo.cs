@@ -4,7 +4,7 @@ namespace ClangSharp
     {
         public CXIdxLoc hashLoc;
 
-        [NativeTypeName("const sbyte*")]
+        [NativeTypeName("const char *")]
         public sbyte* filename;
 
         [NativeTypeName("CXFile")]

@@ -8,10 +8,13 @@ namespace ClangSharp
 
         public CXIdxLoc loc;
 
+        [NativeTypeName("const CXIdxEntityInfo *")]
         public CXIdxEntityInfo* referencedEntity;
 
+        [NativeTypeName("const CXIdxEntityInfo *")]
         public CXIdxEntityInfo* parentEntity;
 
+        [NativeTypeName("const CXIdxContainerInfo *")]
         public CXIdxContainerInfo* container;
 
         public CXSymbolRole role;

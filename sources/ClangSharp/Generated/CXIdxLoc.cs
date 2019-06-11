@@ -2,9 +2,10 @@ namespace ClangSharp
 {
     public partial struct CXIdxLoc
     {
-        [NativeTypeName("void*[2]")]
+        [NativeTypeName("void *[2]")]
         public _ptr_data_e__FixedBuffer ptr_data;
 
+        [NativeTypeName("unsigned int")]
         public uint int_data;
 
         public unsafe partial struct _ptr_data_e__FixedBuffer

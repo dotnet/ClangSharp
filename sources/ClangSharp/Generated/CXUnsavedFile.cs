@@ -2,12 +2,13 @@ namespace ClangSharp
 {
     public unsafe partial struct CXUnsavedFile
     {
-        [NativeTypeName("const sbyte*")]
+        [NativeTypeName("const char *")]
         public sbyte* Filename;
 
-        [NativeTypeName("const sbyte*")]
+        [NativeTypeName("const char *")]
         public sbyte* Contents;
 
+        [NativeTypeName("unsigned long")]
         public uint Length;
     }
 }

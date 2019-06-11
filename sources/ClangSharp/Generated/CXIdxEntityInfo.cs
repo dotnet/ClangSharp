@@ -8,17 +8,18 @@ namespace ClangSharp
 
         public CXIdxEntityLanguage lang;
 
-        [NativeTypeName("const sbyte*")]
+        [NativeTypeName("const char *")]
         public sbyte* name;
 
-        [NativeTypeName("const sbyte*")]
+        [NativeTypeName("const char *")]
         public sbyte* USR;
 
         public CXCursor cursor;
 
-        [NativeTypeName("const CXIdxAttrInfo*const*")]
+        [NativeTypeName("const CXIdxAttrInfo *const *")]
         public CXIdxAttrInfo** attributes;
 
+        [NativeTypeName("unsigned int")]
         public uint numAttributes;
     }
 }
