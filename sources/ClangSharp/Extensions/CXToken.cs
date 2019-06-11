@@ -1,6 +1,6 @@
-﻿namespace ClangSharp
+namespace ClangSharp
 {
-    public partial struct CXToken
+    public unsafe partial struct CXToken
     {
         public CXTokenKind Kind => clang.getTokenKind(this);
 

@@ -1,11 +1,12 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXIdxBaseClassInfo
+    public unsafe partial struct CXIdxBaseClassInfo
     {
-        public IntPtr @base;
+        [NativeTypeName("const CXIdxEntityInfo *")]
+        public CXIdxEntityInfo* @base;
+
         public CXCursor cursor;
+
         public CXIdxLoc loc;
     }
 }

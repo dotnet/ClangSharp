@@ -74,13 +74,7 @@ namespace ClangSharp.UnitTests
         }
 
         [Theory]
-        [InlineData("unsigned char", "byte")]
         [InlineData("short", "short")]
-        [InlineData("long long", "long")]
-        [InlineData("char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
         public async Task ExplicitTypedTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"enum MyEnum : {nativeType}
@@ -93,6 +87,38 @@ namespace ClangSharp.UnitTests
 
             var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
+    public enum MyEnum : {expectedManagedType}
+    {{
+        MyEnum_Value0,
+        MyEnum_Value1,
+        MyEnum_Value2,
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("unsigned char", "byte")]
+        [InlineData("long long", "long")]
+        [InlineData("signed char", "sbyte")]
+        [InlineData("unsigned short", "ushort")]
+        [InlineData("unsigned int", "uint")]
+        [InlineData("unsigned long long", "ulong")]
+        public async Task ExplicitTypedWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"enum MyEnum : {nativeType}
+{{
+    MyEnum_Value0,
+    MyEnum_Value1,
+    MyEnum_Value2,
+}};
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    [NativeTypeName(""{nativeType}"")]
     public enum MyEnum : {expectedManagedType}
     {{
         MyEnum_Value0,

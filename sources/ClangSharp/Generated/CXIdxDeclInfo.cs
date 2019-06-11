@@ -1,21 +1,38 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXIdxDeclInfo
+    public unsafe partial struct CXIdxDeclInfo
     {
-        public IntPtr entityInfo;
+        [NativeTypeName("const CXIdxEntityInfo *")]
+        public CXIdxEntityInfo* entityInfo;
+
         public CXCursor cursor;
+
         public CXIdxLoc loc;
-        public IntPtr semanticContainer;
-        public IntPtr lexicalContainer;
+
+        [NativeTypeName("const CXIdxContainerInfo *")]
+        public CXIdxContainerInfo* semanticContainer;
+
+        [NativeTypeName("const CXIdxContainerInfo *")]
+        public CXIdxContainerInfo* lexicalContainer;
+
         public int isRedeclaration;
+
         public int isDefinition;
+
         public int isContainer;
-        public IntPtr declAsContainer;
+
+        [NativeTypeName("const CXIdxContainerInfo *")]
+        public CXIdxContainerInfo* declAsContainer;
+
         public int isImplicit;
-        public IntPtr attributes;
+
+        [NativeTypeName("const CXIdxAttrInfo *const *")]
+        public CXIdxAttrInfo** attributes;
+
+        [NativeTypeName("unsigned int")]
         public uint numAttributes;
+
+        [NativeTypeName("unsigned int")]
         public uint flags;
     }
 }

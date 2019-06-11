@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
 namespace ClangSharp
 {
-    public partial struct CXDiagnostic : IDisposable
+    public unsafe partial struct CXDiagnostic : IDisposable
     {
         public static CXDiagnosticDisplayOptions DefaultDisplayOptions => (CXDiagnosticDisplayOptions)clang.defaultDiagnosticDisplayOptions();
 
@@ -10,7 +10,7 @@ namespace ClangSharp
 
         public CXString CategoryText => clang.getDiagnosticCategoryText(this);
 
-        public CXDiagnosticSet ChildDiagnostics => clang.getChildDiagnostics(this);
+        public CXDiagnosticSet ChildDiagnostics => (CXDiagnosticSet)clang.getChildDiagnostics(this);
 
         public CXSourceLocation Location => clang.getDiagnosticLocation(this);
 
@@ -22,16 +22,35 @@ namespace ClangSharp
 
         public CXString Spelling => clang.getDiagnosticSpelling(this);
 
-        public void Dispose() => clang.disposeDiagnostic(this);
+        public void Dispose()
+        {
+            if (Pointer != IntPtr.Zero)
+            {
+                clang.disposeDiagnostic(this);
+                Pointer = IntPtr.Zero;
+            }
+        }
 
         public CXString Format(CXDiagnosticDisplayOptions options) => clang.formatDiagnostic(this, (uint)options);
 
         [Obsolete("Use " + nameof(CategoryText) + " instead.")]
         public static CXString GetCategoryName(uint category) => clang.getDiagnosticCategoryName(category);
 
-        public CXString GetFixIt(uint fixIt, out CXSourceRange replacementRange) => clang.getDiagnosticFixIt(this, fixIt, out replacementRange);
+        public CXString GetFixIt(uint fixIt, out CXSourceRange replacementRange)
+        {
+            fixed (CXSourceRange* pReplacementRange = &replacementRange)
+            {
+                return clang.getDiagnosticFixIt(this, fixIt, pReplacementRange);
+            }
+        }
 
-        public CXString GetOption(out CXString disable) => clang.getDiagnosticOption(this, out disable);
+        public CXString GetOption(out CXString disable)
+        {
+            fixed (CXString* pDisable = &disable)
+            {
+                return clang.getDiagnosticOption(this, pDisable);
+            }
+        }
 
         public CXSourceRange GetRange(uint range) => clang.getDiagnosticRange(this, range);
 

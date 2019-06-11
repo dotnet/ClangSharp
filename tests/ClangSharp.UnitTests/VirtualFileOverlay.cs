@@ -14,17 +14,19 @@ namespace ClangSharp.UnitTests
         class TestVFO : IDisposable
         {
             public CXVirtualFileOverlay VFO;
-            string Contents;
+
+            private string Contents;
+            private bool isDisposed = false;
 
             public TestVFO(string contents)
             {
-                VFO = clang.VirtualFileOverlay_create(0);
+                VFO = CXVirtualFileOverlay.Create(options: 0);
                 Contents = Fix(contents);
             }
 
             ~TestVFO()
             {
-                Dispose(false);
+                Dispose(isDisposing: false);
             }
 
             public void Map(string vPath, string rPath)
@@ -32,7 +34,7 @@ namespace ClangSharp.UnitTests
                 vPath = Fix(vPath);
                 rPath = Fix(rPath);
 
-                var err = clang.VirtualFileOverlay_addFileMapping(VFO, vPath, rPath);
+                var err = VFO.AddFileMapping(vPath, rPath);
                 Assert.Equal(CXErrorCode.CXError_Success, err);
             }
 
@@ -41,13 +43,13 @@ namespace ClangSharp.UnitTests
                 vPath = Fix(vPath);
                 rPath = Fix(rPath);
 
-                var err = clang.VirtualFileOverlay_addFileMapping(VFO, vPath, rPath);
+                var err = VFO.AddFileMapping(vPath, rPath);
                 Assert.Equal(expErr, err);
             }
 
             private string Fix(string text)
             {
-                if (text == null)
+                if (text is null)
                 {
                     return null;
                 }
@@ -56,32 +58,28 @@ namespace ClangSharp.UnitTests
                 return text.Replace("$ROOT$", replacement);
             }
 
-            bool disposed = false;
-
             public void Dispose()
             {
                 Dispose(true);
                 GC.SuppressFinalize(this);
             }
 
-            protected virtual void Dispose(bool disposing)
+            protected virtual void Dispose(bool isDisposing)
             {
-                if (disposed)
+                if (isDisposed)
+                {
                     return;
+                }
+                isDisposed = true;
 
                 if (Contents != null)
                 {
-                    IntPtr bufPtr;
-                    uint bufSize = 0;
-                    clang.VirtualFileOverlay_writeToBuffer(VFO, 0, out bufPtr, out bufSize);
-                    var bufStr = Marshal.PtrToStringAnsi(bufPtr, (int)bufSize);
-                    Assert.Equal(Contents, bufStr);
-                    clang.free(bufPtr);
+                    Span<byte> buffer = VFO.WriteToBuffer(options: 0, errorCode: out _);
+                    Assert.Equal(Contents, buffer.AsString());
+                    buffer.ClangFree();
                 }
 
-                clang.VirtualFileOverlay_dispose(VFO);
-
-                disposed = true;
+                VFO.Dispose();
             }
         }
 
@@ -231,7 +229,7 @@ namespace ClangSharp.UnitTests
             using (TestVFO T = new TestVFO(contents))
             {
                 T.Map("$ROOT$/path/virtual/foo.h", "$ROOT$/real/foo.h");
-                clang.VirtualFileOverlay_setCaseSensitivity(T.VFO, 0);
+                T.VFO.SetCaseSensitivity(false);
             }
         }
 

@@ -1,11 +1,31 @@
-using System;
-
 namespace ClangSharp
 {
     public partial struct CXCursor
     {
+        [NativeTypeName("enum CXCursorKind")]
         public CXCursorKind kind;
+
         public int xdata;
-        public IntPtr data0; public IntPtr data1; public IntPtr data2;
+
+        [NativeTypeName("const void *[3]")]
+        public _data_e__FixedBuffer data;
+
+        public unsafe partial struct _data_e__FixedBuffer
+        {
+            internal void* e0;
+            internal void* e1;
+            internal void* e2;
+
+            public ref void* this[int index]
+            {
+                get
+                {
+                    fixed (void** pThis = &e0)
+                    {
+                        return ref pThis[index];
+                    }
+                }
+            }
+        }
     }
 }

@@ -22,6 +22,7 @@ namespace ClangSharp
         private OutputBuilder _outputBuilder;
         private int _outputBuilderUsers;
         private bool _disposed;
+        private bool _isMethodClassUnsafe;
 
         public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null)
         {
@@ -203,6 +204,45 @@ namespace ClangSharp
             }
         }
 
+        private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
+        {
+            if (string.IsNullOrWhiteSpace(nativeTypeName))
+            {
+                return;
+            }
+
+            if (prefix is null)
+            {
+                _outputBuilder.WriteIndentation();
+            }
+            else
+            {
+                _outputBuilder.Write(prefix);
+            }
+
+            _outputBuilder.Write('[');
+
+            if (attributePrefix != null)
+            {
+                _outputBuilder.Write(attributePrefix);
+            }
+
+            _outputBuilder.Write("NativeTypeName(");
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(nativeTypeName);
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(")]");
+
+            if (postfix is null)
+            {
+                _outputBuilder.WriteLine();
+            }
+            else
+            {
+                _outputBuilder.Write(postfix);
+            }
+        }
+
         private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen, bool emitNamespaceDeclaration)
         {
             if (stream is null)
@@ -252,7 +292,7 @@ namespace ClangSharp
                     sw.Write("public static");
                     sw.Write(' ');
 
-                    if (Config.GenerateUnsafeCode)
+                    if (_isMethodClassUnsafe)
                     {
                         sw.Write("unsafe");
                         sw.Write(' ');
@@ -267,7 +307,8 @@ namespace ClangSharp
                     indentationString += outputBuilder.IndentationString;
 
                     sw.Write(indentationString);
-                    sw.Write("private const string libraryPath = ");
+                    sw.Write("private const string libraryPath =");
+                    sw.Write(' ');
                     sw.Write('"');
                     sw.Write(Config.LibraryPath);
                     sw.Write('"');
@@ -422,6 +463,54 @@ namespace ClangSharp
             return EscapeName(name);
         }
 
+        private string GetAccessSpecifierName(NamedDecl namedDecl)
+        {
+            string name;
+
+            switch (namedDecl.AccessSpecifier)
+            {
+                case CX_CXXAccessSpecifier.CX_CXXInvalidAccessSpecifier:
+                {
+                    // Top level declarations will have an invalid access specifier
+                    name = "public";
+                    break;
+                }
+
+                case CX_CXXAccessSpecifier.CX_CXXPublic:
+                {
+                    name = "public";
+                    break;
+                }
+
+                case CX_CXXAccessSpecifier.CX_CXXProtected:
+                {
+                    name = "protected";
+                    break;
+                }
+
+                case CX_CXXAccessSpecifier.CX_CXXPrivate:
+                {
+                    name = "private";
+                    break;
+                }
+
+                default:
+                {
+                    name = "internal";
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unknown access specifier: '{namedDecl.AccessSpecifier}'. Falling back to '{name}'.", namedDecl);
+                    break;
+                }
+            }
+
+            return name;
+        }
+
+        private string GetArtificalFixedSizedBufferName(FieldDecl fieldDecl)
+        {
+            var name = GetRemappedCursorName(fieldDecl);
+            return $"_{name}_e__FixedBuffer";
+        }
+
         private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention)
         {
             switch (callingConvention)
@@ -460,12 +549,6 @@ namespace ClangSharp
             }
         }
 
-        private string GetArtificalFixedSizedBufferName(FieldDecl fieldDecl)
-        {
-            var name = GetRemappedCursorName(fieldDecl);
-            return $"_{name}_e__FixedBuffer";
-        }
-
         private string GetCursorName(NamedDecl namedDecl)
         {
             var name = namedDecl.Name;
@@ -483,7 +566,8 @@ namespace ClangSharp
                     }
                     else
                     {
-                        name = GetTypeName(namedDecl, typeDecl.Type);
+                        name = GetTypeName(namedDecl, typeDecl.Type, out var nativeTypeName);
+                        Debug.Assert(string.IsNullOrWhiteSpace(nativeTypeName));
                     }
                 }
                 else if (namedDecl is ParmVarDecl)
@@ -498,232 +582,6 @@ namespace ClangSharp
 
             Debug.Assert(!string.IsNullOrWhiteSpace(name));
             return name;
-        }
-
-        private string GetMarshalAttribute(NamedDecl namedDecl, Type type)
-        {
-            if (_config.GenerateUnsafeCode)
-            {
-                return string.Empty;
-            }
-
-            switch (type.Kind)
-            {
-                case CXTypeKind.CXType_Void:
-                case CXTypeKind.CXType_Char_U:
-                case CXTypeKind.CXType_UChar:
-                case CXTypeKind.CXType_UShort:
-                case CXTypeKind.CXType_UInt:
-                case CXTypeKind.CXType_ULong:
-                case CXTypeKind.CXType_ULongLong:
-                case CXTypeKind.CXType_Char_S:
-                case CXTypeKind.CXType_SChar:
-                case CXTypeKind.CXType_Short:
-                case CXTypeKind.CXType_Int:
-                case CXTypeKind.CXType_Long:
-                case CXTypeKind.CXType_LongLong:
-                case CXTypeKind.CXType_Float:
-                case CXTypeKind.CXType_Double:
-                case CXTypeKind.CXType_Record:
-                case CXTypeKind.CXType_Enum:
-                case CXTypeKind.CXType_Typedef:
-                case CXTypeKind.CXType_ConstantArray:
-                case CXTypeKind.CXType_IncompleteArray:
-                {
-                    return string.Empty;
-                }
-
-                case CXTypeKind.CXType_Bool:
-                {
-                    return "MarshalAs(UnmanagedType.U1)";
-                }
-
-                case CXTypeKind.CXType_Pointer:
-                {
-                    var pointerType = (PointerType)type;
-                    return GetMarshalAttributeForPointeeType(namedDecl, pointerType.PointeeType);
-                }
-
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    var elaboratedType = (ElaboratedType)type;
-                    return GetMarshalAttribute(namedDecl, elaboratedType.NamedType);
-                }
-
-                default:
-                {
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back to no marshalling.", namedDecl);
-                    return string.Empty;
-                }
-            }
-        }
-
-        private string GetMarshalAttributeForPointeeType(NamedDecl namedDecl, Type pointeeType)
-        {
-            Debug.Assert(!_config.GenerateUnsafeCode);
-
-            switch (pointeeType.Kind)
-            {
-                case CXTypeKind.CXType_Void:
-                case CXTypeKind.CXType_Bool:
-                case CXTypeKind.CXType_UChar:
-                case CXTypeKind.CXType_UShort:
-                case CXTypeKind.CXType_UInt:
-                case CXTypeKind.CXType_ULong:
-                case CXTypeKind.CXType_ULongLong:
-                case CXTypeKind.CXType_SChar:
-                case CXTypeKind.CXType_Short:
-                case CXTypeKind.CXType_Int:
-                case CXTypeKind.CXType_Long:
-                case CXTypeKind.CXType_LongLong:
-                case CXTypeKind.CXType_Float:
-                case CXTypeKind.CXType_Double:
-                case CXTypeKind.CXType_Pointer:
-                case CXTypeKind.CXType_Record:
-                case CXTypeKind.CXType_Enum:
-                case CXTypeKind.CXType_Typedef:
-                case CXTypeKind.CXType_FunctionProto:
-                {
-                    return string.Empty;
-                }
-
-                case CXTypeKind.CXType_Char_U:
-                case CXTypeKind.CXType_Char_S:
-                {
-                    return "MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(StringMarshaler))";
-                }
-
-                case CXTypeKind.CXType_WChar:
-                {
-                    return "MarshalAs(UnmanagedType.LPWStr)";
-                }
-
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    var elaboratedType = (ElaboratedType)pointeeType;
-                    return GetMarshalAttributeForPointeeType(namedDecl, elaboratedType.NamedType);
-                }
-
-                default:
-                {
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Falling back to no marshalling.", namedDecl);
-                    return string.Empty;
-                }
-            }
-        }
-
-        private string GetParmModifier(NamedDecl namedDecl, Type type)
-        {
-            if (_config.GenerateUnsafeCode)
-            {
-                return string.Empty;
-            }
-
-            switch (type.Kind)
-            {
-                case CXTypeKind.CXType_Void:
-                case CXTypeKind.CXType_Bool:
-                case CXTypeKind.CXType_Char_U:
-                case CXTypeKind.CXType_UChar:
-                case CXTypeKind.CXType_UShort:
-                case CXTypeKind.CXType_UInt:
-                case CXTypeKind.CXType_ULong:
-                case CXTypeKind.CXType_ULongLong:
-                case CXTypeKind.CXType_Char_S:
-                case CXTypeKind.CXType_SChar:
-                case CXTypeKind.CXType_WChar:
-                case CXTypeKind.CXType_Short:
-                case CXTypeKind.CXType_Int:
-                case CXTypeKind.CXType_Long:
-                case CXTypeKind.CXType_LongLong:
-                case CXTypeKind.CXType_Float:
-                case CXTypeKind.CXType_Double:
-                case CXTypeKind.CXType_Record:
-                case CXTypeKind.CXType_Enum:
-                case CXTypeKind.CXType_Typedef:
-                {
-                    return string.Empty;
-                }
-
-                case CXTypeKind.CXType_Pointer:
-                {
-                    var pointerType = (PointerType)type;
-                    return GetParmModifierForPointeeType(namedDecl, pointerType.PointeeType);
-                }
-
-                case CXTypeKind.CXType_ConstantArray:
-                case CXTypeKind.CXType_IncompleteArray:
-                {
-                    return "out";
-                }
-
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    var elaboratedType = (ElaboratedType)type;
-                    return GetParmModifier(namedDecl, elaboratedType.NamedType);
-                }
-
-                default:
-                {
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back to no parameter modifier.", namedDecl);
-                    return string.Empty;
-                }
-            }
-        }
-
-        private string GetParmModifierForPointeeType(NamedDecl namedDecl, Type pointeeType)
-        {
-            Debug.Assert(!_config.GenerateUnsafeCode);
-
-            switch (pointeeType.Kind)
-            {
-                case CXTypeKind.CXType_Void:
-                case CXTypeKind.CXType_Char_U:
-                case CXTypeKind.CXType_Char_S:
-                case CXTypeKind.CXType_WChar:
-                case CXTypeKind.CXType_FunctionProto:
-                {
-                    return string.Empty;
-                }
-
-                case CXTypeKind.CXType_Bool:
-                case CXTypeKind.CXType_UChar:
-                case CXTypeKind.CXType_UShort:
-                case CXTypeKind.CXType_UInt:
-                case CXTypeKind.CXType_ULong:
-                case CXTypeKind.CXType_ULongLong:
-                case CXTypeKind.CXType_SChar:
-                case CXTypeKind.CXType_Short:
-                case CXTypeKind.CXType_Int:
-                case CXTypeKind.CXType_Long:
-                case CXTypeKind.CXType_LongLong:
-                case CXTypeKind.CXType_Float:
-                case CXTypeKind.CXType_Double:
-                case CXTypeKind.CXType_Pointer:
-                case CXTypeKind.CXType_Record:
-                case CXTypeKind.CXType_Enum:
-                {
-                    return "out";
-                }
-
-                case CXTypeKind.CXType_Typedef:
-                {
-                    var typedefType = (TypedefType)pointeeType;
-                    return GetParmModifierForPointeeType(namedDecl, typedefType.UnderlyingType);
-                }
-
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    var elaboratedType = (ElaboratedType)pointeeType;
-                    return GetParmModifierForPointeeType(namedDecl, elaboratedType.NamedType);
-                }
-
-                default:
-                {
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Falling back to no parameter modifier.", namedDecl);
-                    return string.Empty;
-                }
-            }
         }
 
         private string GetRemappedCursorName(NamedDecl namedDecl)
@@ -747,19 +605,20 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedTypeName(NamedDecl namedDecl, Type type)
+        private string GetRemappedTypeName(NamedDecl namedDecl, Type type, out string nativeTypeName)
         {
-            var name = GetTypeName(namedDecl, type);
+            var name = GetTypeName(namedDecl, type, out nativeTypeName);
             return GetRemappedName(name);
         }
 
-        private string GetTypeName(NamedDecl namedDecl, Type type)
+        private string GetTypeName(NamedDecl namedDecl, Type type, out string nativeTypeName)
         {
             var name = type.Spelling;
+            nativeTypeName = name;
 
             if (type is ArrayType arrayType)
             {
-                name = GetTypeName(namedDecl, arrayType.ElementType);
+                name = GetTypeName(namedDecl, arrayType.ElementType, out var nativeElementTypeName);
             }
             else if (type is BuiltinType)
             {
@@ -866,55 +725,31 @@ namespace ClangSharp
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                name = GetTypeName(namedDecl, elaboratedType.NamedType);
+                name = GetTypeName(namedDecl, elaboratedType.NamedType, out var nativeNamedTypeName);
             }
             else if (type is PointerType pointerType)
             {
-                name = GetTypeNameForPointeeType(namedDecl, pointerType.PointeeType);
-            }
-            else if (type is ReferenceType referenceType)
-            {
-                name = GetTypeNameForPointeeType(namedDecl, referenceType.PointeeType);
+                var pointeeType = pointerType.PointeeType;
+
+                if (pointeeType is FunctionType)
+                {
+                    name = "IntPtr";
+                }
+                else
+                {
+                    name = GetTypeName(namedDecl, pointeeType, out var nativePointeeTypeName);
+                    name += '*';
+                }
             }
             else if (type is TypedefType typedefType)
             {
-                if (!_config.GenerateUnsafeCode)
-                {
-                    name = GetTypeNameForUnderlyingType(namedDecl, typedefType.UnderlyingType);
-
-                    if (string.IsNullOrWhiteSpace(name))
-                    {
-                        name = GetRemappedCursorName(typedefType.Decl);
-                    }
-                }
+                // We intercept some well known types that have variable sizes
+                // to ensure that we can treat them correctly. Otherwise, they
+                // will resolve to a particular platform size, based on whatever
+                // parameters were passed into clang.
 
                 switch (name)
                 {
-                    case "int8_t":
-                    {
-                        name = "sbyte";
-                        break;
-                    }
-
-                    case "int16_t":
-                    {
-                        name = "short";
-                        break;
-                    }
-
-                    case "int32_t":
-                    {
-                        name = "int";
-                        break;
-                    }
-
-                    case "int64_t":
-                    case "time_t":
-                    {
-                        name = "long";
-                        break;
-                    }
-
                     case "intptr_t":
                     case "ptrdiff_t":
                     {
@@ -929,36 +764,9 @@ namespace ClangSharp
                         break;
                     }
 
-                    case "uint8_t":
-                    {
-                        name = "byte";
-                        break;
-                    }
-
-                    case "uint16_t":
-                    {
-                        name = "ushort";
-                        break;
-                    }
-
-                    case "uint32_t":
-                    {
-                        name = "uint";
-                        break;
-                    }
-
-                    case "uint64_t":
-                    {
-                        name = "ulong";
-                        break;
-                    }
-
                     default:
                     {
-                        if (_config.GenerateUnsafeCode)
-                        {
-                            name = GetTypeName(namedDecl, typedefType.UnderlyingType);
-                        }
+                        name = GetTypeName(namedDecl, typedefType.UnderlyingType, out var nativeUnderlyingTypeName);
                         break;
                     }
                 }
@@ -969,95 +777,12 @@ namespace ClangSharp
             }
 
             Debug.Assert(!string.IsNullOrWhiteSpace(name));
-            return name;
-        }
+            Debug.Assert(!string.IsNullOrWhiteSpace(nativeTypeName));
 
-        private string GetTypeNameForPointeeType(NamedDecl namedDecl, Type pointeeType)
-        {
-            string name;
-
-            if (pointeeType is FunctionType)
+            if (nativeTypeName.Equals(name))
             {
-                name = "IntPtr";
+                nativeTypeName = string.Empty;
             }
-            else if (_config.GenerateUnsafeCode)
-            {
-                name = GetTypeName(namedDecl, pointeeType);
-                name += '*';
-            }
-            else if (pointeeType is AttributedType attributedType)
-            {
-                name = GetTypeNameForPointeeType(namedDecl, attributedType.ModifiedType);
-            }
-            else if (pointeeType is BuiltinType)
-            {
-                switch (pointeeType.Kind)
-                {
-                    case CXTypeKind.CXType_Void:
-                    {
-                        name = "IntPtr";
-                        break;
-                    }
-
-                    case CXTypeKind.CXType_Char_U:
-                    case CXTypeKind.CXType_Char_S:
-                    {
-                        if ((namedDecl is ParmVarDecl parmVarDecl) && (GetParmModifier(namedDecl, parmVarDecl.Type).Equals("out")))
-                        {
-                            name = "IntPtr";
-                        }
-                        else
-                        {
-                            name = "string";
-                        }
-                        break;
-                    }
-
-                    default:
-                    {
-                        name = (namedDecl is ParmVarDecl) ? GetTypeName(namedDecl, pointeeType) : "IntPtr";
-                        break;
-                    }
-                }
-            }
-            else if (pointeeType is ElaboratedType elaboratedType)
-            {
-                name = GetTypeNameForPointeeType(namedDecl, elaboratedType.NamedType);
-            }
-            else if (namedDecl is ParmVarDecl)
-            {
-                name = GetTypeName(namedDecl, pointeeType);
-            }
-            else
-            {
-                name = "IntPtr";
-            }
-
-            Debug.Assert(!string.IsNullOrWhiteSpace(name));
-            return name;
-        }
-
-        private string GetTypeNameForUnderlyingType(NamedDecl namedDecl, Type underlyingType)
-        {
-            string name;
-
-            if (underlyingType is ElaboratedType elaboratedType)
-            {
-                name = GetTypeNameForUnderlyingType(namedDecl, elaboratedType.NamedType);
-            }
-            else if (underlyingType is TagType tagType)
-            {
-                name = GetRemappedCursorName(tagType.Decl);
-            }
-            else if (underlyingType is TypedefType typedefType)
-            {
-                name = GetTypeNameForUnderlyingType(namedDecl, typedefType.UnderlyingType);
-            }
-            else
-            {
-                name = string.Empty;
-            }
-
             return name;
         }
 
@@ -1086,6 +811,80 @@ namespace ClangSharp
                     return false;
                 }
             }
+        }
+
+        private bool IsUnsafe(FieldDecl fieldDecl)
+        {
+            var type = fieldDecl.Type;
+            var typeName = GetRemappedTypeName(fieldDecl, type, out _);
+
+            if (type is ConstantArrayType constantArrayType)
+            {
+                return IsSupportedFixedSizedBufferType(typeName);
+            }
+
+            return typeName.Contains('*');
+        }
+
+        private bool IsUnsafe(FunctionDecl functionDecl)
+        {
+            var returnType = functionDecl.ReturnType;
+            var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out _);
+
+            if (returnTypeName.Contains('*'))
+            {
+                return true;
+            }
+
+            foreach (var parmVarDecl in functionDecl.Parameters)
+            {
+                if (IsUnsafe(parmVarDecl))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsUnsafe(ParmVarDecl parmVarDecl)
+        {
+            var type = parmVarDecl.Type;
+            var typeName = GetRemappedTypeName(parmVarDecl, type, out _);
+            return typeName.Contains('*');
+        }
+
+        private bool IsUnsafe(RecordDecl recordDecl)
+        {
+            foreach (var fieldDecl in recordDecl.Fields)
+            {
+                if (IsUnsafe(fieldDecl))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool IsUnsafe(TypedefDecl typedefDecl, FunctionType functionType)
+        {
+            var returnType = functionType.ReturnType;
+            var returnTypeName = GetRemappedTypeName(typedefDecl, returnType, out _);
+
+            if (returnTypeName.Contains('*'))
+            {
+                return true;
+            }
+
+            foreach (var parmVarDecl in typedefDecl.Parameters)
+            {
+                if (IsUnsafe(parmVarDecl))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void StartUsingOutputBuilder(string name)
@@ -1260,7 +1059,9 @@ namespace ClangSharp
 
             if (enumConstantDecl.InitExpr != null)
             {
-                _outputBuilder.Write(" = ");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write('=');
+                _outputBuilder.Write(' ');
                 Visit(enumConstantDecl.InitExpr, enumConstantDecl);
             }
 
@@ -1273,15 +1074,20 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
-                _outputBuilder.WriteIndented("public enum");
+                var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
+                AddNativeTypeNameAttribute(nativeTypeName);
+
+                _outputBuilder.WriteIndented(GetAccessSpecifierName(enumDecl));
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("enum");
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(EscapeName(name));
 
-                var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType);
-
                 if (!integerTypeName.Equals("int"))
                 {
-                    _outputBuilder.Write(" : ");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(':');
+                    _outputBuilder.Write(' ');
                     _outputBuilder.Write(integerTypeName);
                 }
 
@@ -1341,77 +1147,38 @@ namespace ClangSharp
 
         private void VisitFieldDecl(FieldDecl fieldDecl, Cursor parent)
         {
-            _outputBuilder.WriteIndentation();
-
-            var type = fieldDecl.Type;
-            var marshalAttribute = GetMarshalAttribute(fieldDecl, type);
-
-            if (!string.IsNullOrWhiteSpace(marshalAttribute))
-            {
-                _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-
-                _outputBuilder.Write('[');
-                _outputBuilder.Write(marshalAttribute);
-                _outputBuilder.Write(']');
-                _outputBuilder.Write(' ');
-            }
-
             var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
-            var typeName = GetRemappedTypeName(fieldDecl, type);
+
+            var type = fieldDecl.Type;
+            var typeName = GetRemappedTypeName(fieldDecl, type, out var nativeTypeName);
+            AddNativeTypeNameAttribute(nativeTypeName);
+
+            _outputBuilder.WriteIndented(GetAccessSpecifierName(fieldDecl));
+            _outputBuilder.Write(' ');
 
             if (type is ConstantArrayType constantArrayType)
             {
-                if (_config.GenerateUnsafeCode)
+                if (IsSupportedFixedSizedBufferType(typeName))
                 {
-                    if (IsSupportedFixedSizedBufferType(typeName))
-                    {
-                        _outputBuilder.Write("public fixed");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(typeName);
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(escapedName);
-                        _outputBuilder.Write('[');
-                        _outputBuilder.Write(constantArrayType.Size);
-                        _outputBuilder.Write(']');
-                    }
-                    else
-                    {
-                        _outputBuilder.Write("public");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(GetArtificalFixedSizedBufferName(fieldDecl));
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(escapedName);
-                    }
-                }
-                else
-                {
-                    long lastElement = constantArrayType.Size - 1;
-
-                    for (int i = 0; i < lastElement; i++)
-                    {
-                        _outputBuilder.Write("public");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(typeName);
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(escapedName);
-                        _outputBuilder.Write(i);
-                        _outputBuilder.Write(';');
-                        _outputBuilder.Write(' ');
-                    }
-
-                    _outputBuilder.Write("public");
+                    _outputBuilder.Write("fixed");
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(typeName);
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(escapedName);
-                    _outputBuilder.Write(lastElement);
+                    _outputBuilder.Write('[');
+                    _outputBuilder.Write(constantArrayType.Size);
+                    _outputBuilder.Write(']');
+                }
+                else
+                {
+                    _outputBuilder.Write(GetArtificalFixedSizedBufferName(fieldDecl));
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(escapedName);
                 }
             }
             else
             {
-                _outputBuilder.Write("public");
-                _outputBuilder.Write(' ');
                 _outputBuilder.Write(typeName);
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(escapedName);
@@ -1427,7 +1194,6 @@ namespace ClangSharp
             StartUsingOutputBuilder(_config.MethodClassName);
             {
                 var functionType = functionDecl.FunctionType;
-                var returnType = functionDecl.ReturnType;
                 var body = functionDecl.Body;
 
                 if (body is null)
@@ -1439,19 +1205,15 @@ namespace ClangSharp
                     _outputBuilder.Write("\", CallingConvention = CallingConvention.");
                     _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
                     _outputBuilder.WriteLine(")]");
-
-                    var marshalAttribute = GetMarshalAttribute(functionDecl, returnType);
-
-                    if (!string.IsNullOrWhiteSpace(marshalAttribute))
-                    {
-                        _outputBuilder.WriteIndented("[return: ");
-                        _outputBuilder.Write(marshalAttribute);
-                        _outputBuilder.Write(']');
-                        _outputBuilder.WriteLine();
-                    }
                 }
 
-                _outputBuilder.WriteIndented("public static");
+                var returnType = functionDecl.ReturnType;
+                var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out var nativeTypeName);
+                AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
+
+                _outputBuilder.WriteIndented(GetAccessSpecifierName(functionDecl));
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("static");
                 _outputBuilder.Write(' ');
 
                 if (body is null)
@@ -1460,7 +1222,12 @@ namespace ClangSharp
                     _outputBuilder.Write(' ');
                 }
 
-                _outputBuilder.Write(GetRemappedTypeName(functionDecl, returnType));
+                if (IsUnsafe(functionDecl))
+                {
+                    _isMethodClassUnsafe = true;
+                }
+
+                _outputBuilder.Write(returnTypeName);
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(EscapeAndStripName(name));
                 _outputBuilder.Write('(');
@@ -1556,28 +1323,11 @@ namespace ClangSharp
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
         {
-            if (functionDecl.Body is null)
-            {
-                var marshalAttribute = GetMarshalAttribute(parmVarDecl, parmVarDecl.Type);
+            var type = parmVarDecl.Type;
+            var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
+            AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
 
-                if (!string.IsNullOrWhiteSpace(marshalAttribute))
-                {
-                    _outputBuilder.Write("[");
-                    _outputBuilder.Write(marshalAttribute);
-                    _outputBuilder.Write(']');
-                    _outputBuilder.Write(' ');
-                }
-            }
-
-            var parmModifier = GetParmModifier(parmVarDecl, parmVarDecl.Type);
-
-            if (!string.IsNullOrWhiteSpace(parmModifier))
-            {
-                _outputBuilder.Write(parmModifier);
-                _outputBuilder.Write(' ');
-            }
-
-            _outputBuilder.Write(GetRemappedTypeName(parmVarDecl, parmVarDecl.Type));
+            _outputBuilder.Write(typeName);
             _outputBuilder.Write(' ');
 
             var name = GetRemappedCursorName(parmVarDecl);
@@ -1594,31 +1344,18 @@ namespace ClangSharp
 
             if (index != lastIndex)
             {
-                _outputBuilder.Write(", ");
+                _outputBuilder.Write(',');
+                _outputBuilder.Write(' ');
             }
         }
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl, TypedefDecl typedefDecl)
         {
-            var marshalAttribute = GetMarshalAttribute(parmVarDecl, parmVarDecl.Type);
+            var type = parmVarDecl.Type;
+            var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
+            AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
 
-            if (!string.IsNullOrWhiteSpace(marshalAttribute))
-            {
-                _outputBuilder.Write("[");
-                _outputBuilder.Write(marshalAttribute);
-                _outputBuilder.Write(']');
-                _outputBuilder.Write(' ');
-            }
-
-            var parmModifier = GetParmModifier(parmVarDecl, parmVarDecl.Type);
-
-            if (!string.IsNullOrWhiteSpace(parmModifier))
-            {
-                _outputBuilder.Write(parmModifier);
-                _outputBuilder.Write(' ');
-            }
-
-            _outputBuilder.Write(GetRemappedTypeName(parmVarDecl, parmVarDecl.Type));
+            _outputBuilder.Write(typeName);
             _outputBuilder.Write(' ');
 
             var name = GetRemappedCursorName(parmVarDecl);
@@ -1635,7 +1372,8 @@ namespace ClangSharp
 
             if (index != lastIndex)
             {
-                _outputBuilder.Write(", ");
+                _outputBuilder.Write(',');
+                _outputBuilder.Write(' ');
             }
         }
 
@@ -1645,23 +1383,31 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
-                _outputBuilder.WriteIndented("public");
-
-                if (_config.GenerateUnsafeCode)
-                {
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write("unsafe");
-                }
+                _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
                 _outputBuilder.Write(' ');
+
+                if (IsUnsafe(recordDecl))
+                {
+                    _outputBuilder.Write("unsafe");
+                    _outputBuilder.Write(' ');
+                }
 
                 _outputBuilder.Write("partial struct");
                 _outputBuilder.Write(' ');
                 _outputBuilder.WriteLine(EscapeName(name));
                 _outputBuilder.WriteBlockStart();
 
-                foreach (var field in recordDecl.Fields)
+                var fields = recordDecl.Fields;
+
+                if (fields.Count != 0)
                 {
-                    Visit(field, recordDecl);
+                    Visit(fields[0], recordDecl);
+
+                    for (int i = 1; i < fields.Count; i++)
+                    {
+                        _outputBuilder.WriteLine();
+                        Visit(fields[i], recordDecl);
+                    }
                 }
 
                 foreach (var declaration in recordDecl.Declarations)
@@ -1669,47 +1415,70 @@ namespace ClangSharp
                     Visit(declaration, recordDecl);
                 }
 
-                if (_config.GenerateUnsafeCode)
+                foreach (var constantArray in recordDecl.ConstantArrays)
                 {
-                    foreach (var constantArray in recordDecl.ConstantArrays)
+                    var type = (ConstantArrayType)constantArray.Type;
+                    var typeName = GetRemappedTypeName(constantArray, constantArray.Type, out _);
+
+                    if (IsSupportedFixedSizedBufferType(typeName))
                     {
-                        var constantArrayType = (ConstantArrayType)constantArray.Type;
-                        var typeName = GetRemappedTypeName(constantArray, constantArray.Type);
+                        continue;
+                    }
+                    bool isUnsafe = typeName.Contains('*');
 
-                        if (IsSupportedFixedSizedBufferType(typeName))
-                        {
-                            continue;
-                        }
+                    _outputBuilder.WriteLine();
+                    _outputBuilder.WriteIndented(GetAccessSpecifierName(constantArray));
+                    _outputBuilder.Write(' ');
 
-                        _outputBuilder.WriteLine();
-                        _outputBuilder.WriteIndented("public partial struct");
+                    if (isUnsafe)
+                    {
+                        _outputBuilder.Write("unsafe");
                         _outputBuilder.Write(' ');
-                        _outputBuilder.WriteLine(GetArtificalFixedSizedBufferName(constantArray));
-                        _outputBuilder.WriteBlockStart();
+                    }
 
-                        for (int i = 0; i < constantArrayType.Size; i++)
-                        {
-                            _outputBuilder.WriteIndented("private");
-                            _outputBuilder.Write(' ');
-                            _outputBuilder.Write(typeName);
-                            _outputBuilder.Write(' ');
-                            _outputBuilder.Write('e');
-                            _outputBuilder.Write(i);
-                            _outputBuilder.WriteLine(';');
-                        }
+                    _outputBuilder.Write("partial struct");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.WriteLine(GetArtificalFixedSizedBufferName(constantArray));
+                    _outputBuilder.WriteBlockStart();
 
-                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-
-                        _outputBuilder.WriteLine();
-                        _outputBuilder.WriteIndented("public ref");
+                    for (int i = 0; i < type.Size; i++)
+                    {
+                        _outputBuilder.WriteIndented("internal");
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write(typeName);
                         _outputBuilder.Write(' ');
-                        _outputBuilder.Write("this[int index] => ref MemoryMarshal.CreateSpan(ref e0, ");
-                        _outputBuilder.Write(constantArrayType.Size);
-                        _outputBuilder.WriteLine(")[index];");
-                        _outputBuilder.WriteBlockEnd();
+                        _outputBuilder.Write('e');
+                        _outputBuilder.Write(i);
+                        _outputBuilder.WriteLine(';');
                     }
+
+                    _outputBuilder.WriteLine();
+                    _outputBuilder.WriteIndented("public");
+                    _outputBuilder.Write(' ');
+
+                    if (!isUnsafe)
+                    {
+                        _outputBuilder.Write("unsafe");
+                        _outputBuilder.Write(' ');
+                    }
+
+                    _outputBuilder.Write("ref");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(typeName);
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.WriteLine("this[int index]");
+                    _outputBuilder.WriteBlockStart();
+                    _outputBuilder.WriteIndentedLine("get");
+                    _outputBuilder.WriteBlockStart();
+                    _outputBuilder.WriteIndented("fixed (");
+                    _outputBuilder.Write(typeName);
+                    _outputBuilder.WriteLine("* pThis = &e0)");
+                    _outputBuilder.WriteBlockStart();
+                    _outputBuilder.WriteIndentedLine("return ref pThis[index];");
+                    _outputBuilder.WriteBlockEnd();
+                    _outputBuilder.WriteBlockEnd();
+                    _outputBuilder.WriteBlockEnd();
+                    _outputBuilder.WriteBlockEnd();
                 }
 
                 _outputBuilder.WriteBlockEnd();
@@ -1810,53 +1579,7 @@ namespace ClangSharp
 
         private void VisitTypedefDecl(TypedefDecl typedefDecl, Cursor parent, Type underlyingType)
         {
-            if (_config.GenerateUnsafeCode)
-            {
-                return;
-            }
-
-            if (underlyingType is BuiltinType)
-            {
-                var name = GetRemappedCursorName(typedefDecl);
-
-                StartUsingOutputBuilder(name);
-                {
-
-                    var escapedName = EscapeName(name);
-
-                    _outputBuilder.WriteIndented("public partial struct");
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.WriteLine(escapedName);
-                    _outputBuilder.WriteBlockStart();
-                    {
-                        var typeName = GetRemappedTypeName(typedefDecl, underlyingType);
-
-                        _outputBuilder.WriteIndented("public");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(escapedName);
-                        _outputBuilder.Write('(');
-                        _outputBuilder.Write(typeName);
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write("value");
-                        _outputBuilder.WriteLine(')');
-                        _outputBuilder.WriteBlockStart();
-                        {
-                            _outputBuilder.WriteIndentedLine("Value = value;");
-                        }
-                        _outputBuilder.WriteBlockEnd();
-                        _outputBuilder.WriteLine();
-                        _outputBuilder.WriteIndented("public");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(typeName);
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write("Value");
-                        _outputBuilder.WriteLine(';');
-                    }
-                    _outputBuilder.WriteBlockEnd();
-                }
-                StopUsingOutputBuilder();
-            }
-            else if (underlyingType is ElaboratedType elaboratedType)
+            if (underlyingType is ElaboratedType elaboratedType)
             {
                 VisitTypedefDecl(typedefDecl, parent, elaboratedType.NamedType);
             }
@@ -1868,47 +1591,16 @@ namespace ClangSharp
             {
                 VisitTypedefDecl(typedefDecl, parent, typedefType.UnderlyingType);
             }
-            else if (!(underlyingType is TagType))
+            else if (!(underlyingType is BuiltinType) && !(underlyingType is TagType))
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
             }
+            return;
         }
 
         private void VisitTypedefDeclForPointeeType(TypedefDecl typedefDecl, Cursor parent, Type pointeeType)
         {
-            Debug.Assert(!_config.GenerateUnsafeCode);
-
-            if ((pointeeType is BuiltinType) || (pointeeType is TagType))
-            {
-                var name = GetRemappedCursorName(typedefDecl);
-                StartUsingOutputBuilder(name);
-                {
-                    var escapedName = EscapeName(name);
-
-                    _outputBuilder.AddUsingDirective("System");
-
-                    _outputBuilder.WriteIndented("public partial struct");
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.WriteLine(escapedName);
-                    _outputBuilder.WriteBlockStart();
-                    {
-                        _outputBuilder.WriteIndented("public");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(escapedName);
-                        _outputBuilder.WriteLine("(IntPtr pointer)");
-                        _outputBuilder.WriteBlockStart();
-                        {
-                            _outputBuilder.WriteIndentedLine("Pointer = pointer;");
-                        }
-                        _outputBuilder.WriteBlockEnd();
-                        _outputBuilder.WriteLine();
-                        _outputBuilder.WriteIndentedLine("public IntPtr Pointer;");
-                    }
-                    _outputBuilder.WriteBlockEnd();
-                }
-                StopUsingOutputBuilder();
-            }
-            else if (pointeeType is ElaboratedType elaboratedType)
+            if (pointeeType is ElaboratedType elaboratedType)
             {
                 VisitTypedefDeclForPointeeType(typedefDecl, parent, elaboratedType.NamedType);
             }
@@ -1918,18 +1610,30 @@ namespace ClangSharp
 
                 StartUsingOutputBuilder(name);
                 {
-                    var escapedName = EscapeName(name);
-
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
                     _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
                     _outputBuilder.Write(GetCallingConventionName(typedefDecl, functionType.CallConv));
                     _outputBuilder.WriteLine(")]");
-                    _outputBuilder.WriteIndented("public delegate");
+
+                    var returnType = functionType.ReturnType;
+                    var returnTypeName = GetRemappedTypeName(typedefDecl, returnType, out var nativeTypeName);
+                    AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
+
+                    _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
                     _outputBuilder.Write(' ');
-                    _outputBuilder.Write(GetRemappedTypeName(typedefDecl, functionType.ReturnType));
+
+                    if (IsUnsafe(typedefDecl, functionType))
+                    {
+                        _outputBuilder.Write("unsafe");
+                        _outputBuilder.Write(' ');
+                    }
+
+                    _outputBuilder.Write("delegate");
                     _outputBuilder.Write(' ');
-                    _outputBuilder.Write(escapedName);
+                    _outputBuilder.Write(returnTypeName);
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(EscapeName(name));
                     _outputBuilder.Write('(');
 
                     foreach (var parmVarDecl in typedefDecl.Parameters)
@@ -1941,11 +1645,11 @@ namespace ClangSharp
                 }
                 StopUsingOutputBuilder();
             }
-            else
+            else if (!(pointeeType is BuiltinType) && !(pointeeType is TagType))
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
             }
-        }
+         }
 
         private void VisitUnaryOperator(UnaryOperator unaryOperator, Cursor parent)
         {
@@ -2001,9 +1705,13 @@ namespace ClangSharp
 
                 StartUsingOutputBuilder(_config.MethodClassName);
                 {
+                    var type = varDecl.Type;
+                    var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
+                    AddNativeTypeNameAttribute(nativeTypeName, prefix: "// ");
+
                     _outputBuilder.WriteIndented("// public static extern");
                     _outputBuilder.Write(' ');
-                    _outputBuilder.Write(GetRemappedTypeName(varDecl, varDecl.Type));
+                    _outputBuilder.Write(typeName);
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(EscapeName(name));
                     _outputBuilder.WriteLine(';');

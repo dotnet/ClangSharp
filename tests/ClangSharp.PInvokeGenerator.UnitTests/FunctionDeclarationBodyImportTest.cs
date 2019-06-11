@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -172,7 +172,7 @@ void MyFunction()
         }
 
         [Fact]
-        public async Task UnaryOperatorAddrOfUnsafeTest()
+        public async Task UnaryOperatorAddrOfTest()
         {
             var inputContents = @"int* MyFunction(int value)
 {
@@ -186,6 +186,7 @@ void MyFunction()
     {
         private const string libraryPath = ""ClangSharpPInvokeGenerator"";
 
+        [return: NativeTypeName(""int *"")]
         public static int* MyFunction(int value)
         {
             return &value;
@@ -194,11 +195,11 @@ void MyFunction()
 }
 ";
 
-            await ValidateUnsafeGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
         [Fact]
-        public async Task UnaryOperatorDerefUnsafeTest()
+        public async Task UnaryOperatorDerefTest()
         {
             var inputContents = @"int MyFunction(int* value)
 {
@@ -212,7 +213,7 @@ void MyFunction()
     {
         private const string libraryPath = ""ClangSharpPInvokeGenerator"";
 
-        public static int MyFunction(int* value)
+        public static int MyFunction([NativeTypeName(""int *"")] int* value)
         {
             return *value;
         }
@@ -220,7 +221,7 @@ void MyFunction()
 }
 ";
 
-            await ValidateUnsafeGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
         [Fact]

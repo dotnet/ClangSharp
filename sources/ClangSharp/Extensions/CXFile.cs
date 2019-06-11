@@ -2,7 +2,7 @@
 
 namespace ClangSharp
 {
-    public partial struct CXFile : IEquatable<CXFile>
+    public unsafe partial struct CXFile : IEquatable<CXFile>
     {
         public CXString Name => clang.getFileName(this);
 
@@ -12,7 +12,13 @@ namespace ClangSharp
 
         public bool Equals(CXFile other) => clang.File_isEqual(this, other) != 0;
 
-        public bool GetUniqueId(out CXFileUniqueID id) => clang.getFileUniqueID(this, out id) != 0;
+        public bool GetUniqueId(out CXFileUniqueID id)
+        {
+            fixed (CXFileUniqueID* pId = &id)
+            {
+                return clang.getFileUniqueID(this, pId) != 0;
+            }
+        }
 
         public override string ToString() => Name.ToString();
 

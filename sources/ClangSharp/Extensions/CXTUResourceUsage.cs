@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public partial struct CXTUResourceUsage : IDisposable, IReadOnlyCollection<CXTUResourceUsageEntry>
     {
-        public unsafe CXTUResourceUsageEntry this[uint index] => ((CXTUResourceUsageEntry*)entries)[index];
+        public unsafe CXTUResourceUsageEntry this[uint index] => entries[index];
 
         public int Count => (int)numEntries;
 

@@ -1,8 +1,11 @@
 namespace ClangSharp
 {
-    public partial struct CXCompletionResult
+    public unsafe partial struct CXCompletionResult
     {
+        [NativeTypeName("enum CXCursorKind")]
         public CXCursorKind CursorKind;
-        public CXCompletionString CompletionString;
+
+        [NativeTypeName("CXCompletionString")]
+        public void* CompletionString;
     }
 }

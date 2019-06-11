@@ -122,10 +122,6 @@ namespace ClangSharp
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
                 }
-                else if (configSwitch.Equals("unsafe"))
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateUnsafeCode;
-                }
             }
 
             var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, methodClassName, methodPrefixToStrip, remappedNames);

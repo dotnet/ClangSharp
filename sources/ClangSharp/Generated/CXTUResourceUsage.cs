@@ -1,11 +1,14 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXTUResourceUsage
+    public unsafe partial struct CXTUResourceUsage
     {
-        public IntPtr data;
+        [NativeTypeName("void *")]
+        public void* data;
+
+        [NativeTypeName("unsigned int")]
         public uint numEntries;
-        public IntPtr entries;
+
+        [NativeTypeName("CXTUResourceUsageEntry *")]
+        public CXTUResourceUsageEntry* entries;
     }
 }

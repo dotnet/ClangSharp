@@ -1,10 +1,11 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXString
+    public unsafe partial struct CXString
     {
-        public IntPtr data;
+        [NativeTypeName("const void *")]
+        public void* data;
+
+        [NativeTypeName("unsigned int")]
         public uint private_flags;
     }
 }

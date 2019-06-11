@@ -1,10 +1,11 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXComment
+    public unsafe partial struct CXComment
     {
-        public IntPtr ASTNode;
-        public CXTranslationUnit TranslationUnit;
+        [NativeTypeName("const void *")]
+        public void* ASTNode;
+
+        [NativeTypeName("CXTranslationUnit")]
+        public CXTranslationUnitImpl* TranslationUnit;
     }
 }

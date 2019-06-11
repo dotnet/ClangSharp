@@ -1,12 +1,15 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXIdxIBOutletCollectionAttrInfo
+    public unsafe partial struct CXIdxIBOutletCollectionAttrInfo
     {
-        public IntPtr attrInfo;
-        public IntPtr objcClass;
+        [NativeTypeName("const CXIdxAttrInfo *")]
+        public CXIdxAttrInfo* attrInfo;
+
+        [NativeTypeName("const CXIdxEntityInfo *")]
+        public CXIdxEntityInfo* objcClass;
+
         public CXCursor classCursor;
+
         public CXIdxLoc classLoc;
     }
 }

@@ -1,11 +1,14 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXIdxObjCPropertyDeclInfo
+    public unsafe partial struct CXIdxObjCPropertyDeclInfo
     {
-        public IntPtr declInfo;
-        public IntPtr getter;
-        public IntPtr setter;
+        [NativeTypeName("const CXIdxDeclInfo *")]
+        public CXIdxDeclInfo* declInfo;
+
+        [NativeTypeName("const CXIdxEntityInfo *")]
+        public CXIdxEntityInfo* getter;
+
+        [NativeTypeName("const CXIdxEntityInfo *")]
+        public CXIdxEntityInfo* setter;
     }
 }

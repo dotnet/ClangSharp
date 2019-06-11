@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
 namespace ClangSharp
 {
-    public partial struct CXSourceLocation : IEquatable<CXSourceLocation>
+    public unsafe partial struct CXSourceLocation : IEquatable<CXSourceLocation>
     {
         public static CXSourceLocation Null => clang.getNullLocation();
 
@@ -14,15 +14,59 @@ namespace ClangSharp
 
         public bool Equals(CXSourceLocation other) => clang.equalLocations(this, other) != 0;
 
-        public void GetExpansionLocation(out CXFile file, out uint line, out uint column, out uint offset) => clang.getExpansionLocation(this, out file, out line, out column, out offset);
+        public void GetExpansionLocation(out CXFile file, out uint line, out uint column, out uint offset)
+        {
+            fixed (CXFile* pFile = &file)
+            fixed (uint* pLine = &line)
+            fixed (uint* pColumn = &column)
+            fixed (uint* pOffset = &offset)
+            {
+                clang.getExpansionLocation(this, (void**)pFile, pLine, pColumn, pOffset);
+            }
+        }
 
-        public void GetFileLocation(out CXFile file, out uint line, out uint column, out uint offset) => clang.getFileLocation(this, out file, out line, out column, out offset);
+        public void GetFileLocation(out CXFile file, out uint line, out uint column, out uint offset)
+        {
+            fixed (CXFile* pFile = &file)
+            fixed (uint* pLine = &line)
+            fixed (uint* pColumn = &column)
+            fixed (uint* pOffset = &offset)
+            {
+                clang.getFileLocation(this, (void**)pFile, pLine, pColumn, pOffset);
+            }
+        }
 
-        public void GetInstantiationLocation(out CXFile file, out uint line, out uint column, out uint offset) => clang.getInstantiationLocation(this, out file, out line, out column, out offset);
+        public void GetInstantiationLocation(out CXFile file, out uint line, out uint column, out uint offset)
+        {
+            fixed (CXFile* pFile = &file)
+            fixed (uint* pLine = &line)
+            fixed (uint* pColumn = &column)
+            fixed (uint* pOffset = &offset)
+            {
+                clang.getInstantiationLocation(this, (void**)pFile, pLine, pColumn, pOffset);
+            }
+        }
 
-        public void GetPresumedLocation(out CXString fileName, out uint line, out uint column) => clang.getPresumedLocation(this, out fileName, out line, out column);
+        public void GetPresumedLocation(out CXString fileName, out uint line, out uint column)
+        {
+            fixed (CXString* pFileName = &fileName)
+            fixed (uint* pLine = &line)
+            fixed (uint* pColumn = &column)
+            {
+                clang.getPresumedLocation(this, pFileName, pLine, pColumn);
+            }
+        }
 
-        public void GetSpellingLocation(out CXFile file, out uint line, out uint column, out uint offset) => clang.getSpellingLocation(this, out file, out line, out column, out offset);
+        public void GetSpellingLocation(out CXFile file, out uint line, out uint column, out uint offset)
+        {
+            fixed (CXFile* pFile = &file)
+            fixed (uint* pLine = &line)
+            fixed (uint* pColumn = &column)
+            fixed (uint* pOffset = &offset)
+            {
+                clang.getSpellingLocation(this, (void**)pFile, pLine, pColumn, pOffset);
+            }
+        }
 
         public override string ToString()
         {

@@ -26,20 +26,18 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedBindings(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None, excludedNames, remappedNames);
         }
 
-        protected Task ValidateUnsafeGeneratedBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null)
-        {
-            return ValidateGeneratedBindings(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateUnsafeCode, excludedNames, remappedNames);
-        }
-
         private async Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions, string[] excludedNames, IReadOnlyDictionary<string, string> remappedNames)
         {
+            Assert.True(File.Exists(DefaultInputFileName));
+
             using (var outputStream = new MemoryStream())
+            using (var unsavedFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents))
             {
-                var unsavedInputFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
+                var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
                 var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName(), configOptions, excludedNames, methodClassName: null, methodPrefixToStrip: null, remappedNames);
 
                 using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))
-                using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, new CXUnsavedFile[] { unsavedInputFile }, DefaultTranslationUnitFlags))
+                using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, unsavedFiles, DefaultTranslationUnitFlags))
                 {
                     pinvokeGenerator.GenerateBindings(translationUnitHandle);
                     Assert.Empty(pinvokeGenerator.Diagnostics);

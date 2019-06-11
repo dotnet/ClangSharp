@@ -1,10 +1,11 @@
-using System;
-
 namespace ClangSharp
 {
-    public partial struct CXCodeCompleteResults
+    public unsafe partial struct CXCodeCompleteResults
     {
-        public IntPtr Results;
+        [NativeTypeName("CXCompletionResult *")]
+        public CXCompletionResult* Results;
+
+        [NativeTypeName("unsigned int")]
         public uint NumResults;
     }
 }
