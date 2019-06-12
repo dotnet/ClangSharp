@@ -5,94 +5,97 @@ pr:
 - master
 
 jobs:
-- job: windows_debug_x86
+- job: windows
   pool:
     name: Hosted
     demands: Cmd
+  strategy:
+    matrix:
+      debug_x86:
+        _configuration: Debug
+        _architecture: x86
+      debug_x64:
+        _configuration: Debug
+        _architecture: x64
+      release_x86:
+        _configuration: Release
+        _architecture: x86
+      release_x64:
+        _configuration: Release
+        _architecture: x64
   steps:
   - task: BatchScript@1
     displayName: 'Run scripts/cibuild.cmd'
     inputs:
       filename: scripts/cibuild.cmd
-      arguments: '-configuration Debug -architecture x86'
-
-- job: windows_release_x86
-  pool:
-    name: Hosted
-    demands: Cmd
-  steps:
-  - task: BatchScript@1
-    displayName: 'Run scripts/cibuild.cmd'
+      arguments: '-configuration $(_configuration) -architecture $(_architecture)'
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
     inputs:
-      filename: scripts/cibuild.cmd
-      arguments: '-configuration Release -architecture x86'
+      testResultsFormat: VSTest
+      testResultsFiles: artifacts/tst/$(_configuration)/*.trx
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      testRunTitle: 'Windows $(_configuration) $(_architecture)'
+      buildConfiguration: $(_configuration)
+      buildPlatform: $(_architecture)
 
-- job: windows_debug_x64
-  pool:
-    name: Hosted
-    demands: Cmd
-  steps:
-  - task: BatchScript@1
-    displayName: 'Run scripts/cibuild.cmd'
-    inputs:
-      filename: scripts/cibuild.cmd
-      arguments: '-configuration Debug -architecture x64'
-
-- job: windows_release_x64
-  pool:
-    name: Hosted
-    demands: Cmd
-  steps:
-  - task: BatchScript@1
-    displayName: 'Run scripts/cibuild.cmd'
-    inputs:
-      filename: scripts/cibuild.cmd
-      arguments: '-configuration Release -architecture x64'
-
-- job: ubuntu_1604_debug_x64
+- job: ubuntu_1604
   pool:
     name: Hosted Ubuntu 1604
+  strategy:
+    matrix:
+      debug_x64:
+        _configuration: Debug
+        _architecture: x64
+      release_x64:
+        _configuration: Release
+        _architecture: x64
   variables:
-    RuntimeIdentifier: ubuntu.16.04-x64
+    RuntimeIdentifier: ubuntu.16.04-$(_architecture)
   steps:
   - task: Bash@3
     displayName: 'Run scripts/cibuild.sh'
     inputs:
       targetType: filePath
       filePath: ./scripts/cibuild.sh
-      arguments: '--configuration Debug --architecture x64'
-
-- job: ubuntu_1604_release_x64
-  pool:
-    name: Hosted Ubuntu 1604
-  variables:
-    RuntimeIdentifier: ubuntu.16.04-x64
-  steps:
-  - task: Bash@3
-    displayName: 'Run scripts/cibuild.sh'
+      arguments: '--configuration $(_configuration) --architecture $(_architecture)'
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
     inputs:
-      targetType: filePath
-      filePath: ./scripts/cibuild.sh
-      arguments: '--configuration Release --architecture x64'
+      testResultsFormat: VSTest
+      testResultsFiles: artifacts/tst/$(_configuration)/*.trx
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      testRunTitle: 'Ubuntu 16.04 $(_configuration) $(_architecture)'
+      buildConfiguration: $(_configuration)
+      buildPlatform: $(_architecture)
 
-- job: macos_1014_debug_x64
+- job: macos_1014
   pool:
     name: Hosted macOS
+  strategy:
+    matrix:
+      debug_x64:
+        _configuration: Debug
+        _architecture: x64
+      release_x64:
+        _configuration: Release
+        _architecture: x64
   steps:
   - task: Bash@3
     displayName: 'Run scripts/cibuild.sh'
     inputs:
       targetType: filePath
       filePath: ./scripts/cibuild.sh
-      arguments: '--configuration Debug --architecture x64'
-
-- job: macos_1014_release_x64
-  pool:
-    name: Hosted macOS
-  steps:
-  - task: Bash@3
-    displayName: 'Run scripts/cibuild.sh'
+      arguments: '--configuration $(_configuration) --architecture $(_architecture)'
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
     inputs:
-      targetType: filePath
-      filePath: ./scripts/cibuild.sh
-      arguments: '--configuration Release --architecture x64'
+      testResultsFormat: VSTest
+      testResultsFiles: artifacts/tst/$(_configuration)/*.trx
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      testRunTitle: 'MacOS 10.14 $(_configuration) $(_architecture)'
+      buildConfiguration: $(_configuration)
+      buildPlatform: $(_architecture)

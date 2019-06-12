@@ -17,6 +17,11 @@
 
   <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
 
+  <PropertyGroup>
+    <VSTestLogger>trx</VSTestLogger>
+    <VSTestResultsDirectory>$(BaseArtifactsPath)tst/$(Configuration)/</VSTestResultsDirectory>
+  </PropertyGroup>
+
   <ItemGroup>
     <DotNetCliToolReference Include="dotnet-xunit" />
   </ItemGroup>
