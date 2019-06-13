@@ -4,6 +4,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
 using System.Threading.Tasks;
+using ClangSharp.Interop;
 
 namespace ClangSharp
 {

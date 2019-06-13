@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace ClangSharp
+namespace ClangSharp.Interop
 {
     [Conditional("DEBUG")]
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = false, Inherited = true)]

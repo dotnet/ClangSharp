@@ -2,7 +2,7 @@
   "profiles": {
     "GenerateClangSharp": {
       "commandName": "Project",
-      "commandLineArgs": "-m clang -p clang_ --namespace ClangSharp --output \"./ClangSharp/Generated/\" --config multi-file --libraryPath \"$(LibClangName)\" --include \"$(LLVMIncludePath)\" --file \"$(LLVMIncludePath)/clang-c/Index.h\" --file \"$(LLVMIncludePath)/clang-c/CXString.h\" --file \"$(LLVMIncludePath)/clang-c/Documentation.h\" --file \"$(LLVMIncludePath)/clang-c/CXErrorCode.h\" --file \"$(LLVMIncludePath)/clang-c/BuildSystem.h\" --file \"$(LLVMIncludePath)/clang-c/CXCompilationDatabase.h\""
+      "commandLineArgs": "-m clang -p clang_ --namespace ClangSharp.Interop --output \"./ClangSharp/Interop/\" --config multi-file --libraryPath \"$(LibClangName)\" --include \"$(LLVMIncludePath)\" --file \"$(LLVMIncludePath)/clang-c/Index.h\" --file \"$(LLVMIncludePath)/clang-c/CXString.h\" --file \"$(LLVMIncludePath)/clang-c/Documentation.h\" --file \"$(LLVMIncludePath)/clang-c/CXErrorCode.h\" --file \"$(LLVMIncludePath)/clang-c/BuildSystem.h\" --file \"$(LLVMIncludePath)/clang-c/CXCompilationDatabase.h\""
     },
     "GenerateLLVMSharp": {
       "commandName": "Project",

@@ -1,6 +1,6 @@
 using System;
 
-namespace ClangSharp
+namespace ClangSharp.Interop
 {
     internal unsafe struct MarshaledStringArray : IDisposable
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace ClangSharp
+namespace ClangSharp.Interop
 {
     internal static unsafe class SpanExtensions
     {

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using ClangSharp.Interop;
 
 namespace ClangSharp
 {

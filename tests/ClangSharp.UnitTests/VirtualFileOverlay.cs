@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using ClangSharp.Interop;
 using Xunit;
 
 namespace ClangSharp.UnitTests

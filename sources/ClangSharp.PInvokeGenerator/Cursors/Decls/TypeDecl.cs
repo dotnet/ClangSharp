@@ -1,3 +1,5 @@
+using ClangSharp.Interop;
+
 namespace ClangSharp
 {
     internal class TypeDecl : NamedDecl

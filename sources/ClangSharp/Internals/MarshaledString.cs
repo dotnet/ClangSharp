@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace ClangSharp
+namespace ClangSharp.Interop
 {
     internal unsafe struct MarshaledString : IDisposable
     {
