@@ -3,8 +3,39 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp.Interop
 {
-    public unsafe partial struct CXTranslationUnit : IDisposable
+    public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTranslationUnit>
     {
+        public CXTranslationUnit(IntPtr handle)
+        {
+            Handle = handle;
+        }
+
+        public CXCursor Cursor => clang.getTranslationUnitCursor(this);
+
+        public CXReparse_Flags DefaultReparseOptions => (CXReparse_Flags)clang.defaultReparseOptions(this);
+
+        public CXSaveTranslationUnit_Flags DefaultSaveOptions => (CXSaveTranslationUnit_Flags)clang.defaultSaveOptions(this);
+
+        public CXDiagnosticSet DiagnosticSet => (CXDiagnosticSet)clang.getDiagnosticSetFromTU(this);
+
+        public IntPtr Handle { get; set; }
+
+        public uint NumDiagnostics => clang.getNumDiagnostics(this);
+
+        public CXTUResourceUsage ResourceUsage => clang.getCXTUResourceUsage(this);
+
+        public CXString Spelling => clang.getTranslationUnitSpelling(this);
+
+        public CXTargetInfo TargetInfo => clang.getTranslationUnitTargetInfo(this);
+
+        public static implicit operator CXTranslationUnit(CXTranslationUnitImpl* value) => new CXTranslationUnit((IntPtr)value);
+
+        public static implicit operator CXTranslationUnitImpl*(CXTranslationUnit value) => (CXTranslationUnitImpl*)value.Handle;
+
+        public static bool operator ==(CXTranslationUnit left, CXTranslationUnit right) => left.Handle == right.Handle;
+
+        public static bool operator !=(CXTranslationUnit left, CXTranslationUnit right) => left.Handle != right.Handle;
+
         public static CXTranslationUnit Create(CXIndex index, string astFileName)
         {
             using (var marshaledAstFileName = new MarshaledString(astFileName))
@@ -72,22 +103,6 @@ namespace ClangSharp.Interop
             }
         }
 
-        public CXCursor Cursor => clang.getTranslationUnitCursor(this);
-
-        public CXReparse_Flags DefaultReparseOptions => (CXReparse_Flags)clang.defaultReparseOptions(this);
-
-        public CXSaveTranslationUnit_Flags DefaultSaveOptions => (CXSaveTranslationUnit_Flags)clang.defaultSaveOptions(this);
-
-        public CXDiagnosticSet DiagnosticSet => (CXDiagnosticSet)clang.getDiagnosticSetFromTU(this);
-
-        public uint NumDiagnostics => clang.getNumDiagnostics(this);
-
-        public CXTUResourceUsage ResourceUsage => clang.getCXTUResourceUsage(this);
-
-        public CXString Spelling => clang.getTranslationUnitSpelling(this);
-
-        public CXTargetInfo TargetInfo => clang.getTranslationUnitTargetInfo(this);
-
         public void AnnotateTokens(CXToken[] tokens, CXCursor[] cursors)
         {
             fixed (CXToken* pTokens = tokens)
@@ -114,6 +129,10 @@ namespace ClangSharp.Interop
             }
         }
 
+        public override bool Equals(object obj) => (obj is CXTranslationUnit other) && Equals(other);
+
+        public bool Equals(CXTranslationUnit other) => (this == other);
+
         public CXResult FindIncludesInFile(CXFile file, CXCursorAndRangeVisitor visitor) => clang.findIncludesInFile(this, file, visitor);
 
         public unsafe ref CXSourceRangeList GetAllSkippedRanges() => ref *clang.getAllSkippedRanges(this);
@@ -138,6 +157,8 @@ namespace ClangSharp.Interop
                 return new ReadOnlySpan<byte>(pFileContents, (int)size);
             }
         }
+
+        public override int GetHashCode() => Handle.GetHashCode();
 
         public void GetInclusions(CXInclusionVisitor visitor, CXClientData clientData)
         {
@@ -184,6 +205,5 @@ namespace ClangSharp.Interop
         }
 
         public override string ToString() => Spelling.ToString();
-
     }
 }
