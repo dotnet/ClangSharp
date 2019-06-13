@@ -24,10 +24,10 @@ namespace ClangSharp.Interop
 
         public void Dispose()
         {
-            if (Pointer != IntPtr.Zero)
+            if (Handle != IntPtr.Zero)
             {
                 clang.disposeDiagnostic(this);
-                Pointer = IntPtr.Zero;
+                Handle = IntPtr.Zero;
             }
         }
 

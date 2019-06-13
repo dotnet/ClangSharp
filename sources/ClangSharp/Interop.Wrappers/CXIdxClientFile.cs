@@ -2,13 +2,27 @@ using System;
 
 namespace ClangSharp.Interop
 {
-    public partial struct CXIdxClientFile
+    public unsafe partial struct CXIdxClientFile : IEquatable<CXIdxClientFile>
     {
-        public CXIdxClientFile(IntPtr pointer)
+        public CXIdxClientFile(IntPtr handle)
         {
-            Pointer = pointer;
+            Handle = handle;
         }
 
-        public IntPtr Pointer;
+        public IntPtr Handle { get; set; }
+
+        public static explicit operator CXIdxClientFile(void* value) => new CXIdxClientFile((IntPtr)value);
+
+        public static implicit operator void*(CXIdxClientFile value) => (void*)value.Handle;
+
+        public static bool operator ==(CXIdxClientFile left, CXIdxClientFile right) => left.Handle == right.Handle;
+
+        public static bool operator !=(CXIdxClientFile left, CXIdxClientFile right) => left.Handle != right.Handle;
+
+        public override bool Equals(object obj) => (obj is CXIdxClientFile other) && Equals(other);
+
+        public bool Equals(CXIdxClientFile other) => (this == other);
+
+        public override int GetHashCode() => Handle.GetHashCode();
     }
 }

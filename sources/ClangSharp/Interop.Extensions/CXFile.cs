@@ -7,11 +7,6 @@ namespace ClangSharp.Interop
         public CXString Name => clang.getFileName(this);
 
         public long Time => clang.getFileTime(this);
-
-        public override bool Equals(object obj) => (obj is CXFile other) && Equals(other);
-
-        public bool Equals(CXFile other) => clang.File_isEqual(this, other) != 0;
-
         public bool GetUniqueId(out CXFileUniqueID id)
         {
             fixed (CXFileUniqueID* pId = &id)

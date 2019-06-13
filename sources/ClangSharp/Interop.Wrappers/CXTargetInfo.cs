@@ -2,23 +2,27 @@ using System;
 
 namespace ClangSharp.Interop
 {
-    public unsafe partial struct CXTargetInfo
+    public unsafe partial struct CXTargetInfo : IEquatable<CXTargetInfo>
     {
-        public CXTargetInfo(IntPtr pointer)
+        public CXTargetInfo(IntPtr handle)
         {
-            Pointer = pointer;
+            Handle = handle;
         }
 
-        public IntPtr Pointer;
+        public IntPtr Handle { get; set; }
 
-        public static implicit operator CXTargetInfo(CXTargetInfoImpl* value)
-        {
-            return new CXTargetInfo((IntPtr)value);
-        }
+        public static implicit operator CXTargetInfo(CXTargetInfoImpl* value) => new CXTargetInfo((IntPtr)value);
 
-        public static implicit operator CXTargetInfoImpl*(CXTargetInfo value)
-        {
-            return (CXTargetInfoImpl*)value.Pointer;
-        }
+        public static implicit operator CXTargetInfoImpl*(CXTargetInfo value) => (CXTargetInfoImpl*)value.Handle;
+
+        public static bool operator ==(CXTargetInfo left, CXTargetInfo right) => left.Handle == right.Handle;
+
+        public static bool operator !=(CXTargetInfo left, CXTargetInfo right) => left.Handle != right.Handle;
+
+        public override bool Equals(object obj) => (obj is CXTargetInfo other) && Equals(other);
+
+        public bool Equals(CXTargetInfo other) => (this == other);
+
+        public override int GetHashCode() => Handle.GetHashCode();
     }
 }

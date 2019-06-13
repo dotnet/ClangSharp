@@ -2,23 +2,27 @@ using System;
 
 namespace ClangSharp.Interop
 {
-    public unsafe partial struct CXDiagnostic
+    public unsafe partial struct CXDiagnostic : IEquatable<CXDiagnostic>
     {
-        public CXDiagnostic(IntPtr pointer)
+        public CXDiagnostic(IntPtr handle)
         {
-            Pointer = pointer;
+            Handle = handle;
         }
 
-        public IntPtr Pointer;
+        public IntPtr Handle { get; set; }
 
-        public static explicit operator CXDiagnostic(void* value)
-        {
-            return new CXDiagnostic((IntPtr)value);
-        }
+        public static explicit operator CXDiagnostic(void* value) => new CXDiagnostic((IntPtr)value);
 
-        public static implicit operator void*(CXDiagnostic value)
-        {
-            return (void*)value.Pointer;
-        }
+        public static implicit operator void*(CXDiagnostic value) => (void*)value.Handle;
+
+        public static bool operator ==(CXDiagnostic left, CXDiagnostic right) => left.Handle == right.Handle;
+
+        public static bool operator !=(CXDiagnostic left, CXDiagnostic right) => left.Handle != right.Handle;
+
+        public override bool Equals(object obj) => (obj is CXDiagnostic other) && Equals(other);
+
+        public bool Equals(CXDiagnostic other) => (this == other);
+
+        public override int GetHashCode() => Handle.GetHashCode();
     }
 }

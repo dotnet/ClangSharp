@@ -2,23 +2,27 @@ using System;
 
 namespace ClangSharp.Interop
 {
-    public unsafe partial struct CXModuleMapDescriptor
+    public unsafe partial struct CXModuleMapDescriptor : IEquatable<CXModuleMapDescriptor>
     {
-        public CXModuleMapDescriptor(IntPtr pointer)
+        public CXModuleMapDescriptor(IntPtr handle)
         {
-            Pointer = pointer;
+            Handle = handle;
         }
 
-        public IntPtr Pointer;
+        public IntPtr Handle { get; set; }
 
-        public static implicit operator CXModuleMapDescriptor(CXModuleMapDescriptorImpl* value)
-        {
-            return new CXModuleMapDescriptor((IntPtr)value);
-        }
+        public static implicit operator CXModuleMapDescriptor(CXModuleMapDescriptorImpl* value) => new CXModuleMapDescriptor((IntPtr)value);
 
-        public static implicit operator CXModuleMapDescriptorImpl*(CXModuleMapDescriptor value)
-        {
-            return (CXModuleMapDescriptorImpl*)value.Pointer;
-        }
+        public static implicit operator CXModuleMapDescriptorImpl*(CXModuleMapDescriptor value) => (CXModuleMapDescriptorImpl*)value.Handle;
+
+        public static bool operator ==(CXModuleMapDescriptor left, CXModuleMapDescriptor right) => left.Handle == right.Handle;
+
+        public static bool operator !=(CXModuleMapDescriptor left, CXModuleMapDescriptor right) => left.Handle != right.Handle;
+
+        public override bool Equals(object obj) => (obj is CXModuleMapDescriptor other) && Equals(other);
+
+        public bool Equals(CXModuleMapDescriptor other) => (this == other);
+
+        public override int GetHashCode() => Handle.GetHashCode();
     }
 }

@@ -2,23 +2,27 @@ using System;
 
 namespace ClangSharp.Interop
 {
-    public unsafe partial struct CXIndex
+    public unsafe partial struct CXIndex : IEquatable<CXIndex>
     {
-        public CXIndex(IntPtr pointer)
+        public CXIndex(IntPtr handle)
         {
-            Pointer = pointer;
+            Handle = handle;
         }
 
-        public IntPtr Pointer;
+        public IntPtr Handle { get; set; }
 
-        public static explicit operator CXIndex(void* value)
-        {
-            return new CXIndex((IntPtr)value);
-        }
+        public static explicit operator CXIndex(void* value) => new CXIndex((IntPtr)value);
 
-        public static implicit operator void*(CXIndex value)
-        {
-            return (void*)value.Pointer;
-        }
+        public static implicit operator void*(CXIndex value) => (void*)value.Handle;
+
+        public static bool operator ==(CXIndex left, CXIndex right) => left.Handle == right.Handle;
+
+        public static bool operator !=(CXIndex left, CXIndex right) => left.Handle != right.Handle;
+
+        public override bool Equals(object obj) => (obj is CXIndex other) && Equals(other);
+
+        public bool Equals(CXIndex other) => (this == other);
+
+        public override int GetHashCode() => Handle.GetHashCode();
     }
 }
