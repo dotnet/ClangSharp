@@ -2,29 +2,34 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace ClangSharp
+namespace ClangSharp.Interop
 {
     internal unsafe struct MarshaledString : IDisposable
     {
         public MarshaledString(string input)
         {
-            if ((input is null) || (input.Length == 0))
+            int length;
+            IntPtr value;
+
+            if (input is null)
             {
-                Length = 0;
-                Value = null;
+                length = 0;
+                value = IntPtr.Zero;
             }
             else
             {
-                var valueBytes = Encoding.UTF8.GetBytes(input);
-                var length = valueBytes.Length;
-                var value = Marshal.AllocHGlobal(length + 1);
+                var valueBytes = (input.Length != 0) ? Encoding.UTF8.GetBytes(input) : Array.Empty<byte>();
+                length = valueBytes.Length;
+                value = Marshal.AllocHGlobal(length + 1);
                 Marshal.Copy(valueBytes, 0, value, length);
                 Marshal.WriteByte(value, length, 0);
-
-                Length = length;
-                Value = (sbyte*)value;
             }
+
+            Length = length;
+            Value = (sbyte*)value;
         }
+
+        public ReadOnlySpan<byte> AsSpan() => new ReadOnlySpan<byte>(Value, Length);
 
         public int Length { get; private set; }
 
@@ -40,10 +45,7 @@ namespace ClangSharp
             }
         }
 
-        public static implicit operator sbyte*(in MarshaledString value)
-        {
-            return value.Value;
-        }
+        public static implicit operator sbyte*(in MarshaledString value) => value.Value;
 
         public override string ToString()
         {

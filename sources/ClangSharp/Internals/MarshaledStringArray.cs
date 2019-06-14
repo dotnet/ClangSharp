@@ -1,51 +1,51 @@
 using System;
 
-namespace ClangSharp
+namespace ClangSharp.Interop
 {
-    internal unsafe struct MarshaledStringArray : IDisposable
+    internal unsafe ref struct MarshaledStringArray
     {
-        public MarshaledStringArray(string[] inputs)
+        private MarshaledString[] _values;
+
+        public MarshaledStringArray(ReadOnlySpan<string> inputs)
         {
-            if ((inputs is null) || (inputs.Length == 0))
+            if (inputs.Length == 0)
             {
-                Count = 0;
-                Values = null;
+                _values = null;
             }
             else
             {
-                Count = inputs.Length;
-                Values = new MarshaledString[Count];
+                _values = new MarshaledString[inputs.Length];
 
-                for (int i = 0; i < Count; i++)
+                for (int i = 0; i < inputs.Length; i++)
                 {
-                    Values[i] = new MarshaledString(inputs[i]);
+                    _values[i] = new MarshaledString(inputs[i]);
                 }
             }
         }
 
-        public int Count { get; private set; }
-
-        public MarshaledString[] Values { get; private set; }
+        public ReadOnlySpan<MarshaledString> Values => _values;
 
         public void Dispose()
         {
-            if (Values != null)
+            if (_values != null)
             {
-                for (int i = 0; i < Values.Length; i++)
+                for (int i = 0; i < _values.Length; i++)
                 {
-                    Values[i].Dispose();
+                    _values[i].Dispose();
                 }
 
-                Values = null;
-                Count = 0;
+                _values = null;
             }
         }
 
         public void Fill(sbyte** pDestination)
         {
-            for (int i = 0; i < Count; i++)
+            if (_values != null)
             {
-                pDestination[i] = Values[i];
+                for (int i = 0; i < _values.Length; i++)
+                {
+                    pDestination[i] = Values[i];
+                }
             }
         }
     }

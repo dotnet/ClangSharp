@@ -4,6 +4,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
 using System.Threading.Tasks;
+using ClangSharp.Interop;
 
 namespace ClangSharp
 {
@@ -132,7 +133,7 @@ namespace ClangSharp
             {
                 foreach (var file in files)
                 {
-                    var translationUnitError = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, file, clangCommandLineArgs, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit translationUnitHandle);
+                    var translationUnitError = CXTranslationUnit.TryParse(pinvokeGenerator.IndexHandle, file, clangCommandLineArgs, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit translationUnitHandle);
                     var skipProcessing = false;
 
                     if (translationUnitError != CXErrorCode.CXError_Success)

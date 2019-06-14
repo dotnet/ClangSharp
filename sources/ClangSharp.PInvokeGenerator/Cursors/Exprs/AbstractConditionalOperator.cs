@@ -1,4 +1,6 @@
-﻿namespace ClangSharp
+using ClangSharp.Interop;
+
+namespace ClangSharp
 {
     internal class AbstractConditionalOperator : Expr
     {
