@@ -19,10 +19,7 @@ namespace ClangSharp.Interop
 
         public static bool operator !=(CXModuleMapDescriptor left, CXModuleMapDescriptor right) => left.Handle != right.Handle;
 
-        public static CXModuleMapDescriptor Create(uint options)
-        {
-            return clang.ModuleMapDescriptor_create(options);
-        }
+        public static CXModuleMapDescriptor Create(uint options) => clang.ModuleMapDescriptor_create(options);
 
         public void Dispose()
         {
@@ -35,24 +32,20 @@ namespace ClangSharp.Interop
 
         public override bool Equals(object obj) => (obj is CXModuleMapDescriptor other) && Equals(other);
 
-        public bool Equals(CXModuleMapDescriptor other) => (this == other);
+        public bool Equals(CXModuleMapDescriptor other) => this == other;
 
         public override int GetHashCode() => Handle.GetHashCode();
 
         public CXErrorCode SetFrameworkModuleName(string name)
         {
-            using (var marshaledName = new MarshaledString(name))
-            {
-                return clang.ModuleMapDescriptor_setFrameworkModuleName(this, marshaledName);
-            }
+            var marshaledName = new MarshaledString(name);
+            return clang.ModuleMapDescriptor_setFrameworkModuleName(this, marshaledName);
         }
 
         public CXErrorCode SetUmbrellaHeader(string name)
         {
-            using (var marshaledName = new MarshaledString(name))
-            {
-                return clang.ModuleMapDescriptor_setUmbrellaHeader(this, marshaledName);
-            }
+            using var marshaledName = new MarshaledString(name);
+            return clang.ModuleMapDescriptor_setUmbrellaHeader(this, marshaledName);
         }
 
         public Span<byte> WriteToBuffer(uint options, out CXErrorCode errorCode)

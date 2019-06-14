@@ -34,7 +34,7 @@ namespace ClangSharp.Interop
 
         public override bool Equals(object obj) => (obj is CXCursorSet other) && Equals(other);
 
-        public bool Equals(CXCursorSet other) => (this == other);
+        public bool Equals(CXCursorSet other) => this == other;
 
         public override int GetHashCode() => Handle.GetHashCode();
 

@@ -10,9 +10,13 @@ namespace ClangSharp.Interop
 
         public bool IsInSystemHeader => clang.Location_isInSystemHeader(this) != 0;
 
+        public static bool operator ==(CXSourceLocation left, CXSourceLocation right) => clang.equalLocations(left, right) != 0;
+
+        public static bool operator !=(CXSourceLocation left, CXSourceLocation right) => clang.equalLocations(left, right) == 0;
+
         public override bool Equals(object obj) => (obj is CXSourceLocation other) && Equals(other);
 
-        public bool Equals(CXSourceLocation other) => clang.equalLocations(this, other) != 0;
+        public bool Equals(CXSourceLocation other) => this == other;
 
         public void GetExpansionLocation(out CXFile file, out uint line, out uint column, out uint offset)
         {
@@ -35,6 +39,8 @@ namespace ClangSharp.Interop
                 clang.getFileLocation(this, (void**)pFile, pLine, pColumn, pOffset);
             }
         }
+
+        public override int GetHashCode() => HashCode.Combine(ptr_data, int_data);
 
         public void GetInstantiationLocation(out CXFile file, out uint line, out uint column, out uint offset)
         {

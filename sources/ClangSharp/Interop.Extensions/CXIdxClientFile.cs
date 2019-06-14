@@ -21,7 +21,7 @@ namespace ClangSharp.Interop
 
         public override bool Equals(object obj) => (obj is CXIdxClientFile other) && Equals(other);
 
-        public bool Equals(CXIdxClientFile other) => (this == other);
+        public bool Equals(CXIdxClientFile other) => this == other;
 
         public override int GetHashCode() => Handle.GetHashCode();
     }

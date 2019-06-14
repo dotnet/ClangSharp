@@ -21,7 +21,7 @@ namespace ClangSharp.Interop
 
         public override bool Equals(object obj) => (obj is CXClientData other) && Equals(other);
 
-        public bool Equals(CXClientData other) => (this == other);
+        public bool Equals(CXClientData other) => this == other;
 
         public override int GetHashCode() => Handle.GetHashCode();
     }

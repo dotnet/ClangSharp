@@ -9,7 +9,6 @@ namespace ClangSharp.Interop
             fixed (CXPlatformAvailability* pThis = &this)
             {
                 clang.disposeCXPlatformAvailability(pThis);
-                this = default;
             }
         }
     }

@@ -5,6 +5,8 @@ namespace ClangSharp.Interop
 {
     public unsafe partial struct CXType : IEquatable<CXType>
     {
+        public uint AddressSpace => (kind != CXTypeKind.CXType_Invalid) ? clang.getAddressSpace(this) : default;
+
         public long AlignOf => clang.Type_getAlignOf(this);
 
         public CXType ArrayElementType => clang.getArrayElementType(this);
@@ -25,7 +27,7 @@ namespace ClangSharp.Interop
 
         public CXCallingConv FunctionTypeCallingConv => clang.getFunctionTypeCallingConv(this);
 
-        public bool IsCanonical => this.Equals(CanonicalType);
+        public bool IsCanonical => Equals(CanonicalType);
 
         public bool IsConstQualified => clang.isConstQualifiedType(this) != 0;
 
@@ -59,21 +61,29 @@ namespace ClangSharp.Interop
 
         public CXType ObjCObjectBaseType => clang.Type_getObjCObjectBaseType(this);
 
+        public CXString ObjCEncoding => (kind != CXTypeKind.CXType_Invalid) ? clang.Type_getObjCEncoding(this) : default;
+
         public CXType PointeeType => clang.getPointeeType(this);
 
         public CXType ResultType => clang.getResultType(this);
 
         public long SizeOf => clang.Type_getSizeOf(this);
 
+        public CXString Spelling => clang.getTypeSpelling(this);
+
+        public CXString TypedefName => (kind == CXTypeKind.CXType_Typedef) ? clang.getTypedefName(this) : default;
+
+        public static bool operator ==(CXType left, CXType right) => clang.equalTypes(left, right) != 0;
+
+        public static bool operator !=(CXType left, CXType right) => clang.equalTypes(left, right) == 0;
+
         public override bool Equals(object obj) => (obj is CXType other) && Equals(other);
 
-        public bool Equals(CXType other) => clang.equalTypes(this, other) != 0;
-
-        public uint GetAddressSpace() => clang.getAddressSpace(this);
+        public bool Equals(CXType other) => this == other;
 
         public CXType GetArgType(uint i) => clang.getArgType(this, i);
 
-        public CXString GetObjCEncoding() => clang.Type_getObjCEncoding(this);
+        public override int GetHashCode() => HashCode.Combine(kind, data);
 
         public CXCursor GetObjCProtocolDecl(uint i) => clang.Type_getObjCProtocolDecl(this, i);
 
@@ -81,17 +91,11 @@ namespace ClangSharp.Interop
 
         public long GetOffsetOf(string s)
         {
-            using (var marshaledS = new MarshaledString(s))
-            {
-                return clang.Type_getOffsetOf(this, marshaledS);
-            }
+            using var marshaledS = new MarshaledString(s);
+            return clang.Type_getOffsetOf(this, marshaledS);
         }
 
         public CXType GetTemplateArgumentAsType(uint i) => clang.Type_getTemplateArgumentAsType(this, i);
-
-        public CXString GetTypedefName() => clang.getTypedefName(this);
-
-        public CXString Spelling => clang.getTypeSpelling(this);
 
         public override string ToString() => Spelling.ToString();
 
@@ -99,6 +103,7 @@ namespace ClangSharp.Interop
         {
             var pVisitor = Marshal.GetFunctionPointerForDelegate(visitor);
             var result = (CXVisitorResult)clang.Type_visitFields(this, pVisitor, clientData);
+
             GC.KeepAlive(visitor);
             return result;
         }

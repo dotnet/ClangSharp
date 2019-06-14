@@ -29,7 +29,7 @@ namespace ClangSharp.Interop
 
         public bool CXXField_IsMutable => clang.CXXField_isMutable(this) != 0;
 
-        public unsafe ref CXStringSet CXXManglings => ref *clang.Cursor_getCXXManglings(this);
+        public CXStringSet* CXXManglings => clang.Cursor_getCXXManglings(this);
 
         public bool CXXMethod_IsConst => clang.CXXMethod_isConst(this) != 0;
 
@@ -67,6 +67,8 @@ namespace ClangSharp.Interop
 
         public bool HasAttrs => clang.Cursor_hasAttrs(this) != 0;
 
+        public uint Hash => clang.hashCursor(this);
+
         public CXType IBOutletCollectionType => clang.getIBOutletCollectionType(this);
 
         public CXFile IncludedFile => (CXFile)clang.getIncludedFile(this);
@@ -77,7 +79,7 @@ namespace ClangSharp.Interop
 
         public bool IsBitField => clang.Cursor_isBitField(this) != 0;
 
-        public bool IsCanonical => this.Equals(CanonicalCursor);
+        public bool IsCanonical => Equals(CanonicalCursor);
 
         public bool IsDeclaration => clang.isDeclaration(Kind) != 0;
 
@@ -139,7 +141,7 @@ namespace ClangSharp.Interop
 
         public CXObjCDeclQualifierKind ObjCDeclQualifiers => (CXObjCDeclQualifierKind)clang.Cursor_getObjCDeclQualifiers(this);
 
-        public unsafe ref CXStringSet ObjCManglings => ref *clang.Cursor_getObjCManglings(this);
+        public CXStringSet* ObjCManglings => clang.Cursor_getObjCManglings(this);
 
         public CXString ObjCPropertyGetterName => clang.Cursor_getObjCPropertyGetterName(this);
 
@@ -149,9 +151,25 @@ namespace ClangSharp.Interop
 
         public long OffsetOfField => clang.Cursor_getOffsetOfField(this);
 
+        public ReadOnlySpan<CXCursor> OverriddenCursors
+        {
+            get
+            {
+                CXCursor* overridden;
+                uint numOverridden;
+
+                clang.getOverriddenCursors(this, &overridden, &numOverridden);
+                return new ReadOnlySpan<CXCursor>(overridden, (int)numOverridden);
+            }
+        }
+
         public CXComment ParsedComment => clang.Cursor_getParsedComment(this);
 
+        public CXPrintingPolicy PrintingPolicy => (CXPrintingPolicy)clang.getCursorPrintingPolicy(this);
+
         public CXString RawCommentText => clang.Cursor_getRawCommentText(this);
+
+        public CXType RecieverType => IsNull ? default : clang.Cursor_getReceiverType(this);
 
         public CXCursor Referenced => clang.getCursorReferenced(this);
 
@@ -175,19 +193,45 @@ namespace ClangSharp.Interop
 
         public CXType TypedefDeclUnderlyingType => clang.getTypedefDeclUnderlyingType(this);
 
-        public CXString UnifiedSymbolResolution => clang.getCursorUSR(this);
+        public CXString Usr => clang.getCursorUSR(this);
 
         public CXVisibilityKind Visibility => clang.getCursorVisibility(this);
 
+        public static bool operator ==(CXCursor left, CXCursor right) => clang.equalCursors(left, right) != 0;
+
+        public static bool operator !=(CXCursor left, CXCursor right) => clang.equalCursors(left, right) == 0;
+
+        public void DisposeOverriddenCursors(ReadOnlySpan<CXCursor> overridden)
+        {
+            fixed (CXCursor* pOverridden = overridden)
+            {
+                clang.disposeOverriddenCursors(pOverridden);
+            }
+        }
+
         public override bool Equals(object obj) => (obj is CXCursor other) && Equals(other);
 
-        public bool Equals(CXCursor other) => clang.equalCursors(this, other) != 0;
+        public bool Equals(CXCursor other) => this == other;
 
-        public CXResult FindReferenceInFile(CXFile file, CXCursorAndRangeVisitor visitor) => clang.findReferencesInFile(this, file, visitor);
+        public CXResult FindReferencesInFile(CXFile file, CXCursorAndRangeVisitor visitor) => clang.findReferencesInFile(this, file, visitor);
 
         public CXCursor GetArgument(uint index) => clang.Cursor_getArgument(this, index);
 
-        public override int GetHashCode() => (int)clang.hashCursor(this);
+        public void GetDefinitionSpellingAndExtent(out string spelling, out uint startLine, out uint startColumn, out uint endLine, out uint endColumn)
+        {
+            fixed (uint* pStartLine = &startLine)
+            fixed (uint* pStartColumn = &startColumn)
+            fixed (uint* pEndLine = &endLine)
+            fixed (uint* pEndColumn = &endColumn)
+            {
+                sbyte* startBuf;
+                sbyte* endBuf;
+                clang.getDefinitionSpellingAndExtent(this, &startBuf, &endBuf, pStartLine, pStartColumn, pEndLine, pEndColumn);
+                spelling = new ReadOnlySpan<byte>(startBuf, (int)(endBuf - startBuf)).AsString();
+            }
+        }
+
+        public override int GetHashCode() => (int)Hash;
 
         public bool GetIsExternalSymbol(out CXString language, out CXString definedIn, out bool isGenerated)
         {
@@ -205,7 +249,7 @@ namespace ClangSharp.Interop
 
         public CXCursor GetOverloadedDecl(uint index) => clang.getOverloadedDecl(this, index);
 
-        public int GetPlatformAvailability(out bool alwaysDeprecated, out CXString deprecatedMessage, out bool alwaysUnavailable, out CXString unavailableMessage, CXPlatformAvailability[] availability)
+        public int GetPlatformAvailability(out bool alwaysDeprecated, out CXString deprecatedMessage, out bool alwaysUnavailable, out CXString unavailableMessage, Span<CXPlatformAvailability> availability)
         {
             fixed (CXString* pDeprecatedMessage = &deprecatedMessage)
             fixed (CXString* pUnavailableMessage = &unavailableMessage)
@@ -220,7 +264,7 @@ namespace ClangSharp.Interop
             }
         }
 
-        public CXType GetRecieverType() => clang.Cursor_getReceiverType(this);
+        public CXString GetPrettyPrinted(CXPrintingPolicy policy) => clang.getCursorPrettyPrinted(this, policy);
 
         public CXSourceRange GetReferenceNameRange(CXNameRefFlags nameFlags, uint pieceIndex) => clang.getCursorReferenceNameRange(this, (uint)nameFlags, pieceIndex);
 

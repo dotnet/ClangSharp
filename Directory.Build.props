@@ -51,7 +51,7 @@
     <Features>strict</Features>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <HighEntropyVA>true</HighEntropyVA>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>preview</LangVersion>
     <NeutralLanguage>en-US</NeutralLanguage>
     <OverwriteReadOnlyFiles>true</OverwriteReadOnlyFiles>
     <PackageLicenseExpression>NCSA</PackageLicenseExpression>

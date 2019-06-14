@@ -48,7 +48,7 @@ namespace ClangSharp.Interop
 
         public override bool Equals(object obj) => (obj is CXDiagnostic other) && Equals(other);
 
-        public bool Equals(CXDiagnostic other) => (this == other);
+        public bool Equals(CXDiagnostic other) => this == other;
 
         public CXString Format(CXDiagnosticDisplayOptions options) => clang.formatDiagnostic(this, (uint)options);
 

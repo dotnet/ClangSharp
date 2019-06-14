@@ -10,6 +10,10 @@ namespace ClangSharp.Interop
             Handle = handle;
         }
 
+        public static CXTranslationUnit_Flags DefaultEditingOptions => (CXTranslationUnit_Flags)clang.defaultEditingTranslationUnitOptions();
+
+        public CXSourceRangeList* AllSkippedRanges => clang.getAllSkippedRanges(this);
+
         public CXCursor Cursor => clang.getTranslationUnitCursor(this);
 
         public CXReparse_Flags DefaultReparseOptions => (CXReparse_Flags)clang.defaultReparseOptions(this);
@@ -38,77 +42,90 @@ namespace ClangSharp.Interop
 
         public static CXTranslationUnit Create(CXIndex index, string astFileName)
         {
-            using (var marshaledAstFileName = new MarshaledString(astFileName))
-            {
-                return clang.createTranslationUnit(index, marshaledAstFileName);
-            }
+            using var marshaledAstFileName = new MarshaledString(astFileName);
+            return clang.createTranslationUnit(index, marshaledAstFileName);
         }
 
         public static CXErrorCode Create(CXIndex index, string astFileName, out CXTranslationUnit translationUnit)
         {
-            using (var marshaledAstFileName = new MarshaledString(astFileName))
+            using var marshaledAstFileName = new MarshaledString(astFileName);
+
             fixed (CXTranslationUnit* pTranslationUnit = &translationUnit)
             {
                 return clang.createTranslationUnit2(index, marshaledAstFileName, (CXTranslationUnitImpl**)pTranslationUnit);
             }
         }
 
-        public static CXTranslationUnit CreateFromSourceFile(CXIndex index, string sourceFileName, string[] commandLineArgs, CXUnsavedFile[] unsavedFiles)
+        public static CXTranslationUnit CreateFromSourceFile(CXIndex index, string sourceFileName, ReadOnlySpan<string> commandLineArgs, ReadOnlySpan<CXUnsavedFile> unsavedFiles)
         {
-            using (var marshaledSourceFileName = new MarshaledString(sourceFileName))
-            using (var marshaledCommandLineArgs = new MarshaledStringArray(commandLineArgs))
+            using var marshaledSourceFileName = new MarshaledString(sourceFileName);
+            using var marshaledCommandLineArgs = new MarshaledStringArray(commandLineArgs);
+
             fixed (CXUnsavedFile* pUnsavedFiles = unsavedFiles)
             {
-                var pCommandLineArgs = stackalloc sbyte*[marshaledCommandLineArgs.Count];
+                var pCommandLineArgs = stackalloc sbyte*[commandLineArgs.Length];
                 marshaledCommandLineArgs.Fill(pCommandLineArgs);
-                return clang.createTranslationUnitFromSourceFile(index, marshaledSourceFileName, marshaledCommandLineArgs.Count, pCommandLineArgs, (uint)unsavedFiles?.Length, pUnsavedFiles);
+                return clang.createTranslationUnitFromSourceFile(index, marshaledSourceFileName, commandLineArgs.Length, pCommandLineArgs, (uint)unsavedFiles.Length, pUnsavedFiles);
             }
         }
 
-        public static CXTranslationUnit Parse(CXIndex index, string sourceFileName, string[] commandLineArgs, CXUnsavedFile[] unsavedFiles, CXTranslationUnit_Flags options)
+        public static CXTranslationUnit Parse(CXIndex index, string sourceFileName, ReadOnlySpan<string> commandLineArgs, ReadOnlySpan<CXUnsavedFile> unsavedFiles, CXTranslationUnit_Flags options)
         {
-            using (var marshaledSourceFileName = new MarshaledString(sourceFileName))
-            using (var marshaledCommandLineArgs = new MarshaledStringArray(commandLineArgs))
+            using var marshaledSourceFileName = new MarshaledString(sourceFileName);
+            using var marshaledCommandLineArgs = new MarshaledStringArray(commandLineArgs);
+
             fixed (CXUnsavedFile* pUnsavedFiles = unsavedFiles)
             {
-                var pCommandLineArgs = stackalloc sbyte*[marshaledCommandLineArgs.Count];
+                var pCommandLineArgs = stackalloc sbyte*[commandLineArgs.Length];
                 marshaledCommandLineArgs.Fill(pCommandLineArgs);
-                return clang.parseTranslationUnit(index, marshaledSourceFileName, pCommandLineArgs, marshaledCommandLineArgs.Count, pUnsavedFiles, (uint)unsavedFiles?.Length, (uint)options);
+                return clang.parseTranslationUnit(index, marshaledSourceFileName, pCommandLineArgs, commandLineArgs.Length, pUnsavedFiles, (uint)unsavedFiles.Length, (uint)options);
             }
         }
 
-        public static CXErrorCode Parse(CXIndex index, string sourceFileName, string[] commandLineArgs, CXUnsavedFile[] unsavedFiles, CXTranslationUnit_Flags options, out CXTranslationUnit translationUnit)
+        public static CXErrorCode TryParse(CXIndex index, string sourceFileName, ReadOnlySpan<string> commandLineArgs, ReadOnlySpan<CXUnsavedFile> unsavedFiles, CXTranslationUnit_Flags options, out CXTranslationUnit translationUnit)
         {
-            using (var marshaledSourceFileName = new MarshaledString(sourceFileName))
-            using (var marshaledCommandLineArgs = new MarshaledStringArray(commandLineArgs))
-            fixed (CXUnsavedFile* pUnsavedFiles = unsavedFiles)
-            fixed (CXTranslationUnit* pTranslationUnit = &translationUnit)
-            {
-                var pCommandLineArgs = stackalloc sbyte*[marshaledCommandLineArgs.Count];
-                marshaledCommandLineArgs.Fill(pCommandLineArgs);
-                return clang.parseTranslationUnit2(index, marshaledSourceFileName, pCommandLineArgs, marshaledCommandLineArgs.Count, pUnsavedFiles, (uint)unsavedFiles?.Length, (uint)options, (CXTranslationUnitImpl**)pTranslationUnit);
-            }
-        }
+            using var marshaledSourceFileName = new MarshaledString(sourceFileName);
+            using var marshaledCommandLineArgs = new MarshaledStringArray(commandLineArgs);
 
-        public static CXErrorCode ParseFullArgv(CXIndex index, string sourceFileName, string[] commandLineArgs, CXUnsavedFile[] unsavedFiles, CXTranslationUnit_Flags options, out CXTranslationUnit translationUnit)
-        {
-            using (var marshaledSourceFileName = new MarshaledString(sourceFileName))
-            using (var marshaledCommandLineArgs = new MarshaledStringArray(commandLineArgs))
             fixed (CXUnsavedFile* pUnsavedFiles = unsavedFiles)
             fixed (CXTranslationUnit* pTranslationUnit = &translationUnit)
             {
-                var pCommandLineArgs = stackalloc sbyte*[marshaledCommandLineArgs.Count];
+                var pCommandLineArgs = stackalloc sbyte*[commandLineArgs.Length];
                 marshaledCommandLineArgs.Fill(pCommandLineArgs);
-                return clang.parseTranslationUnit2FullArgv(index, marshaledSourceFileName, pCommandLineArgs, marshaledCommandLineArgs.Count, pUnsavedFiles, (uint)unsavedFiles?.Length, (uint)options, (CXTranslationUnitImpl**)pTranslationUnit);
+                return clang.parseTranslationUnit2(index, marshaledSourceFileName, pCommandLineArgs, commandLineArgs.Length, pUnsavedFiles, (uint)unsavedFiles.Length, (uint)options, (CXTranslationUnitImpl**)pTranslationUnit);
             }
         }
 
-        public void AnnotateTokens(CXToken[] tokens, CXCursor[] cursors)
+        public static CXErrorCode TryParseFullArgv(CXIndex index, string sourceFileName, ReadOnlySpan<string> commandLineArgs, ReadOnlySpan<CXUnsavedFile> unsavedFiles, CXTranslationUnit_Flags options, out CXTranslationUnit translationUnit)
+        {
+            using var marshaledSourceFileName = new MarshaledString(sourceFileName);
+            using var marshaledCommandLineArgs = new MarshaledStringArray(commandLineArgs);
+
+            fixed (CXUnsavedFile* pUnsavedFiles = unsavedFiles)
+            fixed (CXTranslationUnit* pTranslationUnit = &translationUnit)
+            {
+                var pCommandLineArgs = stackalloc sbyte*[commandLineArgs.Length];
+                marshaledCommandLineArgs.Fill(pCommandLineArgs);
+                return clang.parseTranslationUnit2FullArgv(index, marshaledSourceFileName, pCommandLineArgs, commandLineArgs.Length, pUnsavedFiles, (uint)unsavedFiles.Length, (uint)options, (CXTranslationUnitImpl**)pTranslationUnit);
+            }
+        }
+
+        public void AnnotateTokens(ReadOnlySpan<CXToken> tokens, Span<CXCursor> cursors)
         {
             fixed (CXToken* pTokens = tokens)
             fixed (CXCursor* pCursors = cursors)
             {
-                clang.annotateTokens(this, pTokens, (uint)tokens?.Length, pCursors);
+                clang.annotateTokens(this, pTokens, (uint)tokens.Length, pCursors);
+            }
+        }
+
+        public CXCodeCompleteResults* CodeCompleteAt(string completeFilename, uint completeLine, uint completeColumn, ReadOnlySpan<CXUnsavedFile> unsavedFiles, CXCodeComplete_Flags options)
+        {
+            using var marshaledCompleteFilename = new MarshaledString(completeFilename);
+
+            fixed (CXUnsavedFile* pUnsavedFiles = unsavedFiles)
+            {
+                return clang.codeCompleteAt(this, marshaledCompleteFilename, completeLine, completeColumn, pUnsavedFiles, (uint)unsavedFiles.Length, (uint)options);
             }
         }
 
@@ -121,21 +138,19 @@ namespace ClangSharp.Interop
             }
         }
 
-        public void DisposeTokens(CXToken[] tokens)
+        public void DisposeTokens(ReadOnlySpan<CXToken> tokens)
         {
             fixed (CXToken* pTokens = tokens)
             {
-                clang.disposeTokens(this, pTokens, (uint)tokens?.Length);
+                clang.disposeTokens(this, pTokens, (uint)tokens.Length);
             }
         }
 
         public override bool Equals(object obj) => (obj is CXTranslationUnit other) && Equals(other);
 
-        public bool Equals(CXTranslationUnit other) => (this == other);
+        public bool Equals(CXTranslationUnit other) => this == other;
 
         public CXResult FindIncludesInFile(CXFile file, CXCursorAndRangeVisitor visitor) => clang.findIncludesInFile(this, file, visitor);
-
-        public unsafe ref CXSourceRangeList GetAllSkippedRanges() => ref *clang.getAllSkippedRanges(this);
 
         public CXCursor GetCursor(CXSourceLocation location) => clang.getCursor(this, location);
 
@@ -143,9 +158,15 @@ namespace ClangSharp.Interop
 
         public CXFile GetFile(string fileName)
         {
-            using (var marshaledFileName = new MarshaledString(fileName))
+            using var marshaledFileName = new MarshaledString(fileName);
+            return GetFile(marshaledFileName.AsSpan());
+        }
+
+        public CXFile GetFile(ReadOnlySpan<byte> fileName)
+        {
+            fixed (byte* pFileName = fileName)
             {
-                return (CXFile)clang.getFile(this, marshaledFileName);
+                return (CXFile)clang.getFile(this, (sbyte*)pFileName);
             }
         }
 
@@ -173,26 +194,24 @@ namespace ClangSharp.Interop
 
         public CXModule GetModuleForFile(CXFile file) => (CXModule)clang.getModuleForFile(this, file);
 
-        public unsafe ref CXSourceRangeList GetSkippedRanges(CXFile file) => ref *clang.getSkippedRanges(this, file);
+        public CXSourceRangeList* GetSkippedRanges(CXFile file) => clang.getSkippedRanges(this, file);
 
-        public unsafe ref CXToken GetToken(CXSourceLocation sourceLocation) => ref *clang.getToken(this, sourceLocation);
+        public CXToken* GetToken(CXSourceLocation sourceLocation) => clang.getToken(this, sourceLocation);
 
         public bool IsFileMultipleIncludeGuarded(CXFile file) => clang.isFileMultipleIncludeGuarded(this, file) != 0;
 
-        public CXErrorCode Reparse(CXUnsavedFile[] unsavedFiles, CXReparse_Flags options)
+        public CXErrorCode Reparse(ReadOnlySpan<CXUnsavedFile> unsavedFiles, CXReparse_Flags options)
         {
             fixed (CXUnsavedFile* pUnsavedFiles = unsavedFiles)
             {
-                return (CXErrorCode)clang.reparseTranslationUnit(this, (uint)unsavedFiles?.Length, pUnsavedFiles, (uint)options);
+                return (CXErrorCode)clang.reparseTranslationUnit(this, (uint)unsavedFiles.Length, pUnsavedFiles, (uint)options);
             }
         }
 
         public CXSaveError Save(string fileName, CXSaveTranslationUnit_Flags options)
         {
-            using (var marshaledFileName = new MarshaledString(fileName))
-            {
-                return (CXSaveError)clang.saveTranslationUnit(this, marshaledFileName, (uint)options);
-            }
+            using var marshaledFileName = new MarshaledString(fileName);
+            return (CXSaveError)clang.saveTranslationUnit(this, marshaledFileName, (uint)options);
         }
 
         public bool Suspend() => clang.suspendTranslationUnit(this) != 0;

@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine.Experimental" />
+    <PackageReference Include="System.CommandLine.Experimental" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>

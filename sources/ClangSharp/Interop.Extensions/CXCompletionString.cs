@@ -31,7 +31,7 @@ namespace ClangSharp.Interop
 
         public override bool Equals(object obj) => (obj is CXCompletionString other) && Equals(other);
 
-        public bool Equals(CXCompletionString other) => (this == other);
+        public bool Equals(CXCompletionString other) => this == other;
 
         public CXString GetAnnotation(uint index) => clang.getCompletionAnnotation(this, index);
 

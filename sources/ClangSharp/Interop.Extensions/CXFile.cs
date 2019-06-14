@@ -25,19 +25,19 @@ namespace ClangSharp.Interop
 
         public override bool Equals(object obj) => (obj is CXFile other) && Equals(other);
 
-        public bool Equals(CXFile other) => (this == other);
+        public bool Equals(CXFile other) => this == other;
 
         public override int GetHashCode() => Handle.GetHashCode();
 
-        public bool GetUniqueId(out CXFileUniqueID id)
+        public override string ToString() => Name.ToString();
+
+        public bool TryGetUniqueId(out CXFileUniqueID id)
         {
             fixed (CXFileUniqueID* pId = &id)
             {
-                return clang.getFileUniqueID(this, pId) != 0;
+                return clang.getFileUniqueID(this, pId) == 0;
             }
         }
-
-        public override string ToString() => Name.ToString();
 
         public CXString TryGetRealPathName() => clang.File_tryGetRealPathName(this);
     }

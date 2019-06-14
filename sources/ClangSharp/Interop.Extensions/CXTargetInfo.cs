@@ -34,8 +34,10 @@ namespace ClangSharp.Interop
 
         public override bool Equals(object obj) => (obj is CXTargetInfo other) && Equals(other);
 
-        public bool Equals(CXTargetInfo other) => (this == other);
+        public bool Equals(CXTargetInfo other) => this == other;
 
         public override int GetHashCode() => Handle.GetHashCode();
+
+        public override string ToString() => Triple.ToString();
     }
 }

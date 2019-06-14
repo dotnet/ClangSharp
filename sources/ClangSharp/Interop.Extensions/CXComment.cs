@@ -28,7 +28,7 @@ namespace ClangSharp.Interop
 
         public bool InlineContentComment_HasTrailingNewline => clang.InlineContentComment_hasTrailingNewline(this) != 0;
 
-        public bool IsWhitesapce => clang.Comment_isWhitespace(this) != 0;
+        public bool IsWhitespace => clang.Comment_isWhitespace(this) != 0;
 
         public CXCommentKind Kind => clang.Comment_getKind(this);
 

@@ -27,19 +27,18 @@ namespace ClangSharp.Interop
 
         public static CXIndex Create(bool excludeDeclarationsFromPch = false, bool displayDiagnostics = false) => (CXIndex)clang.createIndex(excludeDeclarationsFromPch ? 1 : 0, displayDiagnostics ? 1 : 0);
 
-        public void Dispose()
-        {
-            if (Handle != IntPtr.Zero)
-            {
-                clang.disposeIndex(this);
-                Handle = IntPtr.Zero;
-            }
-        }
+        public void Dispose() => clang.disposeIndex(this);
 
         public override bool Equals(object obj) => (obj is CXIndex other) && Equals(other);
 
-        public bool Equals(CXIndex other) => (this == other);
+        public bool Equals(CXIndex other) => this == other;
 
         public override int GetHashCode() => Handle.GetHashCode();
+
+        public void SetInvocationEmissionPathOption(string Path)
+        {
+            using var marshaledPath = new MarshaledString(Path);
+            clang.CXIndex_setInvocationEmissionPathOption(this, marshaledPath);
+        }
     }
 }
