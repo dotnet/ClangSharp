@@ -21,7 +21,7 @@ namespace ClangSharp
 
         public TypedefNameDecl Decl => _decl.Value;
 
-        public string Name => Handle.GetTypedefName().ToString();
+        public string Name => Handle.TypedefName.ToString();
 
         public bool IsTransparentTag => Handle.IsTransparentTagTypedef;
 

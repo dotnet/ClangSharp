@@ -22,6 +22,6 @@ namespace ClangSharp
 
         public CX_StorageClass StorageClass => Handle.StorageClass;
 
-        public CXTLSKind TlsKind => Handle.TLSKind;
+        public CXTLSKind TlsKind => Handle.TlsKind;
     }
 }
