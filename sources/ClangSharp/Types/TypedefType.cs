@@ -8,7 +8,7 @@ namespace ClangSharp
     {
         private readonly Lazy<TypedefNameDecl> _decl;
 
-        public TypedefType(CXType handle, TranslationUnit translationUnit) : base(handle, translationUnit)
+        public TypedefType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
         {
             Debug.Assert(handle.kind == CXTypeKind.CXType_Typedef);
 

@@ -169,7 +169,7 @@ namespace ClangSharp
 
         protected Decl(CXCursor handle, Cursor parent) : base(handle, parent)
         {
-            Debug.Assert(handle.IsDeclaration);
+            Debug.Assert((handle.IsDeclaration) || (handle.Kind == CXCursorKind.CXCursor_TranslationUnit));
 
             _canonical = new Lazy<Decl>(() => {
                 var cursor = TranslationUnit.GetOrCreateCursor(Handle.CanonicalCursor, () => Create(Handle.CanonicalCursor, this));

@@ -53,8 +53,8 @@ namespace ClangSharp
 
             if (parent is null)
             {
-                Debug.Assert(this is TranslationUnit);
-                TranslationUnit = this as TranslationUnit;
+                Debug.Assert(this is TranslationUnitDecl);
+                TranslationUnit = this as TranslationUnitDecl;
             }
             else
             {
@@ -82,7 +82,7 @@ namespace ClangSharp
 
         public string Spelling => Handle.Spelling.ToString();
 
-        public TranslationUnit TranslationUnit { get; }
+        public TranslationUnitDecl TranslationUnit { get; }
 
         public Span<CXToken> Tokenize(Cursor cursor)
         {

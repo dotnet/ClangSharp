@@ -5,7 +5,7 @@ namespace ClangSharp
 {
     public class Type
     {
-        public static Type Create(CXType handle, TranslationUnit translationUnit)
+        public static Type Create(CXType handle, TranslationUnitDecl translationUnit)
         {
             Debug.Assert(handle.kind != CXTypeKind.CXType_Invalid);
 
@@ -104,7 +104,7 @@ namespace ClangSharp
             }
         }
 
-        protected Type(CXType handle, TranslationUnit translationUnit)
+        protected Type(CXType handle, TranslationUnitDecl translationUnit)
         {
             Debug.Assert(translationUnit != null);
 
@@ -125,7 +125,7 @@ namespace ClangSharp
 
         public string KindSpelling => Handle.KindSpelling.ToString();
 
-        public TranslationUnit TranslationUnit { get; }
+        public TranslationUnitDecl TranslationUnit { get; }
 
         public string Spelling => Handle.Spelling.ToString();
     }

@@ -4,7 +4,7 @@ namespace ClangSharp
 {
     public class FunctionType : Type
     {
-        protected FunctionType(CXType handle, TranslationUnit translationUnit) : base(handle, translationUnit)
+        protected FunctionType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
         {
             ReturnType = TranslationUnit.GetOrCreateType(Handle.ResultType, () => Create(Handle.ResultType, TranslationUnit));
         }

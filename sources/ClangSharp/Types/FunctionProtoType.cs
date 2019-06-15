@@ -8,7 +8,7 @@ namespace ClangSharp
     {
         private readonly Type[] _parameters;
 
-        public FunctionProtoType(CXType handle, TranslationUnit translationUnit) : base(handle, translationUnit)
+        public FunctionProtoType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
         {
             Debug.Assert(handle.kind == CXTypeKind.CXType_FunctionProto);
 

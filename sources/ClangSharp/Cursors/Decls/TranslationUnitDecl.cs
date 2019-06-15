@@ -5,13 +5,13 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class TranslationUnit : Cursor
+    public sealed class TranslationUnitDecl : Decl
     {
         private readonly List<Decl> _declarations = new List<Decl>();
         private readonly Dictionary<CXCursor, Cursor> _visitedCursors = new Dictionary<CXCursor, Cursor>();
         private readonly Dictionary<CXType, Type> _visitedTypes = new Dictionary<CXType, Type>();
 
-        public TranslationUnit(CXCursor handle) : base(handle, parent: null)
+        public TranslationUnitDecl(CXCursor handle) : base(handle, parent: null)
         {
             Debug.Assert(handle.Kind == CXCursorKind.CXCursor_TranslationUnit);
         }

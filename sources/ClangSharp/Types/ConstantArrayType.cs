@@ -5,7 +5,7 @@ namespace ClangSharp
 {
     public sealed class ConstantArrayType : ArrayType
     {
-        public ConstantArrayType(CXType handle, TranslationUnit translationUnit) : base(handle, translationUnit)
+        public ConstantArrayType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
         {
             Debug.Assert(handle.kind == CXTypeKind.CXType_ConstantArray);
         }

@@ -4,7 +4,7 @@ namespace ClangSharp
 {
     public class TypeWithKeyword : Type
     {
-        protected TypeWithKeyword(CXType handle, TranslationUnit translationUnit) : base(handle, translationUnit)
+        protected TypeWithKeyword(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
         {
         }
     }

@@ -5,7 +5,7 @@ namespace ClangSharp
 {
     public sealed class PointerType : Type
     {
-        public PointerType(CXType handle, TranslationUnit translationUnit) : base(handle, translationUnit)
+        public PointerType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
         {
             Debug.Assert(handle.kind == CXTypeKind.CXType_Pointer);
             PointeeType = TranslationUnit.GetOrCreateType(Handle.PointeeType, () => Create(Handle.PointeeType, TranslationUnit));

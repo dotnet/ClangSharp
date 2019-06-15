@@ -172,7 +172,7 @@ namespace ClangSharp
                 }
             }
 
-            var translationUnit = new TranslationUnit(translationUnitHandle.Cursor);
+            var translationUnit = new TranslationUnitDecl(translationUnitHandle.Cursor);
             translationUnit.Visit(clientData: default);
 
             _visitedCursors.Add(translationUnit);
