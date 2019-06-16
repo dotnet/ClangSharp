@@ -1,41 +1,19 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public class RecordDecl : TagDecl
     {
-        private readonly List<FieldDecl> _constantArrays = new List<FieldDecl>();
-        private readonly List<FieldDecl> _fields = new List<FieldDecl>();
+        private readonly Lazy<IReadOnlyList<FieldDecl>> _fields;
 
-        public RecordDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal RecordDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
+            _fields = new Lazy<IReadOnlyList<FieldDecl>>(() => Decls.Where((decl) => decl is FieldDecl).Cast<FieldDecl>().ToList());
         }
 
-        public bool IsClass => Kind == CXCursorKind.CXCursor_ClassDecl;
-
-        public bool IsStruct => Kind == CXCursorKind.CXCursor_StructDecl;
-
-        public bool IsUnion => Kind == CXCursorKind.CXCursor_UnionDecl;
-
-        public IReadOnlyList<FieldDecl> ConstantArrays => _constantArrays;
-
-        public IReadOnlyList<FieldDecl> Fields => _fields;
-
-        protected override Decl GetOrAddDecl(CXCursor childHandle)
-        {
-            var decl = base.GetOrAddDecl(childHandle);
-
-            if (decl is FieldDecl fieldDecl)
-            {
-                if (fieldDecl.Type.Kind == CXTypeKind.CXType_ConstantArray)
-                {
-                    _constantArrays.Add(fieldDecl);
-                }
-                _fields.Add(fieldDecl);
-            }
-
-            return decl;
-        }
+        public IReadOnlyList<FieldDecl> Fields => _fields.Value;
     }
 }

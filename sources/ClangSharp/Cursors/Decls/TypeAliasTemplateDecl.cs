@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class TypeAliasTemplateDecl : RedeclarableTemplateDecl
     {
-        public TypeAliasTemplateDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal TypeAliasTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TypeAliasTemplateDecl)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_TypeAliasTemplateDecl);
         }
     }
 }

@@ -8,12 +8,10 @@ namespace ClangSharp
     {
         private readonly Lazy<string> _value;
 
-        public IntegerLiteral(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal IntegerLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IntegerLiteral)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_IntegerLiteral);
-
             _value = new Lazy<string>(() => {
-                var tokens = TranslationUnit.Tokenize(this);
+                var tokens = Handle.TranslationUnit.Tokenize(Extent);
 
                 Debug.Assert(tokens.Length == 1);
                 Debug.Assert(tokens[0].Kind == CXTokenKind.CXToken_Literal);

@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class UnaryExprOrTypeTraitExpr : Expr
     {
-        public UnaryExprOrTypeTraitExpr(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryExpr)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_UnaryExpr);
         }
     }
 }

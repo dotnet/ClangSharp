@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class ParmVarDecl : VarDecl
     {
-        public ParmVarDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal ParmVarDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ParmDecl)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_ParmDecl);
         }
     }
 }

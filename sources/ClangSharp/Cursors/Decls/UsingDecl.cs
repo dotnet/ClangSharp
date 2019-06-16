@@ -1,24 +1,11 @@
-using System;
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class UsingDecl : NamedDecl
+    public sealed class UsingDecl : NamedDecl, IMergeable<UsingDecl>
     {
-        private readonly Lazy<Cursor> _referenced;
-
-        public UsingDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal UsingDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_UsingDeclaration);
-
-            _referenced = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Referenced, () => Create(Handle.Referenced, this));
-                cursor?.Visit(clientData: default);
-                return cursor;
-            });
         }
-
-        public Cursor Referenced => _referenced.Value;
     }
 }

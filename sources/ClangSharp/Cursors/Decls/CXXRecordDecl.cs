@@ -1,83 +1,41 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public class CXXRecordDecl : RecordDecl
     {
-        private readonly List<CXXBaseSpecifier> _bases = new List<CXXBaseSpecifier>();
-        private readonly List<CXXConstructorDecl> _constructors = new List<CXXConstructorDecl>();
-        private readonly List<FriendDecl> _friends = new List<FriendDecl>();
-        private readonly List<CXXMethodDecl> _methods = new List<CXXMethodDecl>();
-        private readonly List<CXXBaseSpecifier> _virtualBases = new List<CXXBaseSpecifier>();
-        private readonly Lazy<Cursor> _specializedTemplate;
+        private readonly Lazy<IReadOnlyList<CXXBaseSpecifier>> _bases;
+        private readonly Lazy<IReadOnlyList<CXXConstructorDecl>> _ctors;
+        private readonly Lazy<CXXDestructorDecl> _destructor;
+        private readonly Lazy<IReadOnlyList<FriendDecl>> _friends;
+        private readonly Lazy<IReadOnlyList<CXXMethodDecl>> _methods;
+        private readonly Lazy<IReadOnlyList<CXXBaseSpecifier>> _vbases;
 
-        private CXXDestructorDecl _destructor;
-
-        public CXXRecordDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal CXXRecordDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            _specializedTemplate = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.SpecializedCursorTemplate, () => Create(Handle.SpecializedCursorTemplate, this));
-                cursor?.Visit(clientData: default);
-                return cursor;
-            });
+            _bases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => CursorChildren.Where((cursor) => cursor is CXXBaseSpecifier).Cast<CXXBaseSpecifier>().ToList());
+            _ctors = new Lazy<IReadOnlyList<CXXConstructorDecl>>(() => Methods.Where((method) => method is CXXConstructorDecl).Cast<CXXConstructorDecl>().ToList());
+            _destructor = new Lazy<CXXDestructorDecl>(() => Methods.Where((method) => method is CXXDestructorDecl).Cast<CXXDestructorDecl>().Single());
+            _friends = new Lazy<IReadOnlyList<FriendDecl>>(() => Decls.Where((decl) => decl is FriendDecl).Cast<FriendDecl>().ToList());
+            _methods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => Decls.Where((decl) => decl is CXXMethodDecl).Cast<CXXMethodDecl>().ToList());
+            _vbases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => Bases.Where((@base) => @base.IsVirtual).Cast<CXXBaseSpecifier>().ToList());
         }
 
         public bool IsAbstract => Handle.CXXRecord_IsAbstract;
 
-        public IReadOnlyList<CXXBaseSpecifier> Bases => _bases;
+        public IReadOnlyList<CXXBaseSpecifier> Bases => _bases.Value;
 
-        public IReadOnlyList<CXXConstructorDecl> Constructors => _constructors;
+        public IReadOnlyList<CXXConstructorDecl> Ctors => _ctors.Value;
 
-        public CXXDestructorDecl Destructor => _destructor;
+        public CXXDestructorDecl Destructor => _destructor.Value;
 
-        public IReadOnlyList<FriendDecl> Friends => _friends;
+        public IReadOnlyList<FriendDecl> Friends => _friends.Value;
 
-        public IReadOnlyList<CXXMethodDecl> Methods => _methods;
+        public IReadOnlyList<CXXMethodDecl> Methods => _methods.Value;
 
-        public IReadOnlyList<CXXBaseSpecifier> VirtualBases => _virtualBases;
-
-        public Cursor SpecializedTemplate => _specializedTemplate.Value;
-
-        protected override Decl GetOrAddDecl(CXCursor childHandle)
-        {
-            var decl = base.GetOrAddDecl(childHandle);
-
-            if (decl is CXXMethodDecl cxxMethodDecl)
-            {
-                if (decl is CXXConstructorDecl cxxConstructorDecl)
-                {
-                    _constructors.Add(cxxConstructorDecl);
-                }
-                else if (decl is CXXDestructorDecl cxxDestructorDecl)
-                {
-                    Debug.Assert(_destructor is null);
-                    _destructor = cxxDestructorDecl;
-                }
-
-                _methods.Add(cxxMethodDecl);
-            }
-
-            return decl;
-        }
-
-        protected override Ref GetOrAddRef(CXCursor childHandle)
-        {
-            var @ref = base.GetOrAddRef(childHandle);
-
-            if (@ref is CXXBaseSpecifier cxxBaseSpecifier)
-            {
-                if (cxxBaseSpecifier.IsVirtual)
-                {
-                    _virtualBases.Add(cxxBaseSpecifier);
-                }
-
-                _bases.Add(cxxBaseSpecifier);
-            }
-
-            return @ref;
-        }
+        public IReadOnlyList<CXXBaseSpecifier> VBases => _vbases.Value;
     }
 }

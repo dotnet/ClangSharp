@@ -1,32 +1,40 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class FunctionProtoType : FunctionType
     {
-        private readonly Type[] _parameters;
+        private Type[] _paramTypes;
 
-        public FunctionProtoType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
+        internal FunctionProtoType(CXType handle) : base(handle, CXTypeKind.CXType_FunctionProto)
         {
-            Debug.Assert(handle.kind == CXTypeKind.CXType_FunctionProto);
-
-            _parameters = new Type[Handle.NumArgTypes];
-
-            for (uint index = 0; index < Handle.NumArgTypes; index++)
-            {
-                var parameterTypeHandle = Handle.GetArgType(index);
-                var parameterType = TranslationUnit.GetOrCreateType(parameterTypeHandle, () => Create(parameterTypeHandle, TranslationUnit));
-                _parameters[index] = parameterType;
-            }
         }
 
         public CXCursor_ExceptionSpecificationKind ExceptionSpecType => Handle.ExceptionSpecificationType;
 
         public bool IsVariadic => Handle.IsFunctionTypeVariadic;
 
-        public IReadOnlyList<Type> Parameters => _parameters;
+        public uint NumParams => (uint)Handle.NumArgTypes;
+
+        public IReadOnlyList<Type> ParamTypes
+        {
+            get
+            {
+                if (_paramTypes is null)
+                {
+                    uint numParams = NumParams;
+                    _paramTypes = new Type[numParams];
+
+                    for (var index = 0u; index < numParams; index++)
+                    {
+                        var paramType = Handle.GetArgType(index);
+                        _paramTypes[index] = TranslationUnit.GetOrCreate<Type>(paramType);
+                    }
+                }
+                return _paramTypes;
+            }
+        }
 
         public CXRefQualifierKind RefQualifier => Handle.CXXRefQualifier;
     }

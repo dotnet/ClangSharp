@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class DeclStmt : Stmt
     {
-        public DeclStmt(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal DeclStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclStmt)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_DeclStmt);
         }
     }
 }

@@ -3,19 +3,15 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public class RedeclarableTemplateDecl : TemplateDecl
+    public class RedeclarableTemplateDecl : TemplateDecl, IRedeclarable<RedeclarableTemplateDecl>
     {
-        private readonly Lazy<Cursor> _specializedTemplate;
+        private readonly Lazy<RedeclarableTemplateDecl> _instantiatedFromMemberTemplate;
 
-        protected RedeclarableTemplateDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        private protected RedeclarableTemplateDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            _specializedTemplate = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.SpecializedCursorTemplate, () => Create(Handle.SpecializedCursorTemplate, this));
-                cursor?.Visit(clientData: default);
-                return cursor;
-            });
+            _instantiatedFromMemberTemplate = new Lazy<RedeclarableTemplateDecl>(() => TranslationUnit.GetOrCreate<RedeclarableTemplateDecl>(Handle.SpecializedCursorTemplate));
         }
 
-        public Cursor SpecializedTemplate => _specializedTemplate.Value;
+        public RedeclarableTemplateDecl InstantiatedFromMemberTemplate => _instantiatedFromMemberTemplate.Value;
     }
 }

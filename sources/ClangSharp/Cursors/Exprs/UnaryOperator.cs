@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -7,34 +8,25 @@ namespace ClangSharp
     public sealed class UnaryOperator : Expr
     {
         private readonly Lazy<(string Opcode, bool IsPrefix)> _opcode;
+        private readonly Lazy<Expr> _subExpr;
 
-        private Expr _subExpr;
-
-        public UnaryOperator(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal UnaryOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryOperator)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_UnaryOperator);
             _opcode = new Lazy<(string Opcode, bool IsPrefix)>(GetOpcode);
+            _subExpr = new Lazy<Expr>(() => Children.Where((cursor) => cursor is Expr).Cast<Expr>().Single());
         }
 
         public bool IsPrefix => _opcode.Value.IsPrefix;
 
+        public bool IsPostfix => !_opcode.Value.IsPrefix;
+
         public string Opcode => _opcode.Value.Opcode;
 
-        public Expr SubExpr => _subExpr;
-
-        protected override Expr GetOrAddExpr(CXCursor childHandle)
-        {
-            var expr = base.GetOrAddExpr(childHandle);
-
-            Debug.Assert(_subExpr is null);
-            _subExpr = expr;
-
-            return expr;
-        }
+        public Expr SubExpr => _subExpr.Value;
 
         private (string Opcode, bool IsPrefix) GetOpcode()
         {
-            var tokens = TranslationUnit.Tokenize(this);
+            var tokens = Handle.TranslationUnit.Tokenize(Extent);
 
             Debug.Assert(tokens.Length >= 2);
 

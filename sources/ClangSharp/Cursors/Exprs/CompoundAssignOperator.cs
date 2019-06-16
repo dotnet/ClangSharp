@@ -5,14 +5,13 @@ namespace ClangSharp
 {
     public sealed class CompoundAssignOperator : BinaryOperator
     {
-        public CompoundAssignOperator(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal CompoundAssignOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundAssignOperator)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_CompoundAssignOperator);
         }
 
         protected override string GetOpcode()
         {
-            var tokens = TranslationUnit.Tokenize(this);
+            var tokens = Handle.TranslationUnit.Tokenize(Extent);
 
             Debug.Assert(tokens.Length >= 3);
 

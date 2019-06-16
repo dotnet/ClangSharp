@@ -1,16 +1,17 @@
-using System.Diagnostics;
+using System;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class PointerType : Type
     {
-        public PointerType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
+        private readonly Lazy<Type> _pointeeType;
+
+        internal PointerType(CXType handle) : base(handle, CXTypeKind.CXType_Pointer)
         {
-            Debug.Assert(handle.kind == CXTypeKind.CXType_Pointer);
-            PointeeType = TranslationUnit.GetOrCreateType(Handle.PointeeType, () => Create(Handle.PointeeType, TranslationUnit));
+            _pointeeType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
         }
 
-        public Type PointeeType { get; }
+        public Type PointeeType => _pointeeType.Value;
     }
 }

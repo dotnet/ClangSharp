@@ -1,14 +1,17 @@
+using System;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public class ArrayType : Type
     {
-        protected ArrayType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
+        private readonly Lazy<Type> _elementType;
+
+        private protected ArrayType(CXType handle, CXTypeKind expectedKind) : base(handle, expectedKind)
         {
-            ElementType = TranslationUnit.GetOrCreateType(Handle.ArrayElementType, () => Create(Handle.ArrayElementType, TranslationUnit));
+            _elementType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ArrayElementType));
         }
 
-        public Type ElementType { get; }
+        public Type ElementType => _elementType.Value;
     }
 }

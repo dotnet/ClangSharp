@@ -1,16 +1,19 @@
+using System;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public class FunctionType : Type
     {
-        protected FunctionType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
+        private readonly Lazy<Type> _returnType;
+
+        private protected FunctionType(CXType handle, CXTypeKind expectedKind) : base(handle, expectedKind)
         {
-            ReturnType = TranslationUnit.GetOrCreateType(Handle.ResultType, () => Create(Handle.ResultType, TranslationUnit));
+            _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ResultType));
         }
 
         public CXCallingConv CallConv => Handle.FunctionTypeCallingConv;
 
-        public Type ReturnType { get; }
+        public Type ReturnType => _returnType.Value;
     }
 }

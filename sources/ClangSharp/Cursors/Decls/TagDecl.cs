@@ -1,36 +1,27 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public class TagDecl : TypeDecl
+    public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
     {
-        private readonly List<Decl> _declarations = new List<Decl>();
+        private readonly Lazy<IReadOnlyList<Decl>> _decls;
         private readonly Lazy<TagDecl> _definition;
 
-        protected TagDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        private protected TagDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            _definition = new Lazy<TagDecl>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Definition, () => Create(Handle.Definition, this));
-                cursor?.Visit(clientData: default);
-                return (TagDecl)cursor;
-            });
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.Where((cursor) => cursor is Decl).Cast<Decl>().ToList());
+            _definition = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition));
         }
 
-        public IReadOnlyList<Decl> Declarations => _declarations;
+        public IReadOnlyList<Decl> Decls => _decls.Value;
 
         public TagDecl Definition => _definition.Value;
 
-        public bool IsAnonymous => Handle.IsAnonymous;
+        public IDeclContext LexicalParent => LexicalDeclContext;
 
-        public bool IsDefinition => Handle.IsDefinition;
-
-        protected override Decl GetOrAddDecl(CXCursor childHandle)
-        {
-            var decl = base.GetOrAddDecl(childHandle);
-            _declarations.Add(decl);
-            return decl;
-        }
+        public IDeclContext Parent => DeclContext;
     }
 }

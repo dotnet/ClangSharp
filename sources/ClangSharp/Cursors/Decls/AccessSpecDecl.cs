@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class AccessSpecDecl : Decl
     {
-        public AccessSpecDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal AccessSpecDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXAccessSpecifier)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_CXXAccessSpecifier);
         }
     }
 }

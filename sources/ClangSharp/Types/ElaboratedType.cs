@@ -1,16 +1,17 @@
-using System.Diagnostics;
+using System;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class ElaboratedType : TypeWithKeyword
     {
-        public ElaboratedType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
+        private readonly Lazy<Type> _namedType;
+
+        internal ElaboratedType(CXType handle) : base(handle, CXTypeKind.CXType_Elaborated)
         {
-            Debug.Assert(handle.kind == CXTypeKind.CXType_Elaborated);
-            NamedType = TranslationUnit.GetOrCreateType(Handle.NamedType, () => Create(Handle.NamedType, TranslationUnit));
+            _namedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NamedType));
         }
 
-        public Type NamedType { get; }
+        public Type NamedType => _namedType.Value;
     }
 }

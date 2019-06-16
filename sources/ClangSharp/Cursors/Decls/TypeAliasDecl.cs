@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class TypeAliasDecl : TypedefNameDecl
     {
-        public TypeAliasDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal TypeAliasDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TypeAliasDecl)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_TypeAliasDecl);
         }
     }
 }

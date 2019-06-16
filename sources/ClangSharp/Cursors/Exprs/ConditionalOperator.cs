@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class ConditionalOperator : AbstractConditionalOperator
     {
-        public ConditionalOperator(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal ConditionalOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ConditionalOperator)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_ConditionalOperator);
         }
     }
 }

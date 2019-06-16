@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class NullStmt : Stmt
     {
-        public NullStmt(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal NullStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_NullStmt)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_NullStmt);
         }
     }
 }

@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class NonTypeTemplateParmDecl : DeclaratorDecl
+    public sealed class NonTypeTemplateParmDecl : DeclaratorDecl, ITemplateParmPosition
     {
-        public NonTypeTemplateParmDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal NonTypeTemplateParmDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_NonTypeTemplateParameter)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_NonTypeTemplateParameter);
         }
     }
 }

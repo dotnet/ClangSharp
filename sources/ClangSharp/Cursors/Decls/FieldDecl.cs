@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class FieldDecl : DeclaratorDecl
+    public sealed class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
     {
-        public FieldDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal FieldDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_FieldDecl)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_FieldDecl);
         }
 
         public int BitWidthValue => Handle.FieldDeclBitWidth;
@@ -15,7 +13,5 @@ namespace ClangSharp
         public bool IsBitField => Handle.IsBitField;
 
         public bool IsMutable => Handle.CXXField_IsMutable;
-
-        public long Offset => Handle.OffsetOfField;
     }
 }

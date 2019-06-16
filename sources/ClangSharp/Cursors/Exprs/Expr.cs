@@ -6,174 +6,182 @@ namespace ClangSharp
 {
     public class Expr : ValueStmt
     {
-        public static new Expr Create(CXCursor handle, Cursor parent)
+        private readonly Lazy<Type> _type;
+
+        private protected Expr(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
+            _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
+        }
+
+        public Type Type { get; }
+
+        internal static new Expr Create(CXCursor handle)
+        {
+            Expr result;
+
             switch (handle.Kind)
             {
                 case CXCursorKind.CXCursor_UnexposedExpr:
                 {
-                    return new UnexposedExpr(handle, parent);
+                    result = new Expr(handle, CXCursorKind.CXCursor_UnexposedExpr);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_DeclRefExpr:
                 {
-                    return new DeclRefExpr(handle, parent);
+                    result = new DeclRefExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_MemberRefExpr:
                 {
-                    return new MemberExpr(handle, parent);
+                    result = new MemberExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CallExpr:
                 {
-                    return new CallExpr(handle, parent);
+                    result = new CallExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_IntegerLiteral:
                 {
-                    return new IntegerLiteral(handle, parent);
+                    result = new IntegerLiteral(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_FloatingLiteral:
                 {
-                    return new FloatingLiteral(handle, parent);
+                    result = new FloatingLiteral(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_StringLiteral:
                 {
-                    return new StringLiteral(handle, parent);
+                    result = new StringLiteral(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CharacterLiteral:
                 {
-                    return new CharacterLiteral(handle, parent);
+                    result = new CharacterLiteral(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_ParenExpr:
                 {
-                    return new ParenExpr(handle, parent);
+                    result = new ParenExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_UnaryOperator:
                 {
-                    return new UnaryOperator(handle, parent);
+                    result = new UnaryOperator(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_ArraySubscriptExpr:
                 {
-                    return new ArraySubscriptExpr(handle, parent);
+                    result = new ArraySubscriptExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_BinaryOperator:
                 {
-                    return new BinaryOperator(handle, parent);
+                    result = new BinaryOperator(handle, CXCursorKind.CXCursor_BinaryOperator);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CompoundAssignOperator:
                 {
-                    return new CompoundAssignOperator(handle, parent);
+                    result = new CompoundAssignOperator(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_ConditionalOperator:
                 {
-                    return new ConditionalOperator(handle, parent);
+                    result = new ConditionalOperator(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CStyleCastExpr:
                 {
-                    return new CStyleCastExpr(handle, parent);
+                    result = new CStyleCastExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_InitListExpr:
                 {
-                    return new InitListExpr(handle, parent);
+                    result = new InitListExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CXXStaticCastExpr:
                 {
-                    return new CXXStaticCastExpr(handle, parent);
+                    result = new CXXStaticCastExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CXXConstCastExpr:
                 {
-                    return new CXXConstCastExpr(handle, parent);
+                    result = new CXXConstCastExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CXXFunctionalCastExpr:
                 {
-                    return new CXXFunctionalCastExpr(handle, parent);
+                    result = new CXXFunctionalCastExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CXXBoolLiteralExpr:
                 {
-                    return new CXXBoolLiteralExpr(handle, parent);
+                    result = new CXXBoolLiteralExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CXXNullPtrLiteralExpr:
                 {
-                    return new CXXNullPtrLiteralExpr(handle, parent);
+                    result = new CXXNullPtrLiteralExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CXXThisExpr:
                 {
-                    return new CXXThisExpr(handle, parent);
+                    result = new CXXThisExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_UnaryExpr:
                 {
-                    return new UnaryExprOrTypeTraitExpr(handle, parent);
+                    result = new UnaryExprOrTypeTraitExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_PackExpansionExpr:
                 {
-                    return new PackExpansionExpr(handle, parent);
+                    result = new PackExpansionExpr(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_SizeOfPackExpr:
                 {
-                    return new SizeOfPackExpr(handle, parent);
+                    result = new SizeOfPackExpr(handle);
+                    break;
                 }
 
                 default:
                 {
                     Debug.WriteLine($"Unhandled expression kind: {handle.KindSpelling}.");
                     Debugger.Break();
-                    return new Expr(handle, parent);
+
+                    result = new Expr(handle, handle.Kind);
+                    break;
                 }
             }
-        }
 
-        private readonly Lazy<Cursor> _definition;
-
-        protected Expr(CXCursor handle, Cursor parent) : base(handle, parent)
-        {
-            Debug.Assert(handle.IsExpression);
-
-            _definition = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Definition, () => Create(Handle.Definition, this));
-                cursor?.Visit(clientData: default);
-                return cursor;
-            });
-
-            Type = TranslationUnit.GetOrCreateType(Handle.Type, () => Type.Create(Handle.Type, TranslationUnit));
-        }
-
-        public Cursor Definition => _definition.Value;
-
-        public bool IsDynamicCall => Handle.IsDynamicCall;
-
-        public Type Type { get; }
-
-        protected unsafe override void ValidateVisit(ref CXCursor handle)
-        {
-            // Clang currently uses the PostChildrenVisitor which clears data0
-
-            var modifiedHandle = Handle;
-            modifiedHandle.data[0] = null;
-
-            Debug.Assert(handle.Equals(modifiedHandle));
-            handle = Handle;
+            return result;
         }
     }
 }

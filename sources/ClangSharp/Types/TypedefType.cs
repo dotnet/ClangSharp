@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -8,23 +7,11 @@ namespace ClangSharp
     {
         private readonly Lazy<TypedefNameDecl> _decl;
 
-        public TypedefType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
+        internal TypedefType(CXType handle) : base(handle, CXTypeKind.CXType_Typedef)
         {
-            Debug.Assert(handle.kind == CXTypeKind.CXType_Typedef);
-
-            _decl = new Lazy<TypedefNameDecl>(() => {
-                var cursor = translationUnit.GetOrCreateCursor(Handle.Declaration, () => Cursor.Create(Handle.Declaration, translationUnit));
-                cursor?.Visit(clientData: default);
-                return (TypedefNameDecl)cursor;
-            });
+            _decl = new Lazy<TypedefNameDecl>(() => TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.Declaration));
         }
 
         public TypedefNameDecl Decl => _decl.Value;
-
-        public string Name => Handle.TypedefName.ToString();
-
-        public bool IsTransparentTag => Handle.IsTransparentTagTypedef;
-
-        public Type UnderlyingType => Decl.UnderlyingType;
     }
 }

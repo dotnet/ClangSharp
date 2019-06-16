@@ -1,19 +1,55 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public class Type
+    public unsafe class Type : IEquatable<Type>
     {
-        public static Type Create(CXType handle, TranslationUnitDecl translationUnit)
+        private readonly Lazy<Type> _canonicalType;
+        private readonly Lazy<TranslationUnit> _translationUnit;
+
+        protected Type(CXType handle, CXTypeKind expectedKind)
         {
-            Debug.Assert(handle.kind != CXTypeKind.CXType_Invalid);
+            if (handle.kind != expectedKind)
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+            Handle = handle;
+
+            _canonicalType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CanonicalType));
+            _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate((CXTranslationUnit)Handle.data[1]));
+        }
+
+        public string AsString => Handle.Spelling.ToString();
+
+        public Type CanonicalType => _canonicalType.Value;
+
+        public CXType Handle { get; }
+
+        public bool IsLocalConstQualified => Handle.IsConstQualified;
+
+        public CXTypeKind Kind => Handle.kind;
+
+        public string KindSpelling => Handle.KindSpelling.ToString();
+
+        public TranslationUnit TranslationUnit => _translationUnit.Value;
+
+        public static bool operator ==(Type left, Type right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
+
+        public static bool operator !=(Type left, Type right) => (left is object) ? ((right is null) || (left.Handle != right.Handle)) : (right is object);
+
+        internal static Type Create(CXType handle)
+        {
+            Type result;
 
             switch (handle.kind)
             {
                 case CXTypeKind.CXType_Unexposed:
                 {
-                    return new UnexposedType(handle, translationUnit);
+                    result = new Type(handle, CXTypeKind.CXType_Unexposed);
+                    break;
                 }
 
                 case CXTypeKind.CXType_Void:
@@ -37,96 +73,95 @@ namespace ClangSharp
                 case CXTypeKind.CXType_NullPtr:
                 case CXTypeKind.CXType_Dependent:
                 {
-                    return new BuiltinType(handle, translationUnit);
+                    result = new BuiltinType(handle, handle.kind);
+                    break;
                 }
 
                 case CXTypeKind.CXType_Pointer:
                 {
-                    return new PointerType(handle, translationUnit);
+                    result = new PointerType(handle);
+                    break;
                 }
 
                 case CXTypeKind.CXType_LValueReference:
                 {
-                    return new LValueReferenceType(handle, translationUnit);
+                    result = new LValueReferenceType(handle);
+                    break;
                 }
 
                 case CXTypeKind.CXType_Record:
                 {
-                    return new RecordType(handle, translationUnit);
+                    result = new RecordType(handle);
+                    break;
                 }
 
                 case CXTypeKind.CXType_Enum:
                 {
-                    return new EnumType(handle, translationUnit);
+                    result = new EnumType(handle);
+                    break;
                 }
 
                 case CXTypeKind.CXType_Typedef:
                 {
-                    return new TypedefType(handle, translationUnit);
+                    result = new TypedefType(handle);
+                    break;
                 }
 
                 case CXTypeKind.CXType_FunctionProto:
                 {
-                    return new FunctionProtoType(handle, translationUnit);
+                    result = new FunctionProtoType(handle);
+                    break;
                 }
 
                 case CXTypeKind.CXType_ConstantArray:
                 {
-                    return new ConstantArrayType(handle, translationUnit);
+                    result = new ConstantArrayType(handle);
+                    break;
                 }
 
                 case CXTypeKind.CXType_IncompleteArray:
                 {
-                    return new IncompleteArrayType(handle, translationUnit);
+                    result = new IncompleteArrayType(handle);
+                    break;
                 }
 
                 case CXTypeKind.CXType_DependentSizedArray:
                 {
-                    return new DependentSizedArrayType(handle, translationUnit);
+                    result = new DependentSizedArrayType(handle);
+                    break;
                 }
 
                 case CXTypeKind.CXType_Elaborated:
                 {
-                    return new ElaboratedType(handle, translationUnit);
+                    result = new ElaboratedType(handle);
+                    break;
                 }
 
                 case CXTypeKind.CXType_Attributed:
                 {
-                    return new AttributedType(handle, translationUnit);
+                    result = new AttributedType(handle);
+                    break;
                 }
 
                 default:
                 {
                     Debug.WriteLine($"Unhandled type kind: {handle.KindSpelling}.");
                     Debugger.Break();
-                    return new Type(handle, translationUnit);
+
+                    result = new Type(handle, handle.kind);
+                    break;
                 }
             }
+
+            return result;
         }
 
-        protected Type(CXType handle, TranslationUnitDecl translationUnit)
-        {
-            Debug.Assert(translationUnit != null);
+        public override bool Equals(object obj) => (obj is Type other) && Equals(other);
 
-            Handle = handle;
-            TranslationUnit = translationUnit;
+        public bool Equals(Type other) => this == other;
 
-            translationUnit.AddVisitedType(this);
-            CanonicalType = TranslationUnit.GetOrCreateType(Handle.CanonicalType, () => Create(Handle.CanonicalType, TranslationUnit));
-        }
+        public override int GetHashCode() => Handle.GetHashCode();
 
-        public Type CanonicalType { get; }
-
-        public CXType Handle { get; }
-
-        public bool IsConstQualified => Handle.IsConstQualified;
-
-        public CXTypeKind Kind => Handle.kind;
-
-        public string KindSpelling => Handle.KindSpelling.ToString();
-
-        public TranslationUnitDecl TranslationUnit { get; }
-
-        public string Spelling => Handle.Spelling.ToString();
+        public override string ToString() => Handle.ToString();
     }
 }

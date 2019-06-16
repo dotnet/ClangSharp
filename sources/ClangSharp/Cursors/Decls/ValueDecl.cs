@@ -1,14 +1,17 @@
+using System;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public class ValueDecl : NamedDecl
     {
-        protected ValueDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        private readonly Lazy<Type> _type;
+
+        private protected ValueDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            Type = TranslationUnit.GetOrCreateType(Handle.Type, () => Type.Create(Handle.Type, TranslationUnit));
+            _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
         }
 
-        public Type Type { get; }
+        public Type Type => _type.Value;
     }
 }

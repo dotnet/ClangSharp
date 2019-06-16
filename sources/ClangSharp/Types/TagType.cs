@@ -7,13 +7,9 @@ namespace ClangSharp
     {
         private readonly Lazy<TagDecl> _decl;
 
-        protected TagType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
+        private protected TagType(CXType handle, CXTypeKind expectedKind) : base(handle, expectedKind)
         {
-            _decl = new Lazy<TagDecl>(() => {
-                var cursor = translationUnit.GetOrCreateCursor(Handle.Declaration, () => Cursor.Create(Handle.Declaration, translationUnit));
-                cursor?.Visit(clientData: default);
-                return (TagDecl)cursor;
-            });
+            _decl = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Declaration));
         }
 
         public TagDecl Decl => _decl.Value;

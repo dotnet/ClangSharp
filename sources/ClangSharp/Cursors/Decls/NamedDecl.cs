@@ -4,11 +4,11 @@ namespace ClangSharp
 {
     public class NamedDecl : Decl
     {
-        protected NamedDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        private protected NamedDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
         }
 
-        public CXLinkageKind Linkage => Handle.Linkage;
+        public CXLinkageKind LinkageInternal => Handle.Linkage;
 
         public string Name => Spelling;
 

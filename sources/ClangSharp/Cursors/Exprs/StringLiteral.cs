@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class StringLiteral : Expr
     {
-        public StringLiteral(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal StringLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_StringLiteral)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_StringLiteral);
         }
     }
 }

@@ -1,16 +1,17 @@
-using System.Diagnostics;
+using System;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class AttributedType : Type
     {
-        public AttributedType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
+        private readonly Lazy<Type> _modifiedType;
+
+        internal AttributedType(CXType handle) : base(handle, CXTypeKind.CXType_Attributed)
         {
-            Debug.Assert(handle.kind == CXTypeKind.CXType_Attributed);
-            ModifiedType = TranslationUnit.GetOrCreateType(Handle.ModifiedType, () => Create(Handle.ModifiedType, TranslationUnit));
+            _modifiedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ModifiedType));
         }
 
-        public Type ModifiedType { get; }
+        public Type ModifiedType => _modifiedType.Value;
     }
 }

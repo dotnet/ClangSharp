@@ -4,7 +4,7 @@ namespace ClangSharp
 {
     public class AbstractConditionalOperator : Expr
     {
-        protected AbstractConditionalOperator(CXCursor handle, Cursor parent) : base(handle, parent)
+        private protected AbstractConditionalOperator(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
         }
     }

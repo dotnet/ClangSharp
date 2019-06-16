@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class StaticAssertDecl : Decl
     {
-        public StaticAssertDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal StaticAssertDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_StaticAssert)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_StaticAssert);
         }
     }
 }

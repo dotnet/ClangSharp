@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class InitListExpr : Expr
     {
-        public InitListExpr(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal InitListExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_InitListExpr)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_InitListExpr);
         }
     }
 }

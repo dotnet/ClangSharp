@@ -1,14 +1,17 @@
+using System;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public class ReferenceType : Type
     {
-        protected ReferenceType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
+        private readonly Lazy<Type> _pointeeType;
+
+        private protected ReferenceType(CXType handle, CXTypeKind expectedKind) : base(handle, expectedKind)
         {
-            PointeeType = TranslationUnit.GetOrCreateType(Handle.PointeeType, () => Create(Handle.PointeeType, TranslationUnit));
+            _pointeeType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
         }
 
-        public Type PointeeType { get; }
+        public Type PointeeType => _pointeeType.Value;
     }
 }

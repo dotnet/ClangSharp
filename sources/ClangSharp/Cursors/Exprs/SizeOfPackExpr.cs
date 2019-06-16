@@ -1,24 +1,17 @@
 using System;
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class SizeOfPackExpr : Expr
     {
-        private readonly Lazy<Cursor> _referenced;
+        private readonly Lazy<NamedDecl> _pack;
 
-        public SizeOfPackExpr(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal SizeOfPackExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SizeOfPackExpr)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_SizeOfPackExpr);
-
-            _referenced = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Referenced, () => Create(Handle.Referenced, this));
-                cursor?.Visit(clientData: default);
-                return cursor;
-            });
+            _pack = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.Referenced));
         }
 
-        public Cursor Referenced => _referenced.Value;
+        public NamedDecl Pack => _pack.Value;
     }
 }

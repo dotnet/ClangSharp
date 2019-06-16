@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class CStyleCastExpr : ExplicitCastExpr
     {
-        public CStyleCastExpr(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal CStyleCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CStyleCastExpr)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_CStyleCastExpr);
         }
     }
 }

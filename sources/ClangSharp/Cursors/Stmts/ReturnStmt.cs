@@ -1,27 +1,18 @@
-using System.Diagnostics;
+using System;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class ReturnStmt : Stmt
     {
-        private Expr _retValue;
+        private readonly Lazy<Expr> _retValue;
 
-        public ReturnStmt(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal ReturnStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ReturnStmt)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_ReturnStmt);
+            _retValue = new Lazy<Expr>(() => Children.Where((stmt) => stmt is Expr).Cast<Expr>().Single());
         }
 
-        public Expr RetValue => _retValue;
-
-        protected override Expr GetOrAddExpr(CXCursor childHandle)
-        {
-            var expr = base.GetOrAddExpr(childHandle);
-
-            Debug.Assert(_retValue is null);
-            _retValue = expr;
-
-            return expr;
-        }
+        public Expr RetValue => _retValue.Value;
     }
 }

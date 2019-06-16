@@ -1,27 +1,25 @@
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class NamespaceDecl : NamedDecl
+    public sealed class NamespaceDecl : NamedDecl, IDeclContext, IRedeclarable<NamespaceDecl>
     {
-        private readonly List<Decl> _declarations = new List<Decl>();
+        private readonly Lazy<IReadOnlyList<Decl>> _decls;
 
-        public NamespaceDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal NamespaceDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_Namespace)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_Namespace);
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.Where((cursor) => cursor is Decl).Cast<Decl>().ToList());
         }
 
-        public bool IsAnonymous => Handle.IsAnonymous;
+        public bool IsAnonymousNamespace => Handle.IsAnonymous;
 
-        public IReadOnlyList<Decl> Declarations => _declarations;
+        public IReadOnlyList<Decl> Decls => _decls.Value;
 
-        protected override Decl GetOrAddDecl(CXCursor childHandle)
-        {
-            var decl = base.GetOrAddDecl(childHandle);
-            _declarations.Add(decl);
-            return decl;
-        }
+        public IDeclContext LexicalParent => LexicalDeclContext;
+
+        public IDeclContext Parent => DeclContext;
     }
 }

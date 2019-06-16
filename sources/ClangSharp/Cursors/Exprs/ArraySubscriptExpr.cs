@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class ArraySubscriptExpr : Expr
     {
-        public ArraySubscriptExpr(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal ArraySubscriptExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ArraySubscriptExpr)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_ArraySubscriptExpr);
         }
     }
 }

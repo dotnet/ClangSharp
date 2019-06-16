@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class CXXConstructorDecl : CXXMethodDecl
     {
-        public CXXConstructorDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal CXXConstructorDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_Constructor)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_Constructor);
         }
 
         public bool IsConvertingConstructor => Handle.CXXConstructor_IsConvertingConstructor;

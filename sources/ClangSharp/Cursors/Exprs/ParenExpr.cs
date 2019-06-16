@@ -1,27 +1,18 @@
-using System.Diagnostics;
+using System;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class ParenExpr : Expr
     {
-        private Expr _subExpr;
+        private readonly Lazy<Expr> _subExpr;
 
-        public ParenExpr(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal ParenExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ParenExpr)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_ParenExpr);
+            _subExpr = new Lazy<Expr>(() => Children.Where((cursor) => cursor is Expr).Cast<Expr>().Single());
         }
 
-        public Expr SubExpr => _subExpr;
-
-        protected override Expr GetOrAddExpr(CXCursor childHandle)
-        {
-            var expr = base.GetOrAddExpr(childHandle);
-
-            Debug.Assert(_subExpr is null);
-            _subExpr = expr;
-
-            return expr;
-        }
+        public Expr SubExpr => _subExpr.Value;
     }
 }

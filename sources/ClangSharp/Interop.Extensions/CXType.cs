@@ -71,7 +71,7 @@ namespace ClangSharp.Interop
 
         public CXString Spelling => clang.getTypeSpelling(this);
 
-        public CXString TypedefName => (kind == CXTypeKind.CXType_Typedef) ? clang.getTypedefName(this) : default;
+        public CXString TypedefName => clang.getTypedefName(this);
 
         public static bool operator ==(CXType left, CXType right) => clang.equalTypes(left, right) != 0;
 
@@ -83,7 +83,7 @@ namespace ClangSharp.Interop
 
         public CXType GetArgType(uint i) => clang.getArgType(this, i);
 
-        public override int GetHashCode() => HashCode.Combine(kind, data);
+        public override int GetHashCode() => HashCode.Combine(kind, (IntPtr)data[0], (IntPtr)data[1]);
 
         public CXCursor GetObjCProtocolDecl(uint i) => clang.Type_getObjCProtocolDecl(this, i);
 

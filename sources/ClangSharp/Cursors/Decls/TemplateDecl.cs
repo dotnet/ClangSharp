@@ -4,10 +4,8 @@ namespace ClangSharp
 {
     public class TemplateDecl : NamedDecl
     {
-        protected TemplateDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        private protected TemplateDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
         }
-
-        public CXCursorKind TemplateKind => Handle.TemplateCursorKind;
     }
 }

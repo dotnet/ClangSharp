@@ -1,102 +1,41 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public class FunctionDecl : DeclaratorDecl
+    public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<FunctionDecl>
     {
-        private readonly List<Decl> _declarations = new List<Decl>();
-        private readonly ParmVarDecl[] _parameters;
-        private readonly Lazy<Cursor> _specializedTemplate;
+        private readonly Lazy<Stmt> _body;
+        private readonly Lazy<IReadOnlyList<Decl>> _decls;
+        private readonly Lazy<IReadOnlyList<ParmVarDecl>> _parameters;
+        private readonly Lazy<Type> _returnType;
 
-        private Stmt _body;
-
-        public FunctionDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal FunctionDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            _parameters = new ParmVarDecl[Handle.NumArguments];
-
-            for (uint index = 0; index < Handle.NumArguments; index++)
-            {
-                var parameterHandle = Handle.GetArgument(index);
-                var parmVarDecl = (ParmVarDecl)GetOrAddDecl(parameterHandle);
-
-                _parameters[index] = parmVarDecl;
-                parmVarDecl.Visit(clientData: default);
-            }
-
-            ReturnType = TranslationUnit.GetOrCreateType(Handle.ResultType, () => Type.Create(Handle.ResultType, TranslationUnit));
-
-            _specializedTemplate = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.SpecializedCursorTemplate, () => Create(Handle.SpecializedCursorTemplate, this));
-                cursor?.Visit(clientData: default);
-                return cursor;
-            });
+            _body = new Lazy<Stmt>(() => CursorChildren.Where((cursor) => cursor is Stmt).Cast<Stmt>().SingleOrDefault());
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.Where((cursor) => cursor is Decl).Cast<Decl>().ToList());
+            _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => Decls.Where((decl) => decl is ParmVarDecl).Cast<ParmVarDecl>().ToList());
+            _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ResultType));
         }
 
-        public Stmt Body => _body;
+        public Stmt Body => _body.Value;
 
-        public IReadOnlyList<Decl> Declarations => _declarations;
-
-        public string DisplayName => Handle.DisplayName.ToString();
-
-        public FunctionType FunctionType => (FunctionType)Type;
-
-        public bool HasDllExport => HasAttrs && Attributes.Any((attr) => attr is DLLExport);
-
-        public bool HasDllImport => HasAttrs && Attributes.Any((attr) => attr is DLLImport);
+        public IReadOnlyList<Decl> Decls => _decls.Value;
 
         public bool IsInlined => Handle.IsFunctionInlined;
 
         public bool IsVariadic => Handle.IsVariadic;
 
-        public string Mangling => Handle.Mangling.ToString();
+        public IDeclContext LexicalParent => LexicalDeclContext;
 
-        public int NumTemplateArguments => Handle.NumTemplateArguments;
+        public IReadOnlyList<ParmVarDecl> Parameters => _parameters.Value;
 
-        public IReadOnlyList<ParmVarDecl> Parameters => _parameters;
+        public IDeclContext Parent => DeclContext;
 
-        public Type ReturnType { get; }
-
-        public Cursor SpecializedTemplate => _specializedTemplate.Value;
+        public Type ReturnType => _returnType.Value;
 
         public CX_StorageClass StorageClass => Handle.StorageClass;
-
-        public CXSourceRange GetSpellingNameRange(uint pieceIndex, uint options) => Handle.GetSpellingNameRange(pieceIndex, options);
-
-        public CXTemplateArgumentKind GetTemplateArgumentKind(uint i) => Handle.GetTemplateArgumentKind(i);
-
-        public ulong GetTemplateArgumentUnsignedValue(uint i) => Handle.GetTemplateArgumentUnsignedValue(i);
-
-        public long GetTemplateArgumentValue(uint i) => Handle.GetTemplateArgumentValue(i);
-
-        protected override Decl GetOrAddDecl(CXCursor childHandle)
-        {
-            var decl = base.GetOrAddDecl(childHandle);
-            _declarations.Add(decl);
-            return decl;
-        }
-
-        protected override Expr GetOrAddExpr(CXCursor childHandle)
-        {
-            var expr = base.GetOrAddExpr(childHandle);
-
-            Debug.Assert(_body is null);
-            _body = expr;
-
-            return expr;
-        }
-
-        protected override Stmt GetOrAddStmt(CXCursor childHandle)
-        {
-            var stmt = base.GetOrAddStmt(childHandle);
-
-            Debug.Assert(_body is null);
-            _body = stmt;
-
-            return stmt;
-        }
     }
 }

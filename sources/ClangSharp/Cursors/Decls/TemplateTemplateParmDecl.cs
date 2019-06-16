@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class TemplateTemplateParmDecl : TemplateDecl
+    public sealed class TemplateTemplateParmDecl : TemplateDecl, ITemplateParmPosition
     {
-        public TemplateTemplateParmDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal TemplateTemplateParmDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TemplateTemplateParameter)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_TemplateTemplateParameter);
         }
     }
 }

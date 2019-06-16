@@ -1,44 +1,38 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class CallExpr : Expr
     {
-        private readonly Expr[] _arguments;
+        private readonly Lazy<IReadOnlyList<Expr>> _args;
         private readonly Lazy<Decl> _calleeDecl;
 
-        public CallExpr(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal CallExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CallExpr)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_CallExpr);
+            _args = new Lazy<IReadOnlyList<Expr>>(() => {
+                var numArgs = NumArgs;
+                var args = new List<Expr>((int)numArgs);
 
-            _arguments = new Expr[Handle.NumArguments];
+                for (var index = 0u; index < numArgs; index++)
+                {
+                    var arg = Handle.GetArgument(index);
+                    args.Add(TranslationUnit.GetOrCreate<Expr>(arg));
+                }
 
-            for (uint index = 0; index < Handle.NumArguments; index++)
-            {
-                var argumentHandle = Handle.GetArgument(index);
-                var expr = GetOrAddExpr(argumentHandle);
-
-                _arguments[index] = expr;
-                expr.Visit(clientData: default);
-            }
-
-            _calleeDecl = new Lazy<Decl>(() =>
-            {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.Referenced, () => Create(Handle.Referenced, this));
-                cursor?.Visit(clientData: default);
-                return (Decl)cursor;
+                return args;
             });
+
+            _calleeDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.Referenced));
         }
 
-        public IReadOnlyList<Expr> Arguments => _arguments;
+        public IReadOnlyList<Expr> Args => _args.Value;
 
         public Decl CalleeDecl => _calleeDecl.Value;
 
         public FunctionDecl DirectCallee => CalleeDecl as FunctionDecl;
 
-        public CXSourceRange GetCalleeDeclNameRange(CXNameRefFlags nameFlags, uint pieceIndex) => Handle.GetReferenceNameRange(nameFlags, pieceIndex);
+        public uint NumArgs => (uint)Handle.NumArguments;
     }
 }

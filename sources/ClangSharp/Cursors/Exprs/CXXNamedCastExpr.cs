@@ -4,7 +4,7 @@ namespace ClangSharp
 {
     public class CXXNamedCastExpr : ExplicitCastExpr
     {
-        protected CXXNamedCastExpr(CXCursor handle, Cursor parent) : base(handle, parent)
+        private protected CXXNamedCastExpr(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
         }
     }

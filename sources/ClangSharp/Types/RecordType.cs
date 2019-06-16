@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class RecordType : TagType
     {
-        public RecordType(CXType handle, TranslationUnitDecl translationUnit) : base(handle, translationUnit)
+        internal RecordType(CXType handle) : base(handle, CXTypeKind.CXType_Record)
         {
-            Debug.Assert(handle.kind == CXTypeKind.CXType_Record);
         }
     }
 }

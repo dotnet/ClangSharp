@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class ClassTemplatePartialSpecializationDecl : ClassTemplateSpecializationDecl
     {
-        public ClassTemplatePartialSpecializationDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal ClassTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ClassTemplatePartialSpecialization)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_ClassTemplatePartialSpecialization);
         }
     }
 }

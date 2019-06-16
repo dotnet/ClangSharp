@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class CXXDestructorDecl : CXXMethodDecl
     {
-        public CXXDestructorDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal CXXDestructorDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_Destructor)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_Destructor);
         }
     }
 }

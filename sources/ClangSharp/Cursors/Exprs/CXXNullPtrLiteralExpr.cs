@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class CXXNullPtrLiteralExpr : Expr
     {
-        public CXXNullPtrLiteralExpr(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal CXXNullPtrLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXNullPtrLiteralExpr)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_CXXNullPtrLiteralExpr);
         }
     }
 }

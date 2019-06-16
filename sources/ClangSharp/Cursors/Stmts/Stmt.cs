@@ -1,82 +1,87 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public class Stmt : Cursor
     {
-        public static new Stmt Create(CXCursor handle, Cursor parent)
+        private readonly Lazy<IReadOnlyList<Stmt>> _children;
+
+        private protected Stmt(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            if (handle.IsExpression)
-            {
-                return Expr.Create(handle, parent);
-            }
+            _children = new Lazy<IReadOnlyList<Stmt>>(() => CursorChildren.Where((cursor) => cursor is Stmt).Cast<Stmt>().ToList());
+        }
+
+        public IReadOnlyList<Stmt> Children => _children.Value;
+
+        internal static new Stmt Create(CXCursor handle)
+        {
+            Stmt result;
 
             switch (handle.Kind)
             {
                 case CXCursorKind.CXCursor_CompoundStmt:
                 {
-                    return new CompoundStmt(handle, parent);
+                    result = new CompoundStmt(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_IfStmt:
                 {
-                    return new IfStmt(handle, parent);
+                    result = new IfStmt(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_DoStmt:
                 {
-                    return new DoStmt(handle, parent);
+                    result = new DoStmt(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_ForStmt:
                 {
-                    return new ForStmt(handle, parent);
+                    result = new ForStmt(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_BreakStmt:
                 {
-                    return new BreakStmt(handle, parent);
+                    result = new BreakStmt(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_ReturnStmt:
                 {
-                    return new ReturnStmt(handle, parent);
+                    result = new ReturnStmt(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_NullStmt:
                 {
-                    return new NullStmt(handle, parent);
+                    result = new NullStmt(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_DeclStmt:
                 {
-                    return new DeclStmt(handle, parent);
+                    result = new DeclStmt(handle);
+                    break;
                 }
 
                 default:
                 {
                     Debug.WriteLine($"Unhandled statement kind: {handle.KindSpelling}.");
                     Debugger.Break();
-                    return new Stmt(handle, parent);
+
+                    result = new Stmt(handle, handle.Kind);
+                    break;
                 }
             }
-        }
 
-        protected Stmt(CXCursor handle, Cursor parent) : base(handle, parent)
-        {
-            Debug.Assert(handle.IsStatement || (this is ValueStmt));
-        }
-
-        protected unsafe override void ValidateVisit(ref CXCursor handle)
-        {
-            // Clang currently uses the PostChildrenVisitor which clears data0
-
-            var modifiedHandle = Handle;
-            modifiedHandle.data[0] = null;
-
-            Debug.Assert(handle.Equals(modifiedHandle));
-            handle = Handle;
+            return result;
         }
     }
 }

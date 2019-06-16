@@ -5,66 +5,38 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public unsafe class Cursor
+    public unsafe class Cursor : IEquatable<Cursor>
     {
-        public static Cursor Create(CXCursor handle, Cursor parent)
+        private readonly Lazy<List<Cursor>> _cursorChildren;
+        private readonly Lazy<TranslationUnit> _translationUnit;
+
+        private protected Cursor(CXCursor handle, CXCursorKind expectedKind)
         {
-            if (handle.IsDeclaration)
+            if (handle.kind != expectedKind)
             {
-                return Decl.Create(handle, parent);
+                throw new ArgumentException(nameof(handle));
             }
-            else if (handle.IsReference)
-            {
-                return Ref.Create(handle, parent);
-            }
-            else if (handle.IsExpression)
-            {
-                return Expr.Create(handle, parent);
-            }
-            else if (handle.IsStatement)
-            {
-                return Stmt.Create(handle, parent);
-            }
-            else if (handle.IsAttribute)
-            {
-                return Attr.Create(handle, parent);
-            }
-
-            switch (handle.Kind)
-            {
-                default:
-                {
-                    Debug.WriteLine($"Unhandled cursor kind: {handle.KindSpelling}.");
-                    Debugger.Break();
-                    return new Cursor(handle, parent);
-                }
-            }
-        }
-
-        private readonly List<Cursor> _children = new List<Cursor>();
-        private bool _visited;
-
-        protected Cursor(CXCursor handle, Cursor parent)
-        {
-            Debug.Assert(!handle.IsNull);
-
             Handle = handle;
-            Parent = parent;
 
-            if (parent is null)
-            {
-                Debug.Assert(this is TranslationUnitDecl);
-                TranslationUnit = this as TranslationUnitDecl;
-            }
-            else
-            {
-                Debug.Assert(parent.TranslationUnit != null);
-                TranslationUnit = parent.TranslationUnit;
-            }
-            TranslationUnit.AddVisitedCursor(this);
+            _cursorChildren = new Lazy<List<Cursor>>(() => {
+                var cursors = new List<Cursor>();
+
+                Handle.VisitChildren((cursor, parent, clientData) => {
+                    var cursorChild = TranslationUnit.GetOrCreate<Cursor>(cursor);
+                    cursorChild.CursorParent = this;
+
+                    cursors.Add(cursorChild);
+                    return CXChildVisitResult.CXChildVisit_Continue;
+                }, clientData: default);
+
+                return cursors;
+            });
+            _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
         }
 
-        public IReadOnlyList<Cursor> Children => _children;
+        public IReadOnlyList<Cursor> CursorChildren => _cursorChildren.Value;
+
+        public Cursor CursorParent { get; private set; }
 
         public CXSourceRange Extent => Handle.Extent;
 
@@ -78,111 +50,55 @@ namespace ClangSharp
 
         public CXSourceLocation Location => Handle.Location;
 
-        public Cursor Parent { get; }
-
         public string Spelling => Handle.Spelling.ToString();
 
-        public TranslationUnitDecl TranslationUnit { get; }
+        public TranslationUnit TranslationUnit => _translationUnit.Value;
 
-        public Span<CXToken> Tokenize(Cursor cursor)
-        {
-            return Handle.TranslationUnit.Tokenize(cursor.Extent);
-        }
+        public static bool operator ==(Cursor left, Cursor right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
 
-        public CXChildVisitResult Visit(CXClientData clientData)
+        public static bool operator !=(Cursor left, Cursor right) => (left is object) ? ((right is null) || (left.Handle != right.Handle)) : (right is object);
+
+        internal static Cursor Create(CXCursor handle)
         {
-            if (!_visited)
+            Cursor result;
+
+            if (handle.IsDeclaration)
             {
-                _visited = true;
-                Handle.VisitChildren(VisitChildren, clientData);
+                result = Decl.Create(handle);
             }
-
-            // We always return CXChildVisit_Continue since some clang will return
-            // CXChildVisit_Break for some calls, such as if they have no children.
-
-            return CXChildVisitResult.CXChildVisit_Continue;
-        }
-
-        protected virtual Attr GetOrAddAttr(CXCursor childHandle)
-        {
-            Debug.Assert(childHandle.IsAttribute);
-            return (Attr)GetOrAddCursor(childHandle);
-        }
-
-        protected virtual Cursor GetOrAddCursor(CXCursor childHandle)
-        {
-            var childCursor = TranslationUnit.GetOrCreateCursor(childHandle, () => Create(childHandle, this));
-            _children.Add(childCursor);
-            return childCursor;
-        }
-
-        protected virtual Decl GetOrAddDecl(CXCursor childHandle)
-        {
-            Debug.Assert(childHandle.IsDeclaration);
-            return (Decl)GetOrAddCursor(childHandle);
-        }
-
-        protected virtual Expr GetOrAddExpr(CXCursor childHandle)
-        {
-            Debug.Assert(childHandle.IsExpression);
-            return (Expr)GetOrAddCursor(childHandle);
-        }
-
-        protected virtual Ref GetOrAddRef(CXCursor childHandle)
-        {
-            Debug.Assert(childHandle.IsReference);
-            return (Ref)GetOrAddCursor(childHandle);
-        }
-
-        protected virtual Stmt GetOrAddStmt(CXCursor childHandle)
-        {
-            if (childHandle.IsExpression)
+            else if (handle.IsReference)
             {
-                return GetOrAddExpr(childHandle);
+                result = Ref.Create(handle);
             }
-
-            Debug.Assert(childHandle.IsStatement);
-            return (Stmt)GetOrAddCursor(childHandle);
-        }
-
-        protected virtual void ValidateVisit(ref CXCursor handle)
-        {
-            Debug.Assert(handle.Equals(Handle));
-        }
-
-        private unsafe CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, void* clientData)
-        {
-            return VisitChildren(childHandle, handle, (CXClientData)clientData);
-        }
-
-        private CXChildVisitResult VisitChildren(CXCursor childHandle, CXCursor handle, CXClientData clientData)
-        {
-            ValidateVisit(ref handle);
-
-            if (childHandle.IsDeclaration)
+            else if (handle.IsExpression)
             {
-                return GetOrAddDecl(childHandle).Visit(clientData);
+                result = Expr.Create(handle);
             }
-            else if (childHandle.IsReference)
+            else if (handle.IsStatement)
             {
-                return GetOrAddRef(childHandle).Visit(clientData);
+                result = Stmt.Create(handle);
             }
-            else if (childHandle.IsExpression)
+            else if (handle.IsAttribute)
             {
-                return GetOrAddExpr(childHandle).Visit(clientData);
-            }
-            else if (childHandle.IsStatement)
-            {
-                return GetOrAddStmt(childHandle).Visit(clientData);
-            }
-            else if (childHandle.IsAttribute)
-            {
-                return GetOrAddAttr(childHandle).Visit(clientData);
+                result = Attr.Create(handle);
             }
             else
             {
-                return GetOrAddCursor(childHandle).Visit(clientData);
+                Debug.WriteLine($"Unhandled cursor kind: {handle.KindSpelling}.");
+                Debugger.Break();
+
+                result = new Cursor(handle, handle.Kind);
             }
+
+            return result;
         }
+
+        public override bool Equals(object obj) => (obj is Cursor other) && Equals(other);
+
+        public bool Equals(Cursor other) => this == other;
+
+        public override int GetHashCode() => Handle.GetHashCode();
+
+        public override string ToString() => Handle.ToString();
     }
 }

@@ -1,13 +1,11 @@
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class BreakStmt : Stmt
     {
-        public BreakStmt(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal BreakStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_BreakStmt)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_BreakStmt);
         }
     }
 }

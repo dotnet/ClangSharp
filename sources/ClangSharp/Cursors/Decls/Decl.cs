@@ -1,224 +1,230 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public class Decl : Cursor
     {
-        public static new Decl Create(CXCursor handle, Cursor parent)
+        private readonly Lazy<IReadOnlyList<Attr>> _attrs;
+        private readonly Lazy<Decl> _canonicalDecl;
+        private readonly Lazy<IDeclContext> _declContext;
+        private readonly Lazy<IDeclContext> _lexicalDeclContext;
+        private readonly Lazy<TranslationUnitDecl> _translationUnitDecl;
+
+        private protected Decl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
+            _attrs = new Lazy<IReadOnlyList<Attr>>(() => CursorChildren.Where((cursor) => cursor is Attr).Cast<Attr>().ToList());
+            _canonicalDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
+            _declContext = new Lazy<IDeclContext>(() => (IDeclContext)Create(Handle.SemanticParent));
+            _lexicalDeclContext = new Lazy<IDeclContext>(() => (IDeclContext)Create(Handle.LexicalParent));
+            _translationUnitDecl = new Lazy<TranslationUnitDecl>(() => TranslationUnit.GetOrCreate<TranslationUnitDecl>(Handle.TranslationUnit.Cursor));
+        }
+
+        public CX_CXXAccessSpecifier Access => Handle.CXXAccessSpecifier;
+
+        public IReadOnlyList<Attr> Attributes => _attrs.Value;
+
+        public CXAvailabilityKind Availability => Handle.Availability;
+
+        public Decl Canonical => _canonicalDecl.Value;
+
+        public IDeclContext DeclContext => _declContext.Value;
+
+        public bool HasAttrs => Handle.HasAttrs;
+
+        public bool IsCanonicalDecl => Handle.IsCanonical;
+
+        public bool IsInvalidDecl => Handle.IsInvalidDeclaration;
+
+        public IDeclContext LexicalDeclContext => _lexicalDeclContext.Value;
+
+        public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.Value;
+
+        internal static new Decl Create(CXCursor handle)
+        {
+            Decl result;
+
             switch (handle.Kind)
             {
                 case CXCursorKind.CXCursor_UnexposedDecl:
                 {
-                    return new UnexposedDecl(handle, parent);
+                    result = new Decl(handle, CXCursorKind.CXCursor_UnexposedDecl);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_StructDecl:
                 case CXCursorKind.CXCursor_UnionDecl:
                 case CXCursorKind.CXCursor_ClassDecl:
                 {
-                    if (handle.Language == CXLanguageKind.CXLanguage_C)
+                    if (handle.Language == CXLanguageKind.CXLanguage_CPlusPlus)
                     {
-                        return new RecordDecl(handle, parent);
-                    }
-                    else if (handle.Language == CXLanguageKind.CXLanguage_CPlusPlus)
-                    {
-                        return new CXXRecordDecl(handle, parent);
+                        result = new CXXRecordDecl(handle, handle.Kind);
                     }
                     else
                     {
-                        goto default;
+                        result = new RecordDecl(handle, handle.Kind);
                     }
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_EnumDecl:
                 {
-                    return new EnumDecl(handle, parent);
+                    result = new EnumDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_FieldDecl:
                 {
-                    return new FieldDecl(handle, parent);
+                    result = new FieldDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_EnumConstantDecl:
                 {
-                    return new EnumConstantDecl(handle, parent);
+                    result = new EnumConstantDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_FunctionDecl:
                 {
-                    return new FunctionDecl(handle, parent);
+                    result = new FunctionDecl(handle, CXCursorKind.CXCursor_FunctionDecl);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_VarDecl:
                 {
-                    return new VarDecl(handle, parent);
+                    result = new VarDecl(handle, CXCursorKind.CXCursor_VarDecl);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_ParmDecl:
                 {
-                    return new ParmVarDecl(handle, parent);
+                    result = new ParmVarDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_TypedefDecl:
                 {
-                    return new TypedefDecl(handle, parent);
+                    result = new TypedefDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CXXMethod:
                 {
-                    return new CXXMethodDecl(handle, parent);
+                    result = new CXXMethodDecl(handle, CXCursorKind.CXCursor_CXXMethod);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_Namespace:
                 {
-                    return new NamespaceDecl(handle, parent);
+                    result = new NamespaceDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_Constructor:
                 {
-                    return new CXXConstructorDecl(handle, parent);
+                    result = new CXXConstructorDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_Destructor:
                 {
-                    return new CXXDestructorDecl(handle, parent);
+                    result = new CXXDestructorDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_ConversionFunction:
                 {
-                    return new CXXConversionDecl(handle, parent);
+                    result = new CXXConversionDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_TemplateTypeParameter:
                 {
-                    return new TemplateTypeParmDecl(handle, parent);
+                    result = new TemplateTypeParmDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_NonTypeTemplateParameter:
                 {
-                    return new NonTypeTemplateParmDecl(handle, parent);
+                    result = new NonTypeTemplateParmDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_TemplateTemplateParameter:
                 {
-                    return new TemplateTemplateParmDecl(handle, parent);
+                    result = new TemplateTemplateParmDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_FunctionTemplate:
                 {
-                    return new FunctionTemplateDecl(handle, parent);
+                    result = new FunctionTemplateDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_ClassTemplate:
                 {
-                    return new ClassTemplateDecl(handle, parent);
+                    result = new ClassTemplateDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_ClassTemplatePartialSpecialization:
                 {
-                    return new ClassTemplatePartialSpecializationDecl(handle, parent);
+                    result = new ClassTemplatePartialSpecializationDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_UsingDeclaration:
                 {
-                    return new UsingDecl(handle, parent);
+                    result = new UsingDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_TypeAliasDecl:
                 {
-                    return new TypeAliasDecl(handle, parent);
+                    result = new TypeAliasDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CXXAccessSpecifier:
                 {
-                    return new AccessSpecDecl(handle, parent);
+                    result = new AccessSpecDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_TypeAliasTemplateDecl:
                 {
-                    return new TypeAliasTemplateDecl(handle, parent);
+                    result = new TypeAliasTemplateDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_StaticAssert:
                 {
-                    return new StaticAssertDecl(handle, parent);
+                    result = new StaticAssertDecl(handle);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_FriendDecl:
                 {
-                    return new FriendDecl(handle, parent);
+                    result = new FriendDecl(handle);
+                    break;
                 }
 
                 default:
                 {
                     Debug.WriteLine($"Unhandled declaration kind: {handle.KindSpelling}.");
                     Debugger.Break();
-                    return new Decl(handle, parent);
+
+                    result = new Decl(handle, handle.Kind);
+                    break;
                 }
             }
-        }
 
-        private readonly List<Attr> _attributes = new List<Attr>();
-        private readonly Lazy<Decl> _canonical;
-        private readonly Lazy<Cursor> _lexicalParent;
-
-        protected Decl(CXCursor handle, Cursor parent) : base(handle, parent)
-        {
-            Debug.Assert((handle.IsDeclaration) || (handle.Kind == CXCursorKind.CXCursor_TranslationUnit));
-
-            _canonical = new Lazy<Decl>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.CanonicalCursor, () => Create(Handle.CanonicalCursor, this));
-                cursor?.Visit(clientData: default);
-                return (Decl)cursor;
-            });
-            _lexicalParent = new Lazy<Cursor>(() => {
-                var cursor = TranslationUnit.GetOrCreateCursor(Handle.LexicalParent, () => Create(Handle.LexicalParent, this));
-                cursor?.Visit(clientData: default);
-                return cursor;
-            });
-        }
-
-        public CX_CXXAccessSpecifier AccessSpecifier => Handle.CXXAccessSpecifier;
-
-        public IReadOnlyList<Attr> Attributes => _attributes;
-
-        public CXAvailabilityKind Availability => Handle.Availability;
-
-        public string BriefCommentText => Handle.BriefCommentText.ToString();
-
-        public Decl Canonical => _canonical.Value;
-
-        public CXSourceRange CommentRange => Handle.CommentRange;
-
-        public int ExceptionSpecificationType => Handle.ExceptionSpecificationType;
-
-        public bool HasAttrs => Handle.HasAttrs;
-
-        public bool IsCanonical => Handle.IsCanonical;
-
-        public bool IsInvalid => Handle.IsInvalidDeclaration;
-
-        public CXLanguageKind Language => Handle.Language;
-
-        public Cursor LexicalParent => _lexicalParent.Value;
-
-        public CXComment ParsedComment => Handle.ParsedComment;
-
-        public string RawCommentText => Handle.RawCommentText.ToString();
-
-        protected override Attr GetOrAddAttr(CXCursor childHandle)
-        {
-            var attr = base.GetOrAddAttr(childHandle);
-
-            Debug.Assert(!_attributes.Contains(attr));
-            _attributes.Add(attr);
-
-            return attr;
+            return result;
         }
     }
 }

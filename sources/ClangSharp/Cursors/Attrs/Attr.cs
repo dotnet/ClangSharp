@@ -5,57 +5,44 @@ namespace ClangSharp
 {
     public class Attr : Cursor
     {
-        public static new Attr Create(CXCursor handle, Cursor parent)
+        private protected Attr(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
+        }
+
+        internal static new Attr Create(CXCursor handle)
+        {
+            Attr result;
+
             switch (handle.Kind)
             {
                 case CXCursorKind.CXCursor_UnexposedAttr:
                 {
-                    return new UnexposedAttr(handle, parent);
+                    result = new Attr(handle, CXCursorKind.CXCursor_UnexposedAttr);
+                    break;
                 }
 
                 case CXCursorKind.CXCursor_CXXFinalAttr:
-                {
-                    return new CXXFinalAttr(handle, parent);
-                }
-
                 case CXCursorKind.CXCursor_PureAttr:
-                {
-                    return new PureAttr(handle, parent);
-                }
-
                 case CXCursorKind.CXCursor_ConstAttr:
-                {
-                    return new ConstAttr(handle, parent);
-                }
-
                 case CXCursorKind.CXCursor_VisibilityAttr:
-                {
-                    return new VisibilityAttr(handle, parent);
-                }
-
                 case CXCursorKind.CXCursor_DLLExport:
-                {
-                    return new DLLExport(handle, parent);
-                }
-
                 case CXCursorKind.CXCursor_DLLImport:
                 {
-                    return new DLLImport(handle, parent);
+                    result = new InheritableAttr(handle, handle.Kind);
+                    break;
                 }
 
                 default:
                 {
                     Debug.WriteLine($"Unhandled attribute kind: {handle.KindSpelling}.");
                     Debugger.Break();
-                    return new Attr(handle, parent);
+
+                    result = new Attr(handle, handle.kind);
+                    break;
                 }
             }
-        }
 
-        protected Attr(CXCursor handle, Cursor parent) : base(handle, parent)
-        {
-            Debug.Assert(handle.IsAttribute);
+            return result;
         }
     }
 }

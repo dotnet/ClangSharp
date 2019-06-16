@@ -1,35 +1,25 @@
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class EnumDecl : TagDecl
     {
-        private readonly List<EnumConstantDecl> _enumerators = new List<EnumConstantDecl>();
+        private readonly Lazy<IReadOnlyList<EnumConstantDecl>> _enumerators;
+        private readonly Lazy<Type> _integerType;
 
-        public EnumDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        internal EnumDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_EnumDecl)
         {
-            Debug.Assert(handle.Kind == CXCursorKind.CXCursor_EnumDecl);
-            IntegerType = TranslationUnit.GetOrCreateType(Handle.EnumDecl_IntegerType, () => Type.Create(Handle.EnumDecl_IntegerType, TranslationUnit));
+            _enumerators = new Lazy<IReadOnlyList<EnumConstantDecl>>(() => Decls.Where((decl) => decl is EnumConstantDecl).Cast<EnumConstantDecl>().ToList());
+            _integerType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EnumDecl_IntegerType));
         }
 
-        public IReadOnlyList<EnumConstantDecl> Enumerators => _enumerators;
+        public IReadOnlyList<EnumConstantDecl> Enumerators => _enumerators.Value;
 
-        public Type IntegerType { get; }
+        public Type IntegerType => _integerType.Value;
 
         public bool IsScoped => Handle.EnumDecl_IsScoped;
-
-        protected override Decl GetOrAddDecl(CXCursor childHandle)
-        {
-            var decl = base.GetOrAddDecl(childHandle);
-
-            if (decl is EnumConstantDecl enumConstantDecl)
-            {
-                _enumerators.Add(enumConstantDecl);
-            }
-
-            return decl;
-        }
     }
 }

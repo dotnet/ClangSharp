@@ -24,30 +24,31 @@ namespace ClangSharp.UnitTests
 
         protected Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null)
         {
-            return ValidateGeneratedBindings(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None, excludedNames, remappedNames);
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None, excludedNames, remappedNames);
         }
 
-        private async Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions, string[] excludedNames, IReadOnlyDictionary<string, string> remappedNames)
+        private async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions, string[] excludedNames, IReadOnlyDictionary<string, string> remappedNames)
         {
             Assert.True(File.Exists(DefaultInputFileName));
 
-            using (var outputStream = new MemoryStream())
-            using (var unsavedFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents))
+            using var outputStream = new MemoryStream();
+            using var unsavedFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
+
+            var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
+            var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName(), configOptions, excludedNames, methodClassName: null, methodPrefixToStrip: null, remappedNames);
+
+            using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))
             {
-                var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
-                var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName(), configOptions, excludedNames, methodClassName: null, methodPrefixToStrip: null, remappedNames);
+                var handle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, unsavedFiles, DefaultTranslationUnitFlags);
+                using var translationUnit = TranslationUnit.GetOrCreate(handle);
 
-                using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))
-                using (var translationUnitHandle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, unsavedFiles, DefaultTranslationUnitFlags))
-                {
-                    pinvokeGenerator.GenerateBindings(translationUnitHandle);
-                    Assert.Empty(pinvokeGenerator.Diagnostics);
-                }
-
-                outputStream.Position = 0;
-                var actualOutputContents = await new StreamReader(outputStream).ReadToEndAsync();
-                Assert.Equal(expectedOutputContents, actualOutputContents);
+                pinvokeGenerator.GenerateBindings(translationUnit);
+                Assert.Empty(pinvokeGenerator.Diagnostics);
             }
+            outputStream.Position = 0;
+
+            var actualOutputContents = await new StreamReader(outputStream).ReadToEndAsync();
+            Assert.Equal(expectedOutputContents, actualOutputContents);
         }
     }
 }

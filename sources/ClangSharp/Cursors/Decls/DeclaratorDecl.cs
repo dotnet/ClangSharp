@@ -4,7 +4,7 @@ namespace ClangSharp
 {
     public class DeclaratorDecl : ValueDecl
     {
-        protected DeclaratorDecl(CXCursor handle, Cursor parent) : base(handle, parent)
+        private protected DeclaratorDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
         }
     }
