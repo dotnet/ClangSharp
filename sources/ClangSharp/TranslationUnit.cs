@@ -53,15 +53,7 @@ namespace ClangSharp
                         translationUnit = new TranslationUnit(handle);
                         _createdTranslationUnits.Add(handle, translationUnit);
                     }
-                    else
-                    {
-                        System.Diagnostics.Debugger.Break();
-                    }
                 }
-            }
-            else
-            {
-                System.Diagnostics.Debugger.Break();
             }
 
             return translationUnit;
