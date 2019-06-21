@@ -654,7 +654,7 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_ULong:
                     {
-                        name = "uint";
+                        name = _config.GenerateUnixTypes ? "UIntPtr" : "uint";
                         break;
                     }
 
@@ -673,7 +673,7 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_WChar:
                     {
-                        name = "char";
+                        name = _config.GenerateUnixTypes ? "int" : "char";
                         break;
                     }
 
@@ -691,7 +691,7 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_Long:
                     {
-                        name = "int";
+                        name = _config.GenerateUnixTypes ? "IntPtr" : "int";
                         break;
                     }
 

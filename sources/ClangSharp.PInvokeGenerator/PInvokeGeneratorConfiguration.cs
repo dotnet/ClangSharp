@@ -74,6 +74,8 @@ namespace ClangSharp
 
         public bool GenerateMultipleFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles);
 
+        public bool GenerateUnixTypes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateUnixTypes);
+
         public string LibraryPath { get;}
 
         public string MethodClassName { get; }

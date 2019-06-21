@@ -87,6 +87,44 @@ namespace ClangSharp
                 remappedNames[parts[0].TrimEnd()] = parts[1].TrimStart();
             }
 
+            var configOptions = PInvokeGeneratorConfigurationOptions.None;
+
+            foreach (var configSwitch in configSwitches)
+            {
+                switch (configSwitch)
+                {
+                    case "multi-file":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
+                        break;
+                    }
+
+                    case "single-file":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
+                        break;
+                    }
+
+                    case "unix-types":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
+                        break;
+                    }
+
+                    case "windows-types":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
+                        break;
+                    }
+
+                    default:
+                    {
+                        errorList.Add($"Error: Unrecognized config switch: {configSwitch}.");
+                        break;
+                    }
+                }
+            }
+
             if (errorList.Any())
             {
                 foreach (var error in errorList)
@@ -114,16 +152,6 @@ namespace ClangSharp
 
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
-
-            var configOptions = PInvokeGeneratorConfigurationOptions.None;
-
-            foreach (var configSwitch in configSwitches)
-            {
-                if (configSwitch.Equals("multi-file"))
-                {
-                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
-                }
-            }
 
             var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, methodClassName, methodPrefixToStrip, remappedNames);
 

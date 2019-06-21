@@ -8,5 +8,7 @@ namespace ClangSharp
         None = 0x00000000,
 
         GenerateMultipleFiles = 0x00000001,
+
+        GenerateUnixTypes = 0x00000002,
     }
 }
