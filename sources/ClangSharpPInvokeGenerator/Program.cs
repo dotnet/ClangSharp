@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ClangSharp.Interop;
 
@@ -87,7 +88,7 @@ namespace ClangSharp
                 remappedNames[parts[0].TrimEnd()] = parts[1].TrimStart();
             }
 
-            var configOptions = PInvokeGeneratorConfigurationOptions.None;
+            var configOptions = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? PInvokeGeneratorConfigurationOptions.None : PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
 
             foreach (var configSwitch in configSwitches)
             {
