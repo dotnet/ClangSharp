@@ -7,6 +7,7 @@ namespace ClangSharp
     {
         private const string DefaultMethodClassName = "Methods";
 
+        private readonly Dictionary<string, string> _remappedNames;
         private readonly PInvokeGeneratorConfigurationOptions _options;
 
         public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null)
@@ -41,11 +42,6 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(outputLocation));
             }
 
-            if (remappedNames is null)
-            {
-                remappedNames = new Dictionary<string, string>();
-            }
-
             _options = options;
 
             ExcludedNames = excludedNames;
@@ -54,7 +50,24 @@ namespace ClangSharp
             MethodPrefixToStrip = methodPrefixToStrip;
             Namespace = namespaceName;
             OutputLocation = outputLocation;
-            RemappedNames = remappedNames;
+
+            _remappedNames = new Dictionary<string, string>()
+            {
+                ["intptr_t"] = "IntPtr",
+                ["ptrdiff_t"] = "IntPtr",
+                ["size_t"] = "UIntPtr",
+                ["uintptr_t"] = "UIntPtr",
+            };
+
+            if (remappedNames != null)
+            {
+                foreach (var remappedName in remappedNames)
+                {
+                    // Use the indexer, rather than Add, so that any
+                    // default mappings can be overwritten if desired.
+                    _remappedNames[remappedName.Key] = remappedName.Value;
+                }
+            }
         }
 
         public string[] ExcludedNames { get; }
@@ -71,6 +84,6 @@ namespace ClangSharp
 
         public string OutputLocation { get; }
 
-        public IReadOnlyDictionary<string, string> RemappedNames { get; }
+        public IReadOnlyDictionary<string, string> RemappedNames => _remappedNames;
     }
 }

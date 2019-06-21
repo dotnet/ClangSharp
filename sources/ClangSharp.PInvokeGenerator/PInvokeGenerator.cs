@@ -734,32 +734,17 @@ namespace ClangSharp
             }
             else if (type is TypedefType typedefType)
             {
-                // We intercept some well known types that have variable sizes
-                // to ensure that we can treat them correctly. Otherwise, they
-                // will resolve to a particular platform size, based on whatever
-                // parameters were passed into clang.
+                // We check remapped names here so that types that have variable sizes
+                // can be treated correctly. Otherwise, they will resolve to a particular
+                // platform size, based on whatever parameters were passed into clang.
 
-                switch (name)
+                if (_config.RemappedNames.TryGetValue(name, out string remappedName))
                 {
-                    case "intptr_t":
-                    case "ptrdiff_t":
-                    {
-                        name = "IntPtr";
-                        break;
-                    }
-
-                    case "size_t":
-                    case "uintptr_t":
-                    {
-                        name = "UIntPtr";
-                        break;
-                    }
-
-                    default:
-                    {
-                        name = GetTypeName(namedDecl, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
-                        break;
-                    }
+                    name = remappedName;
+                }
+                else
+                {
+                    name = GetTypeName(namedDecl, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
                 }
             }
             else if (!(type is FunctionType) && !(type is TagType))
