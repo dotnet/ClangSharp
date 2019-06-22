@@ -613,6 +613,10 @@ namespace ClangSharp
             {
                 name = GetTypeName(namedDecl, arrayType.ElementType, out var nativeElementTypeName);
             }
+            else if (type is AttributedType attributedType)
+            {
+                name = GetTypeName(namedDecl, attributedType.ModifiedType, out var nativeModifiedTypeName);
+            }
             else if (type is BuiltinType)
             {
                 switch (type.Kind)
@@ -650,7 +654,7 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_ULong:
                     {
-                        name = "uint";
+                        name = _config.GenerateUnixTypes ? "UIntPtr" : "uint";
                         break;
                     }
 
@@ -669,7 +673,7 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_WChar:
                     {
-                        name = "char";
+                        name = _config.GenerateUnixTypes ? "int" : "char";
                         break;
                     }
 
@@ -687,7 +691,7 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_Long:
                     {
-                        name = "int";
+                        name = _config.GenerateUnixTypes ? "IntPtr" : "int";
                         break;
                     }
 
@@ -722,46 +726,25 @@ namespace ClangSharp
             }
             else if (type is PointerType pointerType)
             {
-                var pointeeType = pointerType.PointeeType;
-
-                if (pointeeType is FunctionType)
-                {
-                    name = "IntPtr";
-                }
-                else
-                {
-                    name = GetTypeName(namedDecl, pointeeType, out var nativePointeeTypeName);
-                    name += '*';
-                }
+                name = GetTypeNameForPointeeType(namedDecl, pointerType.PointeeType, out var nativePointeeTypeName);
+            }
+            else if (type is ReferenceType referenceType)
+            {
+                name = GetTypeNameForPointeeType(namedDecl, referenceType.PointeeType, out var nativePointeeTypeName);
             }
             else if (type is TypedefType typedefType)
             {
-                // We intercept some well known types that have variable sizes
-                // to ensure that we can treat them correctly. Otherwise, they
-                // will resolve to a particular platform size, based on whatever
-                // parameters were passed into clang.
+                // We check remapped names here so that types that have variable sizes
+                // can be treated correctly. Otherwise, they will resolve to a particular
+                // platform size, based on whatever parameters were passed into clang.
 
-                switch (name)
+                if (_config.RemappedNames.TryGetValue(name, out string remappedName))
                 {
-                    case "intptr_t":
-                    case "ptrdiff_t":
-                    {
-                        name = "IntPtr";
-                        break;
-                    }
-
-                    case "size_t":
-                    case "uintptr_t":
-                    {
-                        name = "UIntPtr";
-                        break;
-                    }
-
-                    default:
-                    {
-                        name = GetTypeName(namedDecl, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
-                        break;
-                    }
+                    name = remappedName;
+                }
+                else
+                {
+                    name = GetTypeName(namedDecl, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
                 }
             }
             else if (!(type is FunctionType) && !(type is TagType))
@@ -776,6 +759,28 @@ namespace ClangSharp
             {
                 nativeTypeName = string.Empty;
             }
+            return name;
+        }
+
+        private string GetTypeNameForPointeeType(NamedDecl namedDecl, Type pointeeType, out string nativePointeeTypeName)
+        {
+            var name = pointeeType.AsString;
+            nativePointeeTypeName = name;
+
+            if (pointeeType is AttributedType attributedType)
+            {
+                name = GetTypeNameForPointeeType(namedDecl, attributedType.ModifiedType, out var nativeModifiedTypeName);
+            }
+            else if (pointeeType is FunctionType)
+            {
+                name = "IntPtr";
+            }
+            else
+            {
+                name = GetTypeName(namedDecl, pointeeType, out nativePointeeTypeName);
+                name += '*';
+            }
+
             return name;
         }
 
@@ -1188,7 +1193,14 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(_config.MethodClassName);
             {
-                var functionType = (FunctionType)functionDecl.Type;
+                var type = functionDecl.Type;
+
+                if (type is AttributedType attributedType)
+                {
+                    type = attributedType.ModifiedType;
+                }
+                var functionType = (FunctionType)type;
+
                 var body = functionDecl.Body;
 
                 if (body is null)
