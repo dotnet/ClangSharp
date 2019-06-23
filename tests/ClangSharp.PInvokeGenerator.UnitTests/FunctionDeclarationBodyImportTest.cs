@@ -145,6 +145,48 @@ void MyFunction()
         }
 
         [Fact]
+        public async Task CompareMultipleEnumTest()
+        {
+            var inputContents = @"enum MyEnum : int
+{
+    MyEnum_Value0,
+    MyEnum_Value1,
+    MyEnum_Value2,
+};
+
+static inline int MyFunction(MyEnum x)
+{
+    return x == MyEnum_Value0 ||
+           x == MyEnum_Value1 ||
+           x == MyEnum_Value2;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public enum MyEnum
+    {
+        MyEnum_Value0,
+        MyEnum_Value1,
+        MyEnum_Value2,
+    }
+
+    public static partial class Methods
+    {
+        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(MyEnum x)
+        {
+            return x == MyEnum_Value0 || x == MyEnum_Value1 || x == MyEnum_Value2;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task ReturnIntegerTest()
         {
             var inputContents = @"int MyFunction()
