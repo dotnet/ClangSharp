@@ -42,8 +42,6 @@ namespace ClangSharp
 
         public CXCursor Handle { get; }
 
-        public bool IsFromMainFile => Location.IsFromMainFile;
-
         public CXCursorKind Kind => Handle.Kind;
 
         public string KindSpelling => Handle.KindSpelling.ToString();

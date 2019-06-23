@@ -11,7 +11,7 @@ namespace ClangSharp
         private readonly Dictionary<string, string> _remappedNames;
         private readonly PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null)
         {
             if (excludedNames is null)
             {
@@ -43,6 +43,11 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(outputLocation));
             }
 
+            if (traversalNames is null)
+            {
+                traversalNames = Array.Empty<string>();
+            }
+
             _options = options;
 
             ExcludedNames = excludedNames;
@@ -51,6 +56,7 @@ namespace ClangSharp
             MethodPrefixToStrip = methodPrefixToStrip;
             Namespace = namespaceName;
             OutputLocation = Path.GetFullPath(outputLocation);
+            TraversalNames = traversalNames;
 
             if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
             {
@@ -91,5 +97,7 @@ namespace ClangSharp
         public string OutputLocation { get; }
 
         public IReadOnlyDictionary<string, string> RemappedNames => _remappedNames;
+
+        public string[] TraversalNames { get; }
     }
 }
