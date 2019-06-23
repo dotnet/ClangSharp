@@ -10,5 +10,7 @@ namespace ClangSharp
         GenerateMultipleFiles = 0x00000001,
 
         GenerateUnixTypes = 0x00000002,
+
+        NoDefaultRemappings = 0x00000004,
     }
 }

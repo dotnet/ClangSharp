@@ -1,3 +1,10 @@
+#if Windows_NT
+using nulong = System.UInt32;
+#else
+using System;
+using nulong = System.UIntPtr;
+#endif
+
 namespace ClangSharp.Interop
 {
     public unsafe partial struct CXUnsavedFile
@@ -9,6 +16,6 @@ namespace ClangSharp.Interop
         public sbyte* Contents;
 
         [NativeTypeName("unsigned long")]
-        public uint Length;
+        public nulong Length;
     }
 }

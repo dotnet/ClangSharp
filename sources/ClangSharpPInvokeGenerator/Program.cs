@@ -32,6 +32,7 @@ namespace ClangSharp
                 AddOutputOption(s_rootCommand);
                 AddPrefixStripOption(s_rootCommand);
                 AddRemapOption(s_rootCommand);
+                AddTraverseOption(s_rootCommand);
             }
             return await s_rootCommand.InvokeAsync(args);
         }
@@ -50,6 +51,7 @@ namespace ClangSharp
             var namespaceName = context.ParseResult.ValueForOption<string>("namespace");
             var outputLocation = context.ParseResult.ValueForOption<string>("output");
             var remappedNameValuePairs = context.ParseResult.ValueForOption<string[]>("remap");
+            var traversalNames = context.ParseResult.ValueForOption<string[]>("traverse");
 
             var errorList = new List<string>();
 
@@ -94,9 +96,21 @@ namespace ClangSharp
             {
                 switch (configSwitch)
                 {
+                    case "default-remappings":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
+                        break;
+                    }
+
                     case "multi-file":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
+                        break;
+                    }
+
+                    case "no-default-remappings":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
                         break;
                     }
 
@@ -154,7 +168,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, methodClassName, methodPrefixToStrip, remappedNames);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, methodClassName, methodPrefixToStrip, remappedNames, traversalNames);
 
             int exitCode = 0;
 
@@ -411,6 +425,22 @@ namespace ClangSharp
 
             var option = new Option("--remap", "A declaration name to be remapped to another name during binding generation.", argument);
             option.AddAlias("-r");
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddTraverseOption(RootCommand rootCommand)
+        {
+            var argument = new Argument
+            {
+                ArgumentType = typeof(string),
+                Arity = ArgumentArity.OneOrMore,
+                Name = "name"
+            };
+            argument.SetDefaultValue(Array.Empty<string>());
+
+            var option = new Option("--traverse", "A file name included either directly or indirectly by -f that should be traversed during binding generation.", argument);
+            option.AddAlias("-t");
 
             rootCommand.AddOption(option);
         }

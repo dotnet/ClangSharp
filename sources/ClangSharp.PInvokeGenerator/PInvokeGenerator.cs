@@ -175,9 +175,22 @@ namespace ClangSharp
 
             foreach (var decl in translationUnitDecl.Decls)
             {
-                if (!decl.IsFromMainFile)
+                if (_config.TraversalNames.Length == 0)
                 {
-                    continue;
+                    if (!decl.Location.IsFromMainFile)
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    decl.Location.GetFileLocation(out CXFile file, out _, out _, out _);
+                    var fileName = file.Name.ToString();
+
+                    if (!_config.TraversalNames.Contains(fileName))
+                    {
+                        continue;
+                    }
                 }
                 Visit(decl);
             }

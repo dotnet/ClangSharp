@@ -2,6 +2,12 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
+#if Windows_NT
+using nulong = System.UInt32;
+#else
+using nulong = System.UIntPtr;
+#endif
+
 namespace ClangSharp.Interop
 {
     public unsafe partial struct CXUnsavedFile : IDisposable
@@ -43,7 +49,7 @@ namespace ClangSharp.Interop
             {
                 Filename = (sbyte*)pFilename,
                 Contents = (sbyte*)pContents,
-                Length = (uint)contentsLength
+                Length = (nulong)contentsLength
             };
         }
 
@@ -59,7 +65,7 @@ namespace ClangSharp.Interop
             {
                 Marshal.FreeHGlobal((IntPtr)Contents);
                 Contents = null;
-                Length = 0;
+                Length = (nulong)0;
             }
         }
 
