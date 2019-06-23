@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace ClangSharp
 {
@@ -49,7 +50,7 @@ namespace ClangSharp
             MethodClassName = methodClassName;
             MethodPrefixToStrip = methodPrefixToStrip;
             Namespace = namespaceName;
-            OutputLocation = outputLocation;
+            OutputLocation = Path.GetFullPath(outputLocation);
 
             if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
             {
