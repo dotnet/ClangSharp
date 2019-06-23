@@ -51,13 +51,16 @@ namespace ClangSharp
             Namespace = namespaceName;
             OutputLocation = outputLocation;
 
-            _remappedNames = new Dictionary<string, string>()
+            if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
             {
-                ["intptr_t"] = "IntPtr",
-                ["ptrdiff_t"] = "IntPtr",
-                ["size_t"] = "UIntPtr",
-                ["uintptr_t"] = "UIntPtr",
-            };
+                _remappedNames = new Dictionary<string, string>()
+                {
+                    ["intptr_t"] = "IntPtr",
+                    ["ptrdiff_t"] = "IntPtr",
+                    ["size_t"] = "UIntPtr",
+                    ["uintptr_t"] = "UIntPtr",
+                };
+            }
 
             if (remappedNames != null)
             {

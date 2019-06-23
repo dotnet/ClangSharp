@@ -94,9 +94,21 @@ namespace ClangSharp
             {
                 switch (configSwitch)
                 {
+                    case "default-remappings":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
+                        break;
+                    }
+
                     case "multi-file":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
+                        break;
+                    }
+
+                    case "no-default-remappings":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
                         break;
                     }
 
