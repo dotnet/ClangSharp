@@ -1168,6 +1168,11 @@ namespace ClangSharp
 
             var type = fieldDecl.Type;
             var typeName = GetRemappedTypeName(fieldDecl, type, out var nativeTypeName);
+
+            if (fieldDecl.Parent.IsUnion)
+            {
+                _outputBuilder.WriteIndentedLine("[FieldOffset(0)]");
+            }
             AddNativeTypeNameAttribute(nativeTypeName);
 
             _outputBuilder.WriteIndented(GetAccessSpecifierName(fieldDecl));
@@ -1195,6 +1200,11 @@ namespace ClangSharp
             }
             else
             {
+                if (fieldDecl.IsBitField)
+                {
+                    AddDiagnostic(DiagnosticLevel.Warning, "Unsupported field declaration kind: 'BitField'. Generated bindings may be incomplete.", fieldDecl);
+                }
+
                 _outputBuilder.Write(typeName);
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(escapedName);
@@ -1408,6 +1418,12 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
+                if (recordDecl.IsUnion)
+                {
+                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                    _outputBuilder.WriteIndentedLine("[StructLayout(LayoutKind.Explicit)]");
+                }
+
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
                 _outputBuilder.Write(' ');
 
