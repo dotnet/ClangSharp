@@ -11,7 +11,7 @@ namespace ClangSharp
         private readonly Dictionary<string, string> _remappedNames;
         private readonly PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null)
         {
             if (excludedNames is null)
             {
@@ -51,6 +51,7 @@ namespace ClangSharp
             _options = options;
 
             ExcludedNames = excludedNames;
+            HeaderText = headerFile is object ? File.ReadAllText(headerFile) : string.Empty;
             LibraryPath = libraryPath;
             MethodClassName = methodClassName;
             MethodPrefixToStrip = methodPrefixToStrip;
@@ -85,6 +86,8 @@ namespace ClangSharp
         public bool GenerateMultipleFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles);
 
         public bool GenerateUnixTypes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateUnixTypes);
+
+        public string HeaderText { get; }
 
         public string LibraryPath { get;}
 

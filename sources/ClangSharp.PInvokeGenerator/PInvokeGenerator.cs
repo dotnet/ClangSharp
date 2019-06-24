@@ -83,6 +83,7 @@ namespace ClangSharp
                     using var sw = new StreamWriter(stream, defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
                     {
                         sw.NewLine = "\n";
+                        sw.Write(_config.HeaderText);
 
                         foreach (var usingDirective in usingDirectives)
                         {
@@ -269,6 +270,8 @@ namespace ClangSharp
 
             if (outputBuilder.UsingDirectives.Any() && _config.GenerateMultipleFiles)
             {
+                sw.Write(_config.HeaderText);
+
                 foreach (var usingDirective in outputBuilder.UsingDirectives)
                 {
                     sw.Write("using");

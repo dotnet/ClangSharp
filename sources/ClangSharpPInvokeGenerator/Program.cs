@@ -25,6 +25,7 @@ namespace ClangSharp
                 AddDefineOption(s_rootCommand);
                 AddExcludeOption(s_rootCommand);
                 AddFileOption(s_rootCommand);
+                AddHeaderOption(s_rootCommand);
                 AddIncludeOption(s_rootCommand);
                 AddLibraryOption(s_rootCommand);
                 AddMethodClassNameOption(s_rootCommand);
@@ -44,6 +45,7 @@ namespace ClangSharp
             var defines = context.ParseResult.ValueForOption<string[]>("define");
             var excludedNames = context.ParseResult.ValueForOption<string[]>("exclude");
             var files = context.ParseResult.ValueForOption<string[]>("file");
+            var headerFile = context.ParseResult.ValueForOption<string>("headerFile");
             var includeDirs = context.ParseResult.ValueForOption<string[]>("include");
             var libraryPath = context.ParseResult.ValueForOption<string>("libraryPath");
             var methodClassName = context.ParseResult.ValueForOption<string>("methodClassName");
@@ -168,7 +170,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, methodClassName, methodPrefixToStrip, remappedNames, traversalNames);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames);
 
             int exitCode = 0;
 
@@ -320,6 +322,22 @@ namespace ClangSharp
 
             var option = new Option("--file", "A file to parse and generate bindings for.", argument);
             option.AddAlias("-f");
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddHeaderOption(RootCommand rootCommand)
+        {
+            var argument = new Argument
+            {
+                ArgumentType = typeof(string),
+                Arity = ArgumentArity.ExactlyOne,
+                Name = "file"
+            };
+            argument.SetDefaultValue(string.Empty);
+
+            var option = new Option("--headerFile", "A file which contains the header to prefix every generated file with.", argument);
+            option.AddAlias("-h");
 
             rootCommand.AddOption(option);
         }
