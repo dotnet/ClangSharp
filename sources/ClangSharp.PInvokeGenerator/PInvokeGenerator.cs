@@ -1613,7 +1613,7 @@ namespace ClangSharp
             {
                 VisitTypedefDecl(typedefDecl, typedefType.Decl.UnderlyingType);
             }
-            else if (!(underlyingType is BuiltinType) && !(underlyingType is TagType))
+            else if (!(underlyingType is BuiltinType) && !(underlyingType is IncompleteArrayType) && !(underlyingType is TagType))
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
             }
@@ -1666,6 +1666,14 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(");");
                 }
                 StopUsingOutputBuilder();
+            }
+            else if (pointeeType is PointerType pointerType)
+            {
+                VisitTypedefDeclForPointeeType(typedefDecl, pointerType.PointeeType);
+            }
+            else if (pointeeType is TypedefType typedefType)
+            {
+                VisitTypedefDeclForPointeeType(typedefDecl, typedefType.Decl.UnderlyingType);
             }
             else if (!(pointeeType is BuiltinType) && !(pointeeType is TagType))
             {
