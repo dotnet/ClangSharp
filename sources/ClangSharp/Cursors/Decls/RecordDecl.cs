@@ -15,5 +15,7 @@ namespace ClangSharp
         }
 
         public IReadOnlyList<FieldDecl> Fields => _fields.Value;
+
+        public bool IsUnion => Kind == CXCursorKind.CXCursor_UnionDecl;
     }
 }

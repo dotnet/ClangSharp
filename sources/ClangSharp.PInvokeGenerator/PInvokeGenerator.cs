@@ -83,6 +83,7 @@ namespace ClangSharp
                     using var sw = new StreamWriter(stream, defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
                     {
                         sw.NewLine = "\n";
+                        sw.Write(_config.HeaderText);
 
                         foreach (var usingDirective in usingDirectives)
                         {
@@ -269,6 +270,8 @@ namespace ClangSharp
 
             if (outputBuilder.UsingDirectives.Any() && _config.GenerateMultipleFiles)
             {
+                sw.Write(_config.HeaderText);
+
                 foreach (var usingDirective in outputBuilder.UsingDirectives)
                 {
                     sw.Write("using");
@@ -1165,6 +1168,11 @@ namespace ClangSharp
 
             var type = fieldDecl.Type;
             var typeName = GetRemappedTypeName(fieldDecl, type, out var nativeTypeName);
+
+            if (fieldDecl.Parent.IsUnion)
+            {
+                _outputBuilder.WriteIndentedLine("[FieldOffset(0)]");
+            }
             AddNativeTypeNameAttribute(nativeTypeName);
 
             _outputBuilder.WriteIndented(GetAccessSpecifierName(fieldDecl));
@@ -1192,6 +1200,11 @@ namespace ClangSharp
             }
             else
             {
+                if (fieldDecl.IsBitField)
+                {
+                    AddDiagnostic(DiagnosticLevel.Warning, "Unsupported field declaration kind: 'BitField'. Generated bindings may be incomplete.", fieldDecl);
+                }
+
                 _outputBuilder.Write(typeName);
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(escapedName);
@@ -1405,6 +1418,12 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
+                if (recordDecl.IsUnion)
+                {
+                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                    _outputBuilder.WriteIndentedLine("[StructLayout(LayoutKind.Explicit)]");
+                }
+
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
                 _outputBuilder.Write(' ');
 
@@ -1613,7 +1632,7 @@ namespace ClangSharp
             {
                 VisitTypedefDecl(typedefDecl, typedefType.Decl.UnderlyingType);
             }
-            else if (!(underlyingType is BuiltinType) && !(underlyingType is TagType))
+            else if (!(underlyingType is BuiltinType) && !(underlyingType is IncompleteArrayType) && !(underlyingType is TagType))
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
             }
@@ -1666,6 +1685,14 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(");");
                 }
                 StopUsingOutputBuilder();
+            }
+            else if (pointeeType is PointerType pointerType)
+            {
+                VisitTypedefDeclForPointeeType(typedefDecl, pointerType.PointeeType);
+            }
+            else if (pointeeType is TypedefType typedefType)
+            {
+                VisitTypedefDeclForPointeeType(typedefDecl, typedefType.Decl.UnderlyingType);
             }
             else if (!(pointeeType is BuiltinType) && !(pointeeType is TagType))
             {
