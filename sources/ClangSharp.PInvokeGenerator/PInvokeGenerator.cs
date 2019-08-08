@@ -268,7 +268,7 @@ namespace ClangSharp
             using var sw = new StreamWriter(stream, defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
-            if (_config.HeaderText != string.Empty)
+            if (_config.HeaderText != string.Empty && !isMethodClass)
                 sw.WriteLine(_config.HeaderText);
 
             if (outputBuilder.UsingDirectives.Any() && _config.GenerateMultipleFiles)
