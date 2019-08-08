@@ -51,7 +51,7 @@ namespace ClangSharp
             _options = options;
 
             ExcludedNames = excludedNames;
-            HeaderText = headerFile is object ? File.ReadAllText(headerFile) : string.Empty;
+            HeaderText = string.IsNullOrWhiteSpace(headerFile) ? string.Empty : File.ReadAllText(headerFile);
             LibraryPath = libraryPath;
             MethodClassName = methodClassName;
             MethodPrefixToStrip = methodPrefixToStrip;
