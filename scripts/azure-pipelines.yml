@@ -5,97 +5,58 @@ pr:
 - master
 
 jobs:
-- job: windows
-  pool:
-    name: Hosted
-    demands: Cmd
-  strategy:
-    matrix:
-      debug_x86:
-        _configuration: Debug
-        _architecture: x86
-      debug_x64:
-        _configuration: Debug
-        _architecture: x64
-      release_x86:
-        _configuration: Release
-        _architecture: x86
-      release_x64:
-        _configuration: Release
-        _architecture: x64
-  steps:
-  - task: BatchScript@1
-    displayName: 'Run scripts/cibuild.cmd'
-    inputs:
-      filename: scripts/cibuild.cmd
-      arguments: '-configuration $(_configuration) -architecture $(_architecture)'
-  - task: PublishTestResults@2
-    displayName: 'Publish Test Results'
-    inputs:
-      testResultsFormat: VSTest
-      testResultsFiles: artifacts/tst/$(_configuration)/*.trx
-      mergeTestResults: true
-      failTaskOnFailedTests: true
-      testRunTitle: 'Windows $(_configuration) $(_architecture)'
-      buildConfiguration: $(_configuration)
-      buildPlatform: $(_architecture)
+- template: azure-windows.yml
+  parameters:
+    name: windows_debug_x86
+    pool: Hosted
+    configuration: Debug
+    architecture: x86
 
-- job: ubuntu_1604
-  pool:
-    name: Hosted Ubuntu 1604
-  strategy:
-    matrix:
-      debug_x64:
-        _configuration: Debug
-        _architecture: x64
-      release_x64:
-        _configuration: Release
-        _architecture: x64
-  variables:
-    RuntimeIdentifier: ubuntu.16.04-$(_architecture)
-  steps:
-  - task: Bash@3
-    displayName: 'Run scripts/cibuild.sh'
-    inputs:
-      targetType: filePath
-      filePath: ./scripts/cibuild.sh
-      arguments: '--configuration $(_configuration) --architecture $(_architecture)'
-  - task: PublishTestResults@2
-    displayName: 'Publish Test Results'
-    inputs:
-      testResultsFormat: VSTest
-      testResultsFiles: artifacts/tst/$(_configuration)/*.trx
-      mergeTestResults: true
-      failTaskOnFailedTests: true
-      testRunTitle: 'Ubuntu 16.04 $(_configuration) $(_architecture)'
-      buildConfiguration: $(_configuration)
-      buildPlatform: $(_architecture)
+- template: azure-windows.yml
+  parameters:
+    name: windows_release_x86
+    pool: Hosted
+    configuration: Release
+    architecture: x86
 
-- job: macos_1014
-  pool:
-    name: Hosted macOS
-  strategy:
-    matrix:
-      debug_x64:
-        _configuration: Debug
-        _architecture: x64
-      release_x64:
-        _configuration: Release
-        _architecture: x64
-  steps:
-  - task: Bash@3
-    displayName: 'Run scripts/cibuild.sh'
-    inputs:
-      targetType: filePath
-      filePath: ./scripts/cibuild.sh
-      arguments: '--configuration $(_configuration) --architecture $(_architecture)'
-  - task: PublishTestResults@2
-    displayName: 'Publish Test Results'
-    inputs:
-      testResultsFormat: VSTest
-      testResultsFiles: artifacts/tst/$(_configuration)/*.trx
-      mergeTestResults: true
-      failTaskOnFailedTests: true
-      testRunTitle: 'MacOS 10.14 $(_configuration) $(_architecture)'
-      buildConfiguration: $(_configuration)
-      buildPlatform: $(_architecture)
+- template: azure-windows.yml
+  parameters:
+    name: windows_debug_x64
+    pool: Hosted
+    configuration: Debug
+    architecture: x64
+
+- template: azure-windows.yml
+  parameters:
+    name: windows_release_x64
+    pool: Hosted
+    configuration: Release
+    architecture: x64
+
+- template: azure-unix.yml
+  parameters:
+    name: ubuntu_debug_x64
+    pool: Hosted Ubuntu 1604
+    configuration: Debug
+    architecture: x64
+
+- template: azure-unix.yml
+  parameters:
+    name: ubuntu_release_x64
+    pool: Hosted Ubuntu 1604
+    configuration: Release
+    architecture: x64
+
+- template: azure-unix.yml
+  parameters:
+    name: macos_debug_x64
+    pool: Hosted macOS
+    configuration: Debug
+    architecture: x64
+
+- template: azure-unix.yml
+  parameters:
+    name: macos_release_x64
+    pool: Hosted macOS
+    configuration: Release
+    architecture: x64
