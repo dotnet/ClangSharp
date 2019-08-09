@@ -120,7 +120,7 @@ try {
     $DotNetInstallDirectory = Join-Path -Path $ArtifactsDir -ChildPath "dotnet"
     Create-Directory -Path $DotNetInstallDirectory
 
-    & $DotNetInstallScript -Channel release/3.0.1xx -Version latest -InstallDir $DotNetInstallDirectory -Architecture $architecture
+    & $DotNetInstallScript -Channel release/3.0.1xx -Version 3.0.100-preview7-012821 -InstallDir $DotNetInstallDirectory -Architecture $architecture
     & $DotNetInstallScript -Channel 2.1 -Version latest -InstallDir $DotNetInstallDirectory -Architecture $architecture -Runtime dotnet
     & $DotNetInstallScript -Channel 2.0 -Version latest -InstallDir $DotNetInstallDirectory -Architecture $architecture -Runtime dotnet
 
