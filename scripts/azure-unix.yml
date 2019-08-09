@@ -19,3 +19,9 @@ jobs:
       testRunTitle: '${{parameters.name}}'
       buildConfiguration: ${{parameters.configuration}}
       buildPlatform: ${{parameters.architecture}}
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish NuGet Packages'
+    inputs:
+      PathtoPublish: artifacts/pkg/${{parameters.configuration}}
+      ArtifactName: packages
+      publishLocation: Container
