@@ -39,6 +39,7 @@ jobs:
     pool: Hosted Ubuntu 1604
     configuration: Debug
     architecture: x64
+    rid: ubuntu.16.04-x64
 
 - template: azure-unix.yml
   parameters:
@@ -46,6 +47,7 @@ jobs:
     pool: Hosted Ubuntu 1604
     configuration: Release
     architecture: x64
+    rid: ubuntu.16.04-x64
 
 - template: azure-unix.yml
   parameters:

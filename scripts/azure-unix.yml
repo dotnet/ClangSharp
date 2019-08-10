@@ -25,3 +25,5 @@ jobs:
       PathtoPublish: artifacts/pkg/${{parameters.configuration}}
       ArtifactName: packages
       publishLocation: Container
+  variables:
+    RuntimeIdentifier: ${{parameters.rid}}
