@@ -268,19 +268,25 @@ namespace ClangSharp
             using var sw = new StreamWriter(stream, defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
-            if (outputBuilder.UsingDirectives.Any() && _config.GenerateMultipleFiles)
+            if (_config.GenerateMultipleFiles)
             {
-                sw.Write(_config.HeaderText);
-
-                foreach (var usingDirective in outputBuilder.UsingDirectives)
+                if (_config.HeaderText != string.Empty)
                 {
-                    sw.Write("using");
-                    sw.Write(' ');
-                    sw.Write(usingDirective);
-                    sw.WriteLine(';');
+                    sw.WriteLine(_config.HeaderText);
                 }
 
-                sw.WriteLine();
+                if (outputBuilder.UsingDirectives.Any())
+                {
+                    foreach (var usingDirective in outputBuilder.UsingDirectives)
+                    {
+                        sw.Write("using");
+                        sw.Write(' ');
+                        sw.Write(usingDirective);
+                        sw.WriteLine(';');
+                    }
+
+                    sw.WriteLine();
+                }
             }
 
             var indentationString = outputBuilder.IndentationString;
@@ -1399,12 +1405,12 @@ namespace ClangSharp
             var parameters = typedefDecl.CursorChildren.Where((cursor) => cursor is ParmVarDecl).Cast<ParmVarDecl>().ToList();
             var index = parameters.IndexOf(parmVarDecl);
             var lastIndex = parameters.Count - 1;
-            
+
             if (name.Equals("param"))
             {
                 _outputBuilder.Write(index);
             }
-            
+
             if (index != lastIndex)
             {
                 _outputBuilder.Write(',');
