@@ -1,0 +1,27 @@
+jobs:
+- job: ${{parameters.name}}
+  pool:
+    name: ${{parameters.pool}}
+    demands: Cmd
+  steps:
+  - task: BatchScript@1
+    displayName: 'Run scripts/cibuild.cmd'
+    inputs:
+      filename: scripts/cibuild.cmd
+      arguments: '-configuration ${{parameters.configuration}} -architecture ${{parameters.architecture}}'
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
+    inputs:
+      testResultsFormat: VSTest
+      testResultsFiles: artifacts/tst/${{parameters.configuration}}/*.trx
+      mergeTestResults: true
+      failTaskOnFailedTests: true
+      testRunTitle: '${{parameters.name}}'
+      buildConfiguration: ${{parameters.configuration}}
+      buildPlatform: ${{parameters.architecture}}
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish NuGet Packages'
+    inputs:
+      PathtoPublish: artifacts/pkg/${{parameters.configuration}}
+      ArtifactName: packages
+      publishLocation: Container
