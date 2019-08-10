@@ -268,20 +268,25 @@ namespace ClangSharp
             using var sw = new StreamWriter(stream, defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
-            if (_config.HeaderText != string.Empty && !isMethodClass)
-                sw.WriteLine(_config.HeaderText);
-
-            if (outputBuilder.UsingDirectives.Any() && _config.GenerateMultipleFiles)
+            if (_config.GenerateMultipleFiles)
             {
-                foreach (var usingDirective in outputBuilder.UsingDirectives)
+                if (_config.HeaderText != string.Empty)
                 {
-                    sw.Write("using");
-                    sw.Write(' ');
-                    sw.Write(usingDirective);
-                    sw.WriteLine(';');
+                    sw.WriteLine(_config.HeaderText);
                 }
 
-                sw.WriteLine();
+                if (outputBuilder.UsingDirectives.Any())
+                {
+                    foreach (var usingDirective in outputBuilder.UsingDirectives)
+                    {
+                        sw.Write("using");
+                        sw.Write(' ');
+                        sw.Write(usingDirective);
+                        sw.WriteLine(';');
+                    }
+
+                    sw.WriteLine();
+                }
             }
 
             var indentationString = outputBuilder.IndentationString;
