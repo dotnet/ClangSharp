@@ -82,7 +82,7 @@ namespace ClangSharp
             }
             else if (handle.IsPreprocessing)
             {
-                result = Preprocessing.Create(handle);
+                result = PreprocessedEntity.Create(handle);
             }
             else
             {

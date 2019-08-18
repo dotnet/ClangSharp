@@ -6,21 +6,21 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public class Preprocessing : Cursor
+    public class PreprocessedEntity : Cursor
     {
-        private protected Preprocessing(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected PreprocessedEntity(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
         }
 
-        internal static new Preprocessing Create(CXCursor handle)
+        internal static new PreprocessedEntity Create(CXCursor handle)
         {
-            Preprocessing result;
+            PreprocessedEntity result;
 
             switch (handle.Kind)
             {
                 case CXCursorKind.CXCursor_MacroDefinition:
                 {
-                    result = new MacroDefinition(handle);
+                    result = new MacroDefinitionRecord(handle);
                     break;
                 }
 
@@ -47,7 +47,7 @@ namespace ClangSharp
                     Debug.WriteLine($"Unhandled preprocessing kind: {handle.KindSpelling}.");
                     Debugger.Break();
 
-                    result = new Preprocessing(handle, handle.Kind);
+                    result = new PreprocessedEntity(handle, handle.Kind);
                     break;
                 }
             }

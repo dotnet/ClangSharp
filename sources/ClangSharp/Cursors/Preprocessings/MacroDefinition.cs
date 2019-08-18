@@ -2,9 +2,9 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class MacroDefinition : Preprocessing
+    public sealed class MacroDefinitionRecord : PreprocessingDirective
     {
-        internal MacroDefinition(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MacroDefinition)
+        internal MacroDefinitionRecord(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MacroDefinition)
         {
         }
 
