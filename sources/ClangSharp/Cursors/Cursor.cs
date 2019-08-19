@@ -80,6 +80,10 @@ namespace ClangSharp
             {
                 result = Attr.Create(handle);
             }
+            else if (handle.IsPreprocessing)
+            {
+                result = PreprocessedEntity.Create(handle);
+            }
             else
             {
                 Debug.WriteLine($"Unhandled cursor kind: {handle.KindSpelling}.");
