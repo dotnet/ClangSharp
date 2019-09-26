@@ -75,6 +75,8 @@ namespace ClangSharp.Interop
 
         public bool IsAnonymous => clang.Cursor_isAnonymous(this) != 0;
 
+        public bool IsAnonymousRecordDecl => clang.Cursor_isAnonymousRecordDecl(this) != 0;
+
         public bool IsAttribute => clang.isAttribute(Kind) != 0;
 
         public bool IsBitField => clang.Cursor_isBitField(this) != 0;
@@ -90,6 +92,8 @@ namespace ClangSharp.Interop
         public bool IsExpression => clang.isExpression(Kind) != 0;
 
         public bool IsFunctionInlined => clang.Cursor_isFunctionInlined(this) != 0;
+
+        public bool IsInlineNamespace => clang.Cursor_isInlineNamespace(this) != 0;
 
         public bool IsInvalid => clang.isInvalid(Kind) != 0;
 

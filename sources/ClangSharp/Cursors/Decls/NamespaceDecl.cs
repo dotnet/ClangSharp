@@ -16,6 +16,8 @@ namespace ClangSharp
 
         public bool IsAnonymousNamespace => Handle.IsAnonymous;
 
+        public bool IsInlineNamespace => Handle.IsInlineNamespace;
+
         public IReadOnlyList<Decl> Decls => _decls.Value;
 
         public IDeclContext LexicalParent => LexicalDeclContext;

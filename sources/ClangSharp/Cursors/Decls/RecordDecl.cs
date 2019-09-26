@@ -14,6 +14,8 @@ namespace ClangSharp
             _fields = new Lazy<IReadOnlyList<FieldDecl>>(() => Decls.Where((decl) => decl is FieldDecl).Cast<FieldDecl>().ToList());
         }
 
+        public bool IsAnonymousRecord => Handle.IsAnonymousRecordDecl;
+
         public IReadOnlyList<FieldDecl> Fields => _fields.Value;
 
         public bool IsUnion => Kind == CXCursorKind.CXCursor_UnionDecl;
