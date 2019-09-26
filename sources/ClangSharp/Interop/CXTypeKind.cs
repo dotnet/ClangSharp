@@ -119,5 +119,6 @@ namespace ClangSharp.Interop
         CXType_OCLIntelSubgroupAVCImeResultDualRefStreamout = 173,
         CXType_OCLIntelSubgroupAVCImeSingleRefStreamin = 174,
         CXType_OCLIntelSubgroupAVCImeDualRefStreamin = 175,
+        CXType_ExtVector = 176,
     }
 }

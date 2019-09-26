@@ -602,6 +602,14 @@ namespace ClangSharp.Interop
         [return: NativeTypeName("unsigned int")]
         public static extern uint Cursor_isAnonymous(CXCursor C);
 
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_isAnonymousRecordDecl", CallingConvention = CallingConvention.Cdecl)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint Cursor_isAnonymousRecordDecl(CXCursor C);
+
+        [DllImport(libraryPath, EntryPoint = "clang_Cursor_isInlineNamespace", CallingConvention = CallingConvention.Cdecl)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint Cursor_isInlineNamespace(CXCursor C);
+
         [DllImport(libraryPath, EntryPoint = "clang_Type_getNumTemplateArguments", CallingConvention = CallingConvention.Cdecl)]
         public static extern int Type_getNumTemplateArguments(CXType T);
 

@@ -17,5 +17,6 @@ namespace ClangSharp.Interop
         CXTranslationUnit_LimitSkipFunctionBodiesToPreamble = 0x800,
         CXTranslationUnit_IncludeAttributedTypes = 0x1000,
         CXTranslationUnit_VisitImplicitAttributes = 0x2000,
+        CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles = 0x4000,
     }
 }
