@@ -27,7 +27,7 @@
 
   <!-- Package versions for package references across all projects -->
   <ItemGroup>
-    <PackageReference Update="libclang" Version="8.0.0" />
+    <PackageReference Update="libclang" Version="9.0.0" />
     <PackageReference Update="Microsoft.Bcl.HashCode" Version="1.0.0-preview6.19303.8" />
     <PackageReference Update="Microsoft.Net.Compilers.Toolset" Version="3.2.0-beta1-final" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.1.1" />

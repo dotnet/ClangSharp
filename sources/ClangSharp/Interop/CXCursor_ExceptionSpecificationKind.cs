@@ -11,5 +11,6 @@ namespace ClangSharp.Interop
         CXCursor_ExceptionSpecificationKind_Unevaluated,
         CXCursor_ExceptionSpecificationKind_Uninstantiated,
         CXCursor_ExceptionSpecificationKind_Unparsed,
+        CXCursor_ExceptionSpecificationKind_NoThrow,
     }
 }
