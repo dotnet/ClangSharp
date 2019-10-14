@@ -7,8 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="libClang" />
-    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.0.0-preview6.19303.8" />
-    <PackageReference Include="System.Memory" Version="4.5.3" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" />
+    <PackageReference Include="System.Memory" />
   </ItemGroup>
 
 </Project>
