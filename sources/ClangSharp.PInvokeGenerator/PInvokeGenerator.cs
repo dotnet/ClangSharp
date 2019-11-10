@@ -207,11 +207,6 @@ namespace ClangSharp
             }
 
             _diagnostics.Add(diagnostic);
-
-            if (level != DiagnosticLevel.Info)
-            {
-                Debugger.Break();
-            }
         }
 
         private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
