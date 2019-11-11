@@ -20,6 +20,12 @@ namespace ClangSharp
 
             switch (handle.Kind)
             {
+                case CXCursorKind.CXCursor_PreprocessingDirective:
+                {
+                    result = new PreprocessingDirective(handle);
+                    break;
+                }
+
                 case CXCursorKind.CXCursor_MacroDefinition:
                 {
                     result = new MacroDefinitionRecord(handle);
@@ -29,12 +35,6 @@ namespace ClangSharp
                 case CXCursorKind.CXCursor_MacroExpansion:
                 {
                     result = new MacroExpansion(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_PreprocessingDirective:
-                {
-                    result = new PreprocessingDirective(handle);
                     break;
                 }
 
