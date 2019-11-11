@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
+
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
@@ -23,13 +25,14 @@ namespace ClangSharp
             {
                 case CXCursorKind.CXCursor_UnexposedExpr:
                 {
-                    result = new Expr(handle, CXCursorKind.CXCursor_UnexposedExpr);
+                    result = new Expr(handle, handle.Kind);
                     break;
                 }
 
+                case CXCursorKind.CXCursor_ObjCSelfExpr:
                 case CXCursorKind.CXCursor_DeclRefExpr:
                 {
-                    result = new DeclRefExpr(handle);
+                    result = new DeclRefExpr(handle, handle.Kind);
                     break;
                 }
 
@@ -45,6 +48,18 @@ namespace ClangSharp
                     break;
                 }
 
+                case CXCursorKind.CXCursor_ObjCMessageExpr:
+                {
+                    result = new ObjCMessageExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_BlockExpr:
+                {
+                    result = new BlockExpr(handle);
+                    break;
+                }
+
                 case CXCursorKind.CXCursor_IntegerLiteral:
                 {
                     result = new IntegerLiteral(handle);
@@ -54,6 +69,12 @@ namespace ClangSharp
                 case CXCursorKind.CXCursor_FloatingLiteral:
                 {
                     result = new FloatingLiteral(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ImaginaryLiteral:
+                {
+                    result = new ImaginaryLiteral(handle);
                     break;
                 }
 
@@ -89,7 +110,7 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_BinaryOperator:
                 {
-                    result = new BinaryOperator(handle, CXCursorKind.CXCursor_BinaryOperator);
+                    result = new BinaryOperator(handle);
                     break;
                 }
 
@@ -111,15 +132,57 @@ namespace ClangSharp
                     break;
                 }
 
+                case CXCursorKind.CXCursor_CompoundLiteralExpr:
+                {
+                    result = new CompoundLiteralExpr(handle);
+                    break;
+                }
+
                 case CXCursorKind.CXCursor_InitListExpr:
                 {
                     result = new InitListExpr(handle);
                     break;
                 }
 
+                case CXCursorKind.CXCursor_AddrLabelExpr:
+                {
+                    result = new AddrLabelExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_StmtExpr:
+                {
+                    result = new StmtExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_GenericSelectionExpr:
+                {
+                    result = new GenericSelectionExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_GNUNullExpr:
+                {
+                    result = new GNUNullExpr(handle);
+                    break;
+                }
+
                 case CXCursorKind.CXCursor_CXXStaticCastExpr:
                 {
                     result = new CXXStaticCastExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_CXXDynamicCastExpr:
+                {
+                    result = new CXXDynamicCastExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_CXXReinterpretCastExpr:
+                {
+                    result = new CXXReinterpretCastExpr(handle);
                     break;
                 }
 
@@ -132,6 +195,12 @@ namespace ClangSharp
                 case CXCursorKind.CXCursor_CXXFunctionalCastExpr:
                 {
                     result = new CXXFunctionalCastExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_CXXTypeidExpr:
+                {
+                    result = new CXXTypeidExpr(handle);
                     break;
                 }
 
@@ -153,9 +222,57 @@ namespace ClangSharp
                     break;
                 }
 
+                case CXCursorKind.CXCursor_CXXThrowExpr:
+                {
+                    result = new CXXThrowExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_CXXNewExpr:
+                {
+                    result = new CXXNewExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_CXXDeleteExpr:
+                {
+                    result = new CXXDeleteExpr(handle);
+                    break;
+                }
+
                 case CXCursorKind.CXCursor_UnaryExpr:
                 {
                     result = new UnaryExprOrTypeTraitExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCStringLiteral:
+                {
+                    result = new ObjCStringLiteral(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCEncodeExpr:
+                {
+                    result = new ObjCEncodeExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCSelectorExpr:
+                {
+                    result = new ObjCSelectorExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCProtocolExpr:
+                {
+                    result = new ObjCProtocolExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCBridgedCastExpr:
+                {
+                    result = new ObjCBridgedCastExpr(handle);
                     break;
                 }
 
@@ -171,11 +288,39 @@ namespace ClangSharp
                     break;
                 }
 
+                case CXCursorKind.CXCursor_LambdaExpr:
+                {
+                    result = new LambdaExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCBoolLiteralExpr:
+                {
+                    result = new ObjCBoolLiteralExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_OMPArraySectionExpr:
+                {
+                    result = new OMPArraySectionExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCAvailabilityCheckExpr:
+                {
+                    result = new ObjCAvailabilityCheckExpr(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_FixedPointLiteral:
+                {
+                    result = new FixedPointLiteral(handle);
+                    break;
+                }
+
                 default:
                 {
                     Debug.WriteLine($"Unhandled expression kind: {handle.KindSpelling}.");
-                    Debugger.Break();
-
                     result = new Expr(handle, handle.Kind);
                     break;
                 }

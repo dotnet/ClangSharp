@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
+
 using System;
 using System.Runtime.InteropServices;
 using ClangSharp.Interop;
@@ -10,7 +12,7 @@ namespace ClangSharp.UnitTests
     //       with either "C:" (Windows) or nothing (*nix) so that clang understands the path.
     //       (Technically, /a/path/like/this is a path relative to the root of the current drive
     //        on Windows, but clang doesn't seem to support this)
-    public class VirtualFileOverlay
+    public class CXVirtualFileOverlayTest
     {
         class TestVFO : IDisposable
         {

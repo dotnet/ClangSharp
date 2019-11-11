@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
+// Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
+
 using System.Diagnostics;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -18,6 +17,12 @@ namespace ClangSharp
 
             switch (handle.Kind)
             {
+                case CXCursorKind.CXCursor_PreprocessingDirective:
+                {
+                    result = new PreprocessingDirective(handle);
+                    break;
+                }
+
                 case CXCursorKind.CXCursor_MacroDefinition:
                 {
                     result = new MacroDefinitionRecord(handle);
@@ -30,23 +35,15 @@ namespace ClangSharp
                     break;
                 }
 
-                case CXCursorKind.CXCursor_PreprocessingDirective:
-                {
-                    result = new PreprocessingDirective(handle);
-                    break;
-                }
-                
                 case CXCursorKind.CXCursor_InclusionDirective:
                 {
                     result = new InclusionDirective(handle);
                     break;
                 }
-                
+
                 default:
                 {
                     Debug.WriteLine($"Unhandled preprocessing kind: {handle.KindSpelling}.");
-                    Debugger.Break();
-
                     result = new PreprocessedEntity(handle, handle.Kind);
                     break;
                 }

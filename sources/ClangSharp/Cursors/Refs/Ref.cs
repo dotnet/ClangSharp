@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
+
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
@@ -21,7 +23,6 @@ namespace ClangSharp
 
             switch (handle.Kind)
             {
-
                 case CXCursorKind.CXCursor_CXXBaseSpecifier:
                 {
                     result = new CXXBaseSpecifier(handle);
@@ -30,9 +31,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    // Debug.WriteLine($"Unhandled reference kind: {handle.KindSpelling}.");
-                    // Debugger.Break();
-
+                    Debug.WriteLine($"Unhandled reference kind: {handle.KindSpelling}.");
                     result = new Ref(handle, handle.Kind);
                     break;
                 }

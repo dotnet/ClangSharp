@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,7 +18,7 @@ namespace ClangSharp
 
         private protected Decl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            _attrs = new Lazy<IReadOnlyList<Attr>>(() => CursorChildren.Where((cursor) => cursor is Attr).Cast<Attr>().ToList());
+            _attrs = new Lazy<IReadOnlyList<Attr>>(() => CursorChildren.OfType<Attr>().ToList());
             _canonicalDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
             _declContext = new Lazy<IDeclContext>(() => (IDeclContext)Create(Handle.SemanticParent));
             _lexicalDeclContext = new Lazy<IDeclContext>(() => (IDeclContext)Create(Handle.LexicalParent));
@@ -51,7 +53,7 @@ namespace ClangSharp
             {
                 case CXCursorKind.CXCursor_UnexposedDecl:
                 {
-                    result = new Decl(handle, CXCursorKind.CXCursor_UnexposedDecl);
+                    result = new Decl(handle, handle.Kind);
                     break;
                 }
 
@@ -90,19 +92,68 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_FunctionDecl:
                 {
-                    result = new FunctionDecl(handle, CXCursorKind.CXCursor_FunctionDecl);
+                    result = new FunctionDecl(handle);
                     break;
                 }
 
                 case CXCursorKind.CXCursor_VarDecl:
                 {
-                    result = new VarDecl(handle, CXCursorKind.CXCursor_VarDecl);
+                    result = new VarDecl(handle);
                     break;
                 }
 
                 case CXCursorKind.CXCursor_ParmDecl:
                 {
                     result = new ParmVarDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCInterfaceDecl:
+                {
+                    result = new ObjCInterfaceDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCCategoryDecl:
+                {
+                    result = new ObjCCategoryDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCProtocolDecl:
+                {
+                    result = new ObjCProtocolDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCPropertyDecl:
+                {
+                    result = new ObjCPropertyDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCIvarDecl:
+                {
+                    result = new ObjCIvarDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCInstanceMethodDecl:
+                case CXCursorKind.CXCursor_ObjCClassMethodDecl:
+                {
+                    result = new ObjCMethodDecl(handle, handle.Kind);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCImplementationDecl:
+                {
+                    result = new ObjCImplementationDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCCategoryImplDecl:
+                {
+                    result = new ObjCCategoryImplDecl(handle);
                     break;
                 }
 
@@ -114,13 +165,19 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_CXXMethod:
                 {
-                    result = new CXXMethodDecl(handle, CXCursorKind.CXCursor_CXXMethod);
+                    result = new CXXMethodDecl(handle);
                     break;
                 }
 
                 case CXCursorKind.CXCursor_Namespace:
                 {
                     result = new NamespaceDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_LinkageSpec:
+                {
+                    result = new LinkageSpecDecl(handle);
                     break;
                 }
 
@@ -196,6 +253,19 @@ namespace ClangSharp
                     break;
                 }
 
+                case CXCursorKind.CXCursor_ObjCSynthesizeDecl:
+                case CXCursorKind.CXCursor_ObjCDynamicDecl:
+                {
+                    result = new ObjCPropertyImplDecl(handle, handle.Kind);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ModuleImportDecl:
+                {
+                    result = new ImportDecl(handle);
+                    break;
+                }
+
                 case CXCursorKind.CXCursor_TypeAliasTemplateDecl:
                 {
                     result = new TypeAliasTemplateDecl(handle);
@@ -217,8 +287,6 @@ namespace ClangSharp
                 default:
                 {
                     Debug.WriteLine($"Unhandled declaration kind: {handle.KindSpelling}.");
-                    Debugger.Break();
-
                     result = new Decl(handle, handle.Kind);
                     break;
                 }

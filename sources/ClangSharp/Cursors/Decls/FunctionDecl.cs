@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +14,15 @@ namespace ClangSharp
         private readonly Lazy<IReadOnlyList<ParmVarDecl>> _parameters;
         private readonly Lazy<Type> _returnType;
 
-        internal FunctionDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        internal FunctionDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_FunctionDecl)
         {
-            _body = new Lazy<Stmt>(() => CursorChildren.Where((cursor) => cursor is Stmt).Cast<Stmt>().SingleOrDefault());
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.Where((cursor) => cursor is Decl).Cast<Decl>().ToList());
-            _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => Decls.Where((decl) => decl is ParmVarDecl).Cast<ParmVarDecl>().ToList());
+        }
+
+        private protected FunctionDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        {
+            _body = new Lazy<Stmt>(() => CursorChildren.OfType<Stmt>().SingleOrDefault());
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
+            _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => Decls.OfType<ParmVarDecl>().ToList());
             _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ResultType));
         }
 
