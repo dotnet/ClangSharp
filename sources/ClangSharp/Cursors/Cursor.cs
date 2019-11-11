@@ -78,6 +78,10 @@ namespace ClangSharp
             {
                 result = Stmt.Create(handle);
             }
+            else if (handle.IsTranslationUnit)
+            {
+                result = new TranslationUnitDecl(handle);
+            }
             else if (handle.IsAttribute)
             {
                 result = Attr.Create(handle);

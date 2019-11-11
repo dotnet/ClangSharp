@@ -63,8 +63,6 @@ namespace ClangSharp.Interop
 
         public CXType ObjCObjectBaseType => clang.Type_getObjCObjectBaseType(this);
 
-        public CXString ObjCEncoding => (kind != CXTypeKind.CXType_Invalid) ? clang.Type_getObjCEncoding(this) : default;
-
         public CXType PointeeType => clang.getPointeeType(this);
 
         public CXType ResultType => clang.getResultType(this);
@@ -86,6 +84,8 @@ namespace ClangSharp.Interop
         public CXType GetArgType(uint i) => clang.getArgType(this, i);
 
         public override int GetHashCode() => HashCode.Combine(kind, (IntPtr)data[0], (IntPtr)data[1]);
+
+        public CXString GetObjCEncoding() => clang.Type_getObjCEncoding(this);
 
         public CXCursor GetObjCProtocolDecl(uint i) => clang.Type_getObjCProtocolDecl(this, i);
 

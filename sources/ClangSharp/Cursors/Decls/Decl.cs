@@ -20,18 +20,18 @@ namespace ClangSharp
         {
             _attrs = new Lazy<IReadOnlyList<Attr>>(() => CursorChildren.OfType<Attr>().ToList());
             _canonicalDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
-            _declContext = new Lazy<IDeclContext>(() => (IDeclContext)Create(Handle.SemanticParent));
-            _lexicalDeclContext = new Lazy<IDeclContext>(() => (IDeclContext)Create(Handle.LexicalParent));
+            _declContext = new Lazy<IDeclContext>(() => Create(Handle.SemanticParent) as IDeclContext);
+            _lexicalDeclContext = new Lazy<IDeclContext>(() => Create(Handle.LexicalParent) as IDeclContext);
             _translationUnitDecl = new Lazy<TranslationUnitDecl>(() => TranslationUnit.GetOrCreate<TranslationUnitDecl>(Handle.TranslationUnit.Cursor));
         }
 
         public CX_CXXAccessSpecifier Access => Handle.CXXAccessSpecifier;
 
-        public IReadOnlyList<Attr> Attributes => _attrs.Value;
+        public IReadOnlyList<Attr> Attrs => _attrs.Value;
 
         public CXAvailabilityKind Availability => Handle.Availability;
 
-        public Decl Canonical => _canonicalDecl.Value;
+        public Decl CanonicalDecl => _canonicalDecl.Value;
 
         public IDeclContext DeclContext => _declContext.Value;
 
