@@ -174,8 +174,6 @@ namespace ClangSharp
                 default:
                 {
                     Debug.WriteLine($"Unhandled expression kind: {handle.KindSpelling}.");
-                    Debugger.Break();
-
                     result = new Expr(handle, handle.Kind);
                     break;
                 }

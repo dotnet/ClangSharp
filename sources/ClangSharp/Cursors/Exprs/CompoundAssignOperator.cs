@@ -64,7 +64,6 @@ namespace ClangSharp
                     default:
                     {
                         Debug.WriteLine($"Unhandled punctuation kind: {punctuation}.");
-                        Debugger.Break();
                         break;
                     }
                 }

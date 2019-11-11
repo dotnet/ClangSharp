@@ -45,8 +45,6 @@ namespace ClangSharp
                 default:
                 {
                     Debug.WriteLine($"Unhandled preprocessing kind: {handle.KindSpelling}.");
-                    Debugger.Break();
-
                     result = new PreprocessedEntity(handle, handle.Kind);
                     break;
                 }

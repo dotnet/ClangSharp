@@ -74,8 +74,6 @@ namespace ClangSharp
                 default:
                 {
                     Debug.WriteLine($"Unhandled statement kind: {handle.KindSpelling}.");
-                    Debugger.Break();
-
                     result = new Stmt(handle, handle.Kind);
                     break;
                 }

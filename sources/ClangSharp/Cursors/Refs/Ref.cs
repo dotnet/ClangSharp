@@ -30,9 +30,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    // Debug.WriteLine($"Unhandled reference kind: {handle.KindSpelling}.");
-                    // Debugger.Break();
-
+                    Debug.WriteLine($"Unhandled reference kind: {handle.KindSpelling}.");
                     result = new Ref(handle, handle.Kind);
                     break;
                 }

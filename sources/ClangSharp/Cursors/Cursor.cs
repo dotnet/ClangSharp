@@ -87,8 +87,6 @@ namespace ClangSharp
             else
             {
                 Debug.WriteLine($"Unhandled cursor kind: {handle.KindSpelling}.");
-                Debugger.Break();
-
                 result = new Cursor(handle, handle.Kind);
             }
 

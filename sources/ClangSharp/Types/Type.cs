@@ -146,8 +146,6 @@ namespace ClangSharp
                 default:
                 {
                     Debug.WriteLine($"Unhandled type kind: {handle.KindSpelling}.");
-                    Debugger.Break();
-
                     result = new Type(handle, handle.kind);
                     break;
                 }

@@ -35,8 +35,6 @@ namespace ClangSharp
                 default:
                 {
                     Debug.WriteLine($"Unhandled attribute kind: {handle.KindSpelling}.");
-                    Debugger.Break();
-
                     result = new Attr(handle, handle.kind);
                     break;
                 }
