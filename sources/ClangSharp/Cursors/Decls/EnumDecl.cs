@@ -14,7 +14,7 @@ namespace ClangSharp
 
         internal EnumDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_EnumDecl)
         {
-            _enumerators = new Lazy<IReadOnlyList<EnumConstantDecl>>(() => Decls.Where((decl) => decl is EnumConstantDecl).Cast<EnumConstantDecl>().ToList());
+            _enumerators = new Lazy<IReadOnlyList<EnumConstantDecl>>(() => Decls.OfType<EnumConstantDecl>().ToList());
             _integerType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EnumDecl_IntegerType));
         }
 

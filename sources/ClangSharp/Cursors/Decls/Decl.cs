@@ -18,7 +18,7 @@ namespace ClangSharp
 
         private protected Decl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            _attrs = new Lazy<IReadOnlyList<Attr>>(() => CursorChildren.Where((cursor) => cursor is Attr).Cast<Attr>().ToList());
+            _attrs = new Lazy<IReadOnlyList<Attr>>(() => CursorChildren.OfType<Attr>().ToList());
             _canonicalDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
             _declContext = new Lazy<IDeclContext>(() => (IDeclContext)Create(Handle.SemanticParent));
             _lexicalDeclContext = new Lazy<IDeclContext>(() => (IDeclContext)Create(Handle.LexicalParent));

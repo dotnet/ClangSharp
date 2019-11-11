@@ -12,7 +12,7 @@ namespace ClangSharp
 
         internal ParenExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ParenExpr)
         {
-            _subExpr = new Lazy<Expr>(() => Children.Where((cursor) => cursor is Expr).Cast<Expr>().Single());
+            _subExpr = new Lazy<Expr>(() => Children.OfType<Expr>().Single());
         }
 
         public Expr SubExpr => _subExpr.Value;

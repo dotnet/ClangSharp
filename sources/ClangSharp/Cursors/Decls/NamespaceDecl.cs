@@ -13,7 +13,7 @@ namespace ClangSharp
 
         internal NamespaceDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_Namespace)
         {
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.Where((cursor) => cursor is Decl).Cast<Decl>().ToList());
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
         }
 
         public bool IsAnonymousNamespace => Handle.IsAnonymous;

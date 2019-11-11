@@ -13,7 +13,7 @@ namespace ClangSharp
 
         internal RecordDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            _fields = new Lazy<IReadOnlyList<FieldDecl>>(() => Decls.Where((decl) => decl is FieldDecl).Cast<FieldDecl>().ToList());
+            _fields = new Lazy<IReadOnlyList<FieldDecl>>(() => Decls.OfType<FieldDecl>().ToList());
         }
 
         public bool IsAnonymousRecord => Handle.IsAnonymousRecordDecl;
