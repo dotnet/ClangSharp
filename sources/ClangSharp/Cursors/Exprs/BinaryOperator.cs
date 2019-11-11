@@ -13,7 +13,11 @@ namespace ClangSharp
         private readonly Lazy<string> _opcode;
         private readonly Lazy<Expr> _rhs;
 
-        internal BinaryOperator(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        internal BinaryOperator(CXCursor handle) : this(handle, CXCursorKind.CXCursor_BinaryOperator)
+        {
+        }
+
+        private protected BinaryOperator(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
             Debug.Assert(Children.Where((cursor) => cursor is Expr).Count() == 2);
 

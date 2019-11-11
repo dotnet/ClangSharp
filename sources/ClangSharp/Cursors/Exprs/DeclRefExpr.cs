@@ -9,7 +9,7 @@ namespace ClangSharp
     {
         private readonly Lazy<ValueDecl> _decl;
 
-        internal DeclRefExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclRefExpr)
+        internal DeclRefExpr(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
             _decl = new Lazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.Referenced));
         }
