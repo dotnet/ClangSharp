@@ -19,10 +19,11 @@ namespace ClangSharp
         private TranslationUnit(CXTranslationUnit handle)
         {
             Handle = handle;
-            TranslationUnitDecl = new TranslationUnitDecl(Handle.Cursor);
 
             _createdCursors = new Dictionary<CXCursor, Cursor>();
             _createdTypes = new Dictionary<CXType, Type>();
+
+            TranslationUnitDecl = GetOrCreate<TranslationUnitDecl>(Handle.Cursor);
         }
 
         ~TranslationUnit()

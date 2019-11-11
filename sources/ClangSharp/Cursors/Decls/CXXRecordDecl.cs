@@ -20,7 +20,7 @@ namespace ClangSharp
         {
             _bases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => CursorChildren.OfType<CXXBaseSpecifier>().ToList());
             _ctors = new Lazy<IReadOnlyList<CXXConstructorDecl>>(() => Methods.OfType<CXXConstructorDecl>().ToList());
-            _destructor = new Lazy<CXXDestructorDecl>(() => Methods.OfType<CXXDestructorDecl>().Single());
+            _destructor = new Lazy<CXXDestructorDecl>(() => Methods.OfType<CXXDestructorDecl>().SingleOrDefault());
             _friends = new Lazy<IReadOnlyList<FriendDecl>>(() => Decls.OfType<FriendDecl>().ToList());
             _methods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => Decls.OfType<CXXMethodDecl>().ToList());
             _vbases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => Bases.OfType<CXXBaseSpecifier>().ToList());
