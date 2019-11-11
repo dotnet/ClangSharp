@@ -6,7 +6,11 @@ namespace ClangSharp
 {
     public class CXXMethodDecl : FunctionDecl
     {
-        internal CXXMethodDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        internal CXXMethodDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_CXXMethod)
+        {
+        }
+
+        private protected CXXMethodDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
         }
 
