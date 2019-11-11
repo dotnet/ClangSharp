@@ -235,6 +235,18 @@ namespace ClangSharp
                     break;
                 }
 
+                case CXCursorKind.CXCursor_NamespaceAlias:
+                {
+                    result = new NamespaceAliasDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_UsingDirective:
+                {
+                    result = new UsingDirectiveDecl(handle);
+                    break;
+                }
+
                 case CXCursorKind.CXCursor_UsingDeclaration:
                 {
                     result = new UsingDecl(handle);
