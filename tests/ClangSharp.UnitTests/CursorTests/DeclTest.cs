@@ -27,5 +27,19 @@ namespace ClangSharp.UnitTests
 
             Assert.Equal(expectedAccessSpecifier, accessSpecDecl.Access);
         }
+
+        [Fact]
+        public void ClassTemplateDeclTest()
+        {
+            var inputContents = $@"template<class T>
+class MyClass
+{{
+}};
+";
+
+            using var translationUnit = CreateTranslationUnit(inputContents);
+            var classTemplateDecl = translationUnit.TranslationUnitDecl.Decls.OfType<ClassTemplateDecl>().Single();
+            Assert.Equal("MyClass", classTemplateDecl.Name);
+        }
     }
 }
