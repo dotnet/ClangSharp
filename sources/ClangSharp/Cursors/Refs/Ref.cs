@@ -23,7 +23,6 @@ namespace ClangSharp
 
             switch (handle.Kind)
             {
-
                 case CXCursorKind.CXCursor_CXXBaseSpecifier:
                 {
                     result = new CXXBaseSpecifier(handle);
