@@ -15,7 +15,7 @@ namespace ClangSharp
         internal UnaryOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryOperator)
         {
             _opcode = new Lazy<(string Opcode, bool IsPrefix)>(GetOpcode);
-            _subExpr = new Lazy<Expr>(() => Children.Where((cursor) => cursor is Expr).Cast<Expr>().Single());
+            _subExpr = new Lazy<Expr>(() => Children.OfType<Expr>().Single());
         }
 
         public bool IsPrefix => _opcode.Value.IsPrefix;

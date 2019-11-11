@@ -18,12 +18,12 @@ namespace ClangSharp
 
         internal CXXRecordDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            _bases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => CursorChildren.Where((cursor) => cursor is CXXBaseSpecifier).Cast<CXXBaseSpecifier>().ToList());
-            _ctors = new Lazy<IReadOnlyList<CXXConstructorDecl>>(() => Methods.Where((method) => method is CXXConstructorDecl).Cast<CXXConstructorDecl>().ToList());
-            _destructor = new Lazy<CXXDestructorDecl>(() => Methods.Where((method) => method is CXXDestructorDecl).Cast<CXXDestructorDecl>().Single());
-            _friends = new Lazy<IReadOnlyList<FriendDecl>>(() => Decls.Where((decl) => decl is FriendDecl).Cast<FriendDecl>().ToList());
-            _methods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => Decls.Where((decl) => decl is CXXMethodDecl).Cast<CXXMethodDecl>().ToList());
-            _vbases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => Bases.Where((@base) => @base.IsVirtual).Cast<CXXBaseSpecifier>().ToList());
+            _bases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => CursorChildren.OfType<CXXBaseSpecifier>().ToList());
+            _ctors = new Lazy<IReadOnlyList<CXXConstructorDecl>>(() => Methods.OfType<CXXConstructorDecl>().ToList());
+            _destructor = new Lazy<CXXDestructorDecl>(() => Methods.OfType<CXXDestructorDecl>().Single());
+            _friends = new Lazy<IReadOnlyList<FriendDecl>>(() => Decls.OfType<FriendDecl>().ToList());
+            _methods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => Decls.OfType<CXXMethodDecl>().ToList());
+            _vbases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => Bases.OfType<CXXBaseSpecifier>().ToList());
         }
 
         public bool IsAbstract => Handle.CXXRecord_IsAbstract;

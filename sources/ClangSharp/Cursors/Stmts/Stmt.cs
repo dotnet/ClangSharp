@@ -14,7 +14,7 @@ namespace ClangSharp
 
         private protected Stmt(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
-            _children = new Lazy<IReadOnlyList<Stmt>>(() => CursorChildren.Where((cursor) => cursor is Stmt).Cast<Stmt>().ToList());
+            _children = new Lazy<IReadOnlyList<Stmt>>(() => CursorChildren.OfType<Stmt>().ToList());
         }
 
         public IReadOnlyList<Stmt> Children => _children.Value;

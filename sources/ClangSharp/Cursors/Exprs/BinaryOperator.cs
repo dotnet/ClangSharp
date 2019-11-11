@@ -17,9 +17,9 @@ namespace ClangSharp
         {
             Debug.Assert(Children.Where((cursor) => cursor is Expr).Count() == 2);
 
-            _lhs = new Lazy<Expr>(() => Children.Where((cursor) => cursor is Expr).Cast<Expr>().First());
+            _lhs = new Lazy<Expr>(() => Children.OfType<Expr>().First());
             _opcode = new Lazy<string>(GetOpcode);
-            _rhs = new Lazy<Expr>(() => Children.Where((cursor) => cursor is Expr).Cast<Expr>().Last());
+            _rhs = new Lazy<Expr>(() => Children.OfType<Expr>().Last());
         }
 
         public Expr LHS => _lhs.Value;

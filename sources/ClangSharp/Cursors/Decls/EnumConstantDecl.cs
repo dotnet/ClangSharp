@@ -12,7 +12,7 @@ namespace ClangSharp
 
         internal EnumConstantDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_EnumConstantDecl)
         {
-            _initExpr = new Lazy<Expr>(() => CursorChildren.Where((cursor) => cursor is Expr).Cast<Expr>().SingleOrDefault());
+            _initExpr = new Lazy<Expr>(() => CursorChildren.OfType<Expr>().SingleOrDefault());
         }
 
         public Expr InitExpr => _initExpr.Value;

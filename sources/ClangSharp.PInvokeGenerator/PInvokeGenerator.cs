@@ -1399,7 +1399,7 @@ namespace ClangSharp
             var name = GetRemappedCursorName(parmVarDecl);
             _outputBuilder.Write(EscapeName(name));
 
-            var parameters = typedefDecl.CursorChildren.Where((cursor) => cursor is ParmVarDecl).Cast<ParmVarDecl>().ToList();
+            var parameters = typedefDecl.CursorChildren.OfType<ParmVarDecl>().ToList();
             var index = parameters.IndexOf(parmVarDecl);
             var lastIndex = parameters.Count - 1;
 
@@ -1680,7 +1680,7 @@ namespace ClangSharp
                     _outputBuilder.Write(EscapeName(name));
                     _outputBuilder.Write('(');
 
-                    foreach (var parmVarDecl in typedefDecl.CursorChildren.Where((cursor) => cursor is ParmVarDecl))
+                    foreach (var parmVarDecl in typedefDecl.CursorChildren.OfType<ParmVarDecl>())
                     {
                         Visit(parmVarDecl);
                     }
@@ -1776,7 +1776,7 @@ namespace ClangSharp
         {
             Debug.Assert(unexposedDecl.Kind == CXCursorKind.CXCursor_UnexposedDecl);
 
-            foreach (var decl in unexposedDecl.CursorChildren.Where((cursor) => cursor is Decl))
+            foreach (var decl in unexposedDecl.CursorChildren.OfType<Decl>())
             {
                 Visit(decl);
             }
