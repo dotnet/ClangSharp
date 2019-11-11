@@ -23,7 +23,7 @@ namespace ClangSharp
             _destructor = new Lazy<CXXDestructorDecl>(() => Methods.OfType<CXXDestructorDecl>().SingleOrDefault());
             _friends = new Lazy<IReadOnlyList<FriendDecl>>(() => Decls.OfType<FriendDecl>().ToList());
             _methods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => Decls.OfType<CXXMethodDecl>().ToList());
-            _vbases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => Bases.OfType<CXXBaseSpecifier>().ToList());
+            _vbases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => Bases.Where((@base) => @base.IsVirtual).ToList());
         }
 
         public bool IsAbstract => Handle.CXXRecord_IsAbstract;
