@@ -4,9 +4,9 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public class InheritableAttr : Attr
+    public sealed class DeclOrTypeAttr : InheritableAttr
     {
-        internal InheritableAttr(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        internal DeclOrTypeAttr(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
         }
     }
