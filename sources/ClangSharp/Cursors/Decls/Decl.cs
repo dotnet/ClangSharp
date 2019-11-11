@@ -53,7 +53,7 @@ namespace ClangSharp
             {
                 case CXCursorKind.CXCursor_UnexposedDecl:
                 {
-                    result = new Decl(handle, CXCursorKind.CXCursor_UnexposedDecl);
+                    result = new Decl(handle, handle.Kind);
                     break;
                 }
 
@@ -92,19 +92,68 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_FunctionDecl:
                 {
-                    result = new FunctionDecl(handle, CXCursorKind.CXCursor_FunctionDecl);
+                    result = new FunctionDecl(handle);
                     break;
                 }
 
                 case CXCursorKind.CXCursor_VarDecl:
                 {
-                    result = new VarDecl(handle, CXCursorKind.CXCursor_VarDecl);
+                    result = new VarDecl(handle);
                     break;
                 }
 
                 case CXCursorKind.CXCursor_ParmDecl:
                 {
                     result = new ParmVarDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCInterfaceDecl:
+                {
+                    result = new ObjCInterfaceDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCCategoryDecl:
+                {
+                    result = new ObjCCategoryDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCProtocolDecl:
+                {
+                    result = new ObjCProtocolDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCPropertyDecl:
+                {
+                    result = new ObjCPropertyDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCIvarDecl:
+                {
+                    result = new ObjCIvarDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCInstanceMethodDecl:
+                case CXCursorKind.CXCursor_ObjCClassMethodDecl:
+                {
+                    result = new ObjCMethodDecl(handle, handle.Kind);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCImplementationDecl:
+                {
+                    result = new ObjCImplementationDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCCategoryImplDecl:
+                {
+                    result = new ObjCCategoryImplDecl(handle);
                     break;
                 }
 
@@ -116,13 +165,19 @@ namespace ClangSharp
 
                 case CXCursorKind.CXCursor_CXXMethod:
                 {
-                    result = new CXXMethodDecl(handle, CXCursorKind.CXCursor_CXXMethod);
+                    result = new CXXMethodDecl(handle);
                     break;
                 }
 
                 case CXCursorKind.CXCursor_Namespace:
                 {
                     result = new NamespaceDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_LinkageSpec:
+                {
+                    result = new LinkageSpecDecl(handle);
                     break;
                 }
 
@@ -195,6 +250,19 @@ namespace ClangSharp
                 case CXCursorKind.CXCursor_CXXAccessSpecifier:
                 {
                     result = new AccessSpecDecl(handle);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ObjCSynthesizeDecl:
+                case CXCursorKind.CXCursor_ObjCDynamicDecl:
+                {
+                    result = new ObjCPropertyImplDecl(handle, handle.Kind);
+                    break;
+                }
+
+                case CXCursorKind.CXCursor_ModuleImportDecl:
+                {
+                    result = new ImportDecl(handle);
                     break;
                 }
 

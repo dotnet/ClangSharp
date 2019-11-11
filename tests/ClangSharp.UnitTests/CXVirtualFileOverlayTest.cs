@@ -12,7 +12,7 @@ namespace ClangSharp.UnitTests
     //       with either "C:" (Windows) or nothing (*nix) so that clang understands the path.
     //       (Technically, /a/path/like/this is a path relative to the root of the current drive
     //        on Windows, but clang doesn't seem to support this)
-    public class VirtualFileOverlay
+    public class CXVirtualFileOverlayTest
     {
         class TestVFO : IDisposable
         {

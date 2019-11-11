@@ -9,7 +9,11 @@ namespace ClangSharp
     {
         private readonly Lazy<VarDecl> _instantiatedFromStaticDataMember;
 
-        internal VarDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        internal VarDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_VarDecl)
+        {
+        }
+
+        private protected VarDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
         {
             _instantiatedFromStaticDataMember = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.SpecializedCursorTemplate));
         }

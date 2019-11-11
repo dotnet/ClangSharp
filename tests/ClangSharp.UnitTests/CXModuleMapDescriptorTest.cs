@@ -6,7 +6,7 @@ using Xunit;
 
 namespace ClangSharp.UnitTests
 {
-    public class ModuleMapDescriptor
+    public class CXModuleMapDescriptorTest
     {
         [Fact]
         public void Basic()
