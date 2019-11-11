@@ -9,12 +9,17 @@ namespace ClangSharp
 {
     public sealed class DeclStmt : Stmt
     {
-        private readonly Lazy<IReadOnlyList<Decl>> _children;
+        private readonly Lazy<IReadOnlyList<Decl>> _decls;
+
         internal DeclStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclStmt)
         {
-            _children = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
         }
 
-        public IReadOnlyList<Decl> Decls => _children.Value;
+        public IReadOnlyList<Decl> Decls => _decls.Value;
+
+        public bool IsSingleDecl => Decls.Count == 1;
+
+        public Decl SingleDecl => Decls.Single();
     }
 }
