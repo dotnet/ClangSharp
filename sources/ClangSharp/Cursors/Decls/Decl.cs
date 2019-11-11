@@ -27,11 +27,11 @@ namespace ClangSharp
 
         public CX_CXXAccessSpecifier Access => Handle.CXXAccessSpecifier;
 
-        public IReadOnlyList<Attr> Attributes => _attrs.Value;
+        public IReadOnlyList<Attr> Attrs => _attrs.Value;
 
         public CXAvailabilityKind Availability => Handle.Availability;
 
-        public Decl Canonical => _canonicalDecl.Value;
+        public Decl CanonicalDecl => _canonicalDecl.Value;
 
         public IDeclContext DeclContext => _declContext.Value;
 
