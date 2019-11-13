@@ -22,13 +22,13 @@ namespace ClangSharp
 
         public TagDecl Definition => _definition.Value;
 
-        public bool IsClass => Kind == CXCursorKind.CXCursor_ClassDecl;
+        public bool IsClass => CursorKind == CXCursorKind.CXCursor_ClassDecl;
 
-        public bool IsEnum => Kind == CXCursorKind.CXCursor_EnumDecl;
+        public bool IsEnum => CursorKind == CXCursorKind.CXCursor_EnumDecl;
 
-        public bool IsStruct => Kind == CXCursorKind.CXCursor_StructDecl;
+        public bool IsStruct => CursorKind == CXCursorKind.CXCursor_StructDecl;
 
-        public bool IsUnion => Kind == CXCursorKind.CXCursor_UnionDecl;
+        public bool IsUnion => CursorKind == CXCursorKind.CXCursor_UnionDecl;
 
         public IDeclContext LexicalParent => LexicalDeclContext;
 

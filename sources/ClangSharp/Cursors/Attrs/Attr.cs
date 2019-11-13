@@ -120,5 +120,7 @@ namespace ClangSharp
 
             return result;
         }
+
+        public CX_AttrKind Kind => Handle.AttrKind;
     }
 }

@@ -19,6 +19,8 @@ namespace ClangSharp
 
         public IReadOnlyList<Stmt> Children => _children.Value;
 
+        public CX_StmtKind StmtClass => Handle.StmtKind;
+
         internal static new Stmt Create(CXCursor handle)
         {
             Stmt result;

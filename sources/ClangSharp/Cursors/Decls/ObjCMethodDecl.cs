@@ -18,9 +18,9 @@ namespace ClangSharp
 
         public IReadOnlyList<Decl> Decls => _decls.Value;
 
-        public bool IsClassMethod() => Kind == CXCursorKind.CXCursor_ObjCClassMethodDecl;
+        public bool IsClassMethod() => CursorKind == CXCursorKind.CXCursor_ObjCClassMethodDecl;
 
-        public bool IsInstanceMethod() => Kind == CXCursorKind.CXCursor_ObjCInstanceMethodDecl;
+        public bool IsInstanceMethod() => CursorKind == CXCursorKind.CXCursor_ObjCInstanceMethodDecl;
 
         public IDeclContext LexicalParent => LexicalDeclContext;
 

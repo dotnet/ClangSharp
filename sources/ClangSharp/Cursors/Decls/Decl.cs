@@ -20,8 +20,8 @@ namespace ClangSharp
         {
             _attrs = new Lazy<IReadOnlyList<Attr>>(() => CursorChildren.OfType<Attr>().ToList());
             _canonicalDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
-            _declContext = new Lazy<IDeclContext>(() => Create(Handle.SemanticParent) as IDeclContext);
-            _lexicalDeclContext = new Lazy<IDeclContext>(() => Create(Handle.LexicalParent) as IDeclContext);
+            _declContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.SemanticParent) as IDeclContext);
+            _lexicalDeclContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.LexicalParent) as IDeclContext);
             _translationUnitDecl = new Lazy<TranslationUnitDecl>(() => TranslationUnit.GetOrCreate<TranslationUnitDecl>(Handle.TranslationUnit.Cursor));
         }
 
@@ -40,6 +40,8 @@ namespace ClangSharp
         public bool IsCanonicalDecl => Handle.IsCanonical;
 
         public bool IsInvalidDecl => Handle.IsInvalidDeclaration;
+
+        public CX_DeclKind Kind => Handle.DeclKind;
 
         public IDeclContext LexicalDeclContext => _lexicalDeclContext.Value;
 

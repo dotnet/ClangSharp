@@ -20,7 +20,7 @@ namespace ClangSharp.Interop
 
         public static bool Equals(CXSourceRange range1, CXSourceRange range2) => clang.equalRanges(range1, range2) != 0;
 
-        public static CXSourceRange Create(CXSourceLocation begin, CXSourceLocation end) => clang.getRange(begin, end);
+        public static CXSourceRange Create(CXSourceLocation begin, CXSourceLocation end) => clangsharp.getRange(begin, end);
 
         public override bool Equals(object obj) => (obj is CXSourceRange other) && Equals(other);
 

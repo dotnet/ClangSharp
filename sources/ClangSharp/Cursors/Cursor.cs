@@ -38,15 +38,15 @@ namespace ClangSharp
 
         public IReadOnlyList<Cursor> CursorChildren => _cursorChildren.Value;
 
+        public CXCursorKind CursorKind => Handle.Kind;
+
+        public string CursorKindSpelling => Handle.KindSpelling.ToString();
+
         public Cursor CursorParent { get; private set; }
 
         public CXSourceRange Extent => Handle.Extent;
 
         public CXCursor Handle { get; }
-
-        public CXCursorKind Kind => Handle.Kind;
-
-        public string KindSpelling => Handle.KindSpelling.ToString();
 
         public CXSourceLocation Location => Handle.Location;
 
@@ -62,7 +62,7 @@ namespace ClangSharp
         {
             Cursor result;
 
-            if (handle.IsDeclaration)
+            if (handle.IsDeclaration || handle.IsTranslationUnit)
             {
                 result = Decl.Create(handle);
             }
@@ -70,17 +70,9 @@ namespace ClangSharp
             {
                 result = Ref.Create(handle);
             }
-            else if (handle.IsExpression)
-            {
-                result = Expr.Create(handle);
-            }
-            else if (handle.IsStatement)
+            else if (handle.IsExpression || handle.IsStatement)
             {
                 result = Stmt.Create(handle);
-            }
-            else if (handle.IsTranslationUnit)
-            {
-                result = new TranslationUnitDecl(handle);
             }
             else if (handle.IsAttribute)
             {
