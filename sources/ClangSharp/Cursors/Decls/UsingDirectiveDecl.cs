@@ -4,9 +4,9 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public class UsingDirectiveDecl : NamedDecl
+    public sealed class UsingDirectiveDecl : NamedDecl
     {
-        internal UsingDirectiveDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDirective)
+        internal UsingDirectiveDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDirective, CX_DeclKind.CX_DeclKind_UsingDirective)
         {
         }
     }

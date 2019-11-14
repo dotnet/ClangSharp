@@ -9,7 +9,7 @@ namespace ClangSharp
     {
         private readonly Lazy<Type> _pointeeType;
 
-        internal PointerType(CXType handle) : base(handle, CXTypeKind.CXType_Pointer)
+        internal PointerType(CXType handle) : base(handle, CXTypeKind.CXType_Pointer, CX_TypeClass.CX_TypeClass_Pointer)
         {
             _pointeeType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
         }

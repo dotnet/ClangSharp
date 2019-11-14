@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class AddrLabelExpr : Expr
     {
-        internal AddrLabelExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_AddrLabelExpr)
+        internal AddrLabelExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_AddrLabelExpr, CX_StmtClass.CX_StmtClass_AddrLabelExpr)
         {
         }
     }

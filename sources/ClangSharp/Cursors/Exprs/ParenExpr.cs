@@ -10,7 +10,7 @@ namespace ClangSharp
     {
         private readonly Lazy<Expr> _subExpr;
 
-        internal ParenExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ParenExpr)
+        internal ParenExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ParenExpr, CX_StmtClass.CX_StmtClass_ParenExpr)
         {
             _subExpr = new Lazy<Expr>(() => Children.OfType<Expr>().Single());
         }

@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCPropertyDecl : NamedDecl
     {
-        internal ObjCPropertyDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCPropertyDecl)
+        internal ObjCPropertyDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCPropertyDecl, CX_DeclKind.CX_DeclKind_ObjCProperty)
         {
         }
     }

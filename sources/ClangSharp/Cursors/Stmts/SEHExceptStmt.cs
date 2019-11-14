@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class SEHExceptStmt : Stmt
     {
-        internal SEHExceptStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHExceptStmt)
+        internal SEHExceptStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHExceptStmt, CX_StmtClass.CX_StmtClass_SEHExceptStmt)
         {
         }
     }

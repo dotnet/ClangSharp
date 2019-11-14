@@ -12,9 +12,9 @@ namespace ClangSharp
         private readonly Lazy<List<Cursor>> _cursorChildren;
         private readonly Lazy<TranslationUnit> _translationUnit;
 
-        private protected Cursor(CXCursor handle, CXCursorKind expectedKind)
+        private protected Cursor(CXCursor handle, CXCursorKind expectedCursorKind)
         {
-            if (handle.kind != expectedKind)
+            if (handle.kind != expectedCursorKind)
             {
                 throw new ArgumentException(nameof(handle));
             }

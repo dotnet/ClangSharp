@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class IndirectGotoStmt : Stmt
     {
-        internal IndirectGotoStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IndirectGotoStmt)
+        internal IndirectGotoStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IndirectGotoStmt, CX_StmtClass.CX_StmtClass_IndirectGotoStmt)
         {
         }
     }

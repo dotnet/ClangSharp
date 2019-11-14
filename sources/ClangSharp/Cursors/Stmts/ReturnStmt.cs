@@ -10,7 +10,7 @@ namespace ClangSharp
     {
         private readonly Lazy<Expr> _retValue;
 
-        internal ReturnStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ReturnStmt)
+        internal ReturnStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ReturnStmt, CX_StmtClass.CX_StmtClass_ReturnStmt)
         {
             _retValue = new Lazy<Expr>(() => Children.OfType<Expr>().Single());
         }

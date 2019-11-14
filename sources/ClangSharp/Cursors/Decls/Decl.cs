@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
 
@@ -16,8 +15,13 @@ namespace ClangSharp
         private readonly Lazy<IDeclContext> _lexicalDeclContext;
         private readonly Lazy<TranslationUnitDecl> _translationUnitDecl;
 
-        private protected Decl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected Decl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind)
         {
+            if ((handle.DeclKind == CX_DeclKind.CX_DeclKind_Invalid) || (handle.DeclKind != expectedDeclKind))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _attrs = new Lazy<IReadOnlyList<Attr>>(() => CursorChildren.OfType<Attr>().ToList());
             _canonicalDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
             _declContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.SemanticParent) as IDeclContext);
@@ -47,266 +51,86 @@ namespace ClangSharp
 
         public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.Value;
 
-        internal static new Decl Create(CXCursor handle)
+        internal static new Decl Create(CXCursor handle) => handle.DeclKind switch
         {
-            Decl result;
-
-            switch (handle.Kind)
-            {
-                case CXCursorKind.CXCursor_UnexposedDecl:
-                {
-                    result = new Decl(handle, handle.Kind);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_StructDecl:
-                case CXCursorKind.CXCursor_UnionDecl:
-                case CXCursorKind.CXCursor_ClassDecl:
-                {
-                    if (handle.Language == CXLanguageKind.CXLanguage_CPlusPlus)
-                    {
-                        result = new CXXRecordDecl(handle, handle.Kind);
-                    }
-                    else
-                    {
-                        result = new RecordDecl(handle, handle.Kind);
-                    }
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_EnumDecl:
-                {
-                    result = new EnumDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_FieldDecl:
-                {
-                    result = new FieldDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_EnumConstantDecl:
-                {
-                    result = new EnumConstantDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_FunctionDecl:
-                {
-                    result = new FunctionDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_VarDecl:
-                {
-                    result = new VarDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ParmDecl:
-                {
-                    result = new ParmVarDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCInterfaceDecl:
-                {
-                    result = new ObjCInterfaceDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCCategoryDecl:
-                {
-                    result = new ObjCCategoryDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCProtocolDecl:
-                {
-                    result = new ObjCProtocolDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCPropertyDecl:
-                {
-                    result = new ObjCPropertyDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCIvarDecl:
-                {
-                    result = new ObjCIvarDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCInstanceMethodDecl:
-                case CXCursorKind.CXCursor_ObjCClassMethodDecl:
-                {
-                    result = new ObjCMethodDecl(handle, handle.Kind);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCImplementationDecl:
-                {
-                    result = new ObjCImplementationDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCCategoryImplDecl:
-                {
-                    result = new ObjCCategoryImplDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_TypedefDecl:
-                {
-                    result = new TypedefDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXMethod:
-                {
-                    result = new CXXMethodDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_Namespace:
-                {
-                    result = new NamespaceDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_LinkageSpec:
-                {
-                    result = new LinkageSpecDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_Constructor:
-                {
-                    result = new CXXConstructorDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_Destructor:
-                {
-                    result = new CXXDestructorDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ConversionFunction:
-                {
-                    result = new CXXConversionDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_TemplateTypeParameter:
-                {
-                    result = new TemplateTypeParmDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_NonTypeTemplateParameter:
-                {
-                    result = new NonTypeTemplateParmDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_TemplateTemplateParameter:
-                {
-                    result = new TemplateTemplateParmDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_FunctionTemplate:
-                {
-                    result = new FunctionTemplateDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ClassTemplate:
-                {
-                    result = new ClassTemplateDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ClassTemplatePartialSpecialization:
-                {
-                    result = new ClassTemplatePartialSpecializationDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_NamespaceAlias:
-                {
-                    result = new NamespaceAliasDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_UsingDirective:
-                {
-                    result = new UsingDirectiveDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_UsingDeclaration:
-                {
-                    result = new UsingDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_TypeAliasDecl:
-                {
-                    result = new TypeAliasDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXAccessSpecifier:
-                {
-                    result = new AccessSpecDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCSynthesizeDecl:
-                case CXCursorKind.CXCursor_ObjCDynamicDecl:
-                {
-                    result = new ObjCPropertyImplDecl(handle, handle.Kind);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ModuleImportDecl:
-                {
-                    result = new ImportDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_TypeAliasTemplateDecl:
-                {
-                    result = new TypeAliasTemplateDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_StaticAssert:
-                {
-                    result = new StaticAssertDecl(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_FriendDecl:
-                {
-                    result = new FriendDecl(handle);
-                    break;
-                }
-
-                default:
-                {
-                    Debug.WriteLine($"Unhandled declaration kind: {handle.KindSpelling}.");
-                    result = new Decl(handle, handle.Kind);
-                    break;
-                }
-            }
-
-            return result;
-        }
+            CX_DeclKind.CX_DeclKind_AccessSpec => new AccessSpecDecl(handle),
+            CX_DeclKind.CX_DeclKind_Block => new BlockDecl(handle),
+            CX_DeclKind.CX_DeclKind_Captured => new CapturedDecl(handle),
+            CX_DeclKind.CX_DeclKind_ClassScopeFunctionSpecialization => new ClassScopeFunctionSpecializationDecl(handle),
+            CX_DeclKind.CX_DeclKind_Empty => new EmptyDecl(handle),
+            CX_DeclKind.CX_DeclKind_Export => new ExportDecl(handle),
+            CX_DeclKind.CX_DeclKind_ExternCContext => new ExternCContextDecl(handle),
+            CX_DeclKind.CX_DeclKind_FileScopeAsm => new FileScopeAsmDecl(handle),
+            CX_DeclKind.CX_DeclKind_Friend => new FriendDecl(handle),
+            CX_DeclKind.CX_DeclKind_FriendTemplate => new FriendTemplateDecl(handle),
+            CX_DeclKind.CX_DeclKind_Import => new ImportDecl(handle),
+            CX_DeclKind.CX_DeclKind_LinkageSpec => new LinkageSpecDecl(handle),
+            CX_DeclKind.CX_DeclKind_Label => new LabelDecl(handle),
+            CX_DeclKind.CX_DeclKind_Namespace => new NamespaceDecl(handle),
+            CX_DeclKind.CX_DeclKind_NamespaceAlias => new NamespaceAliasDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCCompatibleAlias => new ObjCCompatibleAliasDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCCategory => new ObjCCategoryDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCCategoryImpl => new ObjCCategoryImplDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCImplementation => new ObjCImplementationDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCInterface => new ObjCInterfaceDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCProtocol => new ObjCPropertyDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCMethod => new ObjCMethodDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCProperty => new ObjCPropertyDecl(handle),
+            CX_DeclKind.CX_DeclKind_BuiltinTemplate => new BuiltinTemplateDecl(handle),
+            CX_DeclKind.CX_DeclKind_Concept => new ConceptDecl(handle),
+            CX_DeclKind.CX_DeclKind_ClassTemplate => new ClassTemplateDecl(handle),
+            CX_DeclKind.CX_DeclKind_FunctionTemplate => new FunctionTemplateDecl(handle),
+            CX_DeclKind.CX_DeclKind_TypeAliasTemplate => new TypeAliasTemplateDecl(handle),
+            CX_DeclKind.CX_DeclKind_VarTemplate => new VarTemplateDecl(handle),
+            CX_DeclKind.CX_DeclKind_TemplateTemplateParm => new TemplateTemplateParmDecl(handle),
+            CX_DeclKind.CX_DeclKind_Enum => new EnumDecl(handle),
+            CX_DeclKind.CX_DeclKind_Record => new RecordDecl(handle),
+            CX_DeclKind.CX_DeclKind_CXXRecord => new CXXRecordDecl(handle),
+            CX_DeclKind.CX_DeclKind_ClassTemplateSpecialization => new ClassTemplateSpecializationDecl(handle),
+            CX_DeclKind.CX_DeclKind_ClassTemplatePartialSpecialization => new ClassTemplatePartialSpecializationDecl(handle),
+            CX_DeclKind.CX_DeclKind_TemplateTypeParm => new TemplateTypeParmDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCTypeParam => new ObjCTypeParamDecl(handle),
+            CX_DeclKind.CX_DeclKind_TypeAlias => new TypeAliasDecl(handle),
+            CX_DeclKind.CX_DeclKind_Typedef => new TypedefDecl(handle),
+            CX_DeclKind.CX_DeclKind_UnresolvedUsingTypename => new UnresolvedUsingTypenameDecl(handle),
+            CX_DeclKind.CX_DeclKind_Using => new UsingDecl(handle),
+            CX_DeclKind.CX_DeclKind_UsingDirective => new UsingDirectiveDecl(handle),
+            CX_DeclKind.CX_DeclKind_UsingPack => new UsingPackDecl(handle),
+            CX_DeclKind.CX_DeclKind_UsingShadow => new UsingShadowDecl(handle),
+            CX_DeclKind.CX_DeclKind_ConstructorUsingShadow => new ConstructorUsingShadowDecl(handle),
+            CX_DeclKind.CX_DeclKind_Binding => new BindingDecl(handle),
+            CX_DeclKind.CX_DeclKind_Field => new FieldDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCAtDefsField => new ObjCAtDefsFieldDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCIvar => new ObjCIvarDecl(handle),
+            CX_DeclKind.CX_DeclKind_Function => new FunctionDecl(handle),
+            CX_DeclKind.CX_DeclKind_CXXDeductionGuide => new CXXDeductionGuideDecl(handle),
+            CX_DeclKind.CX_DeclKind_CXXMethod => new CXXMethodDecl(handle),
+            CX_DeclKind.CX_DeclKind_CXXConstructor => new CXXConstructorDecl(handle),
+            CX_DeclKind.CX_DeclKind_CXXConversion => new CXXConversionDecl(handle),
+            CX_DeclKind.CX_DeclKind_CXXDestructor => new CXXDestructorDecl(handle),
+            CX_DeclKind.CX_DeclKind_MSProperty => new MSPropertyDecl(handle),
+            CX_DeclKind.CX_DeclKind_NonTypeTemplateParm => new NonTypeTemplateParmDecl(handle),
+            CX_DeclKind.CX_DeclKind_Var => new VarDecl(handle),
+            CX_DeclKind.CX_DeclKind_Decomposition => new DecompositionDecl(handle),
+            CX_DeclKind.CX_DeclKind_ImplicitParam => new ImplicitParamDecl(handle),
+            CX_DeclKind.CX_DeclKind_OMPCapturedExpr => new OMPCapturedExprDecl(handle),
+            CX_DeclKind.CX_DeclKind_ParmVar => new ParmVarDecl(handle),
+            CX_DeclKind.CX_DeclKind_VarTemplateSpecialization => new VarTemplateSpecializationDecl(handle),
+            CX_DeclKind.CX_DeclKind_VarTemplatePartialSpecialization => new VarTemplatePartialSpecializationDecl(handle),
+            CX_DeclKind.CX_DeclKind_EnumConstant => new EnumConstantDecl(handle),
+            CX_DeclKind.CX_DeclKind_IndirectField => new IndirectFieldDecl(handle),
+            CX_DeclKind.CX_DeclKind_OMPDeclareMapper => new OMPDeclareMapperDecl(handle),
+            CX_DeclKind.CX_DeclKind_OMPDeclareReduction => new OMPDeclareReductionDecl(handle),
+            CX_DeclKind.CX_DeclKind_UnresolvedUsingValue => new UnresolvedUsingValueDecl(handle),
+            CX_DeclKind.CX_DeclKind_OMPAllocate => new OMPAllocateDecl(handle),
+            CX_DeclKind.CX_DeclKind_OMPRequires => new OMPRequiresDecl(handle),
+            CX_DeclKind.CX_DeclKind_OMPThreadPrivate => new OMPThreadPrivateDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCPropertyImpl => new ObjCPropertyImplDecl(handle),
+            CX_DeclKind.CX_DeclKind_PragmaComment => new PragmaCommentDecl(handle),
+            CX_DeclKind.CX_DeclKind_PragmaDetectMismatch => new PragmaDetectMismatchDecl(handle),
+            CX_DeclKind.CX_DeclKind_StaticAssert => new StaticAssertDecl(handle),
+            CX_DeclKind.CX_DeclKind_TranslationUnit => new TranslationUnitDecl(handle),
+            _ => new Decl(handle, handle.kind, handle.DeclKind),
+        };
     }
 }

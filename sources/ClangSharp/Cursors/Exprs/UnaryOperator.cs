@@ -10,7 +10,7 @@ namespace ClangSharp
     {
         private readonly Lazy<Expr> _subExpr;
 
-        internal UnaryOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryOperator)
+        internal UnaryOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryOperator, CX_StmtClass.CX_StmtClass_UnaryOperator)
         {
             _subExpr = new Lazy<Expr>(() => Children.OfType<Expr>().Single());
         }

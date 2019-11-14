@@ -12,13 +12,17 @@ namespace ClangSharp
         private readonly Lazy<Expr> _lhs;
         private readonly Lazy<Expr> _rhs;
 
-        internal BinaryOperator(CXCursor handle) : this(handle, CXCursorKind.CXCursor_BinaryOperator)
+        internal BinaryOperator(CXCursor handle) : this(handle, CXCursorKind.CXCursor_BinaryOperator, CX_StmtClass.CX_StmtClass_BinaryOperator)
         {
         }
 
-        private protected BinaryOperator(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected BinaryOperator(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            Debug.Assert(Children.Where((cursor) => cursor is Expr).Count() == 2);
+            if ((CX_StmtClass.CX_StmtClass_LastBinaryOperator < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstBinaryOperator))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+            Debug.Assert(Children.OfType<Expr>().Count() == 2);
 
             _lhs = new Lazy<Expr>(() => Children.OfType<Expr>().First());
             _rhs = new Lazy<Expr>(() => Children.OfType<Expr>().Last());

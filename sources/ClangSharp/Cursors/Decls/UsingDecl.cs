@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class UsingDecl : NamedDecl, IMergeable<UsingDecl>
     {
-        internal UsingDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration)
+        internal UsingDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration, CX_DeclKind.CX_DeclKind_Using)
         {
         }
     }

@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class GNUNullExpr : Expr
     {
-        internal GNUNullExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GNUNullExpr)
+        internal GNUNullExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GNUNullExpr, CX_StmtClass.CX_StmtClass_GNUNullExpr)
         {
         }
     }

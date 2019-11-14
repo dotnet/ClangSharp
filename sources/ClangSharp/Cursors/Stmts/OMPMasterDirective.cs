@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class OMPMasterDirective : OMPExecutableDirective
     {
-        internal OMPMasterDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPMasterDirective)
+        internal OMPMasterDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPMasterDirective, CX_StmtClass.CX_StmtClass_OMPMasterDirective)
         {
         }
     }

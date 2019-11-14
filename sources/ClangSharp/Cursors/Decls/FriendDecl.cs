@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class FriendDecl : Decl
     {
-        internal FriendDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_FriendDecl)
+        internal FriendDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_FriendDecl, CX_DeclKind.CX_DeclKind_Friend)
         {
         }
     }

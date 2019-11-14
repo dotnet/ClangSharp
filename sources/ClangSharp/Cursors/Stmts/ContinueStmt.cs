@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ContinueStmt : Stmt
     {
-        internal ContinueStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ContinueStmt)
+        internal ContinueStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ContinueStmt, CX_StmtClass.CX_StmtClass_ContinueStmt)
         {
         }
     }

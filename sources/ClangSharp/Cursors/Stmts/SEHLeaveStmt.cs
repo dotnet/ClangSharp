@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class SEHLeaveStmt : Stmt
     {
-        internal SEHLeaveStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHLeaveStmt)
+        internal SEHLeaveStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHLeaveStmt, CX_StmtClass.CX_StmtClass_SEHLeaveStmt)
         {
         }
     }

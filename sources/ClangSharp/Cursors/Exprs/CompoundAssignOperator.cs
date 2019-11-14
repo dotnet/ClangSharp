@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CompoundAssignOperator : BinaryOperator
     {
-        internal CompoundAssignOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundAssignOperator)
+        internal CompoundAssignOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundAssignOperator, CX_StmtClass.CX_StmtClass_CompoundAssignOperator)
         {
         }
     }

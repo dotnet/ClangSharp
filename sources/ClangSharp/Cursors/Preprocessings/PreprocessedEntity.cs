@@ -7,7 +7,7 @@ namespace ClangSharp
 {
     public class PreprocessedEntity : Cursor
     {
-        private protected PreprocessedEntity(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected PreprocessedEntity(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
         {
         }
 

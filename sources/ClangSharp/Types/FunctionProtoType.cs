@@ -9,7 +9,7 @@ namespace ClangSharp
     {
         private Type[] _paramTypes;
 
-        internal FunctionProtoType(CXType handle) : base(handle, CXTypeKind.CXType_FunctionProto)
+        internal FunctionProtoType(CXType handle) : base(handle, CXTypeKind.CXType_FunctionProto, CX_TypeClass.CX_TypeClass_FunctionProto)
         {
         }
 

@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class IfStmt : Stmt
     {
-        internal IfStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IfStmt)
+        internal IfStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IfStmt, CX_StmtClass.CX_StmtClass_IfStmt)
         {
         }
     }

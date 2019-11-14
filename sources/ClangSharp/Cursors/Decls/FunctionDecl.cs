@@ -14,12 +14,17 @@ namespace ClangSharp
         private readonly Lazy<IReadOnlyList<ParmVarDecl>> _parameters;
         private readonly Lazy<Type> _returnType;
 
-        internal FunctionDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_FunctionDecl)
+        internal FunctionDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_FunctionDecl, CX_DeclKind.CX_DeclKind_Function)
         {
         }
 
-        private protected FunctionDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected FunctionDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
+            if ((CX_DeclKind.CX_DeclKind_LastFunction < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstFunction))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _body = new Lazy<Stmt>(() => CursorChildren.OfType<Stmt>().SingleOrDefault());
             _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
             _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => Decls.OfType<ParmVarDecl>().ToList());

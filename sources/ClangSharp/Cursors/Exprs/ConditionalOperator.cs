@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ConditionalOperator : AbstractConditionalOperator
     {
-        internal ConditionalOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ConditionalOperator)
+        internal ConditionalOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ConditionalOperator, CX_StmtClass.CX_StmtClass_ConditionalOperator)
         {
         }
     }

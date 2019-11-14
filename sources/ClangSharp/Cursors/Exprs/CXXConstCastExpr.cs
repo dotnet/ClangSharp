@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXConstCastExpr : CXXNamedCastExpr
     {
-        internal CXXConstCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXConstCastExpr)
+        internal CXXConstCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXConstCastExpr, CX_StmtClass.CX_StmtClass_CXXConstCastExpr)
         {
         }
     }

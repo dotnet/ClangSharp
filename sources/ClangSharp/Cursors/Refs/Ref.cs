@@ -10,7 +10,7 @@ namespace ClangSharp
     {
         private readonly Lazy<Type> _type;
 
-        private protected Ref(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected Ref(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
         {
             _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
         }

@@ -11,9 +11,14 @@ namespace ClangSharp
     {
         private readonly Lazy<IReadOnlyList<Decl>> _decls;
 
-        private protected ObjCContainerDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected ObjCContainerDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.Where((cursor) => cursor is Decl).Cast<Decl>().ToList());
+            if ((CX_DeclKind.CX_DeclKind_LastObjCContainer < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstObjCContainer))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
         }
 
         public IReadOnlyList<Decl> Decls => _decls.Value;

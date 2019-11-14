@@ -11,8 +11,13 @@ namespace ClangSharp
     {
         private readonly Lazy<IReadOnlyList<NamedDecl>> _templateParameters;
 
-        private protected TemplateDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected TemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
+            if ((CX_DeclKind.CX_DeclKind_LastTemplate < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstTemplate))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _templateParameters = new Lazy<IReadOnlyList<NamedDecl>>(() => CursorChildren.Where((cursor) => (cursor is TemplateTypeParmDecl) || (cursor is NonTypeTemplateParmDecl) || (cursor is TemplateTemplateParmDecl)).Cast<NamedDecl>().ToList());
         }
 

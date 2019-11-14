@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class DependentSizedArrayType : ArrayType
     {
-        internal DependentSizedArrayType(CXType handle) : base(handle, CXTypeKind.CXType_DependentSizedArray)
+        internal DependentSizedArrayType(CXType handle) : base(handle, CXTypeKind.CXType_DependentSizedArray, CX_TypeClass.CX_TypeClass_DependentSizedArray)
         {
         }
     }

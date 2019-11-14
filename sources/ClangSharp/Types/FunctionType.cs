@@ -9,7 +9,7 @@ namespace ClangSharp
     {
         private readonly Lazy<Type> _returnType;
 
-        private protected FunctionType(CXType handle, CXTypeKind expectedKind) : base(handle, expectedKind)
+        private protected FunctionType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
         {
             _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ResultType));
         }

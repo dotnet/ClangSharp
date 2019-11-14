@@ -9,7 +9,7 @@ namespace ClangSharp
     {
         private readonly Lazy<Type> _elementType;
 
-        private protected ArrayType(CXType handle, CXTypeKind expectedKind) : base(handle, expectedKind)
+        private protected ArrayType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
         {
             _elementType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ArrayElementType));
         }

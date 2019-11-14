@@ -7,7 +7,7 @@ namespace ClangSharp
 {
     public sealed class CompoundStmt : Stmt
     {
-        public CompoundStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundStmt)
+        public CompoundStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundStmt, CX_StmtClass.CX_StmtClass_CompoundStmt)
         {
         }
 

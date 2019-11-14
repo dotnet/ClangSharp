@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class PackExpansionExpr : Expr
     {
-        internal PackExpansionExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_PackExpansionExpr)
+        internal PackExpansionExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_PackExpansionExpr, CX_StmtClass.CX_StmtClass_PackExpansionExpr)
         {
         }
     }

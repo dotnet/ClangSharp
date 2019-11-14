@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXForRangeStmt : Stmt
     {
-        internal CXXForRangeStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXForRangeStmt)
+        internal CXXForRangeStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXForRangeStmt, CX_StmtClass.CX_StmtClass_CXXForRangeStmt)
         {
         }
     }

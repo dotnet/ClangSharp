@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCProtocolDecl : ObjCContainerDecl, IRedeclarable<ObjCProtocolDecl>
     {
-        internal ObjCProtocolDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCProtocolDecl)
+        internal ObjCProtocolDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCProtocolDecl, CX_DeclKind.CX_DeclKind_ObjCProtocol)
         {
         }
     }

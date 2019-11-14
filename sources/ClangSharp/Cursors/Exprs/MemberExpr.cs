@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class MemberExpr : Expr
     {
-        internal MemberExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr)
+        internal MemberExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr, CX_StmtClass.CX_StmtClass_MemberExpr)
         {
         }
     }

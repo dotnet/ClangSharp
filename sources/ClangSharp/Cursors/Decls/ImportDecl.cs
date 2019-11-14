@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ImportDecl : Decl
     {
-        internal ImportDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ModuleImportDecl)
+        internal ImportDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ModuleImportDecl, CX_DeclKind.CX_DeclKind_Import)
         {
         }
     }

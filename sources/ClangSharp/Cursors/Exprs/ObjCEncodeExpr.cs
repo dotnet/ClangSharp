@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCEncodeExpr : Expr
     {
-        internal ObjCEncodeExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCEncodeExpr)
+        internal ObjCEncodeExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCEncodeExpr, CX_StmtClass.CX_StmtClass_ObjCEncodeExpr)
         {
         }
     }

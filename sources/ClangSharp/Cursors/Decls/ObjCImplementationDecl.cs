@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCImplementationDecl : ObjCImplDecl
     {
-        internal ObjCImplementationDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCImplementationDecl)
+        internal ObjCImplementationDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCImplementationDecl, CX_DeclKind.CX_DeclKind_ObjCImplementation)
         {
         }
     }

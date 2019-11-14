@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXBoolLiteralExpr : Expr
     {
-        internal CXXBoolLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXBoolLiteralExpr)
+        internal CXXBoolLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXBoolLiteralExpr, CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr)
         {
         }
     }

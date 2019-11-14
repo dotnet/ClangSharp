@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class OMPTeamsDistributeParallelForDirective : OMPLoopDirective
     {
-        internal OMPTeamsDistributeParallelForDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPTeamsDistributeParallelForDirective)
+        internal OMPTeamsDistributeParallelForDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPTeamsDistributeParallelForDirective, CX_StmtClass.CX_StmtClass_OMPTeamsDistributeParallelForDirective)
         {
         }
     }

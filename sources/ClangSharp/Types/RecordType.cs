@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class RecordType : TagType
     {
-        internal RecordType(CXType handle) : base(handle, CXTypeKind.CXType_Record)
+        internal RecordType(CXType handle) : base(handle, CXTypeKind.CXType_Record, CX_TypeClass.CX_TypeClass_Record)
         {
         }
     }

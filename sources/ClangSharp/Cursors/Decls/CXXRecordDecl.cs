@@ -16,8 +16,17 @@ namespace ClangSharp
         private readonly Lazy<IReadOnlyList<CXXMethodDecl>> _methods;
         private readonly Lazy<IReadOnlyList<CXXBaseSpecifier>> _vbases;
 
-        internal CXXRecordDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        internal CXXRecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind.CX_DeclKind_CXXRecord)
         {
+        }
+
+        private protected CXXRecordDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+        {
+            if ((CX_DeclKind.CX_DeclKind_LastCXXRecord < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstCXXRecord))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _bases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => CursorChildren.OfType<CXXBaseSpecifier>().ToList());
             _ctors = new Lazy<IReadOnlyList<CXXConstructorDecl>>(() => Methods.OfType<CXXConstructorDecl>().ToList());
             _destructor = new Lazy<CXXDestructorDecl>(() => Methods.OfType<CXXDestructorDecl>().SingleOrDefault());

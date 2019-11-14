@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXDestructorDecl : CXXMethodDecl
     {
-        internal CXXDestructorDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_Destructor)
+        internal CXXDestructorDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_Destructor, CX_DeclKind.CX_DeclKind_CXXDestructor)
         {
         }
     }

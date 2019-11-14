@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class DoStmt : Stmt
     {
-        internal DoStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DoStmt)
+        internal DoStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DoStmt, CX_StmtClass.CX_StmtClass_DoStmt)
         {
         }
     }

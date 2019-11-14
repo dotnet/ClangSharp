@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CaseStmt : SwitchCase
     {
-        internal CaseStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CaseStmt)
+        internal CaseStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CaseStmt, CX_StmtClass.CX_StmtClass_CaseStmt)
         {
         }
     }

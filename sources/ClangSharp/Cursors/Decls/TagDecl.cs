@@ -12,8 +12,13 @@ namespace ClangSharp
         private readonly Lazy<IReadOnlyList<Decl>> _decls;
         private readonly Lazy<TagDecl> _definition;
 
-        private protected TagDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected TagDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
+            if ((CX_DeclKind.CX_DeclKind_LastTag < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstTag))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
             _definition = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition));
         }

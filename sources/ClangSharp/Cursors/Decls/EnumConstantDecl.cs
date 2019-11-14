@@ -10,7 +10,7 @@ namespace ClangSharp
     {
         private readonly Lazy<Expr> _initExpr;
 
-        internal EnumConstantDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_EnumConstantDecl)
+        internal EnumConstantDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_EnumConstantDecl, CX_DeclKind.CX_DeclKind_EnumConstant)
         {
             _initExpr = new Lazy<Expr>(() => CursorChildren.OfType<Expr>().SingleOrDefault());
         }

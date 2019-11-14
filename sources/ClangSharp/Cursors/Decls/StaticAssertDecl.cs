@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class StaticAssertDecl : Decl
     {
-        internal StaticAssertDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_StaticAssert)
+        internal StaticAssertDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_StaticAssert, CX_DeclKind.CX_DeclKind_StaticAssert)
         {
         }
     }

@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCSelectorExpr : Expr
     {
-        internal ObjCSelectorExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCSelectorExpr)
+        internal ObjCSelectorExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCSelectorExpr, CX_StmtClass.CX_StmtClass_ObjCSelectorExpr)
         {
         }
     }

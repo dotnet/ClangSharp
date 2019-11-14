@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXFunctionalCastExpr : ExplicitCastExpr
     {
-        internal CXXFunctionalCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXFunctionalCastExpr)
+        internal CXXFunctionalCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXFunctionalCastExpr, CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr)
         {
         }
     }

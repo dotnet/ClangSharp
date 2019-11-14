@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXTryStmt : Stmt
     {
-        internal CXXTryStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXTryStmt)
+        internal CXXTryStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXTryStmt, CX_StmtClass.CX_StmtClass_CXXTryStmt)
         {
         }
     }

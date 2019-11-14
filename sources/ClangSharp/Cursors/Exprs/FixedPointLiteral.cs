@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class FixedPointLiteral : Expr
     {
-        internal FixedPointLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_FixedPointLiteral)
+        internal FixedPointLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_FixedPointLiteral, CX_StmtClass.CX_StmtClass_FixedPointLiteral)
         {
         }
     }

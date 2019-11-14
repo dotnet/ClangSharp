@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ConstantArrayType : ArrayType
     {
-        internal ConstantArrayType(CXType handle) : base(handle, CXTypeKind.CXType_ConstantArray)
+        internal ConstantArrayType(CXType handle) : base(handle, CXTypeKind.CXType_ConstantArray, CX_TypeClass.CX_TypeClass_ConstantArray)
         {
         }
 

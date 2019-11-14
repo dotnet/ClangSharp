@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CharacterLiteral : Expr
     {
-        internal CharacterLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CharacterLiteral)
+        internal CharacterLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CharacterLiteral, CX_StmtClass.CX_StmtClass_CharacterLiteral)
         {
         }
     }

@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class LValueReferenceType : ReferenceType
     {
-        internal LValueReferenceType(CXType handle) : base(handle, CXTypeKind.CXType_LValueReference)
+        internal LValueReferenceType(CXType handle) : base(handle, CXTypeKind.CXType_LValueReference, CX_TypeClass.CX_TypeClass_LValueReference)
         {
         }
     }
