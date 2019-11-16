@@ -8,35 +8,35 @@ jobs:
 - template: azure-windows.yml
   parameters:
     name: windows_debug_x86
-    pool: Hosted
+    pool: windows-latest
     configuration: Debug
     architecture: x86
 
 - template: azure-windows.yml
   parameters:
     name: windows_release_x86
-    pool: Hosted
+    pool: windows-latest
     configuration: Release
     architecture: x86
 
 - template: azure-windows.yml
   parameters:
     name: windows_debug_x64
-    pool: Hosted
+    pool: windows-latest
     configuration: Debug
     architecture: x64
 
 - template: azure-windows.yml
   parameters:
     name: windows_release_x64
-    pool: Hosted
+    pool: windows-latest
     configuration: Release
     architecture: x64
 
 - template: azure-unix.yml
   parameters:
     name: ubuntu_debug_x64
-    pool: Hosted Ubuntu 1604
+    pool: ubuntu-latest
     configuration: Debug
     architecture: x64
     rid: ubuntu.16.04-x64
@@ -44,7 +44,7 @@ jobs:
 - template: azure-unix.yml
   parameters:
     name: ubuntu_release_x64
-    pool: Hosted Ubuntu 1604
+    pool: ubuntu-latest
     configuration: Release
     architecture: x64
     rid: ubuntu.16.04-x64
@@ -52,13 +52,13 @@ jobs:
 - template: azure-unix.yml
   parameters:
     name: macos_debug_x64
-    pool: Hosted macOS
+    pool: macOS-latest
     configuration: Debug
     architecture: x64
 
 - template: azure-unix.yml
   parameters:
     name: macos_release_x64
-    pool: Hosted macOS
+    pool: macOS-latest
     configuration: Release
     architecture: x64

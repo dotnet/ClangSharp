@@ -1,7 +1,7 @@
 jobs:
 - job: ${{parameters.name}}
   pool:
-    name: ${{parameters.pool}}
+    vmImage: ${{parameters.pool}}
   steps:
   - task: Bash@3
     displayName: 'Run scripts/cibuild.sh'
