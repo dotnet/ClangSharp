@@ -1,8 +1,7 @@
 jobs:
 - job: ${{parameters.name}}
   pool:
-    name: ${{parameters.pool}}
-    demands: Cmd
+    vmImage: ${{parameters.pool}}
   steps:
   - task: BatchScript@1
     displayName: 'Run scripts/cibuild.cmd'
