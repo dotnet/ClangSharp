@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
 
@@ -12,514 +11,221 @@ namespace ClangSharp
     {
         private readonly Lazy<IReadOnlyList<Stmt>> _children;
 
-        private protected Stmt(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected Stmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind)
         {
+            if ((handle.StmtClass == CX_StmtClass.CX_StmtClass_Invalid) || (handle.StmtClass != expectedStmtClass))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _children = new Lazy<IReadOnlyList<Stmt>>(() => CursorChildren.OfType<Stmt>().ToList());
         }
 
         public IReadOnlyList<Stmt> Children => _children.Value;
 
-        internal static new Stmt Create(CXCursor handle)
+        public CX_StmtClass StmtClass => Handle.StmtClass;
+
+        internal static new Stmt Create(CXCursor handle) => handle.StmtClass switch
         {
-            Stmt result;
-
-            switch (handle.Kind)
-            {
-                case CXCursorKind.CXCursor_UnexposedStmt:
-                {
-                    result = new Stmt(handle, handle.Kind);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_LabelStmt:
-                {
-                    result = new LabelStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CompoundStmt:
-                {
-                    result = new CompoundStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CaseStmt:
-                {
-                    result = new CaseStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_DefaultStmt:
-                {
-                    result = new DefaultStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_IfStmt:
-                {
-                    result = new IfStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_SwitchStmt:
-                {
-                    result = new SwitchStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_WhileStmt:
-                {
-                    result = new WhileStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_DoStmt:
-                {
-                    result = new DoStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ForStmt:
-                {
-                    result = new ForStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_GotoStmt:
-                {
-                    result = new GotoStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_IndirectGotoStmt:
-                {
-                    result = new IndirectGotoStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ContinueStmt:
-                {
-                    result = new ContinueStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_BreakStmt:
-                {
-                    result = new BreakStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ReturnStmt:
-                {
-                    result = new ReturnStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_GCCAsmStmt:
-                {
-                    result = new GCCAsmStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCAtTryStmt:
-                {
-                    result = new ObjCAtTryStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCAtCatchStmt:
-                {
-                    result = new ObjCAtCatchStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCAtFinallyStmt:
-                {
-                    result = new ObjCAtFinallyStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCAtThrowStmt:
-                {
-                    result = new ObjCAtThrowStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCAtSynchronizedStmt:
-                {
-                    result = new ObjCAtSynchronizedStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCAutoreleasePoolStmt:
-                {
-                    result = new ObjCAutoreleasePoolStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCForCollectionStmt:
-                {
-                    result = new ObjCForCollectionStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXCatchStmt:
-                {
-                    result = new CXXCatchStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXTryStmt:
-                {
-                    result = new CXXTryStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_CXXForRangeStmt:
-                {
-                    result = new CXXForRangeStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_SEHTryStmt:
-                {
-                    result = new SEHTryStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_SEHExceptStmt:
-                {
-                    result = new SEHExceptStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_SEHFinallyStmt:
-                {
-                    result = new SEHFinallyStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_MSAsmStmt:
-                {
-                    result = new MSAsmStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_NullStmt:
-                {
-                    result = new NullStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_DeclStmt:
-                {
-                    result = new DeclStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPParallelDirective:
-                {
-                    result = new OMPParallelDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPSimdDirective:
-                {
-                    result = new OMPSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPForDirective:
-                {
-                    result = new OMPForDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPSectionsDirective:
-                {
-                    result = new OMPSectionsDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPSectionDirective:
-                {
-                    result = new OMPSectionDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPSingleDirective:
-                {
-                    result = new OMPSingleDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPParallelForDirective:
-                {
-                    result = new OMPParallelForDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPParallelSectionsDirective:
-                {
-                    result = new OMPParallelSectionsDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTaskDirective:
-                {
-                    result = new OMPTaskDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPMasterDirective:
-                {
-                    result = new OMPMasterDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPCriticalDirective:
-                {
-                    result = new OMPCriticalDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTaskyieldDirective:
-                {
-                    result = new OMPTaskyieldDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPBarrierDirective:
-                {
-                    result = new OMPBarrierDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTaskwaitDirective:
-                {
-                    result = new OMPTaskwaitDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPFlushDirective:
-                {
-                    result = new OMPFlushDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_SEHLeaveStmt:
-                {
-                    result = new SEHLeaveStmt(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPOrderedDirective:
-                {
-                    result = new OMPOrderedDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPAtomicDirective:
-                {
-                    result = new OMPAtomicDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPForSimdDirective:
-                {
-                    result = new OMPForSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPParallelForSimdDirective:
-                {
-                    result = new OMPParallelForSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetDirective:
-                {
-                    result = new OMPTargetDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTeamsDirective:
-                {
-                    result = new OMPTeamsDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTaskgroupDirective:
-                {
-                    result = new OMPTaskgroupDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPCancellationPointDirective:
-                {
-                    result = new OMPCancellationPointDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPCancelDirective:
-                {
-                    result = new OMPCancelDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetDataDirective:
-                {
-                    result = new OMPTargetDataDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTaskLoopDirective:
-                {
-                    result = new OMPTaskLoopDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTaskLoopSimdDirective:
-                {
-                    result = new OMPTaskLoopSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPDistributeDirective:
-                {
-                    result = new OMPDistributeDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetEnterDataDirective:
-                {
-                    result = new OMPTargetEnterDataDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetExitDataDirective:
-                {
-                    result = new OMPTargetExitDataDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetParallelDirective:
-                {
-                    result = new OMPTargetParallelDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetParallelForDirective:
-                {
-                    result = new OMPTargetParallelForDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetUpdateDirective:
-                {
-                    result = new OMPTargetUpdateDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPDistributeParallelForDirective:
-                {
-                    result = new OMPDistributeParallelForDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPDistributeParallelForSimdDirective:
-                {
-                    result = new OMPDistributeParallelForSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPDistributeSimdDirective:
-                {
-                    result = new OMPDistributeSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetParallelForSimdDirective:
-                {
-                    result = new OMPTargetParallelForSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetSimdDirective:
-                {
-                    result = new OMPTargetSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTeamsDistributeDirective:
-                {
-                    result = new OMPTeamsDistributeDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTeamsDistributeSimdDirective:
-                {
-                    result = new OMPTeamsDistributeSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTeamsDistributeParallelForSimdDirective:
-                {
-                    result = new OMPTeamsDistributeParallelForSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTeamsDistributeParallelForDirective:
-                {
-                    result = new OMPTeamsDistributeParallelForDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetTeamsDirective:
-                {
-                    result = new OMPTargetTeamsDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetTeamsDistributeDirective:
-                {
-                    result = new OMPTargetTeamsDistributeDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetTeamsDistributeParallelForDirective:
-                {
-                    result = new OMPTargetTeamsDistributeParallelForDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective:
-                {
-                    result = new OMPTargetTeamsDistributeParallelForSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_OMPTargetTeamsDistributeSimdDirective:
-                {
-                    result = new OMPTargetTeamsDistributeSimdDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_BuiltinBitCastExpr:
-                {
-                    result = new BuiltinBitCastExpr(handle);
-                    break;
-                }
-
-                default:
-                {
-                    Debug.WriteLine($"Unhandled statement kind: {handle.KindSpelling}.");
-                    result = new Stmt(handle, handle.Kind);
-                    break;
-                }
-            }
-
-            return result;
-        }
+            CX_StmtClass.CX_StmtClass_GCCAsmStmt => new GCCAsmStmt(handle),
+            CX_StmtClass.CX_StmtClass_MSAsmStmt => new MSAsmStmt(handle),
+            CX_StmtClass.CX_StmtClass_BreakStmt => new BreakStmt(handle),
+            CX_StmtClass.CX_StmtClass_CXXCatchStmt => new CXXCatchStmt(handle),
+            CX_StmtClass.CX_StmtClass_CXXForRangeStmt => new CXXForRangeStmt(handle),
+            CX_StmtClass.CX_StmtClass_CXXTryStmt => new CXXTryStmt(handle),
+            CX_StmtClass.CX_StmtClass_CapturedStmt => new CapturedStmt(handle),
+            CX_StmtClass.CX_StmtClass_CompoundStmt => new CompoundStmt(handle),
+            CX_StmtClass.CX_StmtClass_ContinueStmt => new ContinueStmt(handle),
+            CX_StmtClass.CX_StmtClass_CoreturnStmt => new CoreturnStmt(handle),
+            CX_StmtClass.CX_StmtClass_CoroutineBodyStmt => new CoroutineBodyStmt(handle),
+            CX_StmtClass.CX_StmtClass_DeclStmt => new DeclStmt(handle),
+            CX_StmtClass.CX_StmtClass_DoStmt => new DoStmt(handle),
+            CX_StmtClass.CX_StmtClass_ForStmt => new ForStmt(handle),
+            CX_StmtClass.CX_StmtClass_GotoStmt => new GotoStmt(handle),
+            CX_StmtClass.CX_StmtClass_IfStmt => new IfStmt(handle),
+            CX_StmtClass.CX_StmtClass_IndirectGotoStmt => new IndirectGotoStmt(handle),
+            CX_StmtClass.CX_StmtClass_MSDependentExistsStmt => new MSDependentExistsStmt(handle),
+            CX_StmtClass.CX_StmtClass_NullStmt => new NullStmt(handle),
+            CX_StmtClass.CX_StmtClass_OMPAtomicDirective => new OMPAtomicDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPBarrierDirective => new OMPBarrierDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPCancelDirective => new OMPCancelDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPCancellationPointDirective => new OMPCancellationPointDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPCriticalDirective => new OMPCriticalDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPFlushDirective => new OMPFlushDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPDistributeDirective => new OMPDistributeDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPDistributeParallelForDirective => new OMPDistributeParallelForDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPDistributeParallelForSimdDirective => new OMPDistributeParallelForSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPDistributeSimdDirective => new OMPDistributeSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPForDirective => new OMPForDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPForSimdDirective => new OMPForSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPParallelForDirective => new OMPParallelForDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPParallelForSimdDirective => new OMPParallelForSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPSimdDirective => new OMPSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetParallelForSimdDirective => new OMPTargetParallelForSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetSimdDirective => new OMPTargetSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeDirective => new OMPTargetTeamsDistributeDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeParallelForDirective => new OMPTargetTeamsDistributeParallelForDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeParallelForSimdDirective => new OMPTargetTeamsDistributeParallelForSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeSimdDirective => new OMPTargetTeamsDistributeSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTaskLoopDirective => new OMPTaskLoopDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTaskLoopSimdDirective => new OMPTaskLoopSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTeamsDistributeDirective => new OMPTeamsDistributeDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTeamsDistributeParallelForDirective => new OMPTeamsDistributeParallelForDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTeamsDistributeParallelForSimdDirective => new OMPTeamsDistributeParallelForSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTeamsDistributeSimdDirective => new OMPTeamsDistributeSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPMasterDirective => new OMPMasterDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPOrderedDirective => new OMPOrderedDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPParallelDirective => new OMPParallelDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPParallelSectionsDirective => new OMPParallelSectionsDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPSectionDirective => new OMPSectionDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPSectionsDirective => new OMPSectionsDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPSingleDirective => new OMPSingleDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetDataDirective => new OMPTargetDataDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetDirective => new OMPTargetDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetEnterDataDirective => new OMPTargetEnterDataDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetExitDataDirective => new OMPTargetExitDataDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetParallelDirective => new OMPTargetParallelDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetParallelForDirective => new OMPTargetParallelForDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetTeamsDirective => new OMPTargetTeamsDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTargetUpdateDirective => new OMPTargetUpdateDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTaskDirective => new OMPTaskDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTaskgroupDirective => new OMPTaskgroupDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTaskwaitDirective => new OMPTaskwaitDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTaskyieldDirective => new OMPTaskyieldDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPTeamsDirective => new OMPTeamsDirective(handle),
+            CX_StmtClass.CX_StmtClass_ObjCAtCatchStmt => new ObjCAtCatchStmt(handle),
+            CX_StmtClass.CX_StmtClass_ObjCAtFinallyStmt => new ObjCAtFinallyStmt(handle),
+            CX_StmtClass.CX_StmtClass_ObjCAtSynchronizedStmt => new ObjCAtSynchronizedStmt(handle),
+            CX_StmtClass.CX_StmtClass_ObjCAtThrowStmt => new ObjCAtThrowStmt(handle),
+            CX_StmtClass.CX_StmtClass_ObjCAtTryStmt => new ObjCAtTryStmt(handle),
+            CX_StmtClass.CX_StmtClass_ObjCAutoreleasePoolStmt => new ObjCAutoreleasePoolStmt(handle),
+            CX_StmtClass.CX_StmtClass_ObjCForCollectionStmt => new ObjCForCollectionStmt(handle),
+            CX_StmtClass.CX_StmtClass_ReturnStmt => new ReturnStmt(handle),
+            CX_StmtClass.CX_StmtClass_SEHExceptStmt => new SEHExceptStmt(handle),
+            CX_StmtClass.CX_StmtClass_SEHFinallyStmt => new SEHFinallyStmt(handle),
+            CX_StmtClass.CX_StmtClass_SEHLeaveStmt => new SEHLeaveStmt(handle),
+            CX_StmtClass.CX_StmtClass_SEHTryStmt => new SEHTryStmt(handle),
+            CX_StmtClass.CX_StmtClass_CaseStmt => new CaseStmt(handle),
+            CX_StmtClass.CX_StmtClass_DefaultStmt => new DefaultStmt(handle),
+            CX_StmtClass.CX_StmtClass_SwitchStmt => new SwitchStmt(handle),
+            CX_StmtClass.CX_StmtClass_AttributedStmt => new AttributedStmt(handle),
+            CX_StmtClass.CX_StmtClass_BinaryConditionalOperator => new BinaryConditionalOperator(handle),
+            CX_StmtClass.CX_StmtClass_ConditionalOperator => new ConditionalOperator(handle),
+            CX_StmtClass.CX_StmtClass_AddrLabelExpr => new AddrLabelExpr(handle),
+            CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr => new ArrayInitIndexExpr(handle),
+            CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr => new ArrayInitLoopExpr(handle),
+            CX_StmtClass.CX_StmtClass_ArraySubscriptExpr => new ArraySubscriptExpr(handle),
+            CX_StmtClass.CX_StmtClass_ArrayTypeTraitExpr => new ArrayTypeTraitExpr(handle),
+            CX_StmtClass.CX_StmtClass_AsTypeExpr => new AsTypeExpr(handle),
+            CX_StmtClass.CX_StmtClass_AtomicExpr => new AtomicExpr(handle),
+            CX_StmtClass.CX_StmtClass_BinaryOperator => new BinaryOperator(handle),
+            CX_StmtClass.CX_StmtClass_CompoundAssignOperator => new CompoundAssignOperator(handle),
+            CX_StmtClass.CX_StmtClass_BlockExpr => new BlockExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXBindTemporaryExpr => new CXXBindTemporaryExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr => new CXXBoolLiteralExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXConstructExpr => new CXXConstructExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr => new CXXTemporaryObjectExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr => new CXXDefaultArgExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr => new CXXDefaultInitExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXDeleteExpr => new CXXDeleteExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr => new CXXDependentScopeMemberExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXFoldExpr => new CXXFoldExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr => new CXXInheritedCtorInitExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXNewExpr => new CXXNewExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXNoexceptExpr => new CXXNoexceptExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXNullPtrLiteralExpr => new CXXNullPtrLiteralExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXPseudoDestructorExpr => new CXXPseudoDestructorExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXScalarValueInitExpr => new CXXScalarValueInitExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr => new CXXStdInitializerListExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXThisExpr => new CXXThisExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXThrowExpr => new CXXThrowExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXTypeidExpr => new CXXTypeidExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr => new CXXUnresolvedConstructExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXUuidofExpr => new CXXUuidofExpr(handle),
+            CX_StmtClass.CX_StmtClass_CallExpr => new CallExpr(handle),
+            CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr => new CUDAKernelCallExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXMemberCallExpr => new CXXMemberCallExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr => new CXXOperatorCallExpr(handle),
+            CX_StmtClass.CX_StmtClass_UserDefinedLiteral => new UserDefinedLiteral(handle),
+            CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr => new BuiltinBitCastExpr(handle),
+            CX_StmtClass.CX_StmtClass_CStyleCastExpr => new CStyleCastExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr => new CXXFunctionalCastExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXConstCastExpr => new CXXConstCastExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr => new CXXDynamicCastExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr => new CXXReinterpretCastExpr(handle),
+            CX_StmtClass.CX_StmtClass_CXXStaticCastExpr => new CXXStaticCastExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr => new ObjCBridgedCastExpr(handle),
+            CX_StmtClass.CX_StmtClass_ImplicitCastExpr => new ImplicitCastExpr(handle),
+            CX_StmtClass.CX_StmtClass_CharacterLiteral => new CharacterLiteral(handle),
+            CX_StmtClass.CX_StmtClass_ChooseExpr => new ChooseExpr(handle),
+            CX_StmtClass.CX_StmtClass_CompoundLiteralExpr => new CompoundLiteralExpr(handle),
+            CX_StmtClass.CX_StmtClass_ConvertVectorExpr => new ConvertVectorExpr(handle),
+            CX_StmtClass.CX_StmtClass_CoawaitExpr => new CoawaitExpr(handle),
+            CX_StmtClass.CX_StmtClass_CoyieldExpr => new CoyieldExpr(handle),
+            CX_StmtClass.CX_StmtClass_DeclRefExpr => new DeclRefExpr(handle),
+            CX_StmtClass.CX_StmtClass_DependentCoawaitExpr => new DependentCoawaitExpr(handle),
+            CX_StmtClass.CX_StmtClass_DependentScopeDeclRefExpr => new DependentScopeDeclRefExpr(handle),
+            CX_StmtClass.CX_StmtClass_DesignatedInitExpr => new DesignatedInitExpr(handle),
+            CX_StmtClass.CX_StmtClass_DesignatedInitUpdateExpr => new DesignatedInitUpdateExpr(handle),
+            CX_StmtClass.CX_StmtClass_ExpressionTraitExpr => new ExpressionTraitExpr(handle),
+            CX_StmtClass.CX_StmtClass_ExtVectorElementExpr => new ExtVectorElementExpr(handle),
+            CX_StmtClass.CX_StmtClass_FixedPointLiteral => new FixedPointLiteral(handle),
+            CX_StmtClass.CX_StmtClass_FloatingLiteral => new FloatingLiteral(handle),
+            CX_StmtClass.CX_StmtClass_ConstantExpr => new ConstantExpr(handle),
+            CX_StmtClass.CX_StmtClass_ExprWithCleanups => new ExprWithCleanups(handle),
+            CX_StmtClass.CX_StmtClass_FunctionParmPackExpr => new FunctionParmPackExpr(handle),
+            CX_StmtClass.CX_StmtClass_GNUNullExpr => new GNUNullExpr(handle),
+            CX_StmtClass.CX_StmtClass_GenericSelectionExpr => new GenericSelectionExpr(handle),
+            CX_StmtClass.CX_StmtClass_ImaginaryLiteral => new ImaginaryLiteral(handle),
+            CX_StmtClass.CX_StmtClass_ImplicitValueInitExpr => new ImplicitValueInitExpr(handle),
+            CX_StmtClass.CX_StmtClass_InitListExpr => new InitListExpr(handle),
+            CX_StmtClass.CX_StmtClass_IntegerLiteral => new IntegerLiteral(handle),
+            CX_StmtClass.CX_StmtClass_LambdaExpr => new LambdaExpr(handle),
+            CX_StmtClass.CX_StmtClass_MSPropertyRefExpr => new MSPropertyRefExpr(handle),
+            CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr => new MSPropertySubscriptExpr(handle),
+            CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr => new MaterializeTemporaryExpr(handle),
+            CX_StmtClass.CX_StmtClass_MemberExpr => new MemberExpr(handle),
+            CX_StmtClass.CX_StmtClass_NoInitExpr => new NoInitExpr(handle),
+            CX_StmtClass.CX_StmtClass_OMPArraySectionExpr => new OMPArraySectionExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCArrayLiteral => new ObjCArrayLiteral(handle),
+            CX_StmtClass.CX_StmtClass_ObjCAvailabilityCheckExpr => new ObjCAvailabilityCheckExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCBoolLiteralExpr => new ObjCBoolLiteralExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCBoxedExpr => new ObjCBoxedExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCDictionaryLiteral => new ObjCDictionaryLiteral(handle),
+            CX_StmtClass.CX_StmtClass_ObjCEncodeExpr => new ObjCEncodeExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCIndirectCopyRestoreExpr => new ObjCIndirectCopyRestoreExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCIsaExpr => new ObjCIsaExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCIvarRefExpr => new ObjCIvarRefExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCMessageExpr => new ObjCMessageExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCPropertyRefExpr => new ObjCPropertyRefExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCProtocolExpr => new ObjCProtocolExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCSelectorExpr => new ObjCSelectorExpr(handle),
+            CX_StmtClass.CX_StmtClass_ObjCStringLiteral => new ObjCStringLiteral(handle),
+            CX_StmtClass.CX_StmtClass_ObjCSubscriptRefExpr => new ObjCSubscriptRefExpr(handle),
+            CX_StmtClass.CX_StmtClass_OffsetOfExpr => new OffsetOfExpr(handle),
+            CX_StmtClass.CX_StmtClass_OpaqueValueExpr => new OpaqueValueExpr(handle),
+            CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr => new UnresolvedLookupExpr(handle),
+            CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr => new UnresolvedMemberExpr(handle),
+            CX_StmtClass.CX_StmtClass_PackExpansionExpr => new PackExpansionExpr(handle),
+            CX_StmtClass.CX_StmtClass_ParenExpr => new ParenExpr(handle),
+            CX_StmtClass.CX_StmtClass_ParenListExpr => new ParenListExpr(handle),
+            CX_StmtClass.CX_StmtClass_PredefinedExpr => new PredefinedExpr(handle),
+            CX_StmtClass.CX_StmtClass_PseudoObjectExpr => new PseudoObjectExpr(handle),
+            CX_StmtClass.CX_StmtClass_ShuffleVectorExpr => new ShuffleVectorExpr(handle),
+            CX_StmtClass.CX_StmtClass_SizeOfPackExpr => new SizeOfPackExpr(handle),
+            CX_StmtClass.CX_StmtClass_SourceLocExpr => new SourceLocExpr(handle),
+            CX_StmtClass.CX_StmtClass_StmtExpr => new StmtExpr(handle),
+            CX_StmtClass.CX_StmtClass_StringLiteral => new StringLiteral(handle),
+            CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr => new SubstNonTypeTemplateParmExpr(handle),
+            CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr => new SubstNonTypeTemplateParmPackExpr(handle),
+            CX_StmtClass.CX_StmtClass_TypeTraitExpr => new TypeTraitExpr(handle),
+            CX_StmtClass.CX_StmtClass_TypoExpr => new TypoExpr(handle),
+            CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr => new UnaryExprOrTypeTraitExpr(handle),
+            CX_StmtClass.CX_StmtClass_UnaryOperator => new UnaryOperator(handle),
+            CX_StmtClass.CX_StmtClass_VAArgExpr => new VAArgExpr(handle),
+            CX_StmtClass.CX_StmtClass_LabelStmt => new LabelStmt(handle),
+            CX_StmtClass.CX_StmtClass_WhileStmt => new WhileStmt(handle),
+            _ => new Stmt(handle, handle.Kind, handle.StmtClass),
+        };
     }
 }

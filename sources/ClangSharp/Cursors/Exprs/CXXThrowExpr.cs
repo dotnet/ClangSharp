@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXThrowExpr : Expr
     {
-        internal CXXThrowExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXThrowExpr)
+        internal CXXThrowExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXThrowExpr, CX_StmtClass.CX_StmtClass_CXXThrowExpr)
         {
         }
     }

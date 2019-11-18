@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class LabelStmt : ValueStmt
     {
-        internal LabelStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_LabelStmt)
+        internal LabelStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_LabelStmt, CX_StmtClass.CX_StmtClass_LabelStmt)
         {
         }
     }

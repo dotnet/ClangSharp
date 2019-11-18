@@ -72,13 +72,13 @@ namespace ClangSharp.Interop
             fixed (uint* pColumn = &column)
             fixed (uint* pOffset = &offset)
             {
-                clang.getSpellingLocation(this, (void**)pFile, pLine, pColumn, pOffset);
+                clangsharp.getSpellingLocation(this, (void**)pFile, pLine, pColumn, pOffset);
             }
         }
 
         public override string ToString()
         {
-            GetFileLocation(out var file, out var line, out var column, out _);
+            GetSpellingLocation(out var file, out var line, out var column, out _);
             return $"Line {line}, Column {column} in {file}";
         }
     }

@@ -9,7 +9,7 @@ namespace ClangSharp
     {
         private readonly Lazy<NamedDecl> _pack;
 
-        internal SizeOfPackExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SizeOfPackExpr)
+        internal SizeOfPackExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SizeOfPackExpr, CX_StmtClass.CX_StmtClass_SizeOfPackExpr)
         {
             _pack = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.Referenced));
         }

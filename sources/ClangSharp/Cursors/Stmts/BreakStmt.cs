@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class BreakStmt : Stmt
     {
-        internal BreakStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_BreakStmt)
+        internal BreakStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_BreakStmt, CX_StmtClass.CX_StmtClass_BreakStmt)
         {
         }
     }

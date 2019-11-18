@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class NullStmt : Stmt
     {
-        internal NullStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_NullStmt)
+        internal NullStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_NullStmt, CX_StmtClass.CX_StmtClass_NullStmt)
         {
         }
     }

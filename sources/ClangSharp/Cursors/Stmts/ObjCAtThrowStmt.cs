@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCAtThrowStmt : Stmt
     {
-        internal ObjCAtThrowStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtThrowStmt)
+        internal ObjCAtThrowStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtThrowStmt, CX_StmtClass.CX_StmtClass_ObjCAtThrowStmt)
         {
         }
     }

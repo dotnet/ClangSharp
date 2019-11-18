@@ -11,9 +11,14 @@ namespace ClangSharp
         private readonly Lazy<Type> _canonicalType;
         private readonly Lazy<TranslationUnit> _translationUnit;
 
-        protected Type(CXType handle, CXTypeKind expectedKind)
+        protected Type(CXType handle, CXTypeKind expectedKind, CX_TypeClass expectedTypeClass)
         {
             if (handle.kind != expectedKind)
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
+            if ((handle.TypeClass == CX_TypeClass.CX_TypeClass_Invalid) || (handle.TypeClass != expectedTypeClass))
             {
                 throw new ArgumentException(nameof(handle));
             }
@@ -37,123 +42,64 @@ namespace ClangSharp
 
         public TranslationUnit TranslationUnit => _translationUnit.Value;
 
+        public CX_TypeClass TypeClass => Handle.TypeClass;
+
         public static bool operator ==(Type left, Type right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
 
         public static bool operator !=(Type left, Type right) => (left is object) ? ((right is null) || (left.Handle != right.Handle)) : (right is object);
 
-        internal static Type Create(CXType handle)
+        internal static Type Create(CXType handle) => handle.TypeClass switch
         {
-            Type result;
-
-            switch (handle.kind)
-            {
-                case CXTypeKind.CXType_Unexposed:
-                {
-                    result = new Type(handle, CXTypeKind.CXType_Unexposed);
-                    break;
-                }
-
-                case CXTypeKind.CXType_Void:
-                case CXTypeKind.CXType_Bool:
-                case CXTypeKind.CXType_Char_U:
-                case CXTypeKind.CXType_UChar:
-                case CXTypeKind.CXType_UShort:
-                case CXTypeKind.CXType_UInt:
-                case CXTypeKind.CXType_ULong:
-                case CXTypeKind.CXType_ULongLong:
-                case CXTypeKind.CXType_Char_S:
-                case CXTypeKind.CXType_SChar:
-                case CXTypeKind.CXType_WChar:
-                case CXTypeKind.CXType_Short:
-                case CXTypeKind.CXType_Int:
-                case CXTypeKind.CXType_Long:
-                case CXTypeKind.CXType_LongLong:
-                case CXTypeKind.CXType_Float:
-                case CXTypeKind.CXType_Double:
-                case CXTypeKind.CXType_LongDouble:
-                case CXTypeKind.CXType_NullPtr:
-                case CXTypeKind.CXType_Dependent:
-                {
-                    result = new BuiltinType(handle, handle.kind);
-                    break;
-                }
-
-                case CXTypeKind.CXType_Pointer:
-                {
-                    result = new PointerType(handle);
-                    break;
-                }
-
-                case CXTypeKind.CXType_LValueReference:
-                {
-                    result = new LValueReferenceType(handle);
-                    break;
-                }
-
-                case CXTypeKind.CXType_Record:
-                {
-                    result = new RecordType(handle);
-                    break;
-                }
-
-                case CXTypeKind.CXType_Enum:
-                {
-                    result = new EnumType(handle);
-                    break;
-                }
-
-                case CXTypeKind.CXType_Typedef:
-                {
-                    result = new TypedefType(handle);
-                    break;
-                }
-
-                case CXTypeKind.CXType_FunctionProto:
-                {
-                    result = new FunctionProtoType(handle);
-                    break;
-                }
-
-                case CXTypeKind.CXType_ConstantArray:
-                {
-                    result = new ConstantArrayType(handle);
-                    break;
-                }
-
-                case CXTypeKind.CXType_IncompleteArray:
-                {
-                    result = new IncompleteArrayType(handle);
-                    break;
-                }
-
-                case CXTypeKind.CXType_DependentSizedArray:
-                {
-                    result = new DependentSizedArrayType(handle);
-                    break;
-                }
-
-                case CXTypeKind.CXType_Elaborated:
-                {
-                    result = new ElaboratedType(handle);
-                    break;
-                }
-
-                case CXTypeKind.CXType_Attributed:
-                {
-                    result = new AttributedType(handle);
-                    break;
-                }
-
-                default:
-                {
-                    Debug.WriteLine($"Unhandled type kind: {handle.KindSpelling}.");
-                    result = new Type(handle, handle.kind);
-                    break;
-                }
-            }
-
-            return result;
-        }
+            CX_TypeClass.CX_TypeClass_Builtin => new BuiltinType(handle),
+            CX_TypeClass.CX_TypeClass_Complex => new ComplexType(handle),
+            CX_TypeClass.CX_TypeClass_Pointer => new PointerType(handle),
+            CX_TypeClass.CX_TypeClass_BlockPointer => new BlockPointerType(handle),
+            CX_TypeClass.CX_TypeClass_LValueReference => new LValueReferenceType(handle),
+            CX_TypeClass.CX_TypeClass_RValueReference => new RValueReferenceType(handle),
+            CX_TypeClass.CX_TypeClass_MemberPointer => new MemberPointerType(handle),
+            CX_TypeClass.CX_TypeClass_ConstantArray => new ConstantArrayType(handle),
+            CX_TypeClass.CX_TypeClass_IncompleteArray => new IncompleteArrayType(handle),
+            CX_TypeClass.CX_TypeClass_VariableArray => new VariableArrayType(handle),
+            CX_TypeClass.CX_TypeClass_DependentSizedArray => new DependentSizedArrayType(handle),
+            CX_TypeClass.CX_TypeClass_DependentSizedExtVector => new DependentSizedExtVectorType(handle),
+            CX_TypeClass.CX_TypeClass_DependentAddressSpace => new DependentAddressSpaceType(handle),
+            CX_TypeClass.CX_TypeClass_Vector => new VectorType(handle),
+            CX_TypeClass.CX_TypeClass_DependentVector => new DependentVectorType(handle),
+            CX_TypeClass.CX_TypeClass_ExtVector => new ExtVectorType(handle),
+            CX_TypeClass.CX_TypeClass_FunctionProto => new FunctionProtoType(handle),
+            CX_TypeClass.CX_TypeClass_FunctionNoProto => new FunctionNoProtoType(handle),
+            CX_TypeClass.CX_TypeClass_UnresolvedUsing => new UnresolvedUsingType(handle),
+            CX_TypeClass.CX_TypeClass_Paren => new ParenType(handle),
+            CX_TypeClass.CX_TypeClass_Typedef => new TypedefType(handle),
+            CX_TypeClass.CX_TypeClass_MacroQualified => new MacroQualifiedType(handle),
+            CX_TypeClass.CX_TypeClass_Adjusted => new AdjustedType(handle),
+            CX_TypeClass.CX_TypeClass_Decayed => new DecayedType(handle),
+            CX_TypeClass.CX_TypeClass_TypeOfExpr => new TypeOfExprType(handle),
+            CX_TypeClass.CX_TypeClass_TypeOf => new TypeOfType(handle),
+            CX_TypeClass.CX_TypeClass_Decltype => new DecltypeType(handle),
+            CX_TypeClass.CX_TypeClass_UnaryTransform => new UnaryTransformType(handle),
+            CX_TypeClass.CX_TypeClass_Record => new RecordType(handle),
+            CX_TypeClass.CX_TypeClass_Enum => new EnumType(handle),
+            CX_TypeClass.CX_TypeClass_Elaborated => new ElaboratedType(handle),
+            CX_TypeClass.CX_TypeClass_Attributed => new AttributedType(handle),
+            CX_TypeClass.CX_TypeClass_TemplateTypeParm => new TemplateTypeParmType(handle),
+            CX_TypeClass.CX_TypeClass_SubstTemplateTypeParm => new SubstTemplateTypeParmType(handle),
+            CX_TypeClass.CX_TypeClass_SubstTemplateTypeParmPack => new SubstTemplateTypeParmPackType(handle),
+            CX_TypeClass.CX_TypeClass_TemplateSpecialization => new TemplateSpecializationType(handle),
+            CX_TypeClass.CX_TypeClass_Auto => new AutoType(handle),
+            CX_TypeClass.CX_TypeClass_DeducedTemplateSpecialization => new DeducedTemplateSpecializationType(handle),
+            CX_TypeClass.CX_TypeClass_InjectedClassName => new InjectedClassNameType(handle),
+            CX_TypeClass.CX_TypeClass_DependentName => new DependentNameType(handle),
+            CX_TypeClass.CX_TypeClass_DependentTemplateSpecialization => new DependentTemplateSpecializationType(handle),
+            CX_TypeClass.CX_TypeClass_PackExpansion => new PackExpansionType(handle),
+            CX_TypeClass.CX_TypeClass_ObjCTypeParam => new ObjCTypeParamType(handle),
+            CX_TypeClass.CX_TypeClass_ObjCObject => new ObjCObjectType(handle),
+            CX_TypeClass.CX_TypeClass_ObjCInterface => new ObjCInterfaceType(handle),
+            CX_TypeClass.CX_TypeClass_ObjCObjectPointer => new ObjCObjectPointerType(handle),
+            CX_TypeClass.CX_TypeClass_Pipe => new PipeType(handle),
+            CX_TypeClass.CX_TypeClass_Atomic => new AtomicType(handle),
+            _ => new Type(handle, handle.kind, handle.TypeClass),
+        };
 
         public override bool Equals(object obj) => (obj is Type other) && Equals(other);
 

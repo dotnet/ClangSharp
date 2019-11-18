@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ClassTemplateDecl : RedeclarableTemplateDecl
     {
-        internal ClassTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ClassTemplate)
+        internal ClassTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ClassTemplate, CX_DeclKind.CX_DeclKind_ClassTemplate)
         {
         }
     }

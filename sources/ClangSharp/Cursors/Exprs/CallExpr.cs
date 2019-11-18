@@ -6,13 +6,22 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class CallExpr : Expr
+    public class CallExpr : Expr
     {
         private readonly Lazy<IReadOnlyList<Expr>> _args;
         private readonly Lazy<Decl> _calleeDecl;
 
-        internal CallExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CallExpr)
+        internal CallExpr(CXCursor handle) : this(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_CallExpr)
         {
+        }
+
+        private protected CallExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
+        {
+            if ((CX_StmtClass.CX_StmtClass_LastCallExpr < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstCallExpr))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _args = new Lazy<IReadOnlyList<Expr>>(() => {
                 var numArgs = NumArgs;
                 var args = new List<Expr>((int)numArgs);

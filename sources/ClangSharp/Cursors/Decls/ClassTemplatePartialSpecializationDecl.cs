@@ -11,7 +11,7 @@ namespace ClangSharp
     {
         private readonly Lazy<IReadOnlyList<NamedDecl>> _templateParameters;
 
-        internal ClassTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ClassTemplatePartialSpecialization)
+        internal ClassTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ClassTemplatePartialSpecialization, CX_DeclKind.CX_DeclKind_ClassTemplatePartialSpecialization)
         {
             _templateParameters = new Lazy<IReadOnlyList<NamedDecl>>(() => CursorChildren.Where((cursor) => (cursor is TemplateTypeParmDecl) || (cursor is NonTypeTemplateParmDecl) || (cursor is TemplateTemplateParmDecl)).Cast<NamedDecl>().ToList());
         }

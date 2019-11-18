@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInterfaceDecl>
     {
-        internal ObjCInterfaceDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCInterfaceDecl)
+        internal ObjCInterfaceDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCInterfaceDecl, CX_DeclKind.CX_DeclKind_ObjCInterface)
         {
         }
     }

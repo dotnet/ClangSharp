@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ImaginaryLiteral : Expr
     {
-        internal ImaginaryLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ImaginaryLiteral)
+        internal ImaginaryLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ImaginaryLiteral, CX_StmtClass.CX_StmtClass_ImaginaryLiteral)
         {
         }
     }

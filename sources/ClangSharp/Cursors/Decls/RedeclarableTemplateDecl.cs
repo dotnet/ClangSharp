@@ -9,8 +9,13 @@ namespace ClangSharp
     {
         private readonly Lazy<RedeclarableTemplateDecl> _instantiatedFromMemberTemplate;
 
-        private protected RedeclarableTemplateDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected RedeclarableTemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
+            if ((CX_DeclKind.CX_DeclKind_LastRedeclarableTemplate < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstRedeclarableTemplate))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _instantiatedFromMemberTemplate = new Lazy<RedeclarableTemplateDecl>(() => TranslationUnit.GetOrCreate<RedeclarableTemplateDecl>(Handle.SpecializedCursorTemplate));
         }
 

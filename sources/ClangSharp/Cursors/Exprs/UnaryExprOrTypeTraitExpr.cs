@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class UnaryExprOrTypeTraitExpr : Expr
     {
-        internal UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryExpr)
+        internal UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryExpr, CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr)
         {
         }
     }

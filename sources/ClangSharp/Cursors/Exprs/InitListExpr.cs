@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class InitListExpr : Expr
     {
-        internal InitListExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_InitListExpr)
+        internal InitListExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_InitListExpr, CX_StmtClass.CX_StmtClass_InitListExpr)
         {
         }
     }

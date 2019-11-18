@@ -11,8 +11,22 @@ namespace ClangSharp
     {
         private readonly Lazy<IReadOnlyList<FieldDecl>> _fields;
 
-        internal RecordDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        internal RecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind.CX_DeclKind_Record)
         {
+        }
+
+        private protected RecordDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+        {
+            if ((CX_DeclKind.CX_DeclKind_LastRecord < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstRecord))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
+            if ((handle.Kind != CXCursorKind.CXCursor_StructDecl) && (handle.Kind != CXCursorKind.CXCursor_UnionDecl) && (handle.Kind != CXCursorKind.CXCursor_ClassDecl) && (handle.Kind != CXCursorKind.CXCursor_ClassTemplatePartialSpecialization))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _fields = new Lazy<IReadOnlyList<FieldDecl>>(() => Decls.OfType<FieldDecl>().ToList());
         }
 

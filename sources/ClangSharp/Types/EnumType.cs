@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class EnumType : TagType
     {
-        internal EnumType(CXType handle) : base(handle, CXTypeKind.CXType_Enum)
+        internal EnumType(CXType handle) : base(handle, CXTypeKind.CXType_Enum, CX_TypeClass.CX_TypeClass_Enum)
         {
         }
     }

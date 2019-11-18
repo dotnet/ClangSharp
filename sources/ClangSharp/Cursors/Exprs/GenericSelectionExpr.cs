@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class GenericSelectionExpr : Expr
     {
-        internal GenericSelectionExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GenericSelectionExpr)
+        internal GenericSelectionExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GenericSelectionExpr, CX_StmtClass.CX_StmtClass_GenericSelectionExpr)
         {
         }
     }

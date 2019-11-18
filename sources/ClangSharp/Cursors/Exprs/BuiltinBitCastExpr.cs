@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class BuiltinBitCastExpr : ExplicitCastExpr
     {
-        internal BuiltinBitCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_BuiltinBitCastExpr)
+        internal BuiltinBitCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_BuiltinBitCastExpr, CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr)
         {
         }
     }

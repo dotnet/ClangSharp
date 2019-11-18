@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXConstructorDecl : CXXMethodDecl
     {
-        internal CXXConstructorDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_Constructor)
+        internal CXXConstructorDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_Constructor, CX_DeclKind.CX_DeclKind_CXXConstructor)
         {
         }
 

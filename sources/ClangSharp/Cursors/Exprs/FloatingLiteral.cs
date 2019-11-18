@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class FloatingLiteral : Expr
     {
-        internal FloatingLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_FloatingLiteral)
+        internal FloatingLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_FloatingLiteral, CX_StmtClass.CX_StmtClass_FloatingLiteral)
         {
         }
     }

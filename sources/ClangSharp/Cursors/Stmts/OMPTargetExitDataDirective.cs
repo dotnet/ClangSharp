@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class OMPTargetExitDataDirective : OMPExecutableDirective
     {
-        internal OMPTargetExitDataDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPTargetExitDataDirective)
+        internal OMPTargetExitDataDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPTargetExitDataDirective, CX_StmtClass.CX_StmtClass_OMPTargetExitDataDirective)
         {
         }
     }

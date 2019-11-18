@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class StmtExpr : Expr
     {
-        internal StmtExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_StmtExpr)
+        internal StmtExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_StmtExpr, CX_StmtClass.CX_StmtClass_StmtExpr)
         {
         }
     }

@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class WhileStmt : Stmt
     {
-        internal WhileStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_WhileStmt)
+        internal WhileStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_WhileStmt, CX_StmtClass.CX_StmtClass_WhileStmt)
         {
         }
     }

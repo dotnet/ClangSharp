@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class GCCAsmStmt : AsmStmt
     {
-        internal GCCAsmStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GCCAsmStmt)
+        internal GCCAsmStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GCCAsmStmt, CX_StmtClass.CX_StmtClass_GCCAsmStmt)
         {
         }
     }

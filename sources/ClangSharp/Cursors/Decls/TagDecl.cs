@@ -12,8 +12,13 @@ namespace ClangSharp
         private readonly Lazy<IReadOnlyList<Decl>> _decls;
         private readonly Lazy<TagDecl> _definition;
 
-        private protected TagDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected TagDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
+            if ((CX_DeclKind.CX_DeclKind_LastTag < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstTag))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
             _definition = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition));
         }
@@ -22,13 +27,13 @@ namespace ClangSharp
 
         public TagDecl Definition => _definition.Value;
 
-        public bool IsClass => Kind == CXCursorKind.CXCursor_ClassDecl;
+        public bool IsClass => CursorKind == CXCursorKind.CXCursor_ClassDecl;
 
-        public bool IsEnum => Kind == CXCursorKind.CXCursor_EnumDecl;
+        public bool IsEnum => CursorKind == CXCursorKind.CXCursor_EnumDecl;
 
-        public bool IsStruct => Kind == CXCursorKind.CXCursor_StructDecl;
+        public bool IsStruct => CursorKind == CXCursorKind.CXCursor_StructDecl;
 
-        public bool IsUnion => Kind == CXCursorKind.CXCursor_UnionDecl;
+        public bool IsUnion => CursorKind == CXCursorKind.CXCursor_UnionDecl;
 
         public IDeclContext LexicalParent => LexicalDeclContext;
 

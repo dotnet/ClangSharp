@@ -9,7 +9,7 @@ namespace ClangSharp
     {
         private readonly Lazy<TypedefNameDecl> _decl;
 
-        internal TypedefType(CXType handle) : base(handle, CXTypeKind.CXType_Typedef)
+        internal TypedefType(CXType handle) : base(handle, CXTypeKind.CXType_Typedef, CX_TypeClass.CX_TypeClass_Typedef)
         {
             _decl = new Lazy<TypedefNameDecl>(() => TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.Declaration));
         }

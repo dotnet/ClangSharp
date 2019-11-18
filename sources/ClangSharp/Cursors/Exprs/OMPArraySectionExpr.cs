@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class OMPArraySectionExpr : Expr
     {
-        internal OMPArraySectionExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPArraySectionExpr)
+        internal OMPArraySectionExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPArraySectionExpr, CX_StmtClass.CX_StmtClass_OMPArraySectionExpr)
         {
         }
     }

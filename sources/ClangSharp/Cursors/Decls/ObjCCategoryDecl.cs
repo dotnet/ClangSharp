@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCCategoryDecl : ObjCContainerDecl
     {
-        internal ObjCCategoryDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCCategoryDecl)
+        internal ObjCCategoryDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCCategoryDecl, CX_DeclKind.CX_DeclKind_ObjCCategory)
         {
         }
     }

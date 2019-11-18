@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCIvarDecl : FieldDecl
     {
-        internal ObjCIvarDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCIvarDecl)
+        internal ObjCIvarDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCIvarDecl, CX_DeclKind.CX_DeclKind_ObjCIvar)
         {
         }
     }

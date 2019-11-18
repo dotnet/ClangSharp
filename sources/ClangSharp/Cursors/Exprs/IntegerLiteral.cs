@@ -10,7 +10,7 @@ namespace ClangSharp
     {
         private readonly Lazy<string> _value;
 
-        internal IntegerLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IntegerLiteral)
+        internal IntegerLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IntegerLiteral, CX_StmtClass.CX_StmtClass_IntegerLiteral)
         {
             _value = new Lazy<string>(() => {
                 var tokens = Handle.TranslationUnit.Tokenize(Extent);

@@ -4,9 +4,9 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class DeclOrTypeAttr : InheritableAttr
+    public sealed class RValueReferenceType : ReferenceType
     {
-        internal DeclOrTypeAttr(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        internal RValueReferenceType(CXType handle) : base(handle, CXTypeKind.CXType_RValueReference, CX_TypeClass.CX_TypeClass_RValueReference)
         {
         }
     }

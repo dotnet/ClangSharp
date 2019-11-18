@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class TypedefDecl : TypedefNameDecl
     {
-        internal TypedefDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TypedefDecl)
+        internal TypedefDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TypedefDecl, CX_DeclKind.CX_DeclKind_Typedef)
         {
         }
     }

@@ -11,7 +11,7 @@ namespace ClangSharp
     {
         private readonly Lazy<IReadOnlyList<Decl>> _decls;
 
-        internal TranslationUnitDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TranslationUnit)
+        internal TranslationUnitDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TranslationUnit, CX_DeclKind.CX_DeclKind_TranslationUnit)
         {
             _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
         }

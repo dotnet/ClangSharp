@@ -11,16 +11,21 @@ namespace ClangSharp
     {
         private readonly Lazy<IReadOnlyList<Decl>> _decls;
 
-        internal ObjCMethodDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        internal ObjCMethodDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ObjCMethod)
         {
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.Where((cursor) => cursor is Decl).Cast<Decl>().ToList());
+            if ((handle.Kind != CXCursorKind.CXCursor_ObjCInstanceMethodDecl) && (handle.Kind != CXCursorKind.CXCursor_ObjCClassMethodDecl))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
         }
 
         public IReadOnlyList<Decl> Decls => _decls.Value;
 
-        public bool IsClassMethod() => Kind == CXCursorKind.CXCursor_ObjCClassMethodDecl;
+        public bool IsClassMethod() => CursorKind == CXCursorKind.CXCursor_ObjCClassMethodDecl;
 
-        public bool IsInstanceMethod() => Kind == CXCursorKind.CXCursor_ObjCInstanceMethodDecl;
+        public bool IsInstanceMethod() => CursorKind == CXCursorKind.CXCursor_ObjCInstanceMethodDecl;
 
         public IDeclContext LexicalParent => LexicalDeclContext;
 

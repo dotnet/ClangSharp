@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXDeleteExpr : Expr
     {
-        internal CXXDeleteExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXDeleteExpr)
+        internal CXXDeleteExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXDeleteExpr, CX_StmtClass.CX_StmtClass_CXXDeleteExpr)
         {
         }
     }

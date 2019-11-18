@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCForCollectionStmt : Stmt
     {
-        internal ObjCForCollectionStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCForCollectionStmt)
+        internal ObjCForCollectionStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCForCollectionStmt, CX_StmtClass.CX_StmtClass_ObjCForCollectionStmt)
         {
         }
     }

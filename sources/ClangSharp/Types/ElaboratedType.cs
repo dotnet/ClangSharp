@@ -9,7 +9,7 @@ namespace ClangSharp
     {
         private readonly Lazy<Type> _namedType;
 
-        internal ElaboratedType(CXType handle) : base(handle, CXTypeKind.CXType_Elaborated)
+        internal ElaboratedType(CXType handle) : base(handle, CXTypeKind.CXType_Elaborated, CX_TypeClass.CX_TypeClass_Elaborated)
         {
             _namedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NamedType));
         }

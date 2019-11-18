@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class OMPDistributeSimdDirective : OMPLoopDirective
     {
-        internal OMPDistributeSimdDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPDistributeSimdDirective)
+        internal OMPDistributeSimdDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPDistributeSimdDirective, CX_StmtClass.CX_StmtClass_OMPDistributeSimdDirective)
         {
         }
     }

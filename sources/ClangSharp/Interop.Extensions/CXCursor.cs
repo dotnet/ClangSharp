@@ -9,7 +9,13 @@ namespace ClangSharp.Interop
     {
         public static CXCursor Null => clang.getNullCursor();
 
+        public CX_AttrKind AttrKind => clangsharp.Cursor_getAttrKind(this);
+
         public CXAvailabilityKind Availability => clang.getCursorAvailability(this);
+
+        public CX_BinaryOperatorKind BinaryOperatorKind => clangsharp.Cursor_getBinaryOpcode(this);
+
+        public CXString BinaryOperatorKindSpelling => clangsharp.Cursor_getBinaryOpcodeSpelling(BinaryOperatorKind);
 
         public CXString BriefCommentText => clang.Cursor_getBriefCommentText(this);
 
@@ -45,6 +51,8 @@ namespace ClangSharp.Interop
 
         public bool CXXRecord_IsAbstract => clang.CXXRecord_isAbstract(this) != 0;
 
+        public CX_DeclKind DeclKind => clangsharp.Cursor_getDeclKind(this);
+
         public CXString DeclObjCTypeEncoding => clang.getDeclObjCTypeEncoding(this);
 
         public CXCursor Definition => clang.getCursorDefinition(this);
@@ -63,7 +71,7 @@ namespace ClangSharp.Interop
 
         public int ExceptionSpecificationType => clang.getCursorExceptionSpecificationType(this);
 
-        public CXSourceRange Extent => clang.getCursorExtent(this);
+        public CXSourceRange Extent => clangsharp.getCursorExtent(this);
 
         public int FieldDeclBitWidth => clang.getFieldDeclBitWidth(this);
 
@@ -187,6 +195,8 @@ namespace ClangSharp.Interop
 
         public CXString Spelling => clang.getCursorSpelling(this);
 
+        public CX_StmtClass StmtClass => clangsharp.Cursor_getStmtClass(this);
+
         public CX_StorageClass StorageClass => clang.Cursor_getStorageClass(this);
 
         public CXCursorKind TemplateCursorKind => clang.getTemplateCursorKind(this);
@@ -198,6 +208,10 @@ namespace ClangSharp.Interop
         public CXType Type => clang.getCursorType(this);
 
         public CXType TypedefDeclUnderlyingType => clang.getTypedefDeclUnderlyingType(this);
+
+        public CX_UnaryOperatorKind UnaryOperatorKind => clangsharp.Cursor_getUnaryOpcode(this);
+
+        public CXString UnaryOperatorKindSpelling => clangsharp.Cursor_getUnaryOpcodeSpelling(UnaryOperatorKind);
 
         public CXString Usr => clang.getCursorUSR(this);
 

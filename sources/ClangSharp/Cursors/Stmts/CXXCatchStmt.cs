@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXCatchStmt : Stmt
     {
-        internal CXXCatchStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXCatchStmt)
+        internal CXXCatchStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXCatchStmt, CX_StmtClass.CX_StmtClass_CXXCatchStmt)
         {
         }
     }

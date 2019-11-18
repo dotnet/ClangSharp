@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class BlockExpr : Expr
     {
-        internal BlockExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_BlockExpr)
+        internal BlockExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_BlockExpr, CX_StmtClass.CX_StmtClass_BlockExpr)
         {
         }
     }

@@ -9,8 +9,13 @@ namespace ClangSharp
     {
         private readonly Lazy<Type> _type;
 
-        private protected ValueDecl(CXCursor handle, CXCursorKind expectedKind) : base(handle, expectedKind)
+        private protected ValueDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
+            if ((CX_DeclKind.CX_DeclKind_LastValue < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstValue))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
             _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
         }
 

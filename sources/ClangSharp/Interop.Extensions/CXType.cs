@@ -71,6 +71,8 @@ namespace ClangSharp.Interop
 
         public CXString Spelling => clang.getTypeSpelling(this);
 
+        public CX_TypeClass TypeClass => clangsharp.Type_getTypeClass(this);
+
         public CXString TypedefName => clang.getTypedefName(this);
 
         public static bool operator ==(CXType left, CXType right) => clang.equalTypes(left, right) != 0;

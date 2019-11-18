@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CXXConversionDecl : CXXMethodDecl
     {
-        internal CXXConversionDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ConversionFunction)
+        internal CXXConversionDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ConversionFunction, CX_DeclKind.CX_DeclKind_CXXConversion)
         {
         }
     }

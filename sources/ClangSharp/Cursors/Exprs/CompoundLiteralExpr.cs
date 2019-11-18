@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class CompoundLiteralExpr : Expr
     {
-        internal CompoundLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundLiteralExpr)
+        internal CompoundLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundLiteralExpr, CX_StmtClass.CX_StmtClass_CompoundLiteralExpr)
         {
         }
     }

@@ -11,9 +11,14 @@ namespace ClangSharp
     {
         private readonly Lazy<IReadOnlyList<Decl>> _decls;
 
-        internal LinkageSpecDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_LinkageSpec)
+        internal LinkageSpecDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind.CX_DeclKind_LinkageSpec)
         {
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.Where((cursor) => cursor is Decl).Cast<Decl>().ToList());
+            if ((handle.Kind != CXCursorKind.CXCursor_LinkageSpec) && (handle.Kind != CXCursorKind.CXCursor_UnexposedDecl))
+            {
+                throw new ArgumentException(nameof(handle));
+            }
+
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
         }
 
         public IReadOnlyList<Decl> Decls => _decls.Value;

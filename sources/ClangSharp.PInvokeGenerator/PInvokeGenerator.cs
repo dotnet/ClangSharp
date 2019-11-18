@@ -588,7 +588,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.KindSpelling}'.", namedDecl);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.CursorKindSpelling}'.", namedDecl);
                 }
             }
 
@@ -968,7 +968,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported cursor: '{cursor.KindSpelling}'. Generated bindings may be incomplete.", cursor);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported cursor: '{cursor.CursorKindSpelling}'. Generated bindings may be incomplete.", cursor);
             }
         }
 
@@ -981,7 +981,7 @@ namespace ClangSharp
         {
             Visit(binaryOperator.LHS);
             _outputBuilder.Write(' ');
-            _outputBuilder.Write(binaryOperator.Opcode);
+            _outputBuilder.Write(binaryOperator.OpcodeStr);
             _outputBuilder.Write(' ');
             Visit(binaryOperator.RHS);
         }
@@ -1006,7 +1006,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.KindSpelling}'. Generated bindings may be incomplete.", calleeDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", calleeDecl);
             }
         }
 
@@ -1033,13 +1033,13 @@ namespace ClangSharp
             {
                 VisitNamedDecl(namedDecl);
             }
-            else if (decl.Kind == CXCursorKind.CXCursor_UnexposedDecl)
+            else if (decl.CursorKind == CXCursorKind.CXCursor_UnexposedDecl)
             {
                 VisitUnexposedDecl(decl);
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declaration: '{decl.KindSpelling}'. Generated bindings may be incomplete.", decl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declaration: '{decl.CursorKindSpelling}'. Generated bindings may be incomplete.", decl);
             }
         }
 
@@ -1059,7 +1059,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declarator declaration: '{declaratorDecl.KindSpelling}'. Generated bindings may be incomplete.", declaratorDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declarator declaration: '{declaratorDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", declaratorDecl);
             }
         }
 
@@ -1154,13 +1154,13 @@ namespace ClangSharp
             {
                 VisitUnaryOperator(unaryOperator);
             }
-            else if (expr.Kind == CXCursorKind.CXCursor_UnexposedExpr)
+            else if (expr.CursorKind == CXCursorKind.CXCursor_UnexposedExpr)
             {
                 VisitUnexposedExpr(expr);
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported expression: '{expr.KindSpelling}'. Generated bindings may be incomplete.", expr);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported expression: '{expr.CursorKindSpelling}'. Generated bindings may be incomplete.", expr);
             }
         }
 
@@ -1330,7 +1330,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported named declaration: '{namedDecl.KindSpelling}'. Generated bindings may be incomplete.", namedDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported named declaration: '{namedDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", namedDecl);
             }
         }
 
@@ -1355,7 +1355,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{cursorParent.KindSpelling}'. Generated bindings may be incomplete.", cursorParent);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{cursorParent.CursorKindSpelling}'. Generated bindings may be incomplete.", cursorParent);
             }
         }
 
@@ -1532,7 +1532,7 @@ namespace ClangSharp
 
         private void VisitRef(Ref @ref)
         {
-            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported reference: '{@ref.KindSpelling}'. Generated bindings may be incomplete.", @ref);
+            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported reference: '{@ref.CursorKindSpelling}'. Generated bindings may be incomplete.", @ref);
         }
 
         private void VisitReturnStmt(ReturnStmt returnStmt)
@@ -1562,7 +1562,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.KindSpelling}'. Generated bindings may be incomplete.", stmt);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.CursorKindSpelling}'. Generated bindings may be incomplete.", stmt);
             }
         }
 
@@ -1589,7 +1589,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported tag declaration: '{tagDecl.KindSpelling}'. Generated bindings may be incomplete.", tagDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported tag declaration: '{tagDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", tagDecl);
             }
         }
 
@@ -1605,7 +1605,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported type declaration: '{typeDecl.KindSpelling}'. Generated bindings may be incomplete.", typeDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported type declaration: '{typeDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", typeDecl);
             }
         }
 
@@ -1617,7 +1617,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported typedef name declaration: '{typedefNameDecl.KindSpelling}'. Generated bindings may be incomplete.", typedefNameDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported typedef name declaration: '{typedefNameDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", typedefNameDecl);
             }
         }
 
@@ -1705,15 +1705,35 @@ namespace ClangSharp
 
         private void VisitUnaryOperator(UnaryOperator unaryOperator)
         {
-            if (unaryOperator.IsPrefix)
+            switch (unaryOperator.Opcode)
             {
-                _outputBuilder.Write(unaryOperator.Opcode);
-                Visit(unaryOperator.SubExpr);
-            }
-            else
-            {
-                Visit(unaryOperator.SubExpr);
-                _outputBuilder.Write(unaryOperator.Opcode);
+                case CX_UnaryOperatorKind.CX_UO_PostInc:
+                case CX_UnaryOperatorKind.CX_UO_PostDec:
+                {
+                    Visit(unaryOperator.SubExpr);
+                    _outputBuilder.Write(unaryOperator.OpcodeStr);
+                    break;
+                }
+
+                case CX_UnaryOperatorKind.CX_UO_PreInc:
+                case CX_UnaryOperatorKind.CX_UO_PreDec:
+                case CX_UnaryOperatorKind.CX_UO_AddrOf:
+                case CX_UnaryOperatorKind.CX_UO_Deref:
+                case CX_UnaryOperatorKind.CX_UO_Plus:
+                case CX_UnaryOperatorKind.CX_UO_Minus:
+                case CX_UnaryOperatorKind.CX_UO_Not:
+                case CX_UnaryOperatorKind.CX_UO_LNot:
+                {
+                    _outputBuilder.Write(unaryOperator.OpcodeStr);
+                    Visit(unaryOperator.SubExpr);
+                    break;
+                }
+
+                default:
+                {
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary operator opcode: '{unaryOperator.OpcodeStr}'. Generated bindings may be incomplete.", unaryOperator);
+                    break;
+                }
             }
         }
 
@@ -1729,7 +1749,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported value declaration: '{valueDecl.KindSpelling}'. Generated bindings may be incomplete.", valueDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported value declaration: '{valueDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", valueDecl);
             }
         }
 
@@ -1741,7 +1761,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported value statement: '{valueStmt.KindSpelling}'. Generated bindings may be incomplete.", valueStmt);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported value statement: '{valueStmt.CursorKindSpelling}'. Generated bindings may be incomplete.", valueStmt);
             }
         }
 
@@ -1774,7 +1794,7 @@ namespace ClangSharp
 
         private void VisitUnexposedDecl(Decl unexposedDecl)
         {
-            Debug.Assert(unexposedDecl.Kind == CXCursorKind.CXCursor_UnexposedDecl);
+            Debug.Assert(unexposedDecl.CursorKind == CXCursorKind.CXCursor_UnexposedDecl);
 
             foreach (var decl in unexposedDecl.CursorChildren.OfType<Decl>())
             {
@@ -1784,7 +1804,7 @@ namespace ClangSharp
 
         private void VisitUnexposedExpr(Expr unexposedExpr)
         {
-            Debug.Assert(unexposedExpr.Kind == CXCursorKind.CXCursor_UnexposedExpr);
+            Debug.Assert(unexposedExpr.CursorKind == CXCursorKind.CXCursor_UnexposedExpr);
 
             foreach (var stmt in unexposedExpr.Children)
             {

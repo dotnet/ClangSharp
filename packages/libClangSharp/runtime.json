@@ -1,0 +1,64 @@
+{
+  "runtimes": {
+    "freebsd.11-x64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.freebsd.11-x64": "9.0.0-beta1"
+      }
+    },
+    "freebsd.11-x86": {
+      "libClangSharp": {
+        "libClangSharp.runtime.freebsd.11-x86": "9.0.0-beta1"
+      }
+    },
+    "linux-arm": {
+      "libClangSharp": {
+        "libClangSharp.runtime.linux-arm": "9.0.0-beta1"
+      }
+    },
+    "linux-arm64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.linux-arm64": "9.0.0-beta1"
+      }
+    },
+    "osx-x64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.osx-x64": "9.0.0-beta1"
+      }
+    },
+    "sles-x64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.sles-x64": "9.0.0-beta1"
+      }
+    },
+    "ubuntu.14.04-x64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.ubuntu.14.04-x64": "9.0.0-beta1"
+      }
+    },
+    "ubuntu.16.04-x64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.ubuntu.16.04-x64": "9.0.0-beta1"
+      }
+    },
+    "ubuntu.18.04-x64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.ubuntu.18.04-x64": "9.0.0-beta1"
+      }
+    },
+    "ubuntu.19.04-x64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.ubuntu.19.04-x64": "9.0.0-beta1"
+      }
+    },
+    "win-x64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.win-x64": "9.0.0-beta1"
+      }
+    },
+    "win-x86": {
+      "libClangSharp": {
+        "libClangSharp.runtime.win-x86": "9.0.0-beta1"
+      }
+    }
+  }
+}

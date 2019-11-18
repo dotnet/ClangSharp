@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCAutoreleasePoolStmt : Stmt
     {
-        internal ObjCAutoreleasePoolStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAutoreleasePoolStmt)
+        internal ObjCAutoreleasePoolStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAutoreleasePoolStmt, CX_StmtClass.CX_StmtClass_ObjCAutoreleasePoolStmt)
         {
         }
     }

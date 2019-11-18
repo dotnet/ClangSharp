@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class NamespaceAliasDecl : NamedDecl, IRedeclarable<NamespaceDecl>
     {
-        internal NamespaceAliasDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_NamespaceAlias)
+        internal NamespaceAliasDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_NamespaceAlias, CX_DeclKind.CX_DeclKind_NamespaceAlias)
         {
         }
     }

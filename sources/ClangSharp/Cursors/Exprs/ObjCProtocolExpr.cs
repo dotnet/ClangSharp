@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCProtocolExpr : Expr
     {
-        internal ObjCProtocolExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCProtocolExpr)
+        internal ObjCProtocolExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCProtocolExpr, CX_StmtClass.CX_StmtClass_ObjCProtocolExpr)
         {
         }
     }

@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ParmVarDecl : VarDecl
     {
-        internal ParmVarDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ParmDecl)
+        internal ParmVarDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ParmDecl, CX_DeclKind.CX_DeclKind_ParmVar)
         {
         }
     }

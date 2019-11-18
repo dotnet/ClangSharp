@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class ObjCStringLiteral : Expr
     {
-        internal ObjCStringLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCStringLiteral)
+        internal ObjCStringLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCStringLiteral, CX_StmtClass.CX_StmtClass_ObjCStringLiteral)
         {
         }
     }

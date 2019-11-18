@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class TemplateTypeParmDecl : TypeDecl
     {
-        internal TemplateTypeParmDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TemplateTypeParameter)
+        internal TemplateTypeParmDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TemplateTypeParameter, CX_DeclKind.CX_DeclKind_TemplateTypeParm)
         {
         }
     }

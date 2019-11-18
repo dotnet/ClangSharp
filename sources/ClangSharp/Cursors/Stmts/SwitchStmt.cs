@@ -6,7 +6,7 @@ namespace ClangSharp
 {
     public sealed class SwitchStmt : Stmt
     {
-        internal SwitchStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SwitchStmt)
+        internal SwitchStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SwitchStmt, CX_StmtClass.CX_StmtClass_SwitchStmt)
         {
         }
     }
