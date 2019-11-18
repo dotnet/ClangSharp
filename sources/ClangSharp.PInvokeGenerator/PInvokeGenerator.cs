@@ -1644,7 +1644,11 @@ namespace ClangSharp
 
         private void VisitTypedefDeclForPointeeType(TypedefDecl typedefDecl, Type pointeeType)
         {
-            if (pointeeType is ElaboratedType elaboratedType)
+            if (pointeeType is AttributedType attributedType)
+            {
+                VisitTypedefDeclForPointeeType(typedefDecl, attributedType.ModifiedType);
+            }
+            else if (pointeeType is ElaboratedType elaboratedType)
             {
                 VisitTypedefDeclForPointeeType(typedefDecl, elaboratedType.NamedType);
             }
