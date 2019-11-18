@@ -182,7 +182,17 @@ namespace ClangSharp
                 {
                     if (!decl.Location.IsFromMainFile)
                     {
-                        continue;
+                        // It is not uncommon for some declarations to be done using macros, which are themselves
+                        // defined in an imported header file. We want to also check if the expansion location is
+                        // in the main file to catch these cases and ensure we still generate bindings for them.
+
+                        decl.Location.GetExpansionLocation(out CXFile file, out uint line, out uint column, out _);
+                        var expansionLocation = decl.TranslationUnit.Handle.GetLocation(file, line, column);
+
+                        if (!expansionLocation.IsFromMainFile)
+                        {
+                            continue;
+                        }
                     }
                 }
                 else

@@ -18,9 +18,9 @@ namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
-        [DllImport(libraryPath, EntryPoint = ""MyFunction"", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
         public static extern void MyFunction();
     }
 }

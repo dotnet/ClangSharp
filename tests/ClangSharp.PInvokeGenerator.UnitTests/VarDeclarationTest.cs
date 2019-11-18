@@ -20,7 +20,7 @@ namespace ClangSharp.UnitTests
 {{
     public static partial class Methods
     {{
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         // public static extern {expectedManagedType} MyVariable;
     }}
@@ -45,7 +45,7 @@ namespace ClangSharp.UnitTests
 {{
     public static partial class Methods
     {{
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         // [NativeTypeName(""{nativeType}"")]
         // public static extern {expectedManagedType} MyVariable;

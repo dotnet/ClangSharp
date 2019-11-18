@@ -19,7 +19,7 @@ namespace ClangSharp.UnitTests
 {
     public static partial class Methods
     {
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         public static void MyFunction()
         {
@@ -66,7 +66,7 @@ namespace ClangSharp.UnitTests
 {{
     public static partial class Methods
     {{
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         public static int MyFunction(int x, int y)
         {{
@@ -99,7 +99,7 @@ namespace ClangSharp.UnitTests
 {{
     public static partial class Methods
     {{
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         public static bool MyFunction(bool x, bool y)
         {{
@@ -129,7 +129,7 @@ void MyFunction()
 {
     public static partial class Methods
     {
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         public static void MyCalledFunction()
         {
@@ -175,7 +175,7 @@ static inline int MyFunction(MyEnum x)
 
     public static partial class Methods
     {
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         public static int MyFunction(MyEnum x)
         {
@@ -201,7 +201,7 @@ static inline int MyFunction(MyEnum x)
 {
     public static partial class Methods
     {
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         public static int MyFunction()
         {
@@ -227,7 +227,7 @@ static inline int MyFunction(MyEnum x)
 {
     public static unsafe partial class Methods
     {
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         [return: NativeTypeName(""int *"")]
         public static int* MyFunction(int value)
@@ -254,7 +254,7 @@ static inline int MyFunction(MyEnum x)
 {
     public static unsafe partial class Methods
     {
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         public static int MyFunction([NativeTypeName(""int *"")] int* value)
         {
@@ -280,7 +280,7 @@ static inline int MyFunction(MyEnum x)
 {
     public static partial class Methods
     {
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         public static bool MyFunction(bool value)
         {
@@ -308,7 +308,7 @@ static inline int MyFunction(MyEnum x)
 {{
     public static partial class Methods
     {{
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         public static int MyFunction(int value)
         {{
@@ -339,7 +339,7 @@ static inline int MyFunction(MyEnum x)
 {{
     public static partial class Methods
     {{
-        private const string libraryPath = ""ClangSharpPInvokeGenerator"";
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         public static int MyFunction(int value)
         {{
