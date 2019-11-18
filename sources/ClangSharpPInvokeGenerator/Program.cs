@@ -17,26 +17,27 @@ namespace ClangSharp
 
         public static async Task<int> Main(params string[] args)
         {
-            s_rootCommand = new RootCommand();
+            s_rootCommand = new RootCommand("ClangSharp P/Invoke Binding Generator")
             {
-                s_rootCommand.Description = "ClangSharp P/Invoke Binding Generator";
-                s_rootCommand.Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(Run)));
+                Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(Run))),
 
-                AddAdditionalOption(s_rootCommand);
-                AddConfigOption(s_rootCommand);
-                AddDefineOption(s_rootCommand);
-                AddExcludeOption(s_rootCommand);
-                AddFileOption(s_rootCommand);
-                AddHeaderOption(s_rootCommand);
-                AddIncludeOption(s_rootCommand);
-                AddLibraryOption(s_rootCommand);
-                AddMethodClassNameOption(s_rootCommand);
-                AddNamespaceOption(s_rootCommand);
-                AddOutputOption(s_rootCommand);
-                AddPrefixStripOption(s_rootCommand);
-                AddRemapOption(s_rootCommand);
-                AddTraverseOption(s_rootCommand);
-            }
+            };
+
+            AddAdditionalOption(s_rootCommand);
+            AddConfigOption(s_rootCommand);
+            AddDefineOption(s_rootCommand);
+            AddExcludeOption(s_rootCommand);
+            AddFileOption(s_rootCommand);
+            AddHeaderOption(s_rootCommand);
+            AddIncludeOption(s_rootCommand);
+            AddLibraryOption(s_rootCommand);
+            AddMethodClassNameOption(s_rootCommand);
+            AddNamespaceOption(s_rootCommand);
+            AddOutputOption(s_rootCommand);
+            AddPrefixStripOption(s_rootCommand);
+            AddRemapOption(s_rootCommand);
+            AddTraverseOption(s_rootCommand);
+
             return await s_rootCommand.InvokeAsync(args);
         }
 
@@ -255,212 +256,210 @@ namespace ClangSharp
 
         private static void AddAdditionalOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--additional", "An argument to pass to Clang when parsing the input files.");
+            option.AddAlias("-a");
+
+            option.Argument = new Argument("arg")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.OneOrMore,
-                Name = "arg"
             };
-            argument.SetDefaultValue(Array.Empty<string>());
-
-            var option = new Option("--additional", "An argument to pass to Clang when parsing the input files.", argument);
-            option.AddAlias("-a");
+            option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
 
         private static void AddConfigOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--config", "A configuration option that controls how the bindings are generated.");
+            option.AddAlias("-c");
+
+            option.Argument = new Argument("config")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.OneOrMore,
-                Name = "config"
             };
-            argument.SetDefaultValue(Array.Empty<string>());
-
-            var option = new Option("--config", "A configuration option that controls how the bindings are generated.", argument);
-            option.AddAlias("-c");
+            option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
 
         private static void AddDefineOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--define", "A macro for Clang to define when parsing the input files.");
+            option.AddAlias("-d");
+
+            option.Argument = new Argument("macro")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.OneOrMore,
-                Name = "macro"
             };
-            argument.SetDefaultValue(Array.Empty<string>());
-
-            var option = new Option("--define", "A macro for Clang to define when parsing the input files.", argument);
-            option.AddAlias("-d");
+            option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
 
         private static void AddExcludeOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--exclude", "A declaration name to exclude from binding generation.");
+            option.AddAlias("-e");
+
+            option.Argument = new Argument("name")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.OneOrMore,
-                Name = "name"
             };
-            argument.SetDefaultValue(Array.Empty<string>());
-
-            var option = new Option("--exclude", "A declaration name to exclude from binding generation.", argument);
-            option.AddAlias("-e");
+            option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
 
         private static void AddFileOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--file", "A file to parse and generate bindings for.");
+            option.AddAlias("-f");
+
+            option.Argument = new Argument("file")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.OneOrMore,
-                Name = "file"
             };
-            argument.SetDefaultValue(Array.Empty<string>());
-
-            var option = new Option("--file", "A file to parse and generate bindings for.", argument);
-            option.AddAlias("-f");
+            option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
 
         private static void AddHeaderOption(RootCommand rootCommand)
         {
-            var argument = new Argument
+            var option = new Option("--headerFile", "A file which contains the header to prefix every generated file with.");
+            option.AddAlias("-h");
+
+            option.Argument = new Argument("file")
             {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.ExactlyOne,
-                Name = "file"
             };
-            argument.SetDefaultValue(string.Empty);
-
-            var option = new Option("--headerFile", "A file which contains the header to prefix every generated file with.", argument);
-            option.AddAlias("-h");
+            option.Argument.SetDefaultValue(string.Empty);
 
             rootCommand.AddOption(option);
         }
 
         private static void AddIncludeOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--include", "A directory for clang to use when resolving #include directives.");
+            option.AddAlias("-i");
+
+            option.Argument = new Argument("directory")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.OneOrMore,
-                Name = "directory"
             };
-            argument.SetDefaultValue(Array.Empty<string>());
-
-            var option = new Option("--include", "A directory for clang to use when resolving #include directives.", argument);
-            option.AddAlias("-i");
+            option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
 
         private static void AddLibraryOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--libraryPath", "The string to use in the DllImport attribute used when generating bindings.");
+            option.AddAlias("-l");
+
+            option.Argument = new Argument("dllName")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.ExactlyOne,
-                Name = "dllName"
             };
-            argument.SetDefaultValue(string.Empty);
-
-            var option = new Option("--libraryPath", "The string to use in the DllImport attribute used when generating bindings.", argument);
-            option.AddAlias("-l");
+            option.Argument.SetDefaultValue(string.Empty);
 
             rootCommand.AddOption(option);
         }
 
         private static void AddMethodClassNameOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--methodClassName", "The name of the static class that will contain the generated method bindings.");
+            option.AddAlias("-m");
+
+            option.Argument = new Argument("className")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.ExactlyOne,
-                Name = "className"
             };
-            argument.SetDefaultValue("Methods");
-
-            var option = new Option("--methodClassName", "The name of the static class that will contain the generated method bindings.", argument);
-            option.AddAlias("-m");
+            option.Argument.SetDefaultValue("Methods");
 
             rootCommand.AddOption(option);
         }
 
         private static void AddNamespaceOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--namespace", "The namespace in which to place the generated bindings.");
+            option.AddAlias("-n");
+
+            option.Argument = new Argument("namespace")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.ExactlyOne,
-                Name = "namespace"
             };
-            argument.SetDefaultValue(string.Empty);
-
-            var option = new Option("--namespace", "The namespace in which to place the generated bindings.", argument);
-            option.AddAlias("-n");
+            option.Argument.SetDefaultValue(string.Empty);
 
             rootCommand.AddOption(option);
         }
 
         private static void AddOutputOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--output", "The output location to write the generated bindings to.");
+            option.AddAlias("-o");
+
+            option.Argument = new Argument("file")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.ExactlyOne,
-                Name = "file"
             };
-            argument.SetDefaultValue(string.Empty);
-
-            var option = new Option("--output", "The output location to write the generated bindings to.", argument);
-            option.AddAlias("-o");
+            option.Argument.SetDefaultValue(string.Empty);
 
             rootCommand.AddOption(option);
         }
 
         private static void AddPrefixStripOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--prefixStrip", "The prefix to strip from the generated method bindings.");
+            option.AddAlias("-p");
+
+            option.Argument = new Argument("prefix")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.ExactlyOne,
-                Name = "prefix"
             };
-            argument.SetDefaultValue(string.Empty);
-
-            var option = new Option("--prefixStrip", "The prefix to strip from the generated method bindings.", argument);
-            option.AddAlias("-p");
+            option.Argument.SetDefaultValue(string.Empty);
 
             rootCommand.AddOption(option);
         }
 
         private static void AddRemapOption(RootCommand rootCommand)
         {
-            var argument = new Argument {
+            var option = new Option("--remap", "A declaration name to be remapped to another name during binding generation.");
+            option.AddAlias("-r");
+
+            option.Argument = new Argument("name=value")
+            {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.OneOrMore,
-                Name = "name=value"
             };
-            argument.SetDefaultValue(Array.Empty<string>());
-
-            var option = new Option("--remap", "A declaration name to be remapped to another name during binding generation.", argument);
-            option.AddAlias("-r");
+            option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
 
         private static void AddTraverseOption(RootCommand rootCommand)
         {
-            var argument = new Argument
+            var option = new Option("--traverse", "A file name included either directly or indirectly by -f that should be traversed during binding generation.");
+            option.AddAlias("-t");
+
+            option.Argument = new Argument("name")
             {
                 ArgumentType = typeof(string),
                 Arity = ArgumentArity.OneOrMore,
-                Name = "name"
             };
-            argument.SetDefaultValue(Array.Empty<string>());
-
-            var option = new Option("--traverse", "A file name included either directly or indirectly by -f that should be traversed during binding generation.", argument);
-            option.AddAlias("-t");
+            option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
