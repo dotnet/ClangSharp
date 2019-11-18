@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="Properties/GenerateClangSharp-LICENSE.txt" />
+    <None Include="Properties/GenerateClang-LICENSE.txt" />
+    <None Include="Properties/GenerateLLVM-LICENSE.txt" />
     <None Include="Properties/launchsettings.json" />
   </ItemGroup>
 
@@ -18,14 +21,10 @@
     <ProjectReference Include="..\ClangSharp.PInvokeGenerator\ClangSharp.PInvokeGenerator.csproj" />
   </ItemGroup>
 
-  <!-- libclang name, unlikely to need overriding -->
-  <PropertyGroup Condition="'$(LibClangName)' == ''">
-    <LibClangName>libclang</LibClangName>
-  </PropertyGroup>
-
-  <!-- libllvm name, unlikely to need overriding -->
-  <PropertyGroup Condition="'$(LibLLVMName)' == ''">
-    <LibLLVMName>libLLVM</LibLLVMName>
+  <PropertyGroup>
+    <LibClangName Condition="'$(LibClangName)' == ''">libclang</LibClangName>
+    <LibClangSharpName Condition="'$(LibClangSharpName)' == ''">libClangSharp</LibClangSharpName>
+    <LibLLVMName Condition="'$(LibLLVMName)' == ''">libLLVM</LibLLVMName>
   </PropertyGroup>
 
   <!-- Auto-detect LLVM... more or less -->

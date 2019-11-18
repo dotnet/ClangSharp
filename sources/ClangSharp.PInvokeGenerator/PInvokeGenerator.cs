@@ -163,7 +163,7 @@ namespace ClangSharp
                     {
                         invalidTranslationUnitHandle = true;
                         errorDiagnostics.Append(' ', 4);
-                        errorDiagnostics.AppendLine(diagnostic.Format(CXDiagnosticDisplayOptions.CXDiagnostic_DisplayOption).ToString());
+                        errorDiagnostics.AppendLine(diagnostic.Format(CXDiagnostic.DefaultDisplayOptions).ToString());
                     }
                 }
 
@@ -182,7 +182,17 @@ namespace ClangSharp
                 {
                     if (!decl.Location.IsFromMainFile)
                     {
-                        continue;
+                        // It is not uncommon for some declarations to be done using macros, which are themselves
+                        // defined in an imported header file. We want to also check if the expansion location is
+                        // in the main file to catch these cases and ensure we still generate bindings for them.
+
+                        decl.Location.GetExpansionLocation(out CXFile file, out uint line, out uint column, out _);
+                        var expansionLocation = decl.TranslationUnit.Handle.GetLocation(file, line, column);
+
+                        if (!expansionLocation.IsFromMainFile)
+                        {
+                            continue;
+                        }
                     }
                 }
                 else
@@ -321,7 +331,7 @@ namespace ClangSharp
                 indentationString += outputBuilder.IndentationString;
 
                 sw.Write(indentationString);
-                sw.Write("private const string libraryPath =");
+                sw.Write("private const string LibraryPath =");
                 sw.Write(' ');
                 sw.Write('"');
                 sw.Write(Config.LibraryPath);
@@ -692,7 +702,7 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_WChar:
                     {
-                        name = _config.GenerateUnixTypes ? "int" : "char";
+                        name = _config.GenerateUnixTypes ? "int" : "ushort";
                         break;
                     }
 
@@ -1236,11 +1246,11 @@ namespace ClangSharp
                 {
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
-                    _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
-                    _outputBuilder.Write(name);
-                    _outputBuilder.Write("\", CallingConvention = CallingConvention.");
+                    _outputBuilder.WriteIndented("[DllImport(LibraryPath, CallingConvention = CallingConvention.");
                     _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
-                    _outputBuilder.WriteLine(")]");
+                    _outputBuilder.Write(", EntryPoint = \"");
+                    _outputBuilder.Write(name);
+                    _outputBuilder.WriteLine("\", ExactSpelling = true)]");
                 }
 
                 var returnType = functionDecl.ReturnType;
@@ -1644,7 +1654,11 @@ namespace ClangSharp
 
         private void VisitTypedefDeclForPointeeType(TypedefDecl typedefDecl, Type pointeeType)
         {
-            if (pointeeType is ElaboratedType elaboratedType)
+            if (pointeeType is AttributedType attributedType)
+            {
+                VisitTypedefDeclForPointeeType(typedefDecl, attributedType.ModifiedType);
+            }
+            else if (pointeeType is ElaboratedType elaboratedType)
             {
                 VisitTypedefDeclForPointeeType(typedefDecl, elaboratedType.NamedType);
             }
