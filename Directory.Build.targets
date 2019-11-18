@@ -31,7 +31,7 @@
     <PackageReference Update="libClangSharp" Version="9.0.0-beta1" />
     <PackageReference Update="Microsoft.Bcl.HashCode" Version="1.0.0" />
     <PackageReference Update="Microsoft.Net.Compilers.Toolset" Version="3.3.1" />
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.1.1" />
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Update="System.CommandLine.Experimental" Version="0.2.0-alpha.19174.3" />
     <PackageReference Update="System.Memory" Version="4.5.3" />
     <PackageReference Update="xunit" Version="2.4.1" />
