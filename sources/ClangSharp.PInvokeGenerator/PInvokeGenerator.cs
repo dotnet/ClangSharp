@@ -163,7 +163,7 @@ namespace ClangSharp
                     {
                         invalidTranslationUnitHandle = true;
                         errorDiagnostics.Append(' ', 4);
-                        errorDiagnostics.AppendLine(diagnostic.Format(CXDiagnosticDisplayOptions.CXDiagnostic_DisplayOption).ToString());
+                        errorDiagnostics.AppendLine(diagnostic.Format(CXDiagnostic.DefaultDisplayOptions).ToString());
                     }
                 }
 
