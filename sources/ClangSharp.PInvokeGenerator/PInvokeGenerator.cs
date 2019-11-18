@@ -692,7 +692,7 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_WChar:
                     {
-                        name = _config.GenerateUnixTypes ? "int" : "char";
+                        name = _config.GenerateUnixTypes ? "int" : "ushort";
                         break;
                     }
 
