@@ -321,7 +321,7 @@ namespace ClangSharp
                 indentationString += outputBuilder.IndentationString;
 
                 sw.Write(indentationString);
-                sw.Write("private const string libraryPath =");
+                sw.Write("private const string LibraryPath =");
                 sw.Write(' ');
                 sw.Write('"');
                 sw.Write(Config.LibraryPath);
@@ -1236,11 +1236,11 @@ namespace ClangSharp
                 {
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
-                    _outputBuilder.WriteIndented("[DllImport(libraryPath, EntryPoint = \"");
-                    _outputBuilder.Write(name);
-                    _outputBuilder.Write("\", CallingConvention = CallingConvention.");
+                    _outputBuilder.WriteIndented("[DllImport(LibraryPath, CallingConvention = CallingConvention.");
                     _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
-                    _outputBuilder.WriteLine(")]");
+                    _outputBuilder.Write(", EntryPoint = \"");
+                    _outputBuilder.Write(name);
+                    _outputBuilder.WriteLine("\", ExactSpelling = true)]");
                 }
 
                 var returnType = functionDecl.ReturnType;
