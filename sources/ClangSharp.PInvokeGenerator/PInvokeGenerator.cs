@@ -10,7 +10,7 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class PInvokeGenerator : IDisposable
+    public sealed partial class PInvokeGenerator : IDisposable
     {
         private const int DefaultStreamWriterBufferSize = 1024;
         private static readonly Encoding defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
@@ -598,7 +598,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.CursorKindSpelling}'.", namedDecl);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.Kind}'.", namedDecl);
                 }
             }
 
@@ -627,24 +627,24 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedTypeName(NamedDecl namedDecl, Type type, out string nativeTypeName)
+        private string GetRemappedTypeName(Cursor cursor, Type type, out string nativeTypeName)
         {
-            var name = GetTypeName(namedDecl, type, out nativeTypeName);
+            var name = GetTypeName(cursor, type, out nativeTypeName);
             return GetRemappedName(name);
         }
 
-        private string GetTypeName(NamedDecl namedDecl, Type type, out string nativeTypeName)
+        private string GetTypeName(Cursor cursor, Type type, out string nativeTypeName)
         {
             var name = type.AsString;
             nativeTypeName = name;
 
             if (type is ArrayType arrayType)
             {
-                name = GetTypeName(namedDecl, arrayType.ElementType, out var nativeElementTypeName);
+                name = GetTypeName(cursor, arrayType.ElementType, out var nativeElementTypeName);
             }
             else if (type is AttributedType attributedType)
             {
-                name = GetTypeName(namedDecl, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeName(cursor, attributedType.ModifiedType, out var nativeModifiedTypeName);
             }
             else if (type is BuiltinType)
             {
@@ -744,22 +744,22 @@ namespace ClangSharp
 
                     default:
                     {
-                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported builtin type: '{type.KindSpelling}'. Falling back '{name}'.", namedDecl);
+                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported builtin type: '{type.TypeClass}'. Falling back '{name}'.", cursor);
                         break;
                     }
                 }
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                name = GetTypeName(namedDecl, elaboratedType.NamedType, out var nativeNamedTypeName);
+                name = GetTypeName(cursor, elaboratedType.NamedType, out var nativeNamedTypeName);
             }
             else if (type is PointerType pointerType)
             {
-                name = GetTypeNameForPointeeType(namedDecl, pointerType.PointeeType, out var nativePointeeTypeName);
+                name = GetTypeNameForPointeeType(cursor, pointerType.PointeeType, out var nativePointeeTypeName);
             }
             else if (type is ReferenceType referenceType)
             {
-                name = GetTypeNameForPointeeType(namedDecl, referenceType.PointeeType, out var nativePointeeTypeName);
+                name = GetTypeNameForPointeeType(cursor, referenceType.PointeeType, out var nativePointeeTypeName);
             }
             else if (type is TypedefType typedefType)
             {
@@ -773,12 +773,12 @@ namespace ClangSharp
                 }
                 else
                 {
-                    name = GetTypeName(namedDecl, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
+                    name = GetTypeName(cursor, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
                 }
             }
             else if (!(type is FunctionType) && !(type is TagType))
             {
-                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.KindSpelling}'. Falling back '{name}'.", namedDecl);
+                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Falling back '{name}'.", cursor);
             }
 
             Debug.Assert(!string.IsNullOrWhiteSpace(name));
@@ -791,14 +791,14 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetTypeNameForPointeeType(NamedDecl namedDecl, Type pointeeType, out string nativePointeeTypeName)
+        private string GetTypeNameForPointeeType(Cursor cursor, Type pointeeType, out string nativePointeeTypeName)
         {
             var name = pointeeType.AsString;
             nativePointeeTypeName = name;
 
             if (pointeeType is AttributedType attributedType)
             {
-                name = GetTypeNameForPointeeType(namedDecl, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeNameForPointeeType(cursor, attributedType.ModifiedType, out var nativeModifiedTypeName);
             }
             else if (pointeeType is FunctionType)
             {
@@ -806,7 +806,7 @@ namespace ClangSharp
             }
             else
             {
-                name = GetTypeName(namedDecl, pointeeType, out nativePointeeTypeName);
+                name = GetTypeName(cursor, pointeeType, out nativePointeeTypeName);
                 name += '*';
             }
 
@@ -979,850 +979,6 @@ namespace ClangSharp
             else
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported cursor: '{cursor.CursorKindSpelling}'. Generated bindings may be incomplete.", cursor);
-            }
-        }
-
-        private void VisitAttr(Attr attr)
-        {
-            // We don't consider most attributes particularly important and so we do nothing
-        }
-
-        private void VisitBinaryOperator(BinaryOperator binaryOperator)
-        {
-            Visit(binaryOperator.LHS);
-            _outputBuilder.Write(' ');
-            _outputBuilder.Write(binaryOperator.OpcodeStr);
-            _outputBuilder.Write(' ');
-            Visit(binaryOperator.RHS);
-        }
-
-        private void VisitCallExpr(CallExpr callExpr)
-        {
-            var calleeDecl = callExpr.CalleeDecl;
-
-            if (calleeDecl is FunctionDecl functionDecl)
-            {
-                var name = GetRemappedCursorName(functionDecl);
-
-                _outputBuilder.WriteIndented(EscapeAndStripName(name));
-                _outputBuilder.Write('(');
-
-                foreach (var argument in callExpr.Args)
-                {
-                    Visit(argument);
-                }
-
-                _outputBuilder.WriteLine(");");
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", calleeDecl);
-            }
-        }
-
-        private void VisitCompoundStmt(CompoundStmt compoundStmt)
-        {
-            _outputBuilder.WriteBlockStart();
-
-            foreach (var stmt in compoundStmt.Body)
-            {
-                Visit(stmt);
-            }
-
-            _outputBuilder.WriteBlockEnd();
-        }
-
-        private void VisitDecl(Decl decl)
-        {
-            if (decl is AccessSpecDecl)
-            {
-                // Access specifications are also exposed as a queryable property
-                // on the declarations they impact, so we don't need to do anything
-            }
-            else if (decl is NamedDecl namedDecl)
-            {
-                VisitNamedDecl(namedDecl);
-            }
-            else if (decl.CursorKind == CXCursorKind.CXCursor_UnexposedDecl)
-            {
-                VisitUnexposedDecl(decl);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declaration: '{decl.CursorKindSpelling}'. Generated bindings may be incomplete.", decl);
-            }
-        }
-
-        private void VisitDeclaratorDecl(DeclaratorDecl declaratorDecl)
-        {
-            if (declaratorDecl is FieldDecl fieldDecl)
-            {
-                VisitFieldDecl(fieldDecl);
-            }
-            else if (declaratorDecl is FunctionDecl functionDecl)
-            {
-                VisitFunctionDecl(functionDecl);
-            }
-            else if (declaratorDecl is VarDecl varDecl)
-            {
-                VisitVarDecl(varDecl);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declarator declaration: '{declaratorDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", declaratorDecl);
-            }
-        }
-
-        private void VisitDeclRefExpr(DeclRefExpr declRefExpr)
-        {
-            var name = GetRemappedCursorName(declRefExpr.Decl);
-            _outputBuilder.Write(EscapeName(name));
-        }
-
-        private void VisitEnumConstantDecl(EnumConstantDecl enumConstantDecl)
-        {
-            var name = GetRemappedCursorName(enumConstantDecl);
-
-            _outputBuilder.WriteIndentation();
-            _outputBuilder.Write(EscapeName(name));
-
-            if (enumConstantDecl.InitExpr != null)
-            {
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write('=');
-                _outputBuilder.Write(' ');
-                Visit(enumConstantDecl.InitExpr);
-            }
-
-            _outputBuilder.WriteLine(',');
-        }
-
-        private void VisitEnumDecl(EnumDecl enumDecl)
-        {
-            var name = GetRemappedCursorName(enumDecl);
-
-            StartUsingOutputBuilder(name);
-            {
-                var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
-                AddNativeTypeNameAttribute(nativeTypeName);
-
-                _outputBuilder.WriteIndented(GetAccessSpecifierName(enumDecl));
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("enum");
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write(EscapeName(name));
-
-                if (!integerTypeName.Equals("int"))
-                {
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(':');
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(integerTypeName);
-                }
-
-                _outputBuilder.WriteLine();
-                _outputBuilder.WriteBlockStart();
-
-                foreach (var enumerator in enumDecl.Enumerators)
-                {
-                    Visit(enumerator);
-                }
-
-                foreach (var declaration in enumDecl.Decls)
-                {
-                    Visit(declaration);
-                }
-
-                _outputBuilder.WriteBlockEnd();
-            }
-            StopUsingOutputBuilder();
-        }
-
-        private void VisitExpr(Expr expr)
-        {
-            if (expr is BinaryOperator binaryOperator)
-            {
-                VisitBinaryOperator(binaryOperator);
-            }
-            else if (expr is CallExpr callExpr)
-            {
-                VisitCallExpr(callExpr);
-            }
-            else if (expr is DeclRefExpr declRefExpr)
-            {
-                VisitDeclRefExpr(declRefExpr);
-            }
-            else if (expr is IntegerLiteral integerLiteral)
-            {
-                VisitIntegerLiteral(integerLiteral);
-            }
-            else if (expr is ParenExpr parenExpr)
-            {
-                VisitParenExpr(parenExpr);
-            }
-            else if (expr is UnaryOperator unaryOperator)
-            {
-                VisitUnaryOperator(unaryOperator);
-            }
-            else if (expr.CursorKind == CXCursorKind.CXCursor_UnexposedExpr)
-            {
-                VisitUnexposedExpr(expr);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported expression: '{expr.CursorKindSpelling}'. Generated bindings may be incomplete.", expr);
-            }
-        }
-
-        private void VisitFieldDecl(FieldDecl fieldDecl)
-        {
-            var name = GetRemappedCursorName(fieldDecl);
-            var escapedName = EscapeName(name);
-
-            var type = fieldDecl.Type;
-            var typeName = GetRemappedTypeName(fieldDecl, type, out var nativeTypeName);
-
-            if (fieldDecl.Parent.IsUnion)
-            {
-                _outputBuilder.WriteIndentedLine("[FieldOffset(0)]");
-            }
-            AddNativeTypeNameAttribute(nativeTypeName);
-
-            _outputBuilder.WriteIndented(GetAccessSpecifierName(fieldDecl));
-            _outputBuilder.Write(' ');
-
-            if (type is ConstantArrayType constantArrayType)
-            {
-                if (IsSupportedFixedSizedBufferType(typeName))
-                {
-                    _outputBuilder.Write("fixed");
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(typeName);
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(escapedName);
-                    _outputBuilder.Write('[');
-                    _outputBuilder.Write(constantArrayType.Size);
-                    _outputBuilder.Write(']');
-                }
-                else
-                {
-                    _outputBuilder.Write(GetArtificalFixedSizedBufferName(fieldDecl));
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(escapedName);
-                }
-            }
-            else
-            {
-                if (fieldDecl.IsBitField)
-                {
-                    AddDiagnostic(DiagnosticLevel.Warning, "Unsupported field declaration kind: 'BitField'. Generated bindings may be incomplete.", fieldDecl);
-                }
-
-                _outputBuilder.Write(typeName);
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write(escapedName);
-            }
-
-            _outputBuilder.WriteLine(';');
-        }
-
-        private void VisitFunctionDecl(FunctionDecl functionDecl)
-        {
-            var name = GetRemappedCursorName(functionDecl);
-
-            StartUsingOutputBuilder(_config.MethodClassName);
-            {
-                var type = functionDecl.Type;
-
-                if (type is AttributedType attributedType)
-                {
-                    type = attributedType.ModifiedType;
-                }
-                var functionType = (FunctionType)type;
-
-                var body = functionDecl.Body;
-
-                if (body is null)
-                {
-                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-
-                    _outputBuilder.WriteIndented("[DllImport(LibraryPath, CallingConvention = CallingConvention.");
-                    _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
-                    _outputBuilder.Write(", EntryPoint = \"");
-                    _outputBuilder.Write(name);
-                    _outputBuilder.WriteLine("\", ExactSpelling = true)]");
-                }
-
-                var returnType = functionDecl.ReturnType;
-                var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out var nativeTypeName);
-                AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
-
-                _outputBuilder.WriteIndented(GetAccessSpecifierName(functionDecl));
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("static");
-                _outputBuilder.Write(' ');
-
-                if (body is null)
-                {
-                    _outputBuilder.Write("extern");
-                    _outputBuilder.Write(' ');
-                }
-
-                if (IsUnsafe(functionDecl))
-                {
-                    _isMethodClassUnsafe = true;
-                }
-
-                _outputBuilder.Write(returnTypeName);
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write(EscapeAndStripName(name));
-                _outputBuilder.Write('(');
-
-                foreach (var parmVarDecl in functionDecl.Parameters)
-                {
-                    Visit(parmVarDecl);
-                }
-
-                _outputBuilder.Write(")");
-
-                if (body is null)
-                {
-                    _outputBuilder.WriteLine(';');
-                }
-                else
-                {
-                    _outputBuilder.WriteLine();
-
-                    if (body is CompoundStmt)
-                    {
-                        Visit(body);
-                    }
-                    else
-                    {
-                        _outputBuilder.WriteBlockStart();
-                        Visit(body);
-                        _outputBuilder.WriteBlockEnd();
-                    }
-                }
-
-                foreach (var declaration in functionDecl.Decls)
-                {
-                    Visit(declaration);
-                }
-            }
-            StopUsingOutputBuilder();
-        }
-
-        private void VisitIntegerLiteral(IntegerLiteral integerLiteral)
-        {
-            _outputBuilder.Write(integerLiteral.Value);
-        }
-
-        private void VisitNamedDecl(NamedDecl namedDecl)
-        {
-            // We get the non-remapped name for the purpose of exclusion
-            // checks to ensure that users can remove no-definition declarations
-            // in favor of remapped anonymous declarations.
-            var name = GetCursorName(namedDecl);
-
-            if (_config.ExcludedNames.Contains(name))
-            {
-                return;
-            }
-
-            if (namedDecl is TypeDecl typeDecl)
-            {
-                VisitTypeDecl(typeDecl);
-            }
-            else if (namedDecl is ValueDecl valueDecl)
-            {
-                VisitValueDecl(valueDecl);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported named declaration: '{namedDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", namedDecl);
-            }
-        }
-
-        private void VisitParenExpr(ParenExpr parenExpr)
-        {
-            _outputBuilder.Write('(');
-            Visit(parenExpr.SubExpr);
-            _outputBuilder.Write(')');
-        }
-
-        private void VisitParmVarDecl(ParmVarDecl parmVarDecl)
-        {
-            var cursorParent = parmVarDecl.CursorParent;
-
-            if (cursorParent is FunctionDecl functionDecl)
-            {
-                VisitParmVarDecl(parmVarDecl, functionDecl);
-            }
-            else if (cursorParent is TypedefDecl typedefDecl)
-            {
-                VisitParmVarDecl(parmVarDecl, typedefDecl);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{cursorParent.CursorKindSpelling}'. Generated bindings may be incomplete.", cursorParent);
-            }
-        }
-
-        private void VisitParmVarDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
-        {
-            var type = parmVarDecl.Type;
-            var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
-            AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
-
-            _outputBuilder.Write(typeName);
-            _outputBuilder.Write(' ');
-
-            var name = GetRemappedCursorName(parmVarDecl);
-            _outputBuilder.Write(EscapeName(name));
-
-            var parameters = functionDecl.Parameters;
-            var index = parameters.IndexOf(parmVarDecl);
-            var lastIndex = parameters.Count - 1;
-
-            if (name.Equals("param"))
-            {
-                _outputBuilder.Write(index);
-            }
-
-            if (index != lastIndex)
-            {
-                _outputBuilder.Write(',');
-                _outputBuilder.Write(' ');
-            }
-        }
-
-        private void VisitParmVarDecl(ParmVarDecl parmVarDecl, TypedefDecl typedefDecl)
-        {
-            var type = parmVarDecl.Type;
-            var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
-            AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
-
-            _outputBuilder.Write(typeName);
-            _outputBuilder.Write(' ');
-
-            var name = GetRemappedCursorName(parmVarDecl);
-            _outputBuilder.Write(EscapeName(name));
-
-            var parameters = typedefDecl.CursorChildren.OfType<ParmVarDecl>().ToList();
-            var index = parameters.IndexOf(parmVarDecl);
-            var lastIndex = parameters.Count - 1;
-
-            if (name.Equals("param"))
-            {
-                _outputBuilder.Write(index);
-            }
-
-            if (index != lastIndex)
-            {
-                _outputBuilder.Write(',');
-                _outputBuilder.Write(' ');
-            }
-        }
-
-        private void VisitRecordDecl(RecordDecl recordDecl)
-        {
-            var name = GetRemappedCursorName(recordDecl);
-
-            StartUsingOutputBuilder(name);
-            {
-                if (recordDecl.IsUnion)
-                {
-                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-                    _outputBuilder.WriteIndentedLine("[StructLayout(LayoutKind.Explicit)]");
-                }
-
-                _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
-                _outputBuilder.Write(' ');
-
-                if (IsUnsafe(recordDecl))
-                {
-                    _outputBuilder.Write("unsafe");
-                    _outputBuilder.Write(' ');
-                }
-
-                _outputBuilder.Write("partial struct");
-                _outputBuilder.Write(' ');
-                _outputBuilder.WriteLine(EscapeName(name));
-                _outputBuilder.WriteBlockStart();
-
-                var fields = recordDecl.Fields;
-
-                if (fields.Count != 0)
-                {
-                    Visit(fields[0]);
-
-                    for (int i = 1; i < fields.Count; i++)
-                    {
-                        _outputBuilder.WriteLine();
-                        Visit(fields[i]);
-                    }
-                }
-
-                foreach (var declaration in recordDecl.Decls)
-                {
-                    Visit(declaration);
-                }
-
-                foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type is ConstantArrayType))
-                {
-                    var type = (ConstantArrayType)constantArray.Type;
-                    var typeName = GetRemappedTypeName(constantArray, constantArray.Type, out _);
-
-                    if (IsSupportedFixedSizedBufferType(typeName))
-                    {
-                        continue;
-                    }
-                    bool isUnsafe = typeName.Contains('*');
-
-                    _outputBuilder.WriteLine();
-                    _outputBuilder.WriteIndented(GetAccessSpecifierName(constantArray));
-                    _outputBuilder.Write(' ');
-
-                    if (isUnsafe)
-                    {
-                        _outputBuilder.Write("unsafe");
-                        _outputBuilder.Write(' ');
-                    }
-
-                    _outputBuilder.Write("partial struct");
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.WriteLine(GetArtificalFixedSizedBufferName(constantArray));
-                    _outputBuilder.WriteBlockStart();
-
-                    for (int i = 0; i < type.Size; i++)
-                    {
-                        _outputBuilder.WriteIndented("internal");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(typeName);
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write('e');
-                        _outputBuilder.Write(i);
-                        _outputBuilder.WriteLine(';');
-                    }
-
-                    _outputBuilder.WriteLine();
-                    _outputBuilder.WriteIndented("public");
-                    _outputBuilder.Write(' ');
-
-                    if (!isUnsafe)
-                    {
-                        _outputBuilder.Write("unsafe");
-                        _outputBuilder.Write(' ');
-                    }
-
-                    _outputBuilder.Write("ref");
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(typeName);
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.WriteLine("this[int index]");
-                    _outputBuilder.WriteBlockStart();
-                    _outputBuilder.WriteIndentedLine("get");
-                    _outputBuilder.WriteBlockStart();
-                    _outputBuilder.WriteIndented("fixed (");
-                    _outputBuilder.Write(typeName);
-                    _outputBuilder.WriteLine("* pThis = &e0)");
-                    _outputBuilder.WriteBlockStart();
-                    _outputBuilder.WriteIndentedLine("return ref pThis[index];");
-                    _outputBuilder.WriteBlockEnd();
-                    _outputBuilder.WriteBlockEnd();
-                    _outputBuilder.WriteBlockEnd();
-                    _outputBuilder.WriteBlockEnd();
-                }
-
-                _outputBuilder.WriteBlockEnd();
-            }
-            StopUsingOutputBuilder();
-        }
-
-        private void VisitRef(Ref @ref)
-        {
-            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported reference: '{@ref.CursorKindSpelling}'. Generated bindings may be incomplete.", @ref);
-        }
-
-        private void VisitReturnStmt(ReturnStmt returnStmt)
-        {
-            Debug.Assert(returnStmt.RetValue != null);
-
-            _outputBuilder.WriteIndented("return");
-            _outputBuilder.Write(' ');
-
-            Visit(returnStmt.RetValue);
-            _outputBuilder.WriteLine(';');
-        }
-
-        private void VisitStmt(Stmt stmt)
-        {
-            if (stmt is CompoundStmt compoundStmt)
-            {
-                VisitCompoundStmt(compoundStmt);
-            }
-            else if (stmt is ReturnStmt returnStmt)
-            {
-                VisitReturnStmt(returnStmt);
-            }
-            else if (stmt is ValueStmt valueStmt)
-            {
-                VisitValueStmt(valueStmt);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.CursorKindSpelling}'. Generated bindings may be incomplete.", stmt);
-            }
-        }
-
-        private void VisitTagDecl(TagDecl tagDecl)
-        {
-            if ((tagDecl.Definition != tagDecl) && (tagDecl.Definition != null))
-            {
-                // We don't want to generate bindings for anything
-                // that is not itself a definition and that has a
-                // definition that can be resolved. This ensures we
-                // still generate bindings for things which are used
-                // as opaque handles, but which aren't ever defined.
-
-                return;
-            }
-
-            if (tagDecl is RecordDecl recordDecl)
-            {
-                VisitRecordDecl(recordDecl);
-            }
-            else if (tagDecl is EnumDecl enumDecl)
-            {
-                VisitEnumDecl(enumDecl);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported tag declaration: '{tagDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", tagDecl);
-            }
-        }
-
-        private void VisitTypeDecl(TypeDecl typeDecl)
-        {
-            if (typeDecl is TagDecl tagDecl)
-            {
-                VisitTagDecl(tagDecl);
-            }
-            else if (typeDecl is TypedefNameDecl typedefNameDecl)
-            {
-                VisitTypedefNameDecl(typedefNameDecl);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported type declaration: '{typeDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", typeDecl);
-            }
-        }
-
-        private void VisitTypedefNameDecl(TypedefNameDecl typedefNameDecl)
-        {
-            if (typedefNameDecl is TypedefDecl typedefDecl)
-            {
-                VisitTypedefDecl(typedefDecl, typedefDecl.UnderlyingType);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported typedef name declaration: '{typedefNameDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", typedefNameDecl);
-            }
-        }
-
-        private void VisitTypedefDecl(TypedefDecl typedefDecl, Type underlyingType)
-        {
-            if (underlyingType is ElaboratedType elaboratedType)
-            {
-                VisitTypedefDecl(typedefDecl, elaboratedType.NamedType);
-            }
-            else if (underlyingType is PointerType pointerType)
-            {
-                VisitTypedefDeclForPointeeType(typedefDecl, pointerType.PointeeType);
-            }
-            else if (underlyingType is TypedefType typedefType)
-            {
-                VisitTypedefDecl(typedefDecl, typedefType.Decl.UnderlyingType);
-            }
-            else if (!(underlyingType is BuiltinType) && !(underlyingType is IncompleteArrayType) && !(underlyingType is TagType))
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
-            }
-            return;
-        }
-
-        private void VisitTypedefDeclForPointeeType(TypedefDecl typedefDecl, Type pointeeType)
-        {
-            if (pointeeType is AttributedType attributedType)
-            {
-                VisitTypedefDeclForPointeeType(typedefDecl, attributedType.ModifiedType);
-            }
-            else if (pointeeType is ElaboratedType elaboratedType)
-            {
-                VisitTypedefDeclForPointeeType(typedefDecl, elaboratedType.NamedType);
-            }
-            else if (pointeeType is FunctionProtoType functionProtoType)
-            {
-                var name = GetRemappedCursorName(typedefDecl);
-
-                StartUsingOutputBuilder(name);
-                {
-                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-
-                    _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
-                    _outputBuilder.Write(GetCallingConventionName(typedefDecl, functionProtoType.CallConv));
-                    _outputBuilder.WriteLine(")]");
-
-                    var returnType = functionProtoType.ReturnType;
-                    var returnTypeName = GetRemappedTypeName(typedefDecl, returnType, out var nativeTypeName);
-                    AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
-
-                    _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
-                    _outputBuilder.Write(' ');
-
-                    if (IsUnsafe(typedefDecl, functionProtoType))
-                    {
-                        _outputBuilder.Write("unsafe");
-                        _outputBuilder.Write(' ');
-                    }
-
-                    _outputBuilder.Write("delegate");
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(returnTypeName);
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(EscapeName(name));
-                    _outputBuilder.Write('(');
-
-                    foreach (var parmVarDecl in typedefDecl.CursorChildren.OfType<ParmVarDecl>())
-                    {
-                        Visit(parmVarDecl);
-                    }
-
-                    _outputBuilder.WriteLine(");");
-                }
-                StopUsingOutputBuilder();
-            }
-            else if (pointeeType is PointerType pointerType)
-            {
-                VisitTypedefDeclForPointeeType(typedefDecl, pointerType.PointeeType);
-            }
-            else if (pointeeType is TypedefType typedefType)
-            {
-                VisitTypedefDeclForPointeeType(typedefDecl, typedefType.Decl.UnderlyingType);
-            }
-            else if (!(pointeeType is BuiltinType) && !(pointeeType is TagType))
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.KindSpelling}'. Generating bindings may be incomplete.", typedefDecl);
-            }
-         }
-
-        private void VisitUnaryOperator(UnaryOperator unaryOperator)
-        {
-            switch (unaryOperator.Opcode)
-            {
-                case CX_UnaryOperatorKind.CX_UO_PostInc:
-                case CX_UnaryOperatorKind.CX_UO_PostDec:
-                {
-                    Visit(unaryOperator.SubExpr);
-                    _outputBuilder.Write(unaryOperator.OpcodeStr);
-                    break;
-                }
-
-                case CX_UnaryOperatorKind.CX_UO_PreInc:
-                case CX_UnaryOperatorKind.CX_UO_PreDec:
-                case CX_UnaryOperatorKind.CX_UO_AddrOf:
-                case CX_UnaryOperatorKind.CX_UO_Deref:
-                case CX_UnaryOperatorKind.CX_UO_Plus:
-                case CX_UnaryOperatorKind.CX_UO_Minus:
-                case CX_UnaryOperatorKind.CX_UO_Not:
-                case CX_UnaryOperatorKind.CX_UO_LNot:
-                {
-                    _outputBuilder.Write(unaryOperator.OpcodeStr);
-                    Visit(unaryOperator.SubExpr);
-                    break;
-                }
-
-                default:
-                {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary operator opcode: '{unaryOperator.OpcodeStr}'. Generated bindings may be incomplete.", unaryOperator);
-                    break;
-                }
-            }
-        }
-
-        private void VisitValueDecl(ValueDecl valueDecl)
-        {
-            if (valueDecl is DeclaratorDecl declaratorDecl)
-            {
-                VisitDeclaratorDecl(declaratorDecl);
-            }
-            else if (valueDecl is EnumConstantDecl enumConstantDecl)
-            {
-                VisitEnumConstantDecl(enumConstantDecl);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported value declaration: '{valueDecl.CursorKindSpelling}'. Generated bindings may be incomplete.", valueDecl);
-            }
-        }
-
-        private void VisitValueStmt(ValueStmt valueStmt)
-        {
-            if (valueStmt is Expr expr)
-            {
-                VisitExpr(expr);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported value statement: '{valueStmt.CursorKindSpelling}'. Generated bindings may be incomplete.", valueStmt);
-            }
-        }
-
-        private void VisitVarDecl(VarDecl varDecl)
-        {
-            if (varDecl is ParmVarDecl parmVarDecl)
-            {
-                VisitParmVarDecl(parmVarDecl);
-            }
-            else
-            {
-                var name = GetRemappedCursorName(varDecl);
-
-                StartUsingOutputBuilder(_config.MethodClassName);
-                {
-                    var type = varDecl.Type;
-                    var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
-                    AddNativeTypeNameAttribute(nativeTypeName, prefix: "// ");
-
-                    _outputBuilder.WriteIndented("// public static extern");
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(typeName);
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(EscapeName(name));
-                    _outputBuilder.WriteLine(';');
-                }
-                StopUsingOutputBuilder();
-            }
-        }
-
-        private void VisitUnexposedDecl(Decl unexposedDecl)
-        {
-            Debug.Assert(unexposedDecl.CursorKind == CXCursorKind.CXCursor_UnexposedDecl);
-
-            foreach (var decl in unexposedDecl.CursorChildren.OfType<Decl>())
-            {
-                Visit(decl);
-            }
-        }
-
-        private void VisitUnexposedExpr(Expr unexposedExpr)
-        {
-            Debug.Assert(unexposedExpr.CursorKind == CXCursorKind.CXCursor_UnexposedExpr);
-
-            foreach (var stmt in unexposedExpr.Children)
-            {
-                Visit(stmt);
             }
         }
     }
