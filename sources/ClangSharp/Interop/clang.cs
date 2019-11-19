@@ -12,6 +12,228 @@ namespace ClangSharp.Interop
     {
         private const string LibraryPath = "libclang";
 
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getBuildSessionTimestamp", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned long long")]
+        public static extern ulong getBuildSessionTimestamp();
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_create", ExactSpelling = true)]
+        [return: NativeTypeName("CXVirtualFileOverlay")]
+        public static extern CXVirtualFileOverlayImpl* VirtualFileOverlay_create([NativeTypeName("unsigned int")] uint options);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_addFileMapping", ExactSpelling = true)]
+        [return: NativeTypeName("enum CXErrorCode")]
+        public static extern CXErrorCode VirtualFileOverlay_addFileMapping([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0, [NativeTypeName("const char *")] sbyte* virtualPath, [NativeTypeName("const char *")] sbyte* realPath);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_setCaseSensitivity", ExactSpelling = true)]
+        [return: NativeTypeName("enum CXErrorCode")]
+        public static extern CXErrorCode VirtualFileOverlay_setCaseSensitivity([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0, int caseSensitive);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_writeToBuffer", ExactSpelling = true)]
+        [return: NativeTypeName("enum CXErrorCode")]
+        public static extern CXErrorCode VirtualFileOverlay_writeToBuffer([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0, [NativeTypeName("unsigned int")] uint options, [NativeTypeName("char **")] sbyte** out_buffer_ptr, [NativeTypeName("unsigned int *")] uint* out_buffer_size);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_free", ExactSpelling = true)]
+        public static extern void free([NativeTypeName("void *")] void* buffer);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_dispose", ExactSpelling = true)]
+        public static extern void VirtualFileOverlay_dispose([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_create", ExactSpelling = true)]
+        [return: NativeTypeName("CXModuleMapDescriptor")]
+        public static extern CXModuleMapDescriptorImpl* ModuleMapDescriptor_create([NativeTypeName("unsigned int")] uint options);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_setFrameworkModuleName", ExactSpelling = true)]
+        [return: NativeTypeName("enum CXErrorCode")]
+        public static extern CXErrorCode ModuleMapDescriptor_setFrameworkModuleName([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0, [NativeTypeName("const char *")] sbyte* name);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_setUmbrellaHeader", ExactSpelling = true)]
+        [return: NativeTypeName("enum CXErrorCode")]
+        public static extern CXErrorCode ModuleMapDescriptor_setUmbrellaHeader([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0, [NativeTypeName("const char *")] sbyte* name);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_writeToBuffer", ExactSpelling = true)]
+        [return: NativeTypeName("enum CXErrorCode")]
+        public static extern CXErrorCode ModuleMapDescriptor_writeToBuffer([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0, [NativeTypeName("unsigned int")] uint options, [NativeTypeName("char **")] sbyte** out_buffer_ptr, [NativeTypeName("unsigned int *")] uint* out_buffer_size);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_dispose", ExactSpelling = true)]
+        public static extern void ModuleMapDescriptor_dispose([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_fromDirectory", ExactSpelling = true)]
+        [return: NativeTypeName("CXCompilationDatabase")]
+        public static extern void* CompilationDatabase_fromDirectory([NativeTypeName("const char *")] sbyte* BuildDir, [NativeTypeName("CXCompilationDatabase_Error *")] CXCompilationDatabase_Error* ErrorCode);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_dispose", ExactSpelling = true)]
+        public static extern void CompilationDatabase_dispose([NativeTypeName("CXCompilationDatabase")] void* param0);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_getCompileCommands", ExactSpelling = true)]
+        [return: NativeTypeName("CXCompileCommands")]
+        public static extern void* CompilationDatabase_getCompileCommands([NativeTypeName("CXCompilationDatabase")] void* param0, [NativeTypeName("const char *")] sbyte* CompleteFileName);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_getAllCompileCommands", ExactSpelling = true)]
+        [return: NativeTypeName("CXCompileCommands")]
+        public static extern void* CompilationDatabase_getAllCompileCommands([NativeTypeName("CXCompilationDatabase")] void* param0);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommands_dispose", ExactSpelling = true)]
+        public static extern void CompileCommands_dispose([NativeTypeName("CXCompileCommands")] void* param0);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommands_getSize", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint CompileCommands_getSize([NativeTypeName("CXCompileCommands")] void* param0);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommands_getCommand", ExactSpelling = true)]
+        [return: NativeTypeName("CXCompileCommand")]
+        public static extern void* CompileCommands_getCommand([NativeTypeName("CXCompileCommands")] void* param0, [NativeTypeName("unsigned int")] uint I);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getDirectory", ExactSpelling = true)]
+        public static extern CXString CompileCommand_getDirectory([NativeTypeName("CXCompileCommand")] void* param0);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getFilename", ExactSpelling = true)]
+        public static extern CXString CompileCommand_getFilename([NativeTypeName("CXCompileCommand")] void* param0);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getNumArgs", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint CompileCommand_getNumArgs([NativeTypeName("CXCompileCommand")] void* param0);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getArg", ExactSpelling = true)]
+        public static extern CXString CompileCommand_getArg([NativeTypeName("CXCompileCommand")] void* param0, [NativeTypeName("unsigned int")] uint I);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getNumMappedSources", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint CompileCommand_getNumMappedSources([NativeTypeName("CXCompileCommand")] void* param0);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getMappedSourcePath", ExactSpelling = true)]
+        public static extern CXString CompileCommand_getMappedSourcePath([NativeTypeName("CXCompileCommand")] void* param0, [NativeTypeName("unsigned int")] uint I);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getMappedSourceContent", ExactSpelling = true)]
+        public static extern CXString CompileCommand_getMappedSourceContent([NativeTypeName("CXCompileCommand")] void* param0, [NativeTypeName("unsigned int")] uint I);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCString", ExactSpelling = true)]
+        [return: NativeTypeName("const char *")]
+        public static extern sbyte* getCString(CXString @string);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeString", ExactSpelling = true)]
+        public static extern void disposeString(CXString @string);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeStringSet", ExactSpelling = true)]
+        public static extern void disposeStringSet([NativeTypeName("CXStringSet *")] CXStringSet* set);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getParsedComment", ExactSpelling = true)]
+        public static extern CXComment Cursor_getParsedComment(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Comment_getKind", ExactSpelling = true)]
+        [return: NativeTypeName("enum CXCommentKind")]
+        public static extern CXCommentKind Comment_getKind(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Comment_getNumChildren", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint Comment_getNumChildren(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Comment_getChild", ExactSpelling = true)]
+        public static extern CXComment Comment_getChild(CXComment Comment, [NativeTypeName("unsigned int")] uint ChildIdx);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Comment_isWhitespace", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint Comment_isWhitespace(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_InlineContentComment_hasTrailingNewline", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint InlineContentComment_hasTrailingNewline(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_TextComment_getText", ExactSpelling = true)]
+        public static extern CXString TextComment_getText(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_InlineCommandComment_getCommandName", ExactSpelling = true)]
+        public static extern CXString InlineCommandComment_getCommandName(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_InlineCommandComment_getRenderKind", ExactSpelling = true)]
+        [return: NativeTypeName("enum CXCommentInlineCommandRenderKind")]
+        public static extern CXCommentInlineCommandRenderKind InlineCommandComment_getRenderKind(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_InlineCommandComment_getNumArgs", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint InlineCommandComment_getNumArgs(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_InlineCommandComment_getArgText", ExactSpelling = true)]
+        public static extern CXString InlineCommandComment_getArgText(CXComment Comment, [NativeTypeName("unsigned int")] uint ArgIdx);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLTagComment_getTagName", ExactSpelling = true)]
+        public static extern CXString HTMLTagComment_getTagName(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLStartTagComment_isSelfClosing", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint HTMLStartTagComment_isSelfClosing(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLStartTag_getNumAttrs", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint HTMLStartTag_getNumAttrs(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLStartTag_getAttrName", ExactSpelling = true)]
+        public static extern CXString HTMLStartTag_getAttrName(CXComment Comment, [NativeTypeName("unsigned int")] uint AttrIdx);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLStartTag_getAttrValue", ExactSpelling = true)]
+        public static extern CXString HTMLStartTag_getAttrValue(CXComment Comment, [NativeTypeName("unsigned int")] uint AttrIdx);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_BlockCommandComment_getCommandName", ExactSpelling = true)]
+        public static extern CXString BlockCommandComment_getCommandName(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_BlockCommandComment_getNumArgs", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint BlockCommandComment_getNumArgs(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_BlockCommandComment_getArgText", ExactSpelling = true)]
+        public static extern CXString BlockCommandComment_getArgText(CXComment Comment, [NativeTypeName("unsigned int")] uint ArgIdx);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_BlockCommandComment_getParagraph", ExactSpelling = true)]
+        public static extern CXComment BlockCommandComment_getParagraph(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ParamCommandComment_getParamName", ExactSpelling = true)]
+        public static extern CXString ParamCommandComment_getParamName(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ParamCommandComment_isParamIndexValid", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint ParamCommandComment_isParamIndexValid(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ParamCommandComment_getParamIndex", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint ParamCommandComment_getParamIndex(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ParamCommandComment_isDirectionExplicit", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint ParamCommandComment_isDirectionExplicit(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ParamCommandComment_getDirection", ExactSpelling = true)]
+        [return: NativeTypeName("enum CXCommentParamPassDirection")]
+        public static extern CXCommentParamPassDirection ParamCommandComment_getDirection(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_TParamCommandComment_getParamName", ExactSpelling = true)]
+        public static extern CXString TParamCommandComment_getParamName(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_TParamCommandComment_isParamPositionValid", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint TParamCommandComment_isParamPositionValid(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_TParamCommandComment_getDepth", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint TParamCommandComment_getDepth(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_TParamCommandComment_getIndex", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint TParamCommandComment_getIndex(CXComment Comment, [NativeTypeName("unsigned int")] uint Depth);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VerbatimBlockLineComment_getText", ExactSpelling = true)]
+        public static extern CXString VerbatimBlockLineComment_getText(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VerbatimLineComment_getText", ExactSpelling = true)]
+        public static extern CXString VerbatimLineComment_getText(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLTagComment_getAsString", ExactSpelling = true)]
+        public static extern CXString HTMLTagComment_getAsString(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_FullComment_getAsHTML", ExactSpelling = true)]
+        public static extern CXString FullComment_getAsHTML(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_FullComment_getAsXML", ExactSpelling = true)]
+        public static extern CXString FullComment_getAsXML(CXComment Comment);
+
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_createIndex", ExactSpelling = true)]
         [return: NativeTypeName("CXIndex")]
         public static extern void* createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics);
@@ -1116,227 +1338,5 @@ namespace ClangSharp.Interop
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Type_visitFields", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
         public static extern uint Type_visitFields(CXType T, [NativeTypeName("CXFieldVisitor")] IntPtr visitor, [NativeTypeName("CXClientData")] void* client_data);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCString", ExactSpelling = true)]
-        [return: NativeTypeName("const char *")]
-        public static extern sbyte* getCString(CXString @string);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeString", ExactSpelling = true)]
-        public static extern void disposeString(CXString @string);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeStringSet", ExactSpelling = true)]
-        public static extern void disposeStringSet([NativeTypeName("CXStringSet *")] CXStringSet* set);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getParsedComment", ExactSpelling = true)]
-        public static extern CXComment Cursor_getParsedComment(CXCursor C);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Comment_getKind", ExactSpelling = true)]
-        [return: NativeTypeName("enum CXCommentKind")]
-        public static extern CXCommentKind Comment_getKind(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Comment_getNumChildren", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint Comment_getNumChildren(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Comment_getChild", ExactSpelling = true)]
-        public static extern CXComment Comment_getChild(CXComment Comment, [NativeTypeName("unsigned int")] uint ChildIdx);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Comment_isWhitespace", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint Comment_isWhitespace(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_InlineContentComment_hasTrailingNewline", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint InlineContentComment_hasTrailingNewline(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_TextComment_getText", ExactSpelling = true)]
-        public static extern CXString TextComment_getText(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_InlineCommandComment_getCommandName", ExactSpelling = true)]
-        public static extern CXString InlineCommandComment_getCommandName(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_InlineCommandComment_getRenderKind", ExactSpelling = true)]
-        [return: NativeTypeName("enum CXCommentInlineCommandRenderKind")]
-        public static extern CXCommentInlineCommandRenderKind InlineCommandComment_getRenderKind(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_InlineCommandComment_getNumArgs", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint InlineCommandComment_getNumArgs(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_InlineCommandComment_getArgText", ExactSpelling = true)]
-        public static extern CXString InlineCommandComment_getArgText(CXComment Comment, [NativeTypeName("unsigned int")] uint ArgIdx);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLTagComment_getTagName", ExactSpelling = true)]
-        public static extern CXString HTMLTagComment_getTagName(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLStartTagComment_isSelfClosing", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint HTMLStartTagComment_isSelfClosing(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLStartTag_getNumAttrs", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint HTMLStartTag_getNumAttrs(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLStartTag_getAttrName", ExactSpelling = true)]
-        public static extern CXString HTMLStartTag_getAttrName(CXComment Comment, [NativeTypeName("unsigned int")] uint AttrIdx);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLStartTag_getAttrValue", ExactSpelling = true)]
-        public static extern CXString HTMLStartTag_getAttrValue(CXComment Comment, [NativeTypeName("unsigned int")] uint AttrIdx);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_BlockCommandComment_getCommandName", ExactSpelling = true)]
-        public static extern CXString BlockCommandComment_getCommandName(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_BlockCommandComment_getNumArgs", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint BlockCommandComment_getNumArgs(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_BlockCommandComment_getArgText", ExactSpelling = true)]
-        public static extern CXString BlockCommandComment_getArgText(CXComment Comment, [NativeTypeName("unsigned int")] uint ArgIdx);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_BlockCommandComment_getParagraph", ExactSpelling = true)]
-        public static extern CXComment BlockCommandComment_getParagraph(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ParamCommandComment_getParamName", ExactSpelling = true)]
-        public static extern CXString ParamCommandComment_getParamName(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ParamCommandComment_isParamIndexValid", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint ParamCommandComment_isParamIndexValid(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ParamCommandComment_getParamIndex", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint ParamCommandComment_getParamIndex(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ParamCommandComment_isDirectionExplicit", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint ParamCommandComment_isDirectionExplicit(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ParamCommandComment_getDirection", ExactSpelling = true)]
-        [return: NativeTypeName("enum CXCommentParamPassDirection")]
-        public static extern CXCommentParamPassDirection ParamCommandComment_getDirection(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_TParamCommandComment_getParamName", ExactSpelling = true)]
-        public static extern CXString TParamCommandComment_getParamName(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_TParamCommandComment_isParamPositionValid", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint TParamCommandComment_isParamPositionValid(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_TParamCommandComment_getDepth", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint TParamCommandComment_getDepth(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_TParamCommandComment_getIndex", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint TParamCommandComment_getIndex(CXComment Comment, [NativeTypeName("unsigned int")] uint Depth);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VerbatimBlockLineComment_getText", ExactSpelling = true)]
-        public static extern CXString VerbatimBlockLineComment_getText(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VerbatimLineComment_getText", ExactSpelling = true)]
-        public static extern CXString VerbatimLineComment_getText(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_HTMLTagComment_getAsString", ExactSpelling = true)]
-        public static extern CXString HTMLTagComment_getAsString(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_FullComment_getAsHTML", ExactSpelling = true)]
-        public static extern CXString FullComment_getAsHTML(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_FullComment_getAsXML", ExactSpelling = true)]
-        public static extern CXString FullComment_getAsXML(CXComment Comment);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getBuildSessionTimestamp", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned long long")]
-        public static extern ulong getBuildSessionTimestamp();
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_create", ExactSpelling = true)]
-        [return: NativeTypeName("CXVirtualFileOverlay")]
-        public static extern CXVirtualFileOverlayImpl* VirtualFileOverlay_create([NativeTypeName("unsigned int")] uint options);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_addFileMapping", ExactSpelling = true)]
-        [return: NativeTypeName("enum CXErrorCode")]
-        public static extern CXErrorCode VirtualFileOverlay_addFileMapping([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0, [NativeTypeName("const char *")] sbyte* virtualPath, [NativeTypeName("const char *")] sbyte* realPath);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_setCaseSensitivity", ExactSpelling = true)]
-        [return: NativeTypeName("enum CXErrorCode")]
-        public static extern CXErrorCode VirtualFileOverlay_setCaseSensitivity([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0, int caseSensitive);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_writeToBuffer", ExactSpelling = true)]
-        [return: NativeTypeName("enum CXErrorCode")]
-        public static extern CXErrorCode VirtualFileOverlay_writeToBuffer([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0, [NativeTypeName("unsigned int")] uint options, [NativeTypeName("char **")] sbyte** out_buffer_ptr, [NativeTypeName("unsigned int *")] uint* out_buffer_size);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_free", ExactSpelling = true)]
-        public static extern void free([NativeTypeName("void *")] void* buffer);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_dispose", ExactSpelling = true)]
-        public static extern void VirtualFileOverlay_dispose([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_create", ExactSpelling = true)]
-        [return: NativeTypeName("CXModuleMapDescriptor")]
-        public static extern CXModuleMapDescriptorImpl* ModuleMapDescriptor_create([NativeTypeName("unsigned int")] uint options);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_setFrameworkModuleName", ExactSpelling = true)]
-        [return: NativeTypeName("enum CXErrorCode")]
-        public static extern CXErrorCode ModuleMapDescriptor_setFrameworkModuleName([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0, [NativeTypeName("const char *")] sbyte* name);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_setUmbrellaHeader", ExactSpelling = true)]
-        [return: NativeTypeName("enum CXErrorCode")]
-        public static extern CXErrorCode ModuleMapDescriptor_setUmbrellaHeader([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0, [NativeTypeName("const char *")] sbyte* name);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_writeToBuffer", ExactSpelling = true)]
-        [return: NativeTypeName("enum CXErrorCode")]
-        public static extern CXErrorCode ModuleMapDescriptor_writeToBuffer([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0, [NativeTypeName("unsigned int")] uint options, [NativeTypeName("char **")] sbyte** out_buffer_ptr, [NativeTypeName("unsigned int *")] uint* out_buffer_size);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_ModuleMapDescriptor_dispose", ExactSpelling = true)]
-        public static extern void ModuleMapDescriptor_dispose([NativeTypeName("CXModuleMapDescriptor")] CXModuleMapDescriptorImpl* param0);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_fromDirectory", ExactSpelling = true)]
-        [return: NativeTypeName("CXCompilationDatabase")]
-        public static extern void* CompilationDatabase_fromDirectory([NativeTypeName("const char *")] sbyte* BuildDir, [NativeTypeName("CXCompilationDatabase_Error *")] CXCompilationDatabase_Error* ErrorCode);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_dispose", ExactSpelling = true)]
-        public static extern void CompilationDatabase_dispose([NativeTypeName("CXCompilationDatabase")] void* param0);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_getCompileCommands", ExactSpelling = true)]
-        [return: NativeTypeName("CXCompileCommands")]
-        public static extern void* CompilationDatabase_getCompileCommands([NativeTypeName("CXCompilationDatabase")] void* param0, [NativeTypeName("const char *")] sbyte* CompleteFileName);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_getAllCompileCommands", ExactSpelling = true)]
-        [return: NativeTypeName("CXCompileCommands")]
-        public static extern void* CompilationDatabase_getAllCompileCommands([NativeTypeName("CXCompilationDatabase")] void* param0);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommands_dispose", ExactSpelling = true)]
-        public static extern void CompileCommands_dispose([NativeTypeName("CXCompileCommands")] void* param0);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommands_getSize", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint CompileCommands_getSize([NativeTypeName("CXCompileCommands")] void* param0);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommands_getCommand", ExactSpelling = true)]
-        [return: NativeTypeName("CXCompileCommand")]
-        public static extern void* CompileCommands_getCommand([NativeTypeName("CXCompileCommands")] void* param0, [NativeTypeName("unsigned int")] uint I);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getDirectory", ExactSpelling = true)]
-        public static extern CXString CompileCommand_getDirectory([NativeTypeName("CXCompileCommand")] void* param0);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getFilename", ExactSpelling = true)]
-        public static extern CXString CompileCommand_getFilename([NativeTypeName("CXCompileCommand")] void* param0);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getNumArgs", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint CompileCommand_getNumArgs([NativeTypeName("CXCompileCommand")] void* param0);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getArg", ExactSpelling = true)]
-        public static extern CXString CompileCommand_getArg([NativeTypeName("CXCompileCommand")] void* param0, [NativeTypeName("unsigned int")] uint I);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getNumMappedSources", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint CompileCommand_getNumMappedSources([NativeTypeName("CXCompileCommand")] void* param0);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getMappedSourcePath", ExactSpelling = true)]
-        public static extern CXString CompileCommand_getMappedSourcePath([NativeTypeName("CXCompileCommand")] void* param0, [NativeTypeName("unsigned int")] uint I);
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompileCommand_getMappedSourceContent", ExactSpelling = true)]
-        public static extern CXString CompileCommand_getMappedSourceContent([NativeTypeName("CXCompileCommand")] void* param0, [NativeTypeName("unsigned int")] uint I);
     }
 }
