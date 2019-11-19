@@ -19,7 +19,7 @@ namespace ClangSharp.UnitTests
 
         protected static readonly string[] DefaultClangCommandLineArgs = new string[]
         {
-            "-std=c++11",                           // The input files should be compiled for C++ 11
+            "-std=c++17",                           // The input files should be compiled for C++ 17
             "-xc++",                                // The input files are C++
             "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
         };

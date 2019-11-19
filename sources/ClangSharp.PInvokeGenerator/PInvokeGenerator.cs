@@ -584,7 +584,7 @@ namespace ClangSharp
                         namedDecl.Location.GetFileLocation(out var file, out var _, out var _, out var offset);
                         var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
                         name = $"__Anonymous{tagDecl.TypeForDecl.KindSpelling}_{fileName}_{offset}";
-                        AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.'", namedDecl);
+                        AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.", namedDecl);
                     }
                     else
                     {
