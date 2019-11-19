@@ -416,6 +416,12 @@ namespace ClangSharp
             AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
         
             _outputBuilder.Write(typeName);
+
+            if (type is ArrayType)
+            {
+                _outputBuilder.Write('*');
+            }
+
             _outputBuilder.Write(' ');
         
             var name = GetRemappedCursorName(parmVarDecl);
