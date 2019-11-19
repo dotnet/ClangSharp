@@ -175,7 +175,14 @@ namespace ClangSharp
                 // case CX_DeclKind.CX_DeclKind_ObjCPropertyImpl:
                 // case CX_DeclKind.CX_DeclKind_PragmaComment:
                 // case CX_DeclKind.CX_DeclKind_PragmaDetectMismatch:
-                // case CX_DeclKind.CX_DeclKind_StaticAssert:
+
+                case CX_DeclKind.CX_DeclKind_StaticAssert:
+                {
+                    // Static asserts can't be easily modeled in C#
+                    // We'll ignore them for now.
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_TranslationUnit:
 
                 default:
