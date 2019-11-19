@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -9,6 +10,7 @@ namespace ClangSharp
     public class CallExpr : Expr
     {
         private readonly Lazy<IReadOnlyList<Expr>> _args;
+        private readonly Lazy<Expr> _callee;
         private readonly Lazy<Decl> _calleeDecl;
 
         internal CallExpr(CXCursor handle) : this(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_CallExpr)
@@ -35,10 +37,13 @@ namespace ClangSharp
                 return args;
             });
 
+            _callee = new Lazy<Expr>(() => Children.OfType<Expr>().First());
             _calleeDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.Referenced));
         }
 
         public IReadOnlyList<Expr> Args => _args.Value;
+
+        public Expr Callee => _callee.Value;
 
         public Decl CalleeDecl => _calleeDecl.Value;
 
