@@ -147,6 +147,40 @@ void MyFunction()
         }
 
         [Fact]
+        public async Task CallFunctionWithArgsTest()
+        {
+            var inputContents = @"void MyCalledFunction(int x, int y)
+{
+}
+
+void MyFunction()
+{
+    MyCalledFunction(0, 1);
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static void MyCalledFunction(int x, int y)
+        {
+        }
+
+        public static void MyFunction()
+        {
+            MyCalledFunction(0, 1);
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task CompareMultipleEnumTest()
         {
             var inputContents = @"enum MyEnum : int

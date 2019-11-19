@@ -26,7 +26,21 @@ namespace ClangSharp
                 _outputBuilder.WriteIndentation();
                 VisitStmt(callExpr.Callee);
                 _outputBuilder.Write('(');
-                VisitStmts(callExpr.Args);
+
+                var args = callExpr.Args;
+
+                if (args.Count != 0)
+                {
+                    Visit(args[0]);
+
+                    for (int i = 1; i < args.Count; i++)
+                    {
+                        _outputBuilder.Write(',');
+                        _outputBuilder.Write(' ');
+                        Visit(args[i]);
+                    }
+                }
+
                 _outputBuilder.WriteLine(");");
             }
             else
