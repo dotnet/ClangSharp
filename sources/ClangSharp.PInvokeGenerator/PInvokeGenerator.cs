@@ -627,24 +627,24 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedTypeName(NamedDecl namedDecl, Type type, out string nativeTypeName)
+        private string GetRemappedTypeName(Cursor cursor, Type type, out string nativeTypeName)
         {
-            var name = GetTypeName(namedDecl, type, out nativeTypeName);
+            var name = GetTypeName(cursor, type, out nativeTypeName);
             return GetRemappedName(name);
         }
 
-        private string GetTypeName(NamedDecl namedDecl, Type type, out string nativeTypeName)
+        private string GetTypeName(Cursor cursor, Type type, out string nativeTypeName)
         {
             var name = type.AsString;
             nativeTypeName = name;
 
             if (type is ArrayType arrayType)
             {
-                name = GetTypeName(namedDecl, arrayType.ElementType, out var nativeElementTypeName);
+                name = GetTypeName(cursor, arrayType.ElementType, out var nativeElementTypeName);
             }
             else if (type is AttributedType attributedType)
             {
-                name = GetTypeName(namedDecl, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeName(cursor, attributedType.ModifiedType, out var nativeModifiedTypeName);
             }
             else if (type is BuiltinType)
             {
@@ -744,22 +744,22 @@ namespace ClangSharp
 
                     default:
                     {
-                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported builtin type: '{type.TypeClass}'. Falling back '{name}'.", namedDecl);
+                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported builtin type: '{type.TypeClass}'. Falling back '{name}'.", cursor);
                         break;
                     }
                 }
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                name = GetTypeName(namedDecl, elaboratedType.NamedType, out var nativeNamedTypeName);
+                name = GetTypeName(cursor, elaboratedType.NamedType, out var nativeNamedTypeName);
             }
             else if (type is PointerType pointerType)
             {
-                name = GetTypeNameForPointeeType(namedDecl, pointerType.PointeeType, out var nativePointeeTypeName);
+                name = GetTypeNameForPointeeType(cursor, pointerType.PointeeType, out var nativePointeeTypeName);
             }
             else if (type is ReferenceType referenceType)
             {
-                name = GetTypeNameForPointeeType(namedDecl, referenceType.PointeeType, out var nativePointeeTypeName);
+                name = GetTypeNameForPointeeType(cursor, referenceType.PointeeType, out var nativePointeeTypeName);
             }
             else if (type is TypedefType typedefType)
             {
@@ -773,12 +773,12 @@ namespace ClangSharp
                 }
                 else
                 {
-                    name = GetTypeName(namedDecl, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
+                    name = GetTypeName(cursor, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
                 }
             }
             else if (!(type is FunctionType) && !(type is TagType))
             {
-                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Falling back '{name}'.", namedDecl);
+                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Falling back '{name}'.", cursor);
             }
 
             Debug.Assert(!string.IsNullOrWhiteSpace(name));
@@ -791,14 +791,14 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetTypeNameForPointeeType(NamedDecl namedDecl, Type pointeeType, out string nativePointeeTypeName)
+        private string GetTypeNameForPointeeType(Cursor cursor, Type pointeeType, out string nativePointeeTypeName)
         {
             var name = pointeeType.AsString;
             nativePointeeTypeName = name;
 
             if (pointeeType is AttributedType attributedType)
             {
-                name = GetTypeNameForPointeeType(namedDecl, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeNameForPointeeType(cursor, attributedType.ModifiedType, out var nativeModifiedTypeName);
             }
             else if (pointeeType is FunctionType)
             {
@@ -806,7 +806,7 @@ namespace ClangSharp
             }
             else
             {
-                name = GetTypeName(namedDecl, pointeeType, out nativePointeeTypeName);
+                name = GetTypeName(cursor, pointeeType, out nativePointeeTypeName);
                 name += '*';
             }
 

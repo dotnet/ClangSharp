@@ -189,6 +189,58 @@ static inline int MyFunction(MyEnum x)
         }
 
         [Fact]
+        public async Task CStyleFunctionalCastTest()
+        {
+            var inputContents = @"int MyFunction(float input)
+{
+    return (int)input;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(float input)
+        {
+            return (int)input;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task CxxFunctionalCastTest()
+        {
+            var inputContents = @"int MyFunction(float input)
+{
+    return int(input);
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(float input)
+        {
+            return (int)input;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task ReturnIntegerTest()
         {
             var inputContents = @"int MyFunction()

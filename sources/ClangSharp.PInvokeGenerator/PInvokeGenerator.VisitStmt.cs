@@ -48,6 +48,18 @@ namespace ClangSharp
             _outputBuilder.Write(EscapeAndStripName(name));
         }
 
+        private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
+        {
+            var type = explicitCastExpr.Type;
+            var typeName = GetRemappedTypeName(explicitCastExpr, type, out var nativeTypeName);
+
+            _outputBuilder.Write('(');
+            _outputBuilder.Write(typeName);
+            _outputBuilder.Write(')');
+
+            Visit(explicitCastExpr.SubExpr);
+        }
+
         private void VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr)
         {
             Visit(implicitCastExpr.SubExpr);
@@ -225,8 +237,14 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
                 // case CX_StmtClass.CX_StmtClass_UserDefinedLiteral:
                 // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
-                // case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
+
+                case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
+                {
+                    VisitExplicitCastExpr((ExplicitCastExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:

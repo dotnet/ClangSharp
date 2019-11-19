@@ -19,6 +19,6 @@ namespace ClangSharp
             _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
         }
 
-        public Type Type { get; }
+        public Type Type => _type.Value;
     }
 }
