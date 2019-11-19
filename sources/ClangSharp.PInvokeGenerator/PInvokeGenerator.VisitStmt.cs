@@ -56,6 +56,16 @@ namespace ClangSharp
             _outputBuilder.WriteBlockEnd();
         }
 
+        private void VisitCXXBoolLiteralExpr(CXXBoolLiteralExpr cxxBoolLiteralExpr)
+        {
+            _outputBuilder.Write(cxxBoolLiteralExpr.Value);
+        }
+
+        private void VisitCXXNullPtrLiteralExpr(CXXNullPtrLiteralExpr cxxNullPtrLiteralExpr)
+        {
+            _outputBuilder.Write("null");
+        }
+
         private void VisitDeclRefExpr(DeclRefExpr declRefExpr)
         {
             var name = GetRemappedCursorName(declRefExpr.Decl);
@@ -72,6 +82,11 @@ namespace ClangSharp
             _outputBuilder.Write(')');
 
             Visit(explicitCastExpr.SubExpr);
+        }
+
+        private void VisitFloatingLiteral(FloatingLiteral floatingLiteral)
+        {
+            _outputBuilder.Write(floatingLiteral.Value);
         }
 
         private void VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr)
@@ -219,7 +234,13 @@ namespace ClangSharp
 
                 // case CX_StmtClass.CX_StmtClass_BlockExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXBindTemporaryExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr:
+                {
+                    VisitCXXBoolLiteralExpr((CXXBoolLiteralExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXConstructExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
@@ -230,7 +251,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXNewExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXNoexceptExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXNullPtrLiteralExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXNullPtrLiteralExpr:
+                {
+                    VisitCXXNullPtrLiteralExpr((CXXNullPtrLiteralExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXPseudoDestructorExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXScalarValueInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr:
@@ -291,7 +318,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_ExpressionTraitExpr:
                 // case CX_StmtClass.CX_StmtClass_ExtVectorElementExpr:
                 // case CX_StmtClass.CX_StmtClass_FixedPointLiteral:
-                // case CX_StmtClass.CX_StmtClass_FloatingLiteral:
+
+                case CX_StmtClass.CX_StmtClass_FloatingLiteral:
+                {
+                    VisitFloatingLiteral((FloatingLiteral)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_ConstantExpr:
                 // case CX_StmtClass.CX_StmtClass_ExprWithCleanups:
                 // case CX_StmtClass.CX_StmtClass_FunctionParmPackExpr:

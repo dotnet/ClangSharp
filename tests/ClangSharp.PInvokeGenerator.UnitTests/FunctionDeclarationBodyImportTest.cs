@@ -275,7 +275,118 @@ static inline int MyFunction(MyEnum x)
         }
 
         [Fact]
-        public async Task ReturnIntegerTest()
+        public async Task ReturnCXXNullPtrTest()
+        {
+            var inputContents = @"void* MyFunction()
+{
+    return nullptr;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static unsafe partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [return: NativeTypeName(""void *"")]
+        public static void* MyFunction()
+        {
+            return null;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("false")]
+        [InlineData("true")]
+        public async Task ReturnCXXBooleanLiteralTest(string value)
+        {
+            var inputContents = $@"bool MyFunction()
+{{
+    return {value};
+}}
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static bool MyFunction()
+        {{
+            return {value};
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("5e-1")]
+        [InlineData("3.14")]
+        public async Task ReturnFloatingLiteralDoubleTest(string value)
+        {
+            var inputContents = $@"double MyFunction()
+{{
+    return {value};
+}}
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static double MyFunction()
+        {{
+            return {value};
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("5e-1f")]
+        [InlineData("3.14f")]
+        public async Task ReturnFloatingLiteralSingleTest(string value)
+        {
+            var inputContents = $@"float MyFunction()
+{{
+    return {value};
+}}
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static float MyFunction()
+        {{
+            return {value};
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task ReturnIntegerLiteralInt32Test()
         {
             var inputContents = @"int MyFunction()
 {
