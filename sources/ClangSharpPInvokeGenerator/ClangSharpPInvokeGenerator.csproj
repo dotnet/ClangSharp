@@ -3,6 +3,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <RuntimeIdentifier></RuntimeIdentifier>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
