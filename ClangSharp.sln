@@ -5,6 +5,7 @@ MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{14B849D1-0F45-4449-B3F6-A1A920B3C442}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		build.cmd = build.cmd
 		build.sh = build.sh
@@ -46,6 +47,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{2F805BB5-6089-44E3-8DD0-72104DBB29F0}"
 	ProjectSection(SolutionItems) = preProject
 		scripts\azure-pipelines.yml = scripts\azure-pipelines.yml
+		scripts\azure-unix.yml = scripts\azure-unix.yml
+		scripts\azure-windows.yml = scripts\azure-windows.yml
 		scripts\build.ps1 = scripts\build.ps1
 		scripts\build.sh = scripts\build.sh
 		scripts\cibuild.cmd = scripts\cibuild.cmd
@@ -240,6 +243,7 @@ Global
 		{9F9CD2A9-475B-4D9A-AFB6-958B71AC0111} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{6185B159-5F40-4D96-AD52-EB2D37241E25} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{8756B75F-F244-43AD-9C79-1610059BDF36} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
+		{47FA436A-8E82-4002-AB49-751F1953450C} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{4A298C7E-BF4D-418D-B70D-FE6D6F8097FD} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{98BDA79D-8D81-4381-B794-65BAF82349D4} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{EDEC2130-DA14-4415-91A3-225733FB61F8} = {AE6CF12F-5CC3-463B-A74B-6CCAE26EE4EF}
@@ -256,7 +260,6 @@ Global
 		{21997B0D-AE07-4F1E-8042-84EB399269D5} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{C1218464-0B5A-480E-BA13-2C6EA370987E} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{6DF42BA2-F962-4BFC-9444-D0FD53D022B0} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
-		{47FA436A-8E82-4002-AB49-751F1953450C} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9D18E0B-5409-457D-B5F3-0E217136BB01}

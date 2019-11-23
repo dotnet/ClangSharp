@@ -630,7 +630,13 @@ namespace ClangSharp
         private string GetRemappedTypeName(Cursor cursor, Type type, out string nativeTypeName)
         {
             var name = GetTypeName(cursor, type, out nativeTypeName);
-            return GetRemappedName(name);
+            name = GetRemappedName(name);
+
+            if (nativeTypeName.Equals(name))
+            {
+                nativeTypeName = string.Empty;
+            }
+            return name;
         }
 
         private string GetTypeName(Cursor cursor, Type type, out string nativeTypeName)
