@@ -29,12 +29,14 @@ namespace ClangSharp
             AddFileOption(s_rootCommand);
             AddHeaderOption(s_rootCommand);
             AddIncludeDirectoryOption(s_rootCommand);
+            AddLanguageOption(s_rootCommand);
             AddLibraryOption(s_rootCommand);
             AddMethodClassNameOption(s_rootCommand);
             AddNamespaceOption(s_rootCommand);
             AddOutputOption(s_rootCommand);
             AddPrefixStripOption(s_rootCommand);
             AddRemapOption(s_rootCommand);
+            AddStdOption(s_rootCommand);
             AddTraverseOption(s_rootCommand);
 
             return await s_rootCommand.InvokeAsync(args);
@@ -49,12 +51,14 @@ namespace ClangSharp
             var files = context.ParseResult.ValueForOption<string[]>("file");
             var headerFile = context.ParseResult.ValueForOption<string>("headerFile");
             var includeDirectories = context.ParseResult.ValueForOption<string[]>("include-directory");
+            var language = context.ParseResult.ValueForOption<string>("language");
             var libraryPath = context.ParseResult.ValueForOption<string>("libraryPath");
             var methodClassName = context.ParseResult.ValueForOption<string>("methodClassName");
             var methodPrefixToStrip = context.ParseResult.ValueForOption<string>("prefixStrip");
             var namespaceName = context.ParseResult.ValueForOption<string>("namespace");
             var outputLocation = context.ParseResult.ValueForOption<string>("output");
             var remappedNameValuePairs = context.ParseResult.ValueForOption<string[]>("remap");
+            var std = context.ParseResult.ValueForOption<string>("std");
             var traversalNames = context.ParseResult.ValueForOption<string[]>("traverse");
 
             var errorList = new List<string>();
@@ -158,8 +162,8 @@ namespace ClangSharp
 
             var clangCommandLineArgs = new string[]
             {
-                "-std=c++17",                           // The input files should be compiled for C++ 17
-                "-xc++",                                // The input files are C++
+                $"--language={language}",               // Treat subsequent input files as having type <language>
+                $"--std={std}",                         // Language standard to compile for
                 "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
             };
 
@@ -358,6 +362,21 @@ namespace ClangSharp
             rootCommand.AddOption(option);
         }
 
+        private static void AddLanguageOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--language", "-x" }, "Treat subsequent input files as having type <language>.")
+            {
+                Argument = new Argument("<arg>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
+            };
+            option.Argument.SetDefaultValue("c++");
+
+            rootCommand.AddOption(option);
+        }
+
         private static void AddLibraryOption(RootCommand rootCommand)
         {
             var option = new Option(new string[] { "--libraryPath", "-l" }, "The string to use in the DllImport attribute used when generating bindings.")
@@ -448,11 +467,26 @@ namespace ClangSharp
             rootCommand.AddOption(option);
         }
 
+        private static void AddStdOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--std", "-std" }, "Language standard to compile for.")
+            {
+                Argument = new Argument("<arg>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
+            };
+            option.Argument.SetDefaultValue("c++17");
+
+            rootCommand.AddOption(option);
+        }
+
         private static void AddTraverseOption(RootCommand rootCommand)
         {
             var option = new Option(new string[] { "--traverse", "-t" }, "A file name included either directly or indirectly by -f that should be traversed during binding generation.")
             {
-                Argument = new Argument("name")
+                Argument = new Argument("<name>")
                 {
                     ArgumentType = typeof(string),
                     Arity = ArgumentArity.OneOrMore,
