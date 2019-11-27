@@ -19,23 +19,24 @@ namespace ClangSharp
         {
             s_rootCommand = new RootCommand("ClangSharp P/Invoke Binding Generator")
             {
-                Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(Run))),
-
+                Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(Run)))
             };
 
             AddAdditionalOption(s_rootCommand);
             AddConfigOption(s_rootCommand);
-            AddDefineOption(s_rootCommand);
+            AddDefineMacroOption(s_rootCommand);
             AddExcludeOption(s_rootCommand);
             AddFileOption(s_rootCommand);
             AddHeaderOption(s_rootCommand);
-            AddIncludeOption(s_rootCommand);
+            AddIncludeDirectoryOption(s_rootCommand);
+            AddLanguageOption(s_rootCommand);
             AddLibraryOption(s_rootCommand);
             AddMethodClassNameOption(s_rootCommand);
             AddNamespaceOption(s_rootCommand);
             AddOutputOption(s_rootCommand);
             AddPrefixStripOption(s_rootCommand);
             AddRemapOption(s_rootCommand);
+            AddStdOption(s_rootCommand);
             AddTraverseOption(s_rootCommand);
 
             return await s_rootCommand.InvokeAsync(args);
@@ -45,17 +46,19 @@ namespace ClangSharp
         {
             var additionalArgs = context.ParseResult.ValueForOption<string[]>("additional");
             var configSwitches = context.ParseResult.ValueForOption<string[]>("config");
-            var defines = context.ParseResult.ValueForOption<string[]>("define");
+            var defineMacros = context.ParseResult.ValueForOption<string[]>("define-macro");
             var excludedNames = context.ParseResult.ValueForOption<string[]>("exclude");
             var files = context.ParseResult.ValueForOption<string[]>("file");
             var headerFile = context.ParseResult.ValueForOption<string>("headerFile");
-            var includeDirs = context.ParseResult.ValueForOption<string[]>("include");
+            var includeDirectories = context.ParseResult.ValueForOption<string[]>("include-directory");
+            var language = context.ParseResult.ValueForOption<string>("language");
             var libraryPath = context.ParseResult.ValueForOption<string>("libraryPath");
             var methodClassName = context.ParseResult.ValueForOption<string>("methodClassName");
             var methodPrefixToStrip = context.ParseResult.ValueForOption<string>("prefixStrip");
             var namespaceName = context.ParseResult.ValueForOption<string>("namespace");
             var outputLocation = context.ParseResult.ValueForOption<string>("output");
             var remappedNameValuePairs = context.ParseResult.ValueForOption<string[]>("remap");
+            var std = context.ParseResult.ValueForOption<string>("std");
             var traversalNames = context.ParseResult.ValueForOption<string[]>("traverse");
 
             var errorList = new List<string>();
@@ -159,13 +162,13 @@ namespace ClangSharp
 
             var clangCommandLineArgs = new string[]
             {
-                "-std=c++17",                           // The input files should be compiled for C++ 17
-                "-xc++",                                // The input files are C++
+                $"--language={language}",               // Treat subsequent input files as having type <language>
+                $"--std={std}",                         // Language standard to compile for
                 "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
             };
 
-            clangCommandLineArgs = clangCommandLineArgs.Concat(includeDirs.Select(x => "-I" + x)).ToArray();
-            clangCommandLineArgs = clangCommandLineArgs.Concat(defines.Select(x => "-D" + x)).ToArray();
+            clangCommandLineArgs = clangCommandLineArgs.Concat(includeDirectories.Select(x => "--include-directory=" + x)).ToArray();
+            clangCommandLineArgs = clangCommandLineArgs.Concat(defineMacros.Select(x => "--define-macro=" + x)).ToArray();
             clangCommandLineArgs = clangCommandLineArgs.Concat(additionalArgs).ToArray();
 
             var translationFlags = CXTranslationUnit_Flags.CXTranslationUnit_None;
@@ -256,13 +259,13 @@ namespace ClangSharp
 
         private static void AddAdditionalOption(RootCommand rootCommand)
         {
-            var option = new Option("--additional", "An argument to pass to Clang when parsing the input files.");
-            option.AddAlias("-a");
-
-            option.Argument = new Argument("arg")
+            var option = new Option(new string[] { "--additional", "-a" }, "An argument to pass to Clang when parsing the input files.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.OneOrMore,
+                Argument = new Argument("<arg>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
 
@@ -271,28 +274,28 @@ namespace ClangSharp
 
         private static void AddConfigOption(RootCommand rootCommand)
         {
-            var option = new Option("--config", "A configuration option that controls how the bindings are generated.");
-            option.AddAlias("-c");
-
-            option.Argument = new Argument("config")
+            var option = new Option(new string[] { "--config", "-c" }, "A configuration option that controls how the bindings are generated.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.OneOrMore,
+                Argument = new Argument("<arg>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
 
-        private static void AddDefineOption(RootCommand rootCommand)
+        private static void AddDefineMacroOption(RootCommand rootCommand)
         {
-            var option = new Option("--define", "A macro for Clang to define when parsing the input files.");
-            option.AddAlias("-d");
-
-            option.Argument = new Argument("macro")
+            var option = new Option(new string[] { "--define-macro", "-D" }, "Define <macro> to <value> (or 1 if <value> omitted).")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.OneOrMore,
+                Argument = new Argument("<macro>=<value>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
 
@@ -301,13 +304,13 @@ namespace ClangSharp
 
         private static void AddExcludeOption(RootCommand rootCommand)
         {
-            var option = new Option("--exclude", "A declaration name to exclude from binding generation.");
-            option.AddAlias("-e");
-
-            option.Argument = new Argument("name")
+            var option = new Option(new string[] { "--exclude", "-e" }, "A declaration name to exclude from binding generation.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.OneOrMore,
+                Argument = new Argument("<name>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
 
@@ -316,13 +319,13 @@ namespace ClangSharp
 
         private static void AddFileOption(RootCommand rootCommand)
         {
-            var option = new Option("--file", "A file to parse and generate bindings for.");
-            option.AddAlias("-f");
-
-            option.Argument = new Argument("file")
+            var option = new Option(new string[] { "--file", "-f" }, "A file to parse and generate bindings for.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.OneOrMore,
+                Argument = new Argument("<file>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
 
@@ -331,43 +334,58 @@ namespace ClangSharp
 
         private static void AddHeaderOption(RootCommand rootCommand)
         {
-            var option = new Option("--headerFile", "A file which contains the header to prefix every generated file with.");
-            option.AddAlias("-h");
-
-            option.Argument = new Argument("file")
+            var option = new Option(new string[] { "--headerFile", "-h" }, "A file which contains the header to prefix every generated file with.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.ExactlyOne,
+                Argument = new Argument("<file>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
             };
             option.Argument.SetDefaultValue(string.Empty);
 
             rootCommand.AddOption(option);
         }
 
-        private static void AddIncludeOption(RootCommand rootCommand)
+        private static void AddIncludeDirectoryOption(RootCommand rootCommand)
         {
-            var option = new Option("--include", "A directory for clang to use when resolving #include directives.");
-            option.AddAlias("-i");
-
-            option.Argument = new Argument("directory")
+            var option = new Option(new string[] { "--include-directory", "-I" }, "Add directory to include search path.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.OneOrMore,
+                Argument = new Argument("<arg>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
 
+        private static void AddLanguageOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--language", "-x" }, "Treat subsequent input files as having type <language>.")
+            {
+                Argument = new Argument("<arg>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
+            };
+            option.Argument.SetDefaultValue("c++");
+
+            rootCommand.AddOption(option);
+        }
+
         private static void AddLibraryOption(RootCommand rootCommand)
         {
-            var option = new Option("--libraryPath", "The string to use in the DllImport attribute used when generating bindings.");
-            option.AddAlias("-l");
-
-            option.Argument = new Argument("dllName")
+            var option = new Option(new string[] { "--libraryPath", "-l" }, "The string to use in the DllImport attribute used when generating bindings.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.ExactlyOne,
+                Argument = new Argument("<dllName>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
             };
             option.Argument.SetDefaultValue(string.Empty);
 
@@ -376,13 +394,13 @@ namespace ClangSharp
 
         private static void AddMethodClassNameOption(RootCommand rootCommand)
         {
-            var option = new Option("--methodClassName", "The name of the static class that will contain the generated method bindings.");
-            option.AddAlias("-m");
-
-            option.Argument = new Argument("className")
+            var option = new Option(new string[] { "--methodClassName", "-m" }, "The name of the static class that will contain the generated method bindings.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.ExactlyOne,
+                Argument = new Argument("<className>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
             };
             option.Argument.SetDefaultValue("Methods");
 
@@ -391,13 +409,13 @@ namespace ClangSharp
 
         private static void AddNamespaceOption(RootCommand rootCommand)
         {
-            var option = new Option("--namespace", "The namespace in which to place the generated bindings.");
-            option.AddAlias("-n");
-
-            option.Argument = new Argument("namespace")
+            var option = new Option(new string[] { "--namespace", "-n" }, "The namespace in which to place the generated bindings.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.ExactlyOne,
+                Argument = new Argument("<namespace>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
             };
             option.Argument.SetDefaultValue(string.Empty);
 
@@ -406,13 +424,13 @@ namespace ClangSharp
 
         private static void AddOutputOption(RootCommand rootCommand)
         {
-            var option = new Option("--output", "The output location to write the generated bindings to.");
-            option.AddAlias("-o");
-
-            option.Argument = new Argument("file")
+            var option = new Option(new string[] { "--output", "-o" }, "The output location to write the generated bindings to.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.ExactlyOne,
+                Argument = new Argument("<file>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
             };
             option.Argument.SetDefaultValue(string.Empty);
 
@@ -421,13 +439,13 @@ namespace ClangSharp
 
         private static void AddPrefixStripOption(RootCommand rootCommand)
         {
-            var option = new Option("--prefixStrip", "The prefix to strip from the generated method bindings.");
-            option.AddAlias("-p");
-
-            option.Argument = new Argument("prefix")
+            var option = new Option(new string[] { "--prefixStrip", "-p" }, "The prefix to strip from the generated method bindings.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.ExactlyOne,
+                Argument = new Argument("<prefix>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
             };
             option.Argument.SetDefaultValue(string.Empty);
 
@@ -436,28 +454,43 @@ namespace ClangSharp
 
         private static void AddRemapOption(RootCommand rootCommand)
         {
-            var option = new Option("--remap", "A declaration name to be remapped to another name during binding generation.");
-            option.AddAlias("-r");
-
-            option.Argument = new Argument("name=value")
+            var option = new Option(new string[] { "--remap", "-r" }, "A declaration name to be remapped to another name during binding generation.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.OneOrMore,
+                Argument = new Argument("<name>=<value>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
 
             rootCommand.AddOption(option);
         }
 
+        private static void AddStdOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--std", "-std" }, "Language standard to compile for.")
+            {
+                Argument = new Argument("<arg>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
+            };
+            option.Argument.SetDefaultValue("c++17");
+
+            rootCommand.AddOption(option);
+        }
+
         private static void AddTraverseOption(RootCommand rootCommand)
         {
-            var option = new Option("--traverse", "A file name included either directly or indirectly by -f that should be traversed during binding generation.");
-            option.AddAlias("-t");
-
-            option.Argument = new Argument("name")
+            var option = new Option(new string[] { "--traverse", "-t" }, "A file name included either directly or indirectly by -f that should be traversed during binding generation.")
             {
-                ArgumentType = typeof(string),
-                Arity = ArgumentArity.OneOrMore,
+                Argument = new Argument("<name>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
 
