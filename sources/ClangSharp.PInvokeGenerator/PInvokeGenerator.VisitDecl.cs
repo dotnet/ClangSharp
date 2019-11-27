@@ -553,28 +553,82 @@ namespace ClangSharp
                     _outputBuilder.WriteIndented("public");
                     _outputBuilder.Write(' ');
 
-                    if (!isUnsafe)
+                    if (_config.GenerateCompatibleCode)
                     {
-                        _outputBuilder.Write("unsafe");
-                        _outputBuilder.Write(' ');
+                        if (!isUnsafe)
+                        {
+                            _outputBuilder.Write("unsafe");
+                            _outputBuilder.Write(' ');
+                        }
+                    }
+                    else
+                    {
+                        _outputBuilder.AddUsingDirective("System");
+                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
                     }
 
                     _outputBuilder.Write("ref");
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(typeName);
                     _outputBuilder.Write(' ');
-                    _outputBuilder.WriteLine("this[int index]");
-                    _outputBuilder.WriteBlockStart();
-                    _outputBuilder.WriteIndentedLine("get");
-                    _outputBuilder.WriteBlockStart();
-                    _outputBuilder.WriteIndented("fixed (");
-                    _outputBuilder.Write(typeName);
-                    _outputBuilder.WriteLine("* pThis = &e0)");
-                    _outputBuilder.WriteBlockStart();
-                    _outputBuilder.WriteIndentedLine("return ref pThis[index];");
-                    _outputBuilder.WriteBlockEnd();
-                    _outputBuilder.WriteBlockEnd();
-                    _outputBuilder.WriteBlockEnd();
+
+                    if (_config.GenerateCompatibleCode)
+                    {
+                        _outputBuilder.WriteLine("this[int index]");
+                        _outputBuilder.WriteBlockStart();
+                        _outputBuilder.WriteIndentedLine("get");
+                        _outputBuilder.WriteBlockStart();
+                        _outputBuilder.WriteIndented("fixed (");
+                        _outputBuilder.Write(typeName);
+                        _outputBuilder.WriteLine("* pThis = &e0)");
+                        _outputBuilder.WriteBlockStart();
+                        _outputBuilder.WriteIndentedLine("return ref pThis[index];");
+                        _outputBuilder.WriteBlockEnd();
+                        _outputBuilder.WriteBlockEnd();
+                        _outputBuilder.WriteBlockEnd();
+                    }
+                    else
+                    {
+                        _outputBuilder.Write("this[int index] => ref AsSpan(");
+
+                        if (type.Size == 1)
+                        {
+                            _outputBuilder.Write("int.MaxValue");
+                        }
+
+                        _outputBuilder.WriteLine(")[index];");
+                        _outputBuilder.WriteLine();
+                        _outputBuilder.WriteIndented("public");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("Span<");
+                        _outputBuilder.Write(typeName);
+                        _outputBuilder.Write('>');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("AsSpan(");
+
+                        if (type.Size == 1)
+                        {
+                            _outputBuilder.Write("int length");
+                        }
+
+                        _outputBuilder.Write(')');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("=> MemoryMarshal.CreateSpan(ref e0,");
+                        _outputBuilder.Write(' ');
+
+                        if (type.Size == 1)
+                        {
+                            _outputBuilder.Write("length");
+                        }
+                        else
+                        {
+                            _outputBuilder.Write(type.Size);
+                        }
+
+                        _outputBuilder.Write(')');
+                        _outputBuilder.WriteLine(';');
+                    }
+
                     _outputBuilder.WriteBlockEnd();
                 }
 

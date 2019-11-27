@@ -90,7 +90,7 @@ namespace ClangSharp.UnitTests
         [InlineData("short", "short")]
         [InlineData("int", "int")]
         [InlineData("float", "float")]
-        public async Task FixedSizedBufferNonPrimitiveTest(string nativeType, string expectedManagedType)
+        public async Task FixedSizedBufferNonPrimitiveCompatibleTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -136,6 +136,56 @@ struct MyOtherStruct
 }}
 ";
 
+            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("double", "double")]
+        [InlineData("short", "short")]
+        [InlineData("int", "int")]
+        [InlineData("float", "float")]
+        public async Task FixedSizedBufferNonPrimitiveTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} value;
+}};
+
+struct MyOtherStruct
+{{
+    MyStruct c[3];
+}};
+";
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        public {expectedManagedType} value;
+    }}
+
+    public partial struct MyOtherStruct
+    {{
+        [NativeTypeName(""MyStruct [3]"")]
+        public _c_e__FixedBuffer c;
+
+        public partial struct _c_e__FixedBuffer
+        {{
+            internal MyStruct e0;
+            internal MyStruct e1;
+            internal MyStruct e2;
+
+            public ref MyStruct this[int index] => ref AsSpan()[index];
+
+            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
+        }}
+    }}
+}}
+";
+
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
@@ -146,7 +196,7 @@ struct MyOtherStruct
         [InlineData("unsigned short", "ushort")]
         [InlineData("unsigned int", "uint")]
         [InlineData("unsigned long long", "ulong")]
-        public async Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        public async Task FixedSizedBufferNonPrimitiveWithNativeTypeNameCompatibleTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -188,6 +238,59 @@ struct MyOtherStruct
                     }}
                 }}
             }}
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("unsigned char", "byte")]
+        [InlineData("long long", "long")]
+        [InlineData("signed char", "sbyte")]
+        [InlineData("unsigned short", "ushort")]
+        [InlineData("unsigned int", "uint")]
+        [InlineData("unsigned long long", "ulong")]
+        public async Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} value;
+}};
+
+struct MyOtherStruct
+{{
+    MyStruct c[3];
+}};
+";
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        [NativeTypeName(""{nativeType}"")]
+        public {expectedManagedType} value;
+    }}
+
+    public partial struct MyOtherStruct
+    {{
+        [NativeTypeName(""MyStruct [3]"")]
+        public _c_e__FixedBuffer c;
+
+        public partial struct _c_e__FixedBuffer
+        {{
+            internal MyStruct e0;
+            internal MyStruct e1;
+            internal MyStruct e2;
+
+            public ref MyStruct this[int index] => ref AsSpan()[index];
+
+            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
 }}
