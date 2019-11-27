@@ -104,9 +104,21 @@ namespace ClangSharp
             {
                 switch (configSwitch)
                 {
+                    case "compatible-codegen":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                        break;
+                    }
+
                     case "default-remappings":
                     {
                         configOptions &= ~PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
+                        break;
+                    }
+
+                    case "latest-codegen":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
                         break;
                     }
 
