@@ -518,14 +518,13 @@ namespace ClangSharp
                             _outputBuilder.WriteLine();
                         }
 
-                        var nestedRecordDeclName = GetRemappedCursorName(nestedRecordDecl);
-                        var nestedRecordDeclTypeName = GetRemappedTypeName(nestedRecordDecl, nestedRecordDecl.TypeForDecl, out _);
+                        var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
 
                         if (recordDecl.IsUnion)
                         {
                             _outputBuilder.WriteIndentedLine("[FieldOffset(0)]");
                         }
-                        AddNativeTypeNameAttribute(nestedRecordDeclTypeName);
+                        AddNativeTypeNameAttribute(nativeTypeName);
 
                         _outputBuilder.WriteIndented(GetAccessSpecifierName(nestedRecordDecl));
                         _outputBuilder.Write(' ');
