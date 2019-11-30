@@ -527,7 +527,7 @@ namespace ClangSharp
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write(nestedRecordDeclName);
                         _outputBuilder.Write(' ');
-                        _outputBuilder.Write(GetAnonymousName(nestedRecordDecl, "Field"));
+                        _outputBuilder.Write(GetRemappedAnonymousName(nestedRecordDecl, "Field"));
                         _outputBuilder.WriteLine(';');
                     }
                 }

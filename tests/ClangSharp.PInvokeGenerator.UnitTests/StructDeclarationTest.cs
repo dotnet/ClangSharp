@@ -519,6 +519,52 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
         }
 
+        [Fact]
+        public async Task RemapNestedAnonymousTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    double r;
+    double g;
+    double b;
+
+    struct
+    {
+        double a;
+    };
+};";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public double r;
+
+        public double g;
+
+        public double b;
+
+        [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:7:5)"")]
+        public _Anonymous_e__Struct Anonymous;
+
+        public partial struct _Anonymous_e__Struct
+        {
+            public double a;
+        }
+    }
+}
+";
+
+            var remappedNames = new Dictionary<string, string> {
+                ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
+                ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Struct"
+            };
+            var expectedDiagnostics = new Diagnostic[] {
+                new Diagnostic(DiagnosticLevel.Info, "Anonymous declaration found in 'GetCursorName'. Falling back to '__AnonymousRecord_ClangUnsavedFile_L7_C5'.", "Line 7, Column 5 in ClangUnsavedFile.h")
+            };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames, expectedDiagnostics);
+        }
+
         [Theory]
         [InlineData("double", "double")]
         [InlineData("short", "short")]
