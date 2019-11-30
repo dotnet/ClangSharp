@@ -521,6 +521,10 @@ namespace ClangSharp
                         var nestedRecordDeclName = GetRemappedCursorName(nestedRecordDecl);
                         var nestedRecordDeclTypeName = GetRemappedTypeName(nestedRecordDecl, nestedRecordDecl.TypeForDecl, out _);
 
+                        if (recordDecl.IsUnion)
+                        {
+                            _outputBuilder.WriteIndentedLine("[FieldOffset(0)]");
+                        }
                         AddNativeTypeNameAttribute(nestedRecordDeclTypeName);
 
                         _outputBuilder.WriteIndented(GetAccessSpecifierName(nestedRecordDecl));
@@ -529,6 +533,8 @@ namespace ClangSharp
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write(GetRemappedAnonymousName(nestedRecordDecl, "Field"));
                         _outputBuilder.WriteLine(';');
+
+                        fieldCount++;
                     }
                 }
 
