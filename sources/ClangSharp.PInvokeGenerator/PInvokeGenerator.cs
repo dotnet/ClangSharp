@@ -839,6 +839,11 @@ namespace ClangSharp
             else
             {
                 name = GetTypeName(cursor, pointeeType, out nativePointeeTypeName);
+
+                if (_config.RemappedNames.TryGetValue(name, out string remappedName))
+                {
+                    name = remappedName;
+                }
                 name += '*';
             }
 
