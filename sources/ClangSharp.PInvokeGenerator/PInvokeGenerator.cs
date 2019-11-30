@@ -770,6 +770,10 @@ namespace ClangSharp
             {
                 name = GetTypeName(cursor, elaboratedType.NamedType, out var nativeNamedTypeName);
             }
+            else if (type is FunctionType)
+            {
+                // The default name should be correct
+            }
             else if (type is PointerType pointerType)
             {
                 name = GetTypeNameForPointeeType(cursor, pointerType.PointeeType, out var nativePointeeTypeName);
@@ -777,6 +781,17 @@ namespace ClangSharp
             else if (type is ReferenceType referenceType)
             {
                 name = GetTypeNameForPointeeType(cursor, referenceType.PointeeType, out var nativePointeeTypeName);
+            }
+            else if (type is TagType tagType)
+            {
+                if (tagType.Decl.Handle.IsAnonymous)
+                {
+                    name = GetAnonymousName(tagType.Decl, tagType.KindSpelling);
+                }
+                else
+                {
+                    // The default name should be correct
+                }
             }
             else if (type is TypedefType typedefType)
             {
@@ -793,7 +808,7 @@ namespace ClangSharp
                     name = GetTypeName(cursor, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
                 }
             }
-            else if (!(type is FunctionType) && !(type is TagType))
+            else
             {
                 AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Falling back '{name}'.", cursor);
             }
