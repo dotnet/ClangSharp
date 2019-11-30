@@ -11,7 +11,11 @@ namespace ClangSharp
         private readonly string _message;
         private readonly string _location;
 
-        public Diagnostic(DiagnosticLevel level, string message, CXSourceLocation location)
+        public Diagnostic(DiagnosticLevel level, string message, CXSourceLocation location) : this(level, message, location.ToString())
+        {
+        }
+
+        public Diagnostic(DiagnosticLevel level, string message, string location)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -20,7 +24,7 @@ namespace ClangSharp
 
             _level = level;
             _message = message;
-            _location = location.ToString();
+            _location = location;
         }
 
         public DiagnosticLevel Level => _level;
