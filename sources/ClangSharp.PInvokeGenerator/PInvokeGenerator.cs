@@ -611,6 +611,12 @@ namespace ClangSharp
             return name;
         }
 
+        private string GetRemappedAnonymousName(NamedDecl namedDecl, string kind)
+        {
+            var name = GetAnonymousName(namedDecl, kind);
+            return GetRemappedName(name);
+        }
+
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
             var name = GetCursorName(namedDecl);
