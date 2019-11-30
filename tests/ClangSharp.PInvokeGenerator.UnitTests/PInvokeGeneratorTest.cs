@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using ClangSharp.Interop;
 using Xunit;
@@ -24,17 +25,17 @@ namespace ClangSharp.UnitTests
             "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
         };
 
-        protected Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null)
+        protected Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IEnumerable<Diagnostic> expectedDiagnostics = null)
         {
-            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None, excludedNames, remappedNames);
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None, excludedNames, remappedNames, expectedDiagnostics);
         }
 
-        protected Task ValidateGeneratedCompatibleBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null)
+        protected Task ValidateGeneratedCompatibleBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IEnumerable<Diagnostic> expectedDiagnostics = null)
         {
-            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode, excludedNames, remappedNames);
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode, excludedNames, remappedNames, expectedDiagnostics);
         }
 
-        private async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions, string[] excludedNames, IReadOnlyDictionary<string, string> remappedNames)
+        private async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions, string[] excludedNames, IReadOnlyDictionary<string, string> remappedNames, IEnumerable<Diagnostic> expectedDiagnostics)
         {
             Assert.True(File.Exists(DefaultInputFileName));
 
@@ -50,7 +51,15 @@ namespace ClangSharp.UnitTests
                 using var translationUnit = TranslationUnit.GetOrCreate(handle);
 
                 pinvokeGenerator.GenerateBindings(translationUnit);
-                Assert.Empty(pinvokeGenerator.Diagnostics);
+
+                if (expectedDiagnostics is null)
+                {
+                    Assert.Empty(pinvokeGenerator.Diagnostics);
+                }
+                else
+                {
+                    Assert.Equal(expectedDiagnostics, pinvokeGenerator.Diagnostics);
+                }
             }
             outputStream.Position = 0;
 

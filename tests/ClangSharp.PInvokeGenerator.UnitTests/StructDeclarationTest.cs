@@ -332,6 +332,53 @@ namespace ClangSharp.Test
         }
 
         [Theory]
+        [InlineData("double", "double", 7, 5)]
+        [InlineData("short", "short", 7, 5)]
+        [InlineData("int", "int", 7, 5)]
+        [InlineData("float", "float", 7, 5)]
+        public async Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} r;
+    {nativeType} g;
+    {nativeType} b;
+
+    struct
+    {{
+        {nativeType} a;
+    }};
+}};
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        public {expectedManagedType} r;
+
+        public {expectedManagedType} g;
+
+        public {expectedManagedType} b;
+
+        [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
+        public __AnonymousRecord_ClangUnsavedFile_L{line}_C{column} __AnonymousField_ClangUnsavedFile_L{line}_C{column};
+
+        public partial struct __AnonymousRecord_ClangUnsavedFile_L{line}_C{column}
+        {{
+            public {expectedManagedType} a;
+        }}
+    }}
+}}
+";
+
+            var expectedDiagnostics = new Diagnostic[] {
+                new Diagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in 'GetCursorName'. Falling back to '__AnonymousRecord_ClangUnsavedFile_L{line}_C{column}'.", $"Line {line}, Column {column} in ClangUnsavedFile.h")
+            };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, expectedDiagnostics: expectedDiagnostics);
+        }
+
+        [Theory]
         [InlineData("double", "double")]
         [InlineData("short", "short")]
         [InlineData("int", "int")]

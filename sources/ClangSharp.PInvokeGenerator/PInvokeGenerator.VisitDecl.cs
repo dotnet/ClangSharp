@@ -497,16 +497,38 @@ namespace ClangSharp
                 _outputBuilder.WriteLine(EscapeName(name));
                 _outputBuilder.WriteBlockStart();
 
-                var fields = recordDecl.Fields;
+                var fieldCount = 0;
 
-                if (fields.Count != 0)
+                foreach (var declaration in recordDecl.Decls)
                 {
-                    Visit(fields[0]);
-
-                    for (int i = 1; i < fields.Count; i++)
+                    if (declaration is FieldDecl fieldDecl)
                     {
-                        _outputBuilder.WriteLine();
-                        Visit(fields[i]);
+                        if (fieldCount != 0)
+                        {
+                            _outputBuilder.WriteLine();
+                        }
+
+                        Visit(fieldDecl);
+                        fieldCount++;
+                    }
+                    else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
+                    {
+                        if (fieldCount != 0)
+                        {
+                            _outputBuilder.WriteLine();
+                        }
+
+                        var nestedRecordDeclName = GetRemappedCursorName(nestedRecordDecl);
+                        var nestedRecordDeclTypeName = GetRemappedTypeName(nestedRecordDecl, nestedRecordDecl.TypeForDecl, out _);
+
+                        AddNativeTypeNameAttribute(nestedRecordDeclTypeName);
+
+                        _outputBuilder.WriteIndented(GetAccessSpecifierName(nestedRecordDecl));
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(nestedRecordDeclName);
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(GetAnonymousName(nestedRecordDecl, "Field"));
+                        _outputBuilder.WriteLine(';');
                     }
                 }
 

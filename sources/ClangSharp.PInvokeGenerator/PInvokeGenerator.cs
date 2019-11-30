@@ -527,6 +527,13 @@ namespace ClangSharp
             return name;
         }
 
+        private string GetAnonymousName(NamedDecl namedDecl, string kind)
+        {
+            namedDecl.Location.GetFileLocation(out var file, out var line, out var column, out _);
+            var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
+            return $"__Anonymous{kind}_{fileName}_L{line}_C{column}";
+        }
+
         private string GetArtificalFixedSizedBufferName(FieldDecl fieldDecl)
         {
             var name = GetRemappedCursorName(fieldDecl);
@@ -581,9 +588,7 @@ namespace ClangSharp
                 {
                     if ((typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous)
                     {
-                        namedDecl.Location.GetFileLocation(out var file, out var _, out var _, out var offset);
-                        var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
-                        name = $"__Anonymous{tagDecl.TypeForDecl.KindSpelling}_{fileName}_{offset}";
+                        name = GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling);
                         AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.", namedDecl);
                     }
                     else
