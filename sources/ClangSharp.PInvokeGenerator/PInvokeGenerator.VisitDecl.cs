@@ -51,7 +51,13 @@ namespace ClangSharp
                 // case CX_DeclKind.CX_DeclKind_Block:
                 // case CX_DeclKind.CX_DeclKind_Captured:
                 // case CX_DeclKind.CX_DeclKind_ClassScopeFunctionSpecialization:
-                // case CX_DeclKind.CX_DeclKind_Empty:
+
+                case CX_DeclKind.CX_DeclKind_Empty:
+                {
+                    // Nothing to generate for empty declarations
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_Export:
                 // case CX_DeclKind.CX_DeclKind_ExternCContext:
                 // case CX_DeclKind.CX_DeclKind_FileScopeAsm:
@@ -129,12 +135,18 @@ namespace ClangSharp
 
                 case CX_DeclKind.CX_DeclKind_Function:
                 {
-                    VisitFunctionDecl((FunctionDecl)decl);
+                    VisitFunctionDecl((FunctionDecl)decl, cxxRecordDecl: null);
                     break;
                 }
 
                 // case CX_DeclKind.CX_DeclKind_CXXDeductionGuide:
-                // case CX_DeclKind.CX_DeclKind_CXXMethod:
+
+                case CX_DeclKind.CX_DeclKind_CXXMethod:
+                {
+                    VisitFunctionDecl((CXXMethodDecl)decl, (CXXRecordDecl)decl.DeclContext);
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_CXXConstructor:
                 // case CX_DeclKind.CX_DeclKind_CXXConversion:
                 // case CX_DeclKind.CX_DeclKind_CXXDestructor:
@@ -311,85 +323,177 @@ namespace ClangSharp
             _outputBuilder.WriteLine(';');
         }
 
-        private void VisitFunctionDecl(FunctionDecl functionDecl)
+        private void VisitFunctionDecl(FunctionDecl functionDecl, CXXRecordDecl cxxRecordDecl)
         {
             var name = GetRemappedCursorName(functionDecl);
 
-            StartUsingOutputBuilder(_config.MethodClassName);
+            if (cxxRecordDecl is null)
             {
-                var type = functionDecl.Type;
+                StartUsingOutputBuilder(_config.MethodClassName);
+            }
 
-                if (type is AttributedType attributedType)
+            var type = functionDecl.Type;
+
+            if (type is AttributedType attributedType)
+            {
+                type = attributedType.ModifiedType;
+            }
+            var functionType = (FunctionType)type;
+
+            var cxxMethodDecl = functionDecl as CXXMethodDecl;
+            var body = functionDecl.Body;
+            var isVirtual = (cxxMethodDecl != null) && cxxMethodDecl.IsVirtual;
+
+            if (isVirtual)
+            {
+                _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+
+                _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
+                _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
+                _outputBuilder.WriteLine(")]");
+            }
+            else if (body is null)
+            {
+                _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+
+                _outputBuilder.WriteIndented("[DllImport(");
+
+                if (cxxMethodDecl != null)
                 {
-                    type = attributedType.ModifiedType;
+                    _outputBuilder.Write(_config.MethodClassName);
+                    _outputBuilder.Write('.');
                 }
-                var functionType = (FunctionType)type;
 
-                var body = functionDecl.Body;
+                _outputBuilder.Write("LibraryPath, CallingConvention = CallingConvention.");
+                _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
+                _outputBuilder.Write(", EntryPoint = \"");
 
-                if (body is null)
+                if (cxxMethodDecl is null)
                 {
-                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-
-                    _outputBuilder.WriteIndented("[DllImport(LibraryPath, CallingConvention = CallingConvention.");
-                    _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
-                    _outputBuilder.Write(", EntryPoint = \"");
                     _outputBuilder.Write(name);
-                    _outputBuilder.WriteLine("\", ExactSpelling = true)]");
-                }
-
-                var returnType = functionDecl.ReturnType;
-                var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out var nativeTypeName);
-                AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
-
-                _outputBuilder.WriteIndented(GetAccessSpecifierName(functionDecl));
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("static");
-                _outputBuilder.Write(' ');
-
-                if (body is null)
-                {
-                    _outputBuilder.Write("extern");
-                    _outputBuilder.Write(' ');
-                }
-
-                if (IsUnsafe(functionDecl))
-                {
-                    _isMethodClassUnsafe = true;
-                }
-
-                _outputBuilder.Write(returnTypeName);
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write(EscapeAndStripName(name));
-                _outputBuilder.Write('(');
-
-                VisitDecls(functionDecl.Parameters);
-
-                _outputBuilder.Write(")");
-
-                if (body is null)
-                {
-                    _outputBuilder.WriteLine(';');
                 }
                 else
                 {
-                    _outputBuilder.WriteLine();
+                    _outputBuilder.Write(cxxMethodDecl.Handle.Mangling);
+                }
+                        
+                _outputBuilder.WriteLine("\", ExactSpelling = true)]");
+            }
 
-                    if (body is CompoundStmt)
-                    {
-                        Visit(body);
-                    }
-                    else
-                    {
-                        _outputBuilder.WriteBlockStart();
-                        Visit(body);
-                        _outputBuilder.WriteBlockEnd();
-                    }
+            var returnType = functionDecl.ReturnType;
+            var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out var nativeTypeName);
+            AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
+
+            _outputBuilder.WriteIndented(GetAccessSpecifierName(functionDecl));
+
+            if (isVirtual)
+            {
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("delegate");
+            }
+            else if ((body is null) || (cxxMethodDecl is null) || cxxMethodDecl.IsStatic)
+            {
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("static");
+
+                if (body is null)
+                {
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write("extern");
+                }
+            }
+
+            _outputBuilder.Write(' ');
+
+            if (IsUnsafe(functionDecl))
+            {
+                _isMethodClassUnsafe = true;
+            }
+
+            _outputBuilder.Write(returnTypeName);
+
+            var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
+
+            if (needsReturnFixup)
+            {
+                _outputBuilder.Write('*');
+            }
+
+            _outputBuilder.Write(' ');
+
+            if (isVirtual)
+            {
+                _outputBuilder.Write(PrefixAndStripName(name));
+            }
+            else
+            {
+                _outputBuilder.Write(EscapeAndStripName(name));
+            }
+
+            _outputBuilder.Write('(');
+
+            if (isVirtual)
+            {
+                Debug.Assert(cxxRecordDecl != null);
+
+                var cxxRecordDeclName = GetRemappedCursorName(cxxRecordDecl);
+                _outputBuilder.Write(EscapeName(cxxRecordDeclName));
+                _outputBuilder.Write('*');
+
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("pThis");
+
+                if (needsReturnFixup)
+                {
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(returnTypeName);
+                    _outputBuilder.Write('*');
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write("_result");
                 }
 
-                VisitDecls(functionDecl.Decls);
+                if (functionDecl.Parameters.Any())
+                {
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
+                }
             }
-            StopUsingOutputBuilder();
+
+            foreach (var parmVarDecl in functionDecl.Parameters)
+            {
+                _visitedCursors.Add(parmVarDecl);
+                VisitParmVarDecl(parmVarDecl);
+            }
+
+            _outputBuilder.Write(")");
+
+            if ((body is null) || isVirtual)
+            {
+                _outputBuilder.WriteLine(';');
+            }
+            else
+            {
+                _outputBuilder.WriteLine();
+
+                if (body is CompoundStmt)
+                {
+                    Visit(body);
+                }
+                else
+                {
+                    _outputBuilder.WriteBlockStart();
+                    Visit(body);
+                    _outputBuilder.WriteBlockEnd();
+                }
+            }
+
+            VisitDecls(functionDecl.Decls);
+
+            if (cxxRecordDecl is null)
+            {
+                StopUsingOutputBuilder();
+            }
         }
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl)
@@ -478,6 +582,14 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
+                var cxxRecordDecl = recordDecl as CXXRecordDecl;
+                var hasVtbl = false;
+
+                if (cxxRecordDecl != null)
+                {
+                    hasVtbl = HasVtbl(this, cxxRecordDecl);
+                }
+
                 if (recordDecl.IsUnion)
                 {
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
@@ -487,7 +599,7 @@ namespace ClangSharp
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
                 _outputBuilder.Write(' ');
 
-                if (IsUnsafe(recordDecl))
+                if (IsUnsafe(recordDecl) || hasVtbl)
                 {
                     _outputBuilder.Write("unsafe");
                     _outputBuilder.Write(' ');
@@ -498,7 +610,12 @@ namespace ClangSharp
                 _outputBuilder.WriteLine(EscapeName(name));
                 _outputBuilder.WriteBlockStart();
 
-                var fieldCount = 0;
+                if (hasVtbl)
+                {
+                    _outputBuilder.WriteIndentedLine("public readonly Vtbl* lpVtbl;");
+                }
+
+                var needsNewline = false;
                 var bitfieldCount = GetBitfieldCount(this, recordDecl);
 
                 var bitfieldIndex = (bitfieldCount == 1) ? -1 : 0;
@@ -509,11 +626,11 @@ namespace ClangSharp
                 {
                     if (declaration is FieldDecl fieldDecl)
                     {
-                        if (fieldCount != 0)
+                        if (needsNewline)
                         {
                             _outputBuilder.WriteLine();
                         }
-                        fieldCount++;
+                        needsNewline = true;
 
                         if (fieldDecl.IsBitField)
                         {
@@ -523,11 +640,11 @@ namespace ClangSharp
                     }
                     else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
                     {
-                        if (fieldCount != 0)
+                        if (needsNewline)
                         {
                             _outputBuilder.WriteLine();
                         }
-                        fieldCount++;
+                        needsNewline = true;
 
                         var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
 
@@ -546,11 +663,51 @@ namespace ClangSharp
                     }
                 }
 
+                foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
+                {
+                    if (cxxMethodDecl.IsVirtual)
+                    {
+                        continue;
+                    }
+                    else if (needsNewline)
+                    {
+                        _outputBuilder.WriteLine();
+                    }
+                    needsNewline = true;
+
+                    Visit(cxxMethodDecl);
+                }
+
+                if (hasVtbl)
+                {
+                    OutputDelegateSignatures(this, cxxRecordDecl, cxxRecordDecl);
+                }
+
                 VisitDecls(recordDecl.Decls);
 
                 foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type is ConstantArrayType))
                 {
                     VisitConstantArrayFieldDecl(this, constantArray);
+                }
+
+                if (hasVtbl)
+                {
+                    _outputBuilder.AddUsingDirective("System");
+
+                    if (!_config.GenerateCompatibleCode)
+                    {
+                        _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                    }
+
+                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+
+                    OutputVtblHelperMethods(this, cxxRecordDecl, cxxRecordDecl);
+
+                    _outputBuilder.WriteLine();
+                    _outputBuilder.WriteIndentedLine("public partial struct Vtbl");
+                    _outputBuilder.WriteBlockStart();
+                    _ = OutputVtblEntries(this, cxxRecordDecl);
+                    _outputBuilder.WriteBlockEnd();
                 }
 
                 _outputBuilder.WriteBlockEnd();
@@ -583,6 +740,295 @@ namespace ClangSharp
                 }
 
                 return count;
+            }
+
+            static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
+            {
+                Type baseType = cxxBaseSpecifier.Type;
+                {
+                    if (baseType is TypedefType typedefType)
+                    {
+                        baseType = typedefType.Decl.UnderlyingType;
+                    }
+
+                    if (baseType is ElaboratedType elaboratedType)
+                    {
+                        baseType = elaboratedType.CanonicalType;
+                    }
+                }
+                {
+                    if (baseType is TypedefType typedefType)
+                    {
+                        baseType = typedefType.Decl.UnderlyingType;
+                    }
+
+                    if (baseType is ElaboratedType elaboratedType)
+                    {
+                        baseType = elaboratedType.CanonicalType;
+                    }
+                }
+
+                var baseRecordType = (RecordType)baseType;
+                return (CXXRecordDecl)baseRecordType.Decl;
+            }
+
+            static bool HasVtbl(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
+            {
+                var hasDirectVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual);
+                var indirectVtblCount = 0;
+
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+
+                    if (HasVtbl(pinvokeGenerator, baseCxxRecordDecl))
+                    {
+                        indirectVtblCount++;
+                    }
+                }
+
+                if (indirectVtblCount > 1)
+                {
+                    pinvokeGenerator.AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
+                }
+
+                return hasDirectVtbl || (indirectVtblCount != 0);
+            }
+
+            static void OutputDelegateSignatures(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+            {
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                    OutputDelegateSignatures(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl);
+                }
+
+                foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
+                {
+                    if (!cxxMethodDecl.IsVirtual)
+                    {
+                        continue;
+                    }
+
+                    pinvokeGenerator._outputBuilder.WriteLine();
+                    pinvokeGenerator._visitedCursors.Add(cxxMethodDecl);
+                    pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);
+                }
+            }
+
+            static bool OutputVtblEntries(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
+            {
+                var outputBuilder = pinvokeGenerator._outputBuilder;
+                var anyOutput = false;
+
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    if (anyOutput)
+                    {
+                        outputBuilder.WriteLine();
+                    }
+
+                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                    anyOutput = OutputVtblEntries(pinvokeGenerator, baseCxxRecordDecl);
+                }
+
+                var cxxMethodDecls = cxxRecordDecl.Methods;
+
+                if (cxxMethodDecls.Count != 0)
+                {
+                    if (anyOutput)
+                    {
+                        outputBuilder.WriteLine();
+                    }
+
+                    OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecls[0]);
+
+                    for (int i = 1; i < cxxMethodDecls.Count; i++)
+                    {
+                        outputBuilder.WriteLine();
+                        OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecls[i]);
+                    }
+
+                    anyOutput = true;
+                }
+
+                return anyOutput;
+            }
+
+            static void OutputVtblEntry(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXMethodDecl cxxMethodDecl)
+            {
+                if (!cxxMethodDecl.IsVirtual)
+                {
+                    return;
+                }
+
+                var cxxMethodDeclTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, cxxMethodDecl.Type, out var nativeTypeName);
+                pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName);
+
+                outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(cxxMethodDecl));
+                outputBuilder.Write(' ');
+
+                var cxxMethodDeclName = pinvokeGenerator.GetRemappedCursorName(cxxMethodDecl);
+
+                outputBuilder.Write("IntPtr");
+                outputBuilder.Write(' ');
+
+                outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
+
+                outputBuilder.WriteLine(';');
+            }
+
+            static void OutputVtblHelperMethod(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl)
+            {
+                if (!cxxMethodDecl.IsVirtual)
+                {
+                    return;
+                }
+
+                var returnType = cxxMethodDecl.ReturnType;
+                var returnTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, returnType, out var nativeTypeName);
+                pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
+
+                outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(cxxMethodDecl));
+                outputBuilder.Write(' ');
+
+                var cxxMethodDeclName = pinvokeGenerator.GetRemappedCursorName(cxxMethodDecl);
+
+                outputBuilder.Write(returnTypeName);
+                outputBuilder.Write(' ');
+
+                outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
+
+                outputBuilder.Write('(');
+
+                foreach (var parmVarDecl in cxxMethodDecl.Parameters)
+                {
+                    pinvokeGenerator.VisitParmVarDecl(parmVarDecl);
+                }
+
+                outputBuilder.WriteLine(')');
+                outputBuilder.WriteBlockStart();
+
+                var needsReturnFixup = false;
+                var cxxRecordDeclName = pinvokeGenerator.GetRemappedCursorName(cxxRecordDecl);
+                var escapedCXXRecordDeclName = pinvokeGenerator.EscapeName(cxxRecordDeclName);
+
+                outputBuilder.WriteIndentation();
+
+                if (pinvokeGenerator._config.GenerateCompatibleCode)
+                {
+                    outputBuilder.Write("fixed");
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('(');
+                    outputBuilder.Write(escapedCXXRecordDeclName);
+                    outputBuilder.Write('*');
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write("pThis");
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('=');
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('&');
+                    outputBuilder.Write("this");
+                    outputBuilder.WriteLine(')');
+                    outputBuilder.WriteBlockStart();
+                    outputBuilder.WriteIndentation();
+                }
+
+                if (returnType.Kind != CXTypeKind.CXType_Void)
+                {
+                    needsReturnFixup = pinvokeGenerator.NeedsReturnFixup(cxxMethodDecl);
+
+                    if (needsReturnFixup)
+                    {
+                        outputBuilder.Write(returnTypeName);
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write("result");
+                        outputBuilder.WriteLine(';');
+                        outputBuilder.WriteIndentation();
+                    }
+
+                    outputBuilder.Write("return");
+                    outputBuilder.Write(' ');
+                }
+
+                if (needsReturnFixup)
+                {
+                    outputBuilder.Write('*');
+                }
+
+                outputBuilder.Write("Marshal.GetDelegateForFunctionPointer<");
+                outputBuilder.Write(pinvokeGenerator.PrefixAndStripName(cxxMethodDeclName));
+                outputBuilder.Write(">");
+
+                outputBuilder.Write('(');
+                outputBuilder.Write("lpVtbl->");
+                outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
+                outputBuilder.Write(')');
+                outputBuilder.Write('(');
+
+                if (pinvokeGenerator._config.GenerateCompatibleCode)
+                {
+                    outputBuilder.Write("pThis");
+                }
+                else
+                {
+                    outputBuilder.Write('(');
+                    outputBuilder.Write(escapedCXXRecordDeclName);
+                    outputBuilder.Write('*');
+                    outputBuilder.Write(')');
+                    outputBuilder.Write("Unsafe.AsPointer(ref this)");
+                }
+
+                if (needsReturnFixup)
+                {
+                    outputBuilder.Write(',');
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write("&result");
+                }
+
+                var parmVarDecls = cxxMethodDecl.Parameters;
+
+                for (int index = 0; index < parmVarDecls.Count; index++)
+                {
+                    outputBuilder.Write(',');
+                    outputBuilder.Write(' ');
+
+                    var name = pinvokeGenerator.GetRemappedCursorName(parmVarDecls[index]);
+                    outputBuilder.Write(pinvokeGenerator.EscapeName(name));
+
+                    if (name.Equals("param"))
+                    {
+                        outputBuilder.Write(index);
+                    }
+                }
+
+                outputBuilder.Write(')');
+                outputBuilder.WriteLine(';');
+
+                if (pinvokeGenerator._config.GenerateCompatibleCode)
+                {
+                    outputBuilder.WriteBlockEnd();
+                }
+
+                outputBuilder.WriteBlockEnd();
+            }
+
+            static void OutputVtblHelperMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+            {
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                    OutputVtblHelperMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl);
+                }
+
+                var cxxMethodDecls = cxxRecordDecl.Methods;
+                var outputBuilder = pinvokeGenerator._outputBuilder;
+
+                foreach (var cxxMethodDecl in cxxMethodDecls)
+                {
+                    outputBuilder.WriteLine();
+                    OutputVtblHelperMethod(pinvokeGenerator, outputBuilder, rootCxxRecordDecl, cxxMethodDecl);
+                }
             }
 
             static void VisitBitfieldDecl(PInvokeGenerator pinvokeGenerator, FieldDecl fieldDecl, ref int index, ref long previousSize, ref long remainingBits)

@@ -589,7 +589,11 @@ namespace ClangSharp
                     if ((typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous)
                     {
                         name = GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling);
-                        AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.", namedDecl);
+
+                        if (!_config.RemappedNames.ContainsKey(name))
+                        {
+                            AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.", namedDecl);
+                        }
                     }
                     else
                     {
@@ -772,7 +776,7 @@ namespace ClangSharp
             }
             else if (type is FunctionType)
             {
-                // The default name should be correct
+                name = "IntPtr";
             }
             else if (type is PointerType pointerType)
             {
@@ -787,6 +791,10 @@ namespace ClangSharp
                 if (tagType.Decl.Handle.IsAnonymous)
                 {
                     name = GetAnonymousName(tagType.Decl, tagType.KindSpelling);
+                }
+                else if (tagType.Handle.IsConstQualified)
+                {
+                    name = GetTypeName(cursor, tagType.Decl.TypeForDecl, out var nativeDeclTypeName);
                 }
                 else
                 {
@@ -953,6 +961,52 @@ namespace ClangSharp
         {
             var typeName = GetRemappedTypeName(namedDecl, type, out _);
             return typeName.Contains('*');
+        }
+
+        private bool NeedsReturnFixup(CXXMethodDecl cxxMethodDecl)
+        {
+            Debug.Assert(cxxMethodDecl != null);
+
+            var needsReturnFixup = false;
+
+            if (cxxMethodDecl.IsVirtual)
+            {
+                var canonicalReturnType = cxxMethodDecl.ReturnType.CanonicalType;
+
+                switch (canonicalReturnType.TypeClass)
+                {
+                    case CX_TypeClass.CX_TypeClass_Builtin:
+                    case CX_TypeClass.CX_TypeClass_Enum:
+                    case CX_TypeClass.CX_TypeClass_Pointer:
+                    {
+                        break;
+                    }
+
+                    case CX_TypeClass.CX_TypeClass_Record:
+                    {
+                        needsReturnFixup = true;
+                        break;
+                    }
+
+                    default:
+                    {
+                        AddDiagnostic(DiagnosticLevel.Error, $"Unsupported return type for abstract method: '{canonicalReturnType.TypeClass}'. Generated bindings may be incomplete.", cxxMethodDecl);
+                        break;
+                    }
+                }
+            }
+
+            return needsReturnFixup;
+        }
+
+        private string PrefixAndStripName(string name)
+        {
+            if (name.StartsWith(_config.MethodPrefixToStrip))
+            {
+                name = name.Substring(_config.MethodPrefixToStrip.Length);
+            }
+
+            return '_' + name;
         }
 
         private void StartUsingOutputBuilder(string name)
