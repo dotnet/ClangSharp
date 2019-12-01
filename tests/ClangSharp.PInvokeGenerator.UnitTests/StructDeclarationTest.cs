@@ -39,6 +39,161 @@ namespace ClangSharp.UnitTests
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
+        [Fact]
+        public async Task BitfieldTest()
+        {
+            var inputContents = @"struct MyStruct1
+{
+    unsigned int o0_b0_24 : 24;
+    unsigned int o4_b0_16 : 16;
+    unsigned int o4_b16_3 : 3;
+    unsigned char o8_b0_1 : 1;
+    int o12_b0_1 : 1;
+    int o12_b1_1 : 1;
+};
+
+struct MyStruct2
+{
+    unsigned int o0_b0_1 : 1;
+    unsigned int o0_b1_1 : 1;
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct1
+    {
+        internal uint _bitfield1;
+
+        [NativeTypeName(""unsigned int : 24"")]
+        public uint o0_b0_24
+        {
+            get
+            {
+                return _bitfield1 & 0xFFFFFFu;
+            }
+
+            set
+            {
+                _bitfield1 = (_bitfield1 & ~0xFFFFFFu) | (value & 0xFFFFFFu);
+            }
+        }
+
+        internal uint _bitfield2;
+
+        [NativeTypeName(""unsigned int : 16"")]
+        public uint o4_b0_16
+        {
+            get
+            {
+                return _bitfield2 & 0xFFFFu;
+            }
+
+            set
+            {
+                _bitfield2 = (_bitfield2 & ~0xFFFFu) | (value & 0xFFFFu);
+            }
+        }
+
+        [NativeTypeName(""unsigned int : 3"")]
+        public uint o4_b16_3
+        {
+            get
+            {
+                return (_bitfield2 >> 16) & 0x7u;
+            }
+
+            set
+            {
+                _bitfield2 = (_bitfield2 & ~(0x7u << 16)) | ((value & 0x7u) << 16);
+            }
+        }
+
+        internal byte _bitfield3;
+
+        [NativeTypeName(""unsigned char : 1"")]
+        public byte o8_b0_1
+        {
+            get
+            {
+                return (byte)(_bitfield3 & 0x1u);
+            }
+
+            set
+            {
+                _bitfield3 = (byte)((_bitfield3 & ~0x1u) | (value & 0x1u));
+            }
+        }
+
+        internal int _bitfield4;
+
+        [NativeTypeName(""int : 1"")]
+        public int o12_b0_1
+        {
+            get
+            {
+                return _bitfield4 & 0x1;
+            }
+
+            set
+            {
+                _bitfield4 = (_bitfield4 & ~0x1) | (value & 0x1);
+            }
+        }
+
+        [NativeTypeName(""int : 1"")]
+        public int o12_b1_1
+        {
+            get
+            {
+                return (_bitfield4 >> 1) & 0x1;
+            }
+
+            set
+            {
+                _bitfield4 = (_bitfield4 & ~(0x1 << 1)) | ((value & 0x1) << 1);
+            }
+        }
+    }
+
+    public partial struct MyStruct2
+    {
+        internal uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 1"")]
+        public uint o0_b0_1
+        {
+            get
+            {
+                return _bitfield & 0x1u;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0x1u) | (value & 0x1u);
+            }
+        }
+
+        [NativeTypeName(""unsigned int : 1"")]
+        public uint o0_b1_1
+        {
+            get
+            {
+                return (_bitfield >> 1) & 0x1u;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0x1u << 1)) | ((value & 0x1u) << 1);
+            }
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
         [Theory]
         [InlineData("unsigned char", "byte")]
         [InlineData("long long", "long")]
