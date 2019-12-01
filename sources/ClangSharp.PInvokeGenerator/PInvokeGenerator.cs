@@ -589,7 +589,11 @@ namespace ClangSharp
                     if ((typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous)
                     {
                         name = GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling);
-                        AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.", namedDecl);
+
+                        if (!_config.RemappedNames.ContainsKey(name))
+                        {
+                            AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.", namedDecl);
+                        }
                     }
                     else
                     {

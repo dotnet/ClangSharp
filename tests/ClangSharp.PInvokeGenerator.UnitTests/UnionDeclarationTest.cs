@@ -641,10 +641,7 @@ namespace ClangSharp.Test
                 ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
                 ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Union"
             };
-            var expectedDiagnostics = new Diagnostic[] {
-                new Diagnostic(DiagnosticLevel.Info, "Anonymous declaration found in 'GetCursorName'. Falling back to '__AnonymousRecord_ClangUnsavedFile_L7_C5'.", "Line 7, Column 5 in ClangUnsavedFile.h")
-            };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames, expectedDiagnostics);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
         }
 
         [Theory]
