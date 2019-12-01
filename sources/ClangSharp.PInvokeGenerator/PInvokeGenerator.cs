@@ -176,37 +176,7 @@ namespace ClangSharp
             var translationUnitDecl = translationUnit.TranslationUnitDecl;
             _visitedCursors.Add(translationUnitDecl);
 
-            foreach (var decl in translationUnitDecl.Decls)
-            {
-                if (_config.TraversalNames.Length == 0)
-                {
-                    if (!decl.Location.IsFromMainFile)
-                    {
-                        // It is not uncommon for some declarations to be done using macros, which are themselves
-                        // defined in an imported header file. We want to also check if the expansion location is
-                        // in the main file to catch these cases and ensure we still generate bindings for them.
-
-                        decl.Location.GetExpansionLocation(out CXFile file, out uint line, out uint column, out _);
-                        var expansionLocation = decl.TranslationUnit.Handle.GetLocation(file, line, column);
-
-                        if (!expansionLocation.IsFromMainFile)
-                        {
-                            continue;
-                        }
-                    }
-                }
-                else
-                {
-                    decl.Location.GetFileLocation(out CXFile file, out _, out _, out _);
-                    var fileName = file.Name.ToString();
-
-                    if (!_config.TraversalNames.Contains(fileName))
-                    {
-                        continue;
-                    }
-                }
-                Visit(decl);
-            }
+            VisitDecls(translationUnitDecl.Decls);
         }
 
         private void AddDiagnostic(DiagnosticLevel level, string message, Cursor cursor)
@@ -634,7 +604,7 @@ namespace ClangSharp
                 remappedName = name;
             }
 
-            if (remappedName.Equals("IntPtr") || remappedName.Equals("UIntPtr"))
+            if (remappedName.Equals("Guid") || remappedName.Equals("IntPtr") || remappedName.Equals("UIntPtr"))
             {
                 _outputBuilder.AddUsingDirective("System");
             }
@@ -807,13 +777,15 @@ namespace ClangSharp
                 // can be treated correctly. Otherwise, they will resolve to a particular
                 // platform size, based on whatever parameters were passed into clang.
 
-                if (_config.RemappedNames.TryGetValue(name, out string remappedName))
+                var remappedName = GetRemappedName(name);
+
+                if (remappedName.Equals(name))
                 {
-                    name = remappedName;
+                    name = GetTypeName(cursor, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
                 }
                 else
                 {
-                    name = GetTypeName(cursor, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
+                    name = remappedName;
                 }
             }
             else
@@ -847,11 +819,7 @@ namespace ClangSharp
             else
             {
                 name = GetTypeName(cursor, pointeeType, out nativePointeeTypeName);
-
-                if (_config.RemappedNames.TryGetValue(name, out string remappedName))
-                {
-                    name = remappedName;
-                }
+                name = GetRemappedName(name);
                 name += '*';
             }
 
