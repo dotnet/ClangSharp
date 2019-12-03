@@ -647,6 +647,44 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindings(inputContents, expectedOutputContents, expectedDiagnostics: expectedDiagnostics);
         }
 
+        [Fact]
+        public async Task NewKeywordTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int Equals;
+    int Finalize;
+    int GetHashCode;
+    int GetType;
+    int MemberwiseClone;
+    int ReferenceEquals;
+    int ToString;
+};";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        public new int Equals;
+
+        public int Finalize;
+
+        public new int GetHashCode;
+
+        public new int GetType;
+
+        public new int MemberwiseClone;
+
+        public new int ReferenceEquals;
+
+        public new int ToString;
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
         [Theory]
         [InlineData("double", "double")]
         [InlineData("short", "short")]

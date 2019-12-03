@@ -334,6 +334,12 @@ namespace ClangSharp
             _outputBuilder.WriteIndented(GetAccessSpecifierName(fieldDecl));
             _outputBuilder.Write(' ');
 
+            if (NeedsNewKeyword(name))
+            {
+                _outputBuilder.Write("new");
+                _outputBuilder.Write(' ');
+            }
+
             if (type is ConstantArrayType constantArrayType)
             {
                 if (IsSupportedFixedSizedBufferType(typeName))
@@ -472,9 +478,26 @@ namespace ClangSharp
 
             _outputBuilder.Write(' ');
 
-            if (IsUnsafe(functionDecl))
+            if (!isVirtual)
             {
-                _isMethodClassUnsafe = true;
+                if (NeedsNewKeyword(name, functionDecl.Parameters))
+                {
+                    _outputBuilder.Write("new");
+                    _outputBuilder.Write(' ');
+                }
+
+                if (IsUnsafe(functionDecl))
+                {
+                    if (cxxRecordDecl is null)
+                    {
+                        _isMethodClassUnsafe = true;
+                    }
+                    else
+                    {
+                        _outputBuilder.Write("unsafe");
+                        _outputBuilder.Write(' ');
+                    }
+                }
             }
 
             _outputBuilder.Write(returnTypeName);
