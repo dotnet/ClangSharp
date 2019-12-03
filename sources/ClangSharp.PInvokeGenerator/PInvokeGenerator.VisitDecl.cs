@@ -345,6 +345,19 @@ namespace ClangSharp
                     _outputBuilder.Write(escapedName);
                     _outputBuilder.Write('[');
                     _outputBuilder.Write(constantArrayType.Size);
+
+                    var elementType = constantArrayType.ElementType;
+
+                    while (elementType is ConstantArrayType subConstantArrayType)
+                    {
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write('*');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(subConstantArrayType.Size);
+
+                        elementType = subConstantArrayType.ElementType;
+                    }
+
                     _outputBuilder.Write(']');
                 }
                 else
@@ -1369,15 +1382,60 @@ namespace ClangSharp
                 outputBuilder.WriteLine(pinvokeGenerator.GetArtificalFixedSizedBufferName(constantArray));
                 outputBuilder.WriteBlockStart();
 
-                for (int i = 0; i < type.Size; i++)
+                var totalSize = type.Size;
+                var sizePerDimension = new List<(long index, long size)>() {
+                    (0, type.Size)
+                };
+
+                var elementType = type.ElementType;
+
+                while (elementType is ConstantArrayType subConstantArrayType)
                 {
+                    totalSize *= subConstantArrayType.Size;
+                    sizePerDimension.Add((0, subConstantArrayType.Size));
+                    elementType = subConstantArrayType.ElementType;
+                }
+
+                for (long i = 0; i < totalSize; i++)
+                {
+                    bool needAdditionalLine = false;
+
                     outputBuilder.WriteIndented("internal");
                     outputBuilder.Write(' ');
                     outputBuilder.Write(typeName);
                     outputBuilder.Write(' ');
                     outputBuilder.Write('e');
-                    outputBuilder.Write(i);
+
+                    var dimension = sizePerDimension[0];
+                    outputBuilder.Write(dimension.index++);
+                    sizePerDimension[0] = dimension;
+
+                    for (int d = 1; d < sizePerDimension.Count; d++)
+                    {
+                        dimension = sizePerDimension[d];
+                        outputBuilder.Write('_');
+                        outputBuilder.Write(dimension.index);
+                        sizePerDimension[d] = dimension;
+
+                        var previousDimension = sizePerDimension[d - 1];
+
+                        if (previousDimension.index == previousDimension.size)
+                        {
+                            previousDimension.index = 0;
+                            dimension.index++;
+                            sizePerDimension[d - 1] = previousDimension;
+                            needAdditionalLine = true;
+                        }
+
+                        sizePerDimension[d] = dimension;
+                    }
+
                     outputBuilder.WriteLine(';');
+
+                    if (needAdditionalLine && ((i + 1) != totalSize))
+                    {
+                        outputBuilder.WriteLine();
+                    }
                 }
 
                 outputBuilder.WriteLine();
@@ -1453,7 +1511,7 @@ namespace ClangSharp
                     }
                     else
                     {
-                        outputBuilder.Write(type.Size);
+                        outputBuilder.Write(totalSize);
                     }
 
                     outputBuilder.Write(')');
