@@ -24,17 +24,17 @@ namespace ClangSharp.UnitTests
             "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
         };
 
-        protected Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withNamespaces = null, IEnumerable<Diagnostic> expectedDiagnostics = null)
+        protected Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withNamespaces = null, IReadOnlyDictionary<string, string> withTypes = null, IEnumerable<Diagnostic> expectedDiagnostics = null)
         {
-            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None, excludedNames, remappedNames, withAttributes, withNamespaces, expectedDiagnostics);
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None, excludedNames, remappedNames, withAttributes, withCallConvs, withNamespaces, withTypes, expectedDiagnostics);
         }
 
-        protected Task ValidateGeneratedCompatibleBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withNamespaces = null, IEnumerable<Diagnostic> expectedDiagnostics = null)
+        protected Task ValidateGeneratedCompatibleBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withNamespaces = null, IReadOnlyDictionary<string, string> withTypes = null, IEnumerable<Diagnostic> expectedDiagnostics = null)
         {
-            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode, excludedNames, remappedNames, withAttributes, withNamespaces, expectedDiagnostics);
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode, excludedNames, remappedNames, withAttributes, withCallConvs, withNamespaces, withTypes, expectedDiagnostics);
         }
 
-        private async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions, string[] excludedNames, IReadOnlyDictionary<string, string> remappedNames, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes, IReadOnlyDictionary<string, IReadOnlyList<string>> withNamespaces, IEnumerable<Diagnostic> expectedDiagnostics)
+        private async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions, string[] excludedNames, IReadOnlyDictionary<string, string> remappedNames, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes, IReadOnlyDictionary<string, string> withCallConvs, IReadOnlyDictionary<string, IReadOnlyList<string>> withNamespaces, IReadOnlyDictionary<string, string> withTypes, IEnumerable<Diagnostic> expectedDiagnostics)
         {
             Assert.True(File.Exists(DefaultInputFileName));
 
@@ -42,7 +42,7 @@ namespace ClangSharp.UnitTests
             using var unsavedFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
 
             var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
-            var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName(), configOptions, excludedNames, headerFile: null, methodClassName: null, methodPrefixToStrip: null, remappedNames, withAttributes: withAttributes, withNamespaces: withNamespaces);
+            var config = new PInvokeGeneratorConfiguration(DefaultLibraryPath, DefaultNamespaceName, Path.GetRandomFileName(), configOptions, excludedNames, headerFile: null, methodClassName: null, methodPrefixToStrip: null, remappedNames, traversalNames: null, withAttributes, withCallConvs, withNamespaces, withTypes);
 
             using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))
             {

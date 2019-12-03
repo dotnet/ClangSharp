@@ -280,10 +280,11 @@ namespace ClangSharp
         
             StartUsingOutputBuilder(name);
             {
-                WithAttributes(name);
-                WithNamespaces(name);
-
                 var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
+
+                WithType("*", ref integerTypeName, ref nativeTypeName);
+                WithType(name, ref integerTypeName, ref nativeTypeName);
+
                 AddNativeTypeNameAttribute(nativeTypeName);
         
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(enumDecl));
@@ -372,16 +373,26 @@ namespace ClangSharp
                 StartUsingOutputBuilder(_config.MethodClassName);
             }
 
+            WithAttributes("*");
             WithAttributes(name);
+
+            WithNamespaces("*");
             WithNamespaces(name);
 
             var type = functionDecl.Type;
+            var callConv = CXCallingConv.CXCallingConv_Invalid;
 
             if (type is AttributedType attributedType)
             {
                 type = attributedType.ModifiedType;
+                callConv = attributedType.Handle.FunctionTypeCallingConv;
             }
             var functionType = (FunctionType)type;
+
+            if (callConv == CXCallingConv.CXCallingConv_Invalid)
+            {
+                callConv = functionType.CallConv;
+            }
 
             var cxxMethodDecl = functionDecl as CXXMethodDecl;
             var body = functionDecl.Body;
@@ -392,7 +403,7 @@ namespace ClangSharp
                 _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
                 _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
-                _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
+                _outputBuilder.Write(GetCallingConventionName(functionDecl, callConv, name));
                 _outputBuilder.WriteLine(")]");
             }
             else if (body is null)
@@ -408,7 +419,7 @@ namespace ClangSharp
                 }
 
                 _outputBuilder.Write("LibraryPath, CallingConvention = CallingConvention.");
-                _outputBuilder.Write(GetCallingConventionName(functionDecl, functionType.CallConv));
+                _outputBuilder.Write(GetCallingConventionName(functionDecl, callConv, name));
                 _outputBuilder.Write(", EntryPoint = \"");
 
                 if (cxxMethodDecl is null)
@@ -583,7 +594,15 @@ namespace ClangSharp
             {
                 _outputBuilder.Write(index);
             }
-        
+
+            if (parmVarDecl.HasDefaultArg)
+            {
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write('=');
+                _outputBuilder.Write(' ');
+                Visit(parmVarDecl.DefaultArg);
+            }
+
             if (index != lastIndex)
             {
                 _outputBuilder.Write(',');
@@ -611,6 +630,14 @@ namespace ClangSharp
             {
                 _outputBuilder.Write(index);
             }
+
+            if (parmVarDecl.HasDefaultArg)
+            {
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write('=');
+                _outputBuilder.Write(' ');
+                Visit(parmVarDecl.DefaultArg);
+            }
         
             if (index != lastIndex)
             {
@@ -625,9 +652,6 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
-                WithAttributes(name);
-                WithNamespaces(name);
-
                 var cxxRecordDecl = recordDecl as CXXRecordDecl;
                 var hasVtbl = false;
 
@@ -1482,13 +1506,10 @@ namespace ClangSharp
         
                 StartUsingOutputBuilder(name);
                 {
-                    WithAttributes(name);
-                    WithNamespaces(name);
-
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
         
                     _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
-                    _outputBuilder.Write(GetCallingConventionName(typedefDecl, (parentType is AttributedType) ? parentType.Handle.FunctionTypeCallingConv : functionProtoType.CallConv));
+                    _outputBuilder.Write(GetCallingConventionName(typedefDecl, (parentType is AttributedType) ? parentType.Handle.FunctionTypeCallingConv : functionProtoType.CallConv, name));
                     _outputBuilder.WriteLine(")]");
         
                     var returnType = functionProtoType.ReturnType;
@@ -1537,7 +1558,10 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(_config.MethodClassName);
             {
+                WithAttributes("*");
                 WithAttributes(name);
+
+                WithNamespaces("*");
                 WithNamespaces(name);
 
                 var type = varDecl.Type;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
+// Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,7 @@ namespace ClangSharp
         private readonly List<string> _contents;
         private readonly StringBuilder _currentLine;
         private readonly SortedSet<string> _usingDirectives;
+        private readonly SortedSet<string> _staticUsingDirectives;
         private readonly string _indentationString;
 
         private int _indentationLevel;
@@ -24,6 +25,7 @@ namespace ClangSharp
             _contents = new List<string>();
             _currentLine = new StringBuilder();
             _usingDirectives = new SortedSet<string>();
+            _staticUsingDirectives = new SortedSet<string>();
             _indentationString = indentationString;
         }
 
@@ -33,11 +35,20 @@ namespace ClangSharp
 
         public string Name => _name;
 
+        public IEnumerable<string> StaticUsingDirectives => _staticUsingDirectives;
+
         public IEnumerable<string> UsingDirectives => _usingDirectives;
 
         public void AddUsingDirective(string namespaceName)
         {
-            _usingDirectives.Add(namespaceName);
+            if (namespaceName.StartsWith("static "))
+            {
+                _staticUsingDirectives.Add(namespaceName);
+            }
+            else
+            {
+                _usingDirectives.Add(namespaceName);
+            }
         }
 
         public void DecreaseIndentation()
