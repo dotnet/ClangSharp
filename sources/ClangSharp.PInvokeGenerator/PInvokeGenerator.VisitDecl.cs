@@ -280,6 +280,9 @@ namespace ClangSharp
         
             StartUsingOutputBuilder(name);
             {
+                WithAttributes(name);
+                WithNamespaces(name);
+
                 var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName);
         
@@ -368,6 +371,9 @@ namespace ClangSharp
             {
                 StartUsingOutputBuilder(_config.MethodClassName);
             }
+
+            WithAttributes(name);
+            WithNamespaces(name);
 
             var type = functionDecl.Type;
 
@@ -619,6 +625,9 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
+                WithAttributes(name);
+                WithNamespaces(name);
+
                 var cxxRecordDecl = recordDecl as CXXRecordDecl;
                 var hasVtbl = false;
 
@@ -1473,6 +1482,9 @@ namespace ClangSharp
         
                 StartUsingOutputBuilder(name);
                 {
+                    WithAttributes(name);
+                    WithNamespaces(name);
+
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
         
                     _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
@@ -1525,6 +1537,9 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(_config.MethodClassName);
             {
+                WithAttributes(name);
+                WithNamespaces(name);
+
                 var type = varDecl.Type;
                 var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "// ");

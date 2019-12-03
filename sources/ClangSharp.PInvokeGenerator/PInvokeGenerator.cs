@@ -230,6 +230,30 @@ namespace ClangSharp
             }
         }
 
+        private void WithAttributes(string remappedName)
+        {
+            if (_config.WithAttributes.TryGetValue(remappedName, out IReadOnlyList<string> attributes))
+            {
+                foreach (var attribute in attributes)
+                {
+                    _outputBuilder.WriteIndented('[');
+                    _outputBuilder.Write(attribute);
+                    _outputBuilder.WriteLine(']');
+                }
+            }
+        }
+
+        private void WithNamespaces(string remappedName)
+        {
+            if (_config.WithNamespaces.TryGetValue(remappedName, out IReadOnlyList<string> namespaceNames))
+            {
+                foreach (var namespaceName in namespaceNames)
+                {
+                    _outputBuilder.AddUsingDirective(namespaceName);
+                }
+            }
+        }
+
         private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen, bool emitNamespaceDeclaration)
         {
             if (stream is null)

@@ -11,9 +11,11 @@ namespace ClangSharp
         private const string DefaultMethodClassName = "Methods";
 
         private readonly Dictionary<string, string> _remappedNames;
+        private readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
+        private readonly Dictionary<string, IReadOnlyList<string>> _withNamespaces;
         private readonly PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withNamespaces = null)
         {
             if (excludedNames is null)
             {
@@ -51,6 +53,9 @@ namespace ClangSharp
             }
 
             _options = options;
+            _remappedNames = new Dictionary<string, string>();
+            _withAttributes = new Dictionary<string, IReadOnlyList<string>>();
+            _withNamespaces = new Dictionary<string, IReadOnlyList<string>>();
 
             ExcludedNames = excludedNames;
             HeaderText = string.IsNullOrWhiteSpace(headerFile) ? string.Empty : File.ReadAllText(headerFile);
@@ -63,24 +68,15 @@ namespace ClangSharp
 
             if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
             {
-                _remappedNames = new Dictionary<string, string>()
-                {
-                    ["intptr_t"] = "IntPtr",
-                    ["ptrdiff_t"] = "IntPtr",
-                    ["size_t"] = "UIntPtr",
-                    ["uintptr_t"] = "UIntPtr",
-                };
+                _remappedNames.Add("intptr_t", "IntPtr");
+                _remappedNames.Add("ptrdiff_t", "IntPtr");
+                _remappedNames.Add("size_t", "UIntPtr");
+                _remappedNames.Add("uintptr_t", "UIntPtr");
             }
 
-            if (remappedNames != null)
-            {
-                foreach (var remappedName in remappedNames)
-                {
-                    // Use the indexer, rather than Add, so that any
-                    // default mappings can be overwritten if desired.
-                    _remappedNames[remappedName.Key] = remappedName.Value;
-                }
-            }
+            AddRange(_remappedNames, remappedNames);
+            AddRange(_withAttributes, withAttributes);
+            AddRange(_withNamespaces, withNamespaces);
         }
 
         public string[] ExcludedNames { get; }
@@ -106,5 +102,22 @@ namespace ClangSharp
         public IReadOnlyDictionary<string, string> RemappedNames => _remappedNames;
 
         public string[] TraversalNames { get; }
+
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> WithAttributes => _withAttributes;
+
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> WithNamespaces => _withNamespaces;
+
+        private static void AddRange<TValue>(Dictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>> keyValuePairs)
+        {
+            if (keyValuePairs != null)
+            {
+                foreach (var keyValuePair in keyValuePairs)
+                {
+                    // Use the indexer, rather than Add, so that any
+                    // default mappings can be overwritten if desired.
+                    dictionary[keyValuePair.Key] = keyValuePair.Value;
+                }
+            }
+        }
     }
 }

@@ -59,6 +59,40 @@ namespace ClangSharp.UnitTests
         }
 
         [Fact]
+        public async Task FlagsTest()
+        {
+            var inputContents = @"enum MyEnum : int
+{
+    MyEnum_Value1 = 1,
+    MyEnum_Value2,
+    MyEnum_Value3,
+};
+";
+
+            var expectedOutputContents = @"using System;
+
+namespace ClangSharp.Test
+{
+    [Flags]
+    public enum MyEnum
+    {
+        MyEnum_Value1 = 1,
+        MyEnum_Value2,
+        MyEnum_Value3,
+    }
+}
+";
+
+            var withAttributes = new Dictionary<string, IReadOnlyList<string>> {
+                ["MyEnum"] = new List<string>() { "Flags" }
+            };
+            var withNamespaces = new Dictionary<string, IReadOnlyList<string>> {
+                ["MyEnum"] = new List<string>() { "System" }
+            };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withAttributes: withAttributes, withNamespaces: withNamespaces);
+        }
+
+        [Fact]
         public async Task ExcludeTest()
         {
             var inputContents = @"enum MyEnum : int
