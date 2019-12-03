@@ -504,9 +504,9 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetAnonymousName(NamedDecl namedDecl, string kind)
+        private string GetAnonymousName(Cursor cursor, string kind)
         {
-            namedDecl.Location.GetFileLocation(out var file, out var line, out var column, out _);
+            cursor.Location.GetFileLocation(out var file, out var line, out var column, out _);
             var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
             return $"__Anonymous{kind}_{fileName}_L{line}_C{column}";
         }
@@ -597,9 +597,9 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetRemappedAnonymousName(NamedDecl namedDecl, string kind)
+        private string GetRemappedAnonymousName(Cursor cursor, string kind)
         {
-            var name = GetAnonymousName(namedDecl, kind);
+            var name = GetAnonymousName(cursor, kind);
             return GetRemappedName(name);
         }
 

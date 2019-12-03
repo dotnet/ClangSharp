@@ -722,9 +722,34 @@ namespace ClangSharp
                 }
 
                 var needsNewline = false;
-                var bitfieldCount = GetBitfieldCount(this, recordDecl);
 
+                if (cxxRecordDecl != null)
+                {
+                    foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                    {
+                        var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+
+                        if (HasFields(this, baseCxxRecordDecl))
+                        {
+                            if (needsNewline)
+                            {
+                                _outputBuilder.WriteLine();
+                            }
+                            needsNewline = true;
+
+                            _outputBuilder.WriteIndented(GetAccessSpecifierName(baseCxxRecordDecl));
+                            _outputBuilder.Write(' ');
+                            _outputBuilder.Write(GetRemappedCursorName(baseCxxRecordDecl));
+                            _outputBuilder.Write(' ');
+                            _outputBuilder.Write(GetRemappedAnonymousName(cxxBaseSpecifier, "Base"));
+                            _outputBuilder.WriteLine(';');
+                        }
+                    }
+                }
+
+                var bitfieldCount = GetBitfieldCount(this, recordDecl);
                 var bitfieldIndex = (bitfieldCount == 1) ? -1 : 0;
+
                 var bitfieldPreviousSize = 0L;
                 var bitfieldRemainingBits = 0L;
 
@@ -897,6 +922,26 @@ namespace ClangSharp
 
                 var baseRecordType = (RecordType)baseType;
                 return (CXXRecordDecl)baseRecordType.Decl;
+            }
+
+            static bool HasFields(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
+            {
+                var hasFields = cxxRecordDecl.Fields.Any();
+
+                if (!hasFields)
+                {
+                    foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                    {
+                        var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+
+                        if (HasFields(pinvokeGenerator, baseCxxRecordDecl))
+                        {
+                            hasFields = true;
+                            break;
+                        }
+                    }
+                }
+                return hasFields;
             }
 
             static bool HasVtbl(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
