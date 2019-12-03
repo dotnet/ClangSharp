@@ -39,7 +39,9 @@ namespace ClangSharp
             AddStdOption(s_rootCommand);
             AddTraverseOption(s_rootCommand);
             AddWithAttributeOption(s_rootCommand);
+            AddWithCallConvOption(s_rootCommand);
             AddWithNamespaceOption(s_rootCommand);
+            AddWithTypeOption(s_rootCommand);
 
             return await s_rootCommand.InvokeAsync(args);
         }
@@ -63,7 +65,9 @@ namespace ClangSharp
             var std = context.ParseResult.ValueForOption<string>("std");
             var traversalNames = context.ParseResult.ValueForOption<string[]>("traverse");
             var withAttributeNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-attribute");
+            var withCallConvNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-callconv");
             var withNamespaceNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-namespace");
+            var withTypeNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-type");
 
             var errorList = new List<string>();
 
@@ -88,8 +92,10 @@ namespace ClangSharp
             }
 
             ParseKeyValuePairs(remappedNameValuePairs, errorList, out Dictionary<string, string> remappedNames);
+            ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
             ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
             ParseKeyValuePairs(withNamespaceNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withNamespaces);
+            ParseKeyValuePairs(withTypeNameValuePairs, errorList, out Dictionary<string, string> withTypes);
 
             var configOptions = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? PInvokeGeneratorConfigurationOptions.None : PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
 
@@ -181,7 +187,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withNamespaces);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withNamespaces, withTypes);
 
             int exitCode = 0;
 
@@ -569,9 +575,39 @@ namespace ClangSharp
             rootCommand.AddOption(option);
         }
 
+        private static void AddWithCallConvOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--with-callconv", "-wcc" }, "A calling convention to be used for the given declaration during binding generation.")
+            {
+                Argument = new Argument("<remapped-name>=<value>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
+            };
+            option.Argument.SetDefaultValue(Array.Empty<string>());
+
+            rootCommand.AddOption(option);
+        }
+
         private static void AddWithNamespaceOption(RootCommand rootCommand)
         {
             var option = new Option(new string[] { "--with-namespace", "-wn" }, "A namespace to be included for the given remapped declaration name during binding generation.")
+            {
+                Argument = new Argument("<remapped-name>=<value>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
+            };
+            option.Argument.SetDefaultValue(Array.Empty<string>());
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddWithTypeOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--with-type", "-wt" }, "A type to be used for the given enum declaration during binding generation.")
             {
                 Argument = new Argument("<remapped-name>=<value>")
                 {

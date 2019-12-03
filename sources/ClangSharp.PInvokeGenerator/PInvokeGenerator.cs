@@ -71,14 +71,21 @@ namespace ClangSharp
                 leaveStreamOpen = true;
 
                 var usingDirectives = Enumerable.Empty<string>();
+                var staticUsingDirectives = Enumerable.Empty<string>();
 
                 foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
                 {
                     usingDirectives = usingDirectives.Concat(outputBuilder.UsingDirectives);
+                    staticUsingDirectives = staticUsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
                 }
 
                 usingDirectives = usingDirectives.Distinct()
                                                  .OrderBy((usingDirective) => usingDirective);
+
+                staticUsingDirectives = staticUsingDirectives.Distinct()
+                                                 .OrderBy((staticUsingDirective) => staticUsingDirective);
+
+                usingDirectives = usingDirectives.Concat(staticUsingDirectives);
 
                 if (usingDirectives.Any())
                 {
@@ -230,30 +237,6 @@ namespace ClangSharp
             }
         }
 
-        private void WithAttributes(string remappedName)
-        {
-            if (_config.WithAttributes.TryGetValue(remappedName, out IReadOnlyList<string> attributes))
-            {
-                foreach (var attribute in attributes)
-                {
-                    _outputBuilder.WriteIndented('[');
-                    _outputBuilder.Write(attribute);
-                    _outputBuilder.WriteLine(']');
-                }
-            }
-        }
-
-        private void WithNamespaces(string remappedName)
-        {
-            if (_config.WithNamespaces.TryGetValue(remappedName, out IReadOnlyList<string> namespaceNames))
-            {
-                foreach (var namespaceName in namespaceNames)
-                {
-                    _outputBuilder.AddUsingDirective(namespaceName);
-                }
-            }
-        }
-
         private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen, bool emitNamespaceDeclaration)
         {
             if (stream is null)
@@ -278,7 +261,7 @@ namespace ClangSharp
 
                 if (outputBuilder.UsingDirectives.Any())
                 {
-                    foreach (var usingDirective in outputBuilder.UsingDirectives)
+                    foreach (var usingDirective in outputBuilder.UsingDirectives.Concat(outputBuilder.StaticUsingDirectives))
                     {
                         sw.Write("using");
                         sw.Write(' ');
@@ -534,8 +517,13 @@ namespace ClangSharp
             return $"_{name}_e__FixedBuffer";
         }
 
-        private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention)
+        private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention, string remappedName)
         {
+            if (_config.WithCallConvs.TryGetValue(remappedName, out string callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
+            {
+                return callConv;
+            }
+
             switch (callingConvention)
             {
                 case CXCallingConv.CXCallingConv_C:
@@ -565,7 +553,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    var name = "WinApi";
+                    var name = "Winapi";
                     AddDiagnostic(DiagnosticLevel.Info, $"Unsupported calling convention: '{callingConvention}'. Falling back to '{name}'.", cursor);
                     return name;
                 }
@@ -1017,6 +1005,12 @@ namespace ClangSharp
             if (!_outputBuilderFactory.TryGetOutputBuilder(name, out _outputBuilder))
             {
                 _outputBuilder = _outputBuilderFactory.Create(name);
+
+                WithAttributes("*");
+                WithAttributes(name);
+
+                WithNamespaces("*");
+                WithNamespaces(name);
             }
             else
             {
@@ -1062,6 +1056,61 @@ namespace ClangSharp
             else
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported cursor: '{cursor.CursorKindSpelling}'. Generated bindings may be incomplete.", cursor);
+            }
+        }
+
+        private void WithAttributes(string remappedName)
+        {
+            if (_config.WithAttributes.TryGetValue(remappedName, out IReadOnlyList<string> attributes))
+            {
+                foreach (var attribute in attributes)
+                {
+                    if (attribute.Equals("Flags") || attribute.Equals("Obsolete"))
+                    {
+                        _outputBuilder.AddUsingDirective("System");
+                    }
+                    else if (attribute.Equals("EditorBrowsable") || attribute.StartsWith("EditorBrowsable("))
+                    {
+                        _outputBuilder.AddUsingDirective("System.ComponentModel");
+                    }
+                    else if (attribute.StartsWith("Guid("))
+                    {
+                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                    }
+
+                    _outputBuilder.WriteIndented('[');
+                    _outputBuilder.Write(attribute);
+                    _outputBuilder.WriteLine(']');
+                }
+            }
+        }
+
+        private void WithNamespaces(string remappedName)
+        {
+            if (_config.WithNamespaces.TryGetValue(remappedName, out IReadOnlyList<string> namespaceNames))
+            {
+                foreach (var namespaceName in namespaceNames)
+                {
+                    _outputBuilder.AddUsingDirective(namespaceName);
+                }
+            }
+        }
+
+        private void WithType(string remappedName, ref string integerTypeName, ref string nativeTypeName)
+        {
+            if (_config.WithTypes.TryGetValue(remappedName, out string type))
+            {
+                if (string.IsNullOrWhiteSpace(nativeTypeName))
+                {
+                    nativeTypeName = integerTypeName;
+                }
+
+                integerTypeName = type;
+
+                if (nativeTypeName.Equals(type))
+                {
+                    nativeTypeName = string.Empty;
+                }
             }
         }
     }
