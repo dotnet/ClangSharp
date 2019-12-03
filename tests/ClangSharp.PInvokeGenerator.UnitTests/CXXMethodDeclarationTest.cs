@@ -177,6 +177,7 @@ namespace ClangSharp.Test
 {
     virtual int GetType() = 0;
     virtual int GetType(int obj) = 0;
+    virtual int GetType(int objA, int objB) = 0;
 };";
 
             var callConv = "Cdecl";
@@ -202,25 +203,36 @@ namespace ClangSharp.Test
         public delegate int _GetType(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
-        public delegate int _GetType(MyStruct* pThis, int obj);
+        public delegate int _GetType1(MyStruct* pThis, int obj);
 
-        public int GetType()
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        public delegate int _GetType2(MyStruct* pThis, int objA, int objB);
+
+        public new int GetType()
         {{
             return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
         public int GetType(int obj)
         {{
-            return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)((MyStruct*)Unsafe.AsPointer(ref this), obj);
+            return Marshal.GetDelegateForFunctionPointer<_GetType1>(lpVtbl->GetType1)((MyStruct*)Unsafe.AsPointer(ref this), obj);
+        }}
+
+        public int GetType(int objA, int objB)
+        {{
+            return Marshal.GetDelegateForFunctionPointer<_GetType2>(lpVtbl->GetType2)((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
         }}
 
         public partial struct Vtbl
         {{
             [NativeTypeName(""int (){callConvAttr}"")]
-            public IntPtr GetType;
+            public new IntPtr GetType;
 
             [NativeTypeName(""int (int){callConvAttr}"")]
-            public IntPtr GetType;
+            public IntPtr GetType1;
+
+            [NativeTypeName(""int (int, int){callConvAttr}"")]
+            public IntPtr GetType2;
         }}
     }}
 }}

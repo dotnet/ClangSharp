@@ -786,7 +786,7 @@ namespace ClangSharp
 
                 if (hasVtbl)
                 {
-                    OutputDelegateSignatures(this, cxxRecordDecl, cxxRecordDecl);
+                    OutputDelegateSignatures(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
                 }
 
                 VisitDecls(recordDecl.Decls);
@@ -807,18 +807,39 @@ namespace ClangSharp
 
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
-                    OutputVtblHelperMethods(this, cxxRecordDecl, cxxRecordDecl);
+                    OutputVtblHelperMethods(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
 
                     _outputBuilder.WriteLine();
                     _outputBuilder.WriteIndentedLine("public partial struct Vtbl");
                     _outputBuilder.WriteBlockStart();
-                    _ = OutputVtblEntries(this, cxxRecordDecl);
+                    _ = OutputVtblEntries(this, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
                     _outputBuilder.WriteBlockEnd();
                 }
 
                 _outputBuilder.WriteBlockEnd();
             }
             StopUsingOutputBuilder();
+
+            static string FixupNameForMultipleHits(PInvokeGenerator pinvokeGenerator, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
+            {
+                var remappedName = pinvokeGenerator.GetRemappedCursorName(cxxMethodDecl);
+
+                if (hitsPerName.TryGetValue(remappedName, out int hits))
+                {
+                    hitsPerName[remappedName] = (hits + 1);
+
+                    var name = pinvokeGenerator.GetCursorName(cxxMethodDecl);
+                    var remappedNames = (Dictionary<string, string>)pinvokeGenerator._config.RemappedNames;
+
+                    remappedNames[name] = $"{remappedName}{hits}";
+                }
+                else
+                {
+                    hitsPerName.Add(remappedName, 1);
+                }
+
+                return remappedName;
+            }
 
             static int GetBitfieldCount(PInvokeGenerator pinvokeGenerator, RecordDecl recordDecl)
             {
@@ -901,12 +922,12 @@ namespace ClangSharp
                 return hasDirectVtbl || (indirectVtblCount != 0);
             }
 
-            static void OutputDelegateSignatures(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+            static void OutputDelegateSignatures(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputDelegateSignatures(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl);
+                    OutputDelegateSignatures(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl, hitsPerName);
                 }
 
                 foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
@@ -918,11 +939,14 @@ namespace ClangSharp
 
                     pinvokeGenerator._outputBuilder.WriteLine();
                     pinvokeGenerator._visitedCursors.Add(cxxMethodDecl);
+
+                    var remappedName = FixupNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName);
                     pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);
+                    RestoreNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName, remappedName);
                 }
             }
 
-            static bool OutputVtblEntries(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
+            static bool OutputVtblEntries(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
             {
                 var outputBuilder = pinvokeGenerator._outputBuilder;
                 var anyOutput = false;
@@ -935,7 +959,7 @@ namespace ClangSharp
                     }
 
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    anyOutput = OutputVtblEntries(pinvokeGenerator, baseCxxRecordDecl);
+                    anyOutput = OutputVtblEntries(pinvokeGenerator, baseCxxRecordDecl, hitsPerName);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -947,12 +971,12 @@ namespace ClangSharp
                         outputBuilder.WriteLine();
                     }
 
-                    OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecls[0]);
+                    OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecls[0], hitsPerName);
 
                     for (int i = 1; i < cxxMethodDecls.Count; i++)
                     {
                         outputBuilder.WriteLine();
-                        OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecls[i]);
+                        OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecls[i], hitsPerName);
                     }
 
                     anyOutput = true;
@@ -961,7 +985,7 @@ namespace ClangSharp
                 return anyOutput;
             }
 
-            static void OutputVtblEntry(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXMethodDecl cxxMethodDecl)
+            static void OutputVtblEntry(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
             {
                 if (!cxxMethodDecl.IsVirtual)
                 {
@@ -974,7 +998,15 @@ namespace ClangSharp
                 outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(cxxMethodDecl));
                 outputBuilder.Write(' ');
 
+                var remappedName = FixupNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName);
                 var cxxMethodDeclName = pinvokeGenerator.GetRemappedCursorName(cxxMethodDecl);
+                RestoreNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName, remappedName);
+
+                if (pinvokeGenerator.NeedsNewKeyword(cxxMethodDeclName))
+                {
+                    outputBuilder.Write("new");
+                    outputBuilder.Write(' ');
+                }
 
                 outputBuilder.Write("IntPtr");
                 outputBuilder.Write(' ');
@@ -984,7 +1016,7 @@ namespace ClangSharp
                 outputBuilder.WriteLine(';');
             }
 
-            static void OutputVtblHelperMethod(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl)
+            static void OutputVtblHelperMethod(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
             {
                 if (!cxxMethodDecl.IsVirtual)
                 {
@@ -998,12 +1030,20 @@ namespace ClangSharp
                 outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(cxxMethodDecl));
                 outputBuilder.Write(' ');
 
+                var remappedName = FixupNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName);
                 var cxxMethodDeclName = pinvokeGenerator.GetRemappedCursorName(cxxMethodDecl);
+                RestoreNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName, remappedName);
+
+                if (pinvokeGenerator.NeedsNewKeyword(cxxMethodDeclName))
+                {
+                    outputBuilder.Write("new");
+                    outputBuilder.Write(' ');
+                }
 
                 outputBuilder.Write(returnTypeName);
                 outputBuilder.Write(' ');
 
-                outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
+                outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(remappedName));
 
                 outputBuilder.Write('(');
 
@@ -1119,12 +1159,12 @@ namespace ClangSharp
                 outputBuilder.WriteBlockEnd();
             }
 
-            static void OutputVtblHelperMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+            static void OutputVtblHelperMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputVtblHelperMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl);
+                    OutputVtblHelperMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl, hitsPerName);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -1133,7 +1173,25 @@ namespace ClangSharp
                 foreach (var cxxMethodDecl in cxxMethodDecls)
                 {
                     outputBuilder.WriteLine();
-                    OutputVtblHelperMethod(pinvokeGenerator, outputBuilder, rootCxxRecordDecl, cxxMethodDecl);
+                    OutputVtblHelperMethod(pinvokeGenerator, outputBuilder, rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
+                }
+            }
+
+            static void RestoreNameForMultipleHits(PInvokeGenerator pinvokeGenerator, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName, string remappedName)
+            {
+                if (hitsPerName[remappedName] != 1)
+                {
+                    var name = pinvokeGenerator.GetCursorName(cxxMethodDecl);
+                    var remappedNames = (Dictionary<string, string>)pinvokeGenerator._config.RemappedNames;
+
+                    if (name.Equals(remappedName))
+                    {
+                        remappedNames.Remove(name);
+                    }
+                    else
+                    {
+                        remappedNames[name] = remappedName;
+                    }
                 }
             }
 
