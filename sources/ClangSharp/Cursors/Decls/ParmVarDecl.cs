@@ -9,5 +9,22 @@ namespace ClangSharp
         internal ParmVarDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ParmDecl, CX_DeclKind.CX_DeclKind_ParmVar)
         {
         }
+
+        public Expr DefaultArg
+        {
+            get
+            {
+                Expr defaultArg = Init;
+
+                if (defaultArg is FullExpr fullExpr)
+                {
+                    defaultArg = fullExpr.SubExpr;
+                }
+
+                return defaultArg;
+            }
+        }
+
+        public bool HasDefaultArg => DefaultArg != null;
     }
 }

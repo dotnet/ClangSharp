@@ -583,7 +583,15 @@ namespace ClangSharp
             {
                 _outputBuilder.Write(index);
             }
-        
+
+            if (parmVarDecl.HasDefaultArg)
+            {
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write('=');
+                _outputBuilder.Write(' ');
+                Visit(parmVarDecl.DefaultArg);
+            }
+
             if (index != lastIndex)
             {
                 _outputBuilder.Write(',');
@@ -610,6 +618,14 @@ namespace ClangSharp
             if (name.Equals("param"))
             {
                 _outputBuilder.Write(index);
+            }
+
+            if (parmVarDecl.HasDefaultArg)
+            {
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write('=');
+                _outputBuilder.Write(' ');
+                Visit(parmVarDecl.DefaultArg);
             }
         
             if (index != lastIndex)

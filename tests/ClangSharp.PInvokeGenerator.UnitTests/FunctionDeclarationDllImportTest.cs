@@ -50,5 +50,27 @@ namespace ClangSharp.Test
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
+
+        [Fact]
+        public async Task OptionalParameterTest()
+        {
+            var inputContents = @"void MyFunction(int value = 4);";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        public static extern void MyFunction(int value = 4);
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
     }
 }
