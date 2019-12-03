@@ -979,6 +979,29 @@ namespace ClangSharp
             return needsReturnFixup;
         }
 
+        private bool NeedsNewKeyword(string name)
+        {
+            return name.Equals("Equals")
+                || name.Equals("GetHashCode")
+                || name.Equals("GetType")
+                || name.Equals("MemberwiseClone")
+                || name.Equals("ReferenceEquals")
+                || name.Equals("ToString");
+        }
+
+        private bool NeedsNewKeyword(string name, IReadOnlyList<ParmVarDecl> parmVarDecls)
+        {
+            if (name.Equals("GetHashCode")
+                || name.Equals("GetType")
+                || name.Equals("MemberwiseClone")
+                || name.Equals("ToString"))
+            {
+                return parmVarDecls.Count == 0;
+            }
+
+            return false;
+        }
+
         private string PrefixAndStripName(string name)
         {
             if (name.StartsWith(_config.MethodPrefixToStrip))

@@ -345,6 +345,88 @@ namespace ClangSharp.Test
         }
 
         [Theory]
+        [InlineData("double", "double")]
+        [InlineData("short", "short")]
+        [InlineData("int", "int")]
+        [InlineData("float", "float")]
+        public async Task FixedSizedBufferNonPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} value;
+}};
+
+struct MyOtherStruct
+{{
+    MyStruct c[2][1][3][4];
+}};
+";
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        public {expectedManagedType} value;
+    }}
+
+    public partial struct MyOtherStruct
+    {{
+        [NativeTypeName(""MyStruct [2][1][3][4]"")]
+        public _c_e__FixedBuffer c;
+
+        public partial struct _c_e__FixedBuffer
+        {{
+            internal MyStruct e0_0_0_0;
+            internal MyStruct e1_0_0_0;
+
+            internal MyStruct e0_0_1_0;
+            internal MyStruct e1_0_1_0;
+
+            internal MyStruct e0_0_2_0;
+            internal MyStruct e1_0_2_0;
+
+            internal MyStruct e0_0_0_1;
+            internal MyStruct e1_0_0_1;
+
+            internal MyStruct e0_0_1_1;
+            internal MyStruct e1_0_1_1;
+
+            internal MyStruct e0_0_2_1;
+            internal MyStruct e1_0_2_1;
+
+            internal MyStruct e0_0_0_2;
+            internal MyStruct e1_0_0_2;
+
+            internal MyStruct e0_0_1_2;
+            internal MyStruct e1_0_1_2;
+
+            internal MyStruct e0_0_2_2;
+            internal MyStruct e1_0_2_2;
+
+            internal MyStruct e0_0_0_3;
+            internal MyStruct e1_0_0_3;
+
+            internal MyStruct e0_0_1_3;
+            internal MyStruct e1_0_1_3;
+
+            internal MyStruct e0_0_2_3;
+            internal MyStruct e1_0_2_3;
+
+            public ref MyStruct this[int index] => ref AsSpan()[index];
+
+            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 24);
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
         [InlineData("unsigned char", "byte")]
         [InlineData("long long", "long")]
         [InlineData("signed char", "sbyte")]
@@ -487,6 +569,38 @@ namespace ClangSharp.Test
         }
 
         [Theory]
+        [InlineData("unsigned char", "byte")]
+        [InlineData("double", "double")]
+        [InlineData("short", "short")]
+        [InlineData("int", "int")]
+        [InlineData("long long", "long")]
+        [InlineData("signed char", "sbyte")]
+        [InlineData("float", "float")]
+        [InlineData("unsigned short", "ushort")]
+        [InlineData("unsigned int", "uint")]
+        [InlineData("unsigned long long", "ulong")]
+        public async Task FixedSizedBufferPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} c[2][1][3][4];
+}};
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public unsafe partial struct MyStruct
+    {{
+        [NativeTypeName(""{nativeType} [2][1][3][4]"")]
+        public fixed {expectedManagedType} c[2 * 1 * 3 * 4];
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
         [InlineData("double", "double", 7, 5)]
         [InlineData("short", "short", 7, 5)]
         [InlineData("int", "int", 7, 5)]
@@ -531,6 +645,44 @@ namespace ClangSharp.Test
                 new Diagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in 'GetCursorName'. Falling back to '__AnonymousRecord_ClangUnsavedFile_L{line}_C{column}'.", $"Line {line}, Column {column} in ClangUnsavedFile.h")
             };
             await ValidateGeneratedBindings(inputContents, expectedOutputContents, expectedDiagnostics: expectedDiagnostics);
+        }
+
+        [Fact]
+        public async Task NewKeywordTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int Equals;
+    int Finalize;
+    int GetHashCode;
+    int GetType;
+    int MemberwiseClone;
+    int ReferenceEquals;
+    int ToString;
+};";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        public new int Equals;
+
+        public int Finalize;
+
+        public new int GetHashCode;
+
+        public new int GetType;
+
+        public new int MemberwiseClone;
+
+        public new int ReferenceEquals;
+
+        public new int ToString;
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
         [Theory]
