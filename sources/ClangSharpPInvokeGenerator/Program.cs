@@ -38,6 +38,8 @@ namespace ClangSharp
             AddRemapOption(s_rootCommand);
             AddStdOption(s_rootCommand);
             AddTraverseOption(s_rootCommand);
+            AddWithAttributeOption(s_rootCommand);
+            AddWithNamespaceOption(s_rootCommand);
 
             return await s_rootCommand.InvokeAsync(args);
         }
@@ -60,6 +62,8 @@ namespace ClangSharp
             var remappedNameValuePairs = context.ParseResult.ValueForOption<string[]>("remap");
             var std = context.ParseResult.ValueForOption<string>("std");
             var traversalNames = context.ParseResult.ValueForOption<string[]>("traverse");
+            var withAttributeNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-attribute");
+            var withNamespaceNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-namespace");
 
             var errorList = new List<string>();
 
@@ -83,20 +87,9 @@ namespace ClangSharp
                 errorList.Add("Error: No output file location provided. Use --output or -o");
             }
 
-            var remappedNames = new Dictionary<string, string>();
-
-            foreach (var remappedNameValuePair in remappedNameValuePairs)
-            {
-                var parts = remappedNameValuePair.Split('=');
-
-                if (parts.Length != 2)
-                {
-                    errorList.Add($"Error: Invalid remap argument: {remappedNameValuePair}. Expected 'name=value'");
-                    continue;
-                }
-
-                remappedNames[parts[0].TrimEnd()] = parts[1].TrimStart();
-            }
+            ParseKeyValuePairs(remappedNameValuePairs, errorList, out Dictionary<string, string> remappedNames);
+            ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
+            ParseKeyValuePairs(withNamespaceNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withNamespaces);
 
             var configOptions = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? PInvokeGeneratorConfigurationOptions.None : PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
 
@@ -188,7 +181,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withNamespaces);
 
             int exitCode = 0;
 
@@ -267,6 +260,58 @@ namespace ClangSharp
             }
 
             return exitCode;
+        }
+
+        private static void ParseKeyValuePairs(string[] keyValuePairs, List<string> errorList, out Dictionary<string, string> result)
+        {
+            result = new Dictionary<string, string>();
+
+            foreach (var keyValuePair in keyValuePairs)
+            {
+                var parts = keyValuePair.Split('=');
+
+                if (parts.Length != 2)
+                {
+                    errorList.Add($"Error: Invalid key/value pair argument: {keyValuePair}. Expected 'name=value'");
+                    continue;
+                }
+
+                var key = parts[0].TrimEnd();
+
+                if (result.ContainsKey(key))
+                {
+                    errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {result[key]}");
+                    continue;
+                }
+
+                result.Add(key, parts[1].TrimStart());
+            }
+        }
+
+        private static void ParseKeyValuePairs(string[] keyValuePairs, List<string> errorList, out Dictionary<string, IReadOnlyList<string>> result)
+        {
+            result = new Dictionary<string, IReadOnlyList<string>>();
+
+            foreach (var keyValuePair in keyValuePairs)
+            {
+                var parts = keyValuePair.Split('=');
+
+                if (parts.Length != 2)
+                {
+                    errorList.Add($"Error: Invalid key/value pair argument: {keyValuePair}. Expected 'name=value'");
+                    continue;
+                }
+
+                var key = parts[0].TrimEnd();
+
+                if (!result.ContainsKey(key))
+                {
+                    result.Add(key, new List<string>());
+                }
+
+                var list = (List<string>)result[key];
+                list.Add(parts[1].TrimStart());
+            }
         }
 
         private static void AddAdditionalOption(RootCommand rootCommand)
@@ -499,6 +544,36 @@ namespace ClangSharp
             var option = new Option(new string[] { "--traverse", "-t" }, "A file name included either directly or indirectly by -f that should be traversed during binding generation.")
             {
                 Argument = new Argument("<name>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
+            };
+            option.Argument.SetDefaultValue(Array.Empty<string>());
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddWithAttributeOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--with-attribute", "-wa" }, "An attribute to be added to the given remapped declaration name during binding generation.")
+            {
+                Argument = new Argument("<remapped-name>=<value>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
+            };
+            option.Argument.SetDefaultValue(Array.Empty<string>());
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddWithNamespaceOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--with-namespace", "-wn" }, "A namespace to be included for the given remapped declaration name during binding generation.")
+            {
+                Argument = new Argument("<remapped-name>=<value>")
                 {
                     ArgumentType = typeof(string),
                     Arity = ArgumentArity.OneOrMore,

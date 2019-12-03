@@ -215,6 +215,43 @@ namespace ClangSharp
         {
             foreach (var decl in decls)
             {
+                if (_config.TraversalNames.Length == 0)
+                {
+                    if (!decl.Location.IsFromMainFile)
+                    {
+                        // It is not uncommon for some declarations to be done using macros, which are themselves
+                        // defined in an imported header file. We want to also check if the expansion location is
+                        // in the main file to catch these cases and ensure we still generate bindings for them.
+
+                        decl.Location.GetExpansionLocation(out CXFile file, out uint line, out uint column, out _);
+                        var expansionLocation = decl.TranslationUnit.Handle.GetLocation(file, line, column);
+
+                        if (!expansionLocation.IsFromMainFile)
+                        {
+                            continue;
+                        }
+                    }
+                }
+                else
+                {
+                    decl.Location.GetFileLocation(out CXFile file, out _, out _, out _);
+                    var fileName = file.Name.ToString();
+
+                    if (!_config.TraversalNames.Contains(fileName))
+                    {
+                        // It is not uncommon for some declarations to be done using macros, which are themselves
+                        // defined in an imported header file. We want to also check if the expansion location is
+                        // in the main file to catch these cases and ensure we still generate bindings for them.
+
+                        decl.Location.GetExpansionLocation(out CXFile expansionFile, out _, out _, out _);
+                        fileName = expansionFile.Name.ToString();
+
+                        if (!_config.TraversalNames.Contains(fileName))
+                        {
+                            continue;
+                        }
+                    }
+                }
                 Visit(decl);
             }
         }
@@ -243,6 +280,9 @@ namespace ClangSharp
         
             StartUsingOutputBuilder(name);
             {
+                WithAttributes(name);
+                WithNamespaces(name);
+
                 var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName);
         
@@ -331,6 +371,9 @@ namespace ClangSharp
             {
                 StartUsingOutputBuilder(_config.MethodClassName);
             }
+
+            WithAttributes(name);
+            WithNamespaces(name);
 
             var type = functionDecl.Type;
 
@@ -582,6 +625,9 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
+                WithAttributes(name);
+                WithNamespaces(name);
+
                 var cxxRecordDecl = recordDecl as CXXRecordDecl;
                 var hasVtbl = false;
 
@@ -1407,7 +1453,7 @@ namespace ClangSharp
             }
             else if (underlyingType is PointerType pointerType)
             {
-                VisitTypedefDeclForPointeeType(typedefDecl, pointerType.PointeeType);
+                VisitTypedefDeclForPointeeType(typedefDecl, parentType: null, pointerType.PointeeType);
             }
             else if (underlyingType is TypedefType typedefType)
             {
@@ -1420,15 +1466,15 @@ namespace ClangSharp
             return;
         }
         
-        private void VisitTypedefDeclForPointeeType(TypedefDecl typedefDecl, Type pointeeType)
+        private void VisitTypedefDeclForPointeeType(TypedefDecl typedefDecl, Type parentType, Type pointeeType)
         {
             if (pointeeType is AttributedType attributedType)
             {
-                VisitTypedefDeclForPointeeType(typedefDecl, attributedType.ModifiedType);
+                VisitTypedefDeclForPointeeType(typedefDecl, attributedType, attributedType.ModifiedType);
             }
             else if (pointeeType is ElaboratedType elaboratedType)
             {
-                VisitTypedefDeclForPointeeType(typedefDecl, elaboratedType.NamedType);
+                VisitTypedefDeclForPointeeType(typedefDecl, elaboratedType, elaboratedType.NamedType);
             }
             else if (pointeeType is FunctionProtoType functionProtoType)
             {
@@ -1436,10 +1482,13 @@ namespace ClangSharp
         
                 StartUsingOutputBuilder(name);
                 {
+                    WithAttributes(name);
+                    WithNamespaces(name);
+
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
         
                     _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
-                    _outputBuilder.Write(GetCallingConventionName(typedefDecl, functionProtoType.CallConv));
+                    _outputBuilder.Write(GetCallingConventionName(typedefDecl, (parentType is AttributedType) ? parentType.Handle.FunctionTypeCallingConv : functionProtoType.CallConv));
                     _outputBuilder.WriteLine(")]");
         
                     var returnType = functionProtoType.ReturnType;
@@ -1470,11 +1519,11 @@ namespace ClangSharp
             }
             else if (pointeeType is PointerType pointerType)
             {
-                VisitTypedefDeclForPointeeType(typedefDecl, pointerType.PointeeType);
+                VisitTypedefDeclForPointeeType(typedefDecl, pointerType, pointerType.PointeeType);
             }
             else if (pointeeType is TypedefType typedefType)
             {
-                VisitTypedefDeclForPointeeType(typedefDecl, typedefType.Decl.UnderlyingType);
+                VisitTypedefDeclForPointeeType(typedefDecl, typedefType, typedefType.Decl.UnderlyingType);
             }
             else if (!(pointeeType is BuiltinType) && !(pointeeType is TagType))
             {
@@ -1488,6 +1537,9 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(_config.MethodClassName);
             {
+                WithAttributes(name);
+                WithNamespaces(name);
+
                 var type = varDecl.Type;
                 var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "// ");
