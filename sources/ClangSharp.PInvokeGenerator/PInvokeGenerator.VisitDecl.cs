@@ -1055,7 +1055,9 @@ namespace ClangSharp
                 var cxxMethodDeclName = pinvokeGenerator.GetRemappedCursorName(cxxMethodDecl);
                 RestoreNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName, remappedName);
 
-                if (pinvokeGenerator.NeedsNewKeyword(cxxMethodDeclName))
+                var escapedName = pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName);
+
+                if (pinvokeGenerator.NeedsNewKeyword(escapedName))
                 {
                     outputBuilder.Write("new");
                     outputBuilder.Write(' ');
@@ -1064,7 +1066,7 @@ namespace ClangSharp
                 outputBuilder.Write("IntPtr");
                 outputBuilder.Write(' ');
 
-                outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
+                outputBuilder.Write(escapedName);
 
                 outputBuilder.WriteLine(';');
             }
@@ -1087,7 +1089,9 @@ namespace ClangSharp
                 var cxxMethodDeclName = pinvokeGenerator.GetRemappedCursorName(cxxMethodDecl);
                 RestoreNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName, remappedName);
 
-                if (pinvokeGenerator.NeedsNewKeyword(cxxMethodDeclName))
+                var escapedName = pinvokeGenerator.EscapeAndStripName(remappedName);
+
+                if (pinvokeGenerator.NeedsNewKeyword(escapedName, cxxMethodDecl.Parameters))
                 {
                     outputBuilder.Write("new");
                     outputBuilder.Write(' ');
@@ -1096,7 +1100,7 @@ namespace ClangSharp
                 outputBuilder.Write(returnTypeName);
                 outputBuilder.Write(' ');
 
-                outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(remappedName));
+                outputBuilder.Write(escapedName);
 
                 outputBuilder.Write('(');
 
