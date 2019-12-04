@@ -560,7 +560,7 @@ namespace ClangSharp
 
             foreach (var parmVarDecl in functionDecl.Parameters)
             {
-                _visitedCursors.Add(parmVarDecl);
+                _visitedDecls.Add(parmVarDecl);
                 VisitParmVarDecl(parmVarDecl);
             }
 
@@ -991,7 +991,7 @@ namespace ClangSharp
                     }
 
                     pinvokeGenerator._outputBuilder.WriteLine();
-                    pinvokeGenerator._visitedCursors.Add(cxxMethodDecl);
+                    pinvokeGenerator._visitedDecls.Add(cxxMethodDecl);
 
                     var remappedName = FixupNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName);
                     pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);

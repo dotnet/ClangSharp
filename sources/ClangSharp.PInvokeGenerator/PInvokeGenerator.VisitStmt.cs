@@ -414,8 +414,6 @@ namespace ClangSharp
                     break;
                 }
             }
-
-            VisitStmts(stmt.Children);
         }
 
         private void VisitStmts(IEnumerable<Stmt> stmts)

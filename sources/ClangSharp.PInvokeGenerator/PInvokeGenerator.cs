@@ -18,7 +18,7 @@ namespace ClangSharp
         private readonly CXIndex _index;
         private readonly OutputBuilderFactory _outputBuilderFactory;
         private readonly Func<string, Stream> _outputStreamFactory;
-        private readonly HashSet<Cursor> _visitedCursors;
+        private readonly HashSet<Decl> _visitedDecls;
         private readonly List<Diagnostic> _diagnostics;
         private readonly PInvokeGeneratorConfiguration _config;
 
@@ -41,7 +41,7 @@ namespace ClangSharp
                 Directory.CreateDirectory(directoryPath);
                 return new FileStream(path, FileMode.Create);
             });
-            _visitedCursors = new HashSet<Cursor>();
+            _visitedDecls = new HashSet<Decl>();
             _diagnostics = new List<Diagnostic>();
             _config = config;
         }
@@ -143,7 +143,7 @@ namespace ClangSharp
 
             _diagnostics.Clear();
             _outputBuilderFactory.Clear();
-            _visitedCursors.Clear();
+            _visitedDecls.Clear();
         }
 
         public void Dispose()
@@ -181,7 +181,7 @@ namespace ClangSharp
             }
 
             var translationUnitDecl = translationUnit.TranslationUnitDecl;
-            _visitedCursors.Add(translationUnitDecl);
+            _visitedDecls.Add(translationUnitDecl);
 
             VisitDecls(translationUnitDecl.Decls);
         }
@@ -1053,19 +1053,18 @@ namespace ClangSharp
 
         private void Visit(Cursor cursor)
         {
-            if (_visitedCursors.Contains(cursor))
-            {
-                return;
-            }
-
-            _visitedCursors.Add(cursor);
-
             if (cursor is Attr attr)
             {
                 VisitAttr(attr);
             }
             else if (cursor is Decl decl)
             {
+                if (_visitedDecls.Contains(decl))
+                {
+                    return;
+                }
+                _visitedDecls.Add(decl);
+
                 VisitDecl(decl);
             }
             else if (cursor is Ref @ref)
