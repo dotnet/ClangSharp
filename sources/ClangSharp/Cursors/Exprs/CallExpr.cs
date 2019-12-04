@@ -37,7 +37,7 @@ namespace ClangSharp
                 return args;
             });
 
-            _callee = new Lazy<Expr>(() => Children.OfType<Expr>().First());
+            _callee = new Lazy<Expr>(() => Children.OfType<Expr>().ElementAt(0));
             _calleeDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.Referenced));
         }
 
