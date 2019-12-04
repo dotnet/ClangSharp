@@ -53,8 +53,17 @@ namespace ClangSharp.Test
         }
 
         [Theory]
-        [InlineData("int value = 0", "int value = 0")]
-        [InlineData("unsigned short value = '1'", @"[NativeTypeName(""unsigned short"")] ushort value = '1'")]
+        [InlineData("unsigned char value = 0", @"[NativeTypeName(""unsigned char"")] byte value = 0")]
+        [InlineData("double value = 1.0", @"double value = 1.0")]
+        [InlineData("short value = 2", @"short value = 2")]
+        [InlineData("int value = 3", @"int value = 3")]
+        [InlineData("long long value = 4", @"[NativeTypeName(""long long"")] long value = 4")]
+        [InlineData("signed char value = 5", @"[NativeTypeName(""signed char"")] sbyte value = 5")]
+        [InlineData("float value = 6.0f", @"float value = 6.0f")]
+        [InlineData("unsigned short value = 7", @"[NativeTypeName(""unsigned short"")] ushort value = 7")]
+        [InlineData("unsigned int value = 8", @"[NativeTypeName(""unsigned int"")] uint value = 8")]
+        [InlineData("unsigned long long value = 9", @"[NativeTypeName(""unsigned long long"")] ulong value = 9")]
+        [InlineData("unsigned short value = 'A'", @"[NativeTypeName(""unsigned short"")] ushort value = 'A'")]
         public async Task OptionalParameterTest(string nativeParameters, string expectedManagedParameters)
         {
             var inputContents = $@"void MyFunction({nativeParameters});";
@@ -64,6 +73,29 @@ namespace ClangSharp.Test
 namespace ClangSharp.Test
 {{
     public static partial class Methods
+    {{
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        public static extern void MyFunction({expectedManagedParameters});
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("void* value = nullptr", @"[NativeTypeName(""void *"")] void* value = null")]
+        public async Task OptionalParameterUnsafeTest(string nativeParameters, string expectedManagedParameters)
+        {
+            var inputContents = $@"void MyFunction({nativeParameters});";
+
+            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public static unsafe partial class Methods
     {{
         private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
