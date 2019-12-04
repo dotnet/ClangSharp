@@ -140,6 +140,37 @@ namespace ClangSharp
             _outputBuilder.NeedsNewline = true;
         }
 
+        private void VisitDoStmt(DoStmt doStmt)
+        {
+            _outputBuilder.WriteLine("do");
+
+            if (doStmt.Body is CompoundStmt)
+            {
+                Visit(doStmt.Body);
+            }
+            else
+            {
+                _outputBuilder.IncreaseIndentation();
+                _outputBuilder.WriteIndentation();
+
+                _outputBuilder.NeedsSemicolon = true;
+                Visit(doStmt.Body);
+
+                _outputBuilder.WriteSemicolonIfNeeded();
+                _outputBuilder.DecreaseIndentation();
+            }
+
+            _outputBuilder.WriteIndented("while");
+            _outputBuilder.Write(' ');
+            _outputBuilder.Write('(');
+
+            Visit(doStmt.Cond);
+            _outputBuilder.Write(')');
+
+            _outputBuilder.NeedsSemicolon = true;
+            _outputBuilder.NeedsNewline = true;
+        }
+
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
         {
             if (!(explicitCastExpr is CXXConstCastExpr))
@@ -305,7 +336,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_DoStmt:
+                case CX_StmtClass.CX_StmtClass_DoStmt:
+                {
+                    VisitDoStmt((DoStmt)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_ForStmt:
                 // case CX_StmtClass.CX_StmtClass_GotoStmt:
 
@@ -597,7 +633,12 @@ namespace ClangSharp
 
                 // case CX_StmtClass.CX_StmtClass_VAArgExpr:
                 // case CX_StmtClass.CX_StmtClass_LabelStmt:
-                // case CX_StmtClass.CX_StmtClass_WhileStmt:
+
+                case CX_StmtClass.CX_StmtClass_WhileStmt:
+                {
+                    VisitWhileStmt((WhileStmt)stmt);
+                    break;
+                }
 
                 default:
                 {
@@ -639,6 +680,34 @@ namespace ClangSharp
                     break;
                 }
             }
+        }
+
+        private void VisitWhileStmt(WhileStmt whileStmt)
+        {
+            _outputBuilder.Write("while");
+            _outputBuilder.Write(' ');
+            _outputBuilder.Write('(');
+
+            Visit(whileStmt.Cond);
+
+            _outputBuilder.WriteLine(')');
+
+            if (whileStmt.Body is CompoundStmt)
+            {
+                Visit(whileStmt.Body);
+            }
+            else
+            {
+                _outputBuilder.IncreaseIndentation();
+                _outputBuilder.WriteIndentation();
+
+                _outputBuilder.NeedsSemicolon = true;
+                Visit(whileStmt.Body);
+
+                _outputBuilder.DecreaseIndentation();
+            }
+
+            _outputBuilder.NeedsNewline = true;
         }
     }
 }

@@ -527,6 +527,84 @@ int MyFunction()
         }
 
         [Fact]
+        public async Task DoTest()
+        {
+            var inputContents = @"int MyFunction(int count)
+{
+    int i = 0;
+
+    do
+    {
+        i++;
+    }
+    while (i < count);
+
+    return i;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int count)
+        {
+            int i = 0;
+
+            do
+            {
+                i++;
+            }
+            while (i < count);
+
+            return i;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task DoNonCompoundTest()
+        {
+            var inputContents = @"int MyFunction(int count)
+{
+    int i = 0;
+
+    while (i < count)
+        i++;
+
+    return i;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int count)
+        {
+            int i = 0;
+
+            while (i < count)
+                i++;
+
+            return i;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task IfTest()
         {
             var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
@@ -994,6 +1072,82 @@ int MyFunction2(MyStruct* instance)
         }}
     }}
 }}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task WhileTest()
+        {
+            var inputContents = @"int MyFunction(int count)
+{
+    int i = 0;
+
+    while (i < count)
+    {
+        i++;
+    }
+
+    return i;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int count)
+        {
+            int i = 0;
+
+            while (i < count)
+            {
+                i++;
+            }
+
+            return i;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task WhileNonCompoundTest()
+        {
+            var inputContents = @"int MyFunction(int count)
+{
+    int i = 0;
+
+    while (i < count)
+        i++;
+
+    return i;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int count)
+        {
+            int i = 0;
+
+            while (i < count)
+                i++;
+
+            return i;
+        }
+    }
+}
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
