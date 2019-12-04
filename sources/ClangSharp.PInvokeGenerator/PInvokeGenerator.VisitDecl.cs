@@ -150,14 +150,15 @@ namespace ClangSharp
                 // case CX_DeclKind.CX_DeclKind_CXXDeductionGuide:
 
                 case CX_DeclKind.CX_DeclKind_CXXMethod:
+                case CX_DeclKind.CX_DeclKind_CXXConstructor:
+                case CX_DeclKind.CX_DeclKind_CXXDestructor:
                 {
                     VisitFunctionDecl((CXXMethodDecl)decl, (CXXRecordDecl)decl.DeclContext);
                     break;
                 }
 
-                // case CX_DeclKind.CX_DeclKind_CXXConstructor:
+                
                 // case CX_DeclKind.CX_DeclKind_CXXConversion:
-                // case CX_DeclKind.CX_DeclKind_CXXDestructor:
                 // case CX_DeclKind.CX_DeclKind_MSProperty:
                 // case CX_DeclKind.CX_DeclKind_NonTypeTemplateParm:
 
@@ -508,16 +509,19 @@ namespace ClangSharp
                 }
             }
 
-            _outputBuilder.Write(returnTypeName);
-
             var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
 
-            if (needsReturnFixup)
+            if (!(functionDecl is CXXConstructorDecl))
             {
-                _outputBuilder.Write('*');
-            }
+                _outputBuilder.Write(returnTypeName);
 
-            _outputBuilder.Write(' ');
+                if (needsReturnFixup)
+                {
+                    _outputBuilder.Write('*');
+                }
+
+                _outputBuilder.Write(' ');
+            }
 
             if (isVirtual)
             {
@@ -574,9 +578,21 @@ namespace ClangSharp
             {
                 _outputBuilder.NeedsNewline = true;
 
-                if (body is CompoundStmt)
+                int firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
+                int lastCtorInitializer = (functionDecl.Body != null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
+
+                if (body is CompoundStmt compoundStmt)
                 {
-                    Visit(body);
+                    _outputBuilder.WriteBlockStart();
+                    _outputBuilder.NeedsSemicolon = true;
+
+                    if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
+                    {
+                        VisitCtorInitializers(this, cxxConstructorDecl, firstCtorInitializer, lastCtorInitializer);
+                    }
+
+                    VisitStmts(compoundStmt.Body);
+                    _outputBuilder.WriteBlockEnd();
                 }
                 else
                 {
@@ -584,6 +600,11 @@ namespace ClangSharp
                     _outputBuilder.WriteIndentation();
 
                     _outputBuilder.NeedsSemicolon = true;
+
+                    if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
+                    {
+                        VisitCtorInitializers(this, cxxConstructorDecl, firstCtorInitializer, lastCtorInitializer);
+                    }
                     Visit(body);
 
                     _outputBuilder.WriteSemicolonIfNeeded();
@@ -596,6 +617,35 @@ namespace ClangSharp
             if (cxxRecordDecl is null)
             {
                 StopUsingOutputBuilder();
+            }
+
+            static void VisitCtorInitializers(PInvokeGenerator pinvokeGenerator, CXXConstructorDecl cxxConstructorDecl, int firstCtorInitializer, int lastCtorInitializer)
+            {
+                var outputBuilder = pinvokeGenerator._outputBuilder;
+
+                if (firstCtorInitializer < lastCtorInitializer)
+                {
+                    for (int i = firstCtorInitializer; i < lastCtorInitializer; i++)
+                    {
+                        var memberRef = (Ref)cxxConstructorDecl.CursorChildren[i];
+                        var memberInit = (Stmt)cxxConstructorDecl.CursorChildren[++i];
+
+                        if (memberInit is ImplicitValueInitExpr)
+                        {
+                            continue;
+                        }
+
+                        outputBuilder.WriteIndentation();
+                        pinvokeGenerator.Visit(memberRef);
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write('=');
+                        outputBuilder.Write(' ');
+                        pinvokeGenerator.Visit(memberInit);
+                        outputBuilder.WriteSemicolonIfNeeded();
+                    }
+
+                    outputBuilder.NeedsSemicolon = false;
+                }
             }
         }
 
@@ -791,6 +841,18 @@ namespace ClangSharp
 
                         _outputBuilder.NeedsNewline = true;
                     }
+                }
+
+                foreach (var cxxConstructorDecl in cxxRecordDecl.Ctors)
+                {
+                    Visit(cxxConstructorDecl);
+                    _outputBuilder.NeedsNewline = true;
+                }
+
+                if (cxxRecordDecl.Destructor != null)
+                {
+                    Visit(cxxRecordDecl.Destructor);
+                    _outputBuilder.NeedsNewline = true;
                 }
 
                 foreach (var cxxMethodDecl in cxxRecordDecl.Methods)

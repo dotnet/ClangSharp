@@ -594,6 +594,10 @@ namespace ClangSharp
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.Kind}'.", namedDecl);
                 }
             }
+            else if (namedDecl is CXXDestructorDecl)
+            {
+                name = "Finalize";
+            }
 
             Debug.Assert(!string.IsNullOrWhiteSpace(name));
             return name;

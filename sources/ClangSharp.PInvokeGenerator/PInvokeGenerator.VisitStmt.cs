@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
@@ -103,22 +104,7 @@ namespace ClangSharp
             _outputBuilder.WriteBlockStart();
             _outputBuilder.NeedsSemicolon = true;
 
-            Stmt previousStmt = null;
-
-            foreach (var stmt in compoundStmt.Body)
-            {
-                if ((previousStmt is DeclStmt declStmt) && (stmt is DeclStmt))
-                {
-                    _outputBuilder.NeedsNewline = false;
-                }
-
-                _outputBuilder.WriteIndentation();
-                Visit(stmt);
-                _outputBuilder.WriteSemicolonIfNeeded();
-
-                previousStmt = stmt;
-            }
-
+            VisitStmts(compoundStmt.Body);
             _outputBuilder.WriteBlockEnd();
         }
 
@@ -802,6 +788,25 @@ namespace ClangSharp
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.StmtClass}'. Generated bindings may be incomplete.", stmt);
                     break;
                 }
+            }
+        }
+
+        private void VisitStmts(IEnumerable<Stmt> stmts)
+        {
+            Stmt previousStmt = null;
+
+            foreach (var stmt in stmts)
+            {
+                if ((previousStmt is DeclStmt declStmt) && (stmt is DeclStmt))
+                {
+                    _outputBuilder.NeedsNewline = false;
+                }
+
+                _outputBuilder.WriteIndentation();
+                Visit(stmt);
+                _outputBuilder.WriteSemicolonIfNeeded();
+
+                previousStmt = stmt;
             }
         }
 

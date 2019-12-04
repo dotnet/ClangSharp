@@ -10,6 +10,118 @@ namespace ClangSharp.UnitTests
     public sealed class CXXMethodDeclarationTest : PInvokeGeneratorTest
     {
         [Fact]
+        public async Task ConstructorTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int _value;
+
+    MyStruct(int value)
+    {
+        _value = value;
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int _value;
+
+        public MyStruct(int value)
+        {
+            _value = value;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task ConstructorWithInitializeTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int _x;
+    int _y;
+    int _z;
+
+    MyStruct(int x) : _x(x)
+    {
+    }
+
+    MyStruct(int x, int y) : _x(x), _y(y)
+    {
+    }
+
+    MyStruct(int x, int y, int z) : _x(x), _y(y), _z()
+    {
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int _x;
+
+        public int _y;
+
+        public int _z;
+
+        public MyStruct(int x)
+        {
+            _x = x;
+        }
+
+        public MyStruct(int x, int y)
+        {
+            _x = x;
+            _y = y;
+        }
+
+        public MyStruct(int x, int y, int z)
+        {
+            _x = x;
+            _y = y;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task DestructorTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    ~MyStruct()
+    {
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public void Finalize()
+        {
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task InstanceTest()
         {
             var inputContents = @"struct MyStruct

@@ -6,7 +6,8 @@ namespace ClangSharp
     {
         private void VisitRef(Ref @ref)
         {
-            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported reference: '{@ref.CursorKindSpelling}'. Generated bindings may be incomplete.", @ref);
+            var name = GetRemappedCursorName(@ref.Referenced);
+            _outputBuilder.Write(name);
         }
     }
 }
