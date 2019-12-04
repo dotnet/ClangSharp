@@ -25,6 +25,11 @@ namespace ClangSharp
             Visit(binaryOperator.RHS);
         }
 
+        private void VisitBreakStmt(BreakStmt breakStmt)
+        {
+            _outputBuilder.Write("break");
+        }
+
         private void VisitCallExpr(CallExpr callExpr)
         {
             var calleeDecl = callExpr.CalleeDecl;
@@ -54,6 +59,38 @@ namespace ClangSharp
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.Kind}'. Generated bindings may be incomplete.", calleeDecl);
             }
+        }
+
+        private void VisitCaseStmt(CaseStmt caseStmt)
+        {
+            _outputBuilder.Write("case");
+            _outputBuilder.Write(' ');
+            Visit(caseStmt.LHS);
+            _outputBuilder.WriteLine(':');
+
+            if (caseStmt.SubStmt is CompoundStmt)
+            {
+                Visit(caseStmt.SubStmt);
+            }
+            else if (caseStmt.SubStmt is SwitchCase)
+            {
+                _outputBuilder.WriteIndentation();
+
+                _outputBuilder.NeedsSemicolon = true;
+                Visit(caseStmt.SubStmt);
+            }
+            else
+            {
+                _outputBuilder.IncreaseIndentation();
+                _outputBuilder.WriteIndentation();
+
+                _outputBuilder.NeedsSemicolon = true;
+                Visit(caseStmt.SubStmt);
+
+                _outputBuilder.DecreaseIndentation();
+            }
+
+            _outputBuilder.NeedsNewline = true;
         }
 
         private void VisitCharacterLiteral(CharacterLiteral characterLiteral)
@@ -98,6 +135,11 @@ namespace ClangSharp
             Visit(conditionalOperator.FalseExpr);
         }
 
+        private void VisitContinueStmt(ContinueStmt continueStmt)
+        {
+            _outputBuilder.Write("continue");
+        }
+
         private void VisitCXXBoolLiteralExpr(CXXBoolLiteralExpr cxxBoolLiteralExpr)
         {
             _outputBuilder.Write(cxxBoolLiteralExpr.Value);
@@ -138,6 +180,39 @@ namespace ClangSharp
             }
 
             _outputBuilder.NeedsNewline = true;
+        }
+
+        private void VisitDefaultStmt(DefaultStmt defaultStmt)
+        {
+            _outputBuilder.Write("default");
+            _outputBuilder.WriteLine(':');
+
+            if (defaultStmt.SubStmt != null)
+            {
+                if (defaultStmt.SubStmt is CompoundStmt)
+                {
+                    Visit(defaultStmt.SubStmt);
+                }
+
+                else if (defaultStmt.SubStmt is SwitchCase)
+                {
+                    _outputBuilder.WriteIndentation();
+
+                    _outputBuilder.NeedsSemicolon = true;
+                    Visit(defaultStmt.SubStmt);
+                }
+                else
+                {
+                    _outputBuilder.IncreaseIndentation();
+                    _outputBuilder.WriteIndentation();
+
+                    _outputBuilder.NeedsSemicolon = true;
+                    Visit(defaultStmt.SubStmt);
+
+                    _outputBuilder.DecreaseIndentation();
+                }
+                _outputBuilder.NeedsNewline = true;
+            }
         }
 
         private void VisitDoStmt(DoStmt doStmt)
@@ -363,7 +438,13 @@ namespace ClangSharp
             {
                 // case CX_StmtClass.CX_StmtClass_GCCAsmStmt:
                 // case CX_StmtClass.CX_StmtClass_MSAsmStmt:
-                // case CX_StmtClass.CX_StmtClass_BreakStmt:
+
+                case CX_StmtClass.CX_StmtClass_BreakStmt:
+                {
+                    VisitBreakStmt((BreakStmt)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXCatchStmt:
                 // case CX_StmtClass.CX_StmtClass_CXXForRangeStmt:
                 // case CX_StmtClass.CX_StmtClass_CXXTryStmt:
@@ -375,7 +456,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_ContinueStmt:
+                case CX_StmtClass.CX_StmtClass_ContinueStmt:
+                {
+                    VisitContinueStmt((ContinueStmt)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CoreturnStmt:
                 // case CX_StmtClass.CX_StmtClass_CoroutineBodyStmt:
 
@@ -473,9 +559,25 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_SEHFinallyStmt:
                 // case CX_StmtClass.CX_StmtClass_SEHLeaveStmt:
                 // case CX_StmtClass.CX_StmtClass_SEHTryStmt:
-                // case CX_StmtClass.CX_StmtClass_CaseStmt:
-                // case CX_StmtClass.CX_StmtClass_DefaultStmt:
-                // case CX_StmtClass.CX_StmtClass_SwitchStmt:
+
+                case CX_StmtClass.CX_StmtClass_CaseStmt:
+                {
+                    VisitCaseStmt((CaseStmt)stmt);
+                    break;
+                }
+
+                case CX_StmtClass.CX_StmtClass_DefaultStmt:
+                {
+                    VisitDefaultStmt((DefaultStmt)stmt);
+                    break;
+                }
+
+                case CX_StmtClass.CX_StmtClass_SwitchStmt:
+                {
+                    VisitSwitchStmt((SwitchStmt)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_AttributedStmt:
                 // case CX_StmtClass.CX_StmtClass_BinaryConditionalOperator:
 
@@ -700,6 +802,35 @@ namespace ClangSharp
                     break;
                 }
             }
+        }
+
+        private void VisitSwitchStmt(SwitchStmt switchStmt)
+        {
+            _outputBuilder.Write("switch");
+            _outputBuilder.Write(' ');
+            _outputBuilder.Write('(');
+
+            Visit(switchStmt.Cond);
+
+            _outputBuilder.WriteLine(')');
+
+            if (switchStmt.Body is CompoundStmt)
+            {
+                Visit(switchStmt.Body);
+            }
+            else
+            {
+                _outputBuilder.WriteBlockStart();
+                _outputBuilder.WriteIndentation();
+
+                _outputBuilder.NeedsSemicolon = true;
+                Visit(switchStmt.Body);
+
+                _outputBuilder.WriteSemicolonIfNeeded();
+                _outputBuilder.WriteBlockEnd();
+            }
+
+            _outputBuilder.NeedsNewline = true;
         }
 
         private void VisitUnaryOperator(UnaryOperator unaryOperator)

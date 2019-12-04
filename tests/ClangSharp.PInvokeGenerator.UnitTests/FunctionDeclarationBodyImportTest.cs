@@ -141,6 +141,42 @@ namespace ClangSharp.UnitTests
         }
 
         [Fact]
+        public async Task BreakTest()
+        {
+            var inputContents = @"int MyFunction(int value)
+{
+    while (true)
+    {
+        break;
+    }
+
+    return 0;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int value)
+        {
+            while (true)
+            {
+                break;
+            }
+
+            return 0;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task CallFunctionTest()
         {
             var inputContents = @"void MyCalledFunction()
@@ -209,6 +245,106 @@ void MyFunction()
         }
 
         [Fact]
+        public async Task CaseTest()
+        {
+            var inputContents = @"int MyFunction(int value)
+{
+    switch (value)
+    {
+        case 0:
+        {
+            return 0;
+        }
+
+        case 1:
+        case 2:
+        {
+            return 3;
+        }
+    }
+
+    return -1;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int value)
+        {
+            switch (value)
+            {
+                case 0:
+                {
+                    return 0;
+                }
+
+                case 1:
+                case 2:
+                {
+                    return 3;
+                }
+            }
+
+            return -1;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task CaseNoCompoundTest()
+        {
+            var inputContents = @"int MyFunction(int value)
+{
+    switch (value)
+    {
+        case 0:
+            return 0;
+
+        case 2:
+        case 3:
+            return 5;
+    }
+
+    return -1;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int value)
+        {
+            switch (value)
+            {
+                case 0:
+                    return 0;
+
+                case 2:
+                case 3:
+                    return 5;
+            }
+
+            return -1;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task CompareMultipleEnumTest()
         {
             var inputContents = @"enum MyEnum : int
@@ -268,6 +404,42 @@ static inline int MyFunction(MyEnum x)
         public static int MyFunction(bool condition, int lhs, int rhs)
         {
             return condition ? lhs : rhs;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task ContinueTest()
+        {
+            var inputContents = @"int MyFunction(int value)
+{
+    while (true)
+    {
+        continue;
+    }
+
+    return 0;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int value)
+        {
+            while (true)
+            {
+                continue;
+            }
+
+            return 0;
         }
     }
 }
@@ -1183,6 +1355,90 @@ int MyFunction2(MyStruct* instance)
         public static int MyFunction()
         {
             return -1;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task SwitchTest()
+        {
+            var inputContents = @"int MyFunction(int value)
+{
+    switch (value)
+    {
+        default:
+        {
+            return 0;
+        }
+    }
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int value)
+        {
+            switch (value)
+            {
+                default:
+                {
+                    return 0;
+                }
+            }
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task SwitchNonCompoundTest()
+        {
+            var inputContents = @"int MyFunction(int value)
+{
+    switch (value)
+        default:
+        {
+            return 0;
+        }
+
+    switch (value)
+        default:
+            return 0;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int value)
+        {
+            switch (value)
+            {
+                default:
+                {
+                    return 0;
+                }
+            }
+
+            switch (value)
+            {
+                default:
+                    return 0;
+            }
         }
     }
 }
