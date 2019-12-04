@@ -106,6 +106,23 @@ namespace ClangSharp
 
         private void VisitDeclStmt(DeclStmt declStmt)
         {
+            var siblings = declStmt.CursorParent.CursorChildren.OfType<Stmt>();
+ 
+            Stmt previousSibling = null;
+ 
+            foreach (var sibling in siblings)
+            {
+                if (declStmt == sibling)
+                {
+                    if ((previousSibling != null) && (previousSibling is DeclStmt))
+                    {
+                        _outputBuilder.NeedsNewline = false;
+                    }
+                    break;
+                }
+                previousSibling = sibling;
+            }
+
             if (declStmt.IsSingleDecl)
             {
                 Visit(declStmt.SingleDecl);
@@ -124,6 +141,8 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(';');
                 }
             }
+
+            _outputBuilder.NeedsNewline = true;
         }
 
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
