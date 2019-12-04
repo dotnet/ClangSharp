@@ -193,6 +193,55 @@ namespace ClangSharp
             _outputBuilder.Write(floatingLiteral.Value);
         }
 
+        private void VisitForStmt(ForStmt forStmt)
+        {
+            _outputBuilder.Write("for");
+            _outputBuilder.Write(' ');
+            _outputBuilder.Write('(');
+
+            if (forStmt.ConditionVariableDeclStmt != null)
+            {
+                Visit(forStmt.ConditionVariableDeclStmt);
+            }
+            else if (forStmt.Init != null)
+            {
+                Visit(forStmt.Init);
+            }
+            _outputBuilder.Write(';');
+
+            if (forStmt.Cond != null)
+            {
+                _outputBuilder.Write(' ');
+                Visit(forStmt.Cond);
+            }
+            _outputBuilder.Write(';');
+
+            if (forStmt.Inc != null)
+            {
+                _outputBuilder.Write(' ');
+                Visit(forStmt.Inc);
+            }
+            _outputBuilder.Write(')');
+            _outputBuilder.NeedsNewline = true;
+
+            if (forStmt.Body is CompoundStmt)
+            {
+                Visit(forStmt.Body);
+            }
+            else
+            {
+                _outputBuilder.IncreaseIndentation();
+                _outputBuilder.WriteIndentation();
+
+                _outputBuilder.NeedsSemicolon = true;
+                Visit(forStmt.Body);
+
+                _outputBuilder.DecreaseIndentation();
+            }
+
+            _outputBuilder.NeedsNewline = true;
+        }
+
         private void VisitIfStmt(IfStmt ifStmt)
         {
             _outputBuilder.Write("if");
@@ -342,7 +391,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_ForStmt:
+                case CX_StmtClass.CX_StmtClass_ForStmt:
+                {
+                    VisitForStmt((ForStmt)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_GotoStmt:
 
                 case CX_StmtClass.CX_StmtClass_IfStmt:

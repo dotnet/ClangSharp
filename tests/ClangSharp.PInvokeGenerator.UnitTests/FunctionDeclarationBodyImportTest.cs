@@ -605,6 +605,258 @@ int MyFunction()
         }
 
         [Fact]
+        public async Task ForTest()
+        {
+            var inputContents = @"int MyFunction(int count)
+{
+    for (int i = 0; i < count; i--)
+    {
+        i += 2;
+    }
+
+    int x;
+
+    for (x = 0; x < count; x--)
+    {
+        x += 2;
+    }
+
+    x = 0;
+
+    for (; x < count; x--)
+    {
+        x += 2;
+    }
+
+    for (int i = 0;;i--)
+    {
+        i += 2;
+    }
+
+    for (x = 0;;x--)
+    {
+        x += 2;
+    }
+
+    for (int i = 0; i < count;)
+    {
+        i++;
+    }
+
+    for (x = 0; x < count;)
+    {
+        x++;
+    }
+
+    // x = 0;
+    // 
+    // for (;; x--)
+    // {
+    //     x += 2;
+    // }
+
+    x = 0;
+
+    for (; x < count;)
+    {
+        x++;
+    }
+
+    for (int i = 0;;)
+    {
+        i++;
+    }
+
+    for (x = 0;;)
+    {
+        x++;
+    }
+
+    for (;;)
+    {
+        return -1;
+    }
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int count)
+        {
+            for (int i = 0; i < count; i--)
+            {
+                i += 2;
+            }
+
+            int x;
+
+            for (x = 0; x < count; x--)
+            {
+                x += 2;
+            }
+
+            x = 0;
+            for (; x < count; x--)
+            {
+                x += 2;
+            }
+
+            for (int i = 0;; i--)
+            {
+                i += 2;
+            }
+
+            for (x = 0;; x--)
+            {
+                x += 2;
+            }
+
+            for (int i = 0; i < count;)
+            {
+                i++;
+            }
+
+            for (x = 0; x < count;)
+            {
+                x++;
+            }
+
+            x = 0;
+            for (; x < count;)
+            {
+                x++;
+            }
+
+            for (int i = 0;;)
+            {
+                i++;
+            }
+
+            for (x = 0;;)
+            {
+                x++;
+            }
+
+            for (;;)
+            {
+                return -1;
+            }
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task ForNonCompoundTest()
+        {
+            var inputContents = @"int MyFunction(int count)
+{
+    for (int i = 0; i < count; i--)
+        i += 2;
+
+    int x;
+
+    for (x = 0; x < count; x--)
+        x += 2;
+
+    x = 0;
+
+    for (; x < count; x--)
+        x += 2;
+
+    for (int i = 0;;i--)
+        i += 2;
+
+    for (x = 0;;x--)
+        x += 2;
+
+    for (int i = 0; i < count;)
+        i++;
+
+    for (x = 0; x < count;)
+        x++;
+
+    // x = 0;
+    // 
+    // for (;; x--)
+    //     x += 2;
+
+    x = 0;
+
+    for (; x < count;)
+        x++;
+
+    for (int i = 0;;)
+        i++;
+
+    for (x = 0;;)
+        x++;
+
+    for (;;)
+        return -1;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(int count)
+        {
+            for (int i = 0; i < count; i--)
+                i += 2;
+
+            int x;
+
+            for (x = 0; x < count; x--)
+                x += 2;
+
+            x = 0;
+            for (; x < count; x--)
+                x += 2;
+
+            for (int i = 0;; i--)
+                i += 2;
+
+            for (x = 0;; x--)
+                x += 2;
+
+            for (int i = 0; i < count;)
+                i++;
+
+            for (x = 0; x < count;)
+                x++;
+
+            x = 0;
+            for (; x < count;)
+                x++;
+
+            for (int i = 0;;)
+                i++;
+
+            for (x = 0;;)
+                x++;
+
+            for (;;)
+                return -1;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task IfTest()
         {
             var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
