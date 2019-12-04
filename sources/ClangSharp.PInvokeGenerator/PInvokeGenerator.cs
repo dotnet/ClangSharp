@@ -259,9 +259,11 @@ namespace ClangSharp
                     sw.WriteLine(_config.HeaderText);
                 }
 
-                if (outputBuilder.UsingDirectives.Any())
+                var usingDirectives = outputBuilder.UsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
+
+                if (usingDirectives.Any())
                 {
-                    foreach (var usingDirective in outputBuilder.UsingDirectives.Concat(outputBuilder.StaticUsingDirectives))
+                    foreach(var usingDirective in usingDirectives)
                     {
                         sw.Write("using");
                         sw.Write(' ');
