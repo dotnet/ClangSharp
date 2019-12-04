@@ -526,6 +526,158 @@ int MyFunction()
         }
 
         [Fact]
+        public async Task IfTest()
+        {
+            var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
+{
+    if (condition)
+    {
+        return lhs;
+    }
+
+    return rhs;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(bool condition, int lhs, int rhs)
+        {
+            if (condition)
+            {
+                return lhs;
+            }
+
+            return rhs;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task IfElseTest()
+        {
+            var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
+{
+    if (condition)
+    {
+        return lhs;
+    }
+    else
+    {
+        return rhs;
+    }
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(bool condition, int lhs, int rhs)
+        {
+            if (condition)
+            {
+                return lhs;
+            }
+            else
+            {
+                return rhs;
+            }
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task IfElseIfTest()
+        {
+            var inputContents = @"int MyFunction(bool condition1, int a, int b, bool condition2, int c)
+{
+    if (condition1)
+    {
+        return a;
+    }
+    else if (condition2)
+    {
+        return b;
+    }
+
+    return c;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(bool condition1, int a, int b, bool condition2, int c)
+        {
+            if (condition1)
+            {
+                return a;
+            }
+            else if (condition2)
+            {
+                return b;
+            }
+
+            return c;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task IfElseNonCompoundTest()
+        {
+            var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
+{
+    if (condition)
+        return lhs;
+    else
+        return rhs;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(bool condition, int lhs, int rhs)
+        {
+            if (condition)
+                return lhs;
+            else
+                return rhs;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task MemberTest()
         {
             var inputContents = @"struct MyStruct

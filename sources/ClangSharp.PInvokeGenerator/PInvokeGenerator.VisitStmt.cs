@@ -148,6 +148,58 @@ namespace ClangSharp
             _outputBuilder.Write(floatingLiteral.Value);
         }
 
+        private void VisitIfStmt(IfStmt ifStmt)
+        {
+            if (!(ifStmt.CursorParent is IfStmt parentIfStmt) || (ifStmt != parentIfStmt.Else))
+            {
+                _outputBuilder.WriteIndentation();
+            }
+
+            _outputBuilder.Write("if");
+            _outputBuilder.Write(' ');
+            _outputBuilder.Write('(');
+
+            Visit(ifStmt.Cond);
+
+            _outputBuilder.WriteLine(')');
+
+            if (ifStmt.Then is CompoundStmt)
+            {
+                Visit(ifStmt.Then);
+            }
+            else
+            {
+                _outputBuilder.IncreaseIndentation();
+                Visit(ifStmt.Then);
+                _outputBuilder.DecreaseIndentation();
+            }
+
+            if (ifStmt.Else != null)
+            {
+                _outputBuilder.WriteIndented("else");
+                _outputBuilder.NeedsNewline = true;
+
+                if (ifStmt.Else is CompoundStmt)
+                {
+                    Visit(ifStmt.Else);
+                }
+                else if (ifStmt.Else is IfStmt)
+                {
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.NeedsNewline = false;
+                    Visit(ifStmt.Else);
+                }
+                else
+                {
+                    _outputBuilder.IncreaseIndentation();
+                    Visit(ifStmt.Else);
+                    _outputBuilder.DecreaseIndentation();
+                }
+            }
+
+            _outputBuilder.NeedsNewline = true;
+        }
+
         private void VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr)
         {
             if ((implicitCastExpr.Type is PointerType) && (implicitCastExpr.SubExpr is IntegerLiteral integerLiteral) && (integerLiteral.Value.Equals("0")))
@@ -236,7 +288,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_DoStmt:
                 // case CX_StmtClass.CX_StmtClass_ForStmt:
                 // case CX_StmtClass.CX_StmtClass_GotoStmt:
-                // case CX_StmtClass.CX_StmtClass_IfStmt:
+
+                case CX_StmtClass.CX_StmtClass_IfStmt:
+                {
+                    VisitIfStmt((IfStmt)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_IndirectGotoStmt:
                 // case CX_StmtClass.CX_StmtClass_MSDependentExistsStmt:
                 // case CX_StmtClass.CX_StmtClass_NullStmt:
