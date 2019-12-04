@@ -69,6 +69,19 @@ namespace ClangSharp
             _outputBuilder.WriteBlockEnd();
         }
 
+        private void VisitConditionalOperator(ConditionalOperator conditionalOperator)
+        {
+            Visit(conditionalOperator.Cond);
+            _outputBuilder.Write(' ');
+            _outputBuilder.Write('?');
+            _outputBuilder.Write(' ');
+            Visit(conditionalOperator.TrueExpr);
+            _outputBuilder.Write(' ');
+            _outputBuilder.Write(':');
+            _outputBuilder.Write(' ');
+            Visit(conditionalOperator.FalseExpr);
+        }
+
         private void VisitCXXBoolLiteralExpr(CXXBoolLiteralExpr cxxBoolLiteralExpr)
         {
             _outputBuilder.Write(cxxBoolLiteralExpr.Value);
@@ -244,7 +257,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_SwitchStmt:
                 // case CX_StmtClass.CX_StmtClass_AttributedStmt:
                 // case CX_StmtClass.CX_StmtClass_BinaryConditionalOperator:
-                // case CX_StmtClass.CX_StmtClass_ConditionalOperator:
+
+                case CX_StmtClass.CX_StmtClass_ConditionalOperator:
+                {
+                    VisitConditionalOperator((ConditionalOperator)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:
                 // case CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr:
                 // case CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr:

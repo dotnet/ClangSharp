@@ -251,6 +251,32 @@ static inline int MyFunction(MyEnum x)
         }
 
         [Fact]
+        public async Task ConditionalOperatorTest()
+        {
+            var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
+{
+    return condition ? lhs : rhs;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction(bool condition, int lhs, int rhs)
+        {
+            return condition ? lhs : rhs;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task CStyleFunctionalCastTest()
         {
             var inputContents = @"int MyFunction(float input)
