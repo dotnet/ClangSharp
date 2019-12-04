@@ -650,13 +650,14 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
 
                 case CX_StmtClass.CX_StmtClass_CallExpr:
+                case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
                 {
                     VisitCallExpr((CallExpr)stmt);
                     break;
                 }
 
                 // case CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
+
                 // case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
                 // case CX_StmtClass.CX_StmtClass_UserDefinedLiteral:
                 // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
