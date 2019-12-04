@@ -8,6 +8,14 @@ namespace ClangSharp
 {
     public partial class PInvokeGenerator
     {
+        private void VisitArraySubscriptExpr(ArraySubscriptExpr arraySubscriptExpr)
+        {
+            Visit(arraySubscriptExpr.Base);
+            _outputBuilder.Write('[');
+            Visit(arraySubscriptExpr.Idx);
+            _outputBuilder.Write(']');
+        }
+
         private void VisitBinaryOperator(BinaryOperator binaryOperator)
         {
             Visit(binaryOperator.LHS);
@@ -240,7 +248,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:
                 // case CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr:
                 // case CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr:
-                // case CX_StmtClass.CX_StmtClass_ArraySubscriptExpr:
+
+                case CX_StmtClass.CX_StmtClass_ArraySubscriptExpr:
+                {
+                    VisitArraySubscriptExpr((ArraySubscriptExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_ArrayTypeTraitExpr:
                 // case CX_StmtClass.CX_StmtClass_AsTypeExpr:
                 // case CX_StmtClass.CX_StmtClass_AtomicExpr:

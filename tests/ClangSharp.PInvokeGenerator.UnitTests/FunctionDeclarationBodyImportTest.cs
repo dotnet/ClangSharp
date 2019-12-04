@@ -10,6 +10,32 @@ namespace ClangSharp.UnitTests
     public sealed class FunctionDeclarationBodyImportTest : PInvokeGeneratorTest
     {
         [Fact]
+        public async Task ArraySubscriptTest()
+        {
+            var inputContents = @"int MyFunction(int* pData, int index)
+{
+    return pData[index];
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static unsafe partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction([NativeTypeName(""int *"")] int* pData, int index)
+        {
+            return pData[index];
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task BasicTest()
         {
             var inputContents = @"void MyFunction()
