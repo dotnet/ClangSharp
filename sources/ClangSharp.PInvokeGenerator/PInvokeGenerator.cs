@@ -229,7 +229,7 @@ namespace ClangSharp
 
             if (postfix is null)
             {
-                _outputBuilder.WriteLine();
+                _outputBuilder.NeedsNewline = true;
             }
             else
             {
@@ -1021,7 +1021,7 @@ namespace ClangSharp
                 Debug.Assert(_outputBuilderUsers >= 1);
                 _outputBuilderUsers++;
 
-                _outputBuilder.WriteLine();
+                _outputBuilder.NeedsNewline = true;
                 return;
             }
 
@@ -1039,7 +1039,7 @@ namespace ClangSharp
             }
             else
             {
-                _outputBuilder.WriteLine();
+                _outputBuilder.NeedsNewline = true;
             }
             _outputBuilderUsers++;
         }

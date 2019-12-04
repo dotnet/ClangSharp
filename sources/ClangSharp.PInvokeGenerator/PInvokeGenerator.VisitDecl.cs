@@ -308,8 +308,8 @@ namespace ClangSharp
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(integerTypeName);
                 }
-        
-                _outputBuilder.WriteLine();
+
+                _outputBuilder.NeedsNewline = true;
                 _outputBuilder.WriteBlockStart();
 
                 VisitDecls(enumDecl.Enumerators);
@@ -572,7 +572,7 @@ namespace ClangSharp
             }
             else
             {
-                _outputBuilder.WriteLine();
+                _outputBuilder.NeedsNewline = true;
 
                 if (body is CompoundStmt)
                 {
@@ -729,8 +729,6 @@ namespace ClangSharp
                     _outputBuilder.WriteIndentedLine("public readonly Vtbl* lpVtbl;");
                 }
 
-                var needsNewline = false;
-
                 if (cxxRecordDecl != null)
                 {
                     foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
@@ -739,18 +737,14 @@ namespace ClangSharp
 
                         if (HasFields(this, baseCxxRecordDecl))
                         {
-                            if (needsNewline)
-                            {
-                                _outputBuilder.WriteLine();
-                            }
-                            needsNewline = true;
-
                             _outputBuilder.WriteIndented(GetAccessSpecifierName(baseCxxRecordDecl));
                             _outputBuilder.Write(' ');
                             _outputBuilder.Write(GetRemappedCursorName(baseCxxRecordDecl));
                             _outputBuilder.Write(' ');
                             _outputBuilder.Write(GetRemappedAnonymousName(cxxBaseSpecifier, "Base"));
                             _outputBuilder.WriteLine(';');
+
+                            _outputBuilder.NeedsNewline = true;
                         }
                     }
                 }
@@ -765,26 +759,16 @@ namespace ClangSharp
                 {
                     if (declaration is FieldDecl fieldDecl)
                     {
-                        if (needsNewline)
-                        {
-                            _outputBuilder.WriteLine();
-                        }
-                        needsNewline = true;
-
                         if (fieldDecl.IsBitField)
                         {
                             VisitBitfieldDecl(this, fieldDecl, ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
                         }
                         Visit(fieldDecl);
+
+                        _outputBuilder.NeedsNewline = true;
                     }
                     else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
                     {
-                        if (needsNewline)
-                        {
-                            _outputBuilder.WriteLine();
-                        }
-                        needsNewline = true;
-
                         var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
 
                         if (recordDecl.IsUnion)
@@ -799,6 +783,8 @@ namespace ClangSharp
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write(GetRemappedAnonymousName(nestedRecordDecl, "Field"));
                         _outputBuilder.WriteLine(';');
+
+                        _outputBuilder.NeedsNewline = true;
                     }
                 }
 
@@ -808,13 +794,9 @@ namespace ClangSharp
                     {
                         continue;
                     }
-                    else if (needsNewline)
-                    {
-                        _outputBuilder.WriteLine();
-                    }
-                    needsNewline = true;
 
                     Visit(cxxMethodDecl);
+                    _outputBuilder.NeedsNewline = true;
                 }
 
                 if (hasVtbl)
@@ -842,10 +824,10 @@ namespace ClangSharp
 
                     OutputVtblHelperMethods(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
 
-                    _outputBuilder.WriteLine();
+                    _outputBuilder.NeedsNewline = true;
                     _outputBuilder.WriteIndentedLine("public partial struct Vtbl");
                     _outputBuilder.WriteBlockStart();
-                    _ = OutputVtblEntries(this, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                    OutputVtblEntries(this, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
                     _outputBuilder.WriteBlockEnd();
                 }
 
@@ -990,7 +972,7 @@ namespace ClangSharp
                         continue;
                     }
 
-                    pinvokeGenerator._outputBuilder.WriteLine();
+                    pinvokeGenerator._outputBuilder.NeedsNewline = true;
                     pinvokeGenerator._visitedDecls.Add(cxxMethodDecl);
 
                     var remappedName = FixupNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName);
@@ -999,43 +981,26 @@ namespace ClangSharp
                 }
             }
 
-            static bool OutputVtblEntries(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
+            static void OutputVtblEntries(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
             {
                 var outputBuilder = pinvokeGenerator._outputBuilder;
-                var anyOutput = false;
 
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
-                    if (anyOutput)
-                    {
-                        outputBuilder.WriteLine();
-                    }
-
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    anyOutput = OutputVtblEntries(pinvokeGenerator, baseCxxRecordDecl, hitsPerName);
+                    OutputVtblEntries(pinvokeGenerator, baseCxxRecordDecl, hitsPerName);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
 
                 if (cxxMethodDecls.Count != 0)
                 {
-                    if (anyOutput)
+                    foreach (var cxxMethodDecl in cxxMethodDecls)
                     {
-                        outputBuilder.WriteLine();
+                        OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecl, hitsPerName);
+                        outputBuilder.NeedsNewline = true;
                     }
-
-                    OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecls[0], hitsPerName);
-
-                    for (int i = 1; i < cxxMethodDecls.Count; i++)
-                    {
-                        outputBuilder.WriteLine();
-                        OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecls[i], hitsPerName);
-                    }
-
-                    anyOutput = true;
                 }
-
-                return anyOutput;
             }
 
             static void OutputVtblEntry(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
@@ -1229,7 +1194,7 @@ namespace ClangSharp
 
                 foreach (var cxxMethodDecl in cxxMethodDecls)
                 {
-                    outputBuilder.WriteLine();
+                    outputBuilder.NeedsNewline = true;
                     OutputVtblHelperMethod(pinvokeGenerator, outputBuilder, rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
                 }
             }
@@ -1289,7 +1254,7 @@ namespace ClangSharp
                     outputBuilder.Write(' ');
                     outputBuilder.Write(bitfieldName);
                     outputBuilder.WriteLine(';');
-                    outputBuilder.WriteLine();
+                    outputBuilder.NeedsNewline = true;
                 }
                 else if (index > 0)
                 {
@@ -1408,7 +1373,8 @@ namespace ClangSharp
 
                 outputBuilder.WriteLine(';');
                 outputBuilder.WriteBlockEnd();
-                outputBuilder.WriteLine();
+
+                outputBuilder.NeedsNewline = true;
 
                 outputBuilder.WriteIndentedLine("set");
                 outputBuilder.WriteBlockStart();
@@ -1505,7 +1471,7 @@ namespace ClangSharp
                 }
                 bool isUnsafe = typeName.Contains('*');
 
-                outputBuilder.WriteLine();
+                outputBuilder.NeedsNewline = true;
                 outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(constantArray));
                 outputBuilder.Write(' ');
 
@@ -1536,8 +1502,6 @@ namespace ClangSharp
 
                 for (long i = 0; i < totalSize; i++)
                 {
-                    bool needAdditionalLine = false;
-
                     outputBuilder.WriteIndented("internal");
                     outputBuilder.Write(' ');
                     outputBuilder.Write(typeName);
@@ -1562,21 +1526,16 @@ namespace ClangSharp
                             previousDimension.index = 0;
                             dimension.index++;
                             sizePerDimension[d - 1] = previousDimension;
-                            needAdditionalLine = true;
+                            outputBuilder.NeedsNewline = true;
                         }
 
                         sizePerDimension[d] = dimension;
                     }
 
                     outputBuilder.WriteLine(';');
-
-                    if (needAdditionalLine && ((i + 1) != totalSize))
-                    {
-                        outputBuilder.WriteLine();
-                    }
                 }
 
-                outputBuilder.WriteLine();
+                outputBuilder.NeedsNewline = true;
                 outputBuilder.WriteIndented("public");
                 outputBuilder.Write(' ');
 
@@ -1624,7 +1583,7 @@ namespace ClangSharp
                     }
 
                     outputBuilder.WriteLine(")[index];");
-                    outputBuilder.WriteLine();
+                    outputBuilder.NeedsNewline = true;
                     outputBuilder.WriteIndented("public");
                     outputBuilder.Write(' ');
                     outputBuilder.Write("Span<");
