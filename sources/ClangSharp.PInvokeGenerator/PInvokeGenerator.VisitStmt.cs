@@ -92,6 +92,11 @@ namespace ClangSharp
             _outputBuilder.Write("null");
         }
 
+        private void VisitCXXThisExpr(CXXThisExpr cxxThisExpr)
+        {
+            _outputBuilder.Write("this");
+        }
+
         private void VisitDeclRefExpr(DeclRefExpr declRefExpr)
         {
             var name = GetRemappedCursorName(declRefExpr.Decl);
@@ -146,7 +151,7 @@ namespace ClangSharp
             {
                 Visit(memberExpr.Base);
 
-                if (memberExpr.Base.Type is PointerType)
+                if ((memberExpr.Base.Type is PointerType) && !(memberExpr.Base is CXXThisExpr))
                 {
                     _outputBuilder.Write('-');
                     _outputBuilder.Write('>');
@@ -333,7 +338,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXPseudoDestructorExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXScalarValueInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXThisExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXThisExpr:
+                {
+                    VisitCXXThisExpr((CXXThisExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:

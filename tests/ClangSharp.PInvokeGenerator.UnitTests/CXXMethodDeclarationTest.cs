@@ -325,6 +325,37 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task ThisTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    int MyFunction()
+    {
+        return this->value;
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public int MyFunction()
+        {
+            return this.value;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task UnsafeDoesNotImpactDllImportTest()
         {
             var inputContents = @"struct MyStruct
