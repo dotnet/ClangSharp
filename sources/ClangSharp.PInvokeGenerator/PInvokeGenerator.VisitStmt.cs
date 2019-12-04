@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -101,6 +102,28 @@ namespace ClangSharp
         {
             var name = GetRemappedCursorName(declRefExpr.Decl);
             _outputBuilder.Write(EscapeAndStripName(name));
+        }
+
+        private void VisitDeclStmt(DeclStmt declStmt)
+        {
+            if (declStmt.IsSingleDecl)
+            {
+                Visit(declStmt.SingleDecl);
+                _outputBuilder.WriteLine(';');
+            }
+            else
+            {
+                Visit(declStmt.Decls.First());
+
+                foreach (var decl in declStmt.Decls.Skip(1))
+                {
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
+
+                    Visit(decl);
+                    _outputBuilder.WriteLine(';');
+                }
+            }
         }
 
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
@@ -203,7 +226,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_ContinueStmt:
                 // case CX_StmtClass.CX_StmtClass_CoreturnStmt:
                 // case CX_StmtClass.CX_StmtClass_CoroutineBodyStmt:
-                // case CX_StmtClass.CX_StmtClass_DeclStmt:
+
+                case CX_StmtClass.CX_StmtClass_DeclStmt:
+                {
+                    VisitDeclStmt((DeclStmt)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_DoStmt:
                 // case CX_StmtClass.CX_StmtClass_ForStmt:
                 // case CX_StmtClass.CX_StmtClass_GotoStmt:

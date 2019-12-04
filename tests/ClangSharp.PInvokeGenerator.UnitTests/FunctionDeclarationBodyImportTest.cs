@@ -495,6 +495,37 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task DeclTest()
+        {
+            var inputContents = @"\
+int MyFunction()
+{
+    int x = 0;
+    int y = 1, z = 2;
+    return x + y + z;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction()
+        {
+            int x = 0;
+            int y = 1, z = 2;
+            return x + y + z;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task MemberTest()
         {
             var inputContents = @"struct MyStruct

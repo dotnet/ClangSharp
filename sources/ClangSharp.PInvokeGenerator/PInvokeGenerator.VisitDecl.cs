@@ -1754,6 +1754,24 @@ namespace ClangSharp
 
         private void VisitVarDecl(VarDecl varDecl)
         {
+            var cursorParent = varDecl.CursorParent;
+
+            if (cursorParent is TranslationUnitDecl translationUnitDecl)
+            {
+                VisitVarDeclForTranslationUnitDecl(varDecl, translationUnitDecl);
+            }
+            else if (cursorParent is DeclStmt declStmt)
+            {
+                VisitVarDeclForDeclStmt(varDecl, declStmt);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration parent: '{cursorParent.CursorKindSpelling}'. Generated bindings may be incomplete.", cursorParent);
+            }
+        }
+
+        private void VisitVarDeclForTranslationUnitDecl(VarDecl varDecl, TranslationUnitDecl translationUnitDecl)
+        {
             var name = GetRemappedCursorName(varDecl);
 
             StartUsingOutputBuilder(_config.MethodClassName);
@@ -1776,6 +1794,31 @@ namespace ClangSharp
                 _outputBuilder.WriteLine(';');
             }
             StopUsingOutputBuilder();
+        }
+
+        private void VisitVarDeclForDeclStmt(VarDecl varDecl, DeclStmt declStmt)
+        {
+            var name = GetRemappedCursorName(varDecl);
+
+            if (varDecl == declStmt.Decls.First())
+            {
+                var type = varDecl.Type;
+                var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
+
+                _outputBuilder.WriteIndented(typeName);
+                _outputBuilder.Write(' ');
+            }
+
+            _outputBuilder.Write(EscapeName(name));
+
+            if (varDecl.HasInit)
+            {
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write('=');
+                _outputBuilder.Write(' ');
+
+                Visit(varDecl.Init);
+            }
         }
     }
 }
