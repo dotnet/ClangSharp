@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
+using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -266,6 +268,172 @@ static inline int MyFunction(MyEnum x)
         public static int MyFunction(float input)
         {
             return (int)input;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task CxxConstCastTest()
+        {
+            var inputContents = @"void* MyFunction(const void* input)
+{
+    return const_cast<void*>(input);
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static unsafe partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [return: NativeTypeName(""void *"")]
+        public static void* MyFunction([NativeTypeName(""const void *"")] void* input)
+        {
+            return input;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task CxxDynamicCastTest()
+        {
+            var inputContents = @"struct MyStructA
+{
+    virtual void MyMethod() = 0;
+};
+
+struct MyStructB : MyStructA { };
+
+MyStructB* MyFunction(MyStructA* input)
+{
+    return dynamic_cast<MyStructB*>(input);
+}
+";
+
+            var callConv = "Cdecl";
+            var callConvAttr = "";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+            {
+                callConv = "ThisCall";
+                callConvAttr = " __attribute__((thiscall))";
+            }
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public unsafe partial struct MyStructA
+    {{
+        public readonly Vtbl* lpVtbl;
+
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        public delegate void _MyMethod(MyStructA* pThis);
+
+        public void MyMethod()
+        {{
+            Marshal.GetDelegateForFunctionPointer<_MyMethod>(lpVtbl->MyMethod)((MyStructA*)Unsafe.AsPointer(ref this));
+        }}
+
+        public partial struct Vtbl
+        {{
+            [NativeTypeName(""void (){callConvAttr}"")]
+            public IntPtr MyMethod;
+        }}
+    }}
+
+    public unsafe partial struct MyStructB
+    {{
+        public readonly Vtbl* lpVtbl;
+
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        public delegate void _MyMethod(MyStructB* pThis);
+
+        public void MyMethod()
+        {{
+            Marshal.GetDelegateForFunctionPointer<_MyMethod>(lpVtbl->MyMethod)((MyStructB*)Unsafe.AsPointer(ref this));
+        }}
+
+        public partial struct Vtbl
+        {{
+            [NativeTypeName(""void (){callConvAttr}"")]
+            public IntPtr MyMethod;
+        }}
+    }}
+
+    public static unsafe partial class Methods
+    {{
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [return: NativeTypeName(""MyStructB *"")]
+        public static MyStructB* MyFunction([NativeTypeName(""MyStructA *"")] MyStructA* input)
+        {{
+            return (MyStructB*)input;
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task CxxReinterpretCastTest()
+        {
+            var inputContents = @"int* MyFunction(void* input)
+{
+    return reinterpret_cast<int*>(input);
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static unsafe partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [return: NativeTypeName(""int *"")]
+        public static int* MyFunction([NativeTypeName(""void *"")] void* input)
+        {
+            return (int*)input;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task CxxStaticCastTest()
+        {
+            var inputContents = @"int* MyFunction(void* input)
+{
+    return static_cast<int*>(input);
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static unsafe partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [return: NativeTypeName(""int *"")]
+        public static int* MyFunction([NativeTypeName(""void *"")] void* input)
+        {
+            return (int*)input;
         }
     }
 }

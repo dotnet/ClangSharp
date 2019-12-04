@@ -79,13 +79,18 @@ namespace ClangSharp
 
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
         {
-            var type = explicitCastExpr.Type;
-            var typeName = GetRemappedTypeName(explicitCastExpr, type, out var nativeTypeName);
+            if (!(explicitCastExpr is CXXConstCastExpr))
+            {
+                // C# doesn't have a concept of const pointers so
+                // ignore rather than adding a cast from T* to T*
 
-            _outputBuilder.Write('(');
-            _outputBuilder.Write(typeName);
-            _outputBuilder.Write(')');
+                var type = explicitCastExpr.Type;
+                var typeName = GetRemappedTypeName(explicitCastExpr, type, out var nativeTypeName);
 
+                _outputBuilder.Write('(');
+                _outputBuilder.Write(typeName);
+                _outputBuilder.Write(')');
+            }
             Visit(explicitCastExpr.SubExpr);
         }
 
@@ -296,15 +301,15 @@ namespace ClangSharp
 
                 case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
                 case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
                 {
                     VisitExplicitCastExpr((ExplicitCastExpr)stmt);
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
                 // case CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr:
 
                 case CX_StmtClass.CX_StmtClass_ImplicitCastExpr:
