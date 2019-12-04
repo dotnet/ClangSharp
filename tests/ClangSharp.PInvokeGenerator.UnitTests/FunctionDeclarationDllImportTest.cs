@@ -87,6 +87,7 @@ namespace ClangSharp.Test
 
         [Theory]
         [InlineData("void* value = nullptr", @"[NativeTypeName(""void *"")] void* value = null")]
+        [InlineData("void* value = 0", @"[NativeTypeName(""void *"")] void* value = null")]
         public async Task OptionalParameterUnsafeTest(string nativeParameters, string expectedManagedParameters)
         {
             var inputContents = $@"void MyFunction({nativeParameters});";

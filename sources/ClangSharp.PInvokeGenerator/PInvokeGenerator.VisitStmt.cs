@@ -96,7 +96,17 @@ namespace ClangSharp
 
         private void VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr)
         {
-            Visit(implicitCastExpr.SubExpr);
+            if ((implicitCastExpr.Type is PointerType) && (implicitCastExpr.SubExpr is IntegerLiteral integerLiteral) && (integerLiteral.Value.Equals("0")))
+            {
+                // C# doesn't have implicit conversion from zero to a pointer
+                // so we will manually check and handle the most common case
+
+                _outputBuilder.Write("null");
+            }
+            else
+            {
+                Visit(implicitCastExpr.SubExpr);
+            }
         }
 
         private void VisitIntegerLiteral(IntegerLiteral integerLiteral)
