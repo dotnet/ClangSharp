@@ -956,6 +956,24 @@ struct MyStruct
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
+        [Fact]
+        public async Task SkipNonDefinitionPointerTest()
+        {
+            var inputContents = @"typedef struct MyStruct* MyStructPtr;
+typedef struct MyStruct& MyStructRef;
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
         [Theory]
         [InlineData("unsigned char", "byte")]
         [InlineData("long long", "long")]

@@ -1675,6 +1675,10 @@ namespace ClangSharp
             {
                 VisitTypedefDeclForPointeeType(typedefDecl, parentType: null, pointerType.PointeeType);
             }
+            else if (underlyingType is ReferenceType referenceType)
+            {
+                VisitTypedefDeclForPointeeType(typedefDecl, parentType: null, referenceType.PointeeType);
+            }
             else if (underlyingType is TypedefType typedefType)
             {
                 VisitTypedefDeclForUnderlyingType(typedefDecl, typedefType.Decl.UnderlyingType);
