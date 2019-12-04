@@ -581,7 +581,12 @@ namespace ClangSharp
                 else
                 {
                     _outputBuilder.WriteBlockStart();
+                    _outputBuilder.WriteIndentation();
+
+                    _outputBuilder.NeedsSemicolon = true;
                     Visit(body);
+
+                    _outputBuilder.WriteSemicolonIfNeeded();
                     _outputBuilder.WriteBlockEnd();
                 }
             }
@@ -1692,8 +1697,9 @@ namespace ClangSharp
                     _outputBuilder.Write('(');
 
                     VisitDecls(typedefDecl.CursorChildren.OfType<ParmVarDecl>());
-        
-                    _outputBuilder.WriteLine(");");
+
+                    _outputBuilder.Write(')');
+                    _outputBuilder.WriteLine(";");
                 }
                 StopUsingOutputBuilder();
             }
@@ -1764,7 +1770,7 @@ namespace ClangSharp
                 var type = varDecl.Type;
                 var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
 
-                _outputBuilder.WriteIndented(typeName);
+                _outputBuilder.Write(typeName);
                 _outputBuilder.Write(' ');
             }
 

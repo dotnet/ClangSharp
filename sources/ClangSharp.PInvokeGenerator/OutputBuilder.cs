@@ -37,6 +37,8 @@ namespace ClangSharp
 
         public bool NeedsNewline { get; set; }
 
+        public bool NeedsSemicolon { get; set; }
+
         public IEnumerable<string> StaticUsingDirectives => _staticUsingDirectives;
 
         public IEnumerable<string> UsingDirectives => _usingDirectives;
@@ -79,6 +81,9 @@ namespace ClangSharp
             // We don't need a newline if immediately closing the scope
             NeedsNewline = false;
 
+            // We don't need a semicolon if immediately closing the scope
+            NeedsSemicolon = false;
+
             DecreaseIndentation();
             WriteIndentedLine('}');
         }
@@ -118,6 +123,15 @@ namespace ClangSharp
         {
             Write(value);
             WriteLine();
+        }
+
+        public void WriteSemicolonIfNeeded()
+        {
+            if (NeedsSemicolon)
+            {
+                WriteLine(';');
+            }
+            NeedsSemicolon = true;
         }
 
         private void WriteLine()

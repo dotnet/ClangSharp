@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
@@ -32,7 +31,6 @@ namespace ClangSharp
 
             if (calleeDecl is FunctionDecl functionDecl)
             {
-                _outputBuilder.WriteIndentation();
                 VisitStmt(callExpr.Callee);
                 _outputBuilder.Write('(');
 
@@ -50,7 +48,7 @@ namespace ClangSharp
                     }
                 }
 
-                _outputBuilder.WriteLine(");");
+                _outputBuilder.Write(")");
             }
             else
             {
@@ -66,7 +64,24 @@ namespace ClangSharp
         private void VisitCompoundStmt(CompoundStmt compoundStmt)
         {
             _outputBuilder.WriteBlockStart();
-            VisitStmts(compoundStmt.Body);
+            _outputBuilder.NeedsSemicolon = true;
+
+            Stmt previousStmt = null;
+
+            foreach (var stmt in compoundStmt.Body)
+            {
+                if ((previousStmt is DeclStmt declStmt) && (stmt is DeclStmt))
+                {
+                    _outputBuilder.NeedsNewline = false;
+                }
+
+                _outputBuilder.WriteIndentation();
+                Visit(stmt);
+                _outputBuilder.WriteSemicolonIfNeeded();
+
+                previousStmt = stmt;
+            }
+
             _outputBuilder.WriteBlockEnd();
         }
 
@@ -106,27 +121,9 @@ namespace ClangSharp
 
         private void VisitDeclStmt(DeclStmt declStmt)
         {
-            var siblings = declStmt.CursorParent.CursorChildren.OfType<Stmt>();
- 
-            Stmt previousSibling = null;
- 
-            foreach (var sibling in siblings)
-            {
-                if (declStmt == sibling)
-                {
-                    if ((previousSibling != null) && (previousSibling is DeclStmt))
-                    {
-                        _outputBuilder.NeedsNewline = false;
-                    }
-                    break;
-                }
-                previousSibling = sibling;
-            }
-
             if (declStmt.IsSingleDecl)
             {
                 Visit(declStmt.SingleDecl);
-                _outputBuilder.WriteLine(';');
             }
             else
             {
@@ -136,9 +133,7 @@ namespace ClangSharp
                 {
                     _outputBuilder.Write(',');
                     _outputBuilder.Write(' ');
-
                     Visit(decl);
-                    _outputBuilder.WriteLine(';');
                 }
             }
 
@@ -169,11 +164,6 @@ namespace ClangSharp
 
         private void VisitIfStmt(IfStmt ifStmt)
         {
-            if (!(ifStmt.CursorParent is IfStmt parentIfStmt) || (ifStmt != parentIfStmt.Else))
-            {
-                _outputBuilder.WriteIndentation();
-            }
-
             _outputBuilder.Write("if");
             _outputBuilder.Write(' ');
             _outputBuilder.Write('(');
@@ -189,7 +179,15 @@ namespace ClangSharp
             else
             {
                 _outputBuilder.IncreaseIndentation();
+                _outputBuilder.WriteIndentation();
+
+                _outputBuilder.NeedsSemicolon = true;
                 Visit(ifStmt.Then);
+
+                if (ifStmt.Else != null)
+                {
+                    _outputBuilder.WriteSemicolonIfNeeded();
+                }
                 _outputBuilder.DecreaseIndentation();
             }
 
@@ -211,7 +209,11 @@ namespace ClangSharp
                 else
                 {
                     _outputBuilder.IncreaseIndentation();
+                    _outputBuilder.WriteIndentation();
+
+                    _outputBuilder.NeedsSemicolon = true;
                     Visit(ifStmt.Else);
+
                     _outputBuilder.DecreaseIndentation();
                 }
             }
@@ -269,11 +271,10 @@ namespace ClangSharp
         {
             Debug.Assert(returnStmt.RetValue != null);
 
-            _outputBuilder.WriteIndented("return");
+            _outputBuilder.Write("return");
             _outputBuilder.Write(' ');
 
             Visit(returnStmt.RetValue);
-            _outputBuilder.WriteLine(';');
         }
 
         private void VisitStmt(Stmt stmt)
@@ -603,14 +604,6 @@ namespace ClangSharp
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.StmtClass}'. Generated bindings may be incomplete.", stmt);
                     break;
                 }
-            }
-        }
-
-        private void VisitStmts(IEnumerable<Stmt> stmts)
-        {
-            foreach (var stmt in stmts)
-            {
-                Visit(stmt);
             }
         }
 
