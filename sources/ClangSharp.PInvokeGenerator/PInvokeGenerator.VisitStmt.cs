@@ -49,6 +49,11 @@ namespace ClangSharp
             }
         }
 
+        private void VisitCharacterLiteral(CharacterLiteral characterLiteral)
+        {
+            _outputBuilder.Write(characterLiteral.Value);
+        }
+
         private void VisitCompoundStmt(CompoundStmt compoundStmt)
         {
             _outputBuilder.WriteBlockStart();
@@ -298,7 +303,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CharacterLiteral:
+                case CX_StmtClass.CX_StmtClass_CharacterLiteral:
+                {
+                    VisitCharacterLiteral((CharacterLiteral)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_ChooseExpr:
                 // case CX_StmtClass.CX_StmtClass_CompoundLiteralExpr:
                 // case CX_StmtClass.CX_StmtClass_ConvertVectorExpr:

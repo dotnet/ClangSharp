@@ -52,23 +52,25 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task OptionalParameterTest()
+        [Theory]
+        [InlineData("int value = 0", "int value = 0")]
+        [InlineData("unsigned short value = '1'", @"[NativeTypeName(""unsigned short"")] ushort value = '1'")]
+        public async Task OptionalParameterTest(string nativeParameters, string expectedManagedParameters)
         {
-            var inputContents = @"void MyFunction(int value = 4);";
+            var inputContents = $@"void MyFunction({nativeParameters});";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+            var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
-{
+{{
     public static partial class Methods
-    {
+    {{
         private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
-        public static extern void MyFunction(int value = 4);
-    }
-}
+        public static extern void MyFunction({expectedManagedParameters});
+    }}
+}}
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
