@@ -1035,5 +1035,37 @@ struct MyStruct
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
+
+        [Fact]
+        public async Task UsingDeclarationTest()
+        {
+            var inputContents = @"struct MyStruct1A
+{
+    void MyMethod() { }
+};
+
+struct MyStruct1B : MyStruct1A
+{
+    using MyStruct1A::MyMethod;
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct1A
+    {
+        public void MyMethod()
+        {
+        }
+    }
+
+    public partial struct MyStruct1B
+    {
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
     }
 }

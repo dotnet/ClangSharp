@@ -117,7 +117,15 @@ namespace ClangSharp
                 }
 
                 // case CX_DeclKind.CX_DeclKind_UnresolvedUsingTypename:
-                // case CX_DeclKind.CX_DeclKind_Using:
+
+                case CX_DeclKind.CX_DeclKind_Using:
+                {
+                    // Using declarations only introduce existing members into
+                    // the current scope. There isn't an easy way to translate
+                    // this to C#, so we will ignore them for now.
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_UsingDirective:
                 // case CX_DeclKind.CX_DeclKind_UsingPack:
                 // case CX_DeclKind.CX_DeclKind_UsingShadow:
