@@ -70,6 +70,37 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task MemberTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    int MyFunction()
+    {
+        return value;
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public int MyFunction()
+        {
+            return value;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task NewKeywordTest()
         {
             var inputContents = @"struct MyStruct

@@ -140,6 +140,25 @@ namespace ClangSharp
             _outputBuilder.Write(integerLiteral.Value);
         }
 
+        private void VisitMemberExpr(MemberExpr memberExpr)
+        {
+            if (memberExpr.Base != null)
+            {
+                Visit(memberExpr.Base);
+
+                if (memberExpr.Base.Type is PointerType)
+                {
+                    _outputBuilder.Write('-');
+                    _outputBuilder.Write('>');
+                }
+                else
+                {
+                    _outputBuilder.Write('.');
+                }
+            }
+            _outputBuilder.Write(GetRemappedCursorName(memberExpr.MemberDecl));
+        }
+
         private void VisitParenExpr(ParenExpr parenExpr)
         {
             _outputBuilder.Write('(');
@@ -402,7 +421,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_MSPropertyRefExpr:
                 // case CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr:
                 // case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
-                // case CX_StmtClass.CX_StmtClass_MemberExpr:
+
+                case CX_StmtClass.CX_StmtClass_MemberExpr:
+                {
+                    VisitMemberExpr((MemberExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_NoInitExpr:
                 // case CX_StmtClass.CX_StmtClass_OMPArraySectionExpr:
                 // case CX_StmtClass.CX_StmtClass_ObjCArrayLiteral:

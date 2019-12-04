@@ -495,6 +495,52 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task MemberTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+};
+
+int MyFunction1(MyStruct instance)
+{
+    return instance.value;
+}
+
+int MyFunction2(MyStruct* instance)
+{
+    return instance->value;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+    }
+
+    public static unsafe partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunction1(MyStruct instance)
+        {
+            return instance.value;
+        }
+
+        public static int MyFunction2([NativeTypeName(""MyStruct *"")] MyStruct* instance)
+        {
+            return instance->value;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task ReturnCXXNullPtrTest()
         {
             var inputContents = @"void* MyFunction()
