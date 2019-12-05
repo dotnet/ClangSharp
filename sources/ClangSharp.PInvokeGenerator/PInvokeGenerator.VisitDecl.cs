@@ -635,7 +635,21 @@ namespace ClangSharp
                             continue;
                         }
 
+                        var memberRefName = pinvokeGenerator.GetRemappedCursorName(memberRef.Referenced);
+                        var memberInitName = memberInit.Spelling;
+
+                        if ((memberInit is ImplicitCastExpr implicitCastExpr) && (implicitCastExpr.SubExpr is DeclRefExpr declRefExpr))
+                        {
+                            memberInitName = pinvokeGenerator.GetRemappedCursorName(declRefExpr.Decl);
+                        }
                         outputBuilder.WriteIndentation();
+
+                        if (memberRefName.Equals(memberInitName))
+                        {
+                            outputBuilder.Write("this");
+                            outputBuilder.Write('.');
+                        }
+
                         pinvokeGenerator.Visit(memberRef);
                         outputBuilder.Write(' ');
                         outputBuilder.Write('=');

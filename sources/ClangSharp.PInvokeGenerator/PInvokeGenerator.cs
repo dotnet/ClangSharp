@@ -606,19 +606,23 @@ namespace ClangSharp
         private string GetRemappedAnonymousName(Cursor cursor, string kind)
         {
             var name = GetAnonymousName(cursor, kind);
-            return GetRemappedName(name);
+            return GetRemappedName(name, cursor);
         }
 
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
             var name = GetCursorName(namedDecl);
-            return GetRemappedName(name);
+            return GetRemappedName(name, namedDecl);
         }
 
-        private string GetRemappedName(string name)
+        private string GetRemappedName(string name, Cursor cursor)
         {
             if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
             {
+                if (cursor is FunctionDecl functionDecl)
+                {
+                    TryRemapOperatorName(ref name, functionDecl);
+                }
                 remappedName = name;
             }
 
@@ -633,7 +637,7 @@ namespace ClangSharp
         private string GetRemappedTypeName(Cursor cursor, Type type, out string nativeTypeName)
         {
             var name = GetTypeName(cursor, type, out nativeTypeName);
-            name = GetRemappedName(name);
+            name = GetRemappedName(name, cursor);
 
             if (nativeTypeName.Equals(name))
             {
@@ -795,7 +799,7 @@ namespace ClangSharp
                 // can be treated correctly. Otherwise, they will resolve to a particular
                 // platform size, based on whatever parameters were passed into clang.
 
-                var remappedName = GetRemappedName(name);
+                var remappedName = GetRemappedName(name, cursor);
 
                 if (remappedName.Equals(name))
                 {
@@ -837,7 +841,7 @@ namespace ClangSharp
             else
             {
                 name = GetTypeName(cursor, pointeeType, out nativePointeeTypeName);
-                name = GetRemappedName(name);
+                name = GetRemappedName(name, cursor);
                 name += '*';
             }
 
@@ -1055,6 +1059,144 @@ namespace ClangSharp
                 _outputBuilder = null;
             }
             _outputBuilderUsers--;
+        }
+
+        private bool TryRemapOperatorName(ref string name, FunctionDecl functionDecl)
+        {
+            var numArgs = functionDecl.Parameters.Count;
+
+            if (functionDecl.DeclContext is CXXRecordDecl)
+            {
+                numArgs++;
+            }
+
+            switch (name)
+            {
+                case "operator+":
+                {
+                    name = (numArgs == 1) ? "Plus" : "Add";
+                    return true;
+                }
+
+                case "operator-":
+                {
+                    name = (numArgs == 1) ? "Negate" : "Subtract";
+                    return true;
+                }
+
+                case "operator!":
+                {
+                    name = "Not";
+                    return true;
+                }
+
+                case "operator~":
+                {
+                    name = "OnesComplement";
+                    return true;
+                }
+
+                case "operator++":
+                {
+                    name = "Increment";
+                    return true;
+                }
+
+                case "operator--":
+                {
+                    name = "Decrement";
+                    return true;
+                }
+
+                case "operator*":
+                {
+                    name = "Multiply";
+                    return true;
+                }
+
+                case "operator/":
+                {
+                    name = "Divide";
+                    return true;
+                }
+
+                case "operator%":
+                {
+                    name = "Modulus";
+                    return true;
+                }
+
+                case "operator&":
+                {
+                    name = "And";
+                    return true;
+                }
+
+                case "operator|":
+                {
+                    name = "Or";
+                    return true;
+                }
+
+                case "operator^":
+                {
+                    name = "Xor";
+                    return true;
+                }
+
+                case "operator<<":
+                {
+                    name = "LeftShift";
+                    return true;
+                }
+
+                case "operator>>":
+                {
+                    name = "RightShift";
+                    return true;
+                }
+
+                case "operator==":
+                {
+                    name = "Equals";
+                    return true;
+                }
+
+                case "operator!=":
+                {
+                    name = "NotEquals";
+                    return true;
+                }
+
+                case "operator<":
+                {
+                    name = "LessThan";
+                    return true;
+                }
+
+                case "operator>":
+                {
+                    name = "GreaterThan";
+                    return true;
+                }
+
+                case "operator<=":
+                {
+                    name = "LessThanOrEquals";
+                    return true;
+                }
+
+                case "operator>=":
+                {
+                    name = "GreaterThanOrEquals";
+                    return true;
+                }
+
+                default:
+                {
+                    return false;
+                }
+            }
         }
 
         private void Visit(Cursor cursor)

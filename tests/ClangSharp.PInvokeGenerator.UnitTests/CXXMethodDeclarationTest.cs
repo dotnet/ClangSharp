@@ -461,6 +461,136 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task OperatorTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    MyStruct(int value) : value(value)
+    {
+    }
+
+    MyStruct operator+(MyStruct rhs)
+    {
+        return MyStruct(value + rhs.value);
+    }
+};
+
+MyStruct operator-(MyStruct lhs, MyStruct rhs)
+{
+    return MyStruct(lhs.value - rhs.value);
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public MyStruct(int value)
+        {
+            this.value = value;
+        }
+
+        public MyStruct Add(MyStruct rhs)
+        {
+            return new MyStruct(value + rhs.value);
+        }
+    }
+
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static MyStruct Subtract(MyStruct lhs, MyStruct rhs)
+        {
+            return new MyStruct(lhs.value - rhs.value);
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task OperatorCallTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    MyStruct(int value) : value(value)
+    {
+    }
+
+    MyStruct operator+(MyStruct rhs)
+    {
+        return MyStruct(value + rhs.value);
+    }
+};
+
+MyStruct MyFunction1(MyStruct lhs, MyStruct rhs)
+{
+    return lhs + rhs;
+}
+
+MyStruct operator-(MyStruct lhs, MyStruct rhs)
+{
+    return MyStruct(lhs.value - rhs.value);
+}
+
+MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
+{
+    return lhs - rhs;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public MyStruct(int value)
+        {
+            this.value = value;
+        }
+
+        public MyStruct Add(MyStruct rhs)
+        {
+            return new MyStruct(value + rhs.value);
+        }
+    }
+
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static MyStruct MyFunction1(MyStruct lhs, MyStruct rhs)
+        {
+            return lhs.Add(rhs);
+        }
+
+        public static MyStruct Subtract(MyStruct lhs, MyStruct rhs)
+        {
+            return new MyStruct(lhs.value - rhs.value);
+        }
+
+        public static MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
+        {
+            return Subtract(lhs, rhs);
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task StaticTest()
         {
             var inputContents = @"struct MyStruct

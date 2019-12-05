@@ -131,9 +131,95 @@ namespace ClangSharp
             _outputBuilder.Write(cxxBoolLiteralExpr.Value);
         }
 
+        private void VisitCXXConstCastExpr(CXXConstCastExpr cxxConstCastExpr)
+        {
+            // C# doesn't have a concept of const pointers so
+            // ignore rather than adding a cast from T* to T*
+
+            Visit(cxxConstCastExpr.SubExpr);
+        }
+
+        private void VisitCXXConstructExpr(CXXConstructExpr cxxConstructExpr)
+        {
+            var args = cxxConstructExpr.Args;
+
+            if (args.Count != 0)
+            {
+                Visit(args[0]);
+
+                for (int i = 1; i < args.Count; i++)
+                {
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
+                    Visit(args[i]);
+                }
+            }
+        }
+
+        private void VisitCXXFunctionalCastExpr(CXXFunctionalCastExpr cxxFunctionalCastExpr)
+        {
+            if (cxxFunctionalCastExpr.SubExpr is CXXConstructExpr)
+            {
+                _outputBuilder.Write("new");
+                _outputBuilder.Write(' ');
+
+                var type = cxxFunctionalCastExpr.Type;
+                var typeName = GetRemappedTypeName(cxxFunctionalCastExpr, type, out var nativeTypeName);
+
+                _outputBuilder.Write(typeName);
+                _outputBuilder.Write('(');
+                Visit(cxxFunctionalCastExpr.SubExpr);
+                _outputBuilder.Write(')');
+            }
+            else
+            {
+                VisitExplicitCastExpr(cxxFunctionalCastExpr);
+            }
+        }
+
         private void VisitCXXNullPtrLiteralExpr(CXXNullPtrLiteralExpr cxxNullPtrLiteralExpr)
         {
             _outputBuilder.Write("null");
+        }
+
+        private void VisitCXXOperatorCallExpr(CXXOperatorCallExpr cxxOperatorCallExpr)
+        {
+            var calleeDecl = cxxOperatorCallExpr.CalleeDecl;
+
+            if (calleeDecl is FunctionDecl functionDecl)
+            {
+                if (functionDecl.DeclContext is CXXRecordDecl)
+                {
+                    VisitStmt(cxxOperatorCallExpr.Callee);
+                    _outputBuilder.Write('.');
+                }
+
+                var name = GetRemappedCursorName(functionDecl);
+                _outputBuilder.Write(name);
+
+                _outputBuilder.Write('(');
+
+                var args = cxxOperatorCallExpr.Args;
+
+                if (args.Count != 0)
+                {
+                    var firstIndex = (functionDecl.DeclContext is CXXRecordDecl) ? 1 : 0;
+                    Visit(args[firstIndex]);
+
+                    for (int i = firstIndex + 1; i < args.Count; i++)
+                    {
+                        _outputBuilder.Write(',');
+                        _outputBuilder.Write(' ');
+                        Visit(args[i]);
+                    }
+                }
+
+                _outputBuilder.Write(")");
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.Kind}'. Generated bindings may be incomplete.", calleeDecl);
+            }
         }
 
         private void VisitCXXThisExpr(CXXThisExpr cxxThisExpr)
@@ -234,18 +320,13 @@ namespace ClangSharp
 
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
         {
-            if (!(explicitCastExpr is CXXConstCastExpr))
-            {
-                // C# doesn't have a concept of const pointers so
-                // ignore rather than adding a cast from T* to T*
+            var type = explicitCastExpr.Type;
+            var typeName = GetRemappedTypeName(explicitCastExpr, type, out var nativeTypeName);
 
-                var type = explicitCastExpr.Type;
-                var typeName = GetRemappedTypeName(explicitCastExpr, type, out var nativeTypeName);
+            _outputBuilder.Write('(');
+            _outputBuilder.Write(typeName);
+            _outputBuilder.Write(')');
 
-                _outputBuilder.Write('(');
-                _outputBuilder.Write(typeName);
-                _outputBuilder.Write(')');
-            }
             Visit(explicitCastExpr.SubExpr);
         }
 
@@ -603,7 +684,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXConstructExpr:
+                case CX_StmtClass.CX_StmtClass_CXXConstructExpr:
+                {
+                    VisitCXXConstructExpr((CXXConstructExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
@@ -636,7 +722,6 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
 
                 case CX_StmtClass.CX_StmtClass_CallExpr:
-                case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
                 {
                     VisitCallExpr((CallExpr)stmt);
                     break;
@@ -644,13 +729,39 @@ namespace ClangSharp
 
                 // case CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr:
 
-                // case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
+                case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
+                {
+                    VisitCallExpr((CallExpr)stmt);
+                    break;
+                }
+
+                case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
+                {
+                    VisitCXXOperatorCallExpr((CXXOperatorCallExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_UserDefinedLiteral:
                 // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
 
                 case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
+                {
+                    VisitExplicitCastExpr((ExplicitCastExpr)stmt);
+                    break;
+                }
+
                 case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
+                {
+                    VisitCXXFunctionalCastExpr((CXXFunctionalCastExpr)stmt);
+                    break;
+                }
+
                 case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
+                {
+                    VisitCXXConstCastExpr((CXXConstCastExpr)stmt);
+                    break;
+                }
+
                 case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
                 case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
                 case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
