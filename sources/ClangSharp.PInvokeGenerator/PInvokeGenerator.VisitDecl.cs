@@ -86,7 +86,13 @@ namespace ClangSharp
                 // case CX_DeclKind.CX_DeclKind_BuiltinTemplate:
                 // case CX_DeclKind.CX_DeclKind_Concept:
                 // case CX_DeclKind.CX_DeclKind_ClassTemplate:
-                // case CX_DeclKind.CX_DeclKind_FunctionTemplate:
+
+                case CX_DeclKind.CX_DeclKind_FunctionTemplate:
+                {
+                    VisitFunctionTemplateDecl((FunctionTemplateDecl)decl);
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_TypeAliasTemplate:
                 // case CX_DeclKind.CX_DeclKind_VarTemplate:
                 // case CX_DeclKind.CX_DeclKind_TemplateTemplateParm:
@@ -660,6 +666,11 @@ namespace ClangSharp
                     outputBuilder.NeedsSemicolon = false;
                 }
             }
+        }
+
+        private void VisitFunctionTemplateDecl(FunctionTemplateDecl functionTemplateDecl)
+        {
+            AddDiagnostic(DiagnosticLevel.Warning, $"Function templates are not supported: '{functionTemplateDecl.Name}'. Generated bindings may be incomplete.", functionTemplateDecl);
         }
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl)
