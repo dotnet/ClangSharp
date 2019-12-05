@@ -571,7 +571,14 @@ namespace ClangSharp
 
         private void VisitIntegerLiteral(IntegerLiteral integerLiteral)
         {
-            _outputBuilder.Write(integerLiteral.Value);
+            var value = integerLiteral.Value;
+
+            if (value.EndsWith("l") || value.EndsWith("L"))
+            {
+                value = value.Substring(0, value.Length - 1);
+            }
+
+            _outputBuilder.Write(value);
         }
 
         private void VisitMemberExpr(MemberExpr memberExpr)

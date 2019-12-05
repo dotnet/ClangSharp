@@ -211,6 +211,7 @@ namespace ClangSharp
             }
             else
             {
+                _outputBuilder.WriteNewlineIfNeeded();
                 _outputBuilder.Write(prefix);
             }
 

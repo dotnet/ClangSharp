@@ -1796,9 +1796,9 @@ namespace ClangSharp
         {
             var cursorParent = varDecl.CursorParent;
 
-            if (cursorParent is TranslationUnitDecl translationUnitDecl)
+            if ((cursorParent is TranslationUnitDecl) || (cursorParent is LinkageSpecDecl))
             {
-                VisitVarDeclForTranslationUnitDecl(varDecl, translationUnitDecl);
+                VisitVarDeclForTopLevelDecl(varDecl);
             }
             else if (cursorParent is DeclStmt declStmt)
             {
@@ -1810,7 +1810,7 @@ namespace ClangSharp
             }
         }
 
-        private void VisitVarDeclForTranslationUnitDecl(VarDecl varDecl, TranslationUnitDecl translationUnitDecl)
+        private void VisitVarDeclForTopLevelDecl(VarDecl varDecl)
         {
             var name = GetRemappedCursorName(varDecl);
 
