@@ -604,6 +604,36 @@ namespace ClangSharp
             return name;
         }
 
+        private static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
+        {
+            Type baseType = cxxBaseSpecifier.Type;
+            {
+                if (baseType is TypedefType typedefType)
+                {
+                    baseType = typedefType.Decl.UnderlyingType;
+                }
+
+                if (baseType is ElaboratedType elaboratedType)
+                {
+                    baseType = elaboratedType.CanonicalType;
+                }
+            }
+            {
+                if (baseType is TypedefType typedefType)
+                {
+                    baseType = typedefType.Decl.UnderlyingType;
+                }
+
+                if (baseType is ElaboratedType elaboratedType)
+                {
+                    baseType = elaboratedType.CanonicalType;
+                }
+            }
+
+            var baseRecordType = (RecordType)baseType;
+            return (CXXRecordDecl)baseRecordType.Decl;
+        }
+
         private string GetRemappedAnonymousName(Cursor cursor, string kind)
         {
             var name = GetAnonymousName(cursor, kind);
@@ -869,6 +899,29 @@ namespace ClangSharp
             return name;
         }
 
+        private bool HasVtbl(CXXRecordDecl cxxRecordDecl)
+        {
+            var hasDirectVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual);
+            var indirectVtblCount = 0;
+
+            foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+            {
+                var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+
+                if (HasVtbl(baseCxxRecordDecl))
+                {
+                    indirectVtblCount++;
+                }
+            }
+
+            if (indirectVtblCount > 1)
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
+            }
+
+            return hasDirectVtbl || (indirectVtblCount != 0);
+        }
+
         private bool IsSupportedFixedSizedBufferType(string typeName)
         {
             switch (typeName)
@@ -945,7 +998,7 @@ namespace ClangSharp
                     return true;
                 }
             }
-            return false;
+            return (recordDecl is CXXRecordDecl cxxRecordDecl) && HasVtbl(cxxRecordDecl);
         }
 
         private bool IsUnsafe(TypedefDecl typedefDecl, FunctionProtoType functionProtoType)

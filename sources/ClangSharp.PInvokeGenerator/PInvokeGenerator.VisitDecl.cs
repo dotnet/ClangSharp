@@ -506,7 +506,7 @@ namespace ClangSharp
                     {
                         _isMethodClassUnsafe = true;
                     }
-                    else
+                    else if (!IsUnsafe(cxxRecordDecl))
                     {
                         _outputBuilder.Write("unsafe");
                         _outputBuilder.Write(' ');
@@ -616,6 +616,7 @@ namespace ClangSharp
                     _outputBuilder.WriteBlockEnd();
                 }
             }
+            _outputBuilder.NeedsNewline = true;
 
             VisitDecls(functionDecl.Decls);
 
@@ -780,7 +781,7 @@ namespace ClangSharp
 
                 if (cxxRecordDecl != null)
                 {
-                    hasVtbl = HasVtbl(this, cxxRecordDecl);
+                    hasVtbl = HasVtbl(cxxRecordDecl);
                 }
 
                 if (recordDecl.IsUnion)
@@ -792,7 +793,7 @@ namespace ClangSharp
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
                 _outputBuilder.Write(' ');
 
-                if (IsUnsafe(recordDecl) || hasVtbl)
+                if (IsUnsafe(recordDecl))
                 {
                     _outputBuilder.Write("unsafe");
                     _outputBuilder.Write(' ');
@@ -806,6 +807,7 @@ namespace ClangSharp
                 if (hasVtbl)
                 {
                     _outputBuilder.WriteIndentedLine("public readonly Vtbl* lpVtbl;");
+                    _outputBuilder.NeedsNewline = true;
                 }
 
                 if (cxxRecordDecl != null)
@@ -879,20 +881,14 @@ namespace ClangSharp
                     _outputBuilder.NeedsNewline = true;
                 }
 
-                foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
-                {
-                    if (cxxMethodDecl.IsVirtual)
-                    {
-                        continue;
-                    }
-
-                    Visit(cxxMethodDecl);
-                    _outputBuilder.NeedsNewline = true;
-                }
-
                 if (hasVtbl)
                 {
                     OutputDelegateSignatures(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                }
+
+                if (cxxRecordDecl != null)
+                {
+                    OutputMethods(this, cxxRecordDecl, cxxRecordDecl);
                 }
 
                 VisitDecls(recordDecl.Decls);
@@ -975,36 +971,6 @@ namespace ClangSharp
                 return count;
             }
 
-            static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
-            {
-                Type baseType = cxxBaseSpecifier.Type;
-                {
-                    if (baseType is TypedefType typedefType)
-                    {
-                        baseType = typedefType.Decl.UnderlyingType;
-                    }
-
-                    if (baseType is ElaboratedType elaboratedType)
-                    {
-                        baseType = elaboratedType.CanonicalType;
-                    }
-                }
-                {
-                    if (baseType is TypedefType typedefType)
-                    {
-                        baseType = typedefType.Decl.UnderlyingType;
-                    }
-
-                    if (baseType is ElaboratedType elaboratedType)
-                    {
-                        baseType = elaboratedType.CanonicalType;
-                    }
-                }
-
-                var baseRecordType = (RecordType)baseType;
-                return (CXXRecordDecl)baseRecordType.Decl;
-            }
-
             static bool HasFields(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
             {
                 var hasFields = cxxRecordDecl.Fields.Any();
@@ -1023,29 +989,6 @@ namespace ClangSharp
                     }
                 }
                 return hasFields;
-            }
-
-            static bool HasVtbl(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
-            {
-                var hasDirectVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual);
-                var indirectVtblCount = 0;
-
-                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
-                {
-                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-
-                    if (HasVtbl(pinvokeGenerator, baseCxxRecordDecl))
-                    {
-                        indirectVtblCount++;
-                    }
-                }
-
-                if (indirectVtblCount > 1)
-                {
-                    pinvokeGenerator.AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
-                }
-
-                return hasDirectVtbl || (indirectVtblCount != 0);
             }
 
             static void OutputDelegateSignatures(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
@@ -1069,6 +1012,35 @@ namespace ClangSharp
                     var remappedName = FixupNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName);
                     pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);
                     RestoreNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName, remappedName);
+                }
+            }
+
+            static void OutputMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+            {
+                var outputBuilder = pinvokeGenerator._outputBuilder;
+
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                    OutputMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl);
+                }
+
+                foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
+                {
+                    if (cxxMethodDecl.IsVirtual)
+                    {
+                        continue;
+                    }
+
+                    if (cxxRecordDecl == rootCxxRecordDecl)
+                    {
+                        pinvokeGenerator.Visit(cxxMethodDecl);
+                    }
+                    else
+                    {
+                        pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);
+                    }
+                    outputBuilder.NeedsNewline = true;
                 }
             }
 
