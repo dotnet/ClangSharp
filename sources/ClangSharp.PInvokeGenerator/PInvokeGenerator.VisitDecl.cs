@@ -152,13 +152,12 @@ namespace ClangSharp
                 case CX_DeclKind.CX_DeclKind_CXXMethod:
                 case CX_DeclKind.CX_DeclKind_CXXConstructor:
                 case CX_DeclKind.CX_DeclKind_CXXDestructor:
+                case CX_DeclKind.CX_DeclKind_CXXConversion:
                 {
                     VisitFunctionDecl((CXXMethodDecl)decl, (CXXRecordDecl)decl.DeclContext);
                     break;
                 }
 
-                
-                // case CX_DeclKind.CX_DeclKind_CXXConversion:
                 // case CX_DeclKind.CX_DeclKind_MSProperty:
                 // case CX_DeclKind.CX_DeclKind_NonTypeTemplateParm:
 

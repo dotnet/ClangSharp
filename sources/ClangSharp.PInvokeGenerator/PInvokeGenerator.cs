@@ -606,20 +606,20 @@ namespace ClangSharp
         private string GetRemappedAnonymousName(Cursor cursor, string kind)
         {
             var name = GetAnonymousName(cursor, kind);
-            return GetRemappedName(name, cursor);
+            return GetRemappedName(name, cursor, tryRemapOperatorName: true);
         }
 
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
             var name = GetCursorName(namedDecl);
-            return GetRemappedName(name, namedDecl);
+            return GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
         }
 
-        private string GetRemappedName(string name, Cursor cursor)
+        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName)
         {
             if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
             {
-                if (cursor is FunctionDecl functionDecl)
+                if ((cursor is FunctionDecl functionDecl) && tryRemapOperatorName)
                 {
                     TryRemapOperatorName(ref name, functionDecl);
                 }
@@ -637,7 +637,7 @@ namespace ClangSharp
         private string GetRemappedTypeName(Cursor cursor, Type type, out string nativeTypeName)
         {
             var name = GetTypeName(cursor, type, out nativeTypeName);
-            name = GetRemappedName(name, cursor);
+            name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
 
             if (nativeTypeName.Equals(name))
             {
@@ -665,93 +665,113 @@ namespace ClangSharp
                 {
                     case CXTypeKind.CXType_Void:
                     {
-                        name = "void";
+                        name = (cursor is null) ? "Void" : "void";
                         break;
                     }
 
                     case CXTypeKind.CXType_Bool:
                     {
-                        name = "bool";
+                        name = (cursor is null) ? "Boolean" : "bool";
                         break;
                     }
 
                     case CXTypeKind.CXType_Char_U:
                     case CXTypeKind.CXType_UChar:
                     {
-                        name = "byte";
+                        name = (cursor is null) ? "Byte" : "byte";
                         break;
                     }
 
                     case CXTypeKind.CXType_UShort:
                     {
-                        name = "ushort";
+                        name = (cursor is null) ? "UInt16" : "ushort";
                         break;
                     }
 
                     case CXTypeKind.CXType_UInt:
                     {
-                        name = "uint";
+                        name = (cursor is null) ? "UInt32" : "uint";
                         break;
                     }
 
                     case CXTypeKind.CXType_ULong:
                     {
-                        name = _config.GenerateUnixTypes ? "UIntPtr" : "uint";
+                        if (_config.GenerateUnixTypes)
+                        {
+                            name = "UIntPtr";
+                        }
+                        else
+                        {
+                            goto case CXTypeKind.CXType_UInt;
+                        }
                         break;
                     }
 
                     case CXTypeKind.CXType_ULongLong:
                     {
-                        name = "ulong";
+                        name = (cursor is null) ? "UInt64" : "ulong";
                         break;
                     }
 
                     case CXTypeKind.CXType_Char_S:
                     case CXTypeKind.CXType_SChar:
                     {
-                        name = "sbyte";
+                        name = (cursor is null) ? "SByte" : "sbyte";
                         break;
                     }
 
                     case CXTypeKind.CXType_WChar:
                     {
-                        name = _config.GenerateUnixTypes ? "int" : "ushort";
-                        break;
+                        if (_config.GenerateUnixTypes)
+                        {
+                            goto case CXTypeKind.CXType_Int;
+                        }
+                        else
+                        {
+                            goto case CXTypeKind.CXType_UShort;
+                        }
                     }
 
                     case CXTypeKind.CXType_Short:
                     {
-                        name = "short";
+                        name = (cursor is null) ? "Int16" : "short";
                         break;
                     }
 
                     case CXTypeKind.CXType_Int:
                     {
-                        name = "int";
+                        name = (cursor is null) ? "Int32" : "int";
                         break;
                     }
 
                     case CXTypeKind.CXType_Long:
                     {
-                        name = _config.GenerateUnixTypes ? "IntPtr" : "int";
+                        if (_config.GenerateUnixTypes)
+                        {
+                            name = "IntPtr";
+                        }
+                        else
+                        {
+                            goto case CXTypeKind.CXType_Int;
+                        }
                         break;
                     }
 
                     case CXTypeKind.CXType_LongLong:
                     {
-                        name = "long";
+                        name = (cursor is null) ? "Int64" : "long";
                         break;
                     }
 
                     case CXTypeKind.CXType_Float:
                     {
-                        name = "float";
+                        name = (cursor is null) ? "Single" : "float";
                         break;
                     }
 
                     case CXTypeKind.CXType_Double:
                     {
-                        name = "double";
+                        name = (cursor is null) ? "Double" : "double";
                         break;
                     }
 
@@ -799,7 +819,7 @@ namespace ClangSharp
                 // can be treated correctly. Otherwise, they will resolve to a particular
                 // platform size, based on whatever parameters were passed into clang.
 
-                var remappedName = GetRemappedName(name, cursor);
+                var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
 
                 if (remappedName.Equals(name))
                 {
@@ -841,7 +861,7 @@ namespace ClangSharp
             else
             {
                 name = GetTypeName(cursor, pointeeType, out nativePointeeTypeName);
-                name = GetRemappedName(name, cursor);
+                name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
                 name += '*';
             }
 
@@ -1068,6 +1088,15 @@ namespace ClangSharp
             if (functionDecl.DeclContext is CXXRecordDecl)
             {
                 numArgs++;
+            }
+
+            if (functionDecl is CXXConversionDecl)
+            {
+                var returnType = functionDecl.ReturnType;
+                var returnTypeName = GetRemappedTypeName(cursor: null, returnType, out _);
+
+                name = $"To{returnTypeName}";
+                return true;
             }
 
             switch (name)
