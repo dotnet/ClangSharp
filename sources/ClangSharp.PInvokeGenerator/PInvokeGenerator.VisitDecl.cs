@@ -1847,6 +1847,13 @@ namespace ClangSharp
                 var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
 
                 _outputBuilder.Write(typeName);
+
+                if (type is ArrayType)
+                {
+                    _outputBuilder.Write('[');
+                    _outputBuilder.Write(']');
+                }
+
                 _outputBuilder.Write(' ');
             }
 

@@ -458,6 +458,117 @@ namespace ClangSharp
             }
         }
 
+        private void VisitInitListExpr(InitListExpr initListExpr)
+        {
+            VisitInitListExprForType(initListExpr, initListExpr.Type);
+        }
+
+        private void VisitInitListExprForArrayType(InitListExpr initListExpr, ArrayType arrayType)
+        {
+            _outputBuilder.Write("new");
+            _outputBuilder.Write(' ');
+
+            var type = initListExpr.Type;
+            var typeName = GetRemappedTypeName(initListExpr, type, out var nativeTypeName);
+
+            _outputBuilder.Write(typeName);
+            _outputBuilder.Write('[');
+
+            long size = -1;
+
+            if (arrayType is ConstantArrayType constantArrayType)
+            {
+                size = constantArrayType.Size;
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported array type kind: '{type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
+            }
+
+            if (size != -1)
+            {
+                _outputBuilder.Write(size);
+            }
+
+            _outputBuilder.WriteLine(']');
+            _outputBuilder.WriteBlockStart();
+
+            for (int i = 0; i < initListExpr.Inits.Count; i++)
+            {
+                _outputBuilder.WriteIndentation();
+                Visit(initListExpr.Inits[i]);
+                _outputBuilder.WriteLine(',');
+            }
+
+            for (int i = initListExpr.Inits.Count; i < size; i++)
+            {
+                _outputBuilder.WriteIndented("default");
+                _outputBuilder.WriteLine(',');
+            }
+
+            _outputBuilder.NeedsNewline = false;
+            _outputBuilder.NeedsSemicolon = false;
+            _outputBuilder.DecreaseIndentation();
+            _outputBuilder.WriteIndented('}');
+            _outputBuilder.WriteLine(';');
+        }
+
+        private void VisitInitListExprForRecordType(InitListExpr initListExpr, RecordType recordType)
+        {
+            _outputBuilder.Write("new");
+            _outputBuilder.Write(' ');
+
+            var type = initListExpr.Type;
+            var typeName = GetRemappedTypeName(initListExpr, type, out var nativeTypeName);
+
+            _outputBuilder.WriteLine(typeName);
+            _outputBuilder.WriteBlockStart();
+
+            var decl = (RecordDecl)recordType.Decl;
+
+            for (int i = 0; i < initListExpr.Inits.Count; i++)
+            {
+                var fieldName = GetRemappedCursorName(decl.Fields[i]);
+
+                _outputBuilder.WriteIndented(fieldName);
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write('=');
+                _outputBuilder.Write(' ');
+                Visit(initListExpr.Inits[i]);
+                _outputBuilder.WriteLine(',');
+            }
+
+            _outputBuilder.NeedsNewline = false;
+            _outputBuilder.NeedsSemicolon = false;
+            _outputBuilder.DecreaseIndentation();
+            _outputBuilder.WriteIndented('}');
+            _outputBuilder.WriteLine(';');
+        }
+
+        private void VisitInitListExprForType(InitListExpr initListExpr, Type type)
+        {
+            if (type is ArrayType arrayType)
+            {
+                VisitInitListExprForArrayType(initListExpr, arrayType);
+            }
+            else if (type is ElaboratedType elaboratedType)
+            {
+                VisitInitListExprForType(initListExpr, elaboratedType.NamedType);
+            }
+            else if (type is RecordType recordType)
+            {
+                VisitInitListExprForRecordType(initListExpr, recordType);
+            }
+            else if (type is TypedefType typedefType)
+            {
+                VisitInitListExprForType(initListExpr, typedefType.Decl.UnderlyingType);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression type: '{type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
+            }
+        }
+
         private void VisitIntegerLiteral(IntegerLiteral integerLiteral)
         {
             _outputBuilder.Write(integerLiteral.Value);
@@ -817,7 +928,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_GenericSelectionExpr:
                 // case CX_StmtClass.CX_StmtClass_ImaginaryLiteral:
                 // case CX_StmtClass.CX_StmtClass_ImplicitValueInitExpr:
-                // case CX_StmtClass.CX_StmtClass_InitListExpr:
+
+                case CX_StmtClass.CX_StmtClass_InitListExpr:
+                {
+                    VisitInitListExpr((InitListExpr)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_IntegerLiteral:
                 {
