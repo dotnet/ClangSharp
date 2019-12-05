@@ -9,5 +9,7 @@ namespace ClangSharp
         internal BuiltinType(CXType handle) : base(handle, handle.kind, CX_TypeClass.CX_TypeClass_Builtin)
         {
         }
+
+        public override bool IsIntegerType => (CXTypeKind.CXType_Bool <= Kind) && (Kind <= CXTypeKind.CXType_Int128);
     }
 }

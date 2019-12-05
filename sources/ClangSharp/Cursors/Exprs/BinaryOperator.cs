@@ -22,10 +22,9 @@ namespace ClangSharp
             {
                 throw new ArgumentException(nameof(handle));
             }
-            Debug.Assert(Children.OfType<Expr>().Count() == 2);
 
-            _lhs = new Lazy<Expr>(() => Children.OfType<Expr>().First());
-            _rhs = new Lazy<Expr>(() => Children.OfType<Expr>().Last());
+            _lhs = new Lazy<Expr>(() => Children.OfType<Expr>().ElementAt(0));
+            _rhs = new Lazy<Expr>(() => Children.OfType<Expr>().ElementAt(1));
         }
 
         public Expr LHS => _lhs.Value;

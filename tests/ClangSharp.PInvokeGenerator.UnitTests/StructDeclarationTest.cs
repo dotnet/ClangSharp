@@ -600,6 +600,60 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
+        [Fact]
+        public async Task InheritanceTest()
+        {
+            var inputContents = @"struct MyStruct1A
+{
+    int x;
+    int y;
+};
+
+struct MyStruct1B
+{
+    int x;
+    int y;
+};
+
+struct MyStruct2 : MyStruct1A, MyStruct1B
+{
+    int z;
+    int w;
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct1A
+    {
+        public int x;
+
+        public int y;
+    }
+
+    public partial struct MyStruct1B
+    {
+        public int x;
+
+        public int y;
+    }
+
+    public partial struct MyStruct2
+    {
+        public MyStruct1A __AnonymousBase_ClangUnsavedFile_L13_C20;
+
+        public MyStruct1B __AnonymousBase_ClangUnsavedFile_L13_C32;
+
+        public int z;
+
+        public int w;
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
         [Theory]
         [InlineData("double", "double", 7, 5)]
         [InlineData("short", "short", 7, 5)]
@@ -902,6 +956,24 @@ struct MyStruct
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
+        [Fact]
+        public async Task SkipNonDefinitionPointerTest()
+        {
+            var inputContents = @"typedef struct MyStruct* MyStructPtr;
+typedef struct MyStruct& MyStructRef;
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
         [Theory]
         [InlineData("unsigned char", "byte")]
         [InlineData("long long", "long")]
@@ -977,6 +1049,38 @@ struct MyStruct
         public {expectedManagedType} b;
     }}
 }}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task UsingDeclarationTest()
+        {
+            var inputContents = @"struct MyStruct1A
+{
+    void MyMethod() { }
+};
+
+struct MyStruct1B : MyStruct1A
+{
+    using MyStruct1A::MyMethod;
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct1A
+    {
+        public void MyMethod()
+        {
+        }
+    }
+
+    public partial struct MyStruct1B
+    {
+    }
+}
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);

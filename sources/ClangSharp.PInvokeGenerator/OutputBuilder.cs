@@ -35,6 +35,10 @@ namespace ClangSharp
 
         public string Name => _name;
 
+        public bool NeedsNewline { get; set; }
+
+        public bool NeedsSemicolon { get; set; }
+
         public IEnumerable<string> StaticUsingDirectives => _staticUsingDirectives;
 
         public IEnumerable<string> UsingDirectives => _usingDirectives;
@@ -74,6 +78,12 @@ namespace ClangSharp
 
         public void WriteBlockEnd()
         {
+            // We don't need a newline if immediately closing the scope
+            NeedsNewline = false;
+
+            // We don't need a semicolon if immediately closing the scope
+            NeedsSemicolon = false;
+
             DecreaseIndentation();
             WriteIndentedLine('}');
         }
@@ -85,6 +95,12 @@ namespace ClangSharp
 
         public void WriteIndentation()
         {
+            if (NeedsNewline)
+            {
+                WriteLine();
+            }
+            NeedsNewline = false;
+
             for (var i = 0; i < _indentationLevel; i++)
             {
                 _currentLine.Append(_indentationString);
@@ -109,7 +125,16 @@ namespace ClangSharp
             WriteLine();
         }
 
-        public void WriteLine()
+        public void WriteSemicolonIfNeeded()
+        {
+            if (NeedsSemicolon)
+            {
+                WriteLine(';');
+            }
+            NeedsSemicolon = true;
+        }
+
+        private void WriteLine()
         {
             _contents.Add(_currentLine.ToString());
             _currentLine.Clear();

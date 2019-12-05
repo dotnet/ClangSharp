@@ -25,7 +25,7 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
-            _body = new Lazy<Stmt>(() => CursorChildren.OfType<Stmt>().SingleOrDefault());
+            _body = new Lazy<Stmt>(() => CursorChildren.OfType<Stmt>().LastOrDefault());
             _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
             _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => Decls.OfType<ParmVarDecl>().ToList());
             _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ResultType));

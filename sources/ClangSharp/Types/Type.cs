@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -33,6 +32,8 @@ namespace ClangSharp
         public Type CanonicalType => _canonicalType.Value;
 
         public CXType Handle { get; }
+
+        public virtual bool IsIntegerType => false;
 
         public bool IsLocalConstQualified => Handle.IsConstQualified;
 

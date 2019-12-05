@@ -18,7 +18,7 @@ namespace ClangSharp
         private readonly CXIndex _index;
         private readonly OutputBuilderFactory _outputBuilderFactory;
         private readonly Func<string, Stream> _outputStreamFactory;
-        private readonly HashSet<Cursor> _visitedCursors;
+        private readonly HashSet<Decl> _visitedDecls;
         private readonly List<Diagnostic> _diagnostics;
         private readonly PInvokeGeneratorConfiguration _config;
 
@@ -41,7 +41,7 @@ namespace ClangSharp
                 Directory.CreateDirectory(directoryPath);
                 return new FileStream(path, FileMode.Create);
             });
-            _visitedCursors = new HashSet<Cursor>();
+            _visitedDecls = new HashSet<Decl>();
             _diagnostics = new List<Diagnostic>();
             _config = config;
         }
@@ -143,7 +143,7 @@ namespace ClangSharp
 
             _diagnostics.Clear();
             _outputBuilderFactory.Clear();
-            _visitedCursors.Clear();
+            _visitedDecls.Clear();
         }
 
         public void Dispose()
@@ -181,7 +181,7 @@ namespace ClangSharp
             }
 
             var translationUnitDecl = translationUnit.TranslationUnitDecl;
-            _visitedCursors.Add(translationUnitDecl);
+            _visitedDecls.Add(translationUnitDecl);
 
             VisitDecls(translationUnitDecl.Decls);
         }
@@ -229,7 +229,7 @@ namespace ClangSharp
 
             if (postfix is null)
             {
-                _outputBuilder.WriteLine();
+                _outputBuilder.NeedsNewline = true;
             }
             else
             {
@@ -259,9 +259,11 @@ namespace ClangSharp
                     sw.WriteLine(_config.HeaderText);
                 }
 
-                if (outputBuilder.UsingDirectives.Any())
+                var usingDirectives = outputBuilder.UsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
+
+                if (usingDirectives.Any())
                 {
-                    foreach (var usingDirective in outputBuilder.UsingDirectives.Concat(outputBuilder.StaticUsingDirectives))
+                    foreach(var usingDirective in usingDirectives)
                     {
                         sw.Write("using");
                         sw.Write(' ');
@@ -504,9 +506,9 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetAnonymousName(NamedDecl namedDecl, string kind)
+        private string GetAnonymousName(Cursor cursor, string kind)
         {
-            namedDecl.Location.GetFileLocation(out var file, out var line, out var column, out _);
+            cursor.Location.GetFileLocation(out var file, out var line, out var column, out _);
             var fileName = Path.GetFileNameWithoutExtension(file.Name.ToString());
             return $"__Anonymous{kind}_{fileName}_L{line}_C{column}";
         }
@@ -592,27 +594,35 @@ namespace ClangSharp
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.Kind}'.", namedDecl);
                 }
             }
+            else if (namedDecl is CXXDestructorDecl)
+            {
+                name = "Finalize";
+            }
 
             Debug.Assert(!string.IsNullOrWhiteSpace(name));
             return name;
         }
 
-        private string GetRemappedAnonymousName(NamedDecl namedDecl, string kind)
+        private string GetRemappedAnonymousName(Cursor cursor, string kind)
         {
-            var name = GetAnonymousName(namedDecl, kind);
-            return GetRemappedName(name);
+            var name = GetAnonymousName(cursor, kind);
+            return GetRemappedName(name, cursor);
         }
 
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
             var name = GetCursorName(namedDecl);
-            return GetRemappedName(name);
+            return GetRemappedName(name, namedDecl);
         }
 
-        private string GetRemappedName(string name)
+        private string GetRemappedName(string name, Cursor cursor)
         {
             if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
             {
+                if (cursor is FunctionDecl functionDecl)
+                {
+                    TryRemapOperatorName(ref name, functionDecl);
+                }
                 remappedName = name;
             }
 
@@ -627,7 +637,7 @@ namespace ClangSharp
         private string GetRemappedTypeName(Cursor cursor, Type type, out string nativeTypeName)
         {
             var name = GetTypeName(cursor, type, out nativeTypeName);
-            name = GetRemappedName(name);
+            name = GetRemappedName(name, cursor);
 
             if (nativeTypeName.Equals(name))
             {
@@ -789,7 +799,7 @@ namespace ClangSharp
                 // can be treated correctly. Otherwise, they will resolve to a particular
                 // platform size, based on whatever parameters were passed into clang.
 
-                var remappedName = GetRemappedName(name);
+                var remappedName = GetRemappedName(name, cursor);
 
                 if (remappedName.Equals(name))
                 {
@@ -831,7 +841,7 @@ namespace ClangSharp
             else
             {
                 name = GetTypeName(cursor, pointeeType, out nativePointeeTypeName);
-                name = GetRemappedName(name);
+                name = GetRemappedName(name, cursor);
                 name += '*';
             }
 
@@ -1019,7 +1029,7 @@ namespace ClangSharp
                 Debug.Assert(_outputBuilderUsers >= 1);
                 _outputBuilderUsers++;
 
-                _outputBuilder.WriteLine();
+                _outputBuilder.NeedsNewline = true;
                 return;
             }
 
@@ -1037,7 +1047,7 @@ namespace ClangSharp
             }
             else
             {
-                _outputBuilder.WriteLine();
+                _outputBuilder.NeedsNewline = true;
             }
             _outputBuilderUsers++;
         }
@@ -1051,21 +1061,158 @@ namespace ClangSharp
             _outputBuilderUsers--;
         }
 
-        private void Visit(Cursor cursor)
+        private bool TryRemapOperatorName(ref string name, FunctionDecl functionDecl)
         {
-            if (_visitedCursors.Contains(cursor))
+            var numArgs = functionDecl.Parameters.Count;
+
+            if (functionDecl.DeclContext is CXXRecordDecl)
             {
-                return;
+                numArgs++;
             }
 
-            _visitedCursors.Add(cursor);
+            switch (name)
+            {
+                case "operator+":
+                {
+                    name = (numArgs == 1) ? "Plus" : "Add";
+                    return true;
+                }
 
+                case "operator-":
+                {
+                    name = (numArgs == 1) ? "Negate" : "Subtract";
+                    return true;
+                }
+
+                case "operator!":
+                {
+                    name = "Not";
+                    return true;
+                }
+
+                case "operator~":
+                {
+                    name = "OnesComplement";
+                    return true;
+                }
+
+                case "operator++":
+                {
+                    name = "Increment";
+                    return true;
+                }
+
+                case "operator--":
+                {
+                    name = "Decrement";
+                    return true;
+                }
+
+                case "operator*":
+                {
+                    name = "Multiply";
+                    return true;
+                }
+
+                case "operator/":
+                {
+                    name = "Divide";
+                    return true;
+                }
+
+                case "operator%":
+                {
+                    name = "Modulus";
+                    return true;
+                }
+
+                case "operator&":
+                {
+                    name = "And";
+                    return true;
+                }
+
+                case "operator|":
+                {
+                    name = "Or";
+                    return true;
+                }
+
+                case "operator^":
+                {
+                    name = "Xor";
+                    return true;
+                }
+
+                case "operator<<":
+                {
+                    name = "LeftShift";
+                    return true;
+                }
+
+                case "operator>>":
+                {
+                    name = "RightShift";
+                    return true;
+                }
+
+                case "operator==":
+                {
+                    name = "Equals";
+                    return true;
+                }
+
+                case "operator!=":
+                {
+                    name = "NotEquals";
+                    return true;
+                }
+
+                case "operator<":
+                {
+                    name = "LessThan";
+                    return true;
+                }
+
+                case "operator>":
+                {
+                    name = "GreaterThan";
+                    return true;
+                }
+
+                case "operator<=":
+                {
+                    name = "LessThanOrEquals";
+                    return true;
+                }
+
+                case "operator>=":
+                {
+                    name = "GreaterThanOrEquals";
+                    return true;
+                }
+
+                default:
+                {
+                    return false;
+                }
+            }
+        }
+
+        private void Visit(Cursor cursor)
+        {
             if (cursor is Attr attr)
             {
                 VisitAttr(attr);
             }
             else if (cursor is Decl decl)
             {
+                if (_visitedDecls.Contains(decl))
+                {
+                    return;
+                }
+                _visitedDecls.Add(decl);
+
                 VisitDecl(decl);
             }
             else if (cursor is Ref @ref)

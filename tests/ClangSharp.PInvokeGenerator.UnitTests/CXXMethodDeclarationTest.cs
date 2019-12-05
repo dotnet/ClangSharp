@@ -10,6 +10,118 @@ namespace ClangSharp.UnitTests
     public sealed class CXXMethodDeclarationTest : PInvokeGeneratorTest
     {
         [Fact]
+        public async Task ConstructorTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int _value;
+
+    MyStruct(int value)
+    {
+        _value = value;
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int _value;
+
+        public MyStruct(int value)
+        {
+            _value = value;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task ConstructorWithInitializeTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int _x;
+    int _y;
+    int _z;
+
+    MyStruct(int x) : _x(x)
+    {
+    }
+
+    MyStruct(int x, int y) : _x(x), _y(y)
+    {
+    }
+
+    MyStruct(int x, int y, int z) : _x(x), _y(y), _z()
+    {
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int _x;
+
+        public int _y;
+
+        public int _z;
+
+        public MyStruct(int x)
+        {
+            _x = x;
+        }
+
+        public MyStruct(int x, int y)
+        {
+            _x = x;
+            _y = y;
+        }
+
+        public MyStruct(int x, int y, int z)
+        {
+            _x = x;
+            _y = y;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task DestructorTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    ~MyStruct()
+    {
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public void Finalize()
+        {
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task InstanceTest()
         {
             var inputContents = @"struct MyStruct
@@ -64,6 +176,113 @@ namespace ClangSharp.Test
         }}
     }}
 }}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task MemberCallTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    int MyFunction1()
+    {
+        return value;
+    }
+
+    int MyFunction2()
+    {
+        return MyFunction1();
+    }
+
+    int MyFunction3()
+    {
+        return this->MyFunction1();
+    }
+};
+
+int MyFunctionA(MyStruct x)
+{
+    return x.MyFunction1();
+}
+
+int MyFunctionB(MyStruct* x)
+{
+    return x->MyFunction2();
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public int MyFunction1()
+        {
+            return value;
+        }
+
+        public int MyFunction2()
+        {
+            return MyFunction1();
+        }
+
+        public int MyFunction3()
+        {
+            return this.MyFunction1();
+        }
+    }
+
+    public static unsafe partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static int MyFunctionA(MyStruct x)
+        {
+            return x.MyFunction1();
+        }
+
+        public static int MyFunctionB([NativeTypeName(""MyStruct *"")] MyStruct* x)
+        {
+            return x->MyFunction2();
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task MemberTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    int MyFunction()
+    {
+        return value;
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public int MyFunction()
+        {
+            return value;
+        }
+    }
+}
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
@@ -175,8 +394,8 @@ namespace ClangSharp.Test
         {
             var inputContents = @"struct MyStruct
 {
-    virtual int GetType() = 0;
     virtual int GetType(int obj) = 0;
+    virtual int GetType() = 0;
     virtual int GetType(int objA, int objB) = 0;
 };";
 
@@ -200,22 +419,22 @@ namespace ClangSharp.Test
         public readonly Vtbl* lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
-        public delegate int _GetType(MyStruct* pThis);
+        public delegate int _GetType(MyStruct* pThis, int obj);
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
-        public delegate int _GetType1(MyStruct* pThis, int obj);
+        public delegate int _GetType1(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
         public delegate int _GetType2(MyStruct* pThis, int objA, int objB);
 
-        public new int GetType()
-        {{
-            return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)((MyStruct*)Unsafe.AsPointer(ref this));
-        }}
-
         public int GetType(int obj)
         {{
-            return Marshal.GetDelegateForFunctionPointer<_GetType1>(lpVtbl->GetType1)((MyStruct*)Unsafe.AsPointer(ref this), obj);
+            return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)((MyStruct*)Unsafe.AsPointer(ref this), obj);
+        }}
+
+        public new int GetType()
+        {{
+            return Marshal.GetDelegateForFunctionPointer<_GetType1>(lpVtbl->GetType1)((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
         public int GetType(int objA, int objB)
@@ -225,10 +444,10 @@ namespace ClangSharp.Test
 
         public partial struct Vtbl
         {{
-            [NativeTypeName(""int (){callConvAttr}"")]
+            [NativeTypeName(""int (int){callConvAttr}"")]
             public new IntPtr GetType;
 
-            [NativeTypeName(""int (int){callConvAttr}"")]
+            [NativeTypeName(""int (){callConvAttr}"")]
             public IntPtr GetType1;
 
             [NativeTypeName(""int (int, int){callConvAttr}"")]
@@ -236,6 +455,136 @@ namespace ClangSharp.Test
         }}
     }}
 }}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task OperatorTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    MyStruct(int value) : value(value)
+    {
+    }
+
+    MyStruct operator+(MyStruct rhs)
+    {
+        return MyStruct(value + rhs.value);
+    }
+};
+
+MyStruct operator-(MyStruct lhs, MyStruct rhs)
+{
+    return MyStruct(lhs.value - rhs.value);
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public MyStruct(int value)
+        {
+            this.value = value;
+        }
+
+        public MyStruct Add(MyStruct rhs)
+        {
+            return new MyStruct(value + rhs.value);
+        }
+    }
+
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static MyStruct Subtract(MyStruct lhs, MyStruct rhs)
+        {
+            return new MyStruct(lhs.value - rhs.value);
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task OperatorCallTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    MyStruct(int value) : value(value)
+    {
+    }
+
+    MyStruct operator+(MyStruct rhs)
+    {
+        return MyStruct(value + rhs.value);
+    }
+};
+
+MyStruct MyFunction1(MyStruct lhs, MyStruct rhs)
+{
+    return lhs + rhs;
+}
+
+MyStruct operator-(MyStruct lhs, MyStruct rhs)
+{
+    return MyStruct(lhs.value - rhs.value);
+}
+
+MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
+{
+    return lhs - rhs;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public MyStruct(int value)
+        {
+            this.value = value;
+        }
+
+        public MyStruct Add(MyStruct rhs)
+        {
+            return new MyStruct(value + rhs.value);
+        }
+    }
+
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static MyStruct MyFunction1(MyStruct lhs, MyStruct rhs)
+        {
+            return lhs.Add(rhs);
+        }
+
+        public static MyStruct Subtract(MyStruct lhs, MyStruct rhs)
+        {
+            return new MyStruct(lhs.value - rhs.value);
+        }
+
+        public static MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
+        {
+            return Subtract(lhs, rhs);
+        }
+    }
+}
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
@@ -288,6 +637,37 @@ namespace ClangSharp.Test
         }}
     }}
 }}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task ThisTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    int MyFunction()
+    {
+        return this->value;
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public int MyFunction()
+        {
+            return this.value;
+        }
+    }
+}
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
