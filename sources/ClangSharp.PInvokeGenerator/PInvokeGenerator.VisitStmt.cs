@@ -1087,7 +1087,6 @@ namespace ClangSharp
 
                 case CX_UnaryOperatorKind.CX_UO_PreInc:
                 case CX_UnaryOperatorKind.CX_UO_PreDec:
-                case CX_UnaryOperatorKind.CX_UO_AddrOf:
                 case CX_UnaryOperatorKind.CX_UO_Deref:
                 case CX_UnaryOperatorKind.CX_UO_Plus:
                 case CX_UnaryOperatorKind.CX_UO_Minus:
@@ -1096,6 +1095,20 @@ namespace ClangSharp
                 {
                     _outputBuilder.Write(unaryOperator.OpcodeStr);
                     Visit(unaryOperator.SubExpr);
+                    break;
+                }
+
+                case CX_UnaryOperatorKind.CX_UO_AddrOf:
+                {
+                    if ((unaryOperator.SubExpr is DeclRefExpr declRefExpr) && (declRefExpr.Decl.Type is LValueReferenceType))
+                    {
+                        Visit(unaryOperator.SubExpr);
+                    }
+                    else
+                    {
+                        _outputBuilder.Write(unaryOperator.OpcodeStr);
+                        Visit(unaryOperator.SubExpr);
+                    }
                     break;
                 }
 
