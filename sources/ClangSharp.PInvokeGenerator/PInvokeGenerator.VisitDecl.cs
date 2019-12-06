@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -34,6 +35,15 @@ namespace ClangSharp
                         // still generate bindings for things which are used
                         // as opaque handles, but which aren't ever defined.
 
+                        return;
+                    }
+                }
+                else if (decl is FunctionDecl functionDecl)
+                {
+                    var fullName = GetFunctionDeclFullName(functionDecl);
+
+                    if (_config.ExcludedNames.Contains(fullName))
+                    {
                         return;
                     }
                 }
@@ -399,6 +409,13 @@ namespace ClangSharp
 
         private void VisitFunctionDecl(FunctionDecl functionDecl, CXXRecordDecl cxxRecordDecl)
         {
+            var fullName = GetFunctionDeclFullName(functionDecl);
+
+            if (_config.ExcludedNames.Contains(fullName))
+            {
+                return;
+            }
+
             var name = GetRemappedCursorName(functionDecl);
 
             if (cxxRecordDecl is null)
@@ -409,8 +426,8 @@ namespace ClangSharp
             WithAttributes("*");
             WithAttributes(name);
 
-            WithNamespaces("*");
-            WithNamespaces(name);
+            WithUsings("*");
+            WithUsings(name);
 
             var type = functionDecl.Type;
             var callConv = CXCallingConv.CXCallingConv_Invalid;
@@ -1802,8 +1819,8 @@ namespace ClangSharp
                 WithAttributes("*");
                 WithAttributes(name);
 
-                WithNamespaces("*");
-                WithNamespaces(name);
+                WithUsings("*");
+                WithUsings(name);
 
                 var type = varDecl.Type;
                 var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);

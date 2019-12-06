@@ -604,6 +604,31 @@ namespace ClangSharp
             return name;
         }
 
+        private static string GetFunctionDeclFullName(FunctionDecl functionDecl)
+        {
+            var fullName = new StringBuilder();
+
+            fullName.Append(functionDecl.ReturnType.AsString);
+            fullName.Append(' ');
+            fullName.Append(functionDecl.Name);
+            fullName.Append('(');
+
+            if (functionDecl.Parameters.Any())
+            {
+                fullName.Append(functionDecl.Parameters[0].Type.AsString);
+
+                for (int i = 1; i < functionDecl.Parameters.Count; i++)
+                {
+                    fullName.Append(',');
+                    fullName.Append(' ');
+                    fullName.Append(functionDecl.Parameters[i].Type.AsString);
+                }
+            }
+            fullName.Append(')');
+
+            return fullName.ToString();
+        }
+
         private static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
         {
             Type baseType = cxxBaseSpecifier.Type;
@@ -1116,8 +1141,8 @@ namespace ClangSharp
                 WithAttributes("*");
                 WithAttributes(name);
 
-                WithNamespaces("*");
-                WithNamespaces(name);
+                WithUsings("*");
+                WithUsings(name);
             }
             else
             {
@@ -1338,17 +1363,6 @@ namespace ClangSharp
             }
         }
 
-        private void WithNamespaces(string remappedName)
-        {
-            if (_config.WithNamespaces.TryGetValue(remappedName, out IReadOnlyList<string> namespaceNames))
-            {
-                foreach (var namespaceName in namespaceNames)
-                {
-                    _outputBuilder.AddUsingDirective(namespaceName);
-                }
-            }
-        }
-
         private void WithType(string remappedName, ref string integerTypeName, ref string nativeTypeName)
         {
             if (_config.WithTypes.TryGetValue(remappedName, out string type))
@@ -1363,6 +1377,17 @@ namespace ClangSharp
                 if (nativeTypeName.Equals(type))
                 {
                     nativeTypeName = string.Empty;
+                }
+            }
+        }
+
+        private void WithUsings(string remappedName)
+        {
+            if (_config.WithUsings.TryGetValue(remappedName, out IReadOnlyList<string> usings))
+            {
+                foreach (var @using in usings)
+                {
+                    _outputBuilder.AddUsingDirective(@using);
                 }
             }
         }

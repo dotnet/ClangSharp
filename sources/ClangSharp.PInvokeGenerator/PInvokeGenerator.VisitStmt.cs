@@ -35,7 +35,7 @@ namespace ClangSharp
         {
             var calleeDecl = callExpr.CalleeDecl;
 
-            if (calleeDecl is FunctionDecl functionDecl)
+            if (calleeDecl is FunctionDecl)
             {
                 VisitStmt(callExpr.Callee);
                 _outputBuilder.Write('(');
@@ -237,17 +237,17 @@ namespace ClangSharp
         {
             if (declStmt.IsSingleDecl)
             {
-                Visit(declStmt.SingleDecl);
+                VisitDecl(declStmt.SingleDecl);
             }
             else
             {
-                Visit(declStmt.Decls.First());
+                VisitDecl(declStmt.Decls.First());
 
                 foreach (var decl in declStmt.Decls.Skip(1))
                 {
                     _outputBuilder.Write(',');
                     _outputBuilder.Write(' ');
-                    Visit(decl);
+                    VisitDecl(decl);
                 }
             }
 
@@ -1000,7 +1000,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
                 // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
                 // case CX_StmtClass.CX_StmtClass_TypoExpr:
-                // case CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr:
+
+                case CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr:
+                {
+                    VisitUnaryExprOrTypeTraitExpr((UnaryExprOrTypeTraitExpr)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_UnaryOperator:
                 {
@@ -1071,6 +1076,34 @@ namespace ClangSharp
             }
 
             _outputBuilder.NeedsNewline = true;
+        }
+
+        private void VisitUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr unaryExprOrTypeTraitExpr)
+        {
+            var translationUnitHandle = unaryExprOrTypeTraitExpr.TranslationUnit.Handle;
+
+            var tokens = translationUnitHandle.Tokenize(unaryExprOrTypeTraitExpr.Extent);
+            var firstTokenSpelling = (tokens.Length > 0) ? tokens[0].GetSpelling(translationUnitHandle).CString : string.Empty;
+
+            switch (firstTokenSpelling)
+            {
+                case "sizeof":
+                {
+                    _outputBuilder.Write("sizeof");
+                    _outputBuilder.Write('(');
+
+                    Visit(unaryExprOrTypeTraitExpr.CursorChildren.Single());
+
+                    _outputBuilder.Write(')');
+                    break;
+                }
+
+                default:
+                {
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary or type trait expression: '{firstTokenSpelling}'. Generated bindings may be incomplete.", unaryExprOrTypeTraitExpr);
+                    break;
+                }
+            }
         }
 
         private void VisitUnaryOperator(UnaryOperator unaryOperator)
