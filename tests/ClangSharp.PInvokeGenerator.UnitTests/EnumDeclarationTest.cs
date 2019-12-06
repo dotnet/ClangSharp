@@ -312,7 +312,7 @@ namespace ClangSharp.Test
             {
                 ["MyEnum1"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withNamespaces: withNamespaces);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
         [Fact]
@@ -349,7 +349,7 @@ namespace ClangSharp.Test
             {
                 ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withNamespaces: withNamespaces);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
         [Fact]
@@ -388,7 +388,7 @@ namespace ClangSharp.Test
                 ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" },
                 ["MyEnum2"] = new List<string>() { "System" }
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withNamespaces: withNamespaces);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
         [Fact]

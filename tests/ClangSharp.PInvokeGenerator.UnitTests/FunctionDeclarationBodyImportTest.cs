@@ -1181,6 +1181,119 @@ int MyFunction()
         }
 
         [Fact]
+        public async Task InitListForArrayTest()
+        {
+            var inputContents = @"
+void MyFunction()
+{
+    int x[4] = { 1, 2, 3, 4 };
+    int y[4] = { 1, 2, 3 };
+    int z[] = { 1, 2 };
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static void MyFunction()
+        {
+            int[] x = new int[4]
+            {
+                1,
+                2,
+                3,
+                4,
+            };
+            int[] y = new int[4]
+            {
+                1,
+                2,
+                3,
+                default,
+            };
+            int[] z = new int[2]
+            {
+                1,
+                2,
+            };
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task InitListForRecordDeclTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    float x;
+    float y;
+    float z;
+    float w;
+};
+
+MyStruct MyFunction1()
+{
+    return { 1.0f, 2.0f, 3.0f, 4.0f };
+}
+
+MyStruct MyFunction2()
+{
+    return { 1.0f, 2.0f, 3.0f };
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public float x;
+
+        public float y;
+
+        public float z;
+
+        public float w;
+    }
+
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static MyStruct MyFunction1()
+        {
+            return new MyStruct
+            {
+                x = 1.0f,
+                y = 2.0f,
+                z = 3.0f,
+                w = 4.0f,
+            };
+        }
+
+        public static MyStruct MyFunction2()
+        {
+            return new MyStruct
+            {
+                x = 1.0f,
+                y = 2.0f,
+                z = 3.0f,
+            };
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task MemberTest()
         {
             var inputContents = @"struct MyStruct

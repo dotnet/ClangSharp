@@ -95,11 +95,7 @@ namespace ClangSharp
 
         public void WriteIndentation()
         {
-            if (NeedsNewline)
-            {
-                WriteLine();
-            }
-            NeedsNewline = false;
+            WriteNewlineIfNeeded();
 
             for (var i = 0; i < _indentationLevel; i++)
             {
@@ -123,6 +119,15 @@ namespace ClangSharp
         {
             Write(value);
             WriteLine();
+        }
+
+        public void WriteNewlineIfNeeded()
+        {
+            if (NeedsNewline)
+            {
+                WriteLine();
+            }
+            NeedsNewline = false;
         }
 
         public void WriteSemicolonIfNeeded()

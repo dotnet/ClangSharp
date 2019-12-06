@@ -25,7 +25,7 @@ namespace ClangSharp
             _init = new Lazy<Expr>(() => {
                 var exprs = CursorChildren.OfType<Expr>();
 
-                if (Type is ArrayType)
+                if ((Type is ArrayType) && !(exprs.FirstOrDefault() is InitListExpr))
                 {
                     exprs = exprs.Skip(1);
                 }

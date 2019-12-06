@@ -35,7 +35,7 @@ namespace ClangSharp
         {
             var calleeDecl = callExpr.CalleeDecl;
 
-            if (calleeDecl is FunctionDecl functionDecl)
+            if (calleeDecl is FunctionDecl)
             {
                 VisitStmt(callExpr.Callee);
                 _outputBuilder.Write('(');
@@ -237,17 +237,17 @@ namespace ClangSharp
         {
             if (declStmt.IsSingleDecl)
             {
-                Visit(declStmt.SingleDecl);
+                VisitDecl(declStmt.SingleDecl);
             }
             else
             {
-                Visit(declStmt.Decls.First());
+                VisitDecl(declStmt.Decls.First());
 
                 foreach (var decl in declStmt.Decls.Skip(1))
                 {
                     _outputBuilder.Write(',');
                     _outputBuilder.Write(' ');
-                    Visit(decl);
+                    VisitDecl(decl);
                 }
             }
 
@@ -458,9 +458,127 @@ namespace ClangSharp
             }
         }
 
+        private void VisitInitListExpr(InitListExpr initListExpr)
+        {
+            VisitInitListExprForType(initListExpr, initListExpr.Type);
+        }
+
+        private void VisitInitListExprForArrayType(InitListExpr initListExpr, ArrayType arrayType)
+        {
+            _outputBuilder.Write("new");
+            _outputBuilder.Write(' ');
+
+            var type = initListExpr.Type;
+            var typeName = GetRemappedTypeName(initListExpr, type, out var nativeTypeName);
+
+            _outputBuilder.Write(typeName);
+            _outputBuilder.Write('[');
+
+            long size = -1;
+
+            if (arrayType is ConstantArrayType constantArrayType)
+            {
+                size = constantArrayType.Size;
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported array type kind: '{type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
+            }
+
+            if (size != -1)
+            {
+                _outputBuilder.Write(size);
+            }
+
+            _outputBuilder.WriteLine(']');
+            _outputBuilder.WriteBlockStart();
+
+            for (int i = 0; i < initListExpr.Inits.Count; i++)
+            {
+                _outputBuilder.WriteIndentation();
+                Visit(initListExpr.Inits[i]);
+                _outputBuilder.WriteLine(',');
+            }
+
+            for (int i = initListExpr.Inits.Count; i < size; i++)
+            {
+                _outputBuilder.WriteIndented("default");
+                _outputBuilder.WriteLine(',');
+            }
+
+            _outputBuilder.NeedsNewline = false;
+            _outputBuilder.NeedsSemicolon = false;
+            _outputBuilder.DecreaseIndentation();
+            _outputBuilder.WriteIndented('}');
+            _outputBuilder.WriteLine(';');
+        }
+
+        private void VisitInitListExprForRecordType(InitListExpr initListExpr, RecordType recordType)
+        {
+            _outputBuilder.Write("new");
+            _outputBuilder.Write(' ');
+
+            var type = initListExpr.Type;
+            var typeName = GetRemappedTypeName(initListExpr, type, out var nativeTypeName);
+
+            _outputBuilder.WriteLine(typeName);
+            _outputBuilder.WriteBlockStart();
+
+            var decl = (RecordDecl)recordType.Decl;
+
+            for (int i = 0; i < initListExpr.Inits.Count; i++)
+            {
+                var fieldName = GetRemappedCursorName(decl.Fields[i]);
+
+                _outputBuilder.WriteIndented(fieldName);
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write('=');
+                _outputBuilder.Write(' ');
+                Visit(initListExpr.Inits[i]);
+                _outputBuilder.WriteLine(',');
+            }
+
+            _outputBuilder.NeedsNewline = false;
+            _outputBuilder.NeedsSemicolon = false;
+            _outputBuilder.DecreaseIndentation();
+            _outputBuilder.WriteIndented('}');
+            _outputBuilder.WriteLine(';');
+        }
+
+        private void VisitInitListExprForType(InitListExpr initListExpr, Type type)
+        {
+            if (type is ArrayType arrayType)
+            {
+                VisitInitListExprForArrayType(initListExpr, arrayType);
+            }
+            else if (type is ElaboratedType elaboratedType)
+            {
+                VisitInitListExprForType(initListExpr, elaboratedType.NamedType);
+            }
+            else if (type is RecordType recordType)
+            {
+                VisitInitListExprForRecordType(initListExpr, recordType);
+            }
+            else if (type is TypedefType typedefType)
+            {
+                VisitInitListExprForType(initListExpr, typedefType.Decl.UnderlyingType);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression type: '{type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
+            }
+        }
+
         private void VisitIntegerLiteral(IntegerLiteral integerLiteral)
         {
-            _outputBuilder.Write(integerLiteral.Value);
+            var value = integerLiteral.Value;
+
+            if (value.EndsWith("l") || value.EndsWith("L"))
+            {
+                value = value.Substring(0, value.Length - 1);
+            }
+
+            _outputBuilder.Write(value);
         }
 
         private void VisitMemberExpr(MemberExpr memberExpr)
@@ -817,7 +935,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_GenericSelectionExpr:
                 // case CX_StmtClass.CX_StmtClass_ImaginaryLiteral:
                 // case CX_StmtClass.CX_StmtClass_ImplicitValueInitExpr:
-                // case CX_StmtClass.CX_StmtClass_InitListExpr:
+
+                case CX_StmtClass.CX_StmtClass_InitListExpr:
+                {
+                    VisitInitListExpr((InitListExpr)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_IntegerLiteral:
                 {
@@ -877,7 +1000,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
                 // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
                 // case CX_StmtClass.CX_StmtClass_TypoExpr:
-                // case CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr:
+
+                case CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr:
+                {
+                    VisitUnaryExprOrTypeTraitExpr((UnaryExprOrTypeTraitExpr)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_UnaryOperator:
                 {
@@ -950,6 +1078,34 @@ namespace ClangSharp
             _outputBuilder.NeedsNewline = true;
         }
 
+        private void VisitUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr unaryExprOrTypeTraitExpr)
+        {
+            var translationUnitHandle = unaryExprOrTypeTraitExpr.TranslationUnit.Handle;
+
+            var tokens = translationUnitHandle.Tokenize(unaryExprOrTypeTraitExpr.Extent);
+            var firstTokenSpelling = (tokens.Length > 0) ? tokens[0].GetSpelling(translationUnitHandle).CString : string.Empty;
+
+            switch (firstTokenSpelling)
+            {
+                case "sizeof":
+                {
+                    _outputBuilder.Write("sizeof");
+                    _outputBuilder.Write('(');
+
+                    Visit(unaryExprOrTypeTraitExpr.CursorChildren.Single());
+
+                    _outputBuilder.Write(')');
+                    break;
+                }
+
+                default:
+                {
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary or type trait expression: '{firstTokenSpelling}'. Generated bindings may be incomplete.", unaryExprOrTypeTraitExpr);
+                    break;
+                }
+            }
+        }
+
         private void VisitUnaryOperator(UnaryOperator unaryOperator)
         {
             switch (unaryOperator.Opcode)
@@ -964,7 +1120,6 @@ namespace ClangSharp
 
                 case CX_UnaryOperatorKind.CX_UO_PreInc:
                 case CX_UnaryOperatorKind.CX_UO_PreDec:
-                case CX_UnaryOperatorKind.CX_UO_AddrOf:
                 case CX_UnaryOperatorKind.CX_UO_Deref:
                 case CX_UnaryOperatorKind.CX_UO_Plus:
                 case CX_UnaryOperatorKind.CX_UO_Minus:
@@ -973,6 +1128,20 @@ namespace ClangSharp
                 {
                     _outputBuilder.Write(unaryOperator.OpcodeStr);
                     Visit(unaryOperator.SubExpr);
+                    break;
+                }
+
+                case CX_UnaryOperatorKind.CX_UO_AddrOf:
+                {
+                    if ((unaryOperator.SubExpr is DeclRefExpr declRefExpr) && (declRefExpr.Decl.Type is LValueReferenceType))
+                    {
+                        Visit(unaryOperator.SubExpr);
+                    }
+                    else
+                    {
+                        _outputBuilder.Write(unaryOperator.OpcodeStr);
+                        Visit(unaryOperator.SubExpr);
+                    }
                     break;
                 }
 

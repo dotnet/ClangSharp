@@ -97,6 +97,37 @@ namespace ClangSharp.UnitTests
         }
 
         [Fact]
+        public async Task ConversionTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    operator int()
+    {
+        return value;
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public int ToInt32()
+        {
+            return value;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task DestructorTest()
         {
             var inputContents = @"struct MyStruct

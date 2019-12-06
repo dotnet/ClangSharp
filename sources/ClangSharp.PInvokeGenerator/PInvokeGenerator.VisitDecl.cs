@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -34,6 +35,15 @@ namespace ClangSharp
                         // still generate bindings for things which are used
                         // as opaque handles, but which aren't ever defined.
 
+                        return;
+                    }
+                }
+                else if (decl is FunctionDecl functionDecl)
+                {
+                    var fullName = GetFunctionDeclFullName(functionDecl);
+
+                    if (_config.ExcludedNames.Contains(fullName))
+                    {
                         return;
                     }
                 }
@@ -86,7 +96,13 @@ namespace ClangSharp
                 // case CX_DeclKind.CX_DeclKind_BuiltinTemplate:
                 // case CX_DeclKind.CX_DeclKind_Concept:
                 // case CX_DeclKind.CX_DeclKind_ClassTemplate:
-                // case CX_DeclKind.CX_DeclKind_FunctionTemplate:
+
+                case CX_DeclKind.CX_DeclKind_FunctionTemplate:
+                {
+                    VisitFunctionTemplateDecl((FunctionTemplateDecl)decl);
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_TypeAliasTemplate:
                 // case CX_DeclKind.CX_DeclKind_VarTemplate:
                 // case CX_DeclKind.CX_DeclKind_TemplateTemplateParm:
@@ -152,13 +168,12 @@ namespace ClangSharp
                 case CX_DeclKind.CX_DeclKind_CXXMethod:
                 case CX_DeclKind.CX_DeclKind_CXXConstructor:
                 case CX_DeclKind.CX_DeclKind_CXXDestructor:
+                case CX_DeclKind.CX_DeclKind_CXXConversion:
                 {
                     VisitFunctionDecl((CXXMethodDecl)decl, (CXXRecordDecl)decl.DeclContext);
                     break;
                 }
 
-                
-                // case CX_DeclKind.CX_DeclKind_CXXConversion:
                 // case CX_DeclKind.CX_DeclKind_MSProperty:
                 // case CX_DeclKind.CX_DeclKind_NonTypeTemplateParm:
 
@@ -394,6 +409,13 @@ namespace ClangSharp
 
         private void VisitFunctionDecl(FunctionDecl functionDecl, CXXRecordDecl cxxRecordDecl)
         {
+            var fullName = GetFunctionDeclFullName(functionDecl);
+
+            if (_config.ExcludedNames.Contains(fullName))
+            {
+                return;
+            }
+
             var name = GetRemappedCursorName(functionDecl);
 
             if (cxxRecordDecl is null)
@@ -404,8 +426,8 @@ namespace ClangSharp
             WithAttributes("*");
             WithAttributes(name);
 
-            WithNamespaces("*");
-            WithNamespaces(name);
+            WithUsings("*");
+            WithUsings(name);
 
             var type = functionDecl.Type;
             var callConv = CXCallingConv.CXCallingConv_Invalid;
@@ -501,7 +523,7 @@ namespace ClangSharp
                     {
                         _isMethodClassUnsafe = true;
                     }
-                    else
+                    else if (!IsUnsafe(cxxRecordDecl))
                     {
                         _outputBuilder.Write("unsafe");
                         _outputBuilder.Write(' ');
@@ -611,6 +633,7 @@ namespace ClangSharp
                     _outputBuilder.WriteBlockEnd();
                 }
             }
+            _outputBuilder.NeedsNewline = true;
 
             VisitDecls(functionDecl.Decls);
 
@@ -661,6 +684,11 @@ namespace ClangSharp
                     outputBuilder.NeedsSemicolon = false;
                 }
             }
+        }
+
+        private void VisitFunctionTemplateDecl(FunctionTemplateDecl functionTemplateDecl)
+        {
+            AddDiagnostic(DiagnosticLevel.Warning, $"Function templates are not supported: '{functionTemplateDecl.Name}'. Generated bindings may be incomplete.", functionTemplateDecl);
         }
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl)
@@ -770,7 +798,7 @@ namespace ClangSharp
 
                 if (cxxRecordDecl != null)
                 {
-                    hasVtbl = HasVtbl(this, cxxRecordDecl);
+                    hasVtbl = HasVtbl(cxxRecordDecl);
                 }
 
                 if (recordDecl.IsUnion)
@@ -782,7 +810,7 @@ namespace ClangSharp
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
                 _outputBuilder.Write(' ');
 
-                if (IsUnsafe(recordDecl) || hasVtbl)
+                if (IsUnsafe(recordDecl))
                 {
                     _outputBuilder.Write("unsafe");
                     _outputBuilder.Write(' ');
@@ -796,6 +824,7 @@ namespace ClangSharp
                 if (hasVtbl)
                 {
                     _outputBuilder.WriteIndentedLine("public readonly Vtbl* lpVtbl;");
+                    _outputBuilder.NeedsNewline = true;
                 }
 
                 if (cxxRecordDecl != null)
@@ -869,20 +898,14 @@ namespace ClangSharp
                     _outputBuilder.NeedsNewline = true;
                 }
 
-                foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
-                {
-                    if (cxxMethodDecl.IsVirtual)
-                    {
-                        continue;
-                    }
-
-                    Visit(cxxMethodDecl);
-                    _outputBuilder.NeedsNewline = true;
-                }
-
                 if (hasVtbl)
                 {
                     OutputDelegateSignatures(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                }
+
+                if (cxxRecordDecl != null)
+                {
+                    OutputMethods(this, cxxRecordDecl, cxxRecordDecl);
                 }
 
                 VisitDecls(recordDecl.Decls);
@@ -965,36 +988,6 @@ namespace ClangSharp
                 return count;
             }
 
-            static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
-            {
-                Type baseType = cxxBaseSpecifier.Type;
-                {
-                    if (baseType is TypedefType typedefType)
-                    {
-                        baseType = typedefType.Decl.UnderlyingType;
-                    }
-
-                    if (baseType is ElaboratedType elaboratedType)
-                    {
-                        baseType = elaboratedType.CanonicalType;
-                    }
-                }
-                {
-                    if (baseType is TypedefType typedefType)
-                    {
-                        baseType = typedefType.Decl.UnderlyingType;
-                    }
-
-                    if (baseType is ElaboratedType elaboratedType)
-                    {
-                        baseType = elaboratedType.CanonicalType;
-                    }
-                }
-
-                var baseRecordType = (RecordType)baseType;
-                return (CXXRecordDecl)baseRecordType.Decl;
-            }
-
             static bool HasFields(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
             {
                 var hasFields = cxxRecordDecl.Fields.Any();
@@ -1013,29 +1006,6 @@ namespace ClangSharp
                     }
                 }
                 return hasFields;
-            }
-
-            static bool HasVtbl(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
-            {
-                var hasDirectVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual);
-                var indirectVtblCount = 0;
-
-                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
-                {
-                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-
-                    if (HasVtbl(pinvokeGenerator, baseCxxRecordDecl))
-                    {
-                        indirectVtblCount++;
-                    }
-                }
-
-                if (indirectVtblCount > 1)
-                {
-                    pinvokeGenerator.AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
-                }
-
-                return hasDirectVtbl || (indirectVtblCount != 0);
             }
 
             static void OutputDelegateSignatures(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
@@ -1059,6 +1029,35 @@ namespace ClangSharp
                     var remappedName = FixupNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName);
                     pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);
                     RestoreNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName, remappedName);
+                }
+            }
+
+            static void OutputMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+            {
+                var outputBuilder = pinvokeGenerator._outputBuilder;
+
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                    OutputMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl);
+                }
+
+                foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
+                {
+                    if (cxxMethodDecl.IsVirtual)
+                    {
+                        continue;
+                    }
+
+                    if (cxxRecordDecl == rootCxxRecordDecl)
+                    {
+                        pinvokeGenerator.Visit(cxxMethodDecl);
+                    }
+                    else
+                    {
+                        pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);
+                    }
+                    outputBuilder.NeedsNewline = true;
                 }
             }
 
@@ -1797,9 +1796,9 @@ namespace ClangSharp
         {
             var cursorParent = varDecl.CursorParent;
 
-            if (cursorParent is TranslationUnitDecl translationUnitDecl)
+            if ((cursorParent is TranslationUnitDecl) || (cursorParent is LinkageSpecDecl))
             {
-                VisitVarDeclForTranslationUnitDecl(varDecl, translationUnitDecl);
+                VisitVarDeclForTopLevelDecl(varDecl);
             }
             else if (cursorParent is DeclStmt declStmt)
             {
@@ -1811,7 +1810,7 @@ namespace ClangSharp
             }
         }
 
-        private void VisitVarDeclForTranslationUnitDecl(VarDecl varDecl, TranslationUnitDecl translationUnitDecl)
+        private void VisitVarDeclForTopLevelDecl(VarDecl varDecl)
         {
             var name = GetRemappedCursorName(varDecl);
 
@@ -1820,8 +1819,8 @@ namespace ClangSharp
                 WithAttributes("*");
                 WithAttributes(name);
 
-                WithNamespaces("*");
-                WithNamespaces(name);
+                WithUsings("*");
+                WithUsings(name);
 
                 var type = varDecl.Type;
                 var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
@@ -1847,6 +1846,13 @@ namespace ClangSharp
                 var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
 
                 _outputBuilder.Write(typeName);
+
+                if (type is ArrayType)
+                {
+                    _outputBuilder.Write('[');
+                    _outputBuilder.Write(']');
+                }
+
                 _outputBuilder.Write(' ');
             }
 
