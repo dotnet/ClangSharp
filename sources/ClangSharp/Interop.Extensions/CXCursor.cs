@@ -183,7 +183,7 @@ namespace ClangSharp.Interop
 
         public CXString RawCommentText => clang.Cursor_getRawCommentText(this);
 
-        public CXType RecieverType => !IsExpression ? default : clang.Cursor_getReceiverType(this);
+        public CXType ReceiverType => !IsExpression ? default : clang.Cursor_getReceiverType(this);
 
         public CXCursor Referenced => clang.getCursorReferenced(this);
 
