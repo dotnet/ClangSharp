@@ -32,7 +32,7 @@
   <!-- Auto-detect LLVM... more or less -->
   <PropertyGroup Condition="'$(LLVMIncludePath)' == ''">
     <LLVMIncludePath Condition="'$(OS)' == 'Windows_NT'">C:\Program Files\LLVM\include</LLVMIncludePath>
-    <LLVMIncludePath Condition="'$(OS)' != 'Windows_NT'">/usr/lib/llvm-9/include</LLVMIncludePath>
+    <LLVMIncludePath Condition="'$(OS)' != 'Windows_NT'">/usr/lib/llvm-10/include</LLVMIncludePath>
   </PropertyGroup>
 
 </Project>
