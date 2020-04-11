@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-9.0.0/clang/tools/libclang
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-10.0.0/clang/tools/libclang
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 #include "CXLoadedDiagnostic.h"
@@ -89,11 +89,10 @@ namespace clang {
         return cxstring::createRef(FixIts[FixIt].second);
     }
 
-    void CXLoadedDiagnostic::decodeLocation(CXSourceLocation location, CXFile* file, unsigned* line, unsigned* column, unsigned* offset)
-    {
+    void CXLoadedDiagnostic::decodeLocation(CXSourceLocation location, CXFile* file, unsigned int* line, unsigned int* column, unsigned int* offset) {
         // CXSourceLocation consists of the following fields:
         //
-        //   void *ptr_data[2];
+        //   void* ptr_data[2];
         //   unsigned int_data;
         //
         // The lowest bit of ptr_data[0] is always set to 1 to indicate this

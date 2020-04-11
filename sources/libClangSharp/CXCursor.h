@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-9.0.0/clang/tools/libclang
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-10.0.0/clang/tools/libclang
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 #ifndef LIBCLANGSHARP_CXCURSOR_H
@@ -17,7 +17,7 @@
 #include <llvm/ADT/PointerUnion.h>
 
 namespace clang::cxcursor {
-    typedef llvm::PointerUnion3<const OverloadExpr*, const Decl*, OverloadedTemplateStorage*> OverloadedDeclRefStorage;
+    typedef llvm::PointerUnion<const OverloadExpr*, const Decl*, OverloadedTemplateStorage* > OverloadedDeclRefStorage;
 
     /// Wraps a macro expansion cursor and provides a common interface
     /// for a normal macro expansion cursor or a "pseudo" one.
@@ -30,17 +30,14 @@ namespace clang::cxcursor {
         CXCursor C;
 
         bool isPseudo() const { return C.data[1] != nullptr; }
-
         const MacroDefinitionRecord* getAsMacroDefinition() const {
             assert(isPseudo());
             return static_cast<const MacroDefinitionRecord*>(C.data[0]);
         }
-
         const MacroExpansion* getAsMacroExpansion() const {
             assert(!isPseudo());
             return static_cast<const MacroExpansion*>(C.data[0]);
         }
-
         SourceLocation getPseudoLoc() const {
             assert(isPseudo());
             return SourceLocation::getFromPtrEncoding(C.data[1]);

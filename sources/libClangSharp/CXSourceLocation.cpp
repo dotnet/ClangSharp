@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-9.0.0/clang/tools/libclang
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-10.0.0/clang/tools/libclang
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 #include "ClangSharp.h"
@@ -11,8 +11,7 @@
 #include <clang/Frontend/ASTUnit.h>
 #include <clang/Lex/Lexer.h>
 
-void createNullLocation(CXFile* file, unsigned* line, unsigned* column, unsigned* offset)
-{
+void createNullLocation(CXFile* file, unsigned* line, unsigned* column, unsigned* offset) {
     if (file)
         *file = nullptr;
     if (line)
@@ -27,7 +26,7 @@ clang::SourceRange getRawCursorExtent(CXCursor C) {
     using namespace clang;
     using namespace clang::cxcursor;
 
-    if (clangsharp_isReference(C.kind)) {
+    if (clang_isReference(C.kind)) {
         switch (C.kind) {
             case CXCursor_ObjCSuperClassRef:
                 return getCursorObjCSuperClassRef(C).second;
@@ -68,13 +67,13 @@ clang::SourceRange getRawCursorExtent(CXCursor C) {
         }
     }
 
-    if (clangsharp_isExpression(C.kind))
+    if (clang_isExpression(C.kind))
         return getCursorExpr(C)->getSourceRange();
 
-    if (clangsharp_isStatement(C.kind))
+    if (clang_isStatement(C.kind))
         return getCursorStmt(C)->getSourceRange();
 
-    if (clangsharp_isAttribute(C.kind))
+    if (clang_isAttribute(C.kind))
         return getCursorAttr(C)->getRange();
 
     if (C.kind == CXCursor_PreprocessingDirective)
@@ -106,7 +105,7 @@ clang::SourceRange getRawCursorExtent(CXCursor C) {
         return SourceRange(Start, End);
     }
 
-    if (clangsharp_isDeclaration(C.kind)) {
+    if (clang_isDeclaration(C.kind)) {
         const Decl* D = getCursorDecl(C);
         if (!D)
             return SourceRange();
@@ -114,7 +113,7 @@ clang::SourceRange getRawCursorExtent(CXCursor C) {
         SourceRange R = D->getSourceRange();
         // FIXME: Multiple variables declared in a single declaration
         // currently lack the information needed to correctly determine their
-        // ranges when accounting for the type-specifier.  We use context
+        // ranges when accounting for the type-specifier. We use context
         // stored in the CXCursor to determine if the VarDecl is in a DeclGroup,
         // and if so, whether it is the first decl.
         if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
@@ -138,6 +137,8 @@ namespace clang::cxloc {
     }
 
     CXSourceRange translateSourceRange(const SourceManager& SM, const LangOptions& LangOpts, const CharSourceRange& R) {
+        // We want the last character in this location, so we will adjust the
+        // location accordingly.
         SourceLocation EndLoc = R.getEnd();
         bool IsTokenRange = R.isTokenRange();
         if (IsTokenRange && EndLoc.isValid()) {
@@ -146,9 +147,9 @@ namespace clang::cxloc {
         }
 
         CXSourceRange Result = {
-          { &SM, &LangOpts },
-          R.getBegin().getRawEncoding(),
-          EndLoc.getRawEncoding()
+            {& SM,& LangOpts },
+            R.getBegin().getRawEncoding(),
+            EndLoc.getRawEncoding()
         };
         return Result;
     }
