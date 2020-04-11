@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Help;
 using System.CommandLine.Invocation;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -163,9 +164,10 @@ namespace ClangSharp
             {
                 foreach (var error in errorList)
                 {
-                    context.Console.Error.WriteLine(error);
+                    context.Console.Error.Write(error);
+                    context.Console.Error.Write(Environment.NewLine);
                 }
-                context.Console.Error.WriteLine();
+                context.Console.Error.Write(Environment.NewLine);
 
                 new HelpBuilder(context.Console).Write(s_rootCommand);
                 return -1;
