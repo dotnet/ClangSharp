@@ -21,6 +21,8 @@ namespace ClangSharp.Interop
 
         public CXCursor CanonicalCursor => clang.getCanonicalCursor(this);
 
+        public CX_CastKind CastKind => clangsharp.Cursor_getCastKind(this);
+
         public CXSourceRange CommentRange => clang.Cursor_getCommentRange(this);
 
         public CXCompletionString CompletionString => (CXCompletionString)clang.getCursorCompletionString(this);
@@ -71,7 +73,7 @@ namespace ClangSharp.Interop
 
         public int ExceptionSpecificationType => clang.getCursorExceptionSpecificationType(this);
 
-        public CXSourceRange Extent => clangsharp.getCursorExtent(this);
+        public CXSourceRange Extent => clang.getCursorExtent(this);
 
         public int FieldDeclBitWidth => clang.getFieldDeclBitWidth(this);
 
@@ -182,6 +184,8 @@ namespace ClangSharp.Interop
         public CXPrintingPolicy PrintingPolicy => (CXPrintingPolicy)clang.getCursorPrintingPolicy(this);
 
         public CXString RawCommentText => clang.Cursor_getRawCommentText(this);
+
+        public CXSourceRange RawExtent => clangsharp.getCursorExtent(this);
 
         public CXType ReceiverType => !IsExpression ? default : clang.Cursor_getReceiverType(this);
 

@@ -72,7 +72,7 @@ namespace ClangSharp.Interop
             fixed (uint* pColumn = &column)
             fixed (uint* pOffset = &offset)
             {
-                clangsharp.getSpellingLocation(this, (void**)pFile, pLine, pColumn, pOffset);
+                clang.getSpellingLocation(this, (void**)pFile, pLine, pColumn, pOffset);
             }
         }
 

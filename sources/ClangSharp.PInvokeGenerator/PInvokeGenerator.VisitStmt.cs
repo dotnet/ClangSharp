@@ -1082,7 +1082,7 @@ namespace ClangSharp
         {
             var translationUnitHandle = unaryExprOrTypeTraitExpr.TranslationUnit.Handle;
 
-            var tokens = translationUnitHandle.Tokenize(unaryExprOrTypeTraitExpr.Extent);
+            var tokens = translationUnitHandle.Tokenize(unaryExprOrTypeTraitExpr.Handle.RawExtent);
             var firstTokenSpelling = (tokens.Length > 0) ? tokens[0].GetSpelling(translationUnitHandle).CString : string.Empty;
 
             switch (firstTokenSpelling)
