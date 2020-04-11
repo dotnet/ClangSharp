@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-9.0.0/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-10.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 namespace ClangSharp.Interop
@@ -202,7 +202,12 @@ namespace ClangSharp.Interop
         CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective = 278,
         CXCursor_OMPTargetTeamsDistributeSimdDirective = 279,
         CXCursor_BuiltinBitCastExpr = 280,
-        CXCursor_LastStmt = CXCursor_BuiltinBitCastExpr,
+        CXCursor_OMPMasterTaskLoopDirective = 281,
+        CXCursor_OMPParallelMasterTaskLoopDirective = 282,
+        CXCursor_OMPMasterTaskLoopSimdDirective = 283,
+        CXCursor_OMPParallelMasterTaskLoopSimdDirective = 284,
+        CXCursor_OMPParallelMasterDirective = 285,
+        CXCursor_LastStmt = CXCursor_OMPParallelMasterDirective,
         CXCursor_TranslationUnit = 300,
         CXCursor_FirstAttr = 400,
         CXCursor_UnexposedAttr = 400,
