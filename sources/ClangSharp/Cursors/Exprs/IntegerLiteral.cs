@@ -13,7 +13,7 @@ namespace ClangSharp
         internal IntegerLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IntegerLiteral, CX_StmtClass.CX_StmtClass_IntegerLiteral)
         {
             _value = new Lazy<string>(() => {
-                var tokens = Handle.TranslationUnit.Tokenize(Extent);
+                var tokens = Handle.TranslationUnit.Tokenize(Handle.RawExtent);
 
                 Debug.Assert(tokens.Length == 1);
                 Debug.Assert(tokens[0].Kind == CXTokenKind.CXToken_Literal);

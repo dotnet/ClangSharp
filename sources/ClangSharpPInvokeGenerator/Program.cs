@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Help;
 using System.CommandLine.Invocation;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -27,6 +29,7 @@ namespace ClangSharp
             AddDefineMacroOption(s_rootCommand);
             AddExcludeOption(s_rootCommand);
             AddFileOption(s_rootCommand);
+            AddFileDirectoryOption(s_rootCommand);
             AddHeaderOption(s_rootCommand);
             AddIncludeDirectoryOption(s_rootCommand);
             AddLanguageOption(s_rootCommand);
@@ -53,6 +56,7 @@ namespace ClangSharp
             var defineMacros = context.ParseResult.ValueForOption<string[]>("define-macro");
             var excludedNames = context.ParseResult.ValueForOption<string[]>("exclude");
             var files = context.ParseResult.ValueForOption<string[]>("file");
+            var fileDirectory = context.ParseResult.ValueForOption<string>("file-directory");
             var headerFile = context.ParseResult.ValueForOption<string>("headerFile");
             var includeDirectories = context.ParseResult.ValueForOption<string[]>("include-directory");
             var language = context.ParseResult.ValueForOption<string>("language");
@@ -163,9 +167,10 @@ namespace ClangSharp
             {
                 foreach (var error in errorList)
                 {
-                    context.Console.Error.WriteLine(error);
+                    context.Console.Error.Write(error);
+                    context.Console.Error.Write(Environment.NewLine);
                 }
-                context.Console.Error.WriteLine();
+                context.Console.Error.Write(Environment.NewLine);
 
                 new HelpBuilder(context.Console).Write(s_rootCommand);
                 return -1;
@@ -195,17 +200,19 @@ namespace ClangSharp
             {
                 foreach (var file in files)
                 {
-                    var translationUnitError = CXTranslationUnit.TryParse(pinvokeGenerator.IndexHandle, file, clangCommandLineArgs, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit handle);
+                    var filePath = Path.Combine(fileDirectory, file);
+
+                    var translationUnitError = CXTranslationUnit.TryParse(pinvokeGenerator.IndexHandle, filePath, clangCommandLineArgs, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit handle);
                     var skipProcessing = false;
 
                     if (translationUnitError != CXErrorCode.CXError_Success)
                     {
-                        Console.WriteLine($"Error: Parsing failed for '{file}' due to '{translationUnitError}'.");
+                        Console.WriteLine($"Error: Parsing failed for '{filePath}' due to '{translationUnitError}'.");
                         skipProcessing = true;
                     }
                     else if (handle.NumDiagnostics != 0)
                     {
-                        Console.WriteLine($"Diagnostics for '{file}':");
+                        Console.WriteLine($"Diagnostics for '{filePath}':");
 
                         for (uint i = 0; i < handle.NumDiagnostics; ++i)
                         {
@@ -221,7 +228,7 @@ namespace ClangSharp
 
                     if (skipProcessing)
                     {
-                        Console.WriteLine($"Skipping '{file}' due to one or more errors listed above.");
+                        Console.WriteLine($"Skipping '{filePath}' due to one or more errors listed above.");
                         Console.WriteLine();
 
                         exitCode = -1;
@@ -230,7 +237,7 @@ namespace ClangSharp
 
                     using var translationUnit = TranslationUnit.GetOrCreate(handle);
 
-                    Console.WriteLine($"Processing '{file}'");
+                    Console.WriteLine($"Processing '{filePath}'");
                     pinvokeGenerator.GenerateBindings(translationUnit);
                 }
 
@@ -391,6 +398,21 @@ namespace ClangSharp
                 }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddFileDirectoryOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--file-directory", "-F" }, "The base path for files to parse.")
+            {
+                Argument = new Argument("<directory>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
+            };
+            option.Argument.SetDefaultValue(string.Empty);
 
             rootCommand.AddOption(option);
         }

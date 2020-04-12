@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-9.0.0/clang/tools/libclang
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-10.0.0/clang/tools/libclang
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 #ifndef LIBCLANGSHARP_CXSTRING_H
@@ -11,10 +11,10 @@
 
 /// Describes the kind of underlying data in CXString.
 enum CXStringFlag {
-    /// CXString contains a 'const char *' that it doesn't own.
+    /// CXString contains a 'const char*' that it doesn't own.
     CXS_Unmanaged,
 
-    /// CXString contains a 'const char *' that it allocated with malloc().
+    /// CXString contains a 'const char*' that it allocated with malloc().
     CXS_Malloc,
 
     /// CXString contains a CXStringBuf that needs to be returned to the

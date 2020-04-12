@@ -2,62 +2,57 @@
   "runtimes": {
     "freebsd.11-x64": {
       "libclang": {
-        "libclang.runtime.freebsd.11-x64": "9.0.0"
+        "libclang.runtime.freebsd.11-x64": "10.0.0"
       }
     },
     "freebsd.11-x86": {
       "libclang": {
-        "libclang.runtime.freebsd.11-x86": "9.0.0"
+        "libclang.runtime.freebsd.11-x86": "10.0.0"
       }
     },
     "linux-arm": {
       "libclang": {
-        "libclang.runtime.linux-arm": "9.0.0"
+        "libclang.runtime.linux-arm": "10.0.0"
       }
     },
     "linux-arm64": {
       "libclang": {
-        "libclang.runtime.linux-arm64": "9.0.0"
+        "libclang.runtime.linux-arm64": "10.0.0"
       }
     },
     "osx-x64": {
       "libclang": {
-        "libclang.runtime.osx-x64": "9.0.0"
+        "libclang.runtime.osx-x64": "10.0.0"
       }
     },
     "sles-x64": {
       "libclang": {
-        "libclang.runtime.sles-x64": "9.0.0"
-      }
-    },
-    "ubuntu.14.04-x64": {
-      "libclang": {
-        "libclang.runtime.ubuntu.14.04-x64": "9.0.0"
+        "libclang.runtime.sles-x64": "10.0.0"
       }
     },
     "ubuntu.16.04-x64": {
       "libclang": {
-        "libclang.runtime.ubuntu.16.04-x64": "9.0.0"
+        "libclang.runtime.ubuntu.16.04-x64": "10.0.0"
       }
     },
     "ubuntu.18.04-x64": {
       "libclang": {
-        "libclang.runtime.ubuntu.18.04-x64": "9.0.0"
+        "libclang.runtime.ubuntu.18.04-x64": "10.0.0"
       }
     },
-    "ubuntu.19.04-x64": {
+    "ubuntu.20.04-x64": {
       "libclang": {
-        "libclang.runtime.ubuntu.19.04-x64": "9.0.0"
+        "libclang.runtime.ubuntu.20.04-x64": "10.0.0"
       }
     },
     "win-x64": {
       "libclang": {
-        "libclang.runtime.win-x64": "9.0.0"
+        "libclang.runtime.win-x64": "10.0.0"
       }
     },
     "win-x86": {
       "libclang": {
-        "libclang.runtime.win-x86": "9.0.0"
+        "libclang.runtime.win-x86": "10.0.0"
       }
     }
   }

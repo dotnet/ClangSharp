@@ -15,7 +15,7 @@ using namespace clang::cxloc;
 using namespace clang::cxstring;
 
 CX_AttrKind clangsharp_Cursor_getAttrKind(CXCursor C) {
-    if (clangsharp_isAttribute(C.kind)) {
+    if (clang_isAttribute(C.kind)) {
         const Attr* A = getCursorAttr(C);
         return static_cast<CX_AttrKind>(A->getKind() + 1);
     }
@@ -24,7 +24,7 @@ CX_AttrKind clangsharp_Cursor_getAttrKind(CXCursor C) {
 }
 
 CX_BinaryOperatorKind clangsharp_Cursor_getBinaryOpcode(CXCursor C) {
-    if (C.kind == CXCursor_BinaryOperator || C.kind == CXCursor_CompoundAssignOperator) {
+    if (clang_isExpression(C.kind)) {
         const Expr* E = getCursorExpr(C);
         if (const BinaryOperator* BinOp = dyn_cast<BinaryOperator>(E)) {
             return static_cast<CX_BinaryOperatorKind>(BinOp->getOpcode() + 1);
@@ -43,8 +43,19 @@ CXString clangsharp_Cursor_getBinaryOpcodeSpelling(CX_BinaryOperatorKind Op) {
     return createEmpty();
 }
 
+CX_CastKind clangsharp_Cursor_getCastKind(CXCursor C) {
+    if (clang_isExpression(C.kind)) {
+        const Expr* E = getCursorExpr(C);
+        if (const CastExpr* CastEx = dyn_cast<CastExpr>(E)) {
+            return static_cast<CX_CastKind>(CastEx->getCastKind() + 1);
+        }
+    }
+
+    return CX_CK_Invalid;
+}
+
 CX_DeclKind clangsharp_Cursor_getDeclKind(CXCursor C) {
-    if (clangsharp_isDeclaration(C.kind) || clangsharp_isTranslationUnit(C.kind)) {
+    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return static_cast<CX_DeclKind>(D->getKind() + 1);
     }
@@ -53,7 +64,7 @@ CX_DeclKind clangsharp_Cursor_getDeclKind(CXCursor C) {
 }
 
 CX_StmtClass clangsharp_Cursor_getStmtClass(CXCursor C) {
-    if (clangsharp_isExpression(C.kind) || clangsharp_isStatement(C.kind)) {
+    if (clang_isExpression(C.kind) || clang_isStatement(C.kind)) {
         const Stmt* S = getCursorStmt(C);
         return static_cast<CX_StmtClass>(S->getStmtClass());
     }
@@ -62,7 +73,7 @@ CX_StmtClass clangsharp_Cursor_getStmtClass(CXCursor C) {
 }
 
 CX_UnaryOperatorKind clangsharp_Cursor_getUnaryOpcode(CXCursor C) {
-    if (C.kind == CXCursor_UnaryOperator) {
+    if (clang_isExpression(C.kind)) {
         const Expr* E = getCursorExpr(C);
         if (const UnaryOperator* UnOp = dyn_cast<UnaryOperator>(E)) {
             return static_cast<CX_UnaryOperatorKind>(UnOp->getOpcode() + 1);
@@ -84,32 +95,9 @@ CXString clangsharp_Cursor_getUnaryOpcodeSpelling(CX_UnaryOperatorKind Op) {
 CXSourceRange clangsharp_getCursorExtent(CXCursor C) {
     SourceRange R = getRawCursorExtent(C);
     if (R.isInvalid())
-        return clangsharp_getNullRange();
+        return clang_getNullRange();
 
     return translateSourceRange(getCursorContext(C), R);
-}
-
-CXSourceRange clangsharp_getNullRange() {
-    CXSourceRange Result = { { nullptr, nullptr }, 0, 0 };
-    return Result;
-}
-
-CXSourceRange clangsharp_getRange(CXSourceLocation begin, CXSourceLocation end) {
-    if (!isASTUnitSourceLocation(begin)) {
-        if (isASTUnitSourceLocation(end))
-            return clangsharp_getNullRange();
-        CXSourceRange Result = { { begin.ptr_data[0], end.ptr_data[0] }, 0, 0 };
-        return Result;
-    }
-
-    if (begin.ptr_data[0] != end.ptr_data[0] || begin.ptr_data[1] != end.ptr_data[1])
-        return clangsharp_getNullRange();
-
-    CXSourceRange Result = {
-        { begin.ptr_data[0], begin.ptr_data[1] },
-        begin.int_data, end.int_data
-    };
-    return Result;
 }
 
 void clangsharp_getSpellingLocation(CXSourceLocation location, CXFile* file, unsigned* line, unsigned* column, unsigned* offset) {
@@ -140,31 +128,6 @@ void clangsharp_getSpellingLocation(CXSourceLocation location, CXFile* file, uns
         *column = SM.getColumnNumber(FID, FileOffset);
     if (offset)
         *offset = FileOffset;
-}
-
-unsigned clangsharp_isAttribute(CXCursorKind K) {
-    return K >= CXCursor_FirstAttr && K <= CXCursor_LastAttr;
-}
-
-unsigned clangsharp_isDeclaration(CXCursorKind K) {
-    return (K >= CXCursor_FirstDecl && K <= CXCursor_LastDecl) ||
-           (K >= CXCursor_FirstExtraDecl && K <= CXCursor_LastExtraDecl);
-}
-
-unsigned clangsharp_isExpression(CXCursorKind K) {
-    return K >= CXCursor_FirstExpr && K <= CXCursor_LastExpr;
-}
-
-unsigned clangsharp_isReference(CXCursorKind K) {
-    return K >= CXCursor_FirstRef && K <= CXCursor_LastRef;
-}
-
-unsigned clangsharp_isStatement(CXCursorKind K) {
-    return K >= CXCursor_FirstStmt && K <= CXCursor_LastStmt;
-}
-
-unsigned clangsharp_isTranslationUnit(CXCursorKind K) {
-    return K == CXCursor_TranslationUnit;
 }
 
 CX_TypeClass clangsharp_Type_getTypeClass(CXType CT) {

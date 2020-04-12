@@ -1,22 +1,25 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
     <RuntimeIdentifier></RuntimeIdentifier>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Properties/GenerateClangSharp-LICENSE.txt" />
-    <None Include="Properties/GenerateClang-LICENSE.txt" />
-    <None Include="Properties/GenerateLLVM-LICENSE.txt" />
+    <None Include="Properties/GenerateClang.rsp" />
+    <None Include="Properties/GenerateClang-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Properties/GenerateClangSharp.rsp" />
+    <None Include="Properties/GenerateClangSharp-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Properties/GenerateLLVM.rsp" />
+    <None Include="Properties/GenerateLLVM-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Properties/launchsettings.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine.Experimental" GeneratePathProperty="true" />
+    <PackageReference Include="System.CommandLine" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,7 +35,7 @@
   <!-- Auto-detect LLVM... more or less -->
   <PropertyGroup Condition="'$(LLVMIncludePath)' == ''">
     <LLVMIncludePath Condition="'$(OS)' == 'Windows_NT'">C:\Program Files\LLVM\include</LLVMIncludePath>
-    <LLVMIncludePath Condition="'$(OS)' != 'Windows_NT'">/usr/lib/llvm-9/include</LLVMIncludePath>
+    <LLVMIncludePath Condition="'$(OS)' != 'Windows_NT'">/usr/lib/llvm-10/include</LLVMIncludePath>
   </PropertyGroup>
 
 </Project>

@@ -39,7 +39,7 @@ jobs:
     pool: ubuntu-latest
     configuration: Debug
     architecture: x64
-    rid: ubuntu.16.04-x64
+    rid: ubuntu.18.04-x64
 
 - template: azure-unix.yml
   parameters:
@@ -47,7 +47,7 @@ jobs:
     pool: ubuntu-latest
     configuration: Release
     architecture: x64
-    rid: ubuntu.16.04-x64
+    rid: ubuntu.18.04-x64
 
 - template: azure-unix.yml
   parameters:

@@ -18,7 +18,7 @@
 #define CLANGSHARP_LINKAGE EXTERN_C __declspec(dllimport)
 #endif
 #else
-#define CLANGSHARP_LINKAGE EXTERN_C 
+#define CLANGSHARP_LINKAGE EXTERN_C
 #endif
 
 enum CX_AttrKind {
@@ -31,6 +31,12 @@ enum CX_AttrKind {
 enum CX_BinaryOperatorKind {
     CX_BO_Invalid,
 #define BINARY_OPERATION(Name, Spelling) CX_BO_##Name,
+#include <clang/AST/OperationKinds.def>
+};
+
+enum CX_CastKind {
+    CX_CK_Invalid,
+#define CAST_OPERATION(Name) CX_CK_##Name,
 #include <clang/AST/OperationKinds.def>
 };
 
@@ -57,7 +63,7 @@ enum CX_TypeClass {
 #define TYPE(Class, Base) CX_TypeClass_##Class,
 #define LAST_TYPE(Class) CX_TypeClass_TypeLast = CX_TypeClass_##Class,
 #define ABSTRACT_TYPE(Class, Base)
-#include <clang/AST/TypeNodes.def>
+#include <clang/AST/TypeNodes.inc>
     CX_TypeClass_TagFirst = CX_TypeClass_Record, CX_TypeClass_TagLast = CX_TypeClass_Enum
 };
 
@@ -72,6 +78,8 @@ CLANGSHARP_LINKAGE CX_AttrKind clangsharp_Cursor_getAttrKind(CXCursor C);
 CLANGSHARP_LINKAGE CX_BinaryOperatorKind clangsharp_Cursor_getBinaryOpcode(CXCursor C);
 
 CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getBinaryOpcodeSpelling(CX_BinaryOperatorKind Op);
+
+CLANGSHARP_LINKAGE CX_CastKind clangsharp_Cursor_getCastKind(CXCursor C);
 
 CLANGSHARP_LINKAGE CX_DeclKind clangsharp_Cursor_getDeclKind(CXCursor C);
 
@@ -93,17 +101,6 @@ CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getUnaryOpcodeSpelling(CX_UnaryOpe
  * entity was actually used).
  */
 CLANGSHARP_LINKAGE CXSourceRange clangsharp_getCursorExtent(CXCursor C);
-
-/**
- * Retrieve a NULL (invalid) source range.
- */
-CLANGSHARP_LINKAGE CXSourceRange clangsharp_getNullRange();
-
-/**
- * Retrieve a source range given the beginning and ending source
- * locations.
- */
-CLANGSHARP_LINKAGE CXSourceRange clangsharp_getRange(CXSourceLocation begin, CXSourceLocation end);
 
 /**
  * Retrieve the file, line, column, and offset represented by
@@ -128,42 +125,6 @@ CLANGSHARP_LINKAGE CXSourceRange clangsharp_getRange(CXSourceLocation begin, CXS
  * buffer to which the given source location points.
  */
 CLANGSHARP_LINKAGE void clangsharp_getSpellingLocation(CXSourceLocation location, CXFile* file, unsigned* line, unsigned* column, unsigned* offset);
-
-/**
- * Determine whether the given cursor kind represents an attribute.
- */
-CLANGSHARP_LINKAGE unsigned clangsharp_isAttribute(CXCursorKind);
-
-/**
- * Determine whether the given cursor kind represents a declaration.
- */
-CLANGSHARP_LINKAGE unsigned clangsharp_isDeclaration(CXCursorKind);
-
-/**
- * Determine whether the given cursor kind represents an expression.
- */
-CLANGSHARP_LINKAGE unsigned clangsharp_isExpression(CXCursorKind);
-
-/**
- * Determine whether the given cursor kind represents a simple
- * reference.
- *
- * Note that other kinds of cursors (such as expressions) can also refer to
- * other cursors. Use clang_getCursorReferenced() to determine whether a
- * particular cursor refers to another entity.
- */
-CLANGSHARP_LINKAGE unsigned clangsharp_isReference(CXCursorKind);
-
-/**
- * Determine whether the given cursor kind represents a statement.
- */
-CLANGSHARP_LINKAGE unsigned clangsharp_isStatement(CXCursorKind);
-
-/**
- * Determine whether the given cursor kind represents a translation
- * unit.
- */
-CLANGSHARP_LINKAGE unsigned clangsharp_isTranslationUnit(CXCursorKind);
 
 CLANGSHARP_LINKAGE CX_TypeClass clangsharp_Type_getTypeClass(CXType CT);
 

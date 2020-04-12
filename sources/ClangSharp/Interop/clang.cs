@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-9.0.0/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-10.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 using System;
@@ -233,6 +233,12 @@ namespace ClangSharp.Interop
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_FullComment_getAsXML", ExactSpelling = true)]
         public static extern CXString FullComment_getAsXML(CXComment Comment);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_install_aborting_llvm_fatal_error_handler", ExactSpelling = true)]
+        public static extern void install_aborting_llvm_fatal_error_handler();
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_uninstall_llvm_fatal_error_handler", ExactSpelling = true)]
+        public static extern void uninstall_llvm_fatal_error_handler();
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_createIndex", ExactSpelling = true)]
         [return: NativeTypeName("CXIndex")]

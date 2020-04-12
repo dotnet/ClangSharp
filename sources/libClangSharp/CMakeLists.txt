@@ -21,6 +21,7 @@ set(SOURCES
 set(LIBS
   clangAST
   clangFrontend
+  libclang
 )
 
 set(LLVM_SEARCH_PATHS

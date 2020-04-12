@@ -1,0 +1,15 @@
+--config
+compatible-codegen
+multi-file
+--file
+libClangSharp/ClangSharp.h
+--headerFile
+./Properties/GenerateClangSharp-LICENSE.txt
+--methodClassName
+clangsharp
+--namespace
+ClangSharp.Interop
+--output
+./ClangSharp/Interop
+--prefixStrip
+clangsharp_
