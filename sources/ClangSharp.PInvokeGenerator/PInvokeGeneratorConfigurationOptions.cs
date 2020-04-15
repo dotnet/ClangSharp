@@ -16,5 +16,7 @@ namespace ClangSharp
         NoDefaultRemappings = 0x00000004,
 
         GenerateCompatibleCode = 0x00000008,
+
+        GeneratePreviewCode = 0x00000010,
     }
 }

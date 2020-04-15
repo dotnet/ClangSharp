@@ -110,6 +110,7 @@ namespace ClangSharp
                     case "compatible-codegen":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
                         break;
                     }
 
@@ -122,6 +123,7 @@ namespace ClangSharp
                     case "latest-codegen":
                     {
                         configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
                         break;
                     }
 
@@ -134,6 +136,13 @@ namespace ClangSharp
                     case "no-default-remappings":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
+                        break;
+                    }
+
+                    case "preview-codegen":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
                         break;
                     }
 

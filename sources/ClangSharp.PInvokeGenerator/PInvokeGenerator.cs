@@ -754,7 +754,7 @@ namespace ClangSharp
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            name = "UIntPtr";
+                            name = _config.GeneratePreviewCode ? "nuint" : "UIntPtr";
                         }
                         else
                         {
@@ -804,7 +804,7 @@ namespace ClangSharp
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            name = "IntPtr";
+                            name = _config.GeneratePreviewCode ? "nint" : "IntPtr";
                         }
                         else
                         {
