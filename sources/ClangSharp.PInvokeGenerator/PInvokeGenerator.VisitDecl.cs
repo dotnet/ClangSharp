@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -450,6 +449,8 @@ namespace ClangSharp
 
             if (isVirtual)
             {
+                Debug.Assert(!_config.GeneratePreviewCode);
+
                 _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
                 _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
@@ -1023,12 +1024,16 @@ namespace ClangSharp
                         continue;
                     }
 
-                    pinvokeGenerator._outputBuilder.NeedsNewline = true;
                     pinvokeGenerator._visitedDecls.Add(cxxMethodDecl);
 
-                    var remappedName = FixupNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName);
-                    pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);
-                    RestoreNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName, remappedName);
+                    if (!pinvokeGenerator._config.GeneratePreviewCode)
+                    {
+                        pinvokeGenerator._outputBuilder.NeedsNewline = true;
+
+                        var remappedName = FixupNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName);
+                        pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);
+                        RestoreNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName, remappedName);
+                    }
                 }
             }
 
@@ -1108,7 +1113,7 @@ namespace ClangSharp
                     outputBuilder.Write(' ');
                 }
 
-                outputBuilder.Write("IntPtr");
+                outputBuilder.Write(cxxMethodDeclTypeName);
                 outputBuilder.Write(' ');
 
                 outputBuilder.Write(escapedName);
@@ -1204,14 +1209,22 @@ namespace ClangSharp
                     outputBuilder.Write('*');
                 }
 
-                outputBuilder.Write("Marshal.GetDelegateForFunctionPointer<");
-                outputBuilder.Write(pinvokeGenerator.PrefixAndStripName(cxxMethodDeclName));
-                outputBuilder.Write(">");
+                if (!pinvokeGenerator._config.GeneratePreviewCode)
+                {
+                    outputBuilder.Write("Marshal.GetDelegateForFunctionPointer<");
+                    outputBuilder.Write(pinvokeGenerator.PrefixAndStripName(cxxMethodDeclName));
+                    outputBuilder.Write(">");
+                    outputBuilder.Write('(');
+                }
 
-                outputBuilder.Write('(');
                 outputBuilder.Write("lpVtbl->");
                 outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
-                outputBuilder.Write(')');
+
+                if (!pinvokeGenerator._config.GeneratePreviewCode)
+                {
+                    outputBuilder.Write(')');
+                }
+
                 outputBuilder.Write('(');
 
                 if (pinvokeGenerator._config.GenerateCompatibleCode)
@@ -1741,6 +1754,11 @@ namespace ClangSharp
             }
             else if (pointeeType is FunctionProtoType functionProtoType)
             {
+                if (_config.GeneratePreviewCode)
+                {
+                    return;
+                }
+
                 var name = GetRemappedCursorName(typedefDecl);
         
                 StartUsingOutputBuilder(name);
