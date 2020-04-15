@@ -824,7 +824,7 @@ namespace ClangSharp
 
                 if (hasVtbl)
                 {
-                    _outputBuilder.WriteIndentedLine("public readonly Vtbl* lpVtbl;");
+                    _outputBuilder.WriteIndentedLine("public Vtbl* lpVtbl;");
                     _outputBuilder.NeedsNewline = true;
                 }
 
