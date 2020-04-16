@@ -1735,7 +1735,7 @@ namespace ClangSharp
             {
                 VisitTypedefDeclForUnderlyingType(typedefDecl, typedefType.Decl.UnderlyingType);
             }
-            else if (!(underlyingType is BuiltinType) && !(underlyingType is IncompleteArrayType) && !(underlyingType is TagType))
+            else if (!(underlyingType is ArrayType) && !(underlyingType is BuiltinType) && !(underlyingType is TagType))
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.TypeClass}'. Generating bindings may be incomplete.", typedefDecl);
             }
