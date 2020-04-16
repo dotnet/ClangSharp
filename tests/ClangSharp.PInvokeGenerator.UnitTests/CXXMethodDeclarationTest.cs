@@ -447,7 +447,7 @@ namespace ClangSharp.Test
 {{
     public unsafe partial struct MyStruct
     {{
-        public readonly Vtbl* lpVtbl;
+        public Vtbl* lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
         public delegate int _GetType(MyStruct* pThis, int obj);
@@ -775,7 +775,7 @@ namespace ClangSharp.Test
 {{
     public unsafe partial struct MyStruct
     {{
-        public readonly Vtbl* lpVtbl;
+        public Vtbl* lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
         public delegate void _MyVoidMethod(MyStruct* pThis);
@@ -865,7 +865,7 @@ namespace ClangSharp.Test
 {{
     public unsafe partial struct MyStruct
     {{
-        public readonly Vtbl* lpVtbl;
+        public Vtbl* lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
         public delegate void _MyVoidMethod(MyStruct* pThis);

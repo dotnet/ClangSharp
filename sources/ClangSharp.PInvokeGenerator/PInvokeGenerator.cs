@@ -754,7 +754,7 @@ namespace ClangSharp
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            name = "UIntPtr";
+                            name = _config.GeneratePreviewCode ? "nuint" : "UIntPtr";
                         }
                         else
                         {
@@ -804,7 +804,7 @@ namespace ClangSharp
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            name = "IntPtr";
+                            name = _config.GeneratePreviewCode ? "nint" : "IntPtr";
                         }
                         else
                         {
@@ -842,9 +842,35 @@ namespace ClangSharp
             {
                 name = GetTypeName(cursor, elaboratedType.NamedType, out var nativeNamedTypeName);
             }
-            else if (type is FunctionType)
+            else if (type is FunctionType functionType)
             {
-                name = "IntPtr";
+                if (_config.GeneratePreviewCode && (functionType is FunctionProtoType functionProtoType))
+                {
+                    var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
+                    var callConv = GetCallingConventionName(cursor, functionType.CallConv, remappedName).ToLower();
+
+                    var nameBuilder = new StringBuilder();
+                    nameBuilder.Append("delegate");
+                    nameBuilder.Append('*');
+                    nameBuilder.Append(' ');
+                    nameBuilder.Append((callConv != "winapi") ? callConv : "unmanaged");
+                    nameBuilder.Append('<');
+
+                    foreach (var paramType in functionProtoType.ParamTypes)
+                    {
+                        nameBuilder.Append(GetRemappedTypeName(cursor, paramType, out _));
+                        nameBuilder.Append(',');
+                        nameBuilder.Append(' ');
+                    }
+
+                    nameBuilder.Append(GetRemappedTypeName(cursor, functionType.ReturnType, out _));
+                    nameBuilder.Append('>');
+                    name = nameBuilder.ToString();
+                }
+                else
+                {
+                    name = "IntPtr";
+                }
             }
             else if (type is PointerType pointerType)
             {
@@ -909,10 +935,6 @@ namespace ClangSharp
             if (pointeeType is AttributedType attributedType)
             {
                 name = GetTypeNameForPointeeType(cursor, attributedType.ModifiedType, out var nativeModifiedTypeName);
-            }
-            else if (pointeeType is FunctionType)
-            {
-                name = "IntPtr";
             }
             else
             {

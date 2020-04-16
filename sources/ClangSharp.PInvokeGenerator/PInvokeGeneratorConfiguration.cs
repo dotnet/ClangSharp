@@ -44,6 +44,11 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(namespaceName));
             }
 
+            if (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode) && options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode))
+            {
+                throw new ArgumentOutOfRangeException(nameof(options));
+            }
+
             if (string.IsNullOrWhiteSpace(outputLocation))
             {
                 throw new ArgumentNullException(nameof(outputLocation));
@@ -72,10 +77,20 @@ namespace ClangSharp
 
             if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
             {
-                _remappedNames.Add("intptr_t", "IntPtr");
-                _remappedNames.Add("ptrdiff_t", "IntPtr");
-                _remappedNames.Add("size_t", "UIntPtr");
-                _remappedNames.Add("uintptr_t", "UIntPtr");
+                if (GeneratePreviewCode)
+                {
+                    _remappedNames.Add("intptr_t", "nint");
+                    _remappedNames.Add("ptrdiff_t", "nint");
+                    _remappedNames.Add("size_t", "nuint");
+                    _remappedNames.Add("uintptr_t", "nuint");
+                }
+                else
+                {
+                    _remappedNames.Add("intptr_t", "IntPtr");
+                    _remappedNames.Add("ptrdiff_t", "IntPtr");
+                    _remappedNames.Add("size_t", "UIntPtr");
+                    _remappedNames.Add("uintptr_t", "UIntPtr");
+                }
             }
 
             AddRange(_remappedNames, remappedNames);
@@ -88,6 +103,8 @@ namespace ClangSharp
         public string[] ExcludedNames { get; }
 
         public bool GenerateCompatibleCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
+
+        public bool GeneratePreviewCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode);
 
         public bool GenerateMultipleFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles);
 

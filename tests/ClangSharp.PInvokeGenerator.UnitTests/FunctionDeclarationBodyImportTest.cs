@@ -560,7 +560,7 @@ namespace ClangSharp.Test
 {{
     public unsafe partial struct MyStructA
     {{
-        public readonly Vtbl* lpVtbl;
+        public Vtbl* lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
         public delegate void _MyMethod(MyStructA* pThis);
@@ -579,7 +579,7 @@ namespace ClangSharp.Test
 
     public unsafe partial struct MyStructB
     {{
-        public readonly Vtbl* lpVtbl;
+        public Vtbl* lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
         public delegate void _MyMethod(MyStructB* pThis);
