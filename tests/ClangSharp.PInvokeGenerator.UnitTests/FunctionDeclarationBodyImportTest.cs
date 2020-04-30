@@ -1451,6 +1451,32 @@ int MyFunction2(MyStruct* instance)
         }
 
         [Fact]
+        public async Task ReturnEmptyTest()
+        {
+            var inputContents = @"void MyFunction()
+{
+    return;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static void MyFunction()
+        {
+            return;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task ReturnIntegerLiteralInt32Test()
         {
             var inputContents = @"int MyFunction()

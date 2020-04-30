@@ -238,6 +238,13 @@ namespace ClangSharp
         {
             foreach (var decl in decls)
             {
+                if (decl is LinkageSpecDecl)
+                {
+                    // Traverse these decl types as they may contain nested includes
+                    Visit(decl);
+                    continue;
+                }
+
                 if (_config.TraversalNames.Length == 0)
                 {
                     if (!decl.Location.IsFromMainFile)
@@ -258,7 +265,7 @@ namespace ClangSharp
                 else
                 {
                     decl.Location.GetFileLocation(out CXFile file, out _, out _, out _);
-                    var fileName = file.Name.ToString();
+                    var fileName = file.Name.ToString().Replace('\\', '/'); // Normalize paths to be `/` for comparison
 
                     if (!_config.TraversalNames.Contains(fileName))
                     {
@@ -267,7 +274,7 @@ namespace ClangSharp
                         // in the main file to catch these cases and ensure we still generate bindings for them.
 
                         decl.Location.GetExpansionLocation(out CXFile expansionFile, out _, out _, out _);
-                        fileName = expansionFile.Name.ToString();
+                        fileName = expansionFile.Name.ToString().Replace('\\', '/'); // Normalize paths to be `/` for comparison
 
                         if (!_config.TraversalNames.Contains(fileName))
                         {
@@ -275,6 +282,7 @@ namespace ClangSharp
                         }
                     }
                 }
+
                 Visit(decl);
             }
         }
@@ -1719,7 +1727,11 @@ namespace ClangSharp
 
         private void VisitTypedefDeclForUnderlyingType(TypedefDecl typedefDecl, Type underlyingType)
         {
-            if (underlyingType is ElaboratedType elaboratedType)
+            if (underlyingType is AttributedType attributedType)
+            {
+                VisitTypedefDeclForUnderlyingType(typedefDecl, attributedType.ModifiedType);
+            }
+            else if (underlyingType is ElaboratedType elaboratedType)
             {
                 VisitTypedefDeclForUnderlyingType(typedefDecl, elaboratedType.NamedType);
             }

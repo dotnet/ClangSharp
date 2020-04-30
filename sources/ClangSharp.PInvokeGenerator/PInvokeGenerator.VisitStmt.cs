@@ -609,12 +609,13 @@ namespace ClangSharp
 
         private void VisitReturnStmt(ReturnStmt returnStmt)
         {
-            Debug.Assert(returnStmt.RetValue != null);
-
             _outputBuilder.Write("return");
-            _outputBuilder.Write(' ');
 
-            Visit(returnStmt.RetValue);
+            if (returnStmt.RetValue != null)
+            {
+                _outputBuilder.Write(' ');
+                Visit(returnStmt.RetValue);
+            }
         }
 
         private void VisitStmt(Stmt stmt)

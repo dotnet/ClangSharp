@@ -12,7 +12,7 @@ namespace ClangSharp
 
         internal ReturnStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ReturnStmt, CX_StmtClass.CX_StmtClass_ReturnStmt)
         {
-            _retValue = new Lazy<Expr>(() => Children.OfType<Expr>().Single());
+            _retValue = new Lazy<Expr>(() => Children.OfType<Expr>().SingleOrDefault());
         }
 
         public Expr RetValue => _retValue.Value;
