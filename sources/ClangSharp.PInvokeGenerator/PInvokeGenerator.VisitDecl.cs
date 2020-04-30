@@ -238,6 +238,13 @@ namespace ClangSharp
         {
             foreach (var decl in decls)
             {
+                if (decl is LinkageSpecDecl)
+                {
+                    // Traverse these decl types as they may contain nested includes
+                    Visit(decl);
+                    continue;
+                }
+
                 if (_config.TraversalNames.Length == 0)
                 {
                     if (!decl.Location.IsFromMainFile)
@@ -275,6 +282,7 @@ namespace ClangSharp
                         }
                     }
                 }
+
                 Visit(decl);
             }
         }
