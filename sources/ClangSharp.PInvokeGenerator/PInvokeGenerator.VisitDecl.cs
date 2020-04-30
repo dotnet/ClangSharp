@@ -1727,7 +1727,11 @@ namespace ClangSharp
 
         private void VisitTypedefDeclForUnderlyingType(TypedefDecl typedefDecl, Type underlyingType)
         {
-            if (underlyingType is ElaboratedType elaboratedType)
+            if (underlyingType is AttributedType attributedType)
+            {
+                VisitTypedefDeclForUnderlyingType(typedefDecl, attributedType.ModifiedType);
+            }
+            else if (underlyingType is ElaboratedType elaboratedType)
             {
                 VisitTypedefDeclForUnderlyingType(typedefDecl, elaboratedType.NamedType);
             }
