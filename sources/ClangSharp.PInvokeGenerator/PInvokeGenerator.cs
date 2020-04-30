@@ -224,7 +224,7 @@ namespace ClangSharp
 
             _outputBuilder.Write("NativeTypeName(");
             _outputBuilder.Write('"');
-            _outputBuilder.Write(nativeTypeName);
+            _outputBuilder.Write(nativeTypeName.Replace('\\', '/'));
             _outputBuilder.Write('"');
             _outputBuilder.Write(")]");
 
