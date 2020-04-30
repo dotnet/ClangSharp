@@ -11,7 +11,7 @@ namespace ClangSharp
         private readonly string _message;
         private readonly string _location;
 
-        public Diagnostic(DiagnosticLevel level, string message, CXSourceLocation location) : this(level, message, location.ToString())
+        public Diagnostic(DiagnosticLevel level, string message, CXSourceLocation location) : this(level, message, location.ToString().Replace('\\', '/'))
         {
         }
 
