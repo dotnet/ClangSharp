@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace ClangSharp
 {
@@ -73,7 +74,9 @@ namespace ClangSharp
             MethodPrefixToStrip = methodPrefixToStrip;
             Namespace = namespaceName;
             OutputLocation = Path.GetFullPath(outputLocation);
-            TraversalNames = traversalNames;
+
+            // Normalize the traversal names to use \ rather than / so path comparisons are simpler
+            TraversalNames = traversalNames.Select(traversalName => traversalName.Replace('\\', '/')).ToArray();
 
             if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
             {
