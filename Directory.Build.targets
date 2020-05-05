@@ -30,6 +30,8 @@
     <PackageReference Update="libClang" Version="10.0.0" />
     <PackageReference Update="libClangSharp" Version="10.0.0-beta1" />
     <PackageReference Update="Microsoft.Bcl.HashCode" Version="1.1.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis" Version="3.5.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="3.5.0" />
     <PackageReference Update="Microsoft.Net.Compilers.Toolset" Version="3.5.0" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Update="System.CommandLine" Version="2.0.0-beta1.20158.1" />
