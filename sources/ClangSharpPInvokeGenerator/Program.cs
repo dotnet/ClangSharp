@@ -80,11 +80,6 @@ namespace ClangSharp
                 errorList.Add("Error: No input C/C++ files provided. Use --file or -f");
             }
 
-            if (string.IsNullOrWhiteSpace(libraryPath))
-            {
-                errorList.Add("Error: No library path location provided. Use --libraryPath or -l");
-            }
-
             if (string.IsNullOrWhiteSpace(namespaceName))
             {
                 errorList.Add("Error: No namespace provided. Use --namespace or -n");

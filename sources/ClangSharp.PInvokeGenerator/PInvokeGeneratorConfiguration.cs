@@ -27,7 +27,7 @@ namespace ClangSharp
 
             if (string.IsNullOrWhiteSpace(libraryPath))
             {
-                throw new ArgumentNullException(nameof(libraryPath));
+                libraryPath = string.Empty;
             }
 
             if (string.IsNullOrWhiteSpace(methodClassName))

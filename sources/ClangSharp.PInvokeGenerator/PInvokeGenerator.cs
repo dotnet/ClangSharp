@@ -310,14 +310,17 @@ namespace ClangSharp
 
                 indentationString += outputBuilder.IndentationString;
 
-                sw.Write(indentationString);
-                sw.Write("private const string LibraryPath =");
-                sw.Write(' ');
-                sw.Write('"');
-                sw.Write(Config.LibraryPath);
-                sw.Write('"');
-                sw.WriteLine(';');
-                sw.WriteLine();
+                if (!string.IsNullOrWhiteSpace(Config.LibraryPath))
+                {
+                    sw.Write(indentationString);
+                    sw.Write("private const string LibraryPath =");
+                    sw.Write(' ');
+                    sw.Write('"');
+                    sw.Write(Config.LibraryPath);
+                    sw.Write('"');
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                }
             }
 
             foreach (var line in outputBuilder.Contents)

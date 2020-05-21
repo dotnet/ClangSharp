@@ -52,6 +52,26 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
+        [Fact]
+        public async Task NoLibraryPathTest()
+        {
+            var inputContents = @"void MyFunction();";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        public static extern void MyFunction();
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, libraryPath: string.Empty);
+        }
+
         [Theory]
         [InlineData("unsigned char value = 0", @"[NativeTypeName(""unsigned char"")] byte value = 0")]
         [InlineData("double value = 1.0", @"double value = 1.0")]
