@@ -1400,6 +1400,14 @@ namespace ClangSharp
             }
         }
 
+        private void WithSetLastError(string remappedName)
+        {
+            if (_config.WithSetLastErrors.Contains("*") || _config.WithSetLastErrors.Contains(remappedName))
+            {
+                _outputBuilder.Write(", SetLastError = true");
+            }
+        }
+
         private void WithType(string remappedName, ref string integerTypeName, ref string nativeTypeName)
         {
             if (_config.WithTypes.TryGetValue(remappedName, out string type))

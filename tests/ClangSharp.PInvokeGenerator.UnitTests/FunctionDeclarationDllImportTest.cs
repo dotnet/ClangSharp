@@ -215,5 +215,63 @@ namespace ClangSharp.Test
             };
             await ValidateGeneratedBindings(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
         }
+
+        [Fact]
+        public async Task WithSetLastErrorTest()
+        {
+            var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction1"", ExactSpelling = true, SetLastError = true)]
+        public static extern void MyFunction1(int value);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction2"", ExactSpelling = true)]
+        public static extern void MyFunction2(int value);
+    }
+}
+";
+
+            var withSetLastErrors = new string[]
+            {
+                "MyFunction1"
+            };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+        }
+
+        [Fact]
+        public async Task WithSetLastErrorStarTest()
+        {
+            var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction1"", ExactSpelling = true, SetLastError = true)]
+        public static extern void MyFunction1(int value);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction2"", ExactSpelling = true, SetLastError = true)]
+        public static extern void MyFunction2(int value);
+    }
+}
+";
+
+            var withSetLastErrors = new string[]
+            {
+                "*"
+            };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+        }
     }
 }

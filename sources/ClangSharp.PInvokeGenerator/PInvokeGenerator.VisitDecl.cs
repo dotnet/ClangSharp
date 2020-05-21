@@ -490,7 +490,9 @@ namespace ClangSharp
                     _outputBuilder.Write(cxxMethodDecl.Handle.Mangling);
                 }
                         
-                _outputBuilder.WriteLine("\", ExactSpelling = true)]");
+                _outputBuilder.Write("\", ExactSpelling = true");
+                WithSetLastError(name);
+                _outputBuilder.WriteLine(")]");
             }
 
             var returnType = functionDecl.ReturnType;
