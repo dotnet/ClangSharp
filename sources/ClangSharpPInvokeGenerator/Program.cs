@@ -553,7 +553,7 @@ namespace ClangSharp
                 Argument = new Argument("<name>=<value>")
                 {
                     ArgumentType = typeof(string),
-                    Arity = new ArgumentArity(1, ushort.MaxValue),
+                    Arity = ArgumentArity.OneOrMore,
                 }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
