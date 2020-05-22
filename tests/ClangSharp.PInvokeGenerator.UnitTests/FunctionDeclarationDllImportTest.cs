@@ -52,6 +52,49 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
+        [Fact]
+        public async Task FunctionPointerParameterTest()
+        {
+            var inputContents = @"void MyFunction(void (*callback)());";
+
+            var expectedOutputContents = @"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        public static extern void MyFunction([NativeTypeName(""void (*)()"")] IntPtr callback);
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task NoLibraryPathTest()
+        {
+            var inputContents = @"void MyFunction();";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        public static extern void MyFunction();
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, libraryPath: string.Empty);
+        }
+
         [Theory]
         [InlineData("unsigned char value = 0", @"[NativeTypeName(""unsigned char"")] byte value = 0")]
         [InlineData("double value = 1.0", @"double value = 1.0")]
@@ -194,6 +237,64 @@ namespace ClangSharp.Test
                 ["MyFunction2"] = "StdCall"
             };
             await ValidateGeneratedBindings(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+        }
+
+        [Fact]
+        public async Task WithSetLastErrorTest()
+        {
+            var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction1"", ExactSpelling = true, SetLastError = true)]
+        public static extern void MyFunction1(int value);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction2"", ExactSpelling = true)]
+        public static extern void MyFunction2(int value);
+    }
+}
+";
+
+            var withSetLastErrors = new string[]
+            {
+                "MyFunction1"
+            };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+        }
+
+        [Fact]
+        public async Task WithSetLastErrorStarTest()
+        {
+            var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction1"", ExactSpelling = true, SetLastError = true)]
+        public static extern void MyFunction1(int value);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction2"", ExactSpelling = true, SetLastError = true)]
+        public static extern void MyFunction2(int value);
+    }
+}
+";
+
+            var withSetLastErrors = new string[]
+            {
+                "*"
+            };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
         }
     }
 }

@@ -457,7 +457,7 @@ namespace ClangSharp
 
             if (isVirtual)
             {
-                Debug.Assert(!_config.GeneratePreviewCode);
+                Debug.Assert(!_config.GeneratePreviewCodeFnptr);
 
                 _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
@@ -490,7 +490,9 @@ namespace ClangSharp
                     _outputBuilder.Write(cxxMethodDecl.Handle.Mangling);
                 }
                         
-                _outputBuilder.WriteLine("\", ExactSpelling = true)]");
+                _outputBuilder.Write("\", ExactSpelling = true");
+                WithSetLastError(name);
+                _outputBuilder.WriteLine(")]");
             }
 
             var returnType = functionDecl.ReturnType;
@@ -1034,7 +1036,7 @@ namespace ClangSharp
 
                     pinvokeGenerator._visitedDecls.Add(cxxMethodDecl);
 
-                    if (!pinvokeGenerator._config.GeneratePreviewCode)
+                    if (!pinvokeGenerator._config.GeneratePreviewCodeFnptr)
                     {
                         pinvokeGenerator._outputBuilder.NeedsNewline = true;
 
@@ -1217,7 +1219,7 @@ namespace ClangSharp
                     outputBuilder.Write('*');
                 }
 
-                if (!pinvokeGenerator._config.GeneratePreviewCode)
+                if (!pinvokeGenerator._config.GeneratePreviewCodeFnptr)
                 {
                     outputBuilder.Write("Marshal.GetDelegateForFunctionPointer<");
                     outputBuilder.Write(pinvokeGenerator.PrefixAndStripName(cxxMethodDeclName));
@@ -1228,7 +1230,7 @@ namespace ClangSharp
                 outputBuilder.Write("lpVtbl->");
                 outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
 
-                if (!pinvokeGenerator._config.GeneratePreviewCode)
+                if (!pinvokeGenerator._config.GeneratePreviewCodeFnptr)
                 {
                     outputBuilder.Write(')');
                 }
@@ -1570,18 +1572,16 @@ namespace ClangSharp
                 {
                     return;
                 }
-                bool isUnsafe = typeName.Contains('*');
+
+                if (typeName.Contains('*'))
+                {
+                    outputBuilder.AddUsingDirective("System");
+                    typeName = "IntPtr";
+                }
 
                 outputBuilder.NeedsNewline = true;
                 outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(constantArray));
                 outputBuilder.Write(' ');
-
-                if (isUnsafe)
-                {
-                    outputBuilder.Write("unsafe");
-                    outputBuilder.Write(' ');
-                }
-
                 outputBuilder.Write("partial struct");
                 outputBuilder.Write(' ');
                 outputBuilder.WriteLine(pinvokeGenerator.GetArtificalFixedSizedBufferName(constantArray));
@@ -1642,11 +1642,8 @@ namespace ClangSharp
 
                 if (pinvokeGenerator._config.GenerateCompatibleCode)
                 {
-                    if (!isUnsafe)
-                    {
-                        outputBuilder.Write("unsafe");
-                        outputBuilder.Write(' ');
-                    }
+                    outputBuilder.Write("unsafe");
+                    outputBuilder.Write(' ');
                 }
                 else
                 {
@@ -1766,7 +1763,7 @@ namespace ClangSharp
             }
             else if (pointeeType is FunctionProtoType functionProtoType)
             {
-                if (_config.GeneratePreviewCode)
+                if (_config.GeneratePreviewCodeFnptr)
                 {
                     return;
                 }

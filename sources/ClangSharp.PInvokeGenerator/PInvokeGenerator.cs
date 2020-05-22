@@ -310,14 +310,17 @@ namespace ClangSharp
 
                 indentationString += outputBuilder.IndentationString;
 
-                sw.Write(indentationString);
-                sw.Write("private const string LibraryPath =");
-                sw.Write(' ');
-                sw.Write('"');
-                sw.Write(Config.LibraryPath);
-                sw.Write('"');
-                sw.WriteLine(';');
-                sw.WriteLine();
+                if (!string.IsNullOrWhiteSpace(Config.LibraryPath))
+                {
+                    sw.Write(indentationString);
+                    sw.Write("private const string LibraryPath =");
+                    sw.Write(' ');
+                    sw.Write('"');
+                    sw.Write(Config.LibraryPath);
+                    sw.Write('"');
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                }
             }
 
             foreach (var line in outputBuilder.Contents)
@@ -766,7 +769,7 @@ namespace ClangSharp
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            name = _config.GeneratePreviewCode ? "nuint" : "UIntPtr";
+                            name = _config.GeneratePreviewCodeNint ? "nuint" : "UIntPtr";
                         }
                         else
                         {
@@ -816,7 +819,7 @@ namespace ClangSharp
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            name = _config.GeneratePreviewCode ? "nint" : "IntPtr";
+                            name = _config.GeneratePreviewCodeNint ? "nint" : "IntPtr";
                         }
                         else
                         {
@@ -856,33 +859,7 @@ namespace ClangSharp
             }
             else if (type is FunctionType functionType)
             {
-                if (_config.GeneratePreviewCode && (functionType is FunctionProtoType functionProtoType))
-                {
-                    var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
-                    var callConv = GetCallingConventionName(cursor, functionType.CallConv, remappedName).ToLower();
-
-                    var nameBuilder = new StringBuilder();
-                    nameBuilder.Append("delegate");
-                    nameBuilder.Append('*');
-                    nameBuilder.Append(' ');
-                    nameBuilder.Append((callConv != "winapi") ? callConv : "unmanaged");
-                    nameBuilder.Append('<');
-
-                    foreach (var paramType in functionProtoType.ParamTypes)
-                    {
-                        nameBuilder.Append(GetRemappedTypeName(cursor, paramType, out _));
-                        nameBuilder.Append(',');
-                        nameBuilder.Append(' ');
-                    }
-
-                    nameBuilder.Append(GetRemappedTypeName(cursor, functionType.ReturnType, out _));
-                    nameBuilder.Append('>');
-                    name = nameBuilder.ToString();
-                }
-                else
-                {
-                    name = "IntPtr";
-                }
+                name = GetTypeNameForPointeeType(cursor, functionType, out var nativeFunctionTypeName);
             }
             else if (type is PointerType pointerType)
             {
@@ -947,6 +924,36 @@ namespace ClangSharp
             if (pointeeType is AttributedType attributedType)
             {
                 name = GetTypeNameForPointeeType(cursor, attributedType.ModifiedType, out var nativeModifiedTypeName);
+            }
+            else if (pointeeType is FunctionType functionType)
+            {
+                if (_config.GeneratePreviewCodeFnptr && (functionType is FunctionProtoType functionProtoType))
+                {
+                    var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
+                    var callConv = GetCallingConventionName(cursor, functionType.CallConv, remappedName).ToLower();
+
+                    var nameBuilder = new StringBuilder();
+                    nameBuilder.Append("delegate");
+                    nameBuilder.Append('*');
+                    nameBuilder.Append(' ');
+                    nameBuilder.Append((callConv != "winapi") ? callConv : "unmanaged");
+                    nameBuilder.Append('<');
+
+                    foreach (var paramType in functionProtoType.ParamTypes)
+                    {
+                        nameBuilder.Append(GetRemappedTypeName(cursor, paramType, out _));
+                        nameBuilder.Append(',');
+                        nameBuilder.Append(' ');
+                    }
+
+                    nameBuilder.Append(GetRemappedTypeName(cursor, functionType.ReturnType, out _));
+                    nameBuilder.Append('>');
+                    name = nameBuilder.ToString();
+                }
+                else
+                {
+                    name = "IntPtr";
+                }
             }
             else
             {
@@ -1394,6 +1401,14 @@ namespace ClangSharp
                     _outputBuilder.Write(attribute);
                     _outputBuilder.WriteLine(']');
                 }
+            }
+        }
+
+        private void WithSetLastError(string remappedName)
+        {
+            if (_config.WithSetLastErrors.Contains("*") || _config.WithSetLastErrors.Contains(remappedName))
+            {
+                _outputBuilder.Write(", SetLastError = true");
             }
         }
 

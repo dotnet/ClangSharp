@@ -1340,6 +1340,41 @@ int MyFunction2(MyStruct* instance)
         }
 
         [Fact]
+        public async Task RefToPtrTest()
+        {
+            var inputContents = @"struct MyStruct {
+    int value;
+};
+
+bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
+{
+    return lhs.value == rhs.value;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+    }
+
+    public static unsafe partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        public static bool MyFunction([NativeTypeName(""const MyStruct &"")] MyStruct* lhs, [NativeTypeName(""const MyStruct &"")] MyStruct* rhs)
+        {
+            return lhs->value == rhs->value;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task ReturnCXXNullPtrTest()
         {
             var inputContents = @"void* MyFunction()

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -587,7 +588,22 @@ namespace ClangSharp
             {
                 Visit(memberExpr.Base);
 
-                if ((memberExpr.Base.Type is PointerType) && !(memberExpr.Base is CXXThisExpr))
+                bool isPointerType;
+
+                if (memberExpr.Base is CXXThisExpr)
+                {
+                    isPointerType = false;
+                }
+                else if (memberExpr.Base is DeclRefExpr declRefExpr)
+                {
+                    isPointerType = (declRefExpr.Decl.Type is PointerType) || (declRefExpr.Decl.Type is ReferenceType);
+                }
+                else
+                {
+                    isPointerType = (memberExpr.Base.Type is PointerType) || (memberExpr.Base.Type is ReferenceType);
+                }
+
+                if (isPointerType)
                 {
                     _outputBuilder.Write('-');
                     _outputBuilder.Write('>');

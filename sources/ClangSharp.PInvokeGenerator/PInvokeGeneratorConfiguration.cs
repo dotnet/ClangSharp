@@ -18,7 +18,7 @@ namespace ClangSharp
         private readonly Dictionary<string, IReadOnlyList<string>> _withUsings;
         private readonly PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
         {
             if (excludedNames is null)
             {
@@ -27,7 +27,7 @@ namespace ClangSharp
 
             if (string.IsNullOrWhiteSpace(libraryPath))
             {
-                throw new ArgumentNullException(nameof(libraryPath));
+                libraryPath = string.Empty;
             }
 
             if (string.IsNullOrWhiteSpace(methodClassName))
@@ -60,6 +60,11 @@ namespace ClangSharp
                 traversalNames = Array.Empty<string>();
             }
 
+            if (withSetLastErrors is null)
+            {
+                withSetLastErrors = Array.Empty<string>();
+            }
+
             _options = options;
             _remappedNames = new Dictionary<string, string>();
             _withAttributes = new Dictionary<string, IReadOnlyList<string>>();
@@ -77,10 +82,11 @@ namespace ClangSharp
 
             // Normalize the traversal names to use \ rather than / so path comparisons are simpler
             TraversalNames = traversalNames.Select(traversalName => traversalName.Replace('\\', '/')).ToArray();
+            WithSetLastErrors = withSetLastErrors;
 
             if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
             {
-                if (GeneratePreviewCode)
+                if (GeneratePreviewCodeNint)
                 {
                     _remappedNames.Add("intptr_t", "nint");
                     _remappedNames.Add("ptrdiff_t", "nint");
@@ -107,7 +113,9 @@ namespace ClangSharp
 
         public bool GenerateCompatibleCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
 
-        public bool GeneratePreviewCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode);
+        public bool GeneratePreviewCodeFnptr => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCodeFnptr);
+
+        public bool GeneratePreviewCodeNint => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCodeNint);
 
         public bool GenerateMultipleFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles);
 
@@ -132,6 +140,8 @@ namespace ClangSharp
         public IReadOnlyDictionary<string, IReadOnlyList<string>> WithAttributes => _withAttributes;
 
         public IReadOnlyDictionary<string, string> WithCallConvs => _withCallConvs;
+
+        public string[] WithSetLastErrors { get; }
 
         public IReadOnlyDictionary<string, string> WithTypes => _withTypes;
 
