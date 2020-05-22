@@ -727,9 +727,9 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         public {expectedManagedType} b;
 
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
-        public __AnonymousRecord_ClangUnsavedFile_L{line}_C{column} __AnonymousField_ClangUnsavedFile_L{line}_C{column};
+        public _Anonymous_e__Struct Anonymous;
 
-        public partial struct __AnonymousRecord_ClangUnsavedFile_L{line}_C{column}
+        public partial struct _Anonymous_e__Struct
         {{
             public {expectedManagedType} a;
         }}
@@ -737,10 +737,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 }}
 ";
 
-            var expectedDiagnostics = new Diagnostic[] {
-                new Diagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in 'GetCursorName'. Falling back to '__AnonymousRecord_ClangUnsavedFile_L{line}_C{column}'.", $"Line {line}, Column {column} in ClangUnsavedFile.h")
-            };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, expectedDiagnostics: expectedDiagnostics);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
         [Fact]

@@ -351,10 +351,37 @@ namespace ClangSharp
             }
 
             var name = GetRemappedCursorName(fieldDecl);
+
+            if (name.StartsWith("__AnonymousField_"))
+            {
+                var newName = "Anonymous";
+
+                if (fieldDecl.Parent.AnonymousDecls.Count != 1)
+                {
+                    var index = fieldDecl.Parent.AnonymousDecls.IndexOf(fieldDecl) + 1;
+                    newName += index.ToString();
+                }
+
+                var remappedNames = _config.RemappedNames as Dictionary<string, string>;
+                remappedNames.Add(name, newName);
+
+                name = newName;
+            }
+
             var escapedName = EscapeName(name);
 
             var type = fieldDecl.Type;
             var typeName = GetRemappedTypeName(fieldDecl, type, out var nativeTypeName);
+
+            if (typeName.StartsWith("__AnonymousRecord_"))
+            {
+                var newTypeName = $"_{name}_e__{(((type.CanonicalType is RecordType recordType) && recordType.Decl.IsUnion) ? "Union" : "Struct")}";
+
+                var remappedNames = _config.RemappedNames as Dictionary<string, string>;
+                remappedNames.Add(typeName, newTypeName);
+
+                typeName = newTypeName;
+            }
 
             if (fieldDecl.Parent.IsUnion)
             {
@@ -878,7 +905,35 @@ namespace ClangSharp
                     }
                     else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
                     {
+                        var nestedRecordDeclFieldName = GetRemappedAnonymousName(nestedRecordDecl, "Field");
+
+                        if (nestedRecordDeclFieldName.StartsWith("__AnonymousField_"))
+                        {
+                            var newNestedRecordDeclFieldName = "Anonymous";
+
+                            if (recordDecl.AnonymousDecls.Count != 1)
+                            {
+                                var index = recordDecl.AnonymousDecls.IndexOf(nestedRecordDecl) + 1;
+                                newNestedRecordDeclFieldName += index.ToString();
+                            }
+
+                            var remappedNames = _config.RemappedNames as Dictionary<string, string>;
+                            remappedNames.Add(nestedRecordDeclFieldName, newNestedRecordDeclFieldName);
+
+                            nestedRecordDeclFieldName = newNestedRecordDeclFieldName;
+                        }
+
                         var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
+
+                        if (nestedRecordDeclName.StartsWith("__AnonymousRecord_"))
+                        {
+                            var newNestedRecordDeclName = $"_{nestedRecordDeclFieldName}_e__{(nestedRecordDecl.IsUnion ? "Union" : "Struct")}";
+
+                            var remappedNames = _config.RemappedNames as Dictionary<string, string>;
+                            remappedNames.Add(nestedRecordDeclName, newNestedRecordDeclName);
+
+                            nestedRecordDeclName = newNestedRecordDeclName;
+                        }
 
                         if (recordDecl.IsUnion)
                         {
@@ -890,7 +945,7 @@ namespace ClangSharp
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write(nestedRecordDeclName);
                         _outputBuilder.Write(' ');
-                        _outputBuilder.Write(GetRemappedAnonymousName(nestedRecordDecl, "Field"));
+                        _outputBuilder.Write(nestedRecordDeclFieldName);
                         _outputBuilder.WriteLine(';');
 
                         _outputBuilder.NeedsNewline = true;

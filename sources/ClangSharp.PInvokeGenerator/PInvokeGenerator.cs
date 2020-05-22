@@ -578,10 +578,6 @@ namespace ClangSharp
                     {
                         name = GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling);
 
-                        if (!_config.RemappedNames.ContainsKey(name))
-                        {
-                            AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.", namedDecl);
-                        }
                     }
                     else
                     {
@@ -596,14 +592,6 @@ namespace ClangSharp
                 else if (namedDecl is FieldDecl fieldDecl)
                 {
                     name = GetAnonymousName(fieldDecl, fieldDecl.CursorKindSpelling);
-
-                    if (!_config.RemappedNames.ContainsKey(name))
-                    {
-                        AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.", namedDecl);
-                    }
-
-                    name = "field";
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported anonymous named declaration: '{namedDecl.Kind}'.", namedDecl);
                 }
                 else
                 {

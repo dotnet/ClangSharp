@@ -21,6 +21,8 @@ namespace ClangSharp
 
         public int BitWidthValue => Handle.FieldDeclBitWidth;
 
+        public bool IsAnonymousField => string.IsNullOrWhiteSpace(Name);
+
         public bool IsBitField => Handle.IsBitField;
 
         public bool IsMutable => Handle.CXXField_IsMutable;
