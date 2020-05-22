@@ -143,6 +143,20 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "preview-codegen-nint":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCodeNint;
+                        break;
+                    }
+
+                    case "preview-codegen-fnptr":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCodeFnptr;
+                        break;
+                    }
+
                     case "single-file":
                     {
                         configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;

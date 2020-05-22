@@ -86,7 +86,7 @@ namespace ClangSharp
 
             if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
             {
-                if (GeneratePreviewCode)
+                if (GeneratePreviewCodeNint)
                 {
                     _remappedNames.Add("intptr_t", "nint");
                     _remappedNames.Add("ptrdiff_t", "nint");
@@ -113,7 +113,9 @@ namespace ClangSharp
 
         public bool GenerateCompatibleCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
 
-        public bool GeneratePreviewCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode);
+        public bool GeneratePreviewCodeFnptr => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCodeFnptr);
+
+        public bool GeneratePreviewCodeNint => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCodeNint);
 
         public bool GenerateMultipleFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles);
 

@@ -457,7 +457,7 @@ namespace ClangSharp
 
             if (isVirtual)
             {
-                Debug.Assert(!_config.GeneratePreviewCode);
+                Debug.Assert(!_config.GeneratePreviewCodeFnptr);
 
                 _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
@@ -1036,7 +1036,7 @@ namespace ClangSharp
 
                     pinvokeGenerator._visitedDecls.Add(cxxMethodDecl);
 
-                    if (!pinvokeGenerator._config.GeneratePreviewCode)
+                    if (!pinvokeGenerator._config.GeneratePreviewCodeFnptr)
                     {
                         pinvokeGenerator._outputBuilder.NeedsNewline = true;
 
@@ -1219,7 +1219,7 @@ namespace ClangSharp
                     outputBuilder.Write('*');
                 }
 
-                if (!pinvokeGenerator._config.GeneratePreviewCode)
+                if (!pinvokeGenerator._config.GeneratePreviewCodeFnptr)
                 {
                     outputBuilder.Write("Marshal.GetDelegateForFunctionPointer<");
                     outputBuilder.Write(pinvokeGenerator.PrefixAndStripName(cxxMethodDeclName));
@@ -1230,7 +1230,7 @@ namespace ClangSharp
                 outputBuilder.Write("lpVtbl->");
                 outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
 
-                if (!pinvokeGenerator._config.GeneratePreviewCode)
+                if (!pinvokeGenerator._config.GeneratePreviewCodeFnptr)
                 {
                     outputBuilder.Write(')');
                 }
@@ -1768,7 +1768,7 @@ namespace ClangSharp
             }
             else if (pointeeType is FunctionProtoType functionProtoType)
             {
-                if (_config.GeneratePreviewCode)
+                if (_config.GeneratePreviewCodeFnptr)
                 {
                     return;
                 }

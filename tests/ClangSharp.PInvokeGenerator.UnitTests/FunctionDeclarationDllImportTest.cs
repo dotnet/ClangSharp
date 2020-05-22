@@ -53,6 +53,29 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task FunctionPointerParameterTest()
+        {
+            var inputContents = @"void MyFunction(void (*callback)());";
+
+            var expectedOutputContents = @"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        public static extern void MyFunction([NativeTypeName(""void (*)()"")] IntPtr callback);
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task NoLibraryPathTest()
         {
             var inputContents = @"void MyFunction();";
