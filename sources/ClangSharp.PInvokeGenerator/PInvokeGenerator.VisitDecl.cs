@@ -498,13 +498,9 @@ namespace ClangSharp
 
                 _outputBuilder.WriteIndented("[DllImport(");
 
-                if (cxxMethodDecl != null)
-                {
-                    _outputBuilder.Write(_config.MethodClassName);
-                    _outputBuilder.Write('.');
-                }
+                WithLibraryPath(name);
 
-                _outputBuilder.Write("LibraryPath, CallingConvention = CallingConvention.");
+                _outputBuilder.Write(", CallingConvention = CallingConvention.");
                 _outputBuilder.Write(GetCallingConventionName(functionDecl, callConv, name));
                 _outputBuilder.Write(", EntryPoint = \"");
 

@@ -43,6 +43,7 @@ namespace ClangSharp
             AddTraverseOption(s_rootCommand);
             AddWithAttributeOption(s_rootCommand);
             AddWithCallConvOption(s_rootCommand);
+            AddWithLibraryPathOption(s_rootCommand);
             AddWithSetLastErrorOption(s_rootCommand);
             AddWithTypeOption(s_rootCommand);
             AddWithUsingOption(s_rootCommand);
@@ -71,6 +72,7 @@ namespace ClangSharp
             var traversalNames = context.ParseResult.ValueForOption<string[]>("traverse");
             var withAttributeNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-attribute");
             var withCallConvNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-callconv");
+            var withLibraryPathNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-librarypath");
             var withSetLastErrors = context.ParseResult.ValueForOption<string[]>("with-setlasterror");
             var withTypeNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-type");
             var withUsingNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-using");
@@ -95,6 +97,7 @@ namespace ClangSharp
             ParseKeyValuePairs(remappedNameValuePairs, errorList, out Dictionary<string, string> remappedNames);
             ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
             ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
+            ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPath);
             ParseKeyValuePairs(withTypeNameValuePairs, errorList, out Dictionary<string, string> withTypes);
             ParseKeyValuePairs(withUsingNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withUsings);
 
@@ -212,7 +215,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withSetLastErrors, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
 
             int exitCode = 0;
 
@@ -620,6 +623,21 @@ namespace ClangSharp
         private static void AddWithCallConvOption(RootCommand rootCommand)
         {
             var option = new Option(new string[] { "--with-callconv", "-wcc" }, "A calling convention to be used for the given declaration during binding generation.")
+            {
+                Argument = new Argument("<remapped-name>=<value>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.OneOrMore,
+                }
+            };
+            option.Argument.SetDefaultValue(Array.Empty<string>());
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddWithLibraryPathOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--with-librarypath", "-wlb" }, "A library path to be used for the given declaration during binding generation.")
             {
                 Argument = new Argument("<remapped-name>=<value>")
                 {

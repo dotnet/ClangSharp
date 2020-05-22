@@ -309,18 +309,6 @@ namespace ClangSharp
                 sw.WriteLine('{');
 
                 indentationString += outputBuilder.IndentationString;
-
-                if (!string.IsNullOrWhiteSpace(Config.LibraryPath))
-                {
-                    sw.Write(indentationString);
-                    sw.Write("private const string LibraryPath =");
-                    sw.Write(' ');
-                    sw.Write('"');
-                    sw.Write(Config.LibraryPath);
-                    sw.Write('"');
-                    sw.WriteLine(';');
-                    sw.WriteLine();
-                }
             }
 
             foreach (var line in outputBuilder.Contents)
@@ -1390,6 +1378,15 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(']');
                 }
             }
+        }
+
+        private void WithLibraryPath(string remappedName)
+        {
+            if (!_config.WithLibraryPaths.TryGetValue(remappedName, out string libraryPath) && !_config.WithLibraryPaths.TryGetValue("*", out libraryPath))
+            {
+                libraryPath = _config.LibraryPath;
+            }
+            _outputBuilder.Write(libraryPath);
         }
 
         private void WithSetLastError(string remappedName)

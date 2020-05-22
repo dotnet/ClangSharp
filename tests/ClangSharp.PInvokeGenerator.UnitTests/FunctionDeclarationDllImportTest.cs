@@ -19,9 +19,7 @@ namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
         public static extern void MyFunction();
     }
 }
@@ -41,9 +39,7 @@ namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
         public static extern void MyFunction([NativeTypeName(""const float [4]"")] float* color);
     }
 }
@@ -64,9 +60,7 @@ namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
         public static extern void MyFunction([NativeTypeName(""void (*)()"")] IntPtr callback);
     }
 }
@@ -86,13 +80,61 @@ namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        [DllImport("""", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
         public static extern void MyFunction();
     }
 }
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents, libraryPath: string.Empty);
+        }
+
+        [Fact]
+        public async Task WithLibraryPathTest()
+        {
+            var inputContents = @"void MyFunction();";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        public static extern void MyFunction();
+    }
+}
+";
+
+            var withLibraryPaths = new Dictionary<string, string>
+            {
+                ["MyFunction"] = "\"ClangSharpPInvokeGenerator\""
+            };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
+        }
+
+        [Fact]
+        public async Task WithLibraryPathStarTest()
+        {
+            var inputContents = @"void MyFunction();";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        public static extern void MyFunction();
+    }
+}
+";
+
+            var withLibraryPaths = new Dictionary<string, string>
+            {
+                ["*"] = "\"ClangSharpPInvokeGenerator\""
+            };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
         }
 
         [Theory]
@@ -117,9 +159,7 @@ namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
         public static extern void MyFunction({expectedManagedParameters});
     }}
 }}
@@ -141,9 +181,7 @@ namespace ClangSharp.Test
 {{
     public static unsafe partial class Methods
     {{
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
         public static extern void MyFunction({expectedManagedParameters});
     }}
 }}
@@ -163,12 +201,10 @@ namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Winapi, EntryPoint = ""MyFunction1"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Winapi, EntryPoint = ""MyFunction1"", ExactSpelling = true)]
         public static extern void MyFunction1(int value);
 
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction2"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction2"", ExactSpelling = true)]
         public static extern void MyFunction2(int value);
     }
 }
@@ -191,12 +227,10 @@ namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Winapi, EntryPoint = ""MyFunction1"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Winapi, EntryPoint = ""MyFunction1"", ExactSpelling = true)]
         public static extern void MyFunction1(int value);
 
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Winapi, EntryPoint = ""MyFunction2"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Winapi, EntryPoint = ""MyFunction2"", ExactSpelling = true)]
         public static extern void MyFunction2(int value);
     }
 }
@@ -220,12 +254,10 @@ namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Winapi, EntryPoint = ""MyFunction1"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Winapi, EntryPoint = ""MyFunction1"", ExactSpelling = true)]
         public static extern void MyFunction1(int value);
 
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.StdCall, EntryPoint = ""MyFunction2"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.StdCall, EntryPoint = ""MyFunction2"", ExactSpelling = true)]
         public static extern void MyFunction2(int value);
     }
 }
@@ -250,12 +282,10 @@ namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction1"", ExactSpelling = true, SetLastError = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction1"", ExactSpelling = true, SetLastError = true)]
         public static extern void MyFunction1(int value);
 
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction2"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction2"", ExactSpelling = true)]
         public static extern void MyFunction2(int value);
     }
 }
@@ -279,12 +309,10 @@ namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction1"", ExactSpelling = true, SetLastError = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction1"", ExactSpelling = true, SetLastError = true)]
         public static extern void MyFunction1(int value);
 
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction2"", ExactSpelling = true, SetLastError = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction2"", ExactSpelling = true, SetLastError = true)]
         public static extern void MyFunction2(int value);
     }
 }
