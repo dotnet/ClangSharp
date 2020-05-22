@@ -1572,18 +1572,16 @@ namespace ClangSharp
                 {
                     return;
                 }
-                bool isUnsafe = typeName.Contains('*');
+
+                if (typeName.Contains('*'))
+                {
+                    outputBuilder.AddUsingDirective("System");
+                    typeName = "IntPtr";
+                }
 
                 outputBuilder.NeedsNewline = true;
                 outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(constantArray));
                 outputBuilder.Write(' ');
-
-                if (isUnsafe)
-                {
-                    outputBuilder.Write("unsafe");
-                    outputBuilder.Write(' ');
-                }
-
                 outputBuilder.Write("partial struct");
                 outputBuilder.Write(' ');
                 outputBuilder.WriteLine(pinvokeGenerator.GetArtificalFixedSizedBufferName(constantArray));
@@ -1644,11 +1642,8 @@ namespace ClangSharp
 
                 if (pinvokeGenerator._config.GenerateCompatibleCode)
                 {
-                    if (!isUnsafe)
-                    {
-                        outputBuilder.Write("unsafe");
-                        outputBuilder.Write(' ');
-                    }
+                    outputBuilder.Write("unsafe");
+                    outputBuilder.Write(' ');
                 }
                 else
                 {

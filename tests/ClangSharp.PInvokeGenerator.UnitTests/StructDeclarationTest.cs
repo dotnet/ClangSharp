@@ -537,6 +537,48 @@ namespace ClangSharp.Test
         }
 
         [Theory]
+        [InlineData("double *", "IntPtr")]
+        [InlineData("short *", "IntPtr")]
+        [InlineData("int *", "IntPtr")]
+        [InlineData("float *", "IntPtr")]
+        public async Task FixedSizedBufferPointerTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} c[3];
+}};
+";
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        [NativeTypeName(""{nativeType}[3]"")]
+        public _c_e__FixedBuffer c;
+
+        public partial struct _c_e__FixedBuffer
+        {{
+            internal {expectedManagedType} e0;
+            internal {expectedManagedType} e1;
+            internal {expectedManagedType} e2;
+
+            public ref {expectedManagedType} this[int index] => ref AsSpan()[index];
+
+            public Span<{expectedManagedType}> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
         [InlineData("unsigned char", "byte")]
         [InlineData("double", "double")]
         [InlineData("short", "short")]

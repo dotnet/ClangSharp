@@ -15,7 +15,7 @@
     "GenerateTerraFX": {
       "commandName": "Project",
       "commandLineArgs": "@generate.rsp",
-      "workingDirectory": "D:\\tagoo\\Repos\\terrafx.interop.windows\\generation\\shared\\devpropdef"
+      "workingDirectory": "D:\\tagoo\\Repos\\terrafx.interop.windows\\generation\\um\\winnt"
     }
   }
 }
