@@ -279,8 +279,6 @@ namespace ClangSharp
                         decl.Location.GetExpansionLocation(out CXFile expansionFile, out _, out _, out _);
                         fileName = expansionFile.Name.ToString().Replace('\\', '/'); // Normalize paths to be `/` for comparison
 
-
-
                         if (!_config.TraversalNames.Contains(fileName, equalityComparer))
                         {
                             continue;
@@ -295,10 +293,10 @@ namespace ClangSharp
         private void VisitEnumConstantDecl(EnumConstantDecl enumConstantDecl)
         {
             var name = GetRemappedCursorName(enumConstantDecl);
-        
+
             _outputBuilder.WriteIndentation();
             _outputBuilder.Write(EscapeName(name));
-        
+
             if (enumConstantDecl.InitExpr != null)
             {
                 _outputBuilder.Write(' ');
@@ -306,14 +304,14 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
                 Visit(enumConstantDecl.InitExpr);
             }
-        
+
             _outputBuilder.WriteLine(',');
         }
-        
+
         private void VisitEnumDecl(EnumDecl enumDecl)
         {
             var name = GetRemappedCursorName(enumDecl);
-        
+
             StartUsingOutputBuilder(name);
             {
                 var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
@@ -322,13 +320,13 @@ namespace ClangSharp
                 WithType(name, ref integerTypeName, ref nativeTypeName);
 
                 AddNativeTypeNameAttribute(nativeTypeName);
-        
+
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(enumDecl));
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write("enum");
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(EscapeName(name));
-        
+
                 if (!integerTypeName.Equals("int"))
                 {
                     _outputBuilder.Write(' ');
@@ -342,7 +340,7 @@ namespace ClangSharp
 
                 VisitDecls(enumDecl.Enumerators);
                 VisitDecls(enumDecl.Decls);
-        
+
                 _outputBuilder.WriteBlockEnd();
             }
             StopUsingOutputBuilder();
@@ -493,9 +491,17 @@ namespace ClangSharp
 
                 _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
-                _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
-                _outputBuilder.Write(GetCallingConventionName(functionDecl, callConv, name));
-                _outputBuilder.WriteLine(")]");
+                _outputBuilder.WriteIndented("[UnmanagedFunctionPointer");
+
+                var callingConventionName = GetCallingConventionName(functionDecl, callConv, name);
+
+                _outputBuilder.Write('(');
+                _outputBuilder.Write("CallingConvention");
+                _outputBuilder.Write('.');
+                _outputBuilder.Write(callingConventionName);
+                _outputBuilder.Write(')');
+
+                _outputBuilder.WriteLine(']');
             }
             else if (body is null)
             {
@@ -505,9 +511,25 @@ namespace ClangSharp
 
                 WithLibraryPath(name);
 
-                _outputBuilder.Write(", CallingConvention = CallingConvention.");
-                _outputBuilder.Write(GetCallingConventionName(functionDecl, callConv, name));
-                _outputBuilder.Write(", EntryPoint = \"");
+                _outputBuilder.Write(',');
+                _outputBuilder.Write(' ');
+
+                var callingConventionName = GetCallingConventionName(functionDecl, callConv, name);
+
+                if (callingConventionName != "Winapi")
+                {
+                    _outputBuilder.Write("CallingConvention");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write('=');
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write("CallingConvention");
+                    _outputBuilder.Write('.');
+                    _outputBuilder.Write(callingConventionName);
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
+                }
+
+                _outputBuilder.Write("EntryPoint = \"");
 
                 if (cxxMethodDecl is null)
                 {
@@ -517,7 +539,7 @@ namespace ClangSharp
                 {
                     _outputBuilder.Write(cxxMethodDecl.Handle.Mangling);
                 }
-                        
+
                 _outputBuilder.Write("\", ExactSpelling = true");
                 WithSetLastError(name);
                 _outputBuilder.WriteLine(")]");
@@ -733,7 +755,7 @@ namespace ClangSharp
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl)
         {
             var cursorParent = parmVarDecl.CursorParent;
-        
+
             if (cursorParent is FunctionDecl functionDecl)
             {
                 VisitParmVarDeclForFunctionDecl(parmVarDecl, functionDecl);
@@ -747,13 +769,13 @@ namespace ClangSharp
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{cursorParent.CursorKindSpelling}'. Generated bindings may be incomplete.", cursorParent);
             }
         }
-        
+
         private void VisitParmVarDeclForFunctionDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
         {
             var type = parmVarDecl.Type;
             var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
             AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
-        
+
             _outputBuilder.Write(typeName);
 
             if (type is ArrayType)
@@ -762,14 +784,14 @@ namespace ClangSharp
             }
 
             _outputBuilder.Write(' ');
-        
+
             var name = GetRemappedCursorName(parmVarDecl);
             _outputBuilder.Write(EscapeName(name));
-        
+
             var parameters = functionDecl.Parameters;
             var index = parameters.IndexOf(parmVarDecl);
             var lastIndex = parameters.Count - 1;
-        
+
             if (name.Equals("param"))
             {
                 _outputBuilder.Write(index);
@@ -789,23 +811,23 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
             }
         }
-        
+
         private void VisitParmVarDeclForTypedefDecl(ParmVarDecl parmVarDecl, TypedefDecl typedefDecl)
         {
             var type = parmVarDecl.Type;
             var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
             AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
-        
+
             _outputBuilder.Write(typeName);
             _outputBuilder.Write(' ');
-        
+
             var name = GetRemappedCursorName(parmVarDecl);
             _outputBuilder.Write(EscapeName(name));
-        
+
             var parameters = typedefDecl.CursorChildren.OfType<ParmVarDecl>().ToList();
             var index = parameters.IndexOf(parmVarDecl);
             var lastIndex = parameters.Count - 1;
-        
+
             if (name.Equals("param"))
             {
                 _outputBuilder.Write(index);
@@ -818,7 +840,7 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
                 Visit(parmVarDecl.DefaultArg);
             }
-        
+
             if (index != lastIndex)
             {
                 _outputBuilder.Write(',');
@@ -1806,7 +1828,7 @@ namespace ClangSharp
             }
             return;
         }
-        
+
         private void VisitTypedefDeclForPointeeType(TypedefDecl typedefDecl, Type parentType, Type pointeeType)
         {
             if (pointeeType is AttributedType attributedType)
@@ -1825,28 +1847,36 @@ namespace ClangSharp
                 }
 
                 var name = GetRemappedCursorName(typedefDecl);
-        
+
                 StartUsingOutputBuilder(name);
                 {
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-        
-                    _outputBuilder.WriteIndented("[UnmanagedFunctionPointer(CallingConvention.");
-                    _outputBuilder.Write(GetCallingConventionName(typedefDecl, (parentType is AttributedType) ? parentType.Handle.FunctionTypeCallingConv : functionProtoType.CallConv, name));
-                    _outputBuilder.WriteLine(")]");
-        
+
+                    _outputBuilder.WriteIndented("[UnmanagedFunctionPointer");
+
+                    var callingConventionName = GetCallingConventionName(typedefDecl, (parentType is AttributedType) ? parentType.Handle.FunctionTypeCallingConv : functionProtoType.CallConv, name);
+
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write("CallingConvention");
+                    _outputBuilder.Write('.');
+                    _outputBuilder.Write(callingConventionName);
+                    _outputBuilder.Write(')');
+
+                    _outputBuilder.WriteLine(']');
+
                     var returnType = functionProtoType.ReturnType;
                     var returnTypeName = GetRemappedTypeName(typedefDecl, returnType, out var nativeTypeName);
                     AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
-        
+
                     _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
                     _outputBuilder.Write(' ');
-        
+
                     if (IsUnsafe(typedefDecl, functionProtoType))
                     {
                         _outputBuilder.Write("unsafe");
                         _outputBuilder.Write(' ');
                     }
-        
+
                     _outputBuilder.Write("delegate");
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(returnTypeName);

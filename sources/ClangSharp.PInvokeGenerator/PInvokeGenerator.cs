@@ -1386,7 +1386,9 @@ namespace ClangSharp
             {
                 libraryPath = _config.LibraryPath;
             }
+            _outputBuilder.Write('"');
             _outputBuilder.Write(libraryPath);
+            _outputBuilder.Write('"');
         }
 
         private void WithSetLastError(string remappedName)
