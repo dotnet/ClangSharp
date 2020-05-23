@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -264,10 +265,12 @@ namespace ClangSharp
                 }
                 else
                 {
+                    var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
                     decl.Location.GetFileLocation(out CXFile file, out _, out _, out _);
                     var fileName = file.Name.ToString().Replace('\\', '/'); // Normalize paths to be `/` for comparison
 
-                    if (!_config.TraversalNames.Contains(fileName))
+                    if (!_config.TraversalNames.Contains(fileName, equalityComparer))
                     {
                         // It is not uncommon for some declarations to be done using macros, which are themselves
                         // defined in an imported header file. We want to also check if the expansion location is
@@ -276,7 +279,9 @@ namespace ClangSharp
                         decl.Location.GetExpansionLocation(out CXFile expansionFile, out _, out _, out _);
                         fileName = expansionFile.Name.ToString().Replace('\\', '/'); // Normalize paths to be `/` for comparison
 
-                        if (!_config.TraversalNames.Contains(fileName))
+
+
+                        if (!_config.TraversalNames.Contains(fileName, equalityComparer))
                         {
                             continue;
                         }
