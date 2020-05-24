@@ -405,10 +405,10 @@ namespace ClangSharp.Test
 
         [FieldOffset(0)]
         [NativeTypeName(""MyUnion::(anonymous union at ClangUnsavedFile.h:{line}:{column})"")]
-        public __AnonymousRecord_ClangUnsavedFile_L{line}_C{column} __AnonymousField_ClangUnsavedFile_L{line}_C{column};
+        public _Anonymous_e__Union Anonymous;
 
         [StructLayout(LayoutKind.Explicit)]
-        public partial struct __AnonymousRecord_ClangUnsavedFile_L{line}_C{column}
+        public partial struct _Anonymous_e__Union
         {{
             [FieldOffset(0)]
             public {expectedManagedType} a;
@@ -417,10 +417,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            var expectedDiagnostics = new Diagnostic[] {
-                new Diagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in 'GetCursorName'. Falling back to '__AnonymousRecord_ClangUnsavedFile_L{line}_C{column}'.", $"Line {line}, Column {column} in ClangUnsavedFile.h")
-            };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, expectedDiagnostics: expectedDiagnostics);
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
         [Theory]

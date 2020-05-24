@@ -22,8 +22,6 @@ namespace ClangSharp.UnitTests
 {
     public static unsafe partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction([NativeTypeName(""int *"")] int* pData, int index)
         {
             return pData[index];
@@ -47,8 +45,6 @@ namespace ClangSharp.UnitTests
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static void MyFunction()
         {
         }
@@ -94,8 +90,6 @@ namespace ClangSharp.UnitTests
 {{
     public static partial class Methods
     {{
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int x, int y)
         {{
             return x {opcode} y;
@@ -127,8 +121,6 @@ namespace ClangSharp.UnitTests
 {{
     public static partial class Methods
     {{
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static bool MyFunction(bool x, bool y)
         {{
             return x {opcode} y;
@@ -158,8 +150,6 @@ namespace ClangSharp.UnitTests
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int value)
         {
             while (true)
@@ -193,8 +183,6 @@ void MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static void MyCalledFunction()
         {
         }
@@ -227,8 +215,6 @@ void MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static void MyCalledFunction(int x, int y)
         {
         }
@@ -271,8 +257,6 @@ void MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int value)
         {
             switch (value)
@@ -321,8 +305,6 @@ void MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int value)
         {
             switch (value)
@@ -373,8 +355,6 @@ static inline int MyFunction(MyEnum x)
 
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(MyEnum x)
         {
             return x == MyEnum_Value0 || x == MyEnum_Value1 || x == MyEnum_Value2;
@@ -399,8 +379,6 @@ static inline int MyFunction(MyEnum x)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(bool condition, int lhs, int rhs)
         {
             return condition ? lhs : rhs;
@@ -430,8 +408,6 @@ static inline int MyFunction(MyEnum x)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int value)
         {
             while (true)
@@ -461,8 +437,6 @@ static inline int MyFunction(MyEnum x)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(float input)
         {
             return (int)input;
@@ -487,8 +461,6 @@ static inline int MyFunction(MyEnum x)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(float input)
         {
             return (int)input;
@@ -513,8 +485,6 @@ static inline int MyFunction(MyEnum x)
 {
     public static unsafe partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         [return: NativeTypeName(""void *"")]
         public static void* MyFunction([NativeTypeName(""const void *"")] void* input)
         {
@@ -598,8 +568,6 @@ namespace ClangSharp.Test
 
     public static unsafe partial class Methods
     {{
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         [return: NativeTypeName(""MyStructB *"")]
         public static MyStructB* MyFunction([NativeTypeName(""MyStructA *"")] MyStructA* input)
         {{
@@ -625,8 +593,6 @@ namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         [return: NativeTypeName(""int *"")]
         public static int* MyFunction([NativeTypeName(""void *"")] void* input)
         {
@@ -652,8 +618,6 @@ namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         [return: NativeTypeName(""int *"")]
         public static int* MyFunction([NativeTypeName(""void *"")] void* input)
         {
@@ -682,8 +646,6 @@ int MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction()
         {
             int x = 0;
@@ -719,8 +681,6 @@ int MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int count)
         {
             int i = 0;
@@ -758,8 +718,6 @@ int MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int count)
         {
             int i = 0;
@@ -855,8 +813,6 @@ int MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int count)
         {
             for (int i = 0; i < count; i--)
@@ -980,8 +936,6 @@ int MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int count)
         {
             for (int i = 0; i < count; i--)
@@ -1046,8 +1000,6 @@ int MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(bool condition, int lhs, int rhs)
         {
             if (condition)
@@ -1084,8 +1036,6 @@ int MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(bool condition, int lhs, int rhs)
         {
             if (condition)
@@ -1126,8 +1076,6 @@ int MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(bool condition1, int a, int b, bool condition2, int c)
         {
             if (condition1)
@@ -1164,8 +1112,6 @@ int MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(bool condition, int lhs, int rhs)
         {
             if (condition)
@@ -1196,8 +1142,6 @@ void MyFunction()
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static void MyFunction()
         {
             int[] x = new int[4]
@@ -1264,8 +1208,6 @@ MyStruct MyFunction2()
 
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static MyStruct MyFunction1()
         {
             return new MyStruct
@@ -1321,8 +1263,6 @@ int MyFunction2(MyStruct* instance)
 
     public static unsafe partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction1(MyStruct instance)
         {
             return instance.value;
@@ -1361,8 +1301,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 
     public static unsafe partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static bool MyFunction([NativeTypeName(""const MyStruct &"")] MyStruct* lhs, [NativeTypeName(""const MyStruct &"")] MyStruct* rhs)
         {
             return lhs->value == rhs->value;
@@ -1387,8 +1325,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static unsafe partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         [return: NativeTypeName(""void *"")]
         public static void* MyFunction()
         {
@@ -1416,8 +1352,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {{
     public static partial class Methods
     {{
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static bool MyFunction()
         {{
             return {value};
@@ -1444,8 +1378,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {{
     public static partial class Methods
     {{
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static double MyFunction()
         {{
             return {value};
@@ -1472,8 +1404,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {{
     public static partial class Methods
     {{
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static float MyFunction()
         {{
             return {value};
@@ -1498,8 +1428,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static void MyFunction()
         {
             return;
@@ -1524,8 +1452,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction()
         {
             return -1;
@@ -1556,8 +1482,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int value)
         {
             switch (value)
@@ -1596,8 +1520,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int value)
         {
             switch (value)
@@ -1634,8 +1556,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static unsafe partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         [return: NativeTypeName(""int *"")]
         public static int* MyFunction(int value)
         {
@@ -1661,8 +1581,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static unsafe partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction([NativeTypeName(""int *"")] int* value)
         {
             return *value;
@@ -1687,8 +1605,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static bool MyFunction(bool value)
         {
             return !value;
@@ -1715,8 +1631,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {{
     public static partial class Methods
     {{
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int value)
         {{
             return value{opcode};
@@ -1746,8 +1660,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {{
     public static partial class Methods
     {{
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int value)
         {{
             return {opcode}value;
@@ -1779,8 +1691,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int count)
         {
             int i = 0;
@@ -1817,8 +1727,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunction(int count)
         {
             int i = 0;

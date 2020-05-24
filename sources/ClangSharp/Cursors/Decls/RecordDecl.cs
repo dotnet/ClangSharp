@@ -9,6 +9,7 @@ namespace ClangSharp
 {
     public class RecordDecl : TagDecl
     {
+        private readonly Lazy<IReadOnlyList<Decl>> _anonymousDecls;
         private readonly Lazy<IReadOnlyList<FieldDecl>> _fields;
 
         internal RecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind.CX_DeclKind_Record)
@@ -28,9 +29,12 @@ namespace ClangSharp
             }
 
             _fields = new Lazy<IReadOnlyList<FieldDecl>>(() => Decls.OfType<FieldDecl>().ToList());
+            _anonymousDecls = new Lazy<IReadOnlyList<Decl>>(() => Decls.Where(decl => ((decl is FieldDecl field) && field.IsAnonymousField) || ((decl is RecordDecl record) && record.IsAnonymousStructOrUnion)).ToList());
         }
 
         public bool IsAnonymousStructOrUnion => Handle.IsAnonymousRecordDecl;
+
+        public IReadOnlyList<Decl> AnonymousDecls => _anonymousDecls.Value;
 
         public IReadOnlyList<FieldDecl> Fields => _fields.Value;
     }

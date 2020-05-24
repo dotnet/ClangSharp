@@ -14,11 +14,12 @@ namespace ClangSharp
         private readonly Dictionary<string, string> _remappedNames;
         private readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
         private readonly Dictionary<string, string> _withCallConvs;
+        private readonly Dictionary<string, string> _withLibraryPaths;
         private readonly Dictionary<string, string> _withTypes;
         private readonly Dictionary<string, IReadOnlyList<string>> _withUsings;
         private readonly PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
         {
             if (excludedNames is null)
             {
@@ -69,12 +70,13 @@ namespace ClangSharp
             _remappedNames = new Dictionary<string, string>();
             _withAttributes = new Dictionary<string, IReadOnlyList<string>>();
             _withCallConvs = new Dictionary<string, string>();
+            _withLibraryPaths = new Dictionary<string, string>();
             _withTypes = new Dictionary<string, string>();
             _withUsings = new Dictionary<string, IReadOnlyList<string>>();
 
             ExcludedNames = excludedNames;
             HeaderText = string.IsNullOrWhiteSpace(headerFile) ? string.Empty : File.ReadAllText(headerFile);
-            LibraryPath = libraryPath;
+            LibraryPath = $@"""{libraryPath}""";
             MethodClassName = methodClassName;
             MethodPrefixToStrip = methodPrefixToStrip;
             Namespace = namespaceName;
@@ -105,6 +107,7 @@ namespace ClangSharp
             AddRange(_remappedNames, remappedNames);
             AddRange(_withAttributes, withAttributes);
             AddRange(_withCallConvs, withCallConvs);
+            AddRange(_withLibraryPaths, withLibraryPaths);
             AddRange(_withTypes, withTypes);
             AddRange(_withUsings, withUsings);
         }
@@ -140,6 +143,8 @@ namespace ClangSharp
         public IReadOnlyDictionary<string, IReadOnlyList<string>> WithAttributes => _withAttributes;
 
         public IReadOnlyDictionary<string, string> WithCallConvs => _withCallConvs;
+
+        public IReadOnlyDictionary<string, string> WithLibraryPaths => _withLibraryPaths;
 
         public string[] WithSetLastErrors { get; }
 

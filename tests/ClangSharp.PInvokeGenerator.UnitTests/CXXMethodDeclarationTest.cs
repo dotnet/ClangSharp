@@ -192,7 +192,7 @@ namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
-        [DllImport(Methods.LibraryPath, CallingConvention = CallingConvention.{callConv}, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.{callConv}, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
         public static extern void MyVoidMethod();
 
         public int MyInt32Method()
@@ -270,8 +270,6 @@ int MyFunctionB(MyStruct* x)
 
     public static unsafe partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static int MyFunctionA(MyStruct x)
         {
             return x.MyFunction1();
@@ -533,8 +531,6 @@ MyStruct operator-(MyStruct lhs, MyStruct rhs)
 
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static MyStruct Subtract(MyStruct lhs, MyStruct rhs)
         {
             return new MyStruct(lhs.value - rhs.value);
@@ -598,8 +594,6 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
         public static MyStruct MyFunction1(MyStruct lhs, MyStruct rhs)
         {
             return lhs.Add(rhs);
@@ -653,7 +647,7 @@ namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
-        [DllImport(Methods.LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
         public static extern void MyVoidMethod();
 
         public static int MyInt32Method()
@@ -732,9 +726,7 @@ namespace ClangSharp.Test
 
     public static partial class Methods
     {
-        private const string LibraryPath = ""ClangSharpPInvokeGenerator"";
-
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
         public static extern void MyFunction();
     }
 }

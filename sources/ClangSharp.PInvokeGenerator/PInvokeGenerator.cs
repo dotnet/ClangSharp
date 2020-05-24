@@ -309,18 +309,6 @@ namespace ClangSharp
                 sw.WriteLine('{');
 
                 indentationString += outputBuilder.IndentationString;
-
-                if (!string.IsNullOrWhiteSpace(Config.LibraryPath))
-                {
-                    sw.Write(indentationString);
-                    sw.Write("private const string LibraryPath =");
-                    sw.Write(' ');
-                    sw.Write('"');
-                    sw.Write(Config.LibraryPath);
-                    sw.Write('"');
-                    sw.WriteLine(';');
-                    sw.WriteLine();
-                }
             }
 
             foreach (var line in outputBuilder.Contents)
@@ -578,10 +566,6 @@ namespace ClangSharp
                     {
                         name = GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling);
 
-                        if (!_config.RemappedNames.ContainsKey(name))
-                        {
-                            AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.", namedDecl);
-                        }
                     }
                     else
                     {
@@ -596,14 +580,6 @@ namespace ClangSharp
                 else if (namedDecl is FieldDecl fieldDecl)
                 {
                     name = GetAnonymousName(fieldDecl, fieldDecl.CursorKindSpelling);
-
-                    if (!_config.RemappedNames.ContainsKey(name))
-                    {
-                        AddDiagnostic(DiagnosticLevel.Info, $"Anonymous declaration found in '{nameof(GetCursorName)}'. Falling back to '{name}'.", namedDecl);
-                    }
-
-                    name = "field";
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported anonymous named declaration: '{namedDecl.Kind}'.", namedDecl);
                 }
                 else
                 {
@@ -1401,6 +1377,20 @@ namespace ClangSharp
                     _outputBuilder.Write(attribute);
                     _outputBuilder.WriteLine(']');
                 }
+            }
+        }
+
+        private void WithLibraryPath(string remappedName)
+        {
+            if (!_config.WithLibraryPaths.TryGetValue(remappedName, out string libraryPath) && !_config.WithLibraryPaths.TryGetValue("*", out libraryPath))
+            {
+                _outputBuilder.Write(_config.LibraryPath);
+            }
+            else
+            {
+                _outputBuilder.Write('"');
+                _outputBuilder.Write(libraryPath);
+                _outputBuilder.Write('"');
             }
         }
 
