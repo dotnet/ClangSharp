@@ -1384,11 +1384,14 @@ namespace ClangSharp
         {
             if (!_config.WithLibraryPaths.TryGetValue(remappedName, out string libraryPath) && !_config.WithLibraryPaths.TryGetValue("*", out libraryPath))
             {
-                libraryPath = _config.LibraryPath;
+                _outputBuilder.Write(_config.LibraryPath);
             }
-            _outputBuilder.Write('"');
-            _outputBuilder.Write(libraryPath);
-            _outputBuilder.Write('"');
+            else
+            {
+                _outputBuilder.Write('"');
+                _outputBuilder.Write(libraryPath);
+                _outputBuilder.Write('"');
+            }
         }
 
         private void WithSetLastError(string remappedName)
