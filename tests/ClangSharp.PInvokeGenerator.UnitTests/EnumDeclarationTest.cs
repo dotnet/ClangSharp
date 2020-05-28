@@ -392,6 +392,31 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task WithImplicitConversionTest()
+        {
+            var inputContents = @"enum MyEnum
+{
+    MyEnum_Value0,
+    MyEnum_Value1,
+    MyEnum_Value2 = 0x80000000,
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public enum MyEnum
+    {
+        MyEnum_Value0,
+        MyEnum_Value1,
+        MyEnum_Value2 = unchecked((int)0x80000000),
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task WithTypeTest()
         {
             var inputContents = @"enum MyEnum : int
@@ -415,6 +440,36 @@ namespace ClangSharp.Test
 ";
 
             var withTypes = new Dictionary<string, string> {
+                ["MyEnum"] = "uint"
+            };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withTypes: withTypes);
+        }
+
+        [Fact]
+        public async Task WithTypeAndImplicitConversionTest()
+        {
+            var inputContents = @"enum MyEnum
+{
+    MyEnum_Value0,
+    MyEnum_Value1,
+    MyEnum_Value2 = 0x80000000,
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    [NativeTypeName(""int"")]
+    public enum MyEnum : uint
+    {
+        MyEnum_Value0,
+        MyEnum_Value1,
+        MyEnum_Value2 = 0x80000000,
+    }
+}
+";
+
+            var withTypes = new Dictionary<string, string>
+            {
                 ["MyEnum"] = "uint"
             };
             await ValidateGeneratedBindings(inputContents, expectedOutputContents, withTypes: withTypes);

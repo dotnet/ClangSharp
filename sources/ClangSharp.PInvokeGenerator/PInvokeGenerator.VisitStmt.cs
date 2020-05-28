@@ -446,16 +446,85 @@ namespace ClangSharp
 
         private void VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr)
         {
-            if ((implicitCastExpr.Type is PointerType) && (implicitCastExpr.SubExpr is IntegerLiteral integerLiteral) && (integerLiteral.Value.Equals("0")))
-            {
-                // C# doesn't have implicit conversion from zero to a pointer
-                // so we will manually check and handle the most common case
+            bool handled = false;
 
-                _outputBuilder.Write("null");
+            if (implicitCastExpr.SubExpr is IntegerLiteral integerLiteral)
+            {
+                handled = VisitImplicitCastExpr(implicitCastExpr, integerLiteral);
             }
-            else
+
+
+            if (!handled)
             {
                 Visit(implicitCastExpr.SubExpr);
+            }
+        }
+
+        private bool VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr, IntegerLiteral integerLiteral)
+        {
+            if (implicitCastExpr.Type is PointerType)
+            {
+                if (integerLiteral.Value.Equals("0"))
+                {
+                    // C# doesn't have implicit conversion from zero to a pointer
+                    // so we will manually check and handle the most common case
+
+                    _outputBuilder.Write("null");
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (!(implicitCastExpr.Type is BuiltinType))
+            {
+                return false;
+            }
+
+            var builtinType = (BuiltinType)implicitCastExpr.Type;
+
+            if (!builtinType.IsIntegerType)
+            {
+                return false;
+            }
+
+            if (implicitCastExpr.DeclContext is EnumDecl enumDecl)
+            {
+                var enumDeclName = GetRemappedCursorName(enumDecl);
+                var enumDeclIntegerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
+
+                WithType("*", ref enumDeclIntegerTypeName, ref nativeTypeName);
+                WithType(enumDeclName, ref enumDeclIntegerTypeName, ref nativeTypeName);
+
+                var integerLiteralTypeName = GetRemappedTypeName(integerLiteral, integerLiteral.Type, out _);
+
+                if (enumDeclIntegerTypeName == integerLiteralTypeName)
+                {
+                    return false;
+                }
+            }
+
+            switch (builtinType.Kind)
+            {
+                case CXTypeKind.CXType_Int:
+                {
+                    _outputBuilder.Write("unchecked");
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write("int");
+                    _outputBuilder.Write(')');
+
+                    Visit(implicitCastExpr.SubExpr);
+
+                    _outputBuilder.Write(')');
+                    return true;
+                }
+
+                default:
+                {
+
+                    return false;
+                }
             }
         }
 
