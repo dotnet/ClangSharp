@@ -20,6 +20,10 @@ namespace ClangSharp
             _subExpr = new Lazy<Expr>(() => Children.OfType<Expr>().Single());
         }
 
+        public CX_CastKind CastKind => Handle.CastKind;
+
+        public string CastKindSpelling => Handle.CastKindSpelling;
+
         public Expr SubExpr => _subExpr.Value;
     }
 }

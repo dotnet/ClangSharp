@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Interop
 {
+    [DebuggerDisplay("{DebuggerDisplayString,nq}")]
     public unsafe partial struct CXType : IEquatable<CXType>
     {
         public uint AddressSpace => (kind != CXTypeKind.CXType_Invalid) ? clang.getAddressSpace(this) : default;
@@ -73,7 +75,79 @@ namespace ClangSharp.Interop
 
         public CX_TypeClass TypeClass => clangsharp.Type_getTypeClass(this);
 
+        public string TypeClassSpelling
+        {
+            get
+            {
+                Debug.Assert(CX_TypeClass.CX_TypeClass_TypeLast == CX_TypeClass.CX_TypeClass_ExtVector);
+                Debug.Assert(CX_TypeClass.CX_TypeClass_TagFirst == CX_TypeClass.CX_TypeClass_Record);
+                Debug.Assert(CX_TypeClass.CX_TypeClass_TagLast == CX_TypeClass.CX_TypeClass_Enum);
+
+                return TypeClass switch
+                {
+                    CX_TypeClass.CX_TypeClass_Invalid => "Invalid",
+                    CX_TypeClass.CX_TypeClass_Adjusted => "Adjusted",
+                    CX_TypeClass.CX_TypeClass_Decayed => "Decayed",
+                    CX_TypeClass.CX_TypeClass_ConstantArray => "ConstantArray",
+                    CX_TypeClass.CX_TypeClass_DependentSizedArray => "DependentSizedArray",
+                    CX_TypeClass.CX_TypeClass_IncompleteArray => "IncompleteArray",
+                    CX_TypeClass.CX_TypeClass_VariableArray => "VariableArray",
+                    CX_TypeClass.CX_TypeClass_Atomic => "Atomic",
+                    CX_TypeClass.CX_TypeClass_Attributed => "Attributed",
+                    CX_TypeClass.CX_TypeClass_BlockPointer => "BlockPointer",
+                    CX_TypeClass.CX_TypeClass_Builtin => "Builtin",
+                    CX_TypeClass.CX_TypeClass_Complex => "Complex",
+                    CX_TypeClass.CX_TypeClass_Decltype => "Decltype",
+                    CX_TypeClass.CX_TypeClass_Auto => "Auto",
+                    CX_TypeClass.CX_TypeClass_DeducedTemplateSpecialization => "DeducedTemplateSpecialization",
+                    CX_TypeClass.CX_TypeClass_DependentAddressSpace => "DependentAddressSpace",
+                    CX_TypeClass.CX_TypeClass_DependentName => "DependentName",
+                    CX_TypeClass.CX_TypeClass_DependentSizedExtVector => "DependentSizedExtVector",
+                    CX_TypeClass.CX_TypeClass_DependentTemplateSpecialization => "DependentTemplateSpecialization",
+                    CX_TypeClass.CX_TypeClass_DependentVector => "DependentVector",
+                    CX_TypeClass.CX_TypeClass_Elaborated => "Elaborated",
+                    CX_TypeClass.CX_TypeClass_FunctionNoProto => "FunctionNoProto",
+                    CX_TypeClass.CX_TypeClass_FunctionProto => "FunctionProto",
+                    CX_TypeClass.CX_TypeClass_InjectedClassName => "InjectedClassName",
+                    CX_TypeClass.CX_TypeClass_MacroQualified => "MacroQualified",
+                    CX_TypeClass.CX_TypeClass_MemberPointer => "MemberPointer",
+                    CX_TypeClass.CX_TypeClass_ObjCObjectPointer => "ObjCObjectPointer",
+                    CX_TypeClass.CX_TypeClass_ObjCObject => "ObjCObject",
+                    CX_TypeClass.CX_TypeClass_ObjCInterface => "ObjCInterface",
+                    CX_TypeClass.CX_TypeClass_ObjCTypeParam => "ObjCTypeParam",
+                    CX_TypeClass.CX_TypeClass_PackExpansion => "PackExpansion",
+                    CX_TypeClass.CX_TypeClass_Paren => "Paren",
+                    CX_TypeClass.CX_TypeClass_Pipe => "Pipe",
+                    CX_TypeClass.CX_TypeClass_Pointer => "Pointer",
+                    CX_TypeClass.CX_TypeClass_LValueReference => "LValueReference",
+                    CX_TypeClass.CX_TypeClass_RValueReference => "RValueReference",
+                    CX_TypeClass.CX_TypeClass_SubstTemplateTypeParmPack => "SubstTemplateTypeParmPack",
+                    CX_TypeClass.CX_TypeClass_SubstTemplateTypeParm => "SubstTemplateTypeParm",
+                    CX_TypeClass.CX_TypeClass_Enum => "Enum",
+                    CX_TypeClass.CX_TypeClass_Record => "Record",
+                    CX_TypeClass.CX_TypeClass_TemplateSpecialization => "TemplateSpecialization",
+                    CX_TypeClass.CX_TypeClass_TemplateTypeParm => "TemplateTypeParm",
+                    CX_TypeClass.CX_TypeClass_TypeOfExpr => "TypeOfExpr",
+                    CX_TypeClass.CX_TypeClass_TypeOf => "TypeOf",
+                    CX_TypeClass.CX_TypeClass_Typedef => "Typedef",
+                    CX_TypeClass.CX_TypeClass_UnaryTransform => "UnaryTransform",
+                    CX_TypeClass.CX_TypeClass_UnresolvedUsing => "UnresolvedUsing",
+                    CX_TypeClass.CX_TypeClass_Vector => "Vector",
+                    CX_TypeClass.CX_TypeClass_ExtVector => "ExtVector",
+                    _ => TypeClass.ToString().Substring(13),
+                };
+            }
+        }
+
         public CXString TypedefName => clang.getTypedefName(this);
+
+        internal string DebuggerDisplayString
+        {
+            get
+            {
+                return $"{TypeClassSpelling}: {this}";
+            }
+        }
 
         public static bool operator ==(CXType left, CXType right) => clang.equalTypes(left, right) != 0;
 

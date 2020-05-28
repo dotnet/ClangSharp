@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
 
@@ -38,6 +39,8 @@ namespace ClangSharp
         public Decl CanonicalDecl => _canonicalDecl.Value;
 
         public IDeclContext DeclContext => _declContext.Value;
+
+        public string DeclKindName => Handle.DeclKindSpelling;
 
         public bool HasAttrs => Handle.HasAttrs;
 

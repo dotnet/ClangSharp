@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
 
@@ -24,6 +25,8 @@ namespace ClangSharp
         public IReadOnlyList<Stmt> Children => _children.Value;
 
         public CX_StmtClass StmtClass => Handle.StmtClass;
+
+        public string StmtClassName => Handle.StmtClassSpelling;
 
         internal static new Stmt Create(CXCursor handle) => handle.StmtClass switch
         {
