@@ -595,29 +595,85 @@ namespace ClangSharp
             return name;
         }
 
-        private static string GetFunctionDeclFullName(FunctionDecl functionDecl)
+        private string GetCursorQualifiedName(NamedDecl namedDecl)
         {
-            var fullName = new StringBuilder();
+            var parts = new Stack<NamedDecl>();
 
-            fullName.Append(functionDecl.ReturnType.AsString);
-            fullName.Append(' ');
-            fullName.Append(functionDecl.Name);
-            fullName.Append('(');
-
-            if (functionDecl.Parameters.Any())
+            for (Decl decl = namedDecl; decl.DeclContext != null; decl = (Decl)decl.DeclContext)
             {
-                fullName.Append(functionDecl.Parameters[0].Type.AsString);
-
-                for (int i = 1; i < functionDecl.Parameters.Count; i++)
+                if (decl is NamedDecl part)
                 {
-                    fullName.Append(',');
-                    fullName.Append(' ');
-                    fullName.Append(functionDecl.Parameters[i].Type.AsString);
+                    parts.Push(part);
                 }
             }
-            fullName.Append(')');
 
-            return fullName.ToString();
+            var qualifiedName = new StringBuilder();
+
+            for (NamedDecl part = namedDecl; parts.Count != 0; part = parts.Pop())
+            {
+                var partName = GetCursorName(part);
+                qualifiedName.Append(partName);
+
+                if (part is FunctionDecl functionDecl)
+                {
+                    AppendFunctionParameters(functionDecl.Type.Handle, qualifiedName);
+                }
+                else if (part is TemplateDecl templateDecl)
+                {
+                    AppendTemplateParameters(templateDecl, qualifiedName);
+
+                    if (part is FunctionTemplateDecl functionTemplateDecl)
+                    {
+                        AppendFunctionParameters(functionTemplateDecl.Handle.Type, qualifiedName);
+                    }
+                }
+
+                if (parts.Count != 0)
+                {
+                    qualifiedName.Append('.');
+                }
+            }
+
+            return qualifiedName.ToString();
+
+            void AppendFunctionParameters(CXType functionType, StringBuilder qualifiedName)
+            {
+                qualifiedName.Append('(');
+
+                if (functionType.NumArgTypes != 0)
+                {
+                    qualifiedName.Append(functionType.GetArgType(0).Spelling);
+
+                    for (uint i = 1; i < functionType.NumArgTypes; i++)
+                    {
+                        qualifiedName.Append(',');
+                        qualifiedName.Append(' ');
+                        qualifiedName.Append(functionType.GetArgType(i).Spelling);
+                    }
+                }
+                qualifiedName.Append(')');
+            }
+
+            static void AppendTemplateParameters(TemplateDecl templateDecl, StringBuilder qualifiedName)
+            {
+                qualifiedName.Append('<');
+
+                var templateParameters = templateDecl.TemplateParameters;
+
+                if (templateParameters.Any())
+                {
+                    qualifiedName.Append(templateParameters[0].Name);
+
+                    for (int i = 1; i < templateParameters.Count; i++)
+                    {
+                        qualifiedName.Append(',');
+                        qualifiedName.Append(' ');
+                        qualifiedName.Append(templateParameters[i].Name);
+                    }
+                }
+
+                qualifiedName.Append('>');
+            }
         }
 
         private static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
