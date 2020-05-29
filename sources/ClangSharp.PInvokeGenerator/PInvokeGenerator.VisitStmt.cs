@@ -253,17 +253,17 @@ namespace ClangSharp
         {
             if (declStmt.IsSingleDecl)
             {
-                VisitDecl(declStmt.SingleDecl);
+                VisitDecl(declStmt.SingleDecl, ignorePriorVisit: true);
             }
             else
             {
-                VisitDecl(declStmt.Decls.First());
+                VisitDecl(declStmt.Decls.First(), ignorePriorVisit: true);
 
                 foreach (var decl in declStmt.Decls.Skip(1))
                 {
                     _outputBuilder.Write(',');
                     _outputBuilder.Write(' ');
-                    VisitDecl(decl);
+                    VisitDecl(decl, ignorePriorVisit: true);
                 }
             }
 

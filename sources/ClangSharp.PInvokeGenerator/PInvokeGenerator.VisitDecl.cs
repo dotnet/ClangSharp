@@ -9,14 +9,12 @@ namespace ClangSharp
 {
     public partial class PInvokeGenerator
     {
-        private void VisitDecl(Decl decl)
+        private void VisitDecl(Decl decl, bool ignorePriorVisit)
         {
-            if (_visitedDecls.Contains(decl))
+            if (!_visitedDecls.Add(decl) && !ignorePriorVisit)
             {
                 return;
             }
-
-            _visitedDecls.Add(decl);
 
             if (IsExcluded(decl))
             {

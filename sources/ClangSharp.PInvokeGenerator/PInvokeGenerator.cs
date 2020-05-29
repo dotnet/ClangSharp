@@ -1591,7 +1591,7 @@ namespace ClangSharp
             }
             else if (cursor is Decl decl)
             {
-                VisitDecl(decl);
+                VisitDecl(decl, ignorePriorVisit: false);
             }
             else if (cursor is Ref @ref)
             {
