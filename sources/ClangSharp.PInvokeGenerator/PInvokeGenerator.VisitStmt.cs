@@ -714,11 +714,15 @@ namespace ClangSharp
             if ((retValue is null) || (retValue.Type.Kind != CXTypeKind.CXType_Void))
             {
                 _outputBuilder.Write("return");
+
+                if (retValue != null)
+                {
+                    _outputBuilder.Write(' ');
+                }
             }
 
-            if (returnStmt.RetValue != null)
+            if (retValue != null)
             {
-                _outputBuilder.Write(' ');
                 Visit(returnStmt.RetValue);
             }
         }

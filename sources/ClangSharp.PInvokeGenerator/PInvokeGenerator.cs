@@ -654,6 +654,12 @@ namespace ClangSharp
                 qualifiedName.Append(':');
 
                 qualifiedName.Append(functionType.ResultType.Spelling);
+
+                if (functionType.ExceptionSpecificationType == CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_NoThrow)
+                {
+                    qualifiedName.Append(' ');
+                    qualifiedName.Append("nothrow");
+                }
             }
 
             void AppendNamedDecl(NamedDecl namedDecl, string name, StringBuilder qualifiedName)

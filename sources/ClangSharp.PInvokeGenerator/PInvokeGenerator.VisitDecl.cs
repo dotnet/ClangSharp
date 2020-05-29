@@ -244,15 +244,15 @@ namespace ClangSharp
 
             if (decl is IDeclContext declContext)
             {
-                VisitDecls(declContext.Decls);
+                VisitDecls(declContext.Decls, ignorePriorVisit);
             }
         }
 
-        private void VisitDecls(IEnumerable<Decl> decls)
+        private void VisitDecls(IEnumerable<Decl> decls, bool ignorePriorVisits)
         {
             foreach (var decl in decls)
             {
-                Visit(decl);
+                VisitDecl(decl, ignorePriorVisits);
             }
         }
 
@@ -314,8 +314,8 @@ namespace ClangSharp
                 _outputBuilder.NeedsNewline = true;
                 _outputBuilder.WriteBlockStart();
 
-                VisitDecls(enumDecl.Enumerators);
-                VisitDecls(enumDecl.Decls);
+                VisitDecls(enumDecl.Enumerators, ignorePriorVisits: true);
+                VisitDecls(enumDecl.Decls, ignorePriorVisits: false);
 
                 _outputBuilder.WriteBlockEnd();
             }
@@ -670,7 +670,7 @@ namespace ClangSharp
             }
             _outputBuilder.NeedsNewline = true;
 
-            VisitDecls(functionDecl.Decls);
+            VisitDecls(functionDecl.Decls, ignorePriorVisits: false);
 
             if (cxxRecordDecl is null)
             {
@@ -998,7 +998,7 @@ namespace ClangSharp
                     OutputMethods(this, cxxRecordDecl, cxxRecordDecl);
                 }
 
-                VisitDecls(recordDecl.Decls);
+                VisitDecls(recordDecl.Decls, ignorePriorVisits: false);
 
                 foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type is ConstantArrayType))
                 {
@@ -1179,7 +1179,7 @@ namespace ClangSharp
 
             static void OutputVtblEntry(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
             {
-                if (!cxxMethodDecl.IsVirtual)
+                if (!cxxMethodDecl.IsVirtual || pinvokeGenerator.IsExcluded(cxxMethodDecl))
                 {
                     return;
                 }
@@ -1212,7 +1212,7 @@ namespace ClangSharp
 
             static void OutputVtblHelperMethod(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
             {
-                if (!cxxMethodDecl.IsVirtual)
+                if (!cxxMethodDecl.IsVirtual || pinvokeGenerator.IsExcluded(cxxMethodDecl))
                 {
                     return;
                 }
@@ -1805,7 +1805,7 @@ namespace ClangSharp
 
             ForUnderlyingType(typedefDecl, typedefDecl.UnderlyingType);
 
-            void ForFunctionProtoType(FunctionProtoType functionProtoType, Type parentType)
+            void ForFunctionProtoType(TypedefDecl typedefDecl, FunctionProtoType functionProtoType, Type parentType)
             {
                 if (_config.GeneratePreviewCodeFnptr)
                 {
@@ -1850,7 +1850,7 @@ namespace ClangSharp
                     _outputBuilder.Write(EscapeName(name));
                     _outputBuilder.Write('(');
 
-                    VisitDecls(typedefDecl.CursorChildren.OfType<ParmVarDecl>());
+                    VisitDecls(typedefDecl.CursorChildren.OfType<ParmVarDecl>(), ignorePriorVisits: true);
 
                     _outputBuilder.Write(')');
                     _outputBuilder.WriteLine(";");
@@ -1870,7 +1870,7 @@ namespace ClangSharp
                 }
                 else if (pointeeType is FunctionProtoType functionProtoType)
                 {
-                    ForFunctionProtoType(functionProtoType, parentType);
+                    ForFunctionProtoType(typedefDecl, functionProtoType, parentType);
                 }
                 else if (pointeeType is PointerType pointerType)
                 {
@@ -1898,7 +1898,7 @@ namespace ClangSharp
                 }
                 else if (underlyingType is FunctionProtoType functionProtoType)
                 {
-                    ForFunctionProtoType(functionProtoType, parentType: null);
+                    ForFunctionProtoType(typedefDecl, functionProtoType, parentType: null);
                 }
                 else if (underlyingType is PointerType pointerType)
                 {
