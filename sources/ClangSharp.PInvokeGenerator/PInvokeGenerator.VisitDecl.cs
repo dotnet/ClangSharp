@@ -9,6 +9,26 @@ namespace ClangSharp
 {
     public partial class PInvokeGenerator
     {
+        private void VisitClassTemplateDecl(ClassTemplateDecl classTemplateDecl)
+        {
+            if (IsExcluded(classTemplateDecl))
+            {
+                return;
+            }
+
+            AddDiagnostic(DiagnosticLevel.Warning, $"Class templates are not supported: '{GetCursorQualifiedName(classTemplateDecl)}'. Generated bindings may be incomplete.", classTemplateDecl);
+        }
+
+        private void VisitClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl classTemplateSpecializationDecl)
+        {
+            if (IsExcluded(classTemplateSpecializationDecl))
+            {
+                return;
+            }
+
+            AddDiagnostic(DiagnosticLevel.Warning, $"Class template specializations are not supported: '{GetCursorQualifiedName(classTemplateSpecializationDecl)}'. Generated bindings may be incomplete.", classTemplateSpecializationDecl);
+        }
+
         private void VisitDecl(Decl decl, bool ignorePriorVisit)
         {
             if (!_visitedDecls.Add(decl) && !ignorePriorVisit)
@@ -67,7 +87,12 @@ namespace ClangSharp
                 // case CX_DeclKind.CX_DeclKind_ObjCProperty:
                 // case CX_DeclKind.CX_DeclKind_BuiltinTemplate:
                 // case CX_DeclKind.CX_DeclKind_Concept:
-                // case CX_DeclKind.CX_DeclKind_ClassTemplate:
+
+                case CX_DeclKind.CX_DeclKind_ClassTemplate:
+                {
+                    VisitClassTemplateDecl((ClassTemplateDecl)decl);
+                    break;
+                }
 
                 case CX_DeclKind.CX_DeclKind_FunctionTemplate:
                 {
@@ -92,7 +117,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_DeclKind.CX_DeclKind_ClassTemplateSpecialization:
+                case CX_DeclKind.CX_DeclKind_ClassTemplateSpecialization:
+                {
+                    VisitClassTemplateSpecializationDecl((ClassTemplateSpecializationDecl)decl);
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_ClassTemplatePartialSpecialization:
                 // case CX_DeclKind.CX_DeclKind_TemplateTypeParm:
                 // case CX_DeclKind.CX_DeclKind_ObjCTypeParam:
@@ -182,7 +212,14 @@ namespace ClangSharp
                 // case CX_DeclKind.CX_DeclKind_OMPRequires:
                 // case CX_DeclKind.CX_DeclKind_OMPThreadPrivate:
                 // case CX_DeclKind.CX_DeclKind_ObjCPropertyImpl:
-                // case CX_DeclKind.CX_DeclKind_PragmaComment:
+
+                case CX_DeclKind.CX_DeclKind_PragmaComment:
+                {
+                    // Pragma comments can't be easily modeled in C#
+                    // We'll ignore them for now.
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_PragmaDetectMismatch:
 
                 case CX_DeclKind.CX_DeclKind_StaticAssert:
@@ -1768,6 +1805,59 @@ namespace ClangSharp
 
             ForUnderlyingType(typedefDecl, typedefDecl.UnderlyingType);
 
+            void ForFunctionProtoType(FunctionProtoType functionProtoType, Type parentType)
+            {
+                if (_config.GeneratePreviewCodeFnptr)
+                {
+                    return;
+                }
+
+                var name = GetRemappedCursorName(typedefDecl);
+
+                StartUsingOutputBuilder(name);
+                {
+                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+
+                    _outputBuilder.WriteIndented("[UnmanagedFunctionPointer");
+
+                    var callingConventionName = GetCallingConventionName(typedefDecl, (parentType is AttributedType) ? parentType.Handle.FunctionTypeCallingConv : functionProtoType.CallConv, name);
+
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write("CallingConvention");
+                    _outputBuilder.Write('.');
+                    _outputBuilder.Write(callingConventionName);
+                    _outputBuilder.Write(')');
+
+                    _outputBuilder.WriteLine(']');
+
+                    var returnType = functionProtoType.ReturnType;
+                    var returnTypeName = GetRemappedTypeName(typedefDecl, returnType, out var nativeTypeName);
+                    AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
+
+                    _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
+                    _outputBuilder.Write(' ');
+
+                    if (IsUnsafe(typedefDecl, functionProtoType))
+                    {
+                        _outputBuilder.Write("unsafe");
+                        _outputBuilder.Write(' ');
+                    }
+
+                    _outputBuilder.Write("delegate");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(returnTypeName);
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(EscapeName(name));
+                    _outputBuilder.Write('(');
+
+                    VisitDecls(typedefDecl.CursorChildren.OfType<ParmVarDecl>());
+
+                    _outputBuilder.Write(')');
+                    _outputBuilder.WriteLine(";");
+                }
+                StopUsingOutputBuilder();
+            }
+
             void ForPointeeType(TypedefDecl typedefDecl, Type parentType, Type pointeeType)
             {
                 if (pointeeType is AttributedType attributedType)
@@ -1780,55 +1870,7 @@ namespace ClangSharp
                 }
                 else if (pointeeType is FunctionProtoType functionProtoType)
                 {
-                    if (_config.GeneratePreviewCodeFnptr)
-                    {
-                        return;
-                    }
-
-                    var name = GetRemappedCursorName(typedefDecl);
-
-                    StartUsingOutputBuilder(name);
-                    {
-                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-
-                        _outputBuilder.WriteIndented("[UnmanagedFunctionPointer");
-
-                        var callingConventionName = GetCallingConventionName(typedefDecl, (parentType is AttributedType) ? parentType.Handle.FunctionTypeCallingConv : functionProtoType.CallConv, name);
-
-                        _outputBuilder.Write('(');
-                        _outputBuilder.Write("CallingConvention");
-                        _outputBuilder.Write('.');
-                        _outputBuilder.Write(callingConventionName);
-                        _outputBuilder.Write(')');
-
-                        _outputBuilder.WriteLine(']');
-
-                        var returnType = functionProtoType.ReturnType;
-                        var returnTypeName = GetRemappedTypeName(typedefDecl, returnType, out var nativeTypeName);
-                        AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
-
-                        _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
-                        _outputBuilder.Write(' ');
-
-                        if (IsUnsafe(typedefDecl, functionProtoType))
-                        {
-                            _outputBuilder.Write("unsafe");
-                            _outputBuilder.Write(' ');
-                        }
-
-                        _outputBuilder.Write("delegate");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(returnTypeName);
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(EscapeName(name));
-                        _outputBuilder.Write('(');
-
-                        VisitDecls(typedefDecl.CursorChildren.OfType<ParmVarDecl>());
-
-                        _outputBuilder.Write(')');
-                        _outputBuilder.WriteLine(";");
-                    }
-                    StopUsingOutputBuilder();
+                    ForFunctionProtoType(functionProtoType, parentType);
                 }
                 else if (pointeeType is PointerType pointerType)
                 {
@@ -1838,7 +1880,7 @@ namespace ClangSharp
                 {
                     ForPointeeType(typedefDecl, typedefType, typedefType.Decl.UnderlyingType);
                 }
-                else if (!(pointeeType is BuiltinType) && !(pointeeType is TagType))
+                else if (!(pointeeType is ConstantArrayType) && !(pointeeType is BuiltinType) && !(pointeeType is TagType))
                 {
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.TypeClass}'. Generating bindings may be incomplete.", typedefDecl);
                 }
@@ -1853,6 +1895,10 @@ namespace ClangSharp
                 else if (underlyingType is ElaboratedType elaboratedType)
                 {
                     ForUnderlyingType(typedefDecl, elaboratedType.NamedType);
+                }
+                else if (underlyingType is FunctionProtoType functionProtoType)
+                {
+                    ForFunctionProtoType(functionProtoType, parentType: null);
                 }
                 else if (underlyingType is PointerType pointerType)
                 {

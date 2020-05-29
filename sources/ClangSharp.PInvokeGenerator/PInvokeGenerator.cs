@@ -656,7 +656,7 @@ namespace ClangSharp
                 qualifiedName.Append(functionType.ResultType.Spelling);
             }
 
-            static void AppendNamedDecl(NamedDecl namedDecl, string name, StringBuilder qualifiedName)
+            void AppendNamedDecl(NamedDecl namedDecl, string name, StringBuilder qualifiedName)
             {
                 qualifiedName.Append(name);
 
@@ -673,6 +673,55 @@ namespace ClangSharp
                         AppendFunctionParameters(functionTemplateDecl.Handle.Type, qualifiedName);
                     }
                 }
+                else if (namedDecl is ClassTemplateSpecializationDecl classTemplateSpecializationDecl)
+                {
+                    AppendTemplateArguments(classTemplateSpecializationDecl, qualifiedName);
+                }
+            }
+
+            void AppendTemplateArgument(TemplateArgument templateArgument, Decl parentDecl, StringBuilder qualifiedName)
+            {
+                switch (templateArgument.Kind)
+                {
+                    case CXTemplateArgumentKind.CXTemplateArgumentKind_Type:
+                    {
+                        qualifiedName.Append(templateArgument.AsType.AsString);
+                        break;
+                    }
+
+                    case CXTemplateArgumentKind.CXTemplateArgumentKind_Integral:
+                    {
+                        qualifiedName.Append(templateArgument.AsIntegral);
+                        break;
+                    }
+
+                    default:
+                    {
+                        qualifiedName.Append('?');
+                        break;
+                    }
+                }
+            }
+
+            void AppendTemplateArguments(ClassTemplateSpecializationDecl classTemplateSpecializationDecl, StringBuilder qualifiedName)
+            {
+                qualifiedName.Append('<');
+
+                var templateArgs = classTemplateSpecializationDecl.TemplateArgs;
+
+                if (templateArgs.Any())
+                {
+                    AppendTemplateArgument(templateArgs[0], classTemplateSpecializationDecl, qualifiedName);
+
+                    for (int i = 1; i < templateArgs.Count; i++)
+                    {
+                        qualifiedName.Append(',');
+                        qualifiedName.Append(' ');
+                        AppendTemplateArgument(templateArgs[i], classTemplateSpecializationDecl, qualifiedName);
+                    }
+                }
+
+                qualifiedName.Append('>');
             }
 
             static void AppendTemplateParameters(TemplateDecl templateDecl, StringBuilder qualifiedName)
