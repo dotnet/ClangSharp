@@ -35,7 +35,20 @@ namespace ClangSharp
 
         public CXType Handle { get; }
 
-        public virtual bool IsIntegerType => false;
+        public bool IsIntegerType
+        {
+            get
+            {
+                if (this is BuiltinType builtinType)
+                {
+                    return (CXTypeKind.CXType_Bool <= Kind) && (Kind <= CXTypeKind.CXType_Int128);
+                }
+
+                return false;
+            }
+        }
+
+        public bool IsPointerType => this is PointerType;
 
         public bool IsLocalConstQualified => Handle.IsConstQualified;
 

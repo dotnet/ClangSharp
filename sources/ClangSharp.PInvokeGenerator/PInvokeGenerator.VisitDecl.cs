@@ -750,7 +750,19 @@ namespace ClangSharp
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write('=');
                     _outputBuilder.Write(' ');
-                    Visit(parmVarDecl.DefaultArg);
+
+                    var defaultArg = parmVarDecl.DefaultArg;
+
+                    if ((defaultArg is UnaryExprOrTypeTraitExpr unaryExprOrTypeTraitExpr) &&
+                        (unaryExprOrTypeTraitExpr.Kind == CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf) &&
+                        IsFixedSize(unaryExprOrTypeTraitExpr, unaryExprOrTypeTraitExpr.TypeOfArgument))
+                    {
+                        _outputBuilder.Write(unaryExprOrTypeTraitExpr.TypeOfArgument.Handle.SizeOf);
+                    }
+                    else
+                    {
+                        Visit(defaultArg);
+                    }
                 }
 
                 if (index != lastIndex)

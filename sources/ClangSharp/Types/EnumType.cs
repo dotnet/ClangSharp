@@ -9,5 +9,7 @@ namespace ClangSharp
         internal EnumType(CXType handle) : base(handle, CXTypeKind.CXType_Enum, CX_TypeClass.CX_TypeClass_Enum)
         {
         }
+
+        public new EnumDecl Decl => (EnumDecl)base.Decl;
     }
 }

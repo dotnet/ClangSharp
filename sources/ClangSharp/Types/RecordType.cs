@@ -9,5 +9,7 @@ namespace ClangSharp
         internal RecordType(CXType handle) : base(handle, CXTypeKind.CXType_Record, CX_TypeClass.CX_TypeClass_Record)
         {
         }
+
+        public new RecordDecl Decl => (RecordDecl)base.Decl;
     }
 }

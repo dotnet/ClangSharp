@@ -1165,6 +1165,64 @@ namespace ClangSharp
             }
         }
 
+        private bool IsFixedSize(Cursor cursor, Type type)
+        {
+            if (type is ArrayType)
+            {
+                return false;
+            }
+            else if (type is AttributedType attributedType)
+            {
+                return IsFixedSize(cursor, attributedType.ModifiedType);
+            }
+            else if (type is BuiltinType)
+            {
+                return true;
+            }
+            else if (type is ElaboratedType elaboratedType)
+            {
+                return IsFixedSize(cursor, elaboratedType.NamedType);
+            }
+            else if (type is EnumType enumType)
+            {
+                return IsFixedSize(cursor, enumType.Decl.IntegerType);
+            }
+            else if (type is FunctionType)
+            {
+                return false;
+            }
+            else if (type is PointerType)
+            {
+                return false;
+            }
+            else if (type is ReferenceType)
+            {
+                return false;
+            }
+            else if (type is RecordType recordType)
+            {
+                var recordDecl = recordType.Decl;
+
+                return recordDecl.Fields.All((fieldDecl) => IsFixedSize(fieldDecl, fieldDecl.Type))
+                    && (!(recordDecl is CXXRecordDecl cxxRecordDecl) || cxxRecordDecl.Methods.All((cxxMethodDecl) => !cxxMethodDecl.IsVirtual));
+            }
+            else if (type is TypedefType typedefType)
+            {
+                var remappedName = GetRemappedTypeName(cursor, typedefType, out _);
+
+                return (remappedName == "IntPtr")
+                    || (remappedName == "nint")
+                    || (remappedName == "nuint")
+                    || (remappedName == "UIntPtr")
+                    || IsFixedSize(cursor, typedefType.Decl.UnderlyingType);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Assuming unfixed size.", cursor);
+                return false;
+            }
+        }
+
         private bool IsSupportedFixedSizedBufferType(string typeName)
         {
             switch (typeName)
