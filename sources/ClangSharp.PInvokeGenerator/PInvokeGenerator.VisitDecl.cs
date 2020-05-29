@@ -1,66 +1,23 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public partial class PInvokeGenerator
     {
-        private bool IsExcluded(Decl decl)
-        {
-            if (decl is NamedDecl namedDecl)
-            {
-                // We get the non-remapped name for the purpose of exclusion
-                // checks to ensure that users can remove no-definition declarations
-                // in favor of remapped anonymous declarations.
-
-                var qualifiedName = GetCursorQualifiedName(namedDecl);
-
-                if (_config.ExcludedNames.Contains(qualifiedName))
-                {
-                    if (_config.LogExclusions)
-                    {
-                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded by exact match {qualifiedName}", decl);
-                    }
-                    return true;
-                }
-
-                var name = GetCursorName(namedDecl);
-
-                if (_config.ExcludedNames.Contains(name))
-                {
-                    if (_config.LogExclusions)
-                    {
-                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded {qualifiedName} by partial match against {name}", decl);
-                    }
-                    return true;
-                }
-
-                if (decl is TagDecl tagDecl)
-                {
-                    if ((tagDecl.Definition != tagDecl) && (tagDecl.Definition != null))
-                    {
-                        // We don't want to generate bindings for anything
-                        // that is not itself a definition and that has a
-                        // definition that can be resolved. This ensures we
-                        // still generate bindings for things which are used
-                        // as opaque handles, but which aren't ever defined.
-
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
         private void VisitDecl(Decl decl)
         {
+            if (_visitedDecls.Contains(decl))
+            {
+                return;
+            }
+
+            _visitedDecls.Add(decl);
+
             if (IsExcluded(decl))
             {
                 return;
@@ -237,7 +194,11 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_DeclKind.CX_DeclKind_TranslationUnit:
+                case CX_DeclKind.CX_DeclKind_TranslationUnit:
+                {
+                    // Nothing to process for the translation unit itself
+                    break;
+                }
 
                 default:
                 {
@@ -256,53 +217,6 @@ namespace ClangSharp
         {
             foreach (var decl in decls)
             {
-                if (decl is LinkageSpecDecl)
-                {
-                    // Traverse these decl types as they may contain nested includes
-                    Visit(decl);
-                    continue;
-                }
-
-                if (_config.TraversalNames.Length == 0)
-                {
-                    if (!decl.Location.IsFromMainFile)
-                    {
-                        // It is not uncommon for some declarations to be done using macros, which are themselves
-                        // defined in an imported header file. We want to also check if the expansion location is
-                        // in the main file to catch these cases and ensure we still generate bindings for them.
-
-                        decl.Location.GetExpansionLocation(out CXFile file, out uint line, out uint column, out _);
-                        var expansionLocation = decl.TranslationUnit.Handle.GetLocation(file, line, column);
-
-                        if (!expansionLocation.IsFromMainFile)
-                        {
-                            continue;
-                        }
-                    }
-                }
-                else
-                {
-                    var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
-
-                    decl.Location.GetFileLocation(out CXFile file, out _, out _, out _);
-                    var fileName = file.Name.ToString().Replace('\\', '/'); // Normalize paths to be `/` for comparison
-
-                    if (!_config.TraversalNames.Contains(fileName, equalityComparer))
-                    {
-                        // It is not uncommon for some declarations to be done using macros, which are themselves
-                        // defined in an imported header file. We want to also check if the expansion location is
-                        // in the main file to catch these cases and ensure we still generate bindings for them.
-
-                        decl.Location.GetExpansionLocation(out CXFile expansionFile, out _, out _, out _);
-                        fileName = expansionFile.Name.ToString().Replace('\\', '/'); // Normalize paths to be `/` for comparison
-
-                        if (!_config.TraversalNames.Contains(fileName, equalityComparer))
-                        {
-                            continue;
-                        }
-                    }
-                }
-
                 Visit(decl);
             }
         }
@@ -779,7 +693,7 @@ namespace ClangSharp
                 return;
             }
 
-            AddDiagnostic(DiagnosticLevel.Warning, $"Function templates are not supported: '{functionTemplateDecl.Name}'. Generated bindings may be incomplete.", functionTemplateDecl);
+            AddDiagnostic(DiagnosticLevel.Warning, $"Function templates are not supported: '{GetCursorQualifiedName(functionTemplateDecl)}'. Generated bindings may be incomplete.", functionTemplateDecl);
         }
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl)

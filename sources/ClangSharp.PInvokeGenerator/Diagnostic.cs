@@ -11,6 +11,10 @@ namespace ClangSharp
         private readonly string _message;
         private readonly string _location;
 
+        public Diagnostic(DiagnosticLevel level, string message) : this(level, message, "")
+        {
+        }
+
         public Diagnostic(DiagnosticLevel level, string message, CXSourceLocation location) : this(level, message, location.ToString().Replace('\\', '/'))
         {
         }
@@ -47,6 +51,10 @@ namespace ClangSharp
 
         public override string ToString()
         {
+            if (string.IsNullOrWhiteSpace(_location))
+            {
+                return $"{_level}: {_message}";
+            }
             return $"{_level} ({_location}): {_message}";
         }
     }

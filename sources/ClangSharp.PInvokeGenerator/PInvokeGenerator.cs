@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Interop;
 
@@ -19,6 +20,7 @@ namespace ClangSharp
         private readonly OutputBuilderFactory _outputBuilderFactory;
         private readonly Func<string, Stream> _outputStreamFactory;
         private readonly HashSet<Decl> _visitedDecls;
+        private readonly HashSet<string> _visitedFiles;
         private readonly List<Diagnostic> _diagnostics;
         private readonly PInvokeGeneratorConfiguration _config;
 
@@ -42,6 +44,7 @@ namespace ClangSharp
                 return new FileStream(path, FileMode.Create);
             });
             _visitedDecls = new HashSet<Decl>();
+            _visitedFiles = new HashSet<string>();
             _diagnostics = new List<Diagnostic>();
             _config = config;
         }
@@ -180,10 +183,19 @@ namespace ClangSharp
                 }
             }
 
-            var translationUnitDecl = translationUnit.TranslationUnitDecl;
-            _visitedDecls.Add(translationUnitDecl);
+            Visit(translationUnit.TranslationUnitDecl);
+        }
 
-            VisitDecls(translationUnitDecl.Decls);
+        private void AddDiagnostic(DiagnosticLevel level, string message)
+        {
+            var diagnostic = new Diagnostic(level, message);
+
+            if (_diagnostics.Contains(diagnostic))
+            {
+                return;
+            }
+
+            _diagnostics.Add(diagnostic);
         }
 
         private void AddDiagnostic(DiagnosticLevel level, string message, Cursor cursor)
@@ -548,7 +560,7 @@ namespace ClangSharp
                 default:
                 {
                     var name = "Winapi";
-                    AddDiagnostic(DiagnosticLevel.Info, $"Unsupported calling convention: '{callingConvention}'. Falling back to '{name}'.", cursor);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported calling convention: '{callingConvention}'. Falling back to '{name}'.", cursor);
                     return name;
                 }
             }
@@ -628,7 +640,7 @@ namespace ClangSharp
                     }
                 }
 
-                if (parts.Count != 0)
+                if (parts.Count != 1)
                 {
                     qualifiedName.Append('.');
                 }
@@ -651,7 +663,11 @@ namespace ClangSharp
                         qualifiedName.Append(functionType.GetArgType(i).Spelling);
                     }
                 }
+
                 qualifiedName.Append(')');
+                qualifiedName.Append(':');
+
+                qualifiedName.Append(functionType.ResultType.Spelling);
             }
 
             static void AppendTemplateParameters(TemplateDecl templateDecl, StringBuilder qualifiedName)
@@ -1018,6 +1034,130 @@ namespace ClangSharp
             }
 
             return hasDirectVtbl || (indirectVtblCount != 0);
+        }
+
+        private bool IsExcluded(Decl decl)
+        {
+            if (IsAlwaysIncluded())
+            {
+                return false;
+            }
+
+            return IsExcludedByFile(decl) || IsExcludedByName(decl);
+
+            bool IsAlwaysIncluded()
+            {
+                return (decl is TranslationUnitDecl) || (decl is LinkageSpecDecl);
+            }
+
+            bool IsExcludedByFile(Decl decl)
+            {
+                if (_outputBuilder != null)
+                {
+                    // We don't want to exclude  by fileif we already have an active output builder as we
+                    // are likely processing members of an already included type but those members may
+                    // indirectly exist or be defined in a non-traversed file.
+                    return false;
+                }
+
+                var declLocation = decl.Location;
+                declLocation.GetFileLocation(out CXFile file, out _, out _, out _);
+
+                if (IsIncludedFileOrLocation(decl, file, declLocation))
+                {
+                    return false;
+                }
+
+                // It is not uncommon for some declarations to be done using macros, which are themselves
+                // defined in an imported header file. We want to also check if the expansion location is
+                // in the main file to catch these cases and ensure we still generate bindings for them.
+
+                declLocation.GetExpansionLocation(out file, out uint line, out uint column, out _);
+                declLocation = decl.TranslationUnit.Handle.GetLocation(file, line, column);
+
+                if (IsIncludedFileOrLocation(decl, file, declLocation))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            bool IsExcludedByName(Decl decl)
+            {
+                if (!(decl is NamedDecl))
+                {
+                    return false;
+                }
+
+                var namedDecl = (NamedDecl)decl;
+
+                // We get the non-remapped name for the purpose of exclusion checks to ensure that users
+                // can remove no-definition declarations in favor of remapped anonymous declarations.
+
+                var qualifiedName = GetCursorQualifiedName(namedDecl);
+
+                if (_config.ExcludedNames.Contains(qualifiedName))
+                {
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded by exact match {qualifiedName}");
+                    }
+                    return true;
+                }
+
+                var name = GetCursorName(namedDecl);
+
+                if (_config.ExcludedNames.Contains(name))
+                {
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded {qualifiedName} by partial match against {name}");
+                    }
+                    return true;
+                }
+
+                if (namedDecl is TagDecl tagDecl)
+                {
+                    if ((tagDecl.Definition != tagDecl) && (tagDecl.Definition != null))
+                    {
+                        // We don't want to generate bindings for anything
+                        // that is not itself a definition and that has a
+                        // definition that can be resolved. This ensures we
+                        // still generate bindings for things which are used
+                        // as opaque handles, but which aren't ever defined.
+
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool IsIncludedFileOrLocation(Decl decl, CXFile file, CXSourceLocation location)
+            {
+                // Use case insensitive comparison on Windows
+                var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
+                // Normalize paths to be '/' for comparison
+                var fileName = file.Name.ToString().Replace('\\', '/');
+
+                if (_visitedFiles.Add(fileName) && _config.LogVisitedFiles)
+                {
+                    AddDiagnostic(DiagnosticLevel.Info, $"Visiting {fileName}");
+                }
+
+                if (_config.TraversalNames.Contains(fileName, equalityComparer))
+                {
+                    return true;
+                }
+                else if ((_config.TraversalNames.Length == 0) && location.IsFromMainFile)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private bool IsSupportedFixedSizedBufferType(string typeName)
@@ -1388,12 +1528,6 @@ namespace ClangSharp
             }
             else if (cursor is Decl decl)
             {
-                if (_visitedDecls.Contains(decl))
-                {
-                    return;
-                }
-                _visitedDecls.Add(decl);
-
                 VisitDecl(decl);
             }
             else if (cursor is Ref @ref)
