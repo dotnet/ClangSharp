@@ -709,7 +709,12 @@ namespace ClangSharp
 
         private void VisitReturnStmt(ReturnStmt returnStmt)
         {
-            _outputBuilder.Write("return");
+            var retValue = returnStmt.RetValue;
+
+            if ((retValue is null) || (retValue.Type.Kind != CXTypeKind.CXType_Void))
+            {
+                _outputBuilder.Write("return");
+            }
 
             if (returnStmt.RetValue != null)
             {
