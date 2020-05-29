@@ -23,6 +23,10 @@ namespace ClangSharp
 
                 if (_config.ExcludedNames.Contains(qualifiedName))
                 {
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded by exact match {qualifiedName}", decl);
+                    }
                     return true;
                 }
 
@@ -30,6 +34,10 @@ namespace ClangSharp
 
                 if (_config.ExcludedNames.Contains(name))
                 {
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded {qualifiedName} by partial match against {name}", decl);
+                    }
                     return true;
                 }
 

@@ -22,5 +22,7 @@ namespace ClangSharp
         GeneratePreviewCodeFnptr = 0x00000020,
 
         GeneratePreviewCode = GeneratePreviewCodeNint | GeneratePreviewCodeFnptr,
+
+        LogExclusions = 0x00000040,
     }
 }

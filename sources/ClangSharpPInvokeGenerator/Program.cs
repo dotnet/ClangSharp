@@ -127,6 +127,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "log-exclusions":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.LogExclusions;
+                        break;
+                    }
+
                     case "multi-file":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
