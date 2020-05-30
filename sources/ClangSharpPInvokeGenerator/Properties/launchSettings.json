@@ -11,11 +11,6 @@
     "GenerateLLVM": {
       "commandName": "Project",
       "commandLineArgs": "\"@$(MSBuildProjectDirectory)/Properties/GenerateLLVM.rsp\" --file-directory \"$(LLVMIncludePath)\" --include-directory \"$(LLVMIncludePath)\" --libraryPath $(LibLLVMName)"
-    },
-    "GenerateTerraFX": {
-      "commandName": "Project",
-      "commandLineArgs": "@generate.rsp",
-      "workingDirectory": "D:\\tagoo\\Repos\\terrafx.interop.windows\\generation\\um\\winnt"
     }
   }
 }
