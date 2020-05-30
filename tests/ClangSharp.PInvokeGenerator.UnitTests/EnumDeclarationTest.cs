@@ -394,7 +394,7 @@ namespace ClangSharp.Test
         [Fact]
         public async Task WithImplicitConversionTest()
         {
-            var inputContents = @"enum MyEnum
+            var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -448,7 +448,7 @@ namespace ClangSharp.Test
         [Fact]
         public async Task WithTypeAndImplicitConversionTest()
         {
-            var inputContents = @"enum MyEnum
+            var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,

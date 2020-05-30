@@ -21,7 +21,8 @@ namespace ClangSharp.UnitTests
         {
             "-std=c++17",                           // The input files should be compiled for C++ 17
             "-xc++",                                // The input files are C++
-            "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
+            "-Wno-pragma-once-outside-header",      // We are processing files which may be header files
+            "-Wno-c++11-narrowing"
         };
 
         protected Task ValidateGeneratedBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath)
