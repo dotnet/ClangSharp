@@ -613,42 +613,28 @@ namespace ClangSharp
 
             for (Decl decl = namedDecl; decl.DeclContext != null; decl = (Decl)decl.DeclContext)
             {
-                if (decl is NamedDecl part)
+                if (decl is NamedDecl)
                 {
-                    parts.Push(part);
+                    parts.Push((NamedDecl)decl);
                 }
             }
 
             var qualifiedName = new StringBuilder();
 
-            for (NamedDecl part = namedDecl; parts.Count != 0; part = parts.Pop())
+            NamedDecl part = parts.Pop();
+
+            while (parts.Count != 0)
             {
-                var partName = GetCursorName(part);
-                qualifiedName.Append(partName);
-
-                if (part is FunctionDecl functionDecl)
-                {
-                    AppendFunctionParameters(functionDecl.Type.Handle, qualifiedName);
-                }
-                else if (part is TemplateDecl templateDecl)
-                {
-                    AppendTemplateParameters(templateDecl, qualifiedName);
-
-                    if (part is FunctionTemplateDecl functionTemplateDecl)
-                    {
-                        AppendFunctionParameters(functionTemplateDecl.Handle.Type, qualifiedName);
-                    }
-                }
-
-                if (parts.Count != 1)
-                {
-                    qualifiedName.Append('.');
-                }
+                AppendNamedDecl(part, GetCursorName(part), qualifiedName);
+                qualifiedName.Append('.');
+                part = parts.Pop();
             }
+
+            AppendNamedDecl(part, GetCursorName(part), qualifiedName);
 
             return qualifiedName.ToString();
 
-            void AppendFunctionParameters(CXType functionType, StringBuilder qualifiedName)
+            static void AppendFunctionParameters(CXType functionType, StringBuilder qualifiedName)
             {
                 qualifiedName.Append('(');
 
@@ -668,6 +654,25 @@ namespace ClangSharp
                 qualifiedName.Append(':');
 
                 qualifiedName.Append(functionType.ResultType.Spelling);
+            }
+
+            static void AppendNamedDecl(NamedDecl namedDecl, string name, StringBuilder qualifiedName)
+            {
+                qualifiedName.Append(name);
+
+                if (namedDecl is FunctionDecl functionDecl)
+                {
+                    AppendFunctionParameters(functionDecl.Type.Handle, qualifiedName);
+                }
+                else if (namedDecl is TemplateDecl templateDecl)
+                {
+                    AppendTemplateParameters(templateDecl, qualifiedName);
+
+                    if (namedDecl is FunctionTemplateDecl functionTemplateDecl)
+                    {
+                        AppendFunctionParameters(functionTemplateDecl.Handle.Type, qualifiedName);
+                    }
+                }
             }
 
             static void AppendTemplateParameters(TemplateDecl templateDecl, StringBuilder qualifiedName)

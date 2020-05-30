@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -51,6 +49,23 @@ namespace ClangSharp
                     {
                         _outputBuilder.Write(',');
                         _outputBuilder.Write(' ');
+
+                        if ((args[i] is UnaryExprOrTypeTraitExpr unaryExprOrTypeTraitExpr) && (unaryExprOrTypeTraitExpr.Kind == CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf))
+                        {
+                            var argumentCanonicalType = unaryExprOrTypeTraitExpr.TypeOfArgument.CanonicalType;
+
+                            if ((argumentCanonicalType.TypeClass != CX_TypeClass.CX_TypeClass_Builtin) &&
+                                (argumentCanonicalType.TypeClass != CX_TypeClass.CX_TypeClass_Enum))
+                            {
+                                if ((args[i].Type.Kind == CXTypeKind.CXType_UInt))
+                                {
+                                    _outputBuilder.Write('(');
+                                    _outputBuilder.Write("uint");
+                                    _outputBuilder.Write(')');
+                                }
+                            }
+                        }
+
                         Visit(args[i]);
                     }
                 }
@@ -1166,19 +1181,17 @@ namespace ClangSharp
 
         private void VisitUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr unaryExprOrTypeTraitExpr)
         {
-            var translationUnitHandle = unaryExprOrTypeTraitExpr.TranslationUnit.Handle;
+            var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
 
-            var tokens = translationUnitHandle.Tokenize(unaryExprOrTypeTraitExpr.Handle.RawExtent);
-            var firstTokenSpelling = (tokens.Length > 0) ? tokens[0].GetSpelling(translationUnitHandle).CString : string.Empty;
-
-            switch (firstTokenSpelling)
+            switch (unaryExprOrTypeTraitExpr.Kind)
             {
-                case "sizeof":
+                case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
                 {
                     _outputBuilder.Write("sizeof");
                     _outputBuilder.Write('(');
 
-                    Visit(unaryExprOrTypeTraitExpr.CursorChildren.Single());
+                    var typeName = GetRemappedTypeName(unaryExprOrTypeTraitExpr, argumentType, out _);
+                    _outputBuilder.Write(typeName);
 
                     _outputBuilder.Write(')');
                     break;
@@ -1186,7 +1199,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary or type trait expression: '{firstTokenSpelling}'. Generated bindings may be incomplete.", unaryExprOrTypeTraitExpr);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary or type trait expression: '{unaryExprOrTypeTraitExpr.Kind}'. Generated bindings may be incomplete.", unaryExprOrTypeTraitExpr);
                     break;
                 }
             }
