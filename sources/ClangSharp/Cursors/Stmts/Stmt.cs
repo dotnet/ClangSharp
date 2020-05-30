@@ -24,7 +24,7 @@ namespace ClangSharp
             _declContext = new Lazy<IDeclContext>(() => {
                 var cursorParent = CursorParent;
 
-                while (!(cursorParent is IDeclContext))
+                while (!(cursorParent is IDeclContext) && (cursorParent != null))
                 {
                     cursorParent = cursorParent.CursorParent;
                 }

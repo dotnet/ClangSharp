@@ -75,7 +75,14 @@ namespace ClangSharp
                 }
 
                 // case CX_DeclKind.CX_DeclKind_Label:
-                // case CX_DeclKind.CX_DeclKind_Namespace:
+
+                case CX_DeclKind.CX_DeclKind_Namespace:
+                {
+                    // We don't currently include the namespace name anywhere in the
+                    // generated bindings. We might want to in the future...
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_NamespaceAlias:
                 // case CX_DeclKind.CX_DeclKind_ObjCCompatibleAlias:
                 // case CX_DeclKind.CX_DeclKind_ObjCCategory:
@@ -521,6 +528,14 @@ namespace ClangSharp
 
             var returnType = functionDecl.ReturnType;
             var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out var nativeTypeName);
+
+            if ((isVirtual || (body is null)) && (returnTypeName == "bool"))
+            {
+                // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                returnTypeName = "byte";
+                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
+            }
+
             AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
 
             _outputBuilder.WriteIndented(GetAccessSpecifierName(functionDecl));
@@ -685,6 +700,11 @@ namespace ClangSharp
                 {
                     for (int i = firstCtorInitializer; i < lastCtorInitializer; i++)
                     {
+                        if (cxxConstructorDecl.CursorChildren[i] is Attr)
+                        {
+                            continue;
+                        }
+
                         var memberRef = (Ref)cxxConstructorDecl.CursorChildren[i];
                         var memberInit = (Stmt)cxxConstructorDecl.CursorChildren[++i];
 
@@ -758,6 +778,13 @@ namespace ClangSharp
                 var type = parmVarDecl.Type;
                 var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
+
+                if ((((functionDecl is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsVirtual) || (functionDecl.Body is null)) && (typeName == "bool"))
+                {
+                    // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                    typeName = "byte";
+                    nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
+                }
 
                 _outputBuilder.Write(typeName);
 
@@ -863,10 +890,41 @@ namespace ClangSharp
                     hasVtbl = HasVtbl(cxxRecordDecl);
                 }
 
+                var alignment = recordDecl.TypeForDecl.Handle.AlignOf;
+                var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => fieldDecl.Type.Handle.AlignOf) : alignment;
+
                 if (recordDecl.IsUnion)
                 {
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-                    _outputBuilder.WriteIndentedLine("[StructLayout(LayoutKind.Explicit)]");
+                    _outputBuilder.WriteIndented("[StructLayout(LayoutKind.Explicit");
+
+                    if (alignment < maxAlignm)
+                    {
+                        _outputBuilder.Write(',');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("Pack");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write('=');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(alignment);
+                    }
+                    _outputBuilder.Write(')');
+                    _outputBuilder.WriteLine(']');
+                }
+                else if (alignment < maxAlignm)
+                {
+                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                    _outputBuilder.WriteIndented("[StructLayout(LayoutKind.Sequential");
+
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write("Pack");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write('=');
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write(alignment);
+                    _outputBuilder.Write(')');
+                    _outputBuilder.WriteLine(']');
                 }
 
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
@@ -1002,7 +1060,7 @@ namespace ClangSharp
 
                 foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type is ConstantArrayType))
                 {
-                    VisitConstantArrayFieldDecl(this, constantArray);
+                    VisitConstantArrayFieldDecl(this, recordDecl, constantArray);
                 }
 
                 if (hasVtbl)
@@ -1353,6 +1411,16 @@ namespace ClangSharp
                 }
 
                 outputBuilder.Write(')');
+
+                if (returnTypeName == "bool")
+                {
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('!');
+                    outputBuilder.Write('=');
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('0');
+                }
+
                 outputBuilder.WriteLine(';');
 
                 if (pinvokeGenerator._config.GenerateCompatibleCode)
@@ -1639,7 +1707,7 @@ namespace ClangSharp
                 previousSize = currentSize;
             }
 
-            static void VisitConstantArrayFieldDecl(PInvokeGenerator pinvokeGenerator, FieldDecl constantArray)
+            static void VisitConstantArrayFieldDecl(PInvokeGenerator pinvokeGenerator, RecordDecl recordDecl, FieldDecl constantArray)
             {
                 Debug.Assert(constantArray.Type is ConstantArrayType);
 
@@ -1659,6 +1727,26 @@ namespace ClangSharp
                 }
 
                 outputBuilder.NeedsNewline = true;
+
+                var alignment = recordDecl.TypeForDecl.Handle.AlignOf;
+                var maxAlignm = recordDecl.Fields.Max((fieldDecl) => fieldDecl.Type.Handle.AlignOf);
+
+                if (alignment < maxAlignm)
+                {
+                    outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                    outputBuilder.WriteIndented("[StructLayout(LayoutKind.Sequential");
+
+                    outputBuilder.Write(',');
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write("Pack");
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('=');
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write(alignment);
+                    outputBuilder.Write(')');
+                    outputBuilder.WriteLine(']');
+                }
+
                 outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(constantArray));
                 outputBuilder.Write(' ');
                 outputBuilder.Write("partial struct");
@@ -1937,6 +2025,10 @@ namespace ClangSharp
             {
                 ForDeclStmt(varDecl, declStmt);
             }
+            else if (cursorParent is RecordDecl recordDecl)
+            {
+                ForRecordDecl(varDecl, recordDecl);
+            }
             else
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration parent: '{cursorParent.CursorKindSpelling}'. Generated bindings may be incomplete.", cursorParent);
@@ -1972,6 +2064,54 @@ namespace ClangSharp
 
                     Visit(varDecl.Init);
                 }
+            }
+
+            void ForRecordDecl(VarDecl varDecl, RecordDecl recordDecl)
+            {
+                var name = GetRemappedCursorName(varDecl);
+
+                var type = varDecl.Type;
+                var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
+                AddNativeTypeNameAttribute(nativeTypeName);
+
+                _outputBuilder.WriteIndented(GetAccessSpecifierName(varDecl));
+                _outputBuilder.Write(' ');
+
+                if (type.IsLocalConstQualified)
+                {
+                    _outputBuilder.Write("const");
+                    _outputBuilder.Write(' ');
+                }
+                else if (varDecl.StorageClass == CX_StorageClass.CX_SC_Static)
+                {
+                    _outputBuilder.Write("static");
+                    _outputBuilder.Write(' ');
+                }
+
+                _outputBuilder.Write(typeName);
+
+                if (type is ArrayType)
+                {
+                    _outputBuilder.Write('[');
+                    _outputBuilder.Write(']');
+                }
+
+                _outputBuilder.Write(' ');
+
+                _outputBuilder.Write(EscapeName(name));
+
+                if (varDecl.HasInit)
+                {
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write('=');
+                    _outputBuilder.Write(' ');
+
+                    Visit(varDecl.Init);
+                }
+
+                _outputBuilder.WriteLine(";");
+
+                _outputBuilder.NeedsNewline = true;
             }
 
             void ForTopLevelDecl(VarDecl varDecl)

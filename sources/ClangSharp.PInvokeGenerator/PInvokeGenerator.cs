@@ -200,7 +200,7 @@ namespace ClangSharp
 
         private void AddDiagnostic(DiagnosticLevel level, string message, Cursor cursor)
         {
-            var diagnostic = new Diagnostic(level, message, cursor.Location);
+            var diagnostic = new Diagnostic(level, message, (cursor?.Location).GetValueOrDefault());
 
             if (_diagnostics.Contains(diagnostic))
             {
@@ -755,26 +755,24 @@ namespace ClangSharp
         private static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
         {
             Type baseType = cxxBaseSpecifier.Type;
-            {
-                if (baseType is TypedefType typedefType)
-                {
-                    baseType = typedefType.Decl.UnderlyingType;
-                }
 
-                if (baseType is ElaboratedType elaboratedType)
+            while (!(baseType is RecordType))
+            {
+                if (baseType is AttributedType attributedType)
+                {
+                    baseType = attributedType.ModifiedType;
+                }
+                else if (baseType is ElaboratedType elaboratedType)
                 {
                     baseType = elaboratedType.CanonicalType;
                 }
-            }
-            {
-                if (baseType is TypedefType typedefType)
+                else if (baseType is TypedefType typedefType)
                 {
                     baseType = typedefType.Decl.UnderlyingType;
                 }
-
-                if (baseType is ElaboratedType elaboratedType)
+                else
                 {
-                    baseType = elaboratedType.CanonicalType;
+                    break;
                 }
             }
 

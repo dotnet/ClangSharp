@@ -74,7 +74,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.Kind}'. Generated bindings may be incomplete.", calleeDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.Kind}'. Generated bindings may be incomplete.", calleeDecl);
             }
         }
 
@@ -1134,7 +1134,14 @@ namespace ClangSharp
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.StmtClass}'. Generated bindings may be incomplete.", stmt);
+                    var context = string.Empty;
+
+                    if (stmt.DeclContext is NamedDecl namedDecl)
+                    {
+                        context = $" in {GetCursorQualifiedName(namedDecl)}";
+                    }
+
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.StmtClass}'{context}. Generated bindings may be incomplete.", stmt);
                     break;
                 }
             }
