@@ -9,7 +9,7 @@ namespace ClangSharp
     public class ClassTemplateSpecializationDecl : CXXRecordDecl
     {
         private readonly Lazy<ClassTemplateDecl> _specializedTemplate;
-        private readonly Lazy<IReadOnlyList<Type>> _templateArgs;
+        private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
 
         internal ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ClassTemplateSpecialization)
         {
@@ -23,23 +23,23 @@ namespace ClangSharp
             }
 
             _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
-            _templateArgs = new Lazy<IReadOnlyList<Type>>(() => {
+            _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
                 var templateArgsSize = TemplateArgsSize;
-                var templateArgs = new List<Type>(templateArgsSize);
+                var templateArgs = new List<TemplateArgument>((int)templateArgsSize);
 
-                for (var index = 0; index < templateArgsSize; index++)
+                for (var index = 0u; index < templateArgsSize; index++)
                 {
-                    var templateArg = TypeForDecl.Handle.GetTemplateArgumentAsType((uint)index);
-                    templateArgs.Add(TranslationUnit.GetOrCreate<Type>(templateArg));
+                    var templateArg = new TemplateArgument(this, index);
+                    templateArgs.Add(templateArg);
                 }
 
                 return templateArgs;
             });
         }
 
-        public IReadOnlyList<Type> TemplateArgs => _templateArgs.Value;
+        public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs.Value;
 
-        public int TemplateArgsSize => TypeForDecl.Handle.NumTemplateArguments;
+        public uint TemplateArgsSize => (uint)TypeForDecl.Handle.NumTemplateArguments;
 
         public ClassTemplateDecl SpecializedTemplate => _specializedTemplate.Value;
     }

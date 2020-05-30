@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
+    [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
     public unsafe class Type : IEquatable<Type>
     {
         private readonly Lazy<Type> _canonicalType;
@@ -33,7 +35,20 @@ namespace ClangSharp
 
         public CXType Handle { get; }
 
-        public virtual bool IsIntegerType => false;
+        public bool IsIntegerType
+        {
+            get
+            {
+                if (this is BuiltinType builtinType)
+                {
+                    return (CXTypeKind.CXType_Bool <= Kind) && (Kind <= CXTypeKind.CXType_Int128);
+                }
+
+                return false;
+            }
+        }
+
+        public bool IsPointerType => this is PointerType;
 
         public bool IsLocalConstQualified => Handle.IsConstQualified;
 
@@ -44,6 +59,8 @@ namespace ClangSharp
         public TranslationUnit TranslationUnit => _translationUnit.Value;
 
         public CX_TypeClass TypeClass => Handle.TypeClass;
+
+        public string TypeClassSpelling => Handle.TypeClassSpelling;
 
         public static bool operator ==(Type left, Type right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
 

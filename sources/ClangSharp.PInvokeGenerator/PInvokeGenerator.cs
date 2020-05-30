@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Interop;
 
@@ -19,6 +20,7 @@ namespace ClangSharp
         private readonly OutputBuilderFactory _outputBuilderFactory;
         private readonly Func<string, Stream> _outputStreamFactory;
         private readonly HashSet<Decl> _visitedDecls;
+        private readonly HashSet<string> _visitedFiles;
         private readonly List<Diagnostic> _diagnostics;
         private readonly PInvokeGeneratorConfiguration _config;
 
@@ -42,6 +44,7 @@ namespace ClangSharp
                 return new FileStream(path, FileMode.Create);
             });
             _visitedDecls = new HashSet<Decl>();
+            _visitedFiles = new HashSet<string>();
             _diagnostics = new List<Diagnostic>();
             _config = config;
         }
@@ -180,15 +183,24 @@ namespace ClangSharp
                 }
             }
 
-            var translationUnitDecl = translationUnit.TranslationUnitDecl;
-            _visitedDecls.Add(translationUnitDecl);
+            Visit(translationUnit.TranslationUnitDecl);
+        }
 
-            VisitDecls(translationUnitDecl.Decls);
+        private void AddDiagnostic(DiagnosticLevel level, string message)
+        {
+            var diagnostic = new Diagnostic(level, message);
+
+            if (_diagnostics.Contains(diagnostic))
+            {
+                return;
+            }
+
+            _diagnostics.Add(diagnostic);
         }
 
         private void AddDiagnostic(DiagnosticLevel level, string message, Cursor cursor)
         {
-            var diagnostic = new Diagnostic(level, message, cursor.Location);
+            var diagnostic = new Diagnostic(level, message, (cursor?.Location).GetValueOrDefault());
 
             if (_diagnostics.Contains(diagnostic))
             {
@@ -548,7 +560,7 @@ namespace ClangSharp
                 default:
                 {
                     var name = "Winapi";
-                    AddDiagnostic(DiagnosticLevel.Info, $"Unsupported calling convention: '{callingConvention}'. Falling back to '{name}'.", cursor);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported calling convention: '{callingConvention}'. Falling back to '{name}'.", cursor);
                     return name;
                 }
             }
@@ -595,54 +607,172 @@ namespace ClangSharp
             return name;
         }
 
-        private static string GetFunctionDeclFullName(FunctionDecl functionDecl)
+        private string GetCursorQualifiedName(NamedDecl namedDecl)
         {
-            var fullName = new StringBuilder();
+            var parts = new Stack<NamedDecl>();
 
-            fullName.Append(functionDecl.ReturnType.AsString);
-            fullName.Append(' ');
-            fullName.Append(functionDecl.Name);
-            fullName.Append('(');
-
-            if (functionDecl.Parameters.Any())
+            for (Decl decl = namedDecl; decl.DeclContext != null; decl = (Decl)decl.DeclContext)
             {
-                fullName.Append(functionDecl.Parameters[0].Type.AsString);
-
-                for (int i = 1; i < functionDecl.Parameters.Count; i++)
+                if (decl is NamedDecl)
                 {
-                    fullName.Append(',');
-                    fullName.Append(' ');
-                    fullName.Append(functionDecl.Parameters[i].Type.AsString);
+                    parts.Push((NamedDecl)decl);
                 }
             }
-            fullName.Append(')');
 
-            return fullName.ToString();
+            var qualifiedName = new StringBuilder();
+
+            NamedDecl part = parts.Pop();
+
+            while (parts.Count != 0)
+            {
+                AppendNamedDecl(part, GetCursorName(part), qualifiedName);
+                qualifiedName.Append('.');
+                part = parts.Pop();
+            }
+
+            AppendNamedDecl(part, GetCursorName(part), qualifiedName);
+
+            return qualifiedName.ToString();
+
+            static void AppendFunctionParameters(CXType functionType, StringBuilder qualifiedName)
+            {
+                qualifiedName.Append('(');
+
+                if (functionType.NumArgTypes != 0)
+                {
+                    qualifiedName.Append(functionType.GetArgType(0).Spelling);
+
+                    for (uint i = 1; i < functionType.NumArgTypes; i++)
+                    {
+                        qualifiedName.Append(',');
+                        qualifiedName.Append(' ');
+                        qualifiedName.Append(functionType.GetArgType(i).Spelling);
+                    }
+                }
+
+                qualifiedName.Append(')');
+                qualifiedName.Append(':');
+
+                qualifiedName.Append(functionType.ResultType.Spelling);
+
+                if (functionType.ExceptionSpecificationType == CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_NoThrow)
+                {
+                    qualifiedName.Append(' ');
+                    qualifiedName.Append("nothrow");
+                }
+            }
+
+            void AppendNamedDecl(NamedDecl namedDecl, string name, StringBuilder qualifiedName)
+            {
+                qualifiedName.Append(name);
+
+                if (namedDecl is FunctionDecl functionDecl)
+                {
+                    AppendFunctionParameters(functionDecl.Type.Handle, qualifiedName);
+                }
+                else if (namedDecl is TemplateDecl templateDecl)
+                {
+                    AppendTemplateParameters(templateDecl, qualifiedName);
+
+                    if (namedDecl is FunctionTemplateDecl functionTemplateDecl)
+                    {
+                        AppendFunctionParameters(functionTemplateDecl.Handle.Type, qualifiedName);
+                    }
+                }
+                else if (namedDecl is ClassTemplateSpecializationDecl classTemplateSpecializationDecl)
+                {
+                    AppendTemplateArguments(classTemplateSpecializationDecl, qualifiedName);
+                }
+            }
+
+            void AppendTemplateArgument(TemplateArgument templateArgument, Decl parentDecl, StringBuilder qualifiedName)
+            {
+                switch (templateArgument.Kind)
+                {
+                    case CXTemplateArgumentKind.CXTemplateArgumentKind_Type:
+                    {
+                        qualifiedName.Append(templateArgument.AsType.AsString);
+                        break;
+                    }
+
+                    case CXTemplateArgumentKind.CXTemplateArgumentKind_Integral:
+                    {
+                        qualifiedName.Append(templateArgument.AsIntegral);
+                        break;
+                    }
+
+                    default:
+                    {
+                        qualifiedName.Append('?');
+                        break;
+                    }
+                }
+            }
+
+            void AppendTemplateArguments(ClassTemplateSpecializationDecl classTemplateSpecializationDecl, StringBuilder qualifiedName)
+            {
+                qualifiedName.Append('<');
+
+                var templateArgs = classTemplateSpecializationDecl.TemplateArgs;
+
+                if (templateArgs.Any())
+                {
+                    AppendTemplateArgument(templateArgs[0], classTemplateSpecializationDecl, qualifiedName);
+
+                    for (int i = 1; i < templateArgs.Count; i++)
+                    {
+                        qualifiedName.Append(',');
+                        qualifiedName.Append(' ');
+                        AppendTemplateArgument(templateArgs[i], classTemplateSpecializationDecl, qualifiedName);
+                    }
+                }
+
+                qualifiedName.Append('>');
+            }
+
+            static void AppendTemplateParameters(TemplateDecl templateDecl, StringBuilder qualifiedName)
+            {
+                qualifiedName.Append('<');
+
+                var templateParameters = templateDecl.TemplateParameters;
+
+                if (templateParameters.Any())
+                {
+                    qualifiedName.Append(templateParameters[0].Name);
+
+                    for (int i = 1; i < templateParameters.Count; i++)
+                    {
+                        qualifiedName.Append(',');
+                        qualifiedName.Append(' ');
+                        qualifiedName.Append(templateParameters[i].Name);
+                    }
+                }
+
+                qualifiedName.Append('>');
+            }
         }
 
         private static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
         {
             Type baseType = cxxBaseSpecifier.Type;
-            {
-                if (baseType is TypedefType typedefType)
-                {
-                    baseType = typedefType.Decl.UnderlyingType;
-                }
 
-                if (baseType is ElaboratedType elaboratedType)
+            while (!(baseType is RecordType))
+            {
+                if (baseType is AttributedType attributedType)
+                {
+                    baseType = attributedType.ModifiedType;
+                }
+                else if (baseType is ElaboratedType elaboratedType)
                 {
                     baseType = elaboratedType.CanonicalType;
                 }
-            }
-            {
-                if (baseType is TypedefType typedefType)
+                else if (baseType is TypedefType typedefType)
                 {
                     baseType = typedefType.Decl.UnderlyingType;
                 }
-
-                if (baseType is ElaboratedType elaboratedType)
+                else
                 {
-                    baseType = elaboratedType.CanonicalType;
+                    break;
                 }
             }
 
@@ -962,6 +1092,188 @@ namespace ClangSharp
             }
 
             return hasDirectVtbl || (indirectVtblCount != 0);
+        }
+
+        private bool IsExcluded(Decl decl)
+        {
+            if (IsAlwaysIncluded())
+            {
+                return false;
+            }
+
+            return IsExcludedByFile(decl) || IsExcludedByName(decl);
+
+            bool IsAlwaysIncluded()
+            {
+                return (decl is TranslationUnitDecl) || (decl is LinkageSpecDecl);
+            }
+
+            bool IsExcludedByFile(Decl decl)
+            {
+                if (_outputBuilder != null)
+                {
+                    // We don't want to exclude  by fileif we already have an active output builder as we
+                    // are likely processing members of an already included type but those members may
+                    // indirectly exist or be defined in a non-traversed file.
+                    return false;
+                }
+
+                var declLocation = decl.Location;
+                declLocation.GetFileLocation(out CXFile file, out _, out _, out _);
+
+                if (IsIncludedFileOrLocation(decl, file, declLocation))
+                {
+                    return false;
+                }
+
+                // It is not uncommon for some declarations to be done using macros, which are themselves
+                // defined in an imported header file. We want to also check if the expansion location is
+                // in the main file to catch these cases and ensure we still generate bindings for them.
+
+                declLocation.GetExpansionLocation(out file, out uint line, out uint column, out _);
+                declLocation = decl.TranslationUnit.Handle.GetLocation(file, line, column);
+
+                if (IsIncludedFileOrLocation(decl, file, declLocation))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            bool IsExcludedByName(Decl decl)
+            {
+                if (!(decl is NamedDecl))
+                {
+                    return false;
+                }
+
+                var namedDecl = (NamedDecl)decl;
+
+                // We get the non-remapped name for the purpose of exclusion checks to ensure that users
+                // can remove no-definition declarations in favor of remapped anonymous declarations.
+
+                var qualifiedName = GetCursorQualifiedName(namedDecl);
+
+                if (_config.ExcludedNames.Contains(qualifiedName))
+                {
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded by exact match {qualifiedName}");
+                    }
+                    return true;
+                }
+
+                var name = GetCursorName(namedDecl);
+
+                if (_config.ExcludedNames.Contains(name))
+                {
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded {qualifiedName} by partial match against {name}");
+                    }
+                    return true;
+                }
+
+                if (namedDecl is TagDecl tagDecl)
+                {
+                    if ((tagDecl.Definition != tagDecl) && (tagDecl.Definition != null))
+                    {
+                        // We don't want to generate bindings for anything
+                        // that is not itself a definition and that has a
+                        // definition that can be resolved. This ensures we
+                        // still generate bindings for things which are used
+                        // as opaque handles, but which aren't ever defined.
+
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool IsIncludedFileOrLocation(Decl decl, CXFile file, CXSourceLocation location)
+            {
+                // Use case insensitive comparison on Windows
+                var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
+                // Normalize paths to be '/' for comparison
+                var fileName = file.Name.ToString().Replace('\\', '/');
+
+                if (_visitedFiles.Add(fileName) && _config.LogVisitedFiles)
+                {
+                    AddDiagnostic(DiagnosticLevel.Info, $"Visiting {fileName}");
+                }
+
+                if (_config.TraversalNames.Contains(fileName, equalityComparer))
+                {
+                    return true;
+                }
+                else if ((_config.TraversalNames.Length == 0) && location.IsFromMainFile)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        private bool IsFixedSize(Cursor cursor, Type type)
+        {
+            if (type is ArrayType)
+            {
+                return false;
+            }
+            else if (type is AttributedType attributedType)
+            {
+                return IsFixedSize(cursor, attributedType.ModifiedType);
+            }
+            else if (type is BuiltinType)
+            {
+                return true;
+            }
+            else if (type is ElaboratedType elaboratedType)
+            {
+                return IsFixedSize(cursor, elaboratedType.NamedType);
+            }
+            else if (type is EnumType enumType)
+            {
+                return IsFixedSize(cursor, enumType.Decl.IntegerType);
+            }
+            else if (type is FunctionType)
+            {
+                return false;
+            }
+            else if (type is PointerType)
+            {
+                return false;
+            }
+            else if (type is ReferenceType)
+            {
+                return false;
+            }
+            else if (type is RecordType recordType)
+            {
+                var recordDecl = recordType.Decl;
+
+                return recordDecl.Fields.All((fieldDecl) => IsFixedSize(fieldDecl, fieldDecl.Type))
+                    && (!(recordDecl is CXXRecordDecl cxxRecordDecl) || cxxRecordDecl.Methods.All((cxxMethodDecl) => !cxxMethodDecl.IsVirtual));
+            }
+            else if (type is TypedefType typedefType)
+            {
+                var remappedName = GetRemappedTypeName(cursor, typedefType, out _);
+
+                return (remappedName == "IntPtr")
+                    || (remappedName == "nint")
+                    || (remappedName == "nuint")
+                    || (remappedName == "UIntPtr")
+                    || IsFixedSize(cursor, typedefType.Decl.UnderlyingType);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Assuming unfixed size.", cursor);
+                return false;
+            }
         }
 
         private bool IsSupportedFixedSizedBufferType(string typeName)
@@ -1332,13 +1644,7 @@ namespace ClangSharp
             }
             else if (cursor is Decl decl)
             {
-                if (_visitedDecls.Contains(decl))
-                {
-                    return;
-                }
-                _visitedDecls.Add(decl);
-
-                VisitDecl(decl);
+                VisitDecl(decl, ignorePriorVisit: false);
             }
             else if (cursor is Ref @ref)
             {

@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -51,6 +49,23 @@ namespace ClangSharp
                     {
                         _outputBuilder.Write(',');
                         _outputBuilder.Write(' ');
+
+                        if ((args[i] is UnaryExprOrTypeTraitExpr unaryExprOrTypeTraitExpr) && (unaryExprOrTypeTraitExpr.Kind == CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf))
+                        {
+                            var argumentCanonicalType = unaryExprOrTypeTraitExpr.TypeOfArgument.CanonicalType;
+
+                            if ((argumentCanonicalType.TypeClass != CX_TypeClass.CX_TypeClass_Builtin) &&
+                                (argumentCanonicalType.TypeClass != CX_TypeClass.CX_TypeClass_Enum))
+                            {
+                                if ((args[i].Type.Kind == CXTypeKind.CXType_UInt))
+                                {
+                                    _outputBuilder.Write('(');
+                                    _outputBuilder.Write("uint");
+                                    _outputBuilder.Write(')');
+                                }
+                            }
+                        }
+
                         Visit(args[i]);
                     }
                 }
@@ -59,7 +74,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.Kind}'. Generated bindings may be incomplete.", calleeDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.Kind}'. Generated bindings may be incomplete.", calleeDecl);
             }
         }
 
@@ -238,17 +253,17 @@ namespace ClangSharp
         {
             if (declStmt.IsSingleDecl)
             {
-                VisitDecl(declStmt.SingleDecl);
+                VisitDecl(declStmt.SingleDecl, ignorePriorVisit: true);
             }
             else
             {
-                VisitDecl(declStmt.Decls.First());
+                VisitDecl(declStmt.Decls.First(), ignorePriorVisit: true);
 
                 foreach (var decl in declStmt.Decls.Skip(1))
                 {
                     _outputBuilder.Write(',');
                     _outputBuilder.Write(' ');
-                    VisitDecl(decl);
+                    VisitDecl(decl, ignorePriorVisit: true);
                 }
             }
 
@@ -446,16 +461,85 @@ namespace ClangSharp
 
         private void VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr)
         {
-            if ((implicitCastExpr.Type is PointerType) && (implicitCastExpr.SubExpr is IntegerLiteral integerLiteral) && (integerLiteral.Value.Equals("0")))
-            {
-                // C# doesn't have implicit conversion from zero to a pointer
-                // so we will manually check and handle the most common case
+            bool handled = false;
 
-                _outputBuilder.Write("null");
+            if (implicitCastExpr.SubExpr is IntegerLiteral integerLiteral)
+            {
+                handled = VisitImplicitCastExpr(implicitCastExpr, integerLiteral);
             }
-            else
+
+
+            if (!handled)
             {
                 Visit(implicitCastExpr.SubExpr);
+            }
+        }
+
+        private bool VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr, IntegerLiteral integerLiteral)
+        {
+            if (implicitCastExpr.Type is PointerType)
+            {
+                if (integerLiteral.Value.Equals("0"))
+                {
+                    // C# doesn't have implicit conversion from zero to a pointer
+                    // so we will manually check and handle the most common case
+
+                    _outputBuilder.Write("null");
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (!(implicitCastExpr.Type is BuiltinType))
+            {
+                return false;
+            }
+
+            var builtinType = (BuiltinType)implicitCastExpr.Type;
+
+            if (!builtinType.IsIntegerType)
+            {
+                return false;
+            }
+
+            if (implicitCastExpr.DeclContext is EnumDecl enumDecl)
+            {
+                var enumDeclName = GetRemappedCursorName(enumDecl);
+                var enumDeclIntegerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
+
+                WithType("*", ref enumDeclIntegerTypeName, ref nativeTypeName);
+                WithType(enumDeclName, ref enumDeclIntegerTypeName, ref nativeTypeName);
+
+                var integerLiteralTypeName = GetRemappedTypeName(integerLiteral, integerLiteral.Type, out _);
+
+                if (enumDeclIntegerTypeName == integerLiteralTypeName)
+                {
+                    return false;
+                }
+            }
+
+            switch (builtinType.Kind)
+            {
+                case CXTypeKind.CXType_Int:
+                {
+                    _outputBuilder.Write("unchecked");
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write("int");
+                    _outputBuilder.Write(')');
+
+                    Visit(implicitCastExpr.SubExpr);
+
+                    _outputBuilder.Write(')');
+                    return true;
+                }
+
+                default:
+                {
+
+                    return false;
+                }
             }
         }
 
@@ -625,11 +709,20 @@ namespace ClangSharp
 
         private void VisitReturnStmt(ReturnStmt returnStmt)
         {
-            _outputBuilder.Write("return");
+            var retValue = returnStmt.RetValue;
 
-            if (returnStmt.RetValue != null)
+            if ((retValue is null) || (retValue.Type.Kind != CXTypeKind.CXType_Void))
             {
-                _outputBuilder.Write(' ');
+                _outputBuilder.Write("return");
+
+                if (retValue != null)
+                {
+                    _outputBuilder.Write(' ');
+                }
+            }
+
+            if (retValue != null)
+            {
                 Visit(returnStmt.RetValue);
             }
         }
@@ -1041,7 +1134,14 @@ namespace ClangSharp
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.StmtClass}'. Generated bindings may be incomplete.", stmt);
+                    var context = string.Empty;
+
+                    if (stmt.DeclContext is NamedDecl namedDecl)
+                    {
+                        context = $" in {GetCursorQualifiedName(namedDecl)}";
+                    }
+
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.StmtClass}'{context}. Generated bindings may be incomplete.", stmt);
                     break;
                 }
             }
@@ -1097,19 +1197,17 @@ namespace ClangSharp
 
         private void VisitUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr unaryExprOrTypeTraitExpr)
         {
-            var translationUnitHandle = unaryExprOrTypeTraitExpr.TranslationUnit.Handle;
+            var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
 
-            var tokens = translationUnitHandle.Tokenize(unaryExprOrTypeTraitExpr.Handle.RawExtent);
-            var firstTokenSpelling = (tokens.Length > 0) ? tokens[0].GetSpelling(translationUnitHandle).CString : string.Empty;
-
-            switch (firstTokenSpelling)
+            switch (unaryExprOrTypeTraitExpr.Kind)
             {
-                case "sizeof":
+                case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
                 {
                     _outputBuilder.Write("sizeof");
                     _outputBuilder.Write('(');
 
-                    Visit(unaryExprOrTypeTraitExpr.CursorChildren.Single());
+                    var typeName = GetRemappedTypeName(unaryExprOrTypeTraitExpr, argumentType, out _);
+                    _outputBuilder.Write(typeName);
 
                     _outputBuilder.Write(')');
                     break;
@@ -1117,7 +1215,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary or type trait expression: '{firstTokenSpelling}'. Generated bindings may be incomplete.", unaryExprOrTypeTraitExpr);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary or type trait expression: '{unaryExprOrTypeTraitExpr.Kind}'. Generated bindings may be incomplete.", unaryExprOrTypeTraitExpr);
                     break;
                 }
             }

@@ -7,6 +7,7 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
+    [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
     public unsafe class Cursor : IEquatable<Cursor>
     {
         private readonly Lazy<List<Cursor>> _cursorChildren;

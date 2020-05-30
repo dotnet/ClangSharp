@@ -10,8 +10,10 @@ namespace ClangSharp
         {
         }
 
-        public bool IsMacroFunctionLike => Handle.IsMacroFunctionLike;
+        public bool IsFunctionLike => Handle.IsMacroFunctionLike;
 
-        public bool IsMacroBuiltIn => Handle.IsMacroBuiltIn;
+        public bool IsBuiltinMacro => Handle.IsMacroBuiltIn;
+
+        public string Name => Handle.Spelling.CString;
     }
 }

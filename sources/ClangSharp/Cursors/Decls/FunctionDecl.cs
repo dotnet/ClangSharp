@@ -35,6 +35,8 @@ namespace ClangSharp
 
         public IReadOnlyList<Decl> Decls => _decls.Value;
 
+        public CXCursor_ExceptionSpecificationKind ExceptionSpecType => (CXCursor_ExceptionSpecificationKind)Handle.ExceptionSpecificationType;
+
         public bool IsInlined => Handle.IsFunctionInlined;
 
         public bool IsVariadic => Handle.IsVariadic;

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
 
@@ -10,6 +11,7 @@ namespace ClangSharp
     public class Stmt : Cursor
     {
         private readonly Lazy<IReadOnlyList<Stmt>> _children;
+        private readonly Lazy<IDeclContext> _declContext;
 
         private protected Stmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind)
         {
@@ -19,11 +21,25 @@ namespace ClangSharp
             }
 
             _children = new Lazy<IReadOnlyList<Stmt>>(() => CursorChildren.OfType<Stmt>().ToList());
+            _declContext = new Lazy<IDeclContext>(() => {
+                var cursorParent = CursorParent;
+
+                while (!(cursorParent is IDeclContext) && (cursorParent != null))
+                {
+                    cursorParent = cursorParent.CursorParent;
+                }
+
+                return (IDeclContext)cursorParent;
+            });
         }
 
         public IReadOnlyList<Stmt> Children => _children.Value;
 
+        public IDeclContext DeclContext => _declContext.Value;
+
         public CX_StmtClass StmtClass => Handle.StmtClass;
+
+        public string StmtClassName => Handle.StmtClassSpelling;
 
         internal static new Stmt Create(CXCursor handle) => handle.StmtClass switch
         {

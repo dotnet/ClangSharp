@@ -128,6 +128,10 @@ namespace ClangSharp
 
         public string LibraryPath { get;}
 
+        public bool LogExclusions => _options.HasFlag(PInvokeGeneratorConfigurationOptions.LogExclusions);
+
+        public bool LogVisitedFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.LogVisitedFiles);
+
         public string MethodClassName { get; }
 
         public string MethodPrefixToStrip { get;}

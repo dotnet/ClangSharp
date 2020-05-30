@@ -319,5 +319,7 @@ namespace ClangSharp
         };
 
         public CX_AttrKind Kind => Handle.AttrKind;
+
+        public string KindSpelling => Handle.AttrKindSpelling;
     }
 }
