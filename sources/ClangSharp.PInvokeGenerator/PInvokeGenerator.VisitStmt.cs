@@ -180,7 +180,7 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
 
                 var type = cxxFunctionalCastExpr.Type;
-                var typeName = GetRemappedTypeName(cxxFunctionalCastExpr, type, out var nativeTypeName);
+                var typeName = GetRemappedTypeName(cxxFunctionalCastExpr, context: null, type, out var nativeTypeName);
 
                 _outputBuilder.Write(typeName);
                 _outputBuilder.Write('(');
@@ -337,7 +337,7 @@ namespace ClangSharp
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
         {
             var type = explicitCastExpr.Type;
-            var typeName = GetRemappedTypeName(explicitCastExpr, type, out var nativeTypeName);
+            var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out var nativeTypeName);
 
             _outputBuilder.Write('(');
             _outputBuilder.Write(typeName);
@@ -506,12 +506,12 @@ namespace ClangSharp
             if (implicitCastExpr.DeclContext is EnumDecl enumDecl)
             {
                 var enumDeclName = GetRemappedCursorName(enumDecl);
-                var enumDeclIntegerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
+                var enumDeclIntegerTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
 
                 WithType("*", ref enumDeclIntegerTypeName, ref nativeTypeName);
                 WithType(enumDeclName, ref enumDeclIntegerTypeName, ref nativeTypeName);
 
-                var integerLiteralTypeName = GetRemappedTypeName(integerLiteral, integerLiteral.Type, out _);
+                var integerLiteralTypeName = GetRemappedTypeName(integerLiteral, context: null, integerLiteral.Type, out _);
 
                 if (enumDeclIntegerTypeName == integerLiteralTypeName)
                 {
@@ -554,7 +554,7 @@ namespace ClangSharp
             _outputBuilder.Write(' ');
 
             var type = initListExpr.Type;
-            var typeName = GetRemappedTypeName(initListExpr, type, out var nativeTypeName);
+            var typeName = GetRemappedTypeName(initListExpr, context: null, type, out var nativeTypeName);
 
             _outputBuilder.Write(typeName);
             _outputBuilder.Write('[');
@@ -604,7 +604,7 @@ namespace ClangSharp
             _outputBuilder.Write(' ');
 
             var type = initListExpr.Type;
-            var typeName = GetRemappedTypeName(initListExpr, type, out var nativeTypeName);
+            var typeName = GetRemappedTypeName(initListExpr, context: null, type, out var nativeTypeName);
 
             _outputBuilder.WriteLine(typeName);
             _outputBuilder.WriteBlockStart();
@@ -1206,7 +1206,7 @@ namespace ClangSharp
                     _outputBuilder.Write("sizeof");
                     _outputBuilder.Write('(');
 
-                    var typeName = GetRemappedTypeName(unaryExprOrTypeTraitExpr, argumentType, out _);
+                    var typeName = GetRemappedTypeName(unaryExprOrTypeTraitExpr, context: null, argumentType, out _);
                     _outputBuilder.Write(typeName);
 
                     _outputBuilder.Write(')');

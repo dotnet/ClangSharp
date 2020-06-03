@@ -581,7 +581,7 @@ namespace ClangSharp
                     }
                     else
                     {
-                        name = GetTypeName(namedDecl, typeDecl.TypeForDecl, out var nativeTypeName);
+                        name = GetTypeName(namedDecl, context: null, typeDecl.TypeForDecl, out var nativeTypeName);
                         Debug.Assert(string.IsNullOrWhiteSpace(nativeTypeName));
                     }
                 }
@@ -811,9 +811,9 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedTypeName(Cursor cursor, Type type, out string nativeTypeName)
+        private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
-            var name = GetTypeName(cursor, type, out nativeTypeName);
+            var name = GetTypeName(cursor, context, type, out nativeTypeName);
             name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
 
             if (nativeTypeName.Equals(name))
@@ -823,18 +823,23 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetTypeName(Cursor cursor, Type type, out string nativeTypeName)
+        private string GetTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
             var name = type.AsString;
             nativeTypeName = name;
 
             if (type is ArrayType arrayType)
             {
-                name = GetTypeName(cursor, arrayType.ElementType, out var nativeElementTypeName);
+                name = GetTypeName(cursor, context, arrayType.ElementType, out var nativeElementTypeName);
+
+                if (cursor is CXXMethodDecl)
+                {
+                    name += '*';
+                }
             }
             else if (type is AttributedType attributedType)
             {
-                name = GetTypeName(cursor, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeName(cursor, context, attributedType.ModifiedType, out var nativeModifiedTypeName);
             }
             else if (type is BuiltinType)
             {
@@ -961,19 +966,19 @@ namespace ClangSharp
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                name = GetTypeName(cursor, elaboratedType.NamedType, out var nativeNamedTypeName);
+                name = GetTypeName(cursor, context, elaboratedType.NamedType, out var nativeNamedTypeName);
             }
             else if (type is FunctionType functionType)
             {
-                name = GetTypeNameForPointeeType(cursor, functionType, out var nativeFunctionTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, functionType, out var nativeFunctionTypeName);
             }
             else if (type is PointerType pointerType)
             {
-                name = GetTypeNameForPointeeType(cursor, pointerType.PointeeType, out var nativePointeeTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, pointerType.PointeeType, out var nativePointeeTypeName);
             }
             else if (type is ReferenceType referenceType)
             {
-                name = GetTypeNameForPointeeType(cursor, referenceType.PointeeType, out var nativePointeeTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, referenceType.PointeeType, out var nativePointeeTypeName);
             }
             else if (type is TagType tagType)
             {
@@ -983,7 +988,7 @@ namespace ClangSharp
                 }
                 else if (tagType.Handle.IsConstQualified)
                 {
-                    name = GetTypeName(cursor, tagType.Decl.TypeForDecl, out var nativeDeclTypeName);
+                    name = GetTypeName(cursor, context, tagType.Decl.TypeForDecl, out var nativeDeclTypeName);
                 }
                 else
                 {
@@ -1000,7 +1005,7 @@ namespace ClangSharp
 
                 if (remappedName.Equals(name))
                 {
-                    name = GetTypeName(cursor, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
+                    name = GetTypeName(cursor, context, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
                 }
                 else
                 {
@@ -1022,14 +1027,14 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetTypeNameForPointeeType(Cursor cursor, Type pointeeType, out string nativePointeeTypeName)
+        private string GetTypeNameForPointeeType(Cursor cursor, Cursor context, Type pointeeType, out string nativePointeeTypeName)
         {
             var name = pointeeType.AsString;
             nativePointeeTypeName = name;
 
             if (pointeeType is AttributedType attributedType)
             {
-                name = GetTypeNameForPointeeType(cursor, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, attributedType.ModifiedType, out var nativeModifiedTypeName);
             }
             else if (pointeeType is FunctionType functionType)
             {
@@ -1038,6 +1043,15 @@ namespace ClangSharp
                     var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
                     var callConv = GetCallingConventionName(cursor, functionType.CallConv, remappedName).ToLower();
 
+                    var needsReturnFixup = false;
+                    var returnTypeName = GetRemappedTypeName(cursor, context: null, functionType.ReturnType, out _);
+
+                    if (returnTypeName == "bool")
+                    {
+                        // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                        returnTypeName = "byte";
+                    }
+
                     var nameBuilder = new StringBuilder();
                     nameBuilder.Append("delegate");
                     nameBuilder.Append('*');
@@ -1045,14 +1059,48 @@ namespace ClangSharp
                     nameBuilder.Append((callConv != "winapi") ? callConv : "unmanaged");
                     nameBuilder.Append('<');
 
+                    if ((cursor is CXXMethodDecl cxxMethodDecl) && (context is CXXRecordDecl cxxRecordDecl))
+                    {
+                        var cxxRecordDeclName = GetRemappedCursorName(cxxRecordDecl);
+                        needsReturnFixup = cxxMethodDecl.IsVirtual && NeedsReturnFixup(cxxMethodDecl);
+
+                        nameBuilder.Append(EscapeName(cxxRecordDeclName));
+                        nameBuilder.Append('*');
+                        nameBuilder.Append(',');
+                        nameBuilder.Append(' ');
+
+                        if (needsReturnFixup)
+                        {
+                            nameBuilder.Append(returnTypeName);
+                            nameBuilder.Append('*');
+                            nameBuilder.Append(',');
+                            nameBuilder.Append(' ');
+                        }
+                    }
+
+
                     foreach (var paramType in functionProtoType.ParamTypes)
                     {
-                        nameBuilder.Append(GetRemappedTypeName(cursor, paramType, out _));
+                        var typeName = GetRemappedTypeName(cursor, context: null, paramType, out _);
+
+                        if (typeName == "bool")
+                        {
+                            // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                            typeName = "byte";
+                        }
+
+                        nameBuilder.Append(typeName);
                         nameBuilder.Append(',');
                         nameBuilder.Append(' ');
                     }
 
-                    nameBuilder.Append(GetRemappedTypeName(cursor, functionType.ReturnType, out _));
+                    nameBuilder.Append(returnTypeName);
+
+                    if (needsReturnFixup)
+                    {
+                        nameBuilder.Append('*');
+                    }
+
                     nameBuilder.Append('>');
                     name = nameBuilder.ToString();
                 }
@@ -1063,7 +1111,7 @@ namespace ClangSharp
             }
             else
             {
-                name = GetTypeName(cursor, pointeeType, out nativePointeeTypeName);
+                name = GetTypeName(cursor, context, pointeeType, out nativePointeeTypeName);
                 name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
                 name += '*';
             }
@@ -1261,7 +1309,7 @@ namespace ClangSharp
             }
             else if (type is TypedefType typedefType)
             {
-                var remappedName = GetRemappedTypeName(cursor, typedefType, out _);
+                var remappedName = GetRemappedTypeName(cursor, context: null, typedefType, out _);
 
                 return (remappedName == "IntPtr")
                     || (remappedName == "nint")
@@ -1309,7 +1357,7 @@ namespace ClangSharp
 
             if (type is ConstantArrayType)
             {
-                var typeName = GetRemappedTypeName(fieldDecl, type, out _);
+                var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out _);
                 return IsSupportedFixedSizedBufferType(typeName);
             }
 
@@ -1319,7 +1367,7 @@ namespace ClangSharp
         private bool IsUnsafe(FunctionDecl functionDecl)
         {
             var returnType = functionDecl.ReturnType;
-            var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out _);
+            var returnTypeName = GetRemappedTypeName(functionDecl, context: null, returnType, out _);
 
             if (returnTypeName.Contains('*'))
             {
@@ -1377,7 +1425,7 @@ namespace ClangSharp
 
         private bool IsUnsafe(NamedDecl namedDecl, Type type)
         {
-            var typeName = GetRemappedTypeName(namedDecl, type, out _);
+            var typeName = GetRemappedTypeName(namedDecl, context: null, type, out _);
             return typeName.Contains('*');
         }
 
@@ -1501,7 +1549,7 @@ namespace ClangSharp
             if (functionDecl is CXXConversionDecl)
             {
                 var returnType = functionDecl.ReturnType;
-                var returnTypeName = GetRemappedTypeName(cursor: null, returnType, out _);
+                var returnTypeName = GetRemappedTypeName(cursor: null, context: null, returnType, out _);
 
                 name = $"To{returnTypeName}";
                 return true;

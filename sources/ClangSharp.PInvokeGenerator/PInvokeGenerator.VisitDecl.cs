@@ -297,7 +297,7 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
-                var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
+                var integerTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
 
                 WithType("*", ref integerTypeName, ref nativeTypeName);
                 WithType(name, ref integerTypeName, ref nativeTypeName);
@@ -357,7 +357,7 @@ namespace ClangSharp
             var escapedName = EscapeName(name);
 
             var type = fieldDecl.Type;
-            var typeName = GetRemappedTypeName(fieldDecl, type, out var nativeTypeName);
+            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
 
             if (typeName.StartsWith("__AnonymousRecord_"))
             {
@@ -527,7 +527,7 @@ namespace ClangSharp
             }
 
             var returnType = functionDecl.ReturnType;
-            var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out var nativeTypeName);
+            var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
 
             if ((isVirtual || (body is null)) && (returnTypeName == "bool"))
             {
@@ -776,7 +776,7 @@ namespace ClangSharp
             void ForFunctionDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
             {
                 var type = parmVarDecl.Type;
-                var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
+                var typeName = GetRemappedTypeName(parmVarDecl, context: null, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
 
                 if ((((functionDecl is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsVirtual) || (functionDecl.Body is null)) && (typeName == "bool"))
@@ -837,7 +837,7 @@ namespace ClangSharp
             void ForTypedefDecl(ParmVarDecl parmVarDecl, TypedefDecl typedefDecl)
             {
                 var type = parmVarDecl.Type;
-                var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
+                var typeName = GetRemappedTypeName(parmVarDecl, context: null, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
 
                 _outputBuilder.Write(typeName);
@@ -1005,7 +1005,7 @@ namespace ClangSharp
                             nestedRecordDeclFieldName = newNestedRecordDeclFieldName;
                         }
 
-                        var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
+                        var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, context: null, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
 
                         if (nestedRecordDeclName.StartsWith("__AnonymousRecord_"))
                         {
@@ -1079,7 +1079,7 @@ namespace ClangSharp
                     _outputBuilder.NeedsNewline = true;
                     _outputBuilder.WriteIndentedLine("public partial struct Vtbl");
                     _outputBuilder.WriteBlockStart();
-                    OutputVtblEntries(this, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                    OutputVtblEntries(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
                     _outputBuilder.WriteBlockEnd();
                 }
 
@@ -1213,14 +1213,14 @@ namespace ClangSharp
                 }
             }
 
-            static void OutputVtblEntries(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
+            static void OutputVtblEntries(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
             {
                 var outputBuilder = pinvokeGenerator._outputBuilder;
 
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputVtblEntries(pinvokeGenerator, baseCxxRecordDecl, hitsPerName);
+                    OutputVtblEntries(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl, hitsPerName);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -1229,20 +1229,20 @@ namespace ClangSharp
                 {
                     foreach (var cxxMethodDecl in cxxMethodDecls)
                     {
-                        OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecl, hitsPerName);
+                        OutputVtblEntry(pinvokeGenerator, outputBuilder, rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
                         outputBuilder.NeedsNewline = true;
                     }
                 }
             }
 
-            static void OutputVtblEntry(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
+            static void OutputVtblEntry(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
             {
                 if (!cxxMethodDecl.IsVirtual || pinvokeGenerator.IsExcluded(cxxMethodDecl))
                 {
                     return;
                 }
 
-                var cxxMethodDeclTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, cxxMethodDecl.Type, out var nativeTypeName);
+                var cxxMethodDeclTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out var nativeTypeName);
                 pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName);
 
                 outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(cxxMethodDecl));
@@ -1276,7 +1276,7 @@ namespace ClangSharp
                 }
 
                 var returnType = cxxMethodDecl.ReturnType;
-                var returnTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, returnType, out var nativeTypeName);
+                var returnTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
                 pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
 
                 outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(cxxMethodDecl));
@@ -1472,7 +1472,7 @@ namespace ClangSharp
                 Debug.Assert(fieldDecl.IsBitField);
 
                 var outputBuilder = pinvokeGenerator._outputBuilder;
-                var typeName = pinvokeGenerator.GetRemappedTypeName(fieldDecl, fieldDecl.Type, out var nativeTypeName);
+                var typeName = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, fieldDecl.Type, out var nativeTypeName);
 
                 if (string.IsNullOrWhiteSpace(nativeTypeName))
                 {
@@ -1713,7 +1713,7 @@ namespace ClangSharp
 
                 var outputBuilder = pinvokeGenerator._outputBuilder;
                 var type = (ConstantArrayType)constantArray.Type;
-                var typeName = pinvokeGenerator.GetRemappedTypeName(constantArray, constantArray.Type, out _);
+                var typeName = pinvokeGenerator.GetRemappedTypeName(constantArray, context: null, constantArray.Type, out _);
 
                 if (pinvokeGenerator.IsSupportedFixedSizedBufferType(typeName))
                 {
@@ -1919,7 +1919,7 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(']');
 
                     var returnType = functionProtoType.ReturnType;
-                    var returnTypeName = GetRemappedTypeName(typedefDecl, returnType, out var nativeTypeName);
+                    var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
                     AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
 
                     _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
@@ -2041,7 +2041,7 @@ namespace ClangSharp
                 if (varDecl == declStmt.Decls.First())
                 {
                     var type = varDecl.Type;
-                    var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
+                    var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
 
                     _outputBuilder.Write(typeName);
 
@@ -2071,7 +2071,7 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(varDecl);
 
                 var type = varDecl.Type;
-                var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
+                var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName);
 
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(varDecl));
@@ -2127,7 +2127,7 @@ namespace ClangSharp
                     WithUsings(name);
 
                     var type = varDecl.Type;
-                    var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
+                    var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
                     AddNativeTypeNameAttribute(nativeTypeName, prefix: "// ");
 
                     _outputBuilder.WriteIndented("// public static extern");
