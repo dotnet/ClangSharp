@@ -120,6 +120,18 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "explicit-vtbls":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
+                        break;
+                    }
+
+                    case "implicit-vtbls":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
+                        break;
+                    }
+
                     case "latest-codegen":
                     {
                         configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;

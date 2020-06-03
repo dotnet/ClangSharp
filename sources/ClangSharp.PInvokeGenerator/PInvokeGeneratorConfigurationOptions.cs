@@ -26,5 +26,7 @@ namespace ClangSharp
         LogExclusions = 0x00000040,
 
         LogVisitedFiles = 0x00000080,
+
+        GenerateExplicitVtbls = 0x00000100,
     }
 }

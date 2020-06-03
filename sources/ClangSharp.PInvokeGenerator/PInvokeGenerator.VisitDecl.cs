@@ -943,7 +943,14 @@ namespace ClangSharp
 
                 if (hasVtbl)
                 {
-                    _outputBuilder.WriteIndentedLine("public Vtbl* lpVtbl;");
+                    if (_config.GenerateExplicitVtbls)
+                    {
+                        _outputBuilder.WriteIndentedLine("public Vtbl* lpVtbl;");
+                    }
+                    else
+                    {
+                        _outputBuilder.WriteIndentedLine("public void** lpVtbl;");
+                    }
                     _outputBuilder.NeedsNewline = true;
                 }
 
@@ -1065,22 +1072,27 @@ namespace ClangSharp
 
                 if (hasVtbl)
                 {
-                    _outputBuilder.AddUsingDirective("System");
-
                     if (!_config.GenerateCompatibleCode)
                     {
                         _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
                     }
 
-                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                    if (!_config.GeneratePreviewCodeFnptr)
+                    {
+                        _outputBuilder.AddUsingDirective("System");
+                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                    }
 
-                    OutputVtblHelperMethods(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                    OutputVtblHelperMethods(this, cxxRecordDecl, cxxRecordDecl, index: 0, hitsPerName: new Dictionary<string, int>());
 
-                    _outputBuilder.NeedsNewline = true;
-                    _outputBuilder.WriteIndentedLine("public partial struct Vtbl");
-                    _outputBuilder.WriteBlockStart();
-                    OutputVtblEntries(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
-                    _outputBuilder.WriteBlockEnd();
+                    if (_config.GenerateExplicitVtbls)
+                    {
+                        _outputBuilder.NeedsNewline = true;
+                        _outputBuilder.WriteIndentedLine("public partial struct Vtbl");
+                        _outputBuilder.WriteBlockStart();
+                        OutputVtblEntries(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                        _outputBuilder.WriteBlockEnd();
+                    }
                 }
 
                 _outputBuilder.WriteBlockEnd();
@@ -1268,7 +1280,7 @@ namespace ClangSharp
                 outputBuilder.WriteLine(';');
             }
 
-            static void OutputVtblHelperMethod(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
+            static void OutputVtblHelperMethod(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, ref int vtblIndex, Dictionary<string, int> hitsPerName)
             {
                 if (!cxxMethodDecl.IsVirtual || pinvokeGenerator.IsExcluded(cxxMethodDecl))
                 {
@@ -1364,8 +1376,35 @@ namespace ClangSharp
                     outputBuilder.Write('(');
                 }
 
-                outputBuilder.Write("lpVtbl->");
-                outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
+                if (pinvokeGenerator._config.GenerateExplicitVtbls)
+                {
+                    outputBuilder.Write("lpVtbl->");
+                    outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
+                }
+                else
+                {
+                    var cxxMethodDeclTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out var _);
+
+                    if (pinvokeGenerator._config.GeneratePreviewCodeFnptr)
+                    {
+                        outputBuilder.Write('(');
+                    }
+
+                    outputBuilder.Write('(');
+                    outputBuilder.Write(cxxMethodDeclTypeName);
+                    outputBuilder.Write(')');
+                    outputBuilder.Write('(');
+                    outputBuilder.Write("lpVtbl");
+                    outputBuilder.Write('[');
+                    outputBuilder.Write(vtblIndex);
+                    outputBuilder.Write(']');
+                    outputBuilder.Write(')');
+
+                    if (pinvokeGenerator._config.GeneratePreviewCodeFnptr)
+                    {
+                        outputBuilder.Write(')');
+                    }
+                }
 
                 if (!pinvokeGenerator._config.GeneratePreviewCodeFnptr)
                 {
@@ -1429,14 +1468,15 @@ namespace ClangSharp
                 }
 
                 outputBuilder.WriteBlockEnd();
+                vtblIndex += 1;
             }
 
-            static void OutputVtblHelperMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
+            static void OutputVtblHelperMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, int index, Dictionary<string, int> hitsPerName)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputVtblHelperMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl, hitsPerName);
+                    OutputVtblHelperMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl, index, hitsPerName);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -1445,7 +1485,7 @@ namespace ClangSharp
                 foreach (var cxxMethodDecl in cxxMethodDecls)
                 {
                     outputBuilder.NeedsNewline = true;
-                    OutputVtblHelperMethod(pinvokeGenerator, outputBuilder, rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
+                    OutputVtblHelperMethod(pinvokeGenerator, outputBuilder, rootCxxRecordDecl, cxxMethodDecl, ref index, hitsPerName);
                 }
             }
 
