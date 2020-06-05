@@ -3,6 +3,7 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-10.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
+using System;
 using System.Runtime.InteropServices;
 using Xunit;
 
@@ -29,7 +30,14 @@ namespace ClangSharp.Interop.UnitTests
         [Fact]
         public static void SizeOfTest()
         {
-            Assert.Equal(20, sizeof(CXToken));
+            if (Environment.Is64BitProcess)
+            {
+                Assert.Equal(24, sizeof(CXToken));
+            }
+            else
+            {
+                Assert.Equal(20, sizeof(CXToken));
+            }
         }
     }
 }
