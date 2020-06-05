@@ -2253,6 +2253,7 @@ namespace ClangSharp
                 _testOutputBuilder.Write(',');
                 _testOutputBuilder.Write(' ');
                 _testOutputBuilder.Write("Is.True");
+                _testOutputBuilder.Write(')');
                 _testOutputBuilder.WriteLine(';');
             }
             else if (_config.GenerateTestsXUnit)
