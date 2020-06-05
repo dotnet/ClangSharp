@@ -43,7 +43,7 @@ namespace ClangSharp.UnitTests
             using var unsavedFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
 
             var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
-            var config = new PInvokeGeneratorConfiguration(libraryPath, DefaultNamespaceName, Path.GetRandomFileName(), configOptions, excludedNames, headerFile: null, methodClassName: null, methodPrefixToStrip: null, remappedNames, traversalNames: null, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, DefaultNamespaceName, Path.GetRandomFileName(), testOutputLocation: null, configOptions, excludedNames, headerFile: null, methodClassName: null, methodPrefixToStrip: null, remappedNames, traversalNames: null, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings);
 
             using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))
             {

@@ -28,5 +28,9 @@ namespace ClangSharp
         LogVisitedFiles = 0x00000080,
 
         GenerateExplicitVtbls = 0x00000100,
+
+        GenerateTestsNUnit = 0x00000200,
+
+        GenerateTestsXUnit = 0x00000400,
     }
 }

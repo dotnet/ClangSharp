@@ -120,7 +120,7 @@ namespace ClangSharp
                 case CX_DeclKind.CX_DeclKind_Record:
                 case CX_DeclKind.CX_DeclKind_CXXRecord:
                 {
-                    VisitRecordDecl((CXXRecordDecl)decl);
+                    VisitRecordDecl((RecordDecl)decl);
                     break;
                 }
 
@@ -880,7 +880,7 @@ namespace ClangSharp
 
             var name = GetRemappedCursorName(recordDecl);
 
-            StartUsingOutputBuilder(name);
+            StartUsingOutputBuilder(name, includeTestOutput: true);
             {
                 var cxxRecordDecl = recordDecl as CXXRecordDecl;
                 var hasVtbl = false;
@@ -892,6 +892,20 @@ namespace ClangSharp
 
                 var alignment = recordDecl.TypeForDecl.Handle.AlignOf;
                 var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => fieldDecl.Type.Handle.AlignOf) : alignment;
+
+                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                {
+                    _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=");
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.Write(EscapeName(name));
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.WriteLine(" /> struct.</summary>");
+                    _testOutputBuilder.WriteIndented("public static unsafe class");
+                    _testOutputBuilder.Write(' ');
+                    _testOutputBuilder.Write(EscapeName(name));
+                    _testOutputBuilder.WriteLine("Tests");
+                    _testOutputBuilder.WriteBlockStart();
+                }
 
                 if (recordDecl.IsUnion)
                 {
@@ -952,6 +966,67 @@ namespace ClangSharp
                         _outputBuilder.WriteIndentedLine("public void** lpVtbl;");
                     }
                     _outputBuilder.NeedsNewline = true;
+
+                    if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                    {
+                        _testOutputBuilder.AddUsingDirective($"static {_config.Namespace}.{_config.MethodClassName}");
+
+                        _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"Guid\" /> of the <see cref=");
+                        _testOutputBuilder.Write('"');
+                        _testOutputBuilder.Write(EscapeName(name));
+                        _testOutputBuilder.Write('"');
+                        _testOutputBuilder.WriteLine(" /> struct is correct.</summary>");
+
+                        WithTestAttribute();
+
+                        _testOutputBuilder.WriteIndented("public static void");
+                        _testOutputBuilder.Write(' ');
+                        _testOutputBuilder.Write("GuidOfTest");
+                        _testOutputBuilder.Write('(');
+                        _testOutputBuilder.WriteLine(')');
+                        _testOutputBuilder.WriteBlockStart();
+
+                        if (_config.GenerateTestsNUnit)
+                        {
+                            _testOutputBuilder.WriteIndented("Assert.That");
+                        }
+                        else if (_config.GenerateTestsXUnit)
+                        {
+                            _testOutputBuilder.WriteIndented("Assert.Equal");
+                        }
+
+                        _testOutputBuilder.Write('(');
+                        _testOutputBuilder.Write("typeof");
+                        _testOutputBuilder.Write('(');
+                        _testOutputBuilder.Write(EscapeName(name));
+                        _testOutputBuilder.Write(')');
+                        _testOutputBuilder.Write('.');
+                        _testOutputBuilder.Write("GUID");
+                        _testOutputBuilder.Write(',');
+                        _testOutputBuilder.Write(' ');
+
+                        if (_config.GenerateTestsNUnit)
+                        {
+                            _testOutputBuilder.Write("Is");
+                            _testOutputBuilder.Write('.');
+                            _testOutputBuilder.Write("EqualTo");
+                            _testOutputBuilder.Write('(');
+                        }
+
+                        _testOutputBuilder.Write("IID");
+                        _testOutputBuilder.Write('_');
+                        _testOutputBuilder.Write(EscapeName(name));
+
+                        if (_config.GenerateTestsNUnit)
+                        {
+                            _testOutputBuilder.Write(')');
+                        }
+
+                        _testOutputBuilder.Write(')');
+                        _testOutputBuilder.WriteLine(';');
+                        _testOutputBuilder.WriteBlockEnd();
+                        _testOutputBuilder.NeedsNewline = true;
+                    }
                 }
 
                 if (cxxRecordDecl != null)
@@ -974,7 +1049,115 @@ namespace ClangSharp
                     }
                 }
 
-                var bitfieldCount = GetBitfieldCount(this, recordDecl);
+                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                {
+                    _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=");
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.Write(EscapeName(name));
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.WriteLine(" /> struct is blittable.</summary>");
+
+                    WithTestAttribute();
+
+                    _testOutputBuilder.WriteIndented("public static void");
+                    _testOutputBuilder.Write(' ');
+                    _testOutputBuilder.Write("IsBlittableTest");
+                    _testOutputBuilder.Write('(');
+                    _testOutputBuilder.WriteLine(')');
+                    _testOutputBuilder.WriteBlockStart();
+
+                    WithTestAssertEqual($"sizeof({EscapeName(name)})", $"Marshal.SizeOf<{EscapeName(name)}>()");
+
+                    _testOutputBuilder.WriteBlockEnd();
+                    _testOutputBuilder.NeedsNewline = true;
+
+                    _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=");
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.Write(EscapeName(name));
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.WriteLine(" /> struct has the right <see cref=\"LayoutKind\" />.</summary>");
+
+                    WithTestAttribute();
+
+                    _testOutputBuilder.WriteIndented("public static void");
+                    _testOutputBuilder.Write(' ');
+                    _testOutputBuilder.Write("IsLayout");
+
+                    if (recordDecl.IsUnion)
+                    {
+                        _testOutputBuilder.Write("Explicit");
+                    }
+                    else
+                    {
+                        _testOutputBuilder.Write("Sequential");
+                    }
+
+                    _testOutputBuilder.Write("Test");
+                    _testOutputBuilder.Write('(');
+                    _testOutputBuilder.WriteLine(')');
+                    _testOutputBuilder.WriteBlockStart();
+
+                    WithTestAssertTrue($"typeof({EscapeName(name)}).Is{(recordDecl.IsUnion ? "ExplicitLayout" : "LayoutSequential")}");
+
+                    _testOutputBuilder.WriteBlockEnd();
+                    _testOutputBuilder.NeedsNewline = true;
+
+                    long alignment32 = -1;
+                    long alignment64 = -1;
+
+                    GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32, out var size64);
+
+                    if ((size32 == 0) || (size64 == 0))
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"{EscapeName(name)} has a size of 0");
+                    }
+
+                    _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=");
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.Write(EscapeName(name));
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.WriteLine(" /> struct has the correct size.</summary>");
+
+                    WithTestAttribute();
+
+                    _testOutputBuilder.WriteIndented("public static void");
+                    _testOutputBuilder.Write(' ');
+                    _testOutputBuilder.Write("SizeOfTest");
+                    _testOutputBuilder.Write('(');
+                    _testOutputBuilder.WriteLine(')');
+                    _testOutputBuilder.WriteBlockStart();
+
+                    if (size32 != size64)
+                    {
+                        _testOutputBuilder.AddUsingDirective("System");
+
+                        _testOutputBuilder.WriteIndented("if");
+                        _testOutputBuilder.Write(' ');
+                        _testOutputBuilder.Write('(');
+                        _testOutputBuilder.Write("Environment");
+                        _testOutputBuilder.Write('.');
+                        _testOutputBuilder.Write("Is64BitProcess");
+                        _testOutputBuilder.WriteLine(')');
+                        _testOutputBuilder.WriteBlockStart();
+
+                        WithTestAssertEqual($"{size64}", $"sizeof({EscapeName(name)})");
+
+                        _testOutputBuilder.WriteBlockEnd();
+                        _testOutputBuilder.WriteIndentedLine("else");
+                        _testOutputBuilder.WriteBlockStart();
+                    }
+
+                    WithTestAssertEqual($"{size32}", $"sizeof({EscapeName(name)})");
+
+                    if (size32 != size64)
+                    {
+                        _testOutputBuilder.WriteBlockEnd();
+                    }
+
+                    _testOutputBuilder.WriteBlockEnd();
+                }
+
+                var bitfieldCount = GetBitfieldCount(recordDecl);
                 var bitfieldIndex = (bitfieldCount == 1) ? -1 : 0;
 
                 var bitfieldPreviousSize = 0L;
@@ -1083,7 +1266,8 @@ namespace ClangSharp
                         _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
                     }
 
-                    OutputVtblHelperMethods(this, cxxRecordDecl, cxxRecordDecl, index: 0, hitsPerName: new Dictionary<string, int>());
+                    int index = 0;
+                    OutputVtblHelperMethods(this, cxxRecordDecl, cxxRecordDecl, ref index, hitsPerName: new Dictionary<string, int>());
 
                     if (_config.GenerateExplicitVtbls)
                     {
@@ -1096,6 +1280,11 @@ namespace ClangSharp
                 }
 
                 _outputBuilder.WriteBlockEnd();
+
+                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                {
+                    _testOutputBuilder.WriteBlockEnd();
+                }
             }
             StopUsingOutputBuilder();
 
@@ -1118,34 +1307,6 @@ namespace ClangSharp
                 }
 
                 return remappedName;
-            }
-
-            static int GetBitfieldCount(PInvokeGenerator pinvokeGenerator, RecordDecl recordDecl)
-            {
-                var count = 0;
-                var previousSize = 0L;
-                var remainingBits = 0L;
-
-                foreach (var fieldDecl in recordDecl.Fields)
-                {
-                    if (!fieldDecl.IsBitField)
-                    {
-                        continue;
-                    }
-
-                    var currentSize = fieldDecl.Type.Handle.SizeOf;
-
-                    if ((currentSize != previousSize) || (fieldDecl.BitWidthValue > remainingBits))
-                    {
-                        count++;
-                        remainingBits = currentSize * 8;
-                    }
-
-                    remainingBits -= fieldDecl.BitWidthValue;
-                    previousSize = currentSize;
-                }
-
-                return count;
             }
 
             static bool HasFields(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
@@ -1471,12 +1632,12 @@ namespace ClangSharp
                 vtblIndex += 1;
             }
 
-            static void OutputVtblHelperMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, int index, Dictionary<string, int> hitsPerName)
+            static void OutputVtblHelperMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, ref int index, Dictionary<string, int> hitsPerName)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputVtblHelperMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl, index, hitsPerName);
+                    OutputVtblHelperMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl, ref index, hitsPerName);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;

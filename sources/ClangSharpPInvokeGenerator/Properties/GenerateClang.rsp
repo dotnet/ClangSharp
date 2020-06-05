@@ -1,5 +1,6 @@
 --config
 compatible-codegen
+generate-tests-xunit
 multi-file
 --file
 clang-c/BuildSystem.h
@@ -18,6 +19,8 @@ clang
 --namespace
 ClangSharp.Interop
 --output
-./ClangSharp/Interop
+./sources/ClangSharp/Interop
+--test-output
+./tests/ClangSharp/Interop
 --prefixStrip
 clang_
