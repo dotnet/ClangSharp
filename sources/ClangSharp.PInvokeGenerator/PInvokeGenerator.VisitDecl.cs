@@ -120,7 +120,7 @@ namespace ClangSharp
                 case CX_DeclKind.CX_DeclKind_Record:
                 case CX_DeclKind.CX_DeclKind_CXXRecord:
                 {
-                    VisitRecordDecl((CXXRecordDecl)decl);
+                    VisitRecordDecl((RecordDecl)decl);
                     break;
                 }
 
@@ -297,7 +297,7 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
-                var integerTypeName = GetRemappedTypeName(enumDecl, enumDecl.IntegerType, out var nativeTypeName);
+                var integerTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
 
                 WithType("*", ref integerTypeName, ref nativeTypeName);
                 WithType(name, ref integerTypeName, ref nativeTypeName);
@@ -357,7 +357,7 @@ namespace ClangSharp
             var escapedName = EscapeName(name);
 
             var type = fieldDecl.Type;
-            var typeName = GetRemappedTypeName(fieldDecl, type, out var nativeTypeName);
+            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
 
             if (typeName.StartsWith("__AnonymousRecord_"))
             {
@@ -527,7 +527,7 @@ namespace ClangSharp
             }
 
             var returnType = functionDecl.ReturnType;
-            var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out var nativeTypeName);
+            var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
 
             if ((isVirtual || (body is null)) && (returnTypeName == "bool"))
             {
@@ -776,7 +776,7 @@ namespace ClangSharp
             void ForFunctionDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
             {
                 var type = parmVarDecl.Type;
-                var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
+                var typeName = GetRemappedTypeName(parmVarDecl, context: null, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
 
                 if ((((functionDecl is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsVirtual) || (functionDecl.Body is null)) && (typeName == "bool"))
@@ -837,7 +837,7 @@ namespace ClangSharp
             void ForTypedefDecl(ParmVarDecl parmVarDecl, TypedefDecl typedefDecl)
             {
                 var type = parmVarDecl.Type;
-                var typeName = GetRemappedTypeName(parmVarDecl, type, out var nativeTypeName);
+                var typeName = GetRemappedTypeName(parmVarDecl, context: null, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
 
                 _outputBuilder.Write(typeName);
@@ -880,7 +880,7 @@ namespace ClangSharp
 
             var name = GetRemappedCursorName(recordDecl);
 
-            StartUsingOutputBuilder(name);
+            StartUsingOutputBuilder(name, includeTestOutput: true);
             {
                 var cxxRecordDecl = recordDecl as CXXRecordDecl;
                 var hasVtbl = false;
@@ -892,6 +892,20 @@ namespace ClangSharp
 
                 var alignment = recordDecl.TypeForDecl.Handle.AlignOf;
                 var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => fieldDecl.Type.Handle.AlignOf) : alignment;
+
+                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                {
+                    _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=");
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.Write(EscapeName(name));
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.WriteLine(" /> struct.</summary>");
+                    _testOutputBuilder.WriteIndented("public static unsafe class");
+                    _testOutputBuilder.Write(' ');
+                    _testOutputBuilder.Write(EscapeName(name));
+                    _testOutputBuilder.WriteLine("Tests");
+                    _testOutputBuilder.WriteBlockStart();
+                }
 
                 if (recordDecl.IsUnion)
                 {
@@ -943,8 +957,76 @@ namespace ClangSharp
 
                 if (hasVtbl)
                 {
-                    _outputBuilder.WriteIndentedLine("public Vtbl* lpVtbl;");
+                    if (_config.GenerateExplicitVtbls)
+                    {
+                        _outputBuilder.WriteIndentedLine("public Vtbl* lpVtbl;");
+                    }
+                    else
+                    {
+                        _outputBuilder.WriteIndentedLine("public void** lpVtbl;");
+                    }
                     _outputBuilder.NeedsNewline = true;
+
+                    if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                    {
+                        _testOutputBuilder.AddUsingDirective($"static {_config.Namespace}.{_config.MethodClassName}");
+
+                        _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"Guid\" /> of the <see cref=");
+                        _testOutputBuilder.Write('"');
+                        _testOutputBuilder.Write(EscapeName(name));
+                        _testOutputBuilder.Write('"');
+                        _testOutputBuilder.WriteLine(" /> struct is correct.</summary>");
+
+                        WithTestAttribute();
+
+                        _testOutputBuilder.WriteIndented("public static void");
+                        _testOutputBuilder.Write(' ');
+                        _testOutputBuilder.Write("GuidOfTest");
+                        _testOutputBuilder.Write('(');
+                        _testOutputBuilder.WriteLine(')');
+                        _testOutputBuilder.WriteBlockStart();
+
+                        if (_config.GenerateTestsNUnit)
+                        {
+                            _testOutputBuilder.WriteIndented("Assert.That");
+                        }
+                        else if (_config.GenerateTestsXUnit)
+                        {
+                            _testOutputBuilder.WriteIndented("Assert.Equal");
+                        }
+
+                        _testOutputBuilder.Write('(');
+                        _testOutputBuilder.Write("typeof");
+                        _testOutputBuilder.Write('(');
+                        _testOutputBuilder.Write(EscapeName(name));
+                        _testOutputBuilder.Write(')');
+                        _testOutputBuilder.Write('.');
+                        _testOutputBuilder.Write("GUID");
+                        _testOutputBuilder.Write(',');
+                        _testOutputBuilder.Write(' ');
+
+                        if (_config.GenerateTestsNUnit)
+                        {
+                            _testOutputBuilder.Write("Is");
+                            _testOutputBuilder.Write('.');
+                            _testOutputBuilder.Write("EqualTo");
+                            _testOutputBuilder.Write('(');
+                        }
+
+                        _testOutputBuilder.Write("IID");
+                        _testOutputBuilder.Write('_');
+                        _testOutputBuilder.Write(EscapeName(name));
+
+                        if (_config.GenerateTestsNUnit)
+                        {
+                            _testOutputBuilder.Write(')');
+                        }
+
+                        _testOutputBuilder.Write(')');
+                        _testOutputBuilder.WriteLine(';');
+                        _testOutputBuilder.WriteBlockEnd();
+                        _testOutputBuilder.NeedsNewline = true;
+                    }
                 }
 
                 if (cxxRecordDecl != null)
@@ -967,7 +1049,115 @@ namespace ClangSharp
                     }
                 }
 
-                var bitfieldCount = GetBitfieldCount(this, recordDecl);
+                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                {
+                    _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=");
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.Write(EscapeName(name));
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.WriteLine(" /> struct is blittable.</summary>");
+
+                    WithTestAttribute();
+
+                    _testOutputBuilder.WriteIndented("public static void");
+                    _testOutputBuilder.Write(' ');
+                    _testOutputBuilder.Write("IsBlittableTest");
+                    _testOutputBuilder.Write('(');
+                    _testOutputBuilder.WriteLine(')');
+                    _testOutputBuilder.WriteBlockStart();
+
+                    WithTestAssertEqual($"sizeof({EscapeName(name)})", $"Marshal.SizeOf<{EscapeName(name)}>()");
+
+                    _testOutputBuilder.WriteBlockEnd();
+                    _testOutputBuilder.NeedsNewline = true;
+
+                    _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=");
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.Write(EscapeName(name));
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.WriteLine(" /> struct has the right <see cref=\"LayoutKind\" />.</summary>");
+
+                    WithTestAttribute();
+
+                    _testOutputBuilder.WriteIndented("public static void");
+                    _testOutputBuilder.Write(' ');
+                    _testOutputBuilder.Write("IsLayout");
+
+                    if (recordDecl.IsUnion)
+                    {
+                        _testOutputBuilder.Write("Explicit");
+                    }
+                    else
+                    {
+                        _testOutputBuilder.Write("Sequential");
+                    }
+
+                    _testOutputBuilder.Write("Test");
+                    _testOutputBuilder.Write('(');
+                    _testOutputBuilder.WriteLine(')');
+                    _testOutputBuilder.WriteBlockStart();
+
+                    WithTestAssertTrue($"typeof({EscapeName(name)}).Is{(recordDecl.IsUnion ? "ExplicitLayout" : "LayoutSequential")}");
+
+                    _testOutputBuilder.WriteBlockEnd();
+                    _testOutputBuilder.NeedsNewline = true;
+
+                    long alignment32 = -1;
+                    long alignment64 = -1;
+
+                    GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32, out var size64);
+
+                    if ((size32 == 0) || (size64 == 0))
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"{EscapeName(name)} has a size of 0");
+                    }
+
+                    _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=");
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.Write(EscapeName(name));
+                    _testOutputBuilder.Write('"');
+                    _testOutputBuilder.WriteLine(" /> struct has the correct size.</summary>");
+
+                    WithTestAttribute();
+
+                    _testOutputBuilder.WriteIndented("public static void");
+                    _testOutputBuilder.Write(' ');
+                    _testOutputBuilder.Write("SizeOfTest");
+                    _testOutputBuilder.Write('(');
+                    _testOutputBuilder.WriteLine(')');
+                    _testOutputBuilder.WriteBlockStart();
+
+                    if (size32 != size64)
+                    {
+                        _testOutputBuilder.AddUsingDirective("System");
+
+                        _testOutputBuilder.WriteIndented("if");
+                        _testOutputBuilder.Write(' ');
+                        _testOutputBuilder.Write('(');
+                        _testOutputBuilder.Write("Environment");
+                        _testOutputBuilder.Write('.');
+                        _testOutputBuilder.Write("Is64BitProcess");
+                        _testOutputBuilder.WriteLine(')');
+                        _testOutputBuilder.WriteBlockStart();
+
+                        WithTestAssertEqual($"{size64}", $"sizeof({EscapeName(name)})");
+
+                        _testOutputBuilder.WriteBlockEnd();
+                        _testOutputBuilder.WriteIndentedLine("else");
+                        _testOutputBuilder.WriteBlockStart();
+                    }
+
+                    WithTestAssertEqual($"{size32}", $"sizeof({EscapeName(name)})");
+
+                    if (size32 != size64)
+                    {
+                        _testOutputBuilder.WriteBlockEnd();
+                    }
+
+                    _testOutputBuilder.WriteBlockEnd();
+                }
+
+                var bitfieldCount = GetBitfieldCount(recordDecl);
                 var bitfieldIndex = (bitfieldCount == 1) ? -1 : 0;
 
                 var bitfieldPreviousSize = 0L;
@@ -1005,7 +1195,7 @@ namespace ClangSharp
                             nestedRecordDeclFieldName = newNestedRecordDeclFieldName;
                         }
 
-                        var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
+                        var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, context: null, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
 
                         if (nestedRecordDeclName.StartsWith("__AnonymousRecord_"))
                         {
@@ -1065,25 +1255,36 @@ namespace ClangSharp
 
                 if (hasVtbl)
                 {
-                    _outputBuilder.AddUsingDirective("System");
-
                     if (!_config.GenerateCompatibleCode)
                     {
                         _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
                     }
 
-                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                    if (!_config.GeneratePreviewCodeFnptr)
+                    {
+                        _outputBuilder.AddUsingDirective("System");
+                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                    }
 
-                    OutputVtblHelperMethods(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                    int index = 0;
+                    OutputVtblHelperMethods(this, cxxRecordDecl, cxxRecordDecl, ref index, hitsPerName: new Dictionary<string, int>());
 
-                    _outputBuilder.NeedsNewline = true;
-                    _outputBuilder.WriteIndentedLine("public partial struct Vtbl");
-                    _outputBuilder.WriteBlockStart();
-                    OutputVtblEntries(this, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
-                    _outputBuilder.WriteBlockEnd();
+                    if (_config.GenerateExplicitVtbls)
+                    {
+                        _outputBuilder.NeedsNewline = true;
+                        _outputBuilder.WriteIndentedLine("public partial struct Vtbl");
+                        _outputBuilder.WriteBlockStart();
+                        OutputVtblEntries(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                        _outputBuilder.WriteBlockEnd();
+                    }
                 }
 
                 _outputBuilder.WriteBlockEnd();
+
+                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                {
+                    _testOutputBuilder.WriteBlockEnd();
+                }
             }
             StopUsingOutputBuilder();
 
@@ -1106,34 +1307,6 @@ namespace ClangSharp
                 }
 
                 return remappedName;
-            }
-
-            static int GetBitfieldCount(PInvokeGenerator pinvokeGenerator, RecordDecl recordDecl)
-            {
-                var count = 0;
-                var previousSize = 0L;
-                var remainingBits = 0L;
-
-                foreach (var fieldDecl in recordDecl.Fields)
-                {
-                    if (!fieldDecl.IsBitField)
-                    {
-                        continue;
-                    }
-
-                    var currentSize = fieldDecl.Type.Handle.SizeOf;
-
-                    if ((currentSize != previousSize) || (fieldDecl.BitWidthValue > remainingBits))
-                    {
-                        count++;
-                        remainingBits = currentSize * 8;
-                    }
-
-                    remainingBits -= fieldDecl.BitWidthValue;
-                    previousSize = currentSize;
-                }
-
-                return count;
             }
 
             static bool HasFields(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl)
@@ -1213,14 +1386,14 @@ namespace ClangSharp
                 }
             }
 
-            static void OutputVtblEntries(PInvokeGenerator pinvokeGenerator, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
+            static void OutputVtblEntries(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
             {
                 var outputBuilder = pinvokeGenerator._outputBuilder;
 
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputVtblEntries(pinvokeGenerator, baseCxxRecordDecl, hitsPerName);
+                    OutputVtblEntries(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl, hitsPerName);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -1229,20 +1402,20 @@ namespace ClangSharp
                 {
                     foreach (var cxxMethodDecl in cxxMethodDecls)
                     {
-                        OutputVtblEntry(pinvokeGenerator, outputBuilder, cxxMethodDecl, hitsPerName);
+                        OutputVtblEntry(pinvokeGenerator, outputBuilder, rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
                         outputBuilder.NeedsNewline = true;
                     }
                 }
             }
 
-            static void OutputVtblEntry(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
+            static void OutputVtblEntry(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
             {
                 if (!cxxMethodDecl.IsVirtual || pinvokeGenerator.IsExcluded(cxxMethodDecl))
                 {
                     return;
                 }
 
-                var cxxMethodDeclTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, cxxMethodDecl.Type, out var nativeTypeName);
+                var cxxMethodDeclTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out var nativeTypeName);
                 pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName);
 
                 outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(cxxMethodDecl));
@@ -1268,7 +1441,7 @@ namespace ClangSharp
                 outputBuilder.WriteLine(';');
             }
 
-            static void OutputVtblHelperMethod(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
+            static void OutputVtblHelperMethod(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, ref int vtblIndex, Dictionary<string, int> hitsPerName)
             {
                 if (!cxxMethodDecl.IsVirtual || pinvokeGenerator.IsExcluded(cxxMethodDecl))
                 {
@@ -1276,7 +1449,7 @@ namespace ClangSharp
                 }
 
                 var returnType = cxxMethodDecl.ReturnType;
-                var returnTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, returnType, out var nativeTypeName);
+                var returnTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
                 pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
 
                 outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(cxxMethodDecl));
@@ -1364,8 +1537,35 @@ namespace ClangSharp
                     outputBuilder.Write('(');
                 }
 
-                outputBuilder.Write("lpVtbl->");
-                outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
+                if (pinvokeGenerator._config.GenerateExplicitVtbls)
+                {
+                    outputBuilder.Write("lpVtbl->");
+                    outputBuilder.Write(pinvokeGenerator.EscapeAndStripName(cxxMethodDeclName));
+                }
+                else
+                {
+                    var cxxMethodDeclTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out var _);
+
+                    if (pinvokeGenerator._config.GeneratePreviewCodeFnptr)
+                    {
+                        outputBuilder.Write('(');
+                    }
+
+                    outputBuilder.Write('(');
+                    outputBuilder.Write(cxxMethodDeclTypeName);
+                    outputBuilder.Write(')');
+                    outputBuilder.Write('(');
+                    outputBuilder.Write("lpVtbl");
+                    outputBuilder.Write('[');
+                    outputBuilder.Write(vtblIndex);
+                    outputBuilder.Write(']');
+                    outputBuilder.Write(')');
+
+                    if (pinvokeGenerator._config.GeneratePreviewCodeFnptr)
+                    {
+                        outputBuilder.Write(')');
+                    }
+                }
 
                 if (!pinvokeGenerator._config.GeneratePreviewCodeFnptr)
                 {
@@ -1429,14 +1629,15 @@ namespace ClangSharp
                 }
 
                 outputBuilder.WriteBlockEnd();
+                vtblIndex += 1;
             }
 
-            static void OutputVtblHelperMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
+            static void OutputVtblHelperMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, ref int index, Dictionary<string, int> hitsPerName)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputVtblHelperMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl, hitsPerName);
+                    OutputVtblHelperMethods(pinvokeGenerator, rootCxxRecordDecl, baseCxxRecordDecl, ref index, hitsPerName);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -1445,7 +1646,7 @@ namespace ClangSharp
                 foreach (var cxxMethodDecl in cxxMethodDecls)
                 {
                     outputBuilder.NeedsNewline = true;
-                    OutputVtblHelperMethod(pinvokeGenerator, outputBuilder, rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
+                    OutputVtblHelperMethod(pinvokeGenerator, outputBuilder, rootCxxRecordDecl, cxxMethodDecl, ref index, hitsPerName);
                 }
             }
 
@@ -1472,7 +1673,7 @@ namespace ClangSharp
                 Debug.Assert(fieldDecl.IsBitField);
 
                 var outputBuilder = pinvokeGenerator._outputBuilder;
-                var typeName = pinvokeGenerator.GetRemappedTypeName(fieldDecl, fieldDecl.Type, out var nativeTypeName);
+                var typeName = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, fieldDecl.Type, out var nativeTypeName);
 
                 if (string.IsNullOrWhiteSpace(nativeTypeName))
                 {
@@ -1713,7 +1914,7 @@ namespace ClangSharp
 
                 var outputBuilder = pinvokeGenerator._outputBuilder;
                 var type = (ConstantArrayType)constantArray.Type;
-                var typeName = pinvokeGenerator.GetRemappedTypeName(constantArray, constantArray.Type, out _);
+                var typeName = pinvokeGenerator.GetRemappedTypeName(constantArray, context: null, constantArray.Type, out _);
 
                 if (pinvokeGenerator.IsSupportedFixedSizedBufferType(typeName))
                 {
@@ -1919,7 +2120,7 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(']');
 
                     var returnType = functionProtoType.ReturnType;
-                    var returnTypeName = GetRemappedTypeName(typedefDecl, returnType, out var nativeTypeName);
+                    var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
                     AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
 
                     _outputBuilder.WriteIndented(GetAccessSpecifierName(typedefDecl));
@@ -2041,7 +2242,7 @@ namespace ClangSharp
                 if (varDecl == declStmt.Decls.First())
                 {
                     var type = varDecl.Type;
-                    var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
+                    var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
 
                     _outputBuilder.Write(typeName);
 
@@ -2071,7 +2272,7 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(varDecl);
 
                 var type = varDecl.Type;
-                var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
+                var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName);
 
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(varDecl));
@@ -2127,7 +2328,7 @@ namespace ClangSharp
                     WithUsings(name);
 
                     var type = varDecl.Type;
-                    var typeName = GetRemappedTypeName(varDecl, type, out var nativeTypeName);
+                    var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
                     AddNativeTypeNameAttribute(nativeTypeName, prefix: "// ");
 
                     _outputBuilder.WriteIndented("// public static extern");

@@ -25,6 +25,7 @@ namespace ClangSharp
         private readonly PInvokeGeneratorConfiguration _config;
 
         private OutputBuilder _outputBuilder;
+        private OutputBuilder _testOutputBuilder;
         private int _outputBuilderUsers;
         private bool _disposed;
         private bool _isMethodClassUnsafe;
@@ -112,7 +113,8 @@ namespace ClangSharp
 
             foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
             {
-                var outputPath = _config.OutputLocation;
+                var outputPath = outputBuilder.IsTestOutput ? _config.TestOutputLocation : _config.OutputLocation;
+
                 var isMethodClass = _config.MethodClassName.Equals(outputBuilder.Name);
 
                 if (_config.GenerateMultipleFiles)
@@ -294,7 +296,15 @@ namespace ClangSharp
             {
                 sw.Write("namespace");
                 sw.Write(' ');
-                sw.WriteLine(Config.Namespace);
+                sw.Write(Config.Namespace);
+
+                if (outputBuilder.IsTestOutput)
+                {
+                    sw.Write('.');
+                    sw.Write("UnitTests");
+                }
+
+                sw.WriteLine();
                 sw.WriteLine('{');
             }
             else
@@ -523,6 +533,34 @@ namespace ClangSharp
             return $"_{name}_e__FixedBuffer";
         }
 
+        private int GetBitfieldCount(RecordDecl recordDecl)
+        {
+            var count = 0;
+            var previousSize = 0L;
+            var remainingBits = 0L;
+
+            foreach (var fieldDecl in recordDecl.Fields)
+            {
+                if (!fieldDecl.IsBitField)
+                {
+                    continue;
+                }
+
+                var currentSize = fieldDecl.Type.Handle.SizeOf;
+
+                if ((currentSize != previousSize) || (fieldDecl.BitWidthValue > remainingBits))
+                {
+                    count++;
+                    remainingBits = currentSize * 8;
+                }
+
+                remainingBits -= fieldDecl.BitWidthValue;
+                previousSize = currentSize;
+            }
+
+            return count;
+        }
+
         private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention, string remappedName)
         {
             if (_config.WithCallConvs.TryGetValue(remappedName, out string callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
@@ -581,7 +619,7 @@ namespace ClangSharp
                     }
                     else
                     {
-                        name = GetTypeName(namedDecl, typeDecl.TypeForDecl, out var nativeTypeName);
+                        name = GetTypeName(namedDecl, context: null, typeDecl.TypeForDecl, out var nativeTypeName);
                         Debug.Assert(string.IsNullOrWhiteSpace(nativeTypeName));
                     }
                 }
@@ -811,9 +849,9 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedTypeName(Cursor cursor, Type type, out string nativeTypeName)
+        private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
-            var name = GetTypeName(cursor, type, out nativeTypeName);
+            var name = GetTypeName(cursor, context, type, out nativeTypeName);
             name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
 
             if (nativeTypeName.Equals(name))
@@ -823,18 +861,23 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetTypeName(Cursor cursor, Type type, out string nativeTypeName)
+        private string GetTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
             var name = type.AsString;
             nativeTypeName = name;
 
             if (type is ArrayType arrayType)
             {
-                name = GetTypeName(cursor, arrayType.ElementType, out var nativeElementTypeName);
+                name = GetTypeName(cursor, context, arrayType.ElementType, out var nativeElementTypeName);
+
+                if (cursor is CXXMethodDecl)
+                {
+                    name += '*';
+                }
             }
             else if (type is AttributedType attributedType)
             {
-                name = GetTypeName(cursor, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeName(cursor, context, attributedType.ModifiedType, out var nativeModifiedTypeName);
             }
             else if (type is BuiltinType)
             {
@@ -961,19 +1004,19 @@ namespace ClangSharp
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                name = GetTypeName(cursor, elaboratedType.NamedType, out var nativeNamedTypeName);
+                name = GetTypeName(cursor, context, elaboratedType.NamedType, out var nativeNamedTypeName);
             }
             else if (type is FunctionType functionType)
             {
-                name = GetTypeNameForPointeeType(cursor, functionType, out var nativeFunctionTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, functionType, out var nativeFunctionTypeName);
             }
             else if (type is PointerType pointerType)
             {
-                name = GetTypeNameForPointeeType(cursor, pointerType.PointeeType, out var nativePointeeTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, pointerType.PointeeType, out var nativePointeeTypeName);
             }
             else if (type is ReferenceType referenceType)
             {
-                name = GetTypeNameForPointeeType(cursor, referenceType.PointeeType, out var nativePointeeTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, referenceType.PointeeType, out var nativePointeeTypeName);
             }
             else if (type is TagType tagType)
             {
@@ -983,7 +1026,7 @@ namespace ClangSharp
                 }
                 else if (tagType.Handle.IsConstQualified)
                 {
-                    name = GetTypeName(cursor, tagType.Decl.TypeForDecl, out var nativeDeclTypeName);
+                    name = GetTypeName(cursor, context, tagType.Decl.TypeForDecl, out var nativeDeclTypeName);
                 }
                 else
                 {
@@ -1000,7 +1043,7 @@ namespace ClangSharp
 
                 if (remappedName.Equals(name))
                 {
-                    name = GetTypeName(cursor, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
+                    name = GetTypeName(cursor, context, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
                 }
                 else
                 {
@@ -1022,14 +1065,14 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetTypeNameForPointeeType(Cursor cursor, Type pointeeType, out string nativePointeeTypeName)
+        private string GetTypeNameForPointeeType(Cursor cursor, Cursor context, Type pointeeType, out string nativePointeeTypeName)
         {
             var name = pointeeType.AsString;
             nativePointeeTypeName = name;
 
             if (pointeeType is AttributedType attributedType)
             {
-                name = GetTypeNameForPointeeType(cursor, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, attributedType.ModifiedType, out var nativeModifiedTypeName);
             }
             else if (pointeeType is FunctionType functionType)
             {
@@ -1038,21 +1081,64 @@ namespace ClangSharp
                     var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
                     var callConv = GetCallingConventionName(cursor, functionType.CallConv, remappedName).ToLower();
 
+                    var needsReturnFixup = false;
+                    var returnTypeName = GetRemappedTypeName(cursor, context: null, functionType.ReturnType, out _);
+
+                    if (returnTypeName == "bool")
+                    {
+                        // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                        returnTypeName = "byte";
+                    }
+
                     var nameBuilder = new StringBuilder();
                     nameBuilder.Append("delegate");
                     nameBuilder.Append('*');
                     nameBuilder.Append(' ');
-                    nameBuilder.Append((callConv != "winapi") ? callConv : "unmanaged");
+                    nameBuilder.Append((callConv != "winapi") ? callConv : "stdcall");
                     nameBuilder.Append('<');
+
+                    if ((cursor is CXXMethodDecl cxxMethodDecl) && (context is CXXRecordDecl cxxRecordDecl))
+                    {
+                        var cxxRecordDeclName = GetRemappedCursorName(cxxRecordDecl);
+                        needsReturnFixup = cxxMethodDecl.IsVirtual && NeedsReturnFixup(cxxMethodDecl);
+
+                        nameBuilder.Append(EscapeName(cxxRecordDeclName));
+                        nameBuilder.Append('*');
+                        nameBuilder.Append(',');
+                        nameBuilder.Append(' ');
+
+                        if (needsReturnFixup)
+                        {
+                            nameBuilder.Append(returnTypeName);
+                            nameBuilder.Append('*');
+                            nameBuilder.Append(',');
+                            nameBuilder.Append(' ');
+                        }
+                    }
+
 
                     foreach (var paramType in functionProtoType.ParamTypes)
                     {
-                        nameBuilder.Append(GetRemappedTypeName(cursor, paramType, out _));
+                        var typeName = GetRemappedTypeName(cursor, context: null, paramType, out _);
+
+                        if (typeName == "bool")
+                        {
+                            // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                            typeName = "byte";
+                        }
+
+                        nameBuilder.Append(typeName);
                         nameBuilder.Append(',');
                         nameBuilder.Append(' ');
                     }
 
-                    nameBuilder.Append(GetRemappedTypeName(cursor, functionType.ReturnType, out _));
+                    nameBuilder.Append(returnTypeName);
+
+                    if (needsReturnFixup)
+                    {
+                        nameBuilder.Append('*');
+                    }
+
                     nameBuilder.Append('>');
                     name = nameBuilder.ToString();
                 }
@@ -1063,12 +1149,377 @@ namespace ClangSharp
             }
             else
             {
-                name = GetTypeName(cursor, pointeeType, out nativePointeeTypeName);
+                name = GetTypeName(cursor, context, pointeeType, out nativePointeeTypeName);
                 name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
                 name += '*';
             }
 
             return name;
+        }
+
+        void GetTypeSize(Cursor cursor, Type type, ref long alignment32, ref long alignment64, out long size32, out long size64)
+        {
+            size32 = 0;
+            size64 = 0;
+
+            if (type is ArrayType arrayType)
+            {
+                if (type is ConstantArrayType constantArrayType)
+                {
+                    GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, out var elementSize32, out var elementSize64);
+
+                    size32 = elementSize32 * constantArrayType.Size;
+                    size64 = elementSize64 * constantArrayType.Size;
+
+                    if (alignment32 == -1)
+                    {
+                        alignment32 = elementSize32;
+                    }
+
+                    if (alignment64 == -1)
+                    {
+                        alignment64 = elementSize64;
+                    }
+                }
+                else if (type is IncompleteArrayType incompleteArrayType)
+                {
+                    GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, out var elementSize32, out var elementSize64);
+
+                    size32 = elementSize32;
+                    size64 = elementSize64;
+
+                    if (alignment32 == -1)
+                    {
+                        alignment32 = elementSize32;
+                    }
+
+                    if (alignment64 == -1)
+                    {
+                        alignment64 = elementSize64;
+                    }
+                }
+                else
+                {
+                    size32 = 4;
+                    size64 = 8;
+
+                    if (alignment32 == -1)
+                    {
+                        alignment32 = 4;
+                    }
+
+                    if (alignment64 == -1)
+                    {
+                        alignment64 = 8;
+                    }
+                }
+            }
+            else if (type is AttributedType attributedType)
+            {
+                GetTypeSize(cursor, attributedType.ModifiedType, ref alignment32, ref alignment64, out size32, out size64);
+            }
+            else if (type is BuiltinType)
+            {
+                switch (type.Kind)
+                {
+                    case CXTypeKind.CXType_Bool:
+                    case CXTypeKind.CXType_Char_U:
+                    case CXTypeKind.CXType_UChar:
+                    case CXTypeKind.CXType_Char_S:
+                    case CXTypeKind.CXType_SChar:
+                    {
+                        size32 = 1;
+                        size64 = 1;
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_UShort:
+                    case CXTypeKind.CXType_Short:
+                    {
+                        size32 = 2;
+                        size64 = 2;
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_UInt:
+                    case CXTypeKind.CXType_Int:
+                    case CXTypeKind.CXType_Float:
+                    {
+                        size32 = 4;
+                        size64 = 4;
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_ULong:
+                    case CXTypeKind.CXType_Long:
+                    {
+                        if (_config.GenerateUnixTypes)
+                        {
+                            size32 = 4;
+                            size64 = 8;
+
+                            if (alignment64 == -1)
+                            {
+                                alignment64 = 8;
+                            }
+                        }
+                        else
+                        {
+                            goto case CXTypeKind.CXType_UInt;
+                        }
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_ULongLong:
+                    case CXTypeKind.CXType_LongLong:
+                    case CXTypeKind.CXType_Double:
+                    {
+                        size32 = 8;
+                        size64 = 8;
+
+                        if (alignment64 == -1)
+                        {
+                            alignment64 = 8;
+                        }
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_WChar:
+                    {
+                        if (_config.GenerateUnixTypes)
+                        {
+                            goto case CXTypeKind.CXType_Int;
+                        }
+                        else
+                        {
+                            goto case CXTypeKind.CXType_UShort;
+                        }
+                    }
+
+                    default:
+                    {
+                        AddDiagnostic(DiagnosticLevel.Error, $"Unsupported builtin type: '{type.TypeClass}.", cursor);
+                        break;
+                    }
+                }
+            }
+            else if (type is ElaboratedType elaboratedType)
+            {
+                GetTypeSize(cursor, elaboratedType.NamedType, ref alignment32, ref alignment64, out size32, out size64);
+            }
+            else if (type is EnumType enumType)
+            {
+                GetTypeSize(cursor, enumType.Decl.IntegerType, ref alignment32, ref alignment64, out size32, out size64);
+            }
+            else if ((type is FunctionType functionType) || (type is PointerType pointerType) || (type is ReferenceType referenceType))
+            {
+                size32 = 4;
+                size64 = 8;
+
+                if (alignment64 == -1)
+                {
+                    alignment64 = 8;
+                }
+            }
+            else if (type is RecordType recordType)
+            {
+                if (alignment32 == -1)
+                {
+                    alignment32 = recordType.Handle.AlignOf;
+                    alignment64 = recordType.Handle.AlignOf;
+                }
+
+                long maxFieldAlignment32 = -1;
+                long maxFieldAlignment64 = -1;
+
+                long maxFieldSize32 = 0;
+                long maxFieldSize64 = 0;
+
+                if (recordType.Decl is CXXRecordDecl cxxRecordDecl)
+                {
+                    if (HasVtbl(cxxRecordDecl))
+                    {
+                        size32 += 4;
+                        size64 += 8;
+
+                        if (alignment64 == 4)
+                        {
+                            alignment64 = 8;
+                        }
+
+                        maxFieldSize32 = 4;
+                        maxFieldSize64 = 8;
+
+                        maxFieldAlignment32 = alignment32;
+                        maxFieldAlignment64 = alignment64;
+                    }
+                    else
+                    {
+                        foreach (var baseCXXRecordDecl in cxxRecordDecl.Bases)
+                        {
+                            long fieldSize32;
+                            long fieldSize64;
+
+                            long fieldAlignment32 = -1;
+                            long fieldAlignment64 = -1;
+
+                            GetTypeSize(baseCXXRecordDecl, baseCXXRecordDecl.Type, ref fieldAlignment32, ref fieldAlignment64, out fieldSize32, out fieldSize64);
+
+                            if ((fieldAlignment32 == -1) || (alignment32 < 4))
+                            {
+                                fieldAlignment32 = Math.Min(alignment32, fieldSize32);
+                            }
+
+                            if ((fieldAlignment64 == -1) || (alignment64 < 4))
+                            {
+                                fieldAlignment64 = Math.Min(alignment64, fieldSize64);
+                            }
+
+                            if ((size32 % fieldAlignment32) != 0)
+                            {
+                                size32 += fieldAlignment32 - (size32 % fieldAlignment32);
+                            }
+
+                            if ((size64 % fieldAlignment64) != 0)
+                            {
+                                size64 += fieldAlignment64 - (size64 % fieldAlignment64);
+                            }
+
+                            size32 += fieldSize32;
+                            size64 += fieldSize64;
+
+                            maxFieldAlignment32 = Math.Max(maxFieldAlignment32, fieldAlignment32);
+                            maxFieldAlignment64 = Math.Max(maxFieldAlignment64, fieldAlignment64);
+
+                            maxFieldSize32 = Math.Max(maxFieldSize32, fieldSize32);
+                            maxFieldSize64 = Math.Max(maxFieldSize64, fieldSize64);
+                        }
+                    }
+                }
+
+                var bitfieldPreviousSize = 0L;
+                var bitfieldRemainingBits = 0L;
+
+                foreach (var declaration in recordType.Decl.Decls)
+                {
+                    long fieldSize32;
+                    long fieldSize64;
+
+                    long fieldAlignment32 = -1;
+                    long fieldAlignment64 = -1;
+
+                    if (declaration is FieldDecl fieldDecl)
+                    {
+                        GetTypeSize(fieldDecl, fieldDecl.Type, ref fieldAlignment32, ref fieldAlignment64, out fieldSize32, out fieldSize64);
+
+                        if (fieldDecl.IsBitField)
+                        {
+                            if ((fieldSize32 != bitfieldPreviousSize) || (fieldDecl.BitWidthValue > bitfieldRemainingBits))
+                            {
+                                bitfieldRemainingBits = fieldSize32 * 8;
+                                bitfieldPreviousSize = fieldSize32;
+                                bitfieldRemainingBits -= fieldDecl.BitWidthValue;
+                            }
+                            else
+                            {
+                                bitfieldPreviousSize = fieldSize32;
+                                bitfieldRemainingBits -= fieldDecl.BitWidthValue;
+                                continue;
+                            }
+                        }
+                    }
+                    else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
+                    {
+                        GetTypeSize(nestedRecordDecl, nestedRecordDecl.TypeForDecl, ref fieldAlignment32, ref fieldAlignment64, out fieldSize32, out fieldSize64);
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    if ((fieldAlignment32 == -1) || (alignment32 < 4))
+                    {
+                        fieldAlignment32 = Math.Min(alignment32, fieldSize32);
+                    }
+
+                    if ((fieldAlignment64 == -1) || (alignment64 < 4))
+                    {
+                        fieldAlignment64 = Math.Min(alignment64, fieldSize64);
+                    }
+
+                    if ((size32 % fieldAlignment32) != 0)
+                    {
+                        size32 += fieldAlignment32 - (size32 % fieldAlignment32);
+                    }
+
+                    if ((size64 % fieldAlignment64) != 0)
+                    {
+                        size64 += fieldAlignment64 - (size64 % fieldAlignment64);
+                    }
+
+                    size32 += fieldSize32;
+                    size64 += fieldSize64;
+
+                    maxFieldAlignment32 = Math.Max(maxFieldAlignment32, fieldAlignment32);
+                    maxFieldAlignment64 = Math.Max(maxFieldAlignment64, fieldAlignment64);
+
+                    maxFieldSize32 = Math.Max(maxFieldSize32, fieldSize32);
+                    maxFieldSize64 = Math.Max(maxFieldSize64, fieldSize64);
+                }
+
+                if (alignment64 == 4)
+                {
+                    alignment64 = Math.Max(alignment64, maxFieldAlignment64);
+                }
+
+                if (recordType.Decl.IsUnion)
+                {
+                    size32 = maxFieldSize32;
+                    size64 = maxFieldSize64;
+                }
+
+                if ((size32 % alignment32) != 0)
+                {
+                    size32 += alignment32 - (size32 % alignment32);
+                }
+
+                if ((size64 % alignment64) != 0)
+                {
+                    size64 += alignment64 - (size64 % alignment64);
+                }
+            }
+            else if (type is TypedefType typedefType)
+            {
+                // We check remapped names here so that types that have variable sizes
+                // can be treated correctly. Otherwise, they will resolve to a particular
+                // platform size, based on whatever parameters were passed into clang.
+
+                var name = GetTypeName(cursor, context: null, type, out _);
+
+                if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
+                {
+                    remappedName = name;
+                }
+
+                if (remappedName.Equals("IntPtr") || remappedName.Equals("nint") || remappedName.Equals("nuint") || remappedName.Equals("UIntPtr") || remappedName.EndsWith("*"))
+                {
+                    size32 = 4;
+                    size64 = 8;
+
+                    if (alignment64 == -1)
+                    {
+                        alignment64 = 8;
+                    }
+                }
+                else
+                {
+                    GetTypeSize(cursor, typedefType.Decl.UnderlyingType, ref alignment32, ref alignment64, out size32, out size64);
+                }
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported type: '{type.TypeClass}'.", cursor);
+            }
         }
 
         private bool HasVtbl(CXXRecordDecl cxxRecordDecl)
@@ -1261,13 +1712,18 @@ namespace ClangSharp
             }
             else if (type is TypedefType typedefType)
             {
-                var remappedName = GetRemappedTypeName(cursor, typedefType, out _);
+                var name = GetTypeName(cursor, context: null, type, out _);
 
-                return (remappedName == "IntPtr")
-                    || (remappedName == "nint")
-                    || (remappedName == "nuint")
-                    || (remappedName == "UIntPtr")
-                    || IsFixedSize(cursor, typedefType.Decl.UnderlyingType);
+                if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
+                {
+                    remappedName = name;
+                }
+
+                return (remappedName != "IntPtr")
+                    && (remappedName != "nint")
+                    && (remappedName != "nuint")
+                    && (remappedName != "UIntPtr")
+                    && IsFixedSize(cursor, typedefType.Decl.UnderlyingType);
             }
             else
             {
@@ -1309,8 +1765,14 @@ namespace ClangSharp
 
             if (type is ConstantArrayType)
             {
-                var typeName = GetRemappedTypeName(fieldDecl, type, out _);
-                return IsSupportedFixedSizedBufferType(typeName);
+                var name = GetTypeName(fieldDecl, context: null, type, out _);
+
+                if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
+                {
+                    remappedName = name;
+                }
+
+                return IsSupportedFixedSizedBufferType(remappedName);
             }
 
             return IsUnsafe(fieldDecl, type);
@@ -1318,10 +1780,7 @@ namespace ClangSharp
 
         private bool IsUnsafe(FunctionDecl functionDecl)
         {
-            var returnType = functionDecl.ReturnType;
-            var returnTypeName = GetRemappedTypeName(functionDecl, returnType, out _);
-
-            if (returnTypeName.Contains('*'))
+            if (IsUnsafe(functionDecl, functionDecl.ReturnType))
             {
                 return true;
             }
@@ -1377,8 +1836,14 @@ namespace ClangSharp
 
         private bool IsUnsafe(NamedDecl namedDecl, Type type)
         {
-            var typeName = GetRemappedTypeName(namedDecl, type, out _);
-            return typeName.Contains('*');
+            var name = GetTypeName(namedDecl, context: null, type, out _);
+
+            if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
+            {
+                remappedName = name;
+            }
+
+            return remappedName.Contains('*');
         }
 
         private bool NeedsReturnFixup(CXXMethodDecl cxxMethodDecl)
@@ -1450,7 +1915,7 @@ namespace ClangSharp
             return '_' + name;
         }
 
-        private void StartUsingOutputBuilder(string name)
+        private void StartUsingOutputBuilder(string name, bool includeTestOutput = false)
         {
             if (_outputBuilder != null)
             {
@@ -1458,6 +1923,11 @@ namespace ClangSharp
                 _outputBuilderUsers++;
 
                 _outputBuilder.NeedsNewline = true;
+
+                if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
+                {
+                    _testOutputBuilder.NeedsNewline = true;
+                }
                 return;
             }
 
@@ -1472,10 +1942,33 @@ namespace ClangSharp
 
                 WithUsings("*");
                 WithUsings(name);
+
+                if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
+                {
+                    _testOutputBuilder = _outputBuilderFactory.Create($"{name}Tests", isTestOutput: true);
+
+                    _testOutputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+
+                    if (_config.GenerateTestsNUnit)
+                    {
+                        _testOutputBuilder.AddUsingDirective("NUnit.Framework");
+                    }
+                    else if (_config.GenerateTestsXUnit)
+                    {
+                        _testOutputBuilder.AddUsingDirective("Xunit");
+                    }
+                }
             }
             else
             {
                 _outputBuilder.NeedsNewline = true;
+
+                if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
+                {
+                    _testOutputBuilder = _outputBuilderFactory.GetOutputBuilder($"{name}Tests");
+                    Debug.Assert(_testOutputBuilder.IsTestOutput);
+                    _testOutputBuilder.NeedsNewline = true;
+                }
             }
             _outputBuilderUsers++;
         }
@@ -1485,6 +1978,7 @@ namespace ClangSharp
             if (_outputBuilderUsers == 1)
             {
                 _outputBuilder = null;
+                _testOutputBuilder = null;
             }
             _outputBuilderUsers--;
         }
@@ -1501,7 +1995,7 @@ namespace ClangSharp
             if (functionDecl is CXXConversionDecl)
             {
                 var returnType = functionDecl.ReturnType;
-                var returnTypeName = GetRemappedTypeName(cursor: null, returnType, out _);
+                var returnTypeName = GetRemappedTypeName(cursor: null, context: null, returnType, out _);
 
                 name = $"To{returnTypeName}";
                 return true;
@@ -1705,6 +2199,70 @@ namespace ClangSharp
             if (_config.WithSetLastErrors.Contains("*") || _config.WithSetLastErrors.Contains(remappedName))
             {
                 _outputBuilder.Write(", SetLastError = true");
+            }
+        }
+
+        private void WithTestAttribute()
+        {
+            if (_config.GenerateTestsNUnit)
+            {
+                _testOutputBuilder.WriteIndentedLine("[Test]");
+            }
+            else if (_config.GenerateTestsXUnit)
+            {
+                _testOutputBuilder.WriteIndentedLine("[Fact]");
+            }
+        }
+
+        private void WithTestAssertEqual(string expected, string actual)
+        {
+            if (_config.GenerateTestsNUnit)
+            {
+                _testOutputBuilder.WriteIndented("Assert.That");
+                _testOutputBuilder.Write('(');
+                _testOutputBuilder.Write(actual);
+                _testOutputBuilder.Write(',');
+                _testOutputBuilder.Write(' ');
+                _testOutputBuilder.Write("Is.EqualTo");
+                _testOutputBuilder.Write('(');
+                _testOutputBuilder.Write(expected);
+                _testOutputBuilder.Write(')');
+                _testOutputBuilder.Write(')');
+                _testOutputBuilder.WriteLine(';');
+            }
+            else if (_config.GenerateTestsXUnit)
+            {
+                _testOutputBuilder.WriteIndented("Assert.Equal");
+                _testOutputBuilder.Write('(');
+                _testOutputBuilder.Write(expected);
+                _testOutputBuilder.Write(',');
+                _testOutputBuilder.Write(' ');
+                _testOutputBuilder.Write(actual);
+                _testOutputBuilder.Write(')');
+                _testOutputBuilder.WriteLine(';');
+            }
+        }
+
+        private void WithTestAssertTrue(string actual)
+        {
+            if (_config.GenerateTestsNUnit)
+            {
+                _testOutputBuilder.WriteIndented("Assert.That");
+                _testOutputBuilder.Write('(');
+                _testOutputBuilder.Write(actual);
+                _testOutputBuilder.Write(',');
+                _testOutputBuilder.Write(' ');
+                _testOutputBuilder.Write("Is.True");
+                _testOutputBuilder.Write(')');
+                _testOutputBuilder.WriteLine(';');
+            }
+            else if (_config.GenerateTestsXUnit)
+            {
+                _testOutputBuilder.WriteIndented("Assert.True");
+                _testOutputBuilder.Write('(');
+                _testOutputBuilder.Write(actual);
+                _testOutputBuilder.Write(')');
+                _testOutputBuilder.WriteLine(';');
             }
         }
 

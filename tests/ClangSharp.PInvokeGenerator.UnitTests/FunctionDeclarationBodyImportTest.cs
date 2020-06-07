@@ -514,12 +514,10 @@ MyStructB* MyFunction(MyStructA* input)
 ";
 
             var callConv = "Cdecl";
-            var callConvAttr = "";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
                 callConv = "ThisCall";
-                callConvAttr = " __attribute__((thiscall))";
             }
 
             var expectedOutputContents = $@"using System;
@@ -530,39 +528,27 @@ namespace ClangSharp.Test
 {{
     public unsafe partial struct MyStructA
     {{
-        public Vtbl* lpVtbl;
+        public void** lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
         public delegate void _MyMethod(MyStructA* pThis);
 
         public void MyMethod()
         {{
-            Marshal.GetDelegateForFunctionPointer<_MyMethod>(lpVtbl->MyMethod)((MyStructA*)Unsafe.AsPointer(ref this));
-        }}
-
-        public partial struct Vtbl
-        {{
-            [NativeTypeName(""void (){callConvAttr}"")]
-            public IntPtr MyMethod;
+            Marshal.GetDelegateForFunctionPointer<_MyMethod>((IntPtr)(lpVtbl[0]))((MyStructA*)Unsafe.AsPointer(ref this));
         }}
     }}
 
     public unsafe partial struct MyStructB
     {{
-        public Vtbl* lpVtbl;
+        public void** lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
         public delegate void _MyMethod(MyStructB* pThis);
 
         public void MyMethod()
         {{
-            Marshal.GetDelegateForFunctionPointer<_MyMethod>(lpVtbl->MyMethod)((MyStructB*)Unsafe.AsPointer(ref this));
-        }}
-
-        public partial struct Vtbl
-        {{
-            [NativeTypeName(""void (){callConvAttr}"")]
-            public IntPtr MyMethod;
+            Marshal.GetDelegateForFunctionPointer<_MyMethod>((IntPtr)(lpVtbl[0]))((MyStructB*)Unsafe.AsPointer(ref this));
         }}
     }}
 

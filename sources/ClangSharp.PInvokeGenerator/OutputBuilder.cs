@@ -16,10 +16,11 @@ namespace ClangSharp
         private readonly SortedSet<string> _usingDirectives;
         private readonly SortedSet<string> _staticUsingDirectives;
         private readonly string _indentationString;
+        private readonly bool _isTestOutput;
 
         private int _indentationLevel;
 
-        public OutputBuilder(string name, string indentationString = DefaultIndentationString)
+        public OutputBuilder(string name, string indentationString = DefaultIndentationString, bool isTestOutput = false)
         {
             _name = name;
             _contents = new List<string>();
@@ -27,11 +28,14 @@ namespace ClangSharp
             _usingDirectives = new SortedSet<string>();
             _staticUsingDirectives = new SortedSet<string>();
             _indentationString = indentationString;
+            _isTestOutput = isTestOutput;
         }
 
         public IEnumerable<string> Contents => _contents;
 
         public string IndentationString => _indentationString;
+
+        public bool IsTestOutput => _isTestOutput;
 
         public string Name => _name;
 

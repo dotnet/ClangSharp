@@ -1,5 +1,6 @@
 --config
 compatible-codegen
+generate-tests-nunit
 multi-file
 --file
 llvm-c/Analysis.h
@@ -42,7 +43,9 @@ LLVM
 --namespace
 LLVMSharp
 --output
-./LLVMSharp/Interop
+./sources/LLVMSharp/Interop
+--test-output
+./tests/LLVMSharp/Interop
 --prefixStrip
 LLVM
 --remap

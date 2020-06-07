@@ -40,6 +40,7 @@ namespace ClangSharp
             AddPrefixStripOption(s_rootCommand);
             AddRemapOption(s_rootCommand);
             AddStdOption(s_rootCommand);
+            AddTestOutputOption(s_rootCommand);
             AddTraverseOption(s_rootCommand);
             AddWithAttributeOption(s_rootCommand);
             AddWithCallConvOption(s_rootCommand);
@@ -69,6 +70,7 @@ namespace ClangSharp
             var outputLocation = context.ParseResult.ValueForOption<string>("output");
             var remappedNameValuePairs = context.ParseResult.ValueForOption<string[]>("remap");
             var std = context.ParseResult.ValueForOption<string>("std");
+            var testOutputLocation = context.ParseResult.ValueForOption<string>("test-output");
             var traversalNames = context.ParseResult.ValueForOption<string[]>("traverse");
             var withAttributeNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-attribute");
             var withCallConvNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-callconv");
@@ -117,6 +119,48 @@ namespace ClangSharp
                     case "default-remappings":
                     {
                         configOptions &= ~PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
+                        break;
+                    }
+
+                    case "explicit-vtbls":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
+                        break;
+                    }
+
+                    case "generate-tests-nunit":
+                    {
+                        if (string.IsNullOrWhiteSpace(testOutputLocation))
+                        {
+                            errorList.Add("Error: No test output file location provided. Use --test-output or -to");
+                        }
+
+                        if (configOptions.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit))
+                        {
+                            errorList.Add("Cannot generate both NUnit and XUnit tests.");
+                        }
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit;
+                        break;
+                    }
+
+                    case "generate-tests-xunit":
+                    {
+                        if (string.IsNullOrWhiteSpace(testOutputLocation))
+                        {
+                            errorList.Add("Error: No test output file location provided. Use --test-output or -to");
+                        }
+
+                        if (configOptions.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit))
+                        {
+                            errorList.Add("Cannot generate both NUnit and XUnit tests.");
+                        }
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit;
+                        break;
+                    }
+
+                    case "implicit-vtbls":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
                         break;
                     }
 
@@ -198,6 +242,11 @@ namespace ClangSharp
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(testOutputLocation) && !configOptions.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) && !configOptions.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit))
+            {
+                errorList.Add("Error: No test format provided. Use --config generate-tests-nunit or --config generate-tests-xunit");
+            }
+
             if (errorList.Any())
             {
                 foreach (var error in errorList)
@@ -227,7 +276,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
 
             int exitCode = 0;
 
@@ -598,6 +647,21 @@ namespace ClangSharp
                 }
             };
             option.Argument.SetDefaultValue("c++17");
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddTestOutputOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--test-output", "-to" }, "The output location to write the generated tests to.")
+            {
+                Argument = new Argument("<file>")
+                {
+                    ArgumentType = typeof(string),
+                    Arity = ArgumentArity.ExactlyOne,
+                }
+            };
+            option.Argument.SetDefaultValue(string.Empty);
 
             rootCommand.AddOption(option);
         }
