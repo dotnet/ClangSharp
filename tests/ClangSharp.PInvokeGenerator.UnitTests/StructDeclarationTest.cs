@@ -903,6 +903,56 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         }
 
         [Fact]
+        public async Task PointerToSelfTest()
+        {
+            var inputContents = @"struct example_s {
+   example_s* next;
+   void* data;
+};";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public unsafe partial struct example_s
+    {{
+        [NativeTypeName(""example_s *"")]
+        public example_s* next;
+
+        [NativeTypeName(""void *"")]
+        public void* data;
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task PointerToSelfViaTypedefTest()
+        {
+            var inputContents = @"typedef struct example_s example_t;
+
+struct example_s {
+   example_t* next;
+   void* data;
+};";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public unsafe partial struct example_s
+    {{
+        [NativeTypeName(""example_t *"")]
+        public example_s* next;
+
+        [NativeTypeName(""void *"")]
+        public void* data;
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task RemapTest()
         {
             var inputContents = "typedef struct _MyStruct MyStruct;";
