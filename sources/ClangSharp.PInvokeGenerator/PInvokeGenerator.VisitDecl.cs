@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -1157,8 +1159,8 @@ namespace ClangSharp
                     _testOutputBuilder.WriteBlockEnd();
                 }
 
-                var bitfieldCount = GetBitfieldCount(recordDecl);
-                var bitfieldIndex = (bitfieldCount == 1) ? -1 : 0;
+                var bitfieldTypes = GetBitfieldCount(recordDecl);
+                var bitfieldIndex = (bitfieldTypes.Length == 1) ? -1 : 0;
 
                 var bitfieldPreviousSize = 0L;
                 var bitfieldRemainingBits = 0L;
@@ -1169,7 +1171,12 @@ namespace ClangSharp
                     {
                         if (fieldDecl.IsBitField)
                         {
-                            VisitBitfieldDecl(this, fieldDecl, ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
+                            VisitBitfieldDecl(this, fieldDecl, bitfieldTypes, ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
+                        }
+                        else
+                        {
+                            bitfieldPreviousSize = 0;
+                            bitfieldRemainingBits = 0;
                         }
                         Visit(fieldDecl);
 
@@ -1668,7 +1675,7 @@ namespace ClangSharp
                 }
             }
 
-            static void VisitBitfieldDecl(PInvokeGenerator pinvokeGenerator, FieldDecl fieldDecl, ref int index, ref long previousSize, ref long remainingBits)
+            static void VisitBitfieldDecl(PInvokeGenerator pinvokeGenerator, FieldDecl fieldDecl, Type[] types, ref int index, ref long previousSize, ref long remainingBits)
             {
                 Debug.Assert(fieldDecl.IsBitField);
 
@@ -1689,7 +1696,7 @@ namespace ClangSharp
 
                 var bitfieldName = "_bitfield";
 
-                if ((currentSize != previousSize) || (fieldDecl.BitWidthValue > remainingBits))
+                if ((!pinvokeGenerator._config.GenerateUnixTypes && (currentSize != previousSize)) || (fieldDecl.BitWidthValue > remainingBits))
                 {
                     index++;
 
@@ -1698,6 +1705,7 @@ namespace ClangSharp
                         bitfieldName += index.ToString();
                     }
                     remainingBits = currentSize * 8;
+                    previousSize = 0;
 
                     outputBuilder.WriteIndented("internal");
                     outputBuilder.Write(' ');
@@ -1707,13 +1715,84 @@ namespace ClangSharp
                     outputBuilder.WriteLine(';');
                     outputBuilder.NeedsNewline = true;
                 }
-                else if (index > 0)
+                else
                 {
-                    bitfieldName += index.ToString();
+                    currentSize = Math.Max(previousSize, currentSize);
+
+                    if (pinvokeGenerator._config.GenerateUnixTypes && (currentSize > previousSize))
+                    {
+                        remainingBits += (currentSize - previousSize) * 8;
+                    }
+
+                    if (index > 0)
+                    {
+                        bitfieldName += index.ToString();
+                    }
                 }
                 pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName);
 
                 var bitfieldOffset = (currentSize * 8) - remainingBits;
+
+                var bitwidthHexStringBacking = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
+                var canonicalTypeBacking = types[index - 1].CanonicalType;
+                var typeNameBacking = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, types[index - 1], out _);
+
+                switch (canonicalTypeBacking.Kind)
+                {
+                    case CXTypeKind.CXType_Char_U:
+                    case CXTypeKind.CXType_UChar:
+                    case CXTypeKind.CXType_UShort:
+                    case CXTypeKind.CXType_UInt:
+                    {
+                        bitwidthHexStringBacking += "u";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_ULong:
+                    {
+                        if (pinvokeGenerator._config.GenerateUnixTypes)
+                        {
+                            goto default;
+                        }
+                        goto case CXTypeKind.CXType_UInt;
+                    }
+
+                    case CXTypeKind.CXType_ULongLong:
+                    {
+                        bitwidthHexStringBacking += "UL";
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_Char_S:
+                    case CXTypeKind.CXType_SChar:
+                    case CXTypeKind.CXType_Short:
+                    case CXTypeKind.CXType_Int:
+                    {
+                        break;
+                    }
+
+                    case CXTypeKind.CXType_Long:
+                    {
+                        if (pinvokeGenerator._config.GenerateUnixTypes)
+                        {
+                            goto default;
+                        }
+                        goto case CXTypeKind.CXType_Int;
+                    }
+
+                    case CXTypeKind.CXType_LongLong:
+                    {
+                        bitwidthHexStringBacking += "L";
+                        break;
+                    }
+
+                    default:
+                    {
+                        pinvokeGenerator.AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{canonicalTypeBacking.TypeClass}'. Generated bindings may be incomplete.", fieldDecl);
+                        break;
+                    }
+                }
+
                 var bitwidthHexString = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
                 var canonicalType = fieldDecl.Type.CanonicalType;
 
@@ -1787,7 +1866,7 @@ namespace ClangSharp
                 outputBuilder.WriteIndented("return");
                 outputBuilder.Write(' ');
 
-                if (currentSize < 4)
+                if ((currentSize < 4) || (canonicalTypeBacking != canonicalType))
                 {
                     outputBuilder.Write('(');
                     outputBuilder.Write(typeName);
@@ -1815,9 +1894,9 @@ namespace ClangSharp
                 outputBuilder.Write('&');
                 outputBuilder.Write(' ');
                 outputBuilder.Write("0x");
-                outputBuilder.Write(bitwidthHexString);
+                outputBuilder.Write(bitwidthHexStringBacking);
 
-                if (currentSize < 4)
+                if ((currentSize < 4) || (canonicalTypeBacking != canonicalType))
                 {
                     outputBuilder.Write(')');
                 }
@@ -1837,7 +1916,7 @@ namespace ClangSharp
                 if (currentSize < 4)
                 {
                     outputBuilder.Write('(');
-                    outputBuilder.Write(typeName);
+                    outputBuilder.Write(typeNameBacking);
                     outputBuilder.Write(')');
                     outputBuilder.Write('(');
                 }
@@ -1855,7 +1934,7 @@ namespace ClangSharp
                 }
 
                 outputBuilder.Write("0x");
-                outputBuilder.Write(bitwidthHexString);
+                outputBuilder.Write(bitwidthHexStringBacking);
 
                 if (bitfieldOffset != 0)
                 {
@@ -1870,6 +1949,14 @@ namespace ClangSharp
                 outputBuilder.Write(' ');
                 outputBuilder.Write('|');
                 outputBuilder.Write(' ');
+
+                if (canonicalTypeBacking != canonicalType)
+                {
+                    outputBuilder.Write('(');
+                    outputBuilder.Write(typeNameBacking);
+                    outputBuilder.Write(')');
+                }
+
                 outputBuilder.Write('(');
 
                 if (bitfieldOffset != 0)
@@ -1905,7 +1992,7 @@ namespace ClangSharp
                 outputBuilder.WriteBlockEnd();
 
                 remainingBits -= fieldDecl.BitWidthValue;
-                previousSize = currentSize;
+                previousSize = Math.Max(previousSize, currentSize);
             }
 
             static void VisitConstantArrayFieldDecl(PInvokeGenerator pinvokeGenerator, RecordDecl recordDecl, FieldDecl constantArray)

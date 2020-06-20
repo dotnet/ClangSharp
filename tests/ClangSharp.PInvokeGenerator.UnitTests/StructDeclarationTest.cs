@@ -40,13 +40,14 @@ namespace ClangSharp.UnitTests
         }
 
         [Fact]
-        public async Task BitfieldTest()
+        public async Task BitfieldWindowsTest()
         {
             var inputContents = @"struct MyStruct1
 {
     unsigned int o0_b0_24 : 24;
     unsigned int o4_b0_16 : 16;
     unsigned int o4_b16_3 : 3;
+    int o4_b19_3 : 3;
     unsigned char o8_b0_1 : 1;
     int o12_b0_1 : 1;
     int o12_b1_1 : 1;
@@ -55,7 +56,8 @@ namespace ClangSharp.UnitTests
 struct MyStruct2
 {
     unsigned int o0_b0_1 : 1;
-    unsigned int o0_b1_1 : 1;
+    int x;
+    unsigned int o8_b0_1 : 1;
 };
 ";
 
@@ -109,6 +111,20 @@ struct MyStruct2
             }
         }
 
+        [NativeTypeName(""int : 3"")]
+        public int o4_b19_3
+        {
+            get
+            {
+                return (int)((_bitfield2 >> 19) & 0x7u);
+            }
+
+            set
+            {
+                _bitfield2 = (_bitfield2 & ~(0x7u << 19)) | (uint)((value & 0x7) << 19);
+            }
+        }
+
         internal byte _bitfield3;
 
         [NativeTypeName(""unsigned char : 1"")]
@@ -158,33 +174,37 @@ struct MyStruct2
 
     public partial struct MyStruct2
     {
-        internal uint _bitfield;
+        internal uint _bitfield1;
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
         {
             get
             {
-                return _bitfield & 0x1u;
+                return _bitfield1 & 0x1u;
             }
 
             set
             {
-                _bitfield = (_bitfield & ~0x1u) | (value & 0x1u);
+                _bitfield1 = (_bitfield1 & ~0x1u) | (value & 0x1u);
             }
         }
 
+        public int x;
+
+        internal uint _bitfield2;
+
         [NativeTypeName(""unsigned int : 1"")]
-        public uint o0_b1_1
+        public uint o8_b0_1
         {
             get
             {
-                return (_bitfield >> 1) & 0x1u;
+                return _bitfield2 & 0x1u;
             }
 
             set
             {
-                _bitfield = (_bitfield & ~(0x1u << 1)) | ((value & 0x1u) << 1);
+                _bitfield2 = (_bitfield2 & ~0x1u) | (value & 0x1u);
             }
         }
     }
@@ -192,6 +212,177 @@ struct MyStruct2
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task BitfieldUnixTest()
+        {
+            var inputContents = @"struct MyStruct1
+{
+    unsigned int o0_b0_24 : 24;
+    unsigned int o4_b0_16 : 16;
+    unsigned int o4_b16_3 : 3;
+    int o4_b19_3 : 3;
+    unsigned char o4_b22_1 : 1;
+    int o4_b23_1 : 1;
+    int o4_b24_1 : 1;
+};
+
+struct MyStruct2
+{
+    unsigned int o0_b0_1 : 1;
+    int x;
+    unsigned int o8_b0_1 : 1;
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct1
+    {
+        internal uint _bitfield1;
+
+        [NativeTypeName(""unsigned int : 24"")]
+        public uint o0_b0_24
+        {
+            get
+            {
+                return _bitfield1 & 0xFFFFFFu;
+            }
+
+            set
+            {
+                _bitfield1 = (_bitfield1 & ~0xFFFFFFu) | (value & 0xFFFFFFu);
+            }
+        }
+
+        internal uint _bitfield2;
+
+        [NativeTypeName(""unsigned int : 16"")]
+        public uint o4_b0_16
+        {
+            get
+            {
+                return _bitfield2 & 0xFFFFu;
+            }
+
+            set
+            {
+                _bitfield2 = (_bitfield2 & ~0xFFFFu) | (value & 0xFFFFu);
+            }
+        }
+
+        [NativeTypeName(""unsigned int : 3"")]
+        public uint o4_b16_3
+        {
+            get
+            {
+                return (_bitfield2 >> 16) & 0x7u;
+            }
+
+            set
+            {
+                _bitfield2 = (_bitfield2 & ~(0x7u << 16)) | ((value & 0x7u) << 16);
+            }
+        }
+
+        [NativeTypeName(""int : 3"")]
+        public int o4_b19_3
+        {
+            get
+            {
+                return (int)((_bitfield2 >> 19) & 0x7u);
+            }
+
+            set
+            {
+                _bitfield2 = (_bitfield2 & ~(0x7u << 19)) | (uint)((value & 0x7) << 19);
+            }
+        }
+
+        [NativeTypeName(""unsigned char : 1"")]
+        public byte o4_b22_1
+        {
+            get
+            {
+                return (byte)((_bitfield2 >> 22) & 0x1u);
+            }
+
+            set
+            {
+                _bitfield2 = (_bitfield2 & ~(0x1u << 22)) | (uint)((value & 0x1u) << 22);
+            }
+        }
+
+        [NativeTypeName(""int : 1"")]
+        public int o4_b23_1
+        {
+            get
+            {
+                return (int)((_bitfield2 >> 23) & 0x1u);
+            }
+
+            set
+            {
+                _bitfield2 = (_bitfield2 & ~(0x1u << 23)) | (uint)((value & 0x1) << 23);
+            }
+        }
+
+        [NativeTypeName(""int : 1"")]
+        public int o4_b24_1
+        {
+            get
+            {
+                return (int)((_bitfield2 >> 24) & 0x1u);
+            }
+
+            set
+            {
+                _bitfield2 = (_bitfield2 & ~(0x1u << 24)) | (uint)((value & 0x1) << 24);
+            }
+        }
+    }
+
+    public partial struct MyStruct2
+    {
+        internal uint _bitfield1;
+
+        [NativeTypeName(""unsigned int : 1"")]
+        public uint o0_b0_1
+        {
+            get
+            {
+                return _bitfield1 & 0x1u;
+            }
+
+            set
+            {
+                _bitfield1 = (_bitfield1 & ~0x1u) | (value & 0x1u);
+            }
+        }
+
+        public int x;
+
+        internal uint _bitfield2;
+
+        [NativeTypeName(""unsigned int : 1"")]
+        public uint o8_b0_1
+        {
+            get
+            {
+                return _bitfield2 & 0x1u;
+            }
+
+            set
+            {
+                _bitfield2 = (_bitfield2 & ~0x1u) | (value & 0x1u);
+            }
+        }
+    }
+}
+";
+
+            await ValidateGeneratedUnixBindings(inputContents, expectedOutputContents);
         }
 
         [Theory]
