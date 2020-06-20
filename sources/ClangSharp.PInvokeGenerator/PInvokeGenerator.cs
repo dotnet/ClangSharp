@@ -533,8 +533,10 @@ namespace ClangSharp
             return $"_{name}_e__FixedBuffer";
         }
 
-        private int GetBitfieldCount(RecordDecl recordDecl)
+        private Type[] GetBitfieldCount(RecordDecl recordDecl)
         {
+            var types = new List<Type>(recordDecl.Fields.Count);
+
             var count = 0;
             var previousSize = 0L;
             var remainingBits = 0L;
@@ -543,22 +545,31 @@ namespace ClangSharp
             {
                 if (!fieldDecl.IsBitField)
                 {
+                    previousSize = 0;
+                    remainingBits = 0;
                     continue;
                 }
 
                 var currentSize = fieldDecl.Type.Handle.SizeOf;
 
-                if ((currentSize != previousSize) || (fieldDecl.BitWidthValue > remainingBits))
+                if ((!_config.GenerateUnixTypes && (currentSize != previousSize)) || (fieldDecl.BitWidthValue > remainingBits))
                 {
                     count++;
                     remainingBits = currentSize * 8;
+                    previousSize = 0;
+                    types.Add(fieldDecl.Type);
+                }
+                else if (_config.GenerateUnixTypes && (currentSize > previousSize))
+                {
+                    remainingBits += (currentSize - previousSize) * 8;
+                    types[types.Count - 1] = fieldDecl.Type;
                 }
 
                 remainingBits -= fieldDecl.BitWidthValue;
-                previousSize = currentSize;
+                previousSize = Math.Max(previousSize, currentSize);
             }
 
-            return count;
+            return types.ToArray();
         }
 
         private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention, string remappedName)

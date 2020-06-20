@@ -30,6 +30,11 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.None, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath);
         }
 
+        protected Task ValidateGeneratedUnixBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath)
+        {
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateUnixTypes, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath);
+        }
+
         protected Task ValidateGeneratedCompatibleBindings(string inputContents, string expectedOutputContents, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath)
         {
             return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath);
