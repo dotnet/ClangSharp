@@ -44,6 +44,11 @@ namespace ClangSharp.Interop
                 return true;
             }
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang-10", assembly, searchPath, out nativeLibrary))
+            {
+                return true;
+            }
+
             if (NativeLibrary.TryLoad("libclang", assembly, searchPath, out nativeLibrary))
             {
                 return true;
