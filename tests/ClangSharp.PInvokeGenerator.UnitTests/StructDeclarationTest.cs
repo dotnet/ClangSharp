@@ -59,6 +59,12 @@ struct MyStruct2
     int x;
     unsigned int o8_b0_1 : 1;
 };
+
+struct MyStruct3
+{
+    unsigned int o0_b0_1 : 1;
+    unsigned int o0_b1_1 : 1;
+};
 ";
 
             var expectedOutputContents = @"namespace ClangSharp.Test
@@ -208,6 +214,39 @@ struct MyStruct2
             }
         }
     }
+
+    public partial struct MyStruct3
+    {
+        internal uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 1"")]
+        public uint o0_b0_1
+        {
+            get
+            {
+                return _bitfield & 0x1u;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0x1u) | (value & 0x1u);
+            }
+        }
+
+        [NativeTypeName(""unsigned int : 1"")]
+        public uint o0_b1_1
+        {
+            get
+            {
+                return (_bitfield >> 1) & 0x1u;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0x1u << 1)) | ((value & 0x1u) << 1);
+            }
+        }
+    }
 }
 ";
 
@@ -233,6 +272,12 @@ struct MyStruct2
     unsigned int o0_b0_1 : 1;
     int x;
     unsigned int o8_b0_1 : 1;
+};
+
+struct MyStruct3
+{
+    unsigned int o0_b0_1 : 1;
+    unsigned int o0_b1_1 : 1;
 };
 ";
 
@@ -376,6 +421,39 @@ struct MyStruct2
             set
             {
                 _bitfield2 = (_bitfield2 & ~0x1u) | (value & 0x1u);
+            }
+        }
+    }
+
+    public partial struct MyStruct3
+    {
+        internal uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 1"")]
+        public uint o0_b0_1
+        {
+            get
+            {
+                return _bitfield & 0x1u;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0x1u) | (value & 0x1u);
+            }
+        }
+
+        [NativeTypeName(""unsigned int : 1"")]
+        public uint o0_b1_1
+        {
+            get
+            {
+                return (_bitfield >> 1) & 0x1u;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0x1u << 1)) | ((value & 0x1u) << 1);
             }
         }
     }
