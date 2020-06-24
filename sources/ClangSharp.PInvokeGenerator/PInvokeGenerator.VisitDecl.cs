@@ -1698,12 +1698,12 @@ namespace ClangSharp
 
                 if ((!pinvokeGenerator._config.GenerateUnixTypes && (currentSize != previousSize)) || (fieldDecl.BitWidthValue > remainingBits))
                 {
-                    index++;
-
-                    if (index > 0)
+                    if (index >= 0)
                     {
+                        index++;
                         bitfieldName += index.ToString();
                     }
+
                     remainingBits = currentSize * 8;
                     previousSize = 0;
 
@@ -1724,7 +1724,7 @@ namespace ClangSharp
                         remainingBits += (currentSize - previousSize) * 8;
                     }
 
-                    if (index > 0)
+                    if (index >= 0)
                     {
                         bitfieldName += index.ToString();
                     }
@@ -1734,8 +1734,9 @@ namespace ClangSharp
                 var bitfieldOffset = (currentSize * 8) - remainingBits;
 
                 var bitwidthHexStringBacking = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
-                var canonicalTypeBacking = types[index - 1].CanonicalType;
-                var typeNameBacking = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, types[index - 1], out _);
+                var typeBacking = (index > 0) ? types[index - 1] : types[0];
+                var canonicalTypeBacking = typeBacking.CanonicalType;
+                var typeNameBacking = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
 
                 switch (canonicalTypeBacking.Kind)
                 {
