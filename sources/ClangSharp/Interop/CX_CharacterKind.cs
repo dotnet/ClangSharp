@@ -3,14 +3,13 @@
 
 namespace ClangSharp.Interop
 {
-    public enum CX_UnaryExprOrTypeTrait
-
+    public enum CX_CharacterKind
     {
-        CX_UETT_Invalid,
-        CX_UETT_SizeOf,
-        CX_UETT_AlignOf,
-        CX_UETT_VecStep,
-        CX_UETT_OpenMPRequiredSimdAlign,
-        CX_UETT_PreferredAlignOf,
+        CX_CLK_Invalid,
+        CX_CLK_Ascii,
+        CX_CLK_Wide,
+        CX_CLK_UTF8,
+        CX_CLK_UTF16,
+        CX_CLK_UTF32,
     }
 }

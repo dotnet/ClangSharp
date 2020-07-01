@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -12,6 +11,7 @@ namespace ClangSharp
         private readonly Lazy<IReadOnlyList<Expr>> _args;
         private readonly Lazy<Expr> _callee;
         private readonly Lazy<Decl> _calleeDecl;
+        private readonly Lazy<FunctionDecl> _directCallee;
 
         internal CallExpr(CXCursor handle) : this(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_CallExpr)
         {
@@ -25,20 +25,20 @@ namespace ClangSharp
             }
 
             _args = new Lazy<IReadOnlyList<Expr>>(() => {
-                var numArgs = NumArgs;
-                var args = new List<Expr>((int)numArgs);
+                var numArgs = Handle.NumArguments;
+                var args = new List<Expr>(numArgs);
 
-                for (var index = 0u; index < numArgs; index++)
+                for (var index = 0; index < numArgs; index++)
                 {
-                    var arg = Handle.GetArgument(index);
-                    args.Add(TranslationUnit.GetOrCreate<Expr>(arg));
+                    var arg = TranslationUnit.GetOrCreate<Expr>(Handle.GetArgument(unchecked((uint)index)));
+                    args.Add(arg);
                 }
 
                 return args;
             });
-
-            _callee = new Lazy<Expr>(() => Children.OfType<Expr>().ElementAt(0));
+            _callee = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.CalleeExpr));
             _calleeDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.Referenced));
+            _directCallee = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.DirectCallee));
         }
 
         public IReadOnlyList<Expr> Args => _args.Value;
@@ -47,7 +47,7 @@ namespace ClangSharp
 
         public Decl CalleeDecl => _calleeDecl.Value;
 
-        public FunctionDecl DirectCallee => CalleeDecl as FunctionDecl;
+        public FunctionDecl DirectCallee => _directCallee.Value;
 
         public uint NumArgs => (uint)Handle.NumArguments;
     }

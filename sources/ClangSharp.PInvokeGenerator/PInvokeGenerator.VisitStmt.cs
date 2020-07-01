@@ -348,7 +348,7 @@ namespace ClangSharp
 
         private void VisitFloatingLiteral(FloatingLiteral floatingLiteral)
         {
-            _outputBuilder.Write(floatingLiteral.Value);
+            _outputBuilder.Write(floatingLiteral.ValueString);
         }
 
         private void VisitForStmt(ForStmt forStmt)
@@ -656,14 +656,14 @@ namespace ClangSharp
 
         private void VisitIntegerLiteral(IntegerLiteral integerLiteral)
         {
-            var value = integerLiteral.Value;
+            var valueString = integerLiteral.ValueString;
 
-            if (value.EndsWith("l") || value.EndsWith("L"))
+            if (valueString.EndsWith("l") || valueString.EndsWith("L"))
             {
-                value = value.Substring(0, value.Length - 1);
+                valueString = valueString.Substring(0, valueString.Length - 1);
             }
 
-            _outputBuilder.Write(value);
+            _outputBuilder.Write(valueString);
         }
 
         private void VisitMemberExpr(MemberExpr memberExpr)

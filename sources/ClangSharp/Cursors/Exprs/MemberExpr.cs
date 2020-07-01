@@ -13,7 +13,7 @@ namespace ClangSharp
 
         internal MemberExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr, CX_StmtClass.CX_StmtClass_MemberExpr)
         {
-            _base = new Lazy<Expr>(() => Children.OfType<Expr>().SingleOrDefault());
+            _base = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
             _memberDecl = new Lazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.Referenced));
         }
 

@@ -9,5 +9,9 @@ namespace ClangSharp
         internal StringLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_StringLiteral, CX_StmtClass.CX_StmtClass_StringLiteral)
         {
         }
+
+        public CX_CharacterKind Kind => Handle.CharacterLiteralKind;
+
+        public string String => Handle.StringLiteralValue.CString;
     }
 }

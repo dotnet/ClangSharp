@@ -7,12 +7,18 @@ namespace ClangSharp
 {
     public class ValueStmt : Stmt
     {
+        private readonly Lazy<Expr> _exprStmt;
+
         private protected ValueStmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
             if ((CX_StmtClass.CX_StmtClass_LastValueStmt < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstValueStmt))
             {
                 throw new ArgumentException(nameof(handle));
             }
+
+            _exprStmt = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubStmt));
         }
+
+        public Expr ExprStmt => _exprStmt.Value;
     }
 }

@@ -8,11 +8,11 @@ namespace ClangSharp
 {
     public sealed class FloatingLiteral : Expr
     {
-        private readonly Lazy<string> _value;
+        private readonly Lazy<string> _valueString;
 
         internal FloatingLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_FloatingLiteral, CX_StmtClass.CX_StmtClass_FloatingLiteral)
         {
-            _value = new Lazy<string>(() => {
+            _valueString = new Lazy<string>(() => {
                 var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
                 Debug.Assert(tokens.Length == 1);
@@ -22,6 +22,10 @@ namespace ClangSharp
             });
         }
 
-        public string Value => _value.Value;
+        public CX_FloatingSemantics RawSemantics => Handle.FloatingLiteralSemantics;
+
+        public double ValueAsApproximateDouble => Handle.FloatingLiteralValueAsApproximateDouble;
+
+        public string ValueString => _valueString.Value;
     }
 }

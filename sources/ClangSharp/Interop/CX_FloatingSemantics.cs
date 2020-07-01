@@ -3,14 +3,14 @@
 
 namespace ClangSharp.Interop
 {
-    public enum CX_UnaryExprOrTypeTrait
-
+    public enum CX_FloatingSemantics
     {
-        CX_UETT_Invalid,
-        CX_UETT_SizeOf,
-        CX_UETT_AlignOf,
-        CX_UETT_VecStep,
-        CX_UETT_OpenMPRequiredSimdAlign,
-        CX_UETT_PreferredAlignOf,
+        CX_FLK_Invalid,
+        CX_FLK_IEEEhalf,
+        CX_FLK_IEEEsingle,
+        CX_FLK_IEEEdouble,
+        CX_FLK_x87DoubleExtended,
+        CX_FLK_IEEEquad,
+        CX_FLK_PPCDoubleDouble,
     }
 }

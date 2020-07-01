@@ -9,6 +9,7 @@ namespace ClangSharp
         internal PreprocessingDirective(CXCursor handle) : this(handle, CXCursorKind.CXCursor_PreprocessingDirective)
         {
         }
+
         private protected PreprocessingDirective(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
         {
         }

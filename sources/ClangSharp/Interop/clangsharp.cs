@@ -9,17 +9,26 @@ namespace ClangSharp.Interop
     {
         private const string LibraryPath = "libClangSharp";
 
-        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAssociatedConstraint", ExactSpelling = true)]
-        public static extern CXCursor Cursor_getAssociatedConstraint(CXCursor C, uint i);
-
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getArgument", ExactSpelling = true)]
         public static extern CXCursor Cursor_getArgument(CXCursor C, uint i);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getArgumentType", ExactSpelling = true)]
+        public static extern CXType Cursor_getArgumentType(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getArraySize", ExactSpelling = true)]
+        public static extern long Cursor_getArraySize(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAssociatedConstraint", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getAssociatedConstraint(CXCursor C, uint i);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAsFunction", ExactSpelling = true)]
         public static extern CXCursor Cursor_getAsFunction(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAttrKind", ExactSpelling = true)]
         public static extern CX_AttrKind Cursor_getAttrKind(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getBaseExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getBaseExpr(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getBinaryOpcode", ExactSpelling = true)]
         public static extern CX_BinaryOperatorKind Cursor_getBinaryOpcode(CXCursor C);
@@ -44,6 +53,9 @@ namespace ClangSharp.Interop
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getBody", ExactSpelling = true)]
         public static extern CXCursor Cursor_getBody(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCalleeExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getCalleeExpr(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCallResultType", ExactSpelling = true)]
         public static extern CXType Cursor_getCallResultType(CXCursor C);
@@ -81,6 +93,27 @@ namespace ClangSharp.Interop
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCastKind", ExactSpelling = true)]
         public static extern CX_CastKind Cursor_getCastKind(CXCursor C);
 
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCharacterLiteralKind", ExactSpelling = true)]
+        public static extern CX_CharacterKind Cursor_getCharacterLiteralKind(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCharacterLiteralValue", ExactSpelling = true)]
+        public static extern uint Cursor_getCharacterLiteralValue(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCommonExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getCommonExpr(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getComputationLhsType", ExactSpelling = true)]
+        public static extern CXType Cursor_getComputationLhsType(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getComputationResultType", ExactSpelling = true)]
+        public static extern CXType Cursor_getComputationResultType(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCondExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getCondExpr(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getConditionVariableDeclStmt", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getConditionVariableDeclStmt(CXCursor C);
+
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getConstraintExpr", ExactSpelling = true)]
         public static extern CXCursor Cursor_getConstraintExpr(CXCursor C);
 
@@ -98,6 +131,12 @@ namespace ClangSharp.Interop
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getContextParamPosition", ExactSpelling = true)]
         public static extern int Cursor_getContextParamPosition(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getConversionFunction", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getConversionFunction(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getCXXBoolLiteralExprValue", ExactSpelling = true)]
+        public static extern uint Cursor_getCXXBoolLiteralExprValue(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDeclaredReturnType", ExactSpelling = true)]
         public static extern CXType Cursor_getDeclaredReturnType(CXCursor C);
@@ -126,11 +165,26 @@ namespace ClangSharp.Interop
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDestructor", ExactSpelling = true)]
         public static extern CXCursor Cursor_getDestructor(CXCursor C);
 
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDirectCallee", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getDirectCallee(CXCursor C);
+
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDoesNotEscape", ExactSpelling = true)]
         public static extern uint Cursor_getDoesNotEscape(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getEnumDeclPromotionType", ExactSpelling = true)]
         public static extern CXType Cursor_getEnumDeclPromotionType(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getExpr(CXCursor C, uint i);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFalseExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getFalseExpr(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFloatingLiteralSemantics", ExactSpelling = true)]
+        public static extern CX_FloatingSemantics Cursor_getFloatingLiteralSemantics(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFloatingLiteralValueAsApproximateDouble", ExactSpelling = true)]
+        public static extern double Cursor_getFloatingLiteralValueAsApproximateDouble(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFieldIndex", ExactSpelling = true)]
         public static extern int Cursor_getFieldIndex(CXCursor C);
@@ -143,6 +197,9 @@ namespace ClangSharp.Interop
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFunctionScopeIndex", ExactSpelling = true)]
         public static extern int Cursor_getFunctionScopeIndex(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFunctionType", ExactSpelling = true)]
+        public static extern CXType Cursor_getFunctionType(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasBody", ExactSpelling = true)]
         public static extern uint Cursor_getHasBody(CXCursor C);
@@ -177,6 +234,12 @@ namespace ClangSharp.Interop
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHoldingVar", ExactSpelling = true)]
         public static extern CXCursor Cursor_getHoldingVar(CXCursor C);
 
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIdxExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getIdxExpr(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIncExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getIncExpr(CXCursor C);
+
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInClassInitializer", ExactSpelling = true)]
         public static extern CXCursor Cursor_getInClassInitializer(CXCursor C);
 
@@ -185,6 +248,9 @@ namespace ClangSharp.Interop
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getInstantiatedFromMember", ExactSpelling = true)]
         public static extern CXCursor Cursor_getInstantiatedFromMember(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIntegerLiteralValue", ExactSpelling = true)]
+        public static extern long Cursor_getIntegerLiteralValue(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsAnonymousStructOrUnion", ExactSpelling = true)]
         public static extern uint Cursor_getIsAnonymousStructOrUnion(CXCursor C);
@@ -288,6 +354,9 @@ namespace ClangSharp.Interop
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getLambdaStaticInvoker", ExactSpelling = true)]
         public static extern CXCursor Cursor_getLambdaStaticInvoker(CXCursor C);
 
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getLhsExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getLhsExpr(CXCursor C);
+
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getMaxAlignment", ExactSpelling = true)]
         public static extern uint Cursor_getMaxAlignment(CXCursor C);
 
@@ -299,6 +368,9 @@ namespace ClangSharp.Interop
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNextDeclInContext", ExactSpelling = true)]
         public static extern CXCursor Cursor_getNextDeclInContext(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNextSwitchCase", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getNextSwitchCase(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNominatedBaseClass", ExactSpelling = true)]
         public static extern CXCursor Cursor_getNominatedBaseClass(CXCursor C);
@@ -318,11 +390,17 @@ namespace ClangSharp.Interop
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumCaptures", ExactSpelling = true)]
         public static extern int Cursor_getNumCaptures(CXCursor C);
 
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumExprs", ExactSpelling = true)]
+        public static extern int Cursor_getNumExprs(CXCursor C);
+
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumSpecializations", ExactSpelling = true)]
         public static extern int Cursor_getNumSpecializations(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumTemplateArguments", ExactSpelling = true)]
         public static extern int Cursor_getNumTemplateArguments(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getOpaqueValueExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getOpaqueValueExpr(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getOriginalType", ExactSpelling = true)]
         public static extern CXType Cursor_getOriginalType(CXCursor C);
@@ -339,8 +417,14 @@ namespace ClangSharp.Interop
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getPrimaryTemplate", ExactSpelling = true)]
         public static extern CXCursor Cursor_getPrimaryTemplate(CXCursor C);
 
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getReferenced", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getReferenced(CXCursor C);
+
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getReturnType", ExactSpelling = true)]
         public static extern CXType Cursor_getReturnType(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getRhsExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getRhsExpr(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getSourceRange", ExactSpelling = true)]
         public static extern CXSourceRange Cursor_getSourceRange(CXCursor C);
@@ -350,6 +434,21 @@ namespace ClangSharp.Interop
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getStmtClass", ExactSpelling = true)]
         public static extern CX_StmtClass Cursor_getStmtClass(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getStringLiteralValue", ExactSpelling = true)]
+        public static extern CXString Cursor_getStringLiteralValue(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getSubExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getSubExpr(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getSubExprAsWritten", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getSubExprAsWritten(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getSubStmt", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getSubStmt(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getTargetUnionField", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getTargetUnionField(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getTemplateArgument", ExactSpelling = true)]
         public static extern CXCursor Cursor_getTemplateArgument(CXCursor C, uint i);
@@ -393,8 +492,14 @@ namespace ClangSharp.Interop
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getTrailingRequiresClause", ExactSpelling = true)]
         public static extern CXCursor Cursor_getTrailingRequiresClause(CXCursor C);
 
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getTrueExpr", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getTrueExpr(CXCursor C);
+
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getTypedefNameForAnonDecl", ExactSpelling = true)]
         public static extern CXCursor Cursor_getTypedefNameForAnonDecl(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUnaryExprOrTypeTraitKind", ExactSpelling = true)]
+        public static extern CX_UnaryExprOrTypeTrait Cursor_getUnaryExprOrTypeTraitKind(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUnaryOpcode", ExactSpelling = true)]
         public static extern CX_UnaryOperatorKind Cursor_getUnaryOpcode(CXCursor C);
@@ -407,6 +512,9 @@ namespace ClangSharp.Interop
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUninstantiatedDefaultArg", ExactSpelling = true)]
         public static extern CXCursor Cursor_getUninstantiatedDefaultArg(CXCursor C);
+
+        [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUsedContext", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getUsedContext(CXCursor C);
 
         [DllImport(LibraryPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getTypeClass", ExactSpelling = true)]
         public static extern CX_TypeClass Type_getTypeClass(CXType CT);

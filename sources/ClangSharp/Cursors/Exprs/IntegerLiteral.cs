@@ -8,11 +8,11 @@ namespace ClangSharp
 {
     public sealed class IntegerLiteral : Expr
     {
-        private readonly Lazy<string> _value;
+        private readonly Lazy<string> _valueString;
 
         internal IntegerLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IntegerLiteral, CX_StmtClass.CX_StmtClass_IntegerLiteral)
         {
-            _value = new Lazy<string>(() => {
+            _valueString = new Lazy<string>(() => {
                 var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
                 Debug.Assert(tokens.Length == 1);
@@ -22,6 +22,14 @@ namespace ClangSharp
             });
         }
 
-        public string Value => _value.Value;
+        public bool IsNegative => Handle.IsNegative;
+
+        public bool IsNonNegative => Handle.IsNonNegative;
+
+        public bool IsStrictlyPositive => Handle.IsStrictlyPositive;
+
+        public long Value => Handle.IntegerLiteralValue;
+
+        public string ValueString => _valueString.Value;
     }
 }

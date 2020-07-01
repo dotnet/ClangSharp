@@ -9,6 +9,7 @@ namespace ClangSharp
     public class CXXConstructExpr : Expr
     {
         private readonly Lazy<IReadOnlyList<Expr>> _args;
+        private readonly Lazy<CXXConstructorDecl> _constructor;
 
         internal CXXConstructExpr(CXCursor handle) : this(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_CXXConstructExpr)
         {
@@ -33,9 +34,12 @@ namespace ClangSharp
 
                 return args;
             });
+            _constructor = new Lazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.Referenced));
         }
 
         public IReadOnlyList<Expr> Args => _args.Value;
+
+        public CXXConstructorDecl Constructor => _constructor.Value;
 
         public uint NumArgs => (uint)Handle.NumArguments;
     }
