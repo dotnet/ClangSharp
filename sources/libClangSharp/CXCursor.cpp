@@ -200,12 +200,20 @@ namespace clang::cxcursor {
     }
 
     CXCursor MakeCXCursor(const Attr* A, const clang::Decl* Parent, CXTranslationUnit TU) {
+        if (!A) {
+            return clang_getNullCursor();
+        }
+
         assert(A && Parent && TU && "Invalid arguments!");
         CXCursor C = { GetCursorKind(A), 0, { Parent, A, TU } };
         return C;
     }
 
     CXCursor MakeCXCursor(const Decl* D, CXTranslationUnit TU, SourceRange RegionOfInterest, bool FirstInDeclGroup) {
+        if (!D) {
+            return clang_getNullCursor();
+        }
+
         assert(D && TU && "Invalid arguments!");
 
         CXCursorKind K = getCursorKindForDecl(D);
@@ -257,6 +265,10 @@ namespace clang::cxcursor {
     }
 
     CXCursor MakeCXCursor(const Stmt* S, const Decl* Parent, CXTranslationUnit TU, SourceRange RegionOfInterest) {
+        if (!S) {
+            return clang_getNullCursor();
+        }
+
         assert(S && TU && "Invalid arguments!");
         CXCursorKind K = CXCursor_NotImplemented;
 

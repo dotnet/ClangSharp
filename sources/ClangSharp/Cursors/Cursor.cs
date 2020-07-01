@@ -10,8 +10,8 @@ namespace ClangSharp
     [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
     public unsafe class Cursor : IEquatable<Cursor>
     {
-        private readonly Lazy<List<Cursor>> _cursorChildren;
-        private readonly Lazy<TranslationUnit> _translationUnit;
+        private readonly List<Cursor> _cursorChildren;
+        private readonly TranslationUnit _translationUnit;
 
         private protected Cursor(CXCursor handle, CXCursorKind expectedCursorKind)
         {
@@ -21,23 +21,22 @@ namespace ClangSharp
             }
             Handle = handle;
 
-            _cursorChildren = new Lazy<List<Cursor>>(() => {
-                var cursors = new List<Cursor>();
+            _translationUnit = TranslationUnit.GetOrCreate(Handle.TranslationUnit);
 
-                Handle.VisitChildren((cursor, parent, clientData) => {
-                    var cursorChild = TranslationUnit.GetOrCreate<Cursor>(cursor);
-                    cursorChild.CursorParent = this;
+            var cursorChildren = new List<Cursor>();
 
-                    cursors.Add(cursorChild);
-                    return CXChildVisitResult.CXChildVisit_Continue;
-                }, clientData: default);
+            Handle.VisitChildren((cursor, parent, clientData) => {
+                var cursorChild = TranslationUnit.GetOrCreate<Cursor>(cursor);
+                cursorChild.CursorParent = this;
 
-                return cursors;
-            });
-            _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
+                cursorChildren.Add(cursorChild);
+                return CXChildVisitResult.CXChildVisit_Continue;
+            }, clientData: default);
+
+            _cursorChildren = cursorChildren;
         }
 
-        public IReadOnlyList<Cursor> CursorChildren => _cursorChildren.Value;
+        public IReadOnlyList<Cursor> CursorChildren => _cursorChildren;
 
         public CXCursorKind CursorKind => Handle.Kind;
 
@@ -53,7 +52,7 @@ namespace ClangSharp
 
         public string Spelling => Handle.Spelling.ToString();
 
-        public TranslationUnit TranslationUnit => _translationUnit.Value;
+        public TranslationUnit TranslationUnit => _translationUnit;
 
         public static bool operator ==(Cursor left, Cursor right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
 
