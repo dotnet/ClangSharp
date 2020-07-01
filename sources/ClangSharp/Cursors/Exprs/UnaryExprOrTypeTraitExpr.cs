@@ -19,7 +19,7 @@ namespace ClangSharp
             _kind = new Lazy<CX_UnaryExprOrTypeTrait>(() => {
                 var translationUnitHandle = TranslationUnit.Handle;
                 
-                var tokens = translationUnitHandle.Tokenize(Handle.RawExtent);
+                var tokens = translationUnitHandle.Tokenize(Handle.SourceRange);
                 var firstTokenSpelling = (tokens.Length > 0) ? tokens[0].GetSpelling(translationUnitHandle).CString : string.Empty;
 
                 switch (firstTokenSpelling)

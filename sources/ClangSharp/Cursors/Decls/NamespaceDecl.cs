@@ -16,9 +16,11 @@ namespace ClangSharp
             _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
         }
 
+        public new NamespaceDecl CanonicalDecl => (NamespaceDecl)base.CanonicalDecl;
+
         public bool IsAnonymousNamespace => Handle.IsAnonymous;
 
-        public bool IsInlineNamespace => Handle.IsInlineNamespace;
+        public bool IsInline => Handle.IsInlineNamespace;
 
         public IReadOnlyList<Decl> Decls => _decls.Value;
 

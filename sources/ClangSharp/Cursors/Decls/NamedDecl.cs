@@ -7,17 +7,25 @@ namespace ClangSharp
 {
     public class NamedDecl : Decl
     {
+        private readonly Lazy<NamedDecl> _underlyingDecl;
+
         private protected NamedDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
             if ((CX_DeclKind.CX_DeclKind_LastNamed < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstNamed))
             {
                 throw new ArgumentException(nameof(handle));
             }
+
+            _underlyingDecl = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.UnderlyingDecl));
         }
 
         public CXLinkageKind LinkageInternal => Handle.Linkage;
 
+        public new NamedDecl MostRecentDecl => (NamedDecl)base.MostRecentDecl;
+
         public string Name => Spelling;
+
+        public NamedDecl UnderlyingDecl => _underlyingDecl.Value;
 
         public CXVisibilityKind Visibility => Handle.Visibility;
     }

@@ -7,6 +7,9 @@ namespace ClangSharp
 {
     public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
     {
+        private readonly Lazy<Expr> _bitWidth;
+        private readonly Lazy<Expr> _inClassInitializer;
+
         internal FieldDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_FieldDecl, CX_DeclKind.CX_DeclKind_Field)
         {
         }
@@ -17,16 +20,31 @@ namespace ClangSharp
             {
                 throw new ArgumentException(nameof(handle));
             }
+
+            _bitWidth = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.BitWidth));
+            _inClassInitializer = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.InClassInitializer));
         }
+
+        public Expr BitWidth => _bitWidth.Value;
 
         public int BitWidthValue => Handle.FieldDeclBitWidth;
 
+        public new FieldDecl CanonicalDecl => (FieldDecl)base.CanonicalDecl;
+
+        public int FieldIndex => Handle.FieldIndex;
+
+        public Expr InClassInitializer => _inClassInitializer.Value;
+
         public bool IsAnonymousField => string.IsNullOrWhiteSpace(Name);
+
+        public bool IsAnonymousStructOrUnion => Handle.IsAnonymousStructOrUnion;
 
         public bool IsBitField => Handle.IsBitField;
 
         public bool IsMutable => Handle.CXXField_IsMutable;
 
-        public RecordDecl Parent => (RecordDecl)CursorParent;
+        public bool IsUnnamedBitfield => Handle.IsUnnamedBitfield;
+
+        public RecordDecl Parent => (RecordDecl)DeclContext;
     }
 }

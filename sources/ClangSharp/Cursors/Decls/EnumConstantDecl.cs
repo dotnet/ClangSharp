@@ -12,11 +12,23 @@ namespace ClangSharp
 
         internal EnumConstantDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_EnumConstantDecl, CX_DeclKind.CX_DeclKind_EnumConstant)
         {
-            _initExpr = new Lazy<Expr>(() => CursorChildren.OfType<Expr>().SingleOrDefault());
+            _initExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.InitExpr));
         }
+
+        public new EnumConstantDecl CanonicalDecl => (EnumConstantDecl)base.CanonicalDecl;
 
         public Expr InitExpr => _initExpr.Value;
 
         public long InitVal => Handle.EnumConstantDeclValue;
+
+        public bool IsNegative => Handle.IsNegative;
+
+        public bool IsNonNegative => Handle.IsNonNegative;
+
+        public bool IsSigned => Handle.IsSigned;
+
+        public bool IsStrictlyPositive => Handle.IsStrictlyPositive;
+
+        public bool IsUnsigned => Handle.IsUnsigned;
     }
 }

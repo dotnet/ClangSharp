@@ -9,5 +9,7 @@ namespace ClangSharp
         internal CXXConversionDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ConversionFunction, CX_DeclKind.CX_DeclKind_CXXConversion)
         {
         }
+
+        public new CXXConversionDecl CanonicalDecl => (CXXConversionDecl)base.CanonicalDecl;
     }
 }

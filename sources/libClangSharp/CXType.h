@@ -11,4 +11,8 @@
 
 clang::QualType GetQualType(CXType CT);
 
+namespace clang::cxtype {
+    CXType MakeCXType(QualType T, CXTranslationUnit TU);
+}
+
 #endif

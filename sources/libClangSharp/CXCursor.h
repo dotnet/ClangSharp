@@ -8,7 +8,10 @@
 
 #include <clang/AST/Attr.h>
 #include <clang/AST/Decl.h>
+#include <clang/AST/DeclFriend.h>
+#include <clang/AST/DeclTemplate.h>
 #include <clang/AST/Expr.h>
+#include <clang/AST/ExprObjC.h>
 #include <clang/AST/Stmt.h>
 #include <clang/AST/TemplateName.h>
 #include <clang/Frontend/ASTUnit.h>
@@ -60,6 +63,7 @@ namespace clang::cxcursor {
     const Attr* getCursorAttr(CXCursor Cursor);
     const Decl* getCursorDecl(CXCursor Cursor);
     const Expr* getCursorExpr(CXCursor Cursor);
+    const PreprocessedEntity* getCursorPreprocessedEntity(CXCursor Cursor);
     const Stmt* getCursorStmt(CXCursor Cursor);
 
     /// Unpack a CXXBaseSpecifier cursor into a CXXBaseSpecifier.
@@ -109,6 +113,10 @@ namespace clang::cxcursor {
 
     // FIXME: Remove once we can model DeclGroups and their appropriate ranges properly in the ASTs.
     bool isFirstInDeclGroup(CXCursor C);
+
+    CXCursor MakeCXCursor(const Attr* A, const Decl* Parent, CXTranslationUnit TU);
+    CXCursor MakeCXCursor(const Decl* D, CXTranslationUnit TU, SourceRange RegionOfInterest = SourceRange(), bool FirstInDeclGroup = true);
+    CXCursor MakeCXCursor(const Stmt* S, const Decl* Parent, CXTranslationUnit TU, SourceRange RegionOfInterest = SourceRange());
 }
 
 #endif

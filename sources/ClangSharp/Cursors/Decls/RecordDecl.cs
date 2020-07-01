@@ -32,10 +32,16 @@ namespace ClangSharp
             _anonymousDecls = new Lazy<IReadOnlyList<Decl>>(() => Decls.Where(decl => ((decl is FieldDecl field) && field.IsAnonymousField) || ((decl is RecordDecl record) && record.IsAnonymousStructOrUnion)).ToList());
         }
 
-        public bool IsAnonymousStructOrUnion => Handle.IsAnonymousRecordDecl;
+        public bool IsAnonymousStructOrUnion => Handle.IsAnonymousStructOrUnion;
 
         public IReadOnlyList<Decl> AnonymousDecls => _anonymousDecls.Value;
 
+        public new RecordDecl Definition => (RecordDecl)base.Definition;
+
         public IReadOnlyList<FieldDecl> Fields => _fields.Value;
+
+        public new RecordDecl MostRecentDecl => (RecordDecl)base.MostRecentDecl;
+
+        public new RecordDecl PreviousDecl => (RecordDecl)base.PreviousDecl;
     }
 }

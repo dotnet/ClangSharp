@@ -19,6 +19,10 @@ namespace ClangSharp
             _underlyingType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypedefDeclUnderlyingType));
         }
 
+        public new TypedefNameDecl CanonicalDecl => (TypedefNameDecl)base.CanonicalDecl;
+
+        public bool IsTransparentTag => Handle.IsTransparentTag;
+
         public Type UnderlyingType => _underlyingType.Value;
     }
 }

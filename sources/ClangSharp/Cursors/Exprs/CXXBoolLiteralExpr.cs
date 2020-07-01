@@ -13,7 +13,7 @@ namespace ClangSharp
         internal CXXBoolLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXBoolLiteralExpr, CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr)
         {
             _value = new Lazy<string>(() => {
-                var tokens = Handle.TranslationUnit.Tokenize(Handle.RawExtent);
+                var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
                 Debug.Assert(tokens.Length == 1);
                 Debug.Assert(tokens[0].Kind == CXTokenKind.CXToken_Keyword);

@@ -19,7 +19,9 @@ namespace ClangSharp
             _instantiatedFromMemberTemplate = new Lazy<RedeclarableTemplateDecl>(() => TranslationUnit.GetOrCreate<RedeclarableTemplateDecl>(Handle.SpecializedCursorTemplate));
         }
 
-        public bool IsMemberSpecialization => InstantiatedFromMemberTemplate != null;
+        public new RedeclarableTemplateDecl CanonicalDecl => (RedeclarableTemplateDecl)base.CanonicalDecl;
+
+        public bool IsMemberSpecialization => Handle.IsMemberSpecialization;
 
         public RedeclarableTemplateDecl InstantiatedFromMemberTemplate => _instantiatedFromMemberTemplate.Value;
     }

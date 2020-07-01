@@ -24,12 +24,12 @@ namespace ClangSharp
 
             _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
             _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
-                var templateArgsSize = TemplateArgsSize;
-                var templateArgs = new List<TemplateArgument>((int)templateArgsSize);
+                var templateArgCount = Handle.NumTemplateArguments;
+                var templateArgs = new List<TemplateArgument>(templateArgCount);
 
-                for (var index = 0u; index < templateArgsSize; index++)
+                for (int i = 0; i < templateArgCount; i++)
                 {
-                    var templateArg = new TemplateArgument(this, index);
+                    var templateArg = new TemplateArgument(this, unchecked((uint)i));
                     templateArgs.Add(templateArg);
                 }
 
@@ -37,10 +37,12 @@ namespace ClangSharp
             });
         }
 
-        public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs.Value;
+        public new ClassTemplateSpecializationDecl MostRecentDecl => (ClassTemplateSpecializationDecl)base.MostRecentDecl;
 
-        public uint TemplateArgsSize => (uint)TypeForDecl.Handle.NumTemplateArguments;
+        public CX_TemplateSpecializationKind SpecializationKind => Handle.TemplateSpecializationKind;
 
         public ClassTemplateDecl SpecializedTemplate => _specializedTemplate.Value;
+
+        public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs.Value;
     }
 }
