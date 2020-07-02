@@ -1159,7 +1159,7 @@ int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C) {
         const Expr* E = getCursorExpr(C);
 
         if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(E)) {
-            IL->getValue();
+            IL->getValue().getSExtValue();
         }
     }
 
