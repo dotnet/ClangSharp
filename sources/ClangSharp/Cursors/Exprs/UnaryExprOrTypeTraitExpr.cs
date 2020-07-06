@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -9,41 +8,21 @@ namespace ClangSharp
     public sealed class UnaryExprOrTypeTraitExpr : Expr
     {
         private readonly Lazy<Expr> _argumentExpr;
-        private readonly Lazy<Ref> _argumentType;
-        private readonly Lazy<CX_UnaryExprOrTypeTrait> _kind;
+        private readonly Lazy<Type> _argumentType;
 
         internal UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryExpr, CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr)
         {
-            _argumentExpr = new Lazy<Expr>(() => CursorChildren.OfType<Expr>().SingleOrDefault());
-            _argumentType = new Lazy<Ref>(() => CursorChildren.OfType<Ref>().SingleOrDefault());
-            _kind = new Lazy<CX_UnaryExprOrTypeTrait>(() => {
-                var translationUnitHandle = TranslationUnit.Handle;
-                
-                var tokens = translationUnitHandle.Tokenize(Handle.RawExtent);
-                var firstTokenSpelling = (tokens.Length > 0) ? tokens[0].GetSpelling(translationUnitHandle).CString : string.Empty;
-
-                switch (firstTokenSpelling)
-                {
-                    case "sizeof":
-                    {
-                        return CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf;
-                    }
-
-                    default:
-                    {
-                        return CX_UnaryExprOrTypeTrait.CX_UETT_Invalid;
-                    }
-                }
-            });
+            _argumentExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
+            _argumentType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ArgumentType));
         }
 
         public Expr ArgumentExpr => _argumentExpr.Value;
 
-        public Type ArgumentType => _argumentType.Value?.Type;
+        public Type ArgumentType => _argumentType.Value;
 
         public bool IsArgumentType => ArgumentExpr is null;
 
-        public CX_UnaryExprOrTypeTrait Kind => _kind.Value;
+        public CX_UnaryExprOrTypeTrait Kind => Handle.UnaryExprOrTypeTraitKind;
 
         public Type TypeOfArgument => IsArgumentType ? ArgumentType : ArgumentExpr.Type;
     }

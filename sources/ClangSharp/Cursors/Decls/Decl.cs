@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
 
@@ -10,10 +9,18 @@ namespace ClangSharp
 {
     public class Decl : Cursor
     {
+        private readonly Lazy<FunctionDecl> _asFunction;
         private readonly Lazy<IReadOnlyList<Attr>> _attrs;
+        private readonly Lazy<Stmt> _body;
         private readonly Lazy<Decl> _canonicalDecl;
         private readonly Lazy<IDeclContext> _declContext;
+        private readonly Lazy<TemplateDecl> _describedTemplate;
         private readonly Lazy<IDeclContext> _lexicalDeclContext;
+        private readonly Lazy<Decl> _mostRecentDecl;
+        private readonly Lazy<Decl> _nextDeclInContext;
+        private readonly Lazy<Decl> _nonClosureContext;
+        private readonly Lazy<IDeclContext> _parentFunctionOrMethod;
+        private readonly Lazy<Decl> _previousDecl;
         private readonly Lazy<TranslationUnitDecl> _translationUnitDecl;
 
         private protected Decl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind)
@@ -23,18 +30,30 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
+            _asFunction = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.AsFunction));
             _attrs = new Lazy<IReadOnlyList<Attr>>(() => CursorChildren.OfType<Attr>().ToList());
+            _body = new Lazy<Stmt>(() => TranslationUnit.GetOrCreate<Stmt>(Handle.Body));
             _canonicalDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
             _declContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.SemanticParent) as IDeclContext);
+            _describedTemplate = new Lazy<TemplateDecl>(() => TranslationUnit.GetOrCreate<TemplateDecl>(Handle.DescribedTemplate));
             _lexicalDeclContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.LexicalParent) as IDeclContext);
+            _mostRecentDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.MostRecentDecl));
+            _nextDeclInContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NextDeclInContext));
+            _nonClosureContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NonClosureContext));
+            _parentFunctionOrMethod = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.ParentFunctionOrMethod) as IDeclContext);
+            _previousDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.PreviousDecl));
             _translationUnitDecl = new Lazy<TranslationUnitDecl>(() => TranslationUnit.GetOrCreate<TranslationUnitDecl>(Handle.TranslationUnit.Cursor));
         }
 
         public CX_CXXAccessSpecifier Access => Handle.CXXAccessSpecifier;
 
+        public FunctionDecl AsFunction => _asFunction.Value;
+
         public IReadOnlyList<Attr> Attrs => _attrs.Value;
 
         public CXAvailabilityKind Availability => Handle.Availability;
+
+        public Stmt Body => _body.Value;
 
         public Decl CanonicalDecl => _canonicalDecl.Value;
 
@@ -42,15 +61,37 @@ namespace ClangSharp
 
         public string DeclKindName => Handle.DeclKindSpelling;
 
+        public TemplateDecl DescribedTemplate => _describedTemplate.Value;
+
         public bool HasAttrs => Handle.HasAttrs;
 
         public bool IsCanonicalDecl => Handle.IsCanonical;
 
+        public bool IsDeprecated => Handle.IsDeprecated;
+
         public bool IsInvalidDecl => Handle.IsInvalidDeclaration;
+
+        public bool IsTemplated => Handle.IsTemplated;
+
+        public bool IsUnavailable => Handle.IsUnavailable;
 
         public CX_DeclKind Kind => Handle.DeclKind;
 
         public IDeclContext LexicalDeclContext => _lexicalDeclContext.Value;
+
+        public uint MaxAlignment => Handle.MaxAlignment;
+
+        public Decl MostRecentDecl => _mostRecentDecl.Value;
+
+        public Decl NextDeclInContext => _nextDeclInContext.Value;
+
+        public Decl NonClosureContext => _nonClosureContext.Value;
+
+        public IDeclContext ParentFunctionOrMethod => _parentFunctionOrMethod.Value;
+
+        public Decl PreviousDecl => _previousDecl.Value;
+
+        public CXSourceRange SourceRange => clangsharp.Cursor_getSourceRange(Handle);
 
         public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.Value;
 

@@ -13,13 +13,16 @@
 
 void createNullLocation(CXFile* file, unsigned* line, unsigned* column, unsigned* offset);
 
-clang::SourceRange getRawCursorExtent(CXCursor C);
+clang::SourceRange getCursorSourceRange(CXCursor C);
 
 bool isASTUnitSourceLocation(const CXSourceLocation& L);
 
 namespace clang::cxloc {
+    CXSourceLocation translateSourceLocation(ASTContext& Context, SourceLocation Loc);
+    CXSourceLocation translateSourceLocation(const SourceManager& SM, const LangOptions& LangOpts, SourceLocation Loc);
+
     CXSourceRange translateSourceRange(ASTContext& Context, SourceRange R);
-    CXSourceRange translateSourceRange(const SourceManager& SM, const LangOptions& LangOpts, const CharSourceRange& R);
+    CXSourceRange translateSourceRange(const SourceManager& SM, const LangOptions& LangOpts, SourceRange R);
 }
 
 #endif

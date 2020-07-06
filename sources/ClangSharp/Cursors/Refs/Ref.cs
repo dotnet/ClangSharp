@@ -33,6 +33,21 @@ namespace ClangSharp
                     break;
                 }
 
+                case CXCursorKind.CXCursor_ObjCSuperClassRef:
+                case CXCursorKind.CXCursor_ObjCProtocolRef:
+                case CXCursorKind.CXCursor_ObjCClassRef:
+                case CXCursorKind.CXCursor_TypeRef:
+                case CXCursorKind.CXCursor_TemplateRef:
+                case CXCursorKind.CXCursor_NamespaceRef:
+                case CXCursorKind.CXCursor_MemberRef:
+                case CXCursorKind.CXCursor_LabelRef:
+                case CXCursorKind.CXCursor_OverloadedDeclRef:
+                case CXCursorKind.CXCursor_VariableRef:
+                {
+                    result = new Ref(handle, handle.Kind);
+                    break;
+                }
+
                 default:
                 {
                     Debug.WriteLine($"Unhandled reference kind: {handle.KindSpelling}.");

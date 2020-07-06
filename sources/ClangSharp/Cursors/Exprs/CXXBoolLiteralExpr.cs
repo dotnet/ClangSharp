@@ -8,12 +8,12 @@ namespace ClangSharp
 {
     public sealed class CXXBoolLiteralExpr : Expr
     {
-        private readonly Lazy<string> _value;
+        private readonly Lazy<string> _valueString;
 
         internal CXXBoolLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXBoolLiteralExpr, CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr)
         {
-            _value = new Lazy<string>(() => {
-                var tokens = Handle.TranslationUnit.Tokenize(Handle.RawExtent);
+            _valueString = new Lazy<string>(() => {
+                var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
                 Debug.Assert(tokens.Length == 1);
                 Debug.Assert(tokens[0].Kind == CXTokenKind.CXToken_Keyword);
@@ -22,6 +22,8 @@ namespace ClangSharp
             });
         }
 
-        public string Value => _value.Value;
+        public bool Value => Handle.CXXBoolLiteralExprValue;
+
+        public string ValueString => _valueString.Value;
     }
 }

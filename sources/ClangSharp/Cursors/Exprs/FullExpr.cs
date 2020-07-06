@@ -17,7 +17,7 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
-            _subExpr = new Lazy<Expr>(() => Children.OfType<Expr>().Single());
+            _subExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
         }
 
         public Expr SubExpr => _subExpr.Value;

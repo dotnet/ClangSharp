@@ -11,6 +11,7 @@ namespace ClangSharp
     {
         private readonly Lazy<IReadOnlyList<Decl>> _decls;
         private readonly Lazy<TagDecl> _definition;
+        private readonly Lazy<TypedefNameDecl> _typedefNameForAnonDecl;
 
         private protected TagDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
@@ -21,7 +22,10 @@ namespace ClangSharp
 
             _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
             _definition = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition));
+            _typedefNameForAnonDecl = new Lazy<TypedefNameDecl>(() => TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.TypedefNameForAnonDecl));
         }
+
+        public new TagDecl CanonicalDecl => (TagDecl)base.CanonicalDecl;
 
         public IReadOnlyList<Decl> Decls => _decls.Value;
 
@@ -33,10 +37,14 @@ namespace ClangSharp
 
         public bool IsStruct => CursorKind == CXCursorKind.CXCursor_StructDecl;
 
+        public bool IsThisDeclarationADefinition => Handle.IsThisDeclarationADefinition;
+
         public bool IsUnion => CursorKind == CXCursorKind.CXCursor_UnionDecl;
 
         public IDeclContext LexicalParent => LexicalDeclContext;
 
         public IDeclContext Parent => DeclContext;
+
+        public TypedefNameDecl TypedefNameForAnonDecl => _typedefNameForAnonDecl.Value;
     }
 }

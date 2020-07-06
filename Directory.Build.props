@@ -41,7 +41,7 @@
     <PackageOutputPath>$(BaseArtifactsPath)pkg/$(Configuration)/</PackageOutputPath>
     <Product>ClangSharp</Product>
     <VersionPrefix>10.0.0</VersionPrefix>
-    <VersionSuffix>beta</VersionSuffix>
+    <VersionSuffix>beta2</VersionSuffix>
   </PropertyGroup>
 
   <!-- Default settings that are otherwise undefined -->

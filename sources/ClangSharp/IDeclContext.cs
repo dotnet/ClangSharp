@@ -6,10 +6,10 @@ namespace ClangSharp
 {
     public interface IDeclContext
     {
+        IReadOnlyList<Decl> Decls { get; }
+
         IDeclContext LexicalParent { get; }
 
         IDeclContext Parent { get; }
-
-        IReadOnlyList<Decl> Decls { get; }
     }
 }

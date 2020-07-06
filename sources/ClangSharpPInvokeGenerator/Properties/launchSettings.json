@@ -2,7 +2,8 @@
   "profiles": {
     "GenerateClang": {
       "commandName": "Project",
-      "commandLineArgs": "\"@$(MSBuildProjectDirectory)/Properties/GenerateClang.rsp\" --file-directory \"$(LLVMIncludePath)\" --include-directory \"$(LLVMIncludePath)\" --libraryPath $(LibClangName)"
+      "commandLineArgs": "\"@$(MSBuildProjectDirectory)/Properties/GenerateClang.rsp\" --file-directory \"$(LLVMIncludePath)\" --include-directory \"$(LLVMIncludePath)\" --libraryPath $(LibClangName)",
+      "nativeDebugging": true
     },
     "GenerateClangSharp": {
       "commandName": "Project",

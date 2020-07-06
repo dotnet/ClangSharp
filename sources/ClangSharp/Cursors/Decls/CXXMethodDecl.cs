@@ -7,6 +7,9 @@ namespace ClangSharp
 {
     public class CXXMethodDecl : FunctionDecl
     {
+        private readonly Lazy<Type> _thisType;
+        private readonly Lazy<Type> _thisObjectType;
+
         internal CXXMethodDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_CXXMethod, CX_DeclKind.CX_DeclKind_CXXMethod)
         {
         }
@@ -17,14 +20,25 @@ namespace ClangSharp
             {
                 throw new ArgumentException(nameof(handle));
             }
+
+            _thisType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisType));
+            _thisObjectType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisObjectType));
         }
+
+        public new CXXMethodDecl CanonicalDecl => (CXXMethodDecl)base.CanonicalDecl;
 
         public bool IsConst => Handle.CXXMethod_IsConst;
 
-        public bool IsDefaulted => Handle.CXXMethod_IsDefaulted;
-
-        public bool IsStatic => Handle.CXXMethod_IsStatic;
+        public bool IsInstance => !IsStatic;
 
         public bool IsVirtual => Handle.CXXMethod_IsVirtual;
+
+        public new CXXMethodDecl MostRecentDecl => (CXXMethodDecl)base.MostRecentDecl;
+
+        public new CXXRecordDecl Parent => (CXXRecordDecl)base.Parent;
+
+        public Type ThisType => _thisType.Value;
+
+        public Type ThisObjectType => _thisObjectType.Value;
     }
 }

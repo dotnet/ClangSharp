@@ -9,5 +9,17 @@ namespace ClangSharp
         internal ClassTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ClassTemplate, CX_DeclKind.CX_DeclKind_ClassTemplate)
         {
         }
+
+        public new ClassTemplateDecl CanonicalDecl => (ClassTemplateDecl)base.CanonicalDecl;
+
+        public new ClassTemplateDecl InstantiatedFromMemberTemplate => (ClassTemplateDecl)base.InstantiatedFromMemberTemplate;
+
+        public bool IsThisDeclarationADefinition => Handle.IsThisDeclarationADefinition;
+
+        public new ClassTemplateDecl MostRecentDecl => (ClassTemplateDecl)base.MostRecentDecl;
+
+        public new ClassTemplateDecl PreviousDecl => (ClassTemplateDecl)base.PreviousDecl;
+
+        public new CXXRecordDecl TemplatedDecl => (CXXRecordDecl)base.TemplatedDecl;
     }
 }

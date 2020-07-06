@@ -7,11 +7,11 @@ namespace ClangSharp
 {
     public sealed class TemplateArgument
     {
-        private readonly ClassTemplateSpecializationDecl _parentDecl;
+        private readonly Decl _parentDecl;
         private readonly uint _index;
         private readonly Lazy<Type> _asType;
 
-        internal TemplateArgument(ClassTemplateSpecializationDecl parentDecl, uint index)
+        internal TemplateArgument(Decl parentDecl, uint index)
         {
             _parentDecl = parentDecl;
             _index = index;

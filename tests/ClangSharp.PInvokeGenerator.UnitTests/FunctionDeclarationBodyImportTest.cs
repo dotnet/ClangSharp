@@ -71,7 +71,6 @@ namespace ClangSharp.UnitTests
         [InlineData("<<")]
         [InlineData("<<=")]
         [InlineData("=")]
-        [InlineData("==")]
         [InlineData(">>")]
         [InlineData(">>=")]
         [InlineData("^")]
@@ -102,12 +101,37 @@ namespace ClangSharp.UnitTests
         }
 
         [Theory]
+        [InlineData("==")]
         [InlineData("!=")]
-        [InlineData("&&")]
         [InlineData("<")]
         [InlineData("<=")]
         [InlineData(">")]
         [InlineData(">=")]
+        public async Task BinaryOperatorCompareTest(string opcode)
+        {
+            var inputContents = $@"bool MyFunction(int x, int y)
+{{
+    return x {opcode} y;
+}}
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        public static bool MyFunction(int x, int y)
+        {{
+            return x {opcode} y;
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("&&")]
         [InlineData("||")]
         public async Task BinaryOperatorBooleanTest(string opcode)
         {

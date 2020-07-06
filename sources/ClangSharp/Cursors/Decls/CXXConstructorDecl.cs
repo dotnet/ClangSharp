@@ -10,6 +10,8 @@ namespace ClangSharp
         {
         }
 
+        public new CXXConstructorDecl CanonicalDecl => (CXXConstructorDecl)base.CanonicalDecl;
+
         public bool IsConvertingConstructor => Handle.CXXConstructor_IsConvertingConstructor;
 
         public bool IsCopyConstructor => Handle.CXXConstructor_IsCopyConstructor;

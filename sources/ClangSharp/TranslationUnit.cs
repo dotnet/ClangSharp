@@ -13,6 +13,7 @@ namespace ClangSharp
 
         private readonly Dictionary<CXCursor, Cursor> _createdCursors;
         private readonly Dictionary<CXType, Type> _createdTypes;
+        private readonly Lazy<TranslationUnitDecl> _translationUnitDecl;
 
         private bool _isDisposed;
 
@@ -23,7 +24,7 @@ namespace ClangSharp
             _createdCursors = new Dictionary<CXCursor, Cursor>();
             _createdTypes = new Dictionary<CXType, Type>();
 
-            TranslationUnitDecl = GetOrCreate<TranslationUnitDecl>(Handle.Cursor);
+            _translationUnitDecl = new Lazy<TranslationUnitDecl>(() => GetOrCreate<TranslationUnitDecl>(Handle.Cursor));
         }
 
         ~TranslationUnit()
@@ -33,7 +34,7 @@ namespace ClangSharp
 
         public CXTranslationUnit Handle { get; }
 
-        public TranslationUnitDecl TranslationUnitDecl { get; }
+        public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.Value;
 
         public static bool operator ==(TranslationUnit left, TranslationUnit right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
 
