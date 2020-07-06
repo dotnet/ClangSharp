@@ -12,7 +12,7 @@ namespace ClangSharp
 
         internal DoStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DoStmt, CX_StmtClass.CX_StmtClass_DoStmt)
         {
-            _body = new Lazy<Stmt>(() => TranslationUnit.GetOrCreate<Expr>(Handle.Body));
+            _body = new Lazy<Stmt>(() => TranslationUnit.GetOrCreate<Stmt>(Handle.Body));
             _cond = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.CondExpr));
         }
 

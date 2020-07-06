@@ -69,6 +69,8 @@ namespace ClangSharp
 
         public IReadOnlyList<FriendDecl> Friends => _friends.Value;
 
+        public bool HasUserDeclaredDestructor => Decls.OfType<CXXDestructorDecl>().Any();
+
         public CXXRecordDecl InstantiatedFromMemberClass => _instantiatedFromMemberClass.Value;
 
         public CXXMethodDecl LambdaCallOperator => _lambdaCallOperator.Value;

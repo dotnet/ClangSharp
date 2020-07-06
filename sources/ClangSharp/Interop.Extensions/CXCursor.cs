@@ -781,6 +781,8 @@ namespace ClangSharp.Interop
 
         public bool IsGlobal => clangsharp.Cursor_getIsGlobal(this) != 0;
 
+        public bool IsImplicitAccess => clangsharp.Cursor_getIsImplicitAccess(this) != 0;
+
         public bool IsInlineNamespace => clang.Cursor_isInlineNamespace(this) != 0;
 
         public bool IsInvalid => clang.isInvalid(Kind) != 0;
@@ -1234,7 +1236,7 @@ namespace ClangSharp.Interop
 
         public CXCursor SubStmt => clangsharp.Cursor_getSubStmt(this);
 
-        public CXCursor TargetUnionField => clangsharp.Cursor_getTargetUnionField(this);
+        public CXCursor TargetUnionField => (CastKind == CX_CastKind.CX_CK_ToUnion) ? clangsharp.Cursor_getTargetUnionField(this) : Null;
 
         public CXCursorKind TemplateCursorKind => clang.getTemplateCursorKind(this);
 

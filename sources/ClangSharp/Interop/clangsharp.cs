@@ -303,6 +303,10 @@ namespace ClangSharp.Interop
         [return: NativeTypeName("unsigned int")]
         public static extern uint Cursor_getIsGlobal(CXCursor C);
 
+        [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsImplicitAccess", ExactSpelling = true)]
+        [return: NativeTypeName("unsigned int")]
+        public static extern uint Cursor_getIsImplicitAccess(CXCursor C);
+
         [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsLocalVarDecl", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
         public static extern uint Cursor_getIsLocalVarDecl(CXCursor C);

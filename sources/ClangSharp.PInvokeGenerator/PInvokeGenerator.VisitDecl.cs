@@ -1237,7 +1237,7 @@ namespace ClangSharp
                     _outputBuilder.NeedsNewline = true;
                 }
 
-                if (cxxRecordDecl.Destructor != null)
+                if (cxxRecordDecl.HasUserDeclaredDestructor)
                 {
                     Visit(cxxRecordDecl.Destructor);
                     _outputBuilder.NeedsNewline = true;
