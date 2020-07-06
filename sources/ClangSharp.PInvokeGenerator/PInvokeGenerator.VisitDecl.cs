@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -13,21 +12,11 @@ namespace ClangSharp
     {
         private void VisitClassTemplateDecl(ClassTemplateDecl classTemplateDecl)
         {
-            if (IsExcluded(classTemplateDecl))
-            {
-                return;
-            }
-
             AddDiagnostic(DiagnosticLevel.Warning, $"Class templates are not supported: '{GetCursorQualifiedName(classTemplateDecl)}'. Generated bindings may be incomplete.", classTemplateDecl);
         }
 
         private void VisitClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl classTemplateSpecializationDecl)
         {
-            if (IsExcluded(classTemplateSpecializationDecl))
-            {
-                return;
-            }
-
             AddDiagnostic(DiagnosticLevel.Warning, $"Class template specializations are not supported: '{GetCursorQualifiedName(classTemplateSpecializationDecl)}'. Generated bindings may be incomplete.", classTemplateSpecializationDecl);
         }
 
@@ -267,11 +256,6 @@ namespace ClangSharp
 
         private void VisitEnumConstantDecl(EnumConstantDecl enumConstantDecl)
         {
-            if (IsExcluded(enumConstantDecl))
-            {
-                return;
-            }
-
             var name = GetRemappedCursorName(enumConstantDecl);
 
             _outputBuilder.WriteIndentation();
@@ -290,11 +274,6 @@ namespace ClangSharp
 
         private void VisitEnumDecl(EnumDecl enumDecl)
         {
-            if (IsExcluded(enumDecl))
-            {
-                return;
-            }
-
             var name = GetRemappedCursorName(enumDecl);
 
             StartUsingOutputBuilder(name);
@@ -333,7 +312,7 @@ namespace ClangSharp
 
         private void VisitFieldDecl(FieldDecl fieldDecl)
         {
-            if (IsExcluded(fieldDecl) || fieldDecl.IsBitField)
+            if (fieldDecl.IsBitField)
             {
                 return;
             }
@@ -745,11 +724,6 @@ namespace ClangSharp
 
         private void VisitFunctionTemplateDecl(FunctionTemplateDecl functionTemplateDecl)
         {
-            if (IsExcluded(functionTemplateDecl))
-            {
-                return;
-            }
-
             AddDiagnostic(DiagnosticLevel.Warning, $"Function templates are not supported: '{GetCursorQualifiedName(functionTemplateDecl)}'. Generated bindings may be incomplete.", functionTemplateDecl);
         }
 
@@ -875,11 +849,6 @@ namespace ClangSharp
 
         private void VisitRecordDecl(RecordDecl recordDecl)
         {
-            if (IsExcluded(recordDecl))
-            {
-                return;
-            }
-
             var name = GetRemappedCursorName(recordDecl);
 
             StartUsingOutputBuilder(name, includeTestOutput: true);
@@ -2175,11 +2144,6 @@ namespace ClangSharp
 
         private void VisitTypedefDecl(TypedefDecl typedefDecl)
         {
-            if (IsExcluded(typedefDecl))
-            {
-                return;
-            }
-
             ForUnderlyingType(typedefDecl, typedefDecl.UnderlyingType);
 
             void ForFunctionProtoType(TypedefDecl typedefDecl, FunctionProtoType functionProtoType, Type parentType)
@@ -2299,11 +2263,6 @@ namespace ClangSharp
 
         private void VisitVarDecl(VarDecl varDecl)
         {
-            if (IsExcluded(varDecl))
-            {
-                return;
-            }
-
             var cursorParent = varDecl.CursorParent;
 
             if ((cursorParent is TranslationUnitDecl) || (cursorParent is LinkageSpecDecl))
