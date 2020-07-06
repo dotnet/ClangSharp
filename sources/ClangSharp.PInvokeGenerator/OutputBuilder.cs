@@ -119,6 +119,12 @@ namespace ClangSharp
             WriteLine(value);
         }
 
+        public void WriteLine()
+        {
+            _contents.Add(_currentLine.ToString());
+            _currentLine.Clear();
+        }
+
         public void WriteLine<T>(T value)
         {
             Write(value);
@@ -141,12 +147,6 @@ namespace ClangSharp
                 WriteLine(';');
             }
             NeedsSemicolon = true;
-        }
-
-        private void WriteLine()
-        {
-            _contents.Add(_currentLine.ToString());
-            _currentLine.Clear();
         }
     }
 }

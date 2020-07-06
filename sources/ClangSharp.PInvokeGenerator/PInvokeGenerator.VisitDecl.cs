@@ -1153,50 +1153,7 @@ namespace ClangSharp
                     }
                     else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
                     {
-                        var nestedRecordDeclFieldName = GetRemappedAnonymousName(nestedRecordDecl, "Field");
-
-                        if (nestedRecordDeclFieldName.StartsWith("__AnonymousField_"))
-                        {
-                            var newNestedRecordDeclFieldName = "Anonymous";
-
-                            if (recordDecl.AnonymousDecls.Count != 1)
-                            {
-                                var index = recordDecl.AnonymousDecls.IndexOf(nestedRecordDecl) + 1;
-                                newNestedRecordDeclFieldName += index.ToString();
-                            }
-
-                            var remappedNames = _config.RemappedNames as Dictionary<string, string>;
-                            remappedNames.Add(nestedRecordDeclFieldName, newNestedRecordDeclFieldName);
-
-                            nestedRecordDeclFieldName = newNestedRecordDeclFieldName;
-                        }
-
-                        var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, context: null, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
-
-                        if (nestedRecordDeclName.StartsWith("__AnonymousRecord_"))
-                        {
-                            var newNestedRecordDeclName = $"_{nestedRecordDeclFieldName}_e__{(nestedRecordDecl.IsUnion ? "Union" : "Struct")}";
-
-                            var remappedNames = _config.RemappedNames as Dictionary<string, string>;
-                            remappedNames.Add(nestedRecordDeclName, newNestedRecordDeclName);
-
-                            nestedRecordDeclName = newNestedRecordDeclName;
-                        }
-
-                        if (recordDecl.IsUnion)
-                        {
-                            _outputBuilder.WriteIndentedLine("[FieldOffset(0)]");
-                        }
-                        AddNativeTypeNameAttribute(nativeTypeName);
-
-                        _outputBuilder.WriteIndented(GetAccessSpecifierName(nestedRecordDecl));
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(nestedRecordDeclName);
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write(nestedRecordDeclFieldName);
-                        _outputBuilder.WriteLine(';');
-
-                        _outputBuilder.NeedsNewline = true;
+                        VisitAnonymousRecordDecl(this, _outputBuilder, recordDecl, nestedRecordDecl);
                     }
                 }
 
@@ -1640,6 +1597,213 @@ namespace ClangSharp
                     else
                     {
                         remappedNames[name] = remappedName;
+                    }
+                }
+            }
+
+            static void VisitAnonymousRecordDecl(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, RecordDecl recordDecl, RecordDecl nestedRecordDecl)
+            {
+                var nestedRecordDeclFieldName = pinvokeGenerator.GetRemappedAnonymousName(nestedRecordDecl, "Field");
+
+                if (nestedRecordDeclFieldName.StartsWith("__AnonymousField_"))
+                {
+                    var newNestedRecordDeclFieldName = "Anonymous";
+
+                    if (recordDecl.AnonymousDecls.Count != 1)
+                    {
+                        var index = recordDecl.AnonymousDecls.IndexOf(nestedRecordDecl) + 1;
+                        newNestedRecordDeclFieldName += index.ToString();
+                    }
+
+                    var remappedNames = pinvokeGenerator._config.RemappedNames as Dictionary<string, string>;
+                    remappedNames.Add(nestedRecordDeclFieldName, newNestedRecordDeclFieldName);
+
+                    nestedRecordDeclFieldName = newNestedRecordDeclFieldName;
+                }
+
+                var nestedRecordDeclName = pinvokeGenerator.GetRemappedTypeName(nestedRecordDecl, context: null, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
+
+                if (nestedRecordDeclName.StartsWith("__AnonymousRecord_"))
+                {
+                    var newNestedRecordDeclName = $"_{nestedRecordDeclFieldName}_e__{(nestedRecordDecl.IsUnion ? "Union" : "Struct")}";
+
+                    var remappedNames = pinvokeGenerator._config.RemappedNames as Dictionary<string, string>;
+                    remappedNames.Add(nestedRecordDeclName, newNestedRecordDeclName);
+
+                    nestedRecordDeclName = newNestedRecordDeclName;
+                }
+
+                if (recordDecl.IsUnion)
+                {
+                    outputBuilder.WriteIndentedLine("[FieldOffset(0)]");
+                }
+                pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName);
+
+                outputBuilder.WriteIndented("internal");
+                outputBuilder.Write(' ');
+                outputBuilder.Write(nestedRecordDeclName);
+                outputBuilder.Write(' ');
+                outputBuilder.Write(nestedRecordDeclFieldName);
+                outputBuilder.WriteLine(';');
+                outputBuilder.NeedsNewline = true;
+
+                VisitAnonymousRecordDeclFields(pinvokeGenerator, outputBuilder, recordDecl, nestedRecordDecl, nestedRecordDeclName, nestedRecordDeclFieldName);
+            }
+
+            static void VisitAnonymousRecordDeclFields(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, RecordDecl recordDecl, RecordDecl anonymousRecordDecl, string contextType, string contextName)
+            {
+                foreach (var declaration in anonymousRecordDecl.Decls)
+                {
+                    if (declaration is FieldDecl fieldDecl)
+                    {
+                        var type = fieldDecl.Type;
+                        var typeName = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, type, out var fieldNativeTypeName);
+
+                        var fieldName = pinvokeGenerator.GetRemappedCursorName(fieldDecl);
+
+                        if (fieldName.StartsWith("__AnonymousField_"))
+                        {
+                            var newName = "Anonymous";
+
+                            if (fieldDecl.Parent.AnonymousDecls.Count != 1)
+                            {
+                                var index = fieldDecl.Parent.AnonymousDecls.IndexOf(fieldDecl) + 1;
+                                newName += index.ToString();
+                            }
+
+                            var remappedNames = pinvokeGenerator._config.RemappedNames as Dictionary<string, string>;
+                            remappedNames.Add(fieldName, newName);
+
+                            fieldName = newName;
+                        }
+
+                        outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(anonymousRecordDecl));
+                        outputBuilder.Write(' ');
+
+                        if (!fieldDecl.IsBitField)
+                        {
+                            outputBuilder.Write("ref");
+                            outputBuilder.Write(' ');
+                        }
+
+                        outputBuilder.Write(typeName);
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write(fieldName);
+
+                        if (fieldDecl.IsBitField)
+                        {
+                            outputBuilder.WriteLine("");
+                            outputBuilder.WriteBlockStart();
+
+                            outputBuilder.WriteIndentedLine("get");
+                            outputBuilder.WriteBlockStart();
+
+                            outputBuilder.WriteIndented("return");
+                            outputBuilder.Write(' ');
+                            outputBuilder.Write(contextName);
+                            outputBuilder.Write('.');
+                            outputBuilder.Write(fieldName);
+                            outputBuilder.WriteLine(';');
+
+                            outputBuilder.WriteBlockEnd();
+
+                            outputBuilder.WriteIndentedLine("set");
+                            outputBuilder.WriteBlockStart();
+
+                            outputBuilder.Write(contextName);
+                            outputBuilder.Write('.');
+                            outputBuilder.Write(fieldName);
+                            outputBuilder.Write(' ');
+                            outputBuilder.Write('=');
+                            outputBuilder.Write(' ');
+                            outputBuilder.Write("value");
+                            outputBuilder.WriteLine(';');
+
+                            outputBuilder.WriteBlockEnd();
+                            outputBuilder.WriteBlockEnd();
+                        }
+                        else
+                        {
+                            if (pinvokeGenerator._config.GenerateCompatibleCode)
+                            {
+                                outputBuilder.WriteLine("");
+                                outputBuilder.WriteBlockStart();
+
+                                outputBuilder.WriteIndentedLine("get");
+                                outputBuilder.WriteBlockStart();
+
+                                outputBuilder.WriteIndented("fixed (");
+                                outputBuilder.Write(contextType);
+                                outputBuilder.Write('*');
+                                outputBuilder.Write(' ');
+                                outputBuilder.Write("pField");
+                                outputBuilder.Write(' ');
+                                outputBuilder.Write('=');
+                                outputBuilder.Write(' ');
+                                outputBuilder.Write('&');
+                                outputBuilder.Write(contextName);
+                                outputBuilder.WriteLine(')');
+                                outputBuilder.WriteBlockStart();
+                                outputBuilder.WriteIndented("return");
+                                outputBuilder.Write(' ');
+                                outputBuilder.Write("ref");
+                                outputBuilder.Write(' ');
+                                outputBuilder.Write("pField");
+                                outputBuilder.Write('-');
+                                outputBuilder.Write('>');
+                                outputBuilder.Write(fieldName);
+                                outputBuilder.WriteLine(';');
+                                outputBuilder.WriteBlockEnd();
+                                outputBuilder.WriteBlockEnd();
+                                outputBuilder.WriteBlockEnd();
+                            }
+                            else
+                            {
+                                outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                                outputBuilder.Write(' ');
+                                outputBuilder.Write("=> MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref");
+                                outputBuilder.Write(' ');
+                                outputBuilder.Write(contextName);
+                                outputBuilder.Write('.');
+                                outputBuilder.Write(fieldName);
+                                outputBuilder.WriteLine(", 1));");
+                            }
+                            outputBuilder.NeedsNewline = true;
+                        }
+                    }
+                    else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
+                    {
+                        var nestedRecordDeclFieldName = pinvokeGenerator.GetRemappedAnonymousName(nestedRecordDecl, "Field");
+
+                        if (nestedRecordDeclFieldName.StartsWith("__AnonymousField_"))
+                        {
+                            var newNestedRecordDeclFieldName = "Anonymous";
+
+                            if (recordDecl.AnonymousDecls.Count != 1)
+                            {
+                                var index = recordDecl.AnonymousDecls.IndexOf(nestedRecordDecl) + 1;
+                                newNestedRecordDeclFieldName += index.ToString();
+                            }
+
+                            var remappedNames = pinvokeGenerator._config.RemappedNames as Dictionary<string, string>;
+                            remappedNames.Add(nestedRecordDeclFieldName, newNestedRecordDeclFieldName);
+
+                            nestedRecordDeclFieldName = newNestedRecordDeclFieldName;
+                        }
+
+                        var nestedRecordDeclName = pinvokeGenerator.GetRemappedTypeName(nestedRecordDecl, context: null, nestedRecordDecl.TypeForDecl, out string nativeTypeName);
+
+                        if (nestedRecordDeclName.StartsWith("__AnonymousRecord_"))
+                        {
+                            var newNestedRecordDeclName = $"_{nestedRecordDeclFieldName}_e__{(nestedRecordDecl.IsUnion ? "Union" : "Struct")}";
+
+                            var remappedNames = pinvokeGenerator._config.RemappedNames as Dictionary<string, string>;
+                            remappedNames.Add(nestedRecordDeclName, newNestedRecordDeclName);
+
+                            nestedRecordDeclName = newNestedRecordDeclName;
+                        }
+
+                        VisitAnonymousRecordDeclFields(pinvokeGenerator, outputBuilder, anonymousRecordDecl, nestedRecordDecl, nestedRecordDeclName, $"{contextName}.{nestedRecordDeclFieldName}");
                     }
                 }
             }

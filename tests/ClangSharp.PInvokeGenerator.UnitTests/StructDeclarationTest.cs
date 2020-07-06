@@ -985,7 +985,9 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -996,7 +998,9 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         public {expectedManagedType} b;
 
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
-        public _Anonymous_e__Struct Anonymous;
+        internal _Anonymous_e__Struct Anonymous;
+
+        public ref {expectedManagedType} a => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 
         public partial struct _Anonymous_e__Struct
         {{
@@ -1253,7 +1257,9 @@ struct example_s {
     };
 };";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -1264,7 +1270,9 @@ struct example_s {
         public double b;
 
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:7:5)"")]
-        public _Anonymous_e__Struct Anonymous;
+        internal _Anonymous_e__Struct Anonymous;
+
+        public ref double a => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 
         public partial struct _Anonymous_e__Struct
         {
