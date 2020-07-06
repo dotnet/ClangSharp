@@ -14,7 +14,7 @@
 #endif
 
 #ifdef _MSC_VER
-#ifdef clangsharp_LINKAGE
+#ifdef CLANGSHARP_LINKAGE
 #define CLANGSHARP_LINKAGE EXTERN_C __declspec(dllexport)
 #else
 #define CLANGSHARP_LINKAGE EXTERN_C __declspec(dllimport)
@@ -287,6 +287,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsExpandedParameterPack(CXCurso
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsExternC(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsGlobal(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsImplicitAccess(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsLocalVarDecl(CXCursor C);
 

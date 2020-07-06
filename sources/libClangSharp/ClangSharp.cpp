@@ -376,15 +376,16 @@ unsigned clangsharp_Cursor_getCapturesCXXThis(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getCapturesVariable(CXCursor C, CXCursor V) {
+    if (clang_isDeclaration(C.kind) && clang_isDeclaration(V.kind)) {
+        const BlockDecl* BD = dyn_cast<BlockDecl>(getCursorDecl(C));
+        const VarDecl* VD = dyn_cast<VarDecl>(getCursorDecl(V));
 
-    const BlockDecl* BD = dyn_cast<BlockDecl>(getCursorDecl(C));
-    const VarDecl* VD = dyn_cast<VarDecl>(getCursorDecl(V));
-
-    if (!BD || !VD) {
-        return 0;
+        if ((BD != nullptr) && (VD != nullptr)) {
+            return BD->capturesVariable(VD);
+        }
     }
 
-    return BD->capturesVariable(VD);
+    return 0;
 }
 
 CXCursor clangsharp_Cursor_getCaptureVariable(CXCursor C, unsigned i) {
@@ -810,7 +811,7 @@ int clangsharp_Cursor_getFieldIndex(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const FieldDecl* FD = dyn_cast<FieldDecl>(D)) {
-            FD->getFieldIndex();
+            return FD->getFieldIndex();
         }
     }
 
@@ -822,7 +823,7 @@ CX_FloatingSemantics clangsharp_Cursor_getFloatingLiteralSemantics(CXCursor C) {
         const Expr* E = getCursorExpr(C);
 
         if (const FloatingLiteral* FL = dyn_cast<FloatingLiteral>(E)) {
-            FL->getRawSemantics();
+            return static_cast<CX_FloatingSemantics>(FL->getRawSemantics() + 1);
         }
     }
 
@@ -834,7 +835,7 @@ double clangsharp_Cursor_getFloatingLiteralValueAsApproximateDouble(CXCursor C) 
         const Expr* E = getCursorExpr(C);
 
         if (const FloatingLiteral* FL = dyn_cast<FloatingLiteral>(E)) {
-            FL->getValueAsApproximateDouble();
+            return FL->getValueAsApproximateDouble();
         }
     }
 
@@ -862,7 +863,7 @@ int clangsharp_Cursor_getFunctionScopeDepth(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const ParmVarDecl* PVD = dyn_cast<ParmVarDecl>(D)) {
-            PVD->getFunctionScopeDepth();
+            return PVD->getFunctionScopeDepth();
         }
     }
 
@@ -874,7 +875,7 @@ int clangsharp_Cursor_getFunctionScopeIndex(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const ParmVarDecl* PVD = dyn_cast<ParmVarDecl>(D)) {
-            PVD->getFunctionScopeIndex();
+            return PVD->getFunctionScopeIndex();
         }
     }
 
@@ -892,7 +893,6 @@ CXType clangsharp_Cursor_getFunctionType(CXCursor C) {
 
     return MakeCXType(QualType(), getCursorTU(C));
 }
-
 
 unsigned clangsharp_Cursor_getHasBody(CXCursor C) {
     if (clang_isDeclaration(C.kind)) {
@@ -1159,7 +1159,7 @@ int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C) {
         const Expr* E = getCursorExpr(C);
 
         if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(E)) {
-            IL->getValue().getSExtValue();
+            return IL->getValue().getSExtValue();
         }
     }
 
@@ -1255,6 +1255,18 @@ unsigned clangsharp_Cursor_getIsGlobal(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getIsImplicitAccess(CXCursor C) {
+    if (clang_isExpression(C.kind)) {
+        const Expr* E = getCursorExpr(C);
+
+        if (const MemberExpr* ME = dyn_cast<MemberExpr>(E)) {
+            return ME->isImplicitAccess();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsLocalVarDecl(CXCursor C) {
     if (clang_isDeclaration(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -1304,7 +1316,7 @@ unsigned clangsharp_Cursor_getIsNegative(CXCursor C) {
         const Expr* E = getCursorExpr(C);
 
         if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(E)) {
-            IL->getValue().isNegative();
+            return IL->getValue().isNegative();
         }
     }
 
@@ -1324,7 +1336,7 @@ unsigned clangsharp_Cursor_getIsNonNegative(CXCursor C) {
         const Expr* E = getCursorExpr(C);
 
         if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(E)) {
-            IL->getValue().isNonNegative();
+            return IL->getValue().isNonNegative();
         }
     }
 
@@ -1468,7 +1480,7 @@ unsigned clangsharp_Cursor_getIsStrictlyPositive(CXCursor C) {
         const Expr* E = getCursorExpr(C);
 
         if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(E)) {
-            IL->getValue().isStrictlyPositive();
+            return IL->getValue().isStrictlyPositive();
         }
     }
 
@@ -1996,7 +2008,6 @@ CXCursor clangsharp_Cursor_getReferenced(CXCursor C) {
 
     return clang_getCursorReferenced(C);
 }
-
 
 CXType clangsharp_Cursor_getReturnType(CXCursor C) {
     if (clang_isDeclaration(C.kind)) {

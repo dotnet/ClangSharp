@@ -53,7 +53,7 @@ namespace clang::cxloc {
     }
     CXSourceLocation translateSourceLocation(const SourceManager& SM, const LangOptions& LangOpts, SourceLocation Loc) {
         if (Loc.isInvalid())
-            clang_getNullLocation();
+            return clang_getNullLocation();
 
         CXSourceLocation Result = {
             { &SM, &LangOpts, },
