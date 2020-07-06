@@ -14,12 +14,11 @@
 #endif
 
 #ifdef _MSC_VER
-#ifdef CLANGSHARP_LINKAGE
+// We always export functions on Windows as this library
+// isn't meant to be consumed by other native code
 #define CLANGSHARP_LINKAGE EXTERN_C __declspec(dllexport)
 #else
-#define CLANGSHARP_LINKAGE EXTERN_C __declspec(dllimport)
-#endif
-#else
+// Not necessary outside MSVC
 #define CLANGSHARP_LINKAGE EXTERN_C
 #endif
 
