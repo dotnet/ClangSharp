@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -1121,7 +1122,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_SizeOfPackExpr:
                 // case CX_StmtClass.CX_StmtClass_SourceLocExpr:
                 // case CX_StmtClass.CX_StmtClass_StmtExpr:
-                // case CX_StmtClass.CX_StmtClass_StringLiteral:
+
+                case CX_StmtClass.CX_StmtClass_StringLiteral:
+                {
+                    VisitStringLiteral((StringLiteral)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
                 // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
                 // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
@@ -1179,6 +1186,64 @@ namespace ClangSharp
                 _outputBuilder.WriteSemicolonIfNeeded();
 
                 previousStmt = stmt;
+            }
+        }
+
+        private void VisitStringLiteral(StringLiteral stringLiteral)
+        {
+            switch (stringLiteral.Kind)
+            {
+                case CX_CharacterKind.CX_CLK_Ascii:
+                case CX_CharacterKind.CX_CLK_UTF8:
+                {
+                    _outputBuilder.Write("new");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write("byte");
+                    _outputBuilder.Write('[');
+                    _outputBuilder.Write(']');
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write('{');
+                    _outputBuilder.Write(' ');
+
+                    var bytes = Encoding.UTF8.GetBytes(stringLiteral.String);
+
+                    foreach (var b in bytes)
+                    {
+                        _outputBuilder.Write("0x");
+                        _outputBuilder.Write(b.ToString("X2"));
+                        _outputBuilder.Write(',');
+                        _outputBuilder.Write(' ');
+                    }
+
+                    _outputBuilder.Write("0x00");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write('}');
+                    break;
+                }
+
+                case CX_CharacterKind.CX_CLK_Wide:
+                {
+                    if (_config.GenerateUnixTypes)
+                    {
+                        goto default;
+                    }
+
+                    goto case CX_CharacterKind.CX_CLK_UTF16;
+                }
+
+                case CX_CharacterKind.CX_CLK_UTF16:
+                {
+                    _outputBuilder.Write('"');
+                    _outputBuilder.Write(stringLiteral.String);
+                    _outputBuilder.Write('"');
+                    break;
+                }
+
+                default:
+                {
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported string literal kind: '{stringLiteral.Kind}'. Generated bindings may be incomplete.", stringLiteral);
+                    break;
+                }
             }
         }
 

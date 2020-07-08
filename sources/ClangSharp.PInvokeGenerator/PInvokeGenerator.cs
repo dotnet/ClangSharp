@@ -246,13 +246,13 @@ namespace ClangSharp
 
             _outputBuilder.Write("NativeTypeName(");
 
-            if (nativeTypeName.Contains('\r') || nativeTypeName.Contains('\n'))
-            {
-                _outputBuilder.Write('@');
-            }
-
             _outputBuilder.Write('"');
-            _outputBuilder.Write(nativeTypeName.Replace('\\', '/'));
+            _outputBuilder.Write(nativeTypeName.Replace("\\", "\\\\")
+                                               .Replace("\r", "\\r")
+                                               .Replace("\n", "\\n")
+                                               .Replace("\t", "\\t")
+                                               .Replace("\"", "\\\"")
+                                               .Replace("\'", "\\\'"));
             _outputBuilder.Write('"');
             _outputBuilder.Write(")]");
 
@@ -947,6 +947,7 @@ namespace ClangSharp
                         break;
                     }
 
+                    case CXTypeKind.CXType_Char16:
                     case CXTypeKind.CXType_UShort:
                     {
                         name = (cursor is null) ? "UInt16" : "ushort";

@@ -22,6 +22,32 @@ namespace ClangSharp.Interop
             }
         }
 
+        public static string AsString(this ReadOnlySpan<ushort> self)
+        {
+            if (self.IsEmpty)
+            {
+                return string.Empty;
+            }
+
+            fixed (ushort* pSelf = self)
+            {
+                return Encoding.Unicode.GetString((byte*)pSelf, self.Length * 2);
+            }
+        }
+
+        public static string AsString(this ReadOnlySpan<uint> self)
+        {
+            if (self.IsEmpty)
+            {
+                return string.Empty;
+            }
+
+            fixed (uint* pSelf = self)
+            {
+                return Encoding.UTF32.GetString((byte*)pSelf, self.Length * 4);
+            }
+        }
+
         public static void ClangFree(this Span<byte> self) => ClangFree((ReadOnlySpan<byte>)self);
 
         public static void ClangFree(this ReadOnlySpan<byte> self)

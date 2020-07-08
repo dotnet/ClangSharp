@@ -90,8 +90,7 @@ namespace ClangSharp.UnitTests
 {{
     public static partial class Methods
     {{
-        [NativeTypeName(@""#define MyMacro1 0 + /
-1"")]
+        [NativeTypeName(""#define MyMacro1 0 + \\\n1"")]
         public const int MyMacro1 = 0 + 1;
     }}
 }}
@@ -109,6 +108,42 @@ namespace ClangSharp.UnitTests
         {
             var inputContents = $@"{nativeType} MyVariable;";
             var expectedOutputContents = "";
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task Utf8StringLiteralMacroTest()
+        {
+            var inputContents = $@"#define MyMacro1 ""Test""";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""#define MyMacro1 \""Test\"""")]
+        public static ReadOnlySpan<byte> MyMacro1 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task Utf16StringLiteralMacroTest()
+        {
+            var inputContents = $@"#define MyMacro1 u""Test""";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""#define MyMacro1 u\""Test\"""")]
+        public const string MyMacro1 = ""Test"";
+    }}
+}}
+";
+
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
     }

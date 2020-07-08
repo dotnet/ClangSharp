@@ -2496,7 +2496,54 @@ namespace ClangSharp
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(varDecl));
                 _outputBuilder.Write(' ');
 
-                if (type.IsLocalConstQualified)
+                var initExpr = varDecl.Init;
+
+                if (initExpr is ImplicitCastExpr implicitCastExpr)
+                {
+                    initExpr = implicitCastExpr.SubExprAsWritten;
+                }
+
+                if (initExpr is StringLiteral stringLiteral)
+                {
+                    switch (stringLiteral.Kind)
+                    {
+                        case CX_CharacterKind.CX_CLK_Ascii:
+                        case CX_CharacterKind.CX_CLK_UTF8:
+                        {
+                            _outputBuilder.Write("static");
+                            _outputBuilder.Write(' ');
+
+                            typeName = "ReadOnlySpan<byte>";
+                            break;
+                        }
+
+                        case CX_CharacterKind.CX_CLK_Wide:
+                        {
+                            if (_config.GenerateUnixTypes)
+                            {
+                                goto default;
+                            }
+
+                            goto case CX_CharacterKind.CX_CLK_UTF16;
+                        }
+
+                        case CX_CharacterKind.CX_CLK_UTF16:
+                        {
+                            _outputBuilder.Write("const");
+                            _outputBuilder.Write(' ');
+
+                            typeName = "string";
+                            break;
+                        }
+
+                        default:
+                        {
+                            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported string literal kind: '{stringLiteral.Kind}'. Generated bindings may be incomplete.", stringLiteral);
+                            break;
+                        }
+                    }
+                }
+                else if (type.IsLocalConstQualified)
                 {
                     _outputBuilder.Write("const");
                     _outputBuilder.Write(' ');
