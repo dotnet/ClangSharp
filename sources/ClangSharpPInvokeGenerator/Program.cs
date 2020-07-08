@@ -128,6 +128,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "generate-macro-bindings":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
+                        break;
+                    }
+
                     case "generate-tests-nunit":
                     {
                         if (string.IsNullOrWhiteSpace(testOutputLocation))
@@ -278,6 +284,11 @@ namespace ClangSharp
 
             var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
 
+            if (config.GenerateMacroBindings)
+            {
+                translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
+            }
+
             int exitCode = 0;
 
             using (var pinvokeGenerator = new PInvokeGenerator(config))
@@ -322,7 +333,7 @@ namespace ClangSharp
                     using var translationUnit = TranslationUnit.GetOrCreate(handle);
 
                     Console.WriteLine($"Processing '{filePath}'");
-                    pinvokeGenerator.GenerateBindings(translationUnit);
+                    pinvokeGenerator.GenerateBindings(translationUnit, filePath, clangCommandLineArgs, translationFlags);
                 }
 
                 if (pinvokeGenerator.Diagnostics.Count != 0)

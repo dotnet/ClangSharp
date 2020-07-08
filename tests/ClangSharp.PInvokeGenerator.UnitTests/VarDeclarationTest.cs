@@ -14,13 +14,13 @@ namespace ClangSharp.UnitTests
         [InlineData("float", "float")]
         public async Task BasicTest(string nativeType, string expectedManagedType)
         {
-            var inputContents = $@"{nativeType} MyVariable;";
+            var inputContents = $@"{nativeType} MyVariable = 0;";
 
             var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
-        // public static extern {expectedManagedType} MyVariable;
+        public static {expectedManagedType} MyVariable = 0;
     }}
 }}
 ";
@@ -37,18 +37,58 @@ namespace ClangSharp.UnitTests
         [InlineData("unsigned long long", "ulong")]
         public async Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType)
         {
-            var inputContents = $@"{nativeType} MyVariable;";
+            var inputContents = $@"{nativeType} MyVariable = 0;";
 
             var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
-        // [NativeTypeName(""{nativeType}"")]
-        // public static extern {expectedManagedType} MyVariable;
+        [NativeTypeName(""{nativeType}"")]
+        public static {expectedManagedType} MyVariable = 0;
     }}
 }}
 ";
 
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("0", "int", "0")]
+        [InlineData("0U", "uint", "0U")]
+        [InlineData("0LL", "long", "0L")]
+        [InlineData("0ULL", "ulong", "0UL")]
+        [InlineData("0.0", "double", "0.0")]
+        [InlineData("0.0f", "float", "0.0f")]
+        public async Task MacroTest(string nativeValue, string expectedManagedType, string expectedManagedValue)
+        {
+            var inputContents = $@"#define MyMacro1 {nativeValue}
+#define MyMacro2 MyMacro1";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""#define MyMacro1 {nativeValue}"")]
+        public const {expectedManagedType} MyMacro1 = {expectedManagedValue};
+
+        [NativeTypeName(""#define MyMacro2 MyMacro1"")]
+        public const {expectedManagedType} MyMacro2 = {expectedManagedValue};
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("double")]
+        [InlineData("short")]
+        [InlineData("int")]
+        [InlineData("float")]
+        public async Task NoInitializerTest(string nativeType)
+        {
+            var inputContents = $@"{nativeType} MyVariable;";
+            var expectedOutputContents = "";
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
     }

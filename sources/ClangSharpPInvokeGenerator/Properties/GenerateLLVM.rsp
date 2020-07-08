@@ -1,5 +1,6 @@
 --config
 compatible-codegen
+generate-macro-bindings
 generate-tests-nunit
 multi-file
 --file

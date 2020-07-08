@@ -24,6 +24,10 @@ namespace ClangSharp
         private readonly List<Diagnostic> _diagnostics;
         private readonly PInvokeGeneratorConfiguration _config;
 
+        private string _filePath;
+        private string[] _clangCommandLineArgs;
+        private CXTranslationUnit_Flags _translationFlags;
+
         private OutputBuilder _outputBuilder;
         private OutputBuilder _testOutputBuilder;
         private int _outputBuilderUsers;
@@ -157,9 +161,13 @@ namespace ClangSharp
             GC.SuppressFinalize(this);
         }
 
-        public void GenerateBindings(TranslationUnit translationUnit)
+        public void GenerateBindings(TranslationUnit translationUnit, string filePath, string[] clangCommandLineArgs, CXTranslationUnit_Flags translationFlags)
         {
             Debug.Assert(_outputBuilder is null);
+
+            _filePath = filePath;
+            _clangCommandLineArgs = clangCommandLineArgs;
+            _translationFlags = translationFlags;
 
             if (translationUnit.Handle.NumDiagnostics != 0)
             {
@@ -872,6 +880,26 @@ namespace ClangSharp
             return name;
         }
 
+        private string GetSourceRangeContents(CXTranslationUnit translationUnit, CXSourceRange sourceRange)
+        {
+            sourceRange.Start.GetFileLocation(out var startFile, out var startLine, out var startColumn, out var startOffset);
+            sourceRange.End.GetFileLocation(out var endFile, out var endLine, out var endColumn, out var endOffset);
+
+            if (startFile != endFile)
+            {
+                return string.Empty;
+            }
+
+            var fileContents = translationUnit.GetFileContents(startFile, out var fileSize);
+            fileContents = fileContents.Slice(unchecked((int)startOffset), unchecked((int)(endOffset - startOffset)));
+
+#if NETCOREAPP
+            return Encoding.UTF8.GetString(fileContents);
+#else
+            return Encoding.UTF8.GetString(fileContents.ToArray());
+#endif
+        }
+
         private string GetTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
             var name = type.AsString;
@@ -1012,6 +1040,10 @@ namespace ClangSharp
                         break;
                     }
                 }
+            }
+            else if (type is DeducedType deducedType)
+            {
+                name = GetTypeName(cursor, context, deducedType.CanonicalType, out var nativeDeducedTypeName);
             }
             else if (type is ElaboratedType elaboratedType)
             {
@@ -1556,21 +1588,21 @@ namespace ClangSharp
             return hasDirectVtbl || (indirectVtblCount != 0);
         }
 
-        private bool IsExcluded(Decl decl)
+        private bool IsExcluded(Cursor cursor)
         {
-            if (IsAlwaysIncluded())
+            if (IsAlwaysIncluded(cursor))
             {
                 return false;
             }
 
-            return IsExcludedByFile(decl) || IsExcludedByName(decl);
+            return IsExcludedByFile(cursor) || IsExcludedByName(cursor);
 
-            bool IsAlwaysIncluded()
+            static bool IsAlwaysIncluded(Cursor cursor)
             {
-                return (decl is TranslationUnitDecl) || (decl is LinkageSpecDecl);
+                return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl);
             }
 
-            bool IsExcludedByFile(Decl decl)
+            bool IsExcludedByFile(Cursor cursor)
             {
                 if (_outputBuilder != null)
                 {
@@ -1580,10 +1612,10 @@ namespace ClangSharp
                     return false;
                 }
 
-                var declLocation = decl.Location;
+                var declLocation = cursor.Location;
                 declLocation.GetFileLocation(out CXFile file, out _, out _, out _);
 
-                if (IsIncludedFileOrLocation(decl, file, declLocation))
+                if (IsIncludedFileOrLocation(cursor, file, declLocation))
                 {
                     return false;
                 }
@@ -1593,9 +1625,9 @@ namespace ClangSharp
                 // in the main file to catch these cases and ensure we still generate bindings for them.
 
                 declLocation.GetExpansionLocation(out file, out uint line, out uint column, out _);
-                declLocation = decl.TranslationUnit.Handle.GetLocation(file, line, column);
+                declLocation = cursor.TranslationUnit.Handle.GetLocation(file, line, column);
 
-                if (IsIncludedFileOrLocation(decl, file, declLocation))
+                if (IsIncludedFileOrLocation(cursor, file, declLocation))
                 {
                     return false;
                 }
@@ -1603,19 +1635,28 @@ namespace ClangSharp
                 return true;
             }
 
-            bool IsExcludedByName(Decl decl)
+            bool IsExcludedByName(Cursor cursor)
             {
-                if (!(decl is NamedDecl))
+                var qualifiedName = string.Empty;
+                var name = string.Empty;
+
+                if (cursor is NamedDecl namedDecl)
+                {
+                    // We get the non-remapped name for the purpose of exclusion checks to ensure that users
+                    // can remove no-definition declarations in favor of remapped anonymous declarations.
+
+                    qualifiedName = GetCursorQualifiedName(namedDecl);
+                    name = GetCursorName(namedDecl);
+                }
+                else if (cursor is MacroDefinitionRecord macroDefinitionRecord)
+                {
+                    qualifiedName = macroDefinitionRecord.Name;
+                    name = macroDefinitionRecord.Name;
+                }
+                else
                 {
                     return false;
                 }
-
-                var namedDecl = (NamedDecl)decl;
-
-                // We get the non-remapped name for the purpose of exclusion checks to ensure that users
-                // can remove no-definition declarations in favor of remapped anonymous declarations.
-
-                var qualifiedName = GetCursorQualifiedName(namedDecl);
 
                 if (_config.ExcludedNames.Contains(qualifiedName))
                 {
@@ -1626,8 +1667,6 @@ namespace ClangSharp
                     return true;
                 }
 
-                var name = GetCursorName(namedDecl);
-
                 if (_config.ExcludedNames.Contains(name))
                 {
                     if (_config.LogExclusions)
@@ -1637,7 +1676,7 @@ namespace ClangSharp
                     return true;
                 }
 
-                if (namedDecl is TagDecl tagDecl)
+                if (cursor is TagDecl tagDecl)
                 {
                     if ((tagDecl.Definition != tagDecl) && (tagDecl.Definition != null))
                     {
@@ -1654,7 +1693,7 @@ namespace ClangSharp
                 return false;
             }
 
-            bool IsIncludedFileOrLocation(Decl decl, CXFile file, CXSourceLocation location)
+            bool IsIncludedFileOrLocation(Cursor cursor, CXFile file, CXSourceLocation location)
             {
                 // Use case insensitive comparison on Windows
                 var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
@@ -2150,6 +2189,10 @@ namespace ClangSharp
             else if (cursor is Decl decl)
             {
                 VisitDecl(decl, ignorePriorVisit: false);
+            }
+            else if (cursor is PreprocessedEntity preprocessedEntity)
+            {
+                VisitPreprocessedEntity(preprocessedEntity);
             }
             else if (cursor is Ref @ref)
             {

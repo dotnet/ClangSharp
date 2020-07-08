@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -229,7 +230,7 @@ namespace ClangSharp
 
                 case CX_DeclKind.CX_DeclKind_TranslationUnit:
                 {
-                    // Nothing to process for the translation unit itself
+                    VisitTranslationUnitDecl((TranslationUnitDecl)decl);
                     break;
                 }
 
@@ -2306,6 +2307,14 @@ namespace ClangSharp
             }
         }
 
+        private void VisitTranslationUnitDecl(TranslationUnitDecl translationUnitDecl)
+        {
+            foreach (var cursor in translationUnitDecl.CursorChildren)
+            {
+                Visit(cursor);
+            }
+        }
+
         private void VisitTypedefDecl(TypedefDecl typedefDecl)
         {
             ForUnderlyingType(typedefDecl, typedefDecl.UnderlyingType);
@@ -2429,17 +2438,106 @@ namespace ClangSharp
         {
             var cursorParent = varDecl.CursorParent;
 
-            if ((cursorParent is TranslationUnitDecl) || (cursorParent is LinkageSpecDecl))
-            {
-                ForTopLevelDecl(varDecl);
-            }
-            else if (cursorParent is DeclStmt declStmt)
+            if (cursorParent is DeclStmt declStmt)
             {
                 ForDeclStmt(varDecl, declStmt);
             }
-            else if (cursorParent is RecordDecl recordDecl)
+            else if ((cursorParent is TranslationUnitDecl) || (cursorParent is LinkageSpecDecl) || (cursorParent is RecordDecl))
             {
-                ForRecordDecl(varDecl, recordDecl);
+                if (!varDecl.HasInit)
+                {
+                    // Nothing to do if a top level const declaration doesn't have an initializer
+                    return;
+                }
+
+                var isMacroDefinitionRecord = false;
+
+                var nativeName = GetCursorName(varDecl);
+                if (nativeName.StartsWith("ClangSharpMacro_"))
+                {
+                    nativeName = nativeName.Substring("ClangSharpMacro_".Length);
+                    isMacroDefinitionRecord = true;
+                }
+                var name = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false);
+
+                var type = varDecl.Type;
+                var openedOutputBuilder = false;
+
+                if (_outputBuilder is null)
+                {
+                    StartUsingOutputBuilder(_config.MethodClassName);
+                    openedOutputBuilder = true;
+                }
+
+                WithAttributes("*");
+                WithAttributes(name);
+
+                WithUsings("*");
+                WithUsings(name);
+
+                var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
+
+                if (isMacroDefinitionRecord)
+                {
+                    var nativeTypeNameBuilder = new StringBuilder("#define");
+
+                    nativeTypeNameBuilder.Append(' ');
+                    nativeTypeNameBuilder.Append(nativeName);
+                    nativeTypeNameBuilder.Append(' ');
+
+                    var macroValue = GetSourceRangeContents(varDecl.TranslationUnit.Handle, varDecl.Init.Extent);
+                    nativeTypeNameBuilder.Append(macroValue);
+
+                    nativeTypeName = nativeTypeNameBuilder.ToString();
+                }
+
+                AddNativeTypeNameAttribute(nativeTypeName);
+
+                _outputBuilder.WriteIndented(GetAccessSpecifierName(varDecl));
+                _outputBuilder.Write(' ');
+
+                if (type.IsLocalConstQualified)
+                {
+                    _outputBuilder.Write("const");
+                    _outputBuilder.Write(' ');
+                }
+                else if ((varDecl.StorageClass == CX_StorageClass.CX_SC_Static) || openedOutputBuilder)
+                {
+                    _outputBuilder.Write("static");
+                    _outputBuilder.Write(' ');
+                }
+
+                _outputBuilder.Write(typeName);
+
+                if (type is ArrayType)
+                {
+                    _outputBuilder.Write('[');
+                    _outputBuilder.Write(']');
+                }
+
+                _outputBuilder.Write(' ');
+
+                _outputBuilder.Write(EscapeName(name));
+
+                if (varDecl.HasInit)
+                {
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write('=');
+                    _outputBuilder.Write(' ');
+
+                    Visit(varDecl.Init);
+                }
+
+                _outputBuilder.WriteLine(";");
+
+                if (openedOutputBuilder)
+                {
+                    StopUsingOutputBuilder();
+                }
+                else
+                {
+                    _outputBuilder.NeedsNewline = true;
+                }
             }
             else
             {
@@ -2476,80 +2574,6 @@ namespace ClangSharp
 
                     Visit(varDecl.Init);
                 }
-            }
-
-            void ForRecordDecl(VarDecl varDecl, RecordDecl recordDecl)
-            {
-                var name = GetRemappedCursorName(varDecl);
-
-                var type = varDecl.Type;
-                var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
-                AddNativeTypeNameAttribute(nativeTypeName);
-
-                _outputBuilder.WriteIndented(GetAccessSpecifierName(varDecl));
-                _outputBuilder.Write(' ');
-
-                if (type.IsLocalConstQualified)
-                {
-                    _outputBuilder.Write("const");
-                    _outputBuilder.Write(' ');
-                }
-                else if (varDecl.StorageClass == CX_StorageClass.CX_SC_Static)
-                {
-                    _outputBuilder.Write("static");
-                    _outputBuilder.Write(' ');
-                }
-
-                _outputBuilder.Write(typeName);
-
-                if (type is ArrayType)
-                {
-                    _outputBuilder.Write('[');
-                    _outputBuilder.Write(']');
-                }
-
-                _outputBuilder.Write(' ');
-
-                _outputBuilder.Write(EscapeName(name));
-
-                if (varDecl.HasInit)
-                {
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write('=');
-                    _outputBuilder.Write(' ');
-
-                    Visit(varDecl.Init);
-                }
-
-                _outputBuilder.WriteLine(";");
-
-                _outputBuilder.NeedsNewline = true;
-            }
-
-            void ForTopLevelDecl(VarDecl varDecl)
-            {
-                var name = GetRemappedCursorName(varDecl);
-
-                StartUsingOutputBuilder(_config.MethodClassName);
-                {
-                    WithAttributes("*");
-                    WithAttributes(name);
-
-                    WithUsings("*");
-                    WithUsings(name);
-
-                    var type = varDecl.Type;
-                    var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
-                    AddNativeTypeNameAttribute(nativeTypeName, prefix: "// ");
-
-                    _outputBuilder.WriteIndented("// public static extern");
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(typeName);
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(EscapeName(name));
-                    _outputBuilder.WriteLine(';');
-                }
-                StopUsingOutputBuilder();
             }
         }
     }

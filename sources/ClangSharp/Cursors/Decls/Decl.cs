@@ -87,7 +87,7 @@ namespace ClangSharp
 
         public Decl NonClosureContext => _nonClosureContext.Value;
 
-        public IDeclContext ParentFunctionOrMethod => _parentFunctionOrMethod.Value;
+        // public IDeclContext ParentFunctionOrMethod => _parentFunctionOrMethod.Value;
 
         public Decl PreviousDecl => _previousDecl.Value;
 
