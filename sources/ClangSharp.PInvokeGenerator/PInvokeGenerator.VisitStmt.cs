@@ -468,7 +468,6 @@ namespace ClangSharp
                 handled = ForIntegerLiteral(implicitCastExpr, integerLiteral);
             }
 
-
             if (!handled)
             {
                 Visit(implicitCastExpr.SubExpr);

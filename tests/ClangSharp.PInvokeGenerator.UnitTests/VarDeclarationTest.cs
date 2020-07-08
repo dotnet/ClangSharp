@@ -80,6 +80,26 @@ namespace ClangSharp.UnitTests
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
+        [Fact]
+        public async Task MultilineMacroTest()
+        {
+            var inputContents = $@"#define MyMacro1 0 + \
+1";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(@""#define MyMacro1 0 + /
+1"")]
+        public const int MyMacro1 = 0 + 1;
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
         [Theory]
         [InlineData("double")]
         [InlineData("short")]

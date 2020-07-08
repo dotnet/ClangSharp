@@ -245,6 +245,12 @@ namespace ClangSharp
             }
 
             _outputBuilder.Write("NativeTypeName(");
+
+            if (nativeTypeName.Contains('\r') || nativeTypeName.Contains('\n'))
+            {
+                _outputBuilder.Write('@');
+            }
+
             _outputBuilder.Write('"');
             _outputBuilder.Write(nativeTypeName.Replace('\\', '/'));
             _outputBuilder.Write('"');
