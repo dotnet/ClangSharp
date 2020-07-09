@@ -37,7 +37,7 @@ namespace ClangSharp
 
             if (calleeDecl is FunctionDecl)
             {
-                VisitStmt(callExpr.Callee);
+                Visit(callExpr.Callee);
                 _outputBuilder.Write('(');
 
                 var args = callExpr.Args;
@@ -207,7 +207,7 @@ namespace ClangSharp
             {
                 if (functionDecl.DeclContext is CXXRecordDecl)
                 {
-                    VisitStmt(cxxOperatorCallExpr.Args[0]);
+                    Visit(cxxOperatorCallExpr.Args[0]);
                     _outputBuilder.Write('.');
                 }
 
@@ -254,17 +254,17 @@ namespace ClangSharp
         {
             if (declStmt.IsSingleDecl)
             {
-                VisitDecl(declStmt.SingleDecl, ignorePriorVisit: true);
+                Visit(declStmt.SingleDecl);
             }
             else
             {
-                VisitDecl(declStmt.Decls.First(), ignorePriorVisit: true);
+                Visit(declStmt.Decls.First());
 
                 foreach (var decl in declStmt.Decls.Skip(1))
                 {
                     _outputBuilder.Write(',');
                     _outputBuilder.Write(' ');
-                    VisitDecl(decl, ignorePriorVisit: true);
+                    Visit(decl);
                 }
             }
 
@@ -1008,18 +1008,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
 
                 case CX_StmtClass.CX_StmtClass_CallExpr:
+                case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
                 {
                     VisitCallExpr((CallExpr)stmt);
                     break;
                 }
 
                 // case CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr:
-
-                case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
-                {
-                    VisitCallExpr((CallExpr)stmt);
-                    break;
-                }
 
                 case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
                 {
@@ -1031,6 +1026,9 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
 
                 case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
                 {
                     VisitExplicitCastExpr((ExplicitCastExpr)stmt);
                     break;
@@ -1045,14 +1043,6 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
                 {
                     VisitCXXConstCastExpr((CXXConstCastExpr)stmt);
-                    break;
-                }
-
-                case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
-                case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
-                case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
-                {
-                    VisitExplicitCastExpr((ExplicitCastExpr)stmt);
                     break;
                 }
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -88,6 +89,7 @@ namespace ClangSharp
             {
                 cursor = Cursor.Create(handle);
                 _createdCursors.Add(handle, cursor);
+                _ = cursor.CursorChildren;
             }
 
             return (TCursor)cursor;

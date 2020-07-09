@@ -21,13 +21,8 @@ namespace ClangSharp
             AddDiagnostic(DiagnosticLevel.Warning, $"Class template specializations are not supported: '{GetCursorQualifiedName(classTemplateSpecializationDecl)}'. Generated bindings may be incomplete.", classTemplateSpecializationDecl);
         }
 
-        private void VisitDecl(Decl decl, bool ignorePriorVisit)
+        private void VisitDecl(Decl decl)
         {
-            if (!_visitedDecls.Add(decl) && !ignorePriorVisit)
-            {
-                return;
-            }
-
             if (IsExcluded(decl))
             {
                 return;
@@ -159,22 +154,16 @@ namespace ClangSharp
                 // case CX_DeclKind.CX_DeclKind_ObjCIvar:
 
                 case CX_DeclKind.CX_DeclKind_Function:
-                {
-                    VisitFunctionDecl((FunctionDecl)decl, cxxRecordDecl: null);
-                    break;
-                }
-
-                // case CX_DeclKind.CX_DeclKind_CXXDeductionGuide:
-
                 case CX_DeclKind.CX_DeclKind_CXXMethod:
                 case CX_DeclKind.CX_DeclKind_CXXConstructor:
                 case CX_DeclKind.CX_DeclKind_CXXDestructor:
                 case CX_DeclKind.CX_DeclKind_CXXConversion:
                 {
-                    VisitFunctionDecl((CXXMethodDecl)decl, (CXXRecordDecl)decl.DeclContext);
+                    VisitFunctionDecl((FunctionDecl)decl);
                     break;
                 }
 
+                // case CX_DeclKind.CX_DeclKind_CXXDeductionGuide:
                 // case CX_DeclKind.CX_DeclKind_MSProperty:
                 // case CX_DeclKind.CX_DeclKind_NonTypeTemplateParm:
 
@@ -240,19 +229,6 @@ namespace ClangSharp
                     break;
                 }
             }
-
-            if (decl is IDeclContext declContext)
-            {
-                VisitDecls(declContext.Decls, ignorePriorVisit);
-            }
-        }
-
-        private void VisitDecls(IEnumerable<Decl> decls, bool ignorePriorVisits)
-        {
-            foreach (var decl in decls)
-            {
-                VisitDecl(decl, ignorePriorVisits);
-            }
         }
 
         private void VisitEnumConstantDecl(EnumConstantDecl enumConstantDecl)
@@ -303,8 +279,8 @@ namespace ClangSharp
                 _outputBuilder.NeedsNewline = true;
                 _outputBuilder.WriteBlockStart();
 
-                VisitDecls(enumDecl.Enumerators, ignorePriorVisits: true);
-                VisitDecls(enumDecl.Decls, ignorePriorVisits: false);
+                Visit(enumDecl.Enumerators);
+                Visit(enumDecl.Decls, excludedCursors: enumDecl.Enumerators);
 
                 _outputBuilder.WriteBlockEnd();
             }
@@ -409,7 +385,7 @@ namespace ClangSharp
             _outputBuilder.WriteLine(';');
         }
 
-        private void VisitFunctionDecl(FunctionDecl functionDecl, CXXRecordDecl cxxRecordDecl)
+        private void VisitFunctionDecl(FunctionDecl functionDecl)
         {
             if (IsExcluded(functionDecl))
             {
@@ -418,8 +394,9 @@ namespace ClangSharp
 
             var name = GetRemappedCursorName(functionDecl);
 
-            if (cxxRecordDecl is null)
+            if (!(functionDecl.DeclContext is CXXRecordDecl cxxRecordDecl))
             {
+                cxxRecordDecl = null;
                 StartUsingOutputBuilder(_config.MethodClassName);
             }
 
@@ -592,7 +569,14 @@ namespace ClangSharp
             {
                 Debug.Assert(cxxRecordDecl != null);
 
-                var cxxRecordDeclName = GetRemappedCursorName(cxxRecordDecl);
+                var previousContext = PreviousContext;
+
+                if (!(previousContext is CXXRecordDecl thisCursor))
+                {
+                    thisCursor = cxxRecordDecl;
+                }
+
+                var cxxRecordDeclName = GetRemappedCursorName(thisCursor);
                 _outputBuilder.Write(EscapeName(cxxRecordDeclName));
                 _outputBuilder.Write('*');
 
@@ -616,11 +600,7 @@ namespace ClangSharp
                 }
             }
 
-            foreach (var parmVarDecl in functionDecl.Parameters)
-            {
-                _visitedDecls.Add(parmVarDecl);
-                VisitParmVarDecl(parmVarDecl);
-            }
+            Visit(functionDecl.Parameters);
 
             _outputBuilder.Write(")");
 
@@ -667,7 +647,7 @@ namespace ClangSharp
             }
             _outputBuilder.NeedsNewline = true;
 
-            VisitDecls(functionDecl.Decls, ignorePriorVisits: false);
+            Visit(functionDecl.Decls, excludedCursors: functionDecl.Parameters);
 
             if (cxxRecordDecl is null)
             {
@@ -735,19 +715,19 @@ namespace ClangSharp
                 return;
             }
 
-            var cursorParent = parmVarDecl.CursorParent;
+            var previousContext = PreviousContext;
 
-            if (cursorParent is FunctionDecl functionDecl)
+            if (previousContext is FunctionDecl functionDecl)
             {
                 ForFunctionDecl(parmVarDecl, functionDecl);
             }
-            else if (cursorParent is TypedefDecl typedefDecl)
+            else if (previousContext is TypedefDecl typedefDecl)
             {
                 ForTypedefDecl(parmVarDecl, typedefDecl);
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{cursorParent.CursorKindSpelling}'. Generated bindings may be incomplete.", cursorParent);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.", previousContext);
             }
 
             void ForFunctionDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
@@ -1175,12 +1155,15 @@ namespace ClangSharp
                     OutputDelegateSignatures(this, cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
                 }
 
+                var excludedCursors = recordDecl.Fields.AsEnumerable<Cursor>();
+
                 if (cxxRecordDecl != null)
                 {
                     OutputMethods(this, cxxRecordDecl, cxxRecordDecl);
+                    excludedCursors = excludedCursors.Concat(cxxRecordDecl.Methods);
                 }
 
-                VisitDecls(recordDecl.Decls, ignorePriorVisits: false);
+                Visit(recordDecl.Decls, excludedCursors);
 
                 foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type is ConstantArrayType))
                 {
@@ -1278,14 +1261,13 @@ namespace ClangSharp
                         continue;
                     }
 
-                    pinvokeGenerator._visitedDecls.Add(cxxMethodDecl);
-
                     if (!pinvokeGenerator._config.GeneratePreviewCodeFnptr)
                     {
                         pinvokeGenerator._outputBuilder.NeedsNewline = true;
 
                         var remappedName = FixupNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName);
-                        pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);
+                        Debug.Assert(pinvokeGenerator.CurrentContext == rootCxxRecordDecl);
+                        pinvokeGenerator.Visit(cxxMethodDecl);
                         RestoreNameForMultipleHits(pinvokeGenerator, cxxMethodDecl, hitsPerName, remappedName);
                     }
                 }
@@ -1303,19 +1285,13 @@ namespace ClangSharp
 
                 foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
                 {
-                    if (cxxMethodDecl.IsVirtual)
+                    if (cxxMethodDecl.IsVirtual || (cxxMethodDecl is CXXConstructorDecl) || (cxxMethodDecl is CXXDestructorDecl))
                     {
                         continue;
                     }
 
-                    if (cxxRecordDecl == rootCxxRecordDecl)
-                    {
-                        pinvokeGenerator.Visit(cxxMethodDecl);
-                    }
-                    else
-                    {
-                        pinvokeGenerator.VisitFunctionDecl(cxxMethodDecl, rootCxxRecordDecl);
-                    }
+                    Debug.Assert(pinvokeGenerator.CurrentContext == rootCxxRecordDecl);
+                    pinvokeGenerator.Visit(cxxMethodDecl);
                     outputBuilder.NeedsNewline = true;
                 }
             }
@@ -1382,6 +1358,8 @@ namespace ClangSharp
                     return;
                 }
 
+                var currentContext = pinvokeGenerator._context.AddLast(cxxMethodDecl);
+
                 var returnType = cxxMethodDecl.ReturnType;
                 var returnTypeName = pinvokeGenerator.GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
                 pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
@@ -1408,10 +1386,7 @@ namespace ClangSharp
 
                 outputBuilder.Write('(');
 
-                foreach (var parmVarDecl in cxxMethodDecl.Parameters)
-                {
-                    pinvokeGenerator.VisitParmVarDecl(parmVarDecl);
-                }
+                pinvokeGenerator.Visit(cxxMethodDecl.Parameters);
 
                 outputBuilder.WriteLine(')');
                 outputBuilder.WriteBlockStart();
@@ -1564,6 +1539,9 @@ namespace ClangSharp
 
                 outputBuilder.WriteBlockEnd();
                 vtblIndex += 1;
+
+                Debug.Assert(pinvokeGenerator._context.Last == currentContext);
+                pinvokeGenerator._context.RemoveLast();
             }
 
             static void OutputVtblHelperMethods(PInvokeGenerator pinvokeGenerator, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, ref int index, Dictionary<string, int> hitsPerName)
@@ -2364,7 +2342,7 @@ namespace ClangSharp
                     _outputBuilder.Write(EscapeName(name));
                     _outputBuilder.Write('(');
 
-                    VisitDecls(typedefDecl.CursorChildren.OfType<ParmVarDecl>(), ignorePriorVisits: true);
+                    Visit(typedefDecl.CursorChildren.OfType<ParmVarDecl>());
 
                     _outputBuilder.Write(')');
                     _outputBuilder.WriteLine(";");
@@ -2436,13 +2414,13 @@ namespace ClangSharp
 
         private void VisitVarDecl(VarDecl varDecl)
         {
-            var cursorParent = varDecl.CursorParent;
+            var previousContext = PreviousContext;
 
-            if (cursorParent is DeclStmt declStmt)
+            if (previousContext is DeclStmt declStmt)
             {
                 ForDeclStmt(varDecl, declStmt);
             }
-            else if ((cursorParent is TranslationUnitDecl) || (cursorParent is LinkageSpecDecl) || (cursorParent is RecordDecl))
+            else if ((previousContext is TranslationUnitDecl) || (previousContext is LinkageSpecDecl) || (previousContext is MacroDefinitionRecord) || (previousContext is RecordDecl))
             {
                 if (!varDecl.HasInit)
                 {
@@ -2595,7 +2573,7 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration parent: '{cursorParent.CursorKindSpelling}'. Generated bindings may be incomplete.", cursorParent);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.", previousContext);
             }
 
             void ForDeclStmt(VarDecl varDecl, DeclStmt declStmt)

@@ -19,9 +19,9 @@ namespace ClangSharp
         private readonly CXIndex _index;
         private readonly OutputBuilderFactory _outputBuilderFactory;
         private readonly Func<string, Stream> _outputStreamFactory;
-        private readonly HashSet<Decl> _visitedDecls;
         private readonly HashSet<string> _visitedFiles;
         private readonly List<Diagnostic> _diagnostics;
+        private readonly LinkedList<Cursor> _context;
         private readonly PInvokeGeneratorConfiguration _config;
 
         private string _filePath;
@@ -48,9 +48,9 @@ namespace ClangSharp
                 Directory.CreateDirectory(directoryPath);
                 return new FileStream(path, FileMode.Create);
             });
-            _visitedDecls = new HashSet<Decl>();
             _visitedFiles = new HashSet<string>();
             _diagnostics = new List<Diagnostic>();
+            _context = new LinkedList<Cursor>();
             _config = config;
         }
 
@@ -61,9 +61,13 @@ namespace ClangSharp
 
         public PInvokeGeneratorConfiguration Config => _config;
 
+        public Cursor CurrentContext => _context.Last.Value;
+
         public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
 
         public CXIndex IndexHandle => _index;
+
+        public Cursor PreviousContext => _context.Last.Previous.Value;
 
         public void Close()
         {
@@ -150,9 +154,10 @@ namespace ClangSharp
                 sw.WriteLine('}');
             }
 
+            _context.Clear();
             _diagnostics.Clear();
             _outputBuilderFactory.Clear();
-            _visitedDecls.Clear();
+            _visitedFiles.Clear();
         }
 
         public void Dispose()
@@ -2189,13 +2194,15 @@ namespace ClangSharp
 
         private void Visit(Cursor cursor)
         {
+            var currentContext = _context.AddLast(cursor);
+
             if (cursor is Attr attr)
             {
                 VisitAttr(attr);
             }
             else if (cursor is Decl decl)
             {
-                VisitDecl(decl, ignorePriorVisit: false);
+                VisitDecl(decl);
             }
             else if (cursor is PreprocessedEntity preprocessedEntity)
             {
@@ -2213,6 +2220,22 @@ namespace ClangSharp
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported cursor: '{cursor.CursorKindSpelling}'. Generated bindings may be incomplete.", cursor);
             }
+
+            Debug.Assert(_context.Last == currentContext);
+            _context.RemoveLast();
+        }
+
+        private void Visit(IEnumerable<Cursor> cursors)
+        {
+            foreach (var cursor in cursors)
+            {
+                Visit(cursor);
+            }
+        }
+
+        private void Visit(IEnumerable<Cursor> cursors, IEnumerable<Cursor> excludedCursors)
+        {
+            Visit(cursors.Except(excludedCursors));
         }
 
         private void WithAttributes(string remappedName)

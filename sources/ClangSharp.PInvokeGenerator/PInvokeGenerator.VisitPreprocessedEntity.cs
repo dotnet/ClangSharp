@@ -61,7 +61,7 @@ namespace ClangSharp
                 {
                     if ((decl is VarDecl varDecl) && (varDecl.Name == macroName))
                     {
-                        VisitVarDecl(varDecl);
+                        Visit(varDecl);
                     }
                 }
             }
