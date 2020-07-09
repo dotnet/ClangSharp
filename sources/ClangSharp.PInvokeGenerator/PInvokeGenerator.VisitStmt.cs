@@ -349,7 +349,21 @@ namespace ClangSharp
 
         private void VisitFloatingLiteral(FloatingLiteral floatingLiteral)
         {
-            _outputBuilder.Write(floatingLiteral.ValueString);
+            if (floatingLiteral.ValueString.EndsWith(".f"))
+            {
+                _outputBuilder.Write(floatingLiteral.ValueString.Substring(0, floatingLiteral.ValueString.Length - 1));
+                _outputBuilder.Write('0');
+                _outputBuilder.Write('f');
+            }
+            else
+            {
+                _outputBuilder.Write(floatingLiteral.ValueString);
+
+                if (floatingLiteral.ValueString.EndsWith("."))
+                {
+                    _outputBuilder.Write('0');
+                }
+            }
         }
 
         private void VisitForStmt(ForStmt forStmt)

@@ -90,7 +90,7 @@ namespace ClangSharp.Test
         [InlineData("0LL", "long", "0L")]
         [InlineData("0ULL", "ulong", "0UL")]
         [InlineData("0.0", "double", "0.0")]
-        [InlineData("0.0f", "float", "0.0f")]
+        [InlineData("0.f", "float", "0.0f")]
         public async Task MacroTest(string nativeValue, string expectedManagedType, string expectedManagedValue)
         {
             var inputContents = $@"#define MyMacro1 {nativeValue}
