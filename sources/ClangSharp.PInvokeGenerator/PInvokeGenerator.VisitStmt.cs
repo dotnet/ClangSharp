@@ -545,7 +545,7 @@ namespace ClangSharp
 
         private void VisitImplicitValueInitExpr(ImplicitValueInitExpr implicitValueInitExpr)
         {
-            // Currently nothing to do here, we could explicitly zero these fields in the future
+            _outputBuilder.Write("default");
         }
 
         private void VisitInitListExpr(InitListExpr initListExpr)
@@ -610,35 +610,67 @@ namespace ClangSharp
                 var type = initListExpr.Type;
                 var typeName = GetRemappedTypeName(initListExpr, context: null, type, out var nativeTypeName);
 
-                _outputBuilder.WriteLine(typeName);
-                _outputBuilder.WriteBlockStart();
+                _outputBuilder.Write(typeName);
 
-                var decl = recordType.Decl;
-
-                for (int i = 0; i < initListExpr.Inits.Count; i++)
+                if (typeName == "Guid")
                 {
-                    var init = initListExpr.Inits[i];
+                    _outputBuilder.Write('(');
 
-                    if (init is ImplicitValueInitExpr)
+                    Visit(initListExpr.Inits[0]);
+
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
+
+                    Visit(initListExpr.Inits[1]);
+
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
+
+                    Visit(initListExpr.Inits[2]);
+                    initListExpr = (InitListExpr)initListExpr.Inits[3];
+
+                    for (int i = 0; i < initListExpr.Inits.Count; i++)
                     {
-                        continue;
+                        _outputBuilder.Write(',');
+                        _outputBuilder.Write(' ');
+
+                        Visit(initListExpr.Inits[i]);
                     }
 
-                    var fieldName = GetRemappedCursorName(decl.Fields[i]);
-
-                    _outputBuilder.WriteIndented(fieldName);
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write('=');
-                    _outputBuilder.Write(' ');
-                    Visit(init);
-                    _outputBuilder.WriteLine(',');
+                    _outputBuilder.Write(')');
                 }
+                else
+                {
+                    _outputBuilder.WriteLine();
+                    _outputBuilder.WriteBlockStart();
 
-                _outputBuilder.NeedsNewline = false;
-                _outputBuilder.NeedsSemicolon = false;
-                _outputBuilder.DecreaseIndentation();
-                _outputBuilder.WriteIndented('}');
-                _outputBuilder.WriteLine(';');
+                    var decl = recordType.Decl;
+
+                    for (int i = 0; i < initListExpr.Inits.Count; i++)
+                    {
+                        var init = initListExpr.Inits[i];
+
+                        if (init is ImplicitValueInitExpr)
+                        {
+                            continue;
+                        }
+
+                        var fieldName = GetRemappedCursorName(decl.Fields[i]);
+
+                        _outputBuilder.WriteIndented(fieldName);
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write('=');
+                        _outputBuilder.Write(' ');
+                        Visit(init);
+                        _outputBuilder.WriteLine(',');
+                    }
+
+                    _outputBuilder.NeedsNewline = false;
+                    _outputBuilder.NeedsSemicolon = false;
+                    _outputBuilder.DecreaseIndentation();
+                    _outputBuilder.WriteIndented('}');
+                    _outputBuilder.WriteLine(';');
+                }
             }
 
             void ForType(InitListExpr initListExpr, Type type)

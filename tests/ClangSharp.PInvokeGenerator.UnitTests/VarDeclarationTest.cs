@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -50,6 +51,37 @@ namespace ClangSharp.UnitTests
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        // DEFINE_GUID(IID_IDXGIObject,0xaec22fb8,0x76f3,0x4639,0x9b,0xe0,0x28,0xeb,0x43,0xa6,0x7a,0x2e);
+        [Fact]
+        public async Task GuidMacroTest()
+        {
+            var inputContents = $@"struct GUID {{
+    unsigned long  Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char  Data4[8];
+}};
+
+const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 }} }};
+";
+
+            var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const GUID"")]
+        public static readonly Guid IID_IUnknown = new Guid(0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
+    }}
+}}
+";
+            var excludedNames = new string[] { "GUID" };
+            var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames, remappedNames);
         }
 
         [Theory]
@@ -116,7 +148,9 @@ namespace ClangSharp.UnitTests
         {
             var inputContents = $@"#define MyMacro1 ""Test""";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+            var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{

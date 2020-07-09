@@ -2512,6 +2512,7 @@ namespace ClangSharp
                         {
                             _outputBuilder.Write("static");
                             _outputBuilder.Write(' ');
+                            _outputBuilder.AddUsingDirective("System");
 
                             typeName = "ReadOnlySpan<byte>";
                             break;
@@ -2543,7 +2544,7 @@ namespace ClangSharp
                         }
                     }
                 }
-                else if (type.IsLocalConstQualified)
+                else if (type.IsLocalConstQualified && CanBeConstant(type))
                 {
                     _outputBuilder.Write("const");
                     _outputBuilder.Write(' ');
@@ -2552,6 +2553,12 @@ namespace ClangSharp
                 {
                     _outputBuilder.Write("static");
                     _outputBuilder.Write(' ');
+
+                    if (type.IsLocalConstQualified)
+                    {
+                        _outputBuilder.Write("readonly");
+                        _outputBuilder.Write(' ');
+                    }
                 }
 
                 _outputBuilder.Write(typeName);
@@ -2621,6 +2628,58 @@ namespace ClangSharp
 
                     Visit(varDecl.Init);
                 }
+            }
+
+            bool CanBeConstant(Type type)
+            {
+                if (type is AttributedType attributedType)
+                {
+                    return CanBeConstant(attributedType.ModifiedType);
+                }
+                else if (type is AutoType autoType)
+                {
+                    return CanBeConstant(autoType.CanonicalType);
+                }
+                else if (type is BuiltinType builtinType)
+                {
+                    switch (type.Kind)
+                    {
+                        case CXTypeKind.CXType_Bool:
+                        case CXTypeKind.CXType_Char_U:
+                        case CXTypeKind.CXType_UChar:
+                        case CXTypeKind.CXType_Char16:
+                        case CXTypeKind.CXType_UShort:
+                        case CXTypeKind.CXType_UInt:
+                        case CXTypeKind.CXType_ULong:
+                        case CXTypeKind.CXType_ULongLong:
+                        case CXTypeKind.CXType_Char_S:
+                        case CXTypeKind.CXType_SChar:
+                        case CXTypeKind.CXType_WChar:
+                        case CXTypeKind.CXType_Short:
+                        case CXTypeKind.CXType_Int:
+                        case CXTypeKind.CXType_Long:
+                        case CXTypeKind.CXType_LongLong:
+                        case CXTypeKind.CXType_Float:
+                        case CXTypeKind.CXType_Double:
+                        {
+                            return true;
+                        }
+                    }
+                }
+                else if (type is ElaboratedType elaboratedType)
+                {
+                    return CanBeConstant(elaboratedType.NamedType);
+                }
+                else if (type is EnumType enumType)
+                {
+                    return CanBeConstant(enumType.Decl.IntegerType);
+                }
+                else if (type is TypedefType typedefType)
+                {
+                    return CanBeConstant(typedefType.Decl.UnderlyingType);
+                }
+
+                return false;
             }
         }
     }
