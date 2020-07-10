@@ -3,6 +3,8 @@ compatible-codegen
 generate-macro-bindings
 generate-tests-xunit
 multi-file
+--define-macro
+_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
 --file
 libClangSharp/ClangSharp.h
 --headerFile

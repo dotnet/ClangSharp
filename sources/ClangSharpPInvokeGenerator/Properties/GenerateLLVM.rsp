@@ -3,6 +3,9 @@ compatible-codegen
 generate-macro-bindings
 generate-tests-nunit
 multi-file
+--exclude
+LLVM_DECLARE_VALUE_CAST
+LLVM_FOR_EACH_VALUE_SUBCLASS
 --file
 llvm-c/Analysis.h
 llvm-c/BitReader.h
