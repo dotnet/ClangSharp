@@ -53,7 +53,6 @@ namespace ClangSharp.UnitTests
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
 
-        // DEFINE_GUID(IID_IDXGIObject,0xaec22fb8,0x76f3,0x4639,0x9b,0xe0,0x28,0xeb,0x43,0xa6,0x7a,0x2e);
         [Fact]
         public async Task GuidMacroTest()
         {
@@ -174,6 +173,28 @@ namespace ClangSharp.Test
     {{
         [NativeTypeName(""#define MyMacro1 u\""Test\"""")]
         public const string MyMacro1 = ""Test"";
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task UncheckedConversionMacroTest()
+        {
+            var inputContents = $@"#define MyMacro1 (long)0x80000000L
+#define MyMacro2 (int)0x80000000";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""#define MyMacro1 (long)0x80000000L"")]
+        public const int MyMacro1 = unchecked((int)0x80000000);
+
+        [NativeTypeName(""#define MyMacro2 (int)0x80000000"")]
+        public const int MyMacro2 = unchecked((int)0x80000000);
     }}
 }}
 ";

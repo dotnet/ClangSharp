@@ -341,11 +341,36 @@ namespace ClangSharp
             var type = explicitCastExpr.Type;
             var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out var nativeTypeName);
 
+            var subExpr = explicitCastExpr.SubExpr;
+            var isUncheckedCast = GetIsUncheckedCastNeeded(typeName, subExpr);
+
+            if (isUncheckedCast)
+            {
+                _outputBuilder.Write("unchecked");
+                _outputBuilder.Write('(');
+
+                if (subExpr is ImplicitCastExpr implictCastExpr)
+                {
+                    var implictCastExprType = implictCastExpr.Type;
+                    var implictCastExprTypeName = GetRemappedTypeName(implictCastExpr, context: null, implictCastExprType, out _);
+
+                    if (GetIsUncheckedCastNeeded(implictCastExprTypeName, implictCastExpr.SubExpr))
+                    {
+                        subExpr = implictCastExpr.SubExprAsWritten;
+                    }
+                }
+            }
+
             _outputBuilder.Write('(');
             _outputBuilder.Write(typeName);
             _outputBuilder.Write(')');
 
-            Visit(explicitCastExpr.SubExpr);
+            Visit(subExpr);
+
+            if (isUncheckedCast)
+            {
+                _outputBuilder.Write(')');
+            }
         }
 
         private void VisitFloatingLiteral(FloatingLiteral floatingLiteral)
@@ -477,82 +502,56 @@ namespace ClangSharp
 
         private void VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr)
         {
-            bool handled = false;
-
             if (implicitCastExpr.SubExpr is IntegerLiteral integerLiteral)
             {
-                handled = ForIntegerLiteral(implicitCastExpr, integerLiteral);
+                ForIntegerLiteral(implicitCastExpr, integerLiteral);
             }
-
-            if (!handled)
+            else
             {
                 Visit(implicitCastExpr.SubExpr);
             }
 
-            bool ForIntegerLiteral(ImplicitCastExpr implicitCastExpr, IntegerLiteral integerLiteral)
+            void ForIntegerLiteral(ImplicitCastExpr implicitCastExpr, IntegerLiteral integerLiteral)
             {
-                if (implicitCastExpr.Type is PointerType)
+                if ((implicitCastExpr.Type is PointerType) && integerLiteral.ValueString.Equals("0"))
                 {
-                    if (integerLiteral.ValueString.Equals("0"))
-                    {
-                        // C# doesn't have implicit conversion from zero to a pointer
-                        // so we will manually check and handle the most common case
+                    // C# doesn't have implicit conversion from zero to a pointer
+                    // so we will manually check and handle the most common case
 
-                        _outputBuilder.Write("null");
-                        return true;
+                    _outputBuilder.Write("null");
+                }
+                else
+                {
+                    var type = implicitCastExpr.Type;
+                    var typeName = GetRemappedTypeName(implicitCastExpr, context: null, type, out var nativeTypeName);
+
+                    if (implicitCastExpr.DeclContext is EnumDecl enumDecl)
+                    {
+                        var enumDeclName = GetRemappedCursorName(enumDecl);
+                        var enumDeclIntegerTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var enumDeclNativeTypeName);
+
+                        WithType("*", ref enumDeclIntegerTypeName, ref enumDeclNativeTypeName);
+                        WithType(enumDeclName, ref enumDeclIntegerTypeName, ref enumDeclNativeTypeName);
+
+                        typeName = enumDeclIntegerTypeName;
                     }
 
-                    return false;
-                }
+                    var isUncheckedCast = GetIsUncheckedCastNeeded(typeName, implicitCastExpr.SubExpr);
 
-                if (!(implicitCastExpr.Type is BuiltinType))
-                {
-                    return false;
-                }
-
-                var builtinType = (BuiltinType)implicitCastExpr.Type;
-
-                if (!builtinType.IsIntegerType)
-                {
-                    return false;
-                }
-
-                if (implicitCastExpr.DeclContext is EnumDecl enumDecl)
-                {
-                    var enumDeclName = GetRemappedCursorName(enumDecl);
-                    var enumDeclIntegerTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
-
-                    WithType("*", ref enumDeclIntegerTypeName, ref nativeTypeName);
-                    WithType(enumDeclName, ref enumDeclIntegerTypeName, ref nativeTypeName);
-
-                    var integerLiteralTypeName = GetRemappedTypeName(integerLiteral, context: null, integerLiteral.Type, out _);
-
-                    if (enumDeclIntegerTypeName == integerLiteralTypeName)
-                    {
-                        return false;
-                    }
-                }
-
-                switch (builtinType.Kind)
-                {
-                    case CXTypeKind.CXType_Int:
+                    if (isUncheckedCast)
                     {
                         _outputBuilder.Write("unchecked");
                         _outputBuilder.Write('(');
                         _outputBuilder.Write('(');
-                        _outputBuilder.Write("int");
+                        _outputBuilder.Write(typeName);
                         _outputBuilder.Write(')');
-
-                        Visit(implicitCastExpr.SubExpr);
-
-                        _outputBuilder.Write(')');
-                        return true;
                     }
 
-                    default:
-                    {
+                    Visit(implicitCastExpr.SubExpr);
 
-                        return false;
+                    if (isUncheckedCast)
+                    {
+                        _outputBuilder.Write(')');
                     }
                 }
             }

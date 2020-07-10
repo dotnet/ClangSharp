@@ -854,6 +854,93 @@ namespace ClangSharp
             }
         }
 
+        private bool GetIsUncheckedCastNeeded(string typeName, Expr subExpr)
+        {
+            var isUncheckedCastNeeded = false;
+
+            if (subExpr is ImplicitCastExpr implicitCastExpr)
+            {
+                subExpr = implicitCastExpr.SubExprAsWritten;
+            }
+
+            if (subExpr is IntegerLiteral integerLiteral)
+            {
+                var signedValue = integerLiteral.Value;
+
+                switch (typeName)
+                {
+                    case "byte":
+                    case "Byte":
+                    {
+                        var unsignedValue = unchecked((uint)signedValue);
+                        isUncheckedCastNeeded = (unsignedValue < byte.MinValue) || (byte.MaxValue < unsignedValue);
+                        break;
+                    }
+
+                    case "ushort":
+                    case "UInt16":
+                    {
+                        var unsignedValue = unchecked((uint)signedValue);
+                        isUncheckedCastNeeded = (unsignedValue < ushort.MinValue) || (ushort.MaxValue < unsignedValue);
+                        break;
+                    }
+
+                    case "uint":
+                    case "UInt32":
+                    case "nuint":
+                    {
+                        var unsignedValue = unchecked((uint)signedValue);
+                        isUncheckedCastNeeded = (unsignedValue < uint.MinValue) || (uint.MaxValue < unsignedValue);
+                        break;
+                    }
+
+                    case "ulong":
+                    case "UInt64":
+                    {
+                        var unsignedValue = unchecked((ulong)signedValue);
+                        isUncheckedCastNeeded = (unsignedValue < ulong.MinValue) || (ulong.MaxValue < unsignedValue);
+                        break;
+                    }
+
+                    case "sbyte":
+                    case "SByte":
+                    {
+                        isUncheckedCastNeeded = (signedValue < sbyte.MinValue) || (sbyte.MaxValue < signedValue) || ((integerLiteral.IsNegative) && (integerLiteral.ValueString.StartsWith("0x")));
+                        break;
+                    }
+
+                    case "short":
+                    case "Int16":
+                    {
+                        isUncheckedCastNeeded = (signedValue < short.MinValue) || (short.MaxValue < signedValue) || ((integerLiteral.IsNegative) && (integerLiteral.ValueString.StartsWith("0x")));
+                        break;
+                    }
+
+                    case "int":
+                    case "Int32":
+                    case "nint":
+                    {
+                        isUncheckedCastNeeded = (signedValue < int.MinValue) || (int.MaxValue < signedValue) || ((integerLiteral.IsNegative) && (integerLiteral.ValueString.StartsWith("0x")));
+                        break;
+                    }
+
+                    case "long":
+                    case "Int64":
+                    {
+                        isUncheckedCastNeeded = (signedValue < long.MinValue) || (long.MaxValue < signedValue) || ((integerLiteral.IsNegative) && (integerLiteral.ValueString.StartsWith("0x")));
+                        break;
+                    }
+
+                    default:
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return isUncheckedCastNeeded;
+        }
+
         private static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
         {
             Type baseType = cxxBaseSpecifier.Type;
