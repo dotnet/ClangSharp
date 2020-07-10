@@ -913,7 +913,7 @@ namespace ClangSharp
 
         private string GetTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
-            var name = type.AsString;
+            var name = type.AsString.Replace('\\', '/');
             nativeTypeName = name;
 
             if (type is ArrayType arrayType)
@@ -1609,9 +1609,9 @@ namespace ClangSharp
 
             return IsExcludedByFile(cursor) || IsExcludedByName(cursor);
 
-            static bool IsAlwaysIncluded(Cursor cursor)
+            bool IsAlwaysIncluded(Cursor cursor)
             {
-                return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl);
+                return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl) || ((cursor is VarDecl) && (PreviousContext is MacroDefinitionRecord));
             }
 
             bool IsExcludedByFile(Cursor cursor)
