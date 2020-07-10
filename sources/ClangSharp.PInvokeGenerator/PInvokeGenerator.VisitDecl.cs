@@ -56,8 +56,7 @@ namespace ClangSharp
 
                 case CX_DeclKind.CX_DeclKind_LinkageSpec:
                 {
-                    // Linkage specifications are also exposed as a queryable property
-                    // on the declarations they impact, so we don't need to do anything
+                    VisitLinkageSpecDecl((LinkageSpecDecl)decl);
                     break;
                 }
 
@@ -706,6 +705,14 @@ namespace ClangSharp
         private void VisitFunctionTemplateDecl(FunctionTemplateDecl functionTemplateDecl)
         {
             AddDiagnostic(DiagnosticLevel.Warning, $"Function templates are not supported: '{GetCursorQualifiedName(functionTemplateDecl)}'. Generated bindings may be incomplete.", functionTemplateDecl);
+        }
+
+        private void VisitLinkageSpecDecl(LinkageSpecDecl linkageSpecDecl)
+        {
+            foreach (var cursor in linkageSpecDecl.CursorChildren)
+            {
+                Visit(cursor);
+            }
         }
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl)
