@@ -19,6 +19,7 @@ namespace ClangSharp
         private readonly CXIndex _index;
         private readonly OutputBuilderFactory _outputBuilderFactory;
         private readonly Func<string, Stream> _outputStreamFactory;
+        private readonly StringBuilder _fileContentsBuilder;
         private readonly HashSet<string> _visitedFiles;
         private readonly List<Diagnostic> _diagnostics;
         private readonly LinkedList<Cursor> _context;
@@ -48,6 +49,7 @@ namespace ClangSharp
                 Directory.CreateDirectory(directoryPath);
                 return new FileStream(path, FileMode.Create);
             });
+            _fileContentsBuilder = new StringBuilder();
             _visitedFiles = new HashSet<string>();
             _diagnostics = new List<Diagnostic>();
             _context = new LinkedList<Cursor>();
@@ -198,7 +200,39 @@ namespace ClangSharp
                 }
             }
 
-            Visit(translationUnit.TranslationUnitDecl);
+            if (_config.GenerateMacroBindings)
+            {
+                var translationUnitHandle = translationUnit.Handle;
+
+                var file = translationUnitHandle.GetFile(_filePath);
+                var fileContents = translationUnitHandle.GetFileContents(file, out var size);
+#if NETCOREAPP
+                _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents));
+#else
+                _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents.ToArray()));
+#endif
+
+                foreach (var cursor in translationUnit.TranslationUnitDecl.CursorChildren)
+                {
+                    if (cursor is PreprocessedEntity preprocessedEntity)
+                    {
+                        VisitPreprocessedEntity(preprocessedEntity);
+                    }
+                }
+
+                using var unsavedFile = CXUnsavedFile.Create(_filePath, _fileContentsBuilder.ToString());
+                var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
+
+                translationFlags = _translationFlags & ~CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
+                var handle = CXTranslationUnit.Parse(IndexHandle, _filePath, _clangCommandLineArgs, unsavedFiles, translationFlags);
+
+                using var nestedTranslationUnit = TranslationUnit.GetOrCreate(handle);
+                Visit(nestedTranslationUnit.TranslationUnitDecl);
+            }
+            else
+            {
+                Visit(translationUnit.TranslationUnitDecl);
+            }
         }
 
         private void AddDiagnostic(DiagnosticLevel level, string message)
@@ -1611,7 +1645,7 @@ namespace ClangSharp
 
             bool IsAlwaysIncluded(Cursor cursor)
             {
-                return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl) || ((cursor is VarDecl) && (PreviousContext is MacroDefinitionRecord));
+                return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl) || ((cursor is VarDecl varDecl) && varDecl.Name.StartsWith("ClangSharpMacro_"));
             }
 
             bool IsExcludedByFile(Cursor cursor)
@@ -2203,10 +2237,6 @@ namespace ClangSharp
             else if (cursor is Decl decl)
             {
                 VisitDecl(decl);
-            }
-            else if (cursor is PreprocessedEntity preprocessedEntity)
-            {
-                VisitPreprocessedEntity(preprocessedEntity);
             }
             else if (cursor is Ref @ref)
             {

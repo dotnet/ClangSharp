@@ -2431,7 +2431,7 @@ namespace ClangSharp
             {
                 ForDeclStmt(varDecl, declStmt);
             }
-            else if ((previousContext is TranslationUnitDecl) || (previousContext is LinkageSpecDecl) || (previousContext is MacroDefinitionRecord) || (previousContext is RecordDecl))
+            else if ((previousContext is TranslationUnitDecl) || (previousContext is LinkageSpecDecl) || (previousContext is RecordDecl))
             {
                 if (!varDecl.HasInit)
                 {
