@@ -636,7 +636,7 @@ namespace ClangSharp
 
         private string GetCursorName(NamedDecl namedDecl)
         {
-            var name = namedDecl.Name;
+            var name = namedDecl.Name.Replace('\\', '/');
 
             if (string.IsNullOrWhiteSpace(name))
             {

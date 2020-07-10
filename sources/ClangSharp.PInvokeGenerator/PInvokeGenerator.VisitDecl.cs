@@ -1128,7 +1128,7 @@ namespace ClangSharp
                     {
                         if (fieldDecl.IsBitField)
                         {
-                            VisitBitfieldDecl(this, fieldDecl, bitfieldTypes, ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
+                            VisitBitfieldDecl(this, fieldDecl, bitfieldTypes, recordDecl, contextName: "", ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
                         }
                         else
                         {
@@ -1633,83 +1633,59 @@ namespace ClangSharp
                 outputBuilder.WriteLine(';');
                 outputBuilder.NeedsNewline = true;
 
-                VisitAnonymousRecordDeclFields(pinvokeGenerator, outputBuilder, recordDecl, nestedRecordDecl, nestedRecordDeclName, nestedRecordDeclFieldName);
+                if (!recordDecl.IsAnonymousStructOrUnion)
+                {
+                    VisitAnonymousRecordDeclFields(pinvokeGenerator, outputBuilder, recordDecl, recordDecl, nestedRecordDecl, nestedRecordDeclName, nestedRecordDeclFieldName);
+                }
             }
 
-            static void VisitAnonymousRecordDeclFields(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, RecordDecl recordDecl, RecordDecl anonymousRecordDecl, string contextType, string contextName)
+            static void VisitAnonymousRecordDeclFields(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, RecordDecl rootRecordDecl, RecordDecl parentRecordDecl, RecordDecl anonymousRecordDecl, string contextType, string contextName)
             {
+                var bitfieldTypes = pinvokeGenerator.GetBitfieldCount(anonymousRecordDecl);
+                var bitfieldIndex = (bitfieldTypes.Length == 1) ? -1 : 0;
+
+                var bitfieldPreviousSize = 0L;
+                var bitfieldRemainingBits = 0L;
+
                 foreach (var declaration in anonymousRecordDecl.Decls)
                 {
                     if (declaration is FieldDecl fieldDecl)
                     {
-                        var type = fieldDecl.Type;
-                        var typeName = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, type, out var fieldNativeTypeName);
-
-                        var fieldName = pinvokeGenerator.GetRemappedCursorName(fieldDecl);
-
-                        if (fieldName.StartsWith("__AnonymousField_"))
-                        {
-                            var newName = "Anonymous";
-
-                            if (fieldDecl.Parent.AnonymousDecls.Count != 1)
-                            {
-                                var index = fieldDecl.Parent.AnonymousDecls.IndexOf(fieldDecl) + 1;
-                                newName += index.ToString();
-                            }
-
-                            var remappedNames = pinvokeGenerator._config.RemappedNames as Dictionary<string, string>;
-                            remappedNames.Add(fieldName, newName);
-
-                            fieldName = newName;
-                        }
-
-                        outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(anonymousRecordDecl));
-                        outputBuilder.Write(' ');
-
-                        if (!fieldDecl.IsBitField)
-                        {
-                            outputBuilder.Write("ref");
-                            outputBuilder.Write(' ');
-                        }
-
-                        outputBuilder.Write(typeName);
-                        outputBuilder.Write(' ');
-                        outputBuilder.Write(fieldName);
-
                         if (fieldDecl.IsBitField)
                         {
-                            outputBuilder.WriteLine("");
-                            outputBuilder.WriteBlockStart();
-
-                            outputBuilder.WriteIndentedLine("get");
-                            outputBuilder.WriteBlockStart();
-
-                            outputBuilder.WriteIndented("return");
-                            outputBuilder.Write(' ');
-                            outputBuilder.Write(contextName);
-                            outputBuilder.Write('.');
-                            outputBuilder.Write(fieldName);
-                            outputBuilder.WriteLine(';');
-
-                            outputBuilder.WriteBlockEnd();
-
-                            outputBuilder.WriteIndentedLine("set");
-                            outputBuilder.WriteBlockStart();
-
-                            outputBuilder.Write(contextName);
-                            outputBuilder.Write('.');
-                            outputBuilder.Write(fieldName);
-                            outputBuilder.Write(' ');
-                            outputBuilder.Write('=');
-                            outputBuilder.Write(' ');
-                            outputBuilder.Write("value");
-                            outputBuilder.WriteLine(';');
-
-                            outputBuilder.WriteBlockEnd();
-                            outputBuilder.WriteBlockEnd();
+                            VisitBitfieldDecl(pinvokeGenerator, fieldDecl, bitfieldTypes, rootRecordDecl, contextName, ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
                         }
                         else
                         {
+                            var type = fieldDecl.Type;
+                            var typeName = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, type, out var fieldNativeTypeName);
+
+                            var fieldName = pinvokeGenerator.GetRemappedCursorName(fieldDecl);
+
+                            if (fieldName.StartsWith("__AnonymousField_"))
+                            {
+                                var newName = "Anonymous";
+
+                                if (fieldDecl.Parent.AnonymousDecls.Count != 1)
+                                {
+                                    var index = fieldDecl.Parent.AnonymousDecls.IndexOf(fieldDecl) + 1;
+                                    newName += index.ToString();
+                                }
+
+                                var remappedNames = pinvokeGenerator._config.RemappedNames as Dictionary<string, string>;
+                                remappedNames.Add(fieldName, newName);
+
+                                fieldName = newName;
+                            }
+
+                            outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(anonymousRecordDecl));
+                            outputBuilder.Write(' ');
+                            outputBuilder.Write("ref");
+                            outputBuilder.Write(' ');
+                            outputBuilder.Write(typeName);
+                            outputBuilder.Write(' ');
+                            outputBuilder.Write(fieldName);
+
                             if (pinvokeGenerator._config.GenerateCompatibleCode)
                             {
                                 outputBuilder.WriteLine("");
@@ -1754,8 +1730,9 @@ namespace ClangSharp
                                 outputBuilder.Write(fieldName);
                                 outputBuilder.WriteLine(", 1));");
                             }
-                            outputBuilder.NeedsNewline = true;
                         }
+
+                        outputBuilder.NeedsNewline = true;
                     }
                     else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
                     {
@@ -1765,9 +1742,9 @@ namespace ClangSharp
                         {
                             var newNestedRecordDeclFieldName = "Anonymous";
 
-                            if (recordDecl.AnonymousDecls.Count != 1)
+                            if (parentRecordDecl.AnonymousDecls.Count != 1)
                             {
-                                var index = recordDecl.AnonymousDecls.IndexOf(nestedRecordDecl) + 1;
+                                var index = parentRecordDecl.AnonymousDecls.IndexOf(nestedRecordDecl) + 1;
                                 newNestedRecordDeclFieldName += index.ToString();
                             }
 
@@ -1789,12 +1766,12 @@ namespace ClangSharp
                             nestedRecordDeclName = newNestedRecordDeclName;
                         }
 
-                        VisitAnonymousRecordDeclFields(pinvokeGenerator, outputBuilder, anonymousRecordDecl, nestedRecordDecl, nestedRecordDeclName, $"{contextName}.{nestedRecordDeclFieldName}");
+                        VisitAnonymousRecordDeclFields(pinvokeGenerator, outputBuilder, rootRecordDecl, anonymousRecordDecl, nestedRecordDecl, nestedRecordDeclName, $"{contextName}.{nestedRecordDeclFieldName}");
                     }
                 }
             }
 
-            static void VisitBitfieldDecl(PInvokeGenerator pinvokeGenerator, FieldDecl fieldDecl, Type[] types, ref int index, ref long previousSize, ref long remainingBits)
+            static void VisitBitfieldDecl(PInvokeGenerator pinvokeGenerator, FieldDecl fieldDecl, Type[] types, RecordDecl recordDecl, string contextName, ref int index, ref long previousSize, ref long remainingBits)
             {
                 Debug.Assert(fieldDecl.IsBitField);
 
@@ -1826,13 +1803,16 @@ namespace ClangSharp
                     remainingBits = currentSize * 8;
                     previousSize = 0;
 
-                    outputBuilder.WriteIndented("internal");
-                    outputBuilder.Write(' ');
-                    outputBuilder.Write(typeName);
-                    outputBuilder.Write(' ');
-                    outputBuilder.Write(bitfieldName);
-                    outputBuilder.WriteLine(';');
-                    outputBuilder.NeedsNewline = true;
+                    if (fieldDecl.Parent == recordDecl)
+                    {
+                        outputBuilder.WriteIndented("internal");
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write(typeName);
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write(bitfieldName);
+                        outputBuilder.WriteLine(';');
+                        outputBuilder.NeedsNewline = true;
+                    }
                 }
                 else
                 {
@@ -1848,268 +1828,292 @@ namespace ClangSharp
                         bitfieldName += index.ToString();
                     }
                 }
-                pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName);
 
-                var bitfieldOffset = (currentSize * 8) - remainingBits;
-
-                var bitwidthHexStringBacking = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
-                var typeBacking = (index > 0) ? types[index - 1] : types[0];
-                var canonicalTypeBacking = typeBacking.CanonicalType;
-                var typeNameBacking = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
-
-                switch (canonicalTypeBacking.Kind)
+                if (!recordDecl.IsAnonymousStructOrUnion)
                 {
-                    case CXTypeKind.CXType_Char_U:
-                    case CXTypeKind.CXType_UChar:
-                    case CXTypeKind.CXType_UShort:
-                    case CXTypeKind.CXType_UInt:
-                    {
-                        bitwidthHexStringBacking += "u";
-                        break;
-                    }
+                    pinvokeGenerator.AddNativeTypeNameAttribute(nativeTypeName);
 
-                    case CXTypeKind.CXType_ULong:
+                    var bitfieldOffset = (currentSize * 8) - remainingBits;
+
+                    var bitwidthHexStringBacking = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
+                    var typeBacking = (index > 0) ? types[index - 1] : types[0];
+                    var canonicalTypeBacking = typeBacking.CanonicalType;
+                    var typeNameBacking = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
+
+                    switch (canonicalTypeBacking.Kind)
                     {
-                        if (pinvokeGenerator._config.GenerateUnixTypes)
+                        case CXTypeKind.CXType_Char_U:
+                        case CXTypeKind.CXType_UChar:
+                        case CXTypeKind.CXType_UShort:
+                        case CXTypeKind.CXType_UInt:
                         {
-                            goto default;
+                            bitwidthHexStringBacking += "u";
+                            break;
                         }
-                        goto case CXTypeKind.CXType_UInt;
-                    }
 
-                    case CXTypeKind.CXType_ULongLong:
-                    {
-                        bitwidthHexStringBacking += "UL";
-                        break;
-                    }
-
-                    case CXTypeKind.CXType_Char_S:
-                    case CXTypeKind.CXType_SChar:
-                    case CXTypeKind.CXType_Short:
-                    case CXTypeKind.CXType_Int:
-                    {
-                        break;
-                    }
-
-                    case CXTypeKind.CXType_Long:
-                    {
-                        if (pinvokeGenerator._config.GenerateUnixTypes)
+                        case CXTypeKind.CXType_ULong:
                         {
-                            goto default;
+                            if (pinvokeGenerator._config.GenerateUnixTypes)
+                            {
+                                goto default;
+                            }
+                            goto case CXTypeKind.CXType_UInt;
                         }
-                        goto case CXTypeKind.CXType_Int;
-                    }
 
-                    case CXTypeKind.CXType_LongLong:
-                    {
-                        bitwidthHexStringBacking += "L";
-                        break;
-                    }
-
-                    default:
-                    {
-                        pinvokeGenerator.AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{canonicalTypeBacking.TypeClass}'. Generated bindings may be incomplete.", fieldDecl);
-                        break;
-                    }
-                }
-
-                var bitwidthHexString = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
-                var canonicalType = fieldDecl.Type.CanonicalType;
-
-                switch (canonicalType.Kind)
-                {
-                    case CXTypeKind.CXType_Char_U:
-                    case CXTypeKind.CXType_UChar:
-                    case CXTypeKind.CXType_UShort:
-                    case CXTypeKind.CXType_UInt:
-                    {
-                        bitwidthHexString += "u";
-                        break;
-                    }
-
-                    case CXTypeKind.CXType_ULong:
-                    {
-                        if (pinvokeGenerator._config.GenerateUnixTypes)
+                        case CXTypeKind.CXType_ULongLong:
                         {
-                            goto default;
+                            bitwidthHexStringBacking += "UL";
+                            break;
                         }
-                        goto case CXTypeKind.CXType_UInt;
-                    }
 
-                    case CXTypeKind.CXType_ULongLong:
-                    {
-                        bitwidthHexString += "UL";
-                        break;
-                    }
-
-                    case CXTypeKind.CXType_Char_S:
-                    case CXTypeKind.CXType_SChar:
-                    case CXTypeKind.CXType_Short:
-                    case CXTypeKind.CXType_Int:
-                    {
-                        break;
-                    }
-
-                    case CXTypeKind.CXType_Long:
-                    {
-                        if (pinvokeGenerator._config.GenerateUnixTypes)
+                        case CXTypeKind.CXType_Char_S:
+                        case CXTypeKind.CXType_SChar:
+                        case CXTypeKind.CXType_Short:
+                        case CXTypeKind.CXType_Int:
                         {
-                            goto default;
+                            break;
                         }
-                        goto case CXTypeKind.CXType_Int;
+
+                        case CXTypeKind.CXType_Long:
+                        {
+                            if (pinvokeGenerator._config.GenerateUnixTypes)
+                            {
+                                goto default;
+                            }
+                            goto case CXTypeKind.CXType_Int;
+                        }
+
+                        case CXTypeKind.CXType_LongLong:
+                        {
+                            bitwidthHexStringBacking += "L";
+                            break;
+                        }
+
+                        default:
+                        {
+                            pinvokeGenerator.AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{canonicalTypeBacking.TypeClass}'. Generated bindings may be incomplete.", fieldDecl);
+                            break;
+                        }
                     }
 
-                    case CXTypeKind.CXType_LongLong:
+                    var bitwidthHexString = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
+                    var canonicalType = fieldDecl.Type.CanonicalType;
+
+                    switch (canonicalType.Kind)
                     {
-                        bitwidthHexString += "L";
-                        break;
+                        case CXTypeKind.CXType_Char_U:
+                        case CXTypeKind.CXType_UChar:
+                        case CXTypeKind.CXType_UShort:
+                        case CXTypeKind.CXType_UInt:
+                        {
+                            bitwidthHexString += "u";
+                            break;
+                        }
+
+                        case CXTypeKind.CXType_ULong:
+                        {
+                            if (pinvokeGenerator._config.GenerateUnixTypes)
+                            {
+                                goto default;
+                            }
+                            goto case CXTypeKind.CXType_UInt;
+                        }
+
+                        case CXTypeKind.CXType_ULongLong:
+                        {
+                            bitwidthHexString += "UL";
+                            break;
+                        }
+
+                        case CXTypeKind.CXType_Char_S:
+                        case CXTypeKind.CXType_SChar:
+                        case CXTypeKind.CXType_Short:
+                        case CXTypeKind.CXType_Int:
+                        {
+                            break;
+                        }
+
+                        case CXTypeKind.CXType_Long:
+                        {
+                            if (pinvokeGenerator._config.GenerateUnixTypes)
+                            {
+                                goto default;
+                            }
+                            goto case CXTypeKind.CXType_Int;
+                        }
+
+                        case CXTypeKind.CXType_LongLong:
+                        {
+                            bitwidthHexString += "L";
+                            break;
+                        }
+
+                        default:
+                        {
+                            pinvokeGenerator.AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{canonicalType.TypeClass}'. Generated bindings may be incomplete.", fieldDecl);
+                            break;
+                        }
                     }
 
-                    default:
-                    {
-                        pinvokeGenerator.AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{canonicalType.TypeClass}'. Generated bindings may be incomplete.", fieldDecl);
-                        break;
-                    }
-                }
+                    var name = pinvokeGenerator.GetRemappedCursorName(fieldDecl);
+                    var escapedName = pinvokeGenerator.EscapeName(name);
 
-                var name = pinvokeGenerator.GetRemappedCursorName(fieldDecl);
-                var escapedName = pinvokeGenerator.EscapeName(name);
-
-                outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(fieldDecl));
-                outputBuilder.Write(' ');
-                outputBuilder.Write(typeName);
-                outputBuilder.Write(' ');
-                outputBuilder.WriteLine(escapedName);
-                outputBuilder.WriteBlockStart();
-                outputBuilder.WriteIndentedLine("get");
-                outputBuilder.WriteBlockStart();
-                outputBuilder.WriteIndented("return");
-                outputBuilder.Write(' ');
-
-                if ((currentSize < 4) || (canonicalTypeBacking != canonicalType))
-                {
-                    outputBuilder.Write('(');
+                    outputBuilder.WriteIndented(pinvokeGenerator.GetAccessSpecifierName(fieldDecl));
+                    outputBuilder.Write(' ');
                     outputBuilder.Write(typeName);
-                    outputBuilder.Write(')');
-                    outputBuilder.Write('(');
-                }
-
-                if (bitfieldOffset != 0)
-                {
-                    outputBuilder.Write('(');
-                }
-
-                outputBuilder.Write(bitfieldName);
-
-                if (bitfieldOffset != 0)
-                {
                     outputBuilder.Write(' ');
-                    outputBuilder.Write(">>");
+                    outputBuilder.WriteLine(escapedName);
+                    outputBuilder.WriteBlockStart();
+                    outputBuilder.WriteIndentedLine("get");
+                    outputBuilder.WriteBlockStart();
+                    outputBuilder.WriteIndented("return");
                     outputBuilder.Write(' ');
-                    outputBuilder.Write(bitfieldOffset);
-                    outputBuilder.Write(')');
-                }
 
-                outputBuilder.Write(' ');
-                outputBuilder.Write('&');
-                outputBuilder.Write(' ');
-                outputBuilder.Write("0x");
-                outputBuilder.Write(bitwidthHexStringBacking);
+                    if ((currentSize < 4) || (canonicalTypeBacking != canonicalType))
+                    {
+                        outputBuilder.Write('(');
+                        outputBuilder.Write(typeName);
+                        outputBuilder.Write(')');
+                        outputBuilder.Write('(');
+                    }
 
-                if ((currentSize < 4) || (canonicalTypeBacking != canonicalType))
-                {
-                    outputBuilder.Write(')');
-                }
+                    if (bitfieldOffset != 0)
+                    {
+                        outputBuilder.Write('(');
+                    }
 
-                outputBuilder.WriteLine(';');
-                outputBuilder.WriteBlockEnd();
+                    if (!string.IsNullOrWhiteSpace(contextName))
+                    {
+                        outputBuilder.Write(contextName);
+                        outputBuilder.Write('.');
+                    }
+                    outputBuilder.Write(bitfieldName);
 
-                outputBuilder.NeedsNewline = true;
+                    if (bitfieldOffset != 0)
+                    {
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write(">>");
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write(bitfieldOffset);
+                        outputBuilder.Write(')');
+                    }
 
-                outputBuilder.WriteIndentedLine("set");
-                outputBuilder.WriteBlockStart();
-                outputBuilder.WriteIndented(bitfieldName);
-                outputBuilder.Write(' ');
-                outputBuilder.Write('=');
-                outputBuilder.Write(' ');
-
-                if (currentSize < 4)
-                {
-                    outputBuilder.Write('(');
-                    outputBuilder.Write(typeNameBacking);
-                    outputBuilder.Write(')');
-                    outputBuilder.Write('(');
-                }
-
-                outputBuilder.Write('(');
-                outputBuilder.Write(bitfieldName);
-                outputBuilder.Write(' ');
-                outputBuilder.Write('&');
-                outputBuilder.Write(' ');
-                outputBuilder.Write('~');
-
-                if (bitfieldOffset != 0)
-                {
-                    outputBuilder.Write('(');
-                }
-
-                outputBuilder.Write("0x");
-                outputBuilder.Write(bitwidthHexStringBacking);
-
-                if (bitfieldOffset != 0)
-                {
                     outputBuilder.Write(' ');
-                    outputBuilder.Write("<<");
+                    outputBuilder.Write('&');
                     outputBuilder.Write(' ');
-                    outputBuilder.Write(bitfieldOffset);
-                    outputBuilder.Write(')');
-                }
+                    outputBuilder.Write("0x");
+                    outputBuilder.Write(bitwidthHexStringBacking);
 
-                outputBuilder.Write(')');
-                outputBuilder.Write(' ');
-                outputBuilder.Write('|');
-                outputBuilder.Write(' ');
+                    if ((currentSize < 4) || (canonicalTypeBacking != canonicalType))
+                    {
+                        outputBuilder.Write(')');
+                    }
 
-                if (canonicalTypeBacking != canonicalType)
-                {
+                    outputBuilder.WriteLine(';');
+                    outputBuilder.WriteBlockEnd();
+
+                    outputBuilder.NeedsNewline = true;
+
+                    outputBuilder.WriteIndentedLine("set");
+                    outputBuilder.WriteBlockStart();
+                    outputBuilder.WriteIndentation();
+
+                    if (!string.IsNullOrWhiteSpace(contextName))
+                    {
+                        outputBuilder.Write(contextName);
+                        outputBuilder.Write('.');
+                    }
+                    outputBuilder.Write(bitfieldName);
+
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('=');
+                    outputBuilder.Write(' ');
+
+                    if (currentSize < 4)
+                    {
+                        outputBuilder.Write('(');
+                        outputBuilder.Write(typeNameBacking);
+                        outputBuilder.Write(')');
+                        outputBuilder.Write('(');
+                    }
+
                     outputBuilder.Write('(');
-                    outputBuilder.Write(typeNameBacking);
+
+                    if (!string.IsNullOrWhiteSpace(contextName))
+                    {
+                        outputBuilder.Write(contextName);
+                        outputBuilder.Write('.');
+                    }
+                    outputBuilder.Write(bitfieldName);
+
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('&');
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('~');
+
+                    if (bitfieldOffset != 0)
+                    {
+                        outputBuilder.Write('(');
+                    }
+
+                    outputBuilder.Write("0x");
+                    outputBuilder.Write(bitwidthHexStringBacking);
+
+                    if (bitfieldOffset != 0)
+                    {
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write("<<");
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write(bitfieldOffset);
+                        outputBuilder.Write(')');
+                    }
+
                     outputBuilder.Write(')');
-                }
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('|');
+                    outputBuilder.Write(' ');
 
-                outputBuilder.Write('(');
+                    if (canonicalTypeBacking != canonicalType)
+                    {
+                        outputBuilder.Write('(');
+                        outputBuilder.Write(typeNameBacking);
+                        outputBuilder.Write(')');
+                    }
 
-                if (bitfieldOffset != 0)
-                {
                     outputBuilder.Write('(');
-                }
 
-                outputBuilder.Write("value");
-                outputBuilder.Write(' ');
-                outputBuilder.Write('&');
-                outputBuilder.Write(' ');
-                outputBuilder.Write("0x");
-                outputBuilder.Write(bitwidthHexString);
+                    if (bitfieldOffset != 0)
+                    {
+                        outputBuilder.Write('(');
+                    }
 
-                if (bitfieldOffset != 0)
-                {
-                    outputBuilder.Write(')');
+                    outputBuilder.Write("value");
                     outputBuilder.Write(' ');
-                    outputBuilder.Write("<<");
+                    outputBuilder.Write('&');
                     outputBuilder.Write(' ');
-                    outputBuilder.Write(bitfieldOffset);
-                }
+                    outputBuilder.Write("0x");
+                    outputBuilder.Write(bitwidthHexString);
 
-                outputBuilder.Write(')');
+                    if (bitfieldOffset != 0)
+                    {
+                        outputBuilder.Write(')');
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write("<<");
+                        outputBuilder.Write(' ');
+                        outputBuilder.Write(bitfieldOffset);
+                    }
 
-                if (currentSize < 4)
-                {
                     outputBuilder.Write(')');
-                }
 
-                outputBuilder.WriteLine(';');
-                outputBuilder.WriteBlockEnd();
-                outputBuilder.WriteBlockEnd();
+                    if (currentSize < 4)
+                    {
+                        outputBuilder.Write(')');
+                    }
+
+                    outputBuilder.WriteLine(';');
+                    outputBuilder.WriteBlockEnd();
+                    outputBuilder.WriteBlockEnd();
+                }
 
                 remainingBits -= fieldDecl.BitWidthValue;
                 previousSize = Math.Max(previousSize, currentSize);

@@ -1014,6 +1014,94 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task NestedAnonymousBitfieldTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int x;
+    int y;
+
+    struct
+    {
+        int z;
+
+        struct
+        {
+            int w;
+            int o0_b0_16 : 16;
+            int o0_b16_4 : 4;
+        };
+    };
+};
+";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int x;
+
+        public int y;
+
+        [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:6:5)"")]
+        internal _Anonymous_e__Struct Anonymous;
+
+        public ref int z => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+
+        public ref int w => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));
+
+        [NativeTypeName(""int : 16"")]
+        public int o0_b0_16
+        {
+            get
+            {
+                return Anonymous.Anonymous._bitfield & 0xFFFF;
+            }
+
+            set
+            {
+                Anonymous.Anonymous._bitfield = (Anonymous.Anonymous._bitfield & ~0xFFFF) | (value & 0xFFFF);
+            }
+        }
+
+        [NativeTypeName(""int : 4"")]
+        public int o0_b16_4
+        {
+            get
+            {
+                return (Anonymous.Anonymous._bitfield >> 16) & 0xF;
+            }
+
+            set
+            {
+                Anonymous.Anonymous._bitfield = (Anonymous.Anonymous._bitfield & ~(0xF << 16)) | ((value & 0xF) << 16);
+            }
+        }
+
+        public partial struct _Anonymous_e__Struct
+        {
+            public int z;
+
+            [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:10:9)"")]
+            internal _Anonymous_e__Struct Anonymous;
+
+            public partial struct _Anonymous_e__Struct
+            {
+                public int w;
+
+                internal int _bitfield;
+            }
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task NewKeywordTest()
         {
             var inputContents = @"struct MyStruct
