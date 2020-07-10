@@ -2488,6 +2488,8 @@ namespace ClangSharp
                     initExpr = implicitCastExpr.SubExprAsWritten;
                 }
 
+                var isProperty = false;
+
                 if (initExpr is StringLiteral stringLiteral)
                 {
                     switch (stringLiteral.Kind)
@@ -2500,6 +2502,7 @@ namespace ClangSharp
                             _outputBuilder.AddUsingDirective("System");
 
                             typeName = "ReadOnlySpan<byte>";
+                            isProperty = true;
                             break;
                         }
 
@@ -2562,6 +2565,12 @@ namespace ClangSharp
                 {
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write('=');
+
+                    if (isProperty)
+                    {
+                        _outputBuilder.Write('>');
+                    }
+
                     _outputBuilder.Write(' ');
 
                     Visit(varDecl.Init);

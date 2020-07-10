@@ -238,6 +238,18 @@ namespace ClangSharp.Interop
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_uninstall_llvm_fatal_error_handler", ExactSpelling = true)]
         public static extern void uninstall_llvm_fatal_error_handler();
 
+        [NativeTypeName("#define CINDEX_VERSION_MAJOR 0")]
+        public const int CINDEX_VERSION_MAJOR = 0;
+
+        [NativeTypeName("#define CINDEX_VERSION_MINOR 59")]
+        public const int CINDEX_VERSION_MINOR = 59;
+
+        [NativeTypeName("#define CINDEX_VERSION CINDEX_VERSION_ENCODE( \\\n    CINDEX_VERSION_MAJOR,                     \\\n    CINDEX_VERSION_MINOR )")]
+        public const int CINDEX_VERSION = (((0) * 10000) + ((59) * 1));
+
+        [NativeTypeName("#define CINDEX_VERSION_STRING CINDEX_VERSION_STRINGIZE( \\\n    CINDEX_VERSION_MAJOR,                               \\\n    CINDEX_VERSION_MINOR)")]
+        public static ReadOnlySpan<byte> CINDEX_VERSION_STRING => new byte[] { 0x30, 0x2E, 0x35, 0x39, 0x00 };
+
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_createIndex", ExactSpelling = true)]
         [return: NativeTypeName("CXIndex")]
         public static extern void* createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics);
