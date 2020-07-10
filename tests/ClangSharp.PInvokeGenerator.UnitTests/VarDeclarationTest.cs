@@ -155,7 +155,7 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [NativeTypeName(""#define MyMacro1 \""Test\"""")]
-        public static ReadOnlySpan<byte> MyMacro1 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+        public static ReadOnlySpan<byte> MyMacro1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
     }}
 }}
 ";
