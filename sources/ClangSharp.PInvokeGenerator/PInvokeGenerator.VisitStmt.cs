@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -716,9 +717,25 @@ namespace ClangSharp
         {
             var valueString = integerLiteral.ValueString;
 
-            if (valueString.EndsWith("l") || valueString.EndsWith("L"))
+            if (valueString.EndsWith("L", StringComparison.OrdinalIgnoreCase))
             {
                 valueString = valueString.Substring(0, valueString.Length - 1);
+            }
+            else if (valueString.EndsWith("i8", StringComparison.OrdinalIgnoreCase))
+            {
+                valueString = valueString.Substring(0, valueString.Length - 2);
+            }
+            else if (valueString.EndsWith("i16", StringComparison.OrdinalIgnoreCase))
+            {
+                valueString = valueString.Substring(0, valueString.Length - 3);
+            }
+            else if (valueString.EndsWith("i32", StringComparison.OrdinalIgnoreCase))
+            {
+                valueString = valueString.Substring(0, valueString.Length - 3);
+            }
+            else if (valueString.EndsWith("i64", StringComparison.OrdinalIgnoreCase))
+            {
+                valueString = valueString.Substring(0, valueString.Length - 3);
             }
 
             _outputBuilder.Write(valueString);
