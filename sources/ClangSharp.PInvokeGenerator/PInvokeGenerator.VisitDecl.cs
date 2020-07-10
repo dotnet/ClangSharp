@@ -1682,6 +1682,31 @@ namespace ClangSharp
                             outputBuilder.Write(' ');
                             outputBuilder.Write("ref");
                             outputBuilder.Write(' ');
+
+                            if ((type.CanonicalType is RecordType recordType) && string.IsNullOrWhiteSpace(recordType.Decl.Name))
+                            {
+                                var nestedRecordDeclName = pinvokeGenerator.GetRemappedTypeName(recordType.Decl, context: null, recordType, out string nativeTypeName);
+
+                                if (nestedRecordDeclName.StartsWith("__AnonymousRecord_"))
+                                {
+                                    var newNestedRecordDeclName = $"_{fieldName}_e__{(recordType.Decl.IsUnion ? "Union" : "Struct")}";
+
+                                    var remappedNames = pinvokeGenerator._config.RemappedNames as Dictionary<string, string>;
+                                    remappedNames.Add(nestedRecordDeclName, newNestedRecordDeclName);
+
+                                    typeName = newNestedRecordDeclName;
+                                }
+
+                                var tmpRecordDecl = (RecordDecl)recordType.Decl.DeclContext;
+
+                                while (tmpRecordDecl != rootRecordDecl)
+                                {
+                                    outputBuilder.Write(pinvokeGenerator.GetRemappedCursorName(tmpRecordDecl));
+                                    outputBuilder.Write('.');
+                                    tmpRecordDecl = (RecordDecl)tmpRecordDecl.DeclContext;
+                                }
+                            }
+
                             outputBuilder.Write(typeName);
                             outputBuilder.Write(' ');
                             outputBuilder.Write(fieldName);
@@ -1723,7 +1748,7 @@ namespace ClangSharp
                             {
                                 outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
                                 outputBuilder.Write(' ');
-                                outputBuilder.Write("=> MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref");
+                                outputBuilder.Write("=> ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref");
                                 outputBuilder.Write(' ');
                                 outputBuilder.Write(contextName);
                                 outputBuilder.Write('.');
