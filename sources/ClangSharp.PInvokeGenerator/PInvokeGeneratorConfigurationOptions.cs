@@ -32,5 +32,7 @@ namespace ClangSharp
         GenerateTestsNUnit = 0x00000200,
 
         GenerateTestsXUnit = 0x00000400,
+
+        GenerateMacroBindings = 0x00000800,
     }
 }

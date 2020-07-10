@@ -8,11 +8,11 @@ namespace ClangSharp
 {
     public sealed class TranslationUnit : IDisposable, IEquatable<TranslationUnit>
     {
-        private static readonly Dictionary<CXTranslationUnit, TranslationUnit> _createdTranslationUnits = new Dictionary<CXTranslationUnit, TranslationUnit>();
+        private static readonly Dictionary<CXTranslationUnit, WeakReference<TranslationUnit>> _createdTranslationUnits = new Dictionary<CXTranslationUnit, WeakReference<TranslationUnit>>();
         private static readonly object _createTranslationUnitLock = new object();
 
-        private readonly Dictionary<CXCursor, Cursor> _createdCursors;
-        private readonly Dictionary<CXType, Type> _createdTypes;
+        private readonly Dictionary<CXCursor, WeakReference<Cursor>> _createdCursors;
+        private readonly Dictionary<CXType, WeakReference<Type>> _createdTypes;
         private readonly Lazy<TranslationUnitDecl> _translationUnitDecl;
 
         private bool _isDisposed;
@@ -21,8 +21,8 @@ namespace ClangSharp
         {
             Handle = handle;
 
-            _createdCursors = new Dictionary<CXCursor, Cursor>();
-            _createdTypes = new Dictionary<CXType, Type>();
+            _createdCursors = new Dictionary<CXCursor, WeakReference<Cursor>>();
+            _createdTypes = new Dictionary<CXType, WeakReference<Type>>();
 
             _translationUnitDecl = new Lazy<TranslationUnitDecl>(() => GetOrCreate<TranslationUnitDecl>(Handle.Cursor));
         }
@@ -42,24 +42,35 @@ namespace ClangSharp
 
         public static TranslationUnit GetOrCreate(CXTranslationUnit handle)
         {
-            TranslationUnit translationUnit;
+            WeakReference<TranslationUnit> translationUnitRef;
 
             if (handle == null)
             {
-                translationUnit = null;
+                return null;
             }
-            else if (!_createdTranslationUnits.TryGetValue(handle, out translationUnit))
+            else if (!_createdTranslationUnits.TryGetValue(handle, out translationUnitRef))
             {
                 lock (_createTranslationUnitLock)
                 {
-                    if (!_createdTranslationUnits.TryGetValue(handle, out translationUnit))
+                    if (!_createdTranslationUnits.TryGetValue(handle, out translationUnitRef))
                     {
-                        translationUnit = new TranslationUnit(handle);
-                        _createdTranslationUnits.Add(handle, translationUnit);
+                        translationUnitRef = new WeakReference<TranslationUnit>(null);
+                        _createdTranslationUnits.Add(handle, translationUnitRef);
                     }
                 }
             }
 
+            if (!translationUnitRef.TryGetTarget(out TranslationUnit translationUnit))
+            {
+                lock (_createTranslationUnitLock)
+                {
+                    if (!translationUnitRef.TryGetTarget(out translationUnit))
+                    {
+                        translationUnit = new TranslationUnit(handle);
+                        translationUnitRef.SetTarget(translationUnit);
+                    }
+                }
+            }
             return translationUnit;
         }
 
@@ -78,36 +89,46 @@ namespace ClangSharp
         internal TCursor GetOrCreate<TCursor>(CXCursor handle)
             where TCursor : Cursor
         {
-            Cursor cursor;
+            WeakReference<Cursor> cursorRef;
 
             if (handle.IsNull)
             {
-                cursor = null;
+                return null;
             }
-            else if (!_createdCursors.TryGetValue(handle, out cursor))
+            else if (!_createdCursors.TryGetValue(handle, out cursorRef))
             {
-                cursor = Cursor.Create(handle);
-                _createdCursors.Add(handle, cursor);
+                cursorRef = new WeakReference<Cursor>(null);
+                _createdCursors.Add(handle, cursorRef);
             }
 
+            if (!cursorRef.TryGetTarget(out Cursor cursor))
+            {
+                cursor = Cursor.Create(handle);
+                cursorRef.SetTarget(cursor);
+            }
             return (TCursor)cursor;
         }
 
         internal TType GetOrCreate<TType>(CXType handle)
             where TType : Type
         {
-            Type type;
+            WeakReference<Type> typeRef;
 
             if (handle.kind == CXTypeKind.CXType_Invalid)
             {
-                type = null;
+                return null;
             }
-            else if (!_createdTypes.TryGetValue(handle, out type))
+            else if (!_createdTypes.TryGetValue(handle, out typeRef))
             {
-                type = Type.Create(handle);
-                _createdTypes.Add(handle, type);
+                typeRef = new WeakReference<Type>(null);
+                _createdTypes.Add(handle, typeRef);
             }
 
+            if (!typeRef.TryGetTarget(out Type type))
+            {
+                type = Type.Create(handle);
+                typeRef.SetTarget(type);
+            }
             return (TType)type;
         }
 

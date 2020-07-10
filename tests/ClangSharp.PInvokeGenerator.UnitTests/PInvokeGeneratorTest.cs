@@ -14,8 +14,9 @@ namespace ClangSharp.UnitTests
         protected const string DefaultLibraryPath = "ClangSharpPInvokeGenerator";
         protected const string DefaultNamespaceName = "ClangSharp.Test";
 
-        protected const CXTranslationUnit_Flags DefaultTranslationUnitFlags = CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes      // Include attributed types in CXType
-                                                                            | CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;    // Implicit attributes should be visited
+        protected const CXTranslationUnit_Flags DefaultTranslationUnitFlags = CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes          // Include attributed types in CXType
+                                                                            | CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes         // Implicit attributes should be visited
+                                                                            | CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
 
         protected static readonly string[] DefaultClangCommandLineArgs = new string[]
         {
@@ -44,6 +45,8 @@ namespace ClangSharp.UnitTests
         {
             Assert.True(File.Exists(DefaultInputFileName));
 
+            configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
+
             using var outputStream = new MemoryStream();
             using var unsavedFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
 
@@ -55,7 +58,7 @@ namespace ClangSharp.UnitTests
                 var handle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, unsavedFiles, DefaultTranslationUnitFlags);
                 using var translationUnit = TranslationUnit.GetOrCreate(handle);
 
-                pinvokeGenerator.GenerateBindings(translationUnit);
+                pinvokeGenerator.GenerateBindings(translationUnit, DefaultInputFileName, DefaultClangCommandLineArgs, DefaultTranslationUnitFlags);
 
                 if (expectedDiagnostics is null)
                 {

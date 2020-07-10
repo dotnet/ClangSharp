@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -36,7 +37,7 @@ namespace ClangSharp
 
             if (calleeDecl is FunctionDecl)
             {
-                VisitStmt(callExpr.Callee);
+                Visit(callExpr.Callee);
                 _outputBuilder.Write('(');
 
                 var args = callExpr.Args;
@@ -206,7 +207,7 @@ namespace ClangSharp
             {
                 if (functionDecl.DeclContext is CXXRecordDecl)
                 {
-                    VisitStmt(cxxOperatorCallExpr.Args[0]);
+                    Visit(cxxOperatorCallExpr.Args[0]);
                     _outputBuilder.Write('.');
                 }
 
@@ -253,17 +254,17 @@ namespace ClangSharp
         {
             if (declStmt.IsSingleDecl)
             {
-                VisitDecl(declStmt.SingleDecl, ignorePriorVisit: true);
+                Visit(declStmt.SingleDecl);
             }
             else
             {
-                VisitDecl(declStmt.Decls.First(), ignorePriorVisit: true);
+                Visit(declStmt.Decls.First());
 
                 foreach (var decl in declStmt.Decls.Skip(1))
                 {
                     _outputBuilder.Write(',');
                     _outputBuilder.Write(' ');
-                    VisitDecl(decl, ignorePriorVisit: true);
+                    Visit(decl);
                 }
             }
 
@@ -348,7 +349,21 @@ namespace ClangSharp
 
         private void VisitFloatingLiteral(FloatingLiteral floatingLiteral)
         {
-            _outputBuilder.Write(floatingLiteral.ValueString);
+            if (floatingLiteral.ValueString.EndsWith(".f"))
+            {
+                _outputBuilder.Write(floatingLiteral.ValueString.Substring(0, floatingLiteral.ValueString.Length - 1));
+                _outputBuilder.Write('0');
+                _outputBuilder.Write('f');
+            }
+            else
+            {
+                _outputBuilder.Write(floatingLiteral.ValueString);
+
+                if (floatingLiteral.ValueString.EndsWith("."))
+                {
+                    _outputBuilder.Write('0');
+                }
+            }
         }
 
         private void VisitForStmt(ForStmt forStmt)
@@ -468,7 +483,6 @@ namespace ClangSharp
                 handled = ForIntegerLiteral(implicitCastExpr, integerLiteral);
             }
 
-
             if (!handled)
             {
                 Visit(implicitCastExpr.SubExpr);
@@ -545,7 +559,7 @@ namespace ClangSharp
 
         private void VisitImplicitValueInitExpr(ImplicitValueInitExpr implicitValueInitExpr)
         {
-            // Currently nothing to do here, we could explicitly zero these fields in the future
+            _outputBuilder.Write("default");
         }
 
         private void VisitInitListExpr(InitListExpr initListExpr)
@@ -610,35 +624,67 @@ namespace ClangSharp
                 var type = initListExpr.Type;
                 var typeName = GetRemappedTypeName(initListExpr, context: null, type, out var nativeTypeName);
 
-                _outputBuilder.WriteLine(typeName);
-                _outputBuilder.WriteBlockStart();
+                _outputBuilder.Write(typeName);
 
-                var decl = recordType.Decl;
-
-                for (int i = 0; i < initListExpr.Inits.Count; i++)
+                if (typeName == "Guid")
                 {
-                    var init = initListExpr.Inits[i];
+                    _outputBuilder.Write('(');
 
-                    if (init is ImplicitValueInitExpr)
+                    Visit(initListExpr.Inits[0]);
+
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
+
+                    Visit(initListExpr.Inits[1]);
+
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
+
+                    Visit(initListExpr.Inits[2]);
+                    initListExpr = (InitListExpr)initListExpr.Inits[3];
+
+                    for (int i = 0; i < initListExpr.Inits.Count; i++)
                     {
-                        continue;
+                        _outputBuilder.Write(',');
+                        _outputBuilder.Write(' ');
+
+                        Visit(initListExpr.Inits[i]);
                     }
 
-                    var fieldName = GetRemappedCursorName(decl.Fields[i]);
-
-                    _outputBuilder.WriteIndented(fieldName);
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write('=');
-                    _outputBuilder.Write(' ');
-                    Visit(init);
-                    _outputBuilder.WriteLine(',');
+                    _outputBuilder.Write(')');
                 }
+                else
+                {
+                    _outputBuilder.WriteLine();
+                    _outputBuilder.WriteBlockStart();
 
-                _outputBuilder.NeedsNewline = false;
-                _outputBuilder.NeedsSemicolon = false;
-                _outputBuilder.DecreaseIndentation();
-                _outputBuilder.WriteIndented('}');
-                _outputBuilder.WriteLine(';');
+                    var decl = recordType.Decl;
+
+                    for (int i = 0; i < initListExpr.Inits.Count; i++)
+                    {
+                        var init = initListExpr.Inits[i];
+
+                        if (init is ImplicitValueInitExpr)
+                        {
+                            continue;
+                        }
+
+                        var fieldName = GetRemappedCursorName(decl.Fields[i]);
+
+                        _outputBuilder.WriteIndented(fieldName);
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write('=');
+                        _outputBuilder.Write(' ');
+                        Visit(init);
+                        _outputBuilder.WriteLine(',');
+                    }
+
+                    _outputBuilder.NeedsNewline = false;
+                    _outputBuilder.NeedsSemicolon = false;
+                    _outputBuilder.DecreaseIndentation();
+                    _outputBuilder.WriteIndented('}');
+                    _outputBuilder.WriteLine(';');
+                }
             }
 
             void ForType(InitListExpr initListExpr, Type type)
@@ -962,18 +1008,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
 
                 case CX_StmtClass.CX_StmtClass_CallExpr:
+                case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
                 {
                     VisitCallExpr((CallExpr)stmt);
                     break;
                 }
 
                 // case CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr:
-
-                case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
-                {
-                    VisitCallExpr((CallExpr)stmt);
-                    break;
-                }
 
                 case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
                 {
@@ -985,6 +1026,9 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
 
                 case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
                 {
                     VisitExplicitCastExpr((ExplicitCastExpr)stmt);
                     break;
@@ -999,14 +1043,6 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
                 {
                     VisitCXXConstCastExpr((CXXConstCastExpr)stmt);
-                    break;
-                }
-
-                case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
-                case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
-                case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
-                {
-                    VisitExplicitCastExpr((ExplicitCastExpr)stmt);
                     break;
                 }
 
@@ -1122,7 +1158,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_SizeOfPackExpr:
                 // case CX_StmtClass.CX_StmtClass_SourceLocExpr:
                 // case CX_StmtClass.CX_StmtClass_StmtExpr:
-                // case CX_StmtClass.CX_StmtClass_StringLiteral:
+
+                case CX_StmtClass.CX_StmtClass_StringLiteral:
+                {
+                    VisitStringLiteral((StringLiteral)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
                 // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
                 // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
@@ -1180,6 +1222,64 @@ namespace ClangSharp
                 _outputBuilder.WriteSemicolonIfNeeded();
 
                 previousStmt = stmt;
+            }
+        }
+
+        private void VisitStringLiteral(StringLiteral stringLiteral)
+        {
+            switch (stringLiteral.Kind)
+            {
+                case CX_CharacterKind.CX_CLK_Ascii:
+                case CX_CharacterKind.CX_CLK_UTF8:
+                {
+                    _outputBuilder.Write("new");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write("byte");
+                    _outputBuilder.Write('[');
+                    _outputBuilder.Write(']');
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write('{');
+                    _outputBuilder.Write(' ');
+
+                    var bytes = Encoding.UTF8.GetBytes(stringLiteral.String);
+
+                    foreach (var b in bytes)
+                    {
+                        _outputBuilder.Write("0x");
+                        _outputBuilder.Write(b.ToString("X2"));
+                        _outputBuilder.Write(',');
+                        _outputBuilder.Write(' ');
+                    }
+
+                    _outputBuilder.Write("0x00");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write('}');
+                    break;
+                }
+
+                case CX_CharacterKind.CX_CLK_Wide:
+                {
+                    if (_config.GenerateUnixTypes)
+                    {
+                        goto default;
+                    }
+
+                    goto case CX_CharacterKind.CX_CLK_UTF16;
+                }
+
+                case CX_CharacterKind.CX_CLK_UTF16:
+                {
+                    _outputBuilder.Write('"');
+                    _outputBuilder.Write(stringLiteral.String);
+                    _outputBuilder.Write('"');
+                    break;
+                }
+
+                default:
+                {
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported string literal kind: '{stringLiteral.Kind}'. Generated bindings may be incomplete.", stringLiteral);
+                    break;
+                }
             }
         }
 

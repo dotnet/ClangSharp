@@ -19,10 +19,14 @@ namespace ClangSharp
         private readonly CXIndex _index;
         private readonly OutputBuilderFactory _outputBuilderFactory;
         private readonly Func<string, Stream> _outputStreamFactory;
-        private readonly HashSet<Decl> _visitedDecls;
         private readonly HashSet<string> _visitedFiles;
         private readonly List<Diagnostic> _diagnostics;
+        private readonly LinkedList<Cursor> _context;
         private readonly PInvokeGeneratorConfiguration _config;
+
+        private string _filePath;
+        private string[] _clangCommandLineArgs;
+        private CXTranslationUnit_Flags _translationFlags;
 
         private OutputBuilder _outputBuilder;
         private OutputBuilder _testOutputBuilder;
@@ -44,9 +48,9 @@ namespace ClangSharp
                 Directory.CreateDirectory(directoryPath);
                 return new FileStream(path, FileMode.Create);
             });
-            _visitedDecls = new HashSet<Decl>();
             _visitedFiles = new HashSet<string>();
             _diagnostics = new List<Diagnostic>();
+            _context = new LinkedList<Cursor>();
             _config = config;
         }
 
@@ -57,9 +61,13 @@ namespace ClangSharp
 
         public PInvokeGeneratorConfiguration Config => _config;
 
+        public Cursor CurrentContext => _context.Last.Value;
+
         public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
 
         public CXIndex IndexHandle => _index;
+
+        public Cursor PreviousContext => _context.Last.Previous.Value;
 
         public void Close()
         {
@@ -146,9 +154,10 @@ namespace ClangSharp
                 sw.WriteLine('}');
             }
 
+            _context.Clear();
             _diagnostics.Clear();
             _outputBuilderFactory.Clear();
-            _visitedDecls.Clear();
+            _visitedFiles.Clear();
         }
 
         public void Dispose()
@@ -157,9 +166,13 @@ namespace ClangSharp
             GC.SuppressFinalize(this);
         }
 
-        public void GenerateBindings(TranslationUnit translationUnit)
+        public void GenerateBindings(TranslationUnit translationUnit, string filePath, string[] clangCommandLineArgs, CXTranslationUnit_Flags translationFlags)
         {
             Debug.Assert(_outputBuilder is null);
+
+            _filePath = filePath;
+            _clangCommandLineArgs = clangCommandLineArgs;
+            _translationFlags = translationFlags;
 
             if (translationUnit.Handle.NumDiagnostics != 0)
             {
@@ -237,8 +250,14 @@ namespace ClangSharp
             }
 
             _outputBuilder.Write("NativeTypeName(");
+
             _outputBuilder.Write('"');
-            _outputBuilder.Write(nativeTypeName.Replace('\\', '/'));
+            _outputBuilder.Write(nativeTypeName.Replace("\\", "\\\\")
+                                               .Replace("\r", "\\r")
+                                               .Replace("\n", "\\n")
+                                               .Replace("\t", "\\t")
+                                               .Replace("\"", "\\\"")
+                                               .Replace("\'", "\\\'"));
             _outputBuilder.Write('"');
             _outputBuilder.Write(")]");
 
@@ -617,7 +636,7 @@ namespace ClangSharp
 
         private string GetCursorName(NamedDecl namedDecl)
         {
-            var name = namedDecl.Name;
+            var name = namedDecl.Name.Replace('\\', '/');
 
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -872,9 +891,29 @@ namespace ClangSharp
             return name;
         }
 
+        private string GetSourceRangeContents(CXTranslationUnit translationUnit, CXSourceRange sourceRange)
+        {
+            sourceRange.Start.GetFileLocation(out var startFile, out var startLine, out var startColumn, out var startOffset);
+            sourceRange.End.GetFileLocation(out var endFile, out var endLine, out var endColumn, out var endOffset);
+
+            if (startFile != endFile)
+            {
+                return string.Empty;
+            }
+
+            var fileContents = translationUnit.GetFileContents(startFile, out var fileSize);
+            fileContents = fileContents.Slice(unchecked((int)startOffset), unchecked((int)(endOffset - startOffset)));
+
+#if NETCOREAPP
+            return Encoding.UTF8.GetString(fileContents);
+#else
+            return Encoding.UTF8.GetString(fileContents.ToArray());
+#endif
+        }
+
         private string GetTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
-            var name = type.AsString;
+            var name = type.AsString.Replace('\\', '/');
             nativeTypeName = name;
 
             if (type is ArrayType arrayType)
@@ -913,6 +952,7 @@ namespace ClangSharp
                         break;
                     }
 
+                    case CXTypeKind.CXType_Char16:
                     case CXTypeKind.CXType_UShort:
                     {
                         name = (cursor is null) ? "UInt16" : "ushort";
@@ -1012,6 +1052,10 @@ namespace ClangSharp
                         break;
                     }
                 }
+            }
+            else if (type is DeducedType deducedType)
+            {
+                name = GetTypeName(cursor, context, deducedType.CanonicalType, out var nativeDeducedTypeName);
             }
             else if (type is ElaboratedType elaboratedType)
             {
@@ -1556,21 +1600,21 @@ namespace ClangSharp
             return hasDirectVtbl || (indirectVtblCount != 0);
         }
 
-        private bool IsExcluded(Decl decl)
+        private bool IsExcluded(Cursor cursor)
         {
-            if (IsAlwaysIncluded())
+            if (IsAlwaysIncluded(cursor))
             {
                 return false;
             }
 
-            return IsExcludedByFile(decl) || IsExcludedByName(decl);
+            return IsExcludedByFile(cursor) || IsExcludedByName(cursor);
 
-            bool IsAlwaysIncluded()
+            bool IsAlwaysIncluded(Cursor cursor)
             {
-                return (decl is TranslationUnitDecl) || (decl is LinkageSpecDecl);
+                return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl) || ((cursor is VarDecl) && (PreviousContext is MacroDefinitionRecord));
             }
 
-            bool IsExcludedByFile(Decl decl)
+            bool IsExcludedByFile(Cursor cursor)
             {
                 if (_outputBuilder != null)
                 {
@@ -1580,10 +1624,10 @@ namespace ClangSharp
                     return false;
                 }
 
-                var declLocation = decl.Location;
+                var declLocation = cursor.Location;
                 declLocation.GetFileLocation(out CXFile file, out _, out _, out _);
 
-                if (IsIncludedFileOrLocation(decl, file, declLocation))
+                if (IsIncludedFileOrLocation(cursor, file, declLocation))
                 {
                     return false;
                 }
@@ -1593,9 +1637,9 @@ namespace ClangSharp
                 // in the main file to catch these cases and ensure we still generate bindings for them.
 
                 declLocation.GetExpansionLocation(out file, out uint line, out uint column, out _);
-                declLocation = decl.TranslationUnit.Handle.GetLocation(file, line, column);
+                declLocation = cursor.TranslationUnit.Handle.GetLocation(file, line, column);
 
-                if (IsIncludedFileOrLocation(decl, file, declLocation))
+                if (IsIncludedFileOrLocation(cursor, file, declLocation))
                 {
                     return false;
                 }
@@ -1603,19 +1647,28 @@ namespace ClangSharp
                 return true;
             }
 
-            bool IsExcludedByName(Decl decl)
+            bool IsExcludedByName(Cursor cursor)
             {
-                if (!(decl is NamedDecl))
+                var qualifiedName = string.Empty;
+                var name = string.Empty;
+
+                if (cursor is NamedDecl namedDecl)
+                {
+                    // We get the non-remapped name for the purpose of exclusion checks to ensure that users
+                    // can remove no-definition declarations in favor of remapped anonymous declarations.
+
+                    qualifiedName = GetCursorQualifiedName(namedDecl);
+                    name = GetCursorName(namedDecl);
+                }
+                else if (cursor is MacroDefinitionRecord macroDefinitionRecord)
+                {
+                    qualifiedName = macroDefinitionRecord.Name;
+                    name = macroDefinitionRecord.Name;
+                }
+                else
                 {
                     return false;
                 }
-
-                var namedDecl = (NamedDecl)decl;
-
-                // We get the non-remapped name for the purpose of exclusion checks to ensure that users
-                // can remove no-definition declarations in favor of remapped anonymous declarations.
-
-                var qualifiedName = GetCursorQualifiedName(namedDecl);
 
                 if (_config.ExcludedNames.Contains(qualifiedName))
                 {
@@ -1626,8 +1679,6 @@ namespace ClangSharp
                     return true;
                 }
 
-                var name = GetCursorName(namedDecl);
-
                 if (_config.ExcludedNames.Contains(name))
                 {
                     if (_config.LogExclusions)
@@ -1637,7 +1688,7 @@ namespace ClangSharp
                     return true;
                 }
 
-                if (namedDecl is TagDecl tagDecl)
+                if (cursor is TagDecl tagDecl)
                 {
                     if ((tagDecl.Definition != tagDecl) && (tagDecl.Definition != null))
                     {
@@ -1654,7 +1705,7 @@ namespace ClangSharp
                 return false;
             }
 
-            bool IsIncludedFileOrLocation(Decl decl, CXFile file, CXSourceLocation location)
+            bool IsIncludedFileOrLocation(Cursor cursor, CXFile file, CXSourceLocation location)
             {
                 // Use case insensitive comparison on Windows
                 var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
@@ -2143,13 +2194,19 @@ namespace ClangSharp
 
         private void Visit(Cursor cursor)
         {
+            var currentContext = _context.AddLast(cursor);
+
             if (cursor is Attr attr)
             {
                 VisitAttr(attr);
             }
             else if (cursor is Decl decl)
             {
-                VisitDecl(decl, ignorePriorVisit: false);
+                VisitDecl(decl);
+            }
+            else if (cursor is PreprocessedEntity preprocessedEntity)
+            {
+                VisitPreprocessedEntity(preprocessedEntity);
             }
             else if (cursor is Ref @ref)
             {
@@ -2163,6 +2220,22 @@ namespace ClangSharp
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported cursor: '{cursor.CursorKindSpelling}'. Generated bindings may be incomplete.", cursor);
             }
+
+            Debug.Assert(_context.Last == currentContext);
+            _context.RemoveLast();
+        }
+
+        private void Visit(IEnumerable<Cursor> cursors)
+        {
+            foreach (var cursor in cursors)
+            {
+                Visit(cursor);
+            }
+        }
+
+        private void Visit(IEnumerable<Cursor> cursors, IEnumerable<Cursor> excludedCursors)
+        {
+            Visit(cursors.Except(excludedCursors));
         }
 
         private void WithAttributes(string remappedName)

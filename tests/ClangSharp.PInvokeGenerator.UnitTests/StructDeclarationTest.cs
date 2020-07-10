@@ -985,7 +985,9 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -996,7 +998,9 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         public {expectedManagedType} b;
 
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
-        public _Anonymous_e__Struct Anonymous;
+        internal _Anonymous_e__Struct Anonymous;
+
+        public ref {expectedManagedType} a => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 
         public partial struct _Anonymous_e__Struct
         {{
@@ -1004,6 +1008,94 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         }}
     }}
 }}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task NestedAnonymousBitfieldTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int x;
+    int y;
+
+    struct
+    {
+        int z;
+
+        struct
+        {
+            int w;
+            int o0_b0_16 : 16;
+            int o0_b16_4 : 4;
+        };
+    };
+};
+";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int x;
+
+        public int y;
+
+        [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:6:5)"")]
+        internal _Anonymous_e__Struct Anonymous;
+
+        public ref int z => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+
+        public ref int w => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));
+
+        [NativeTypeName(""int : 16"")]
+        public int o0_b0_16
+        {
+            get
+            {
+                return Anonymous.Anonymous._bitfield & 0xFFFF;
+            }
+
+            set
+            {
+                Anonymous.Anonymous._bitfield = (Anonymous.Anonymous._bitfield & ~0xFFFF) | (value & 0xFFFF);
+            }
+        }
+
+        [NativeTypeName(""int : 4"")]
+        public int o0_b16_4
+        {
+            get
+            {
+                return (Anonymous.Anonymous._bitfield >> 16) & 0xF;
+            }
+
+            set
+            {
+                Anonymous.Anonymous._bitfield = (Anonymous.Anonymous._bitfield & ~(0xF << 16)) | ((value & 0xF) << 16);
+            }
+        }
+
+        public partial struct _Anonymous_e__Struct
+        {
+            public int z;
+
+            [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:10:9)"")]
+            internal _Anonymous_e__Struct Anonymous;
+
+            public partial struct _Anonymous_e__Struct
+            {
+                public int w;
+
+                internal int _bitfield;
+            }
+        }
+    }
+}
 ";
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
@@ -1253,7 +1345,9 @@ struct example_s {
     };
 };";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -1264,7 +1358,9 @@ struct example_s {
         public double b;
 
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:7:5)"")]
-        public _Anonymous_e__Struct Anonymous;
+        internal _Anonymous_e__Struct Anonymous;
+
+        public ref double a => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 
         public partial struct _Anonymous_e__Struct
         {

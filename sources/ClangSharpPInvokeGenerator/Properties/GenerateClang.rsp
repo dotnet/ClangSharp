@@ -1,7 +1,12 @@
 --config
 compatible-codegen
+generate-macro-bindings
 generate-tests-xunit
 multi-file
+--exclude
+CINDEX_VERSION_ENCODE
+CINDEX_VERSION_STRINGIZE
+CINDEX_VERSION_STRINGIZE_
 --file
 clang-c/BuildSystem.h
 clang-c/CXCompilationDatabase.h

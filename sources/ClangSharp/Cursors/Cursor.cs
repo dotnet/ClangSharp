@@ -10,8 +10,8 @@ namespace ClangSharp
     [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
     public unsafe class Cursor : IEquatable<Cursor>
     {
-        private readonly List<Cursor> _cursorChildren;
-        private readonly TranslationUnit _translationUnit;
+        private readonly Lazy<List<Cursor>> _cursorChildren;
+        private readonly Lazy<TranslationUnit> _translationUnit;
 
         private protected Cursor(CXCursor handle, CXCursorKind expectedCursorKind)
         {
@@ -21,28 +21,25 @@ namespace ClangSharp
             }
             Handle = handle;
 
-            _translationUnit = TranslationUnit.GetOrCreate(Handle.TranslationUnit);
+            _cursorChildren = new Lazy<List<Cursor>>(() => {
+                var cursors = new List<Cursor>();
 
-            var cursorChildren = new List<Cursor>();
+                Handle.VisitChildren((cursor, parent, clientData) => {
+                    var cursorChild = TranslationUnit.GetOrCreate<Cursor>(cursor);
+                    cursors.Add(cursorChild);
+                    return CXChildVisitResult.CXChildVisit_Continue;
+                }, clientData: default);
 
-            Handle.VisitChildren((cursor, parent, clientData) => {
-                var cursorChild = TranslationUnit.GetOrCreate<Cursor>(cursor);
-                cursorChild.CursorParent = this;
-
-                cursorChildren.Add(cursorChild);
-                return CXChildVisitResult.CXChildVisit_Continue;
-            }, clientData: default);
-
-            _cursorChildren = cursorChildren;
+                return cursors;
+            });
+            _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
         }
 
-        public IReadOnlyList<Cursor> CursorChildren => _cursorChildren;
+        public IReadOnlyList<Cursor> CursorChildren => _cursorChildren.Value;
 
         public CXCursorKind CursorKind => Handle.Kind;
 
         public string CursorKindSpelling => Handle.KindSpelling.ToString();
-
-        public Cursor CursorParent { get; private set; }
 
         public CXSourceRange Extent => Handle.Extent;
 
@@ -52,7 +49,7 @@ namespace ClangSharp
 
         public string Spelling => Handle.Spelling.ToString();
 
-        public TranslationUnit TranslationUnit => _translationUnit;
+        public TranslationUnit TranslationUnit => _translationUnit.Value;
 
         public static bool operator ==(Cursor left, Cursor right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
 

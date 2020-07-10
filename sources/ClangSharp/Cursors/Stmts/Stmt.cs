@@ -21,14 +21,14 @@ namespace ClangSharp
 
             _children = new Lazy<IReadOnlyList<Stmt>>(() => CursorChildren.OfType<Stmt>().ToList());
             _declContext = new Lazy<IDeclContext>(() => {
-                var cursorParent = CursorParent;
+                var semanticParent = TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent);
 
-                while (!(cursorParent is IDeclContext) && (cursorParent != null))
+                while (!(semanticParent is IDeclContext) && (semanticParent != null))
                 {
-                    cursorParent = cursorParent.CursorParent;
+                    semanticParent = TranslationUnit.GetOrCreate<Cursor>(semanticParent.Handle.SemanticParent);
                 }
 
-                return (IDeclContext)cursorParent;
+                return (IDeclContext)semanticParent;
             });
         }
 
