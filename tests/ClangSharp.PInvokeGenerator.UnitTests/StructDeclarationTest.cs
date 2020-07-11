@@ -966,21 +966,25 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         }
 
         [Theory]
-        [InlineData("double", "double", 7, 5)]
-        [InlineData("short", "short", 7, 5)]
-        [InlineData("int", "int", 7, 5)]
-        [InlineData("float", "float", 7, 5)]
+        [InlineData("double", "double", 6, 5)]
+        [InlineData("short", "short", 6, 5)]
+        [InlineData("int", "int", 6, 5)]
+        [InlineData("float", "float", 6, 5)]
         public async Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column)
         {
             var inputContents = $@"struct MyStruct
 {{
-    {nativeType} r;
-    {nativeType} g;
-    {nativeType} b;
+    {nativeType} x;
+    {nativeType} y;
 
     struct
     {{
-        {nativeType} a;
+        {nativeType} z;
+
+        struct
+        {{
+            {nativeType} value;
+        }} w;
     }};
 }};
 ";
@@ -991,20 +995,28 @@ namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
-        public {expectedManagedType} r;
+        public {expectedManagedType} x;
 
-        public {expectedManagedType} g;
-
-        public {expectedManagedType} b;
+        public {expectedManagedType} y;
 
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
         internal _Anonymous_e__Struct Anonymous;
 
-        public ref {expectedManagedType} a => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+        public ref {expectedManagedType} z => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+
+        public ref _Anonymous_e__Struct._w_e__Struct w => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));
 
         public partial struct _Anonymous_e__Struct
         {{
-            public {expectedManagedType} a;
+            public {expectedManagedType} z;
+
+            [NativeTypeName(""struct (anonymous struct at ClangUnsavedFile.h:10:9)"")]
+            public _w_e__Struct w;
+
+            public partial struct _w_e__Struct
+            {{
+                public {expectedManagedType} value;
+            }}
         }}
     }}
 }}
@@ -1048,9 +1060,9 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:6:5)"")]
         internal _Anonymous_e__Struct Anonymous;
 
-        public ref int z => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+        public ref int z => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
 
-        public ref int w => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));
+        public ref int w => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));
 
         [NativeTypeName(""int : 16"")]
         public int o0_b0_16
@@ -1360,7 +1372,7 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:7:5)"")]
         internal _Anonymous_e__Struct Anonymous;
 
-        public ref double a => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+        public ref double a => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 
         public partial struct _Anonymous_e__Struct
         {

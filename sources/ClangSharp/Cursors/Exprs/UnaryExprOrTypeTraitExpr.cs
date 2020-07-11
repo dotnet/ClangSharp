@@ -12,8 +12,26 @@ namespace ClangSharp
 
         internal UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryExpr, CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr)
         {
-            _argumentExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
-            _argumentType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ArgumentType));
+            _argumentExpr = new Lazy<Expr>(() => {
+                try
+                {
+                    return TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr);
+                }
+                catch
+                {
+                    return null;
+                }
+            });
+            _argumentType = new Lazy<Type>(() => {
+                try
+                {
+                    return TranslationUnit.GetOrCreate<Type>(Handle.ArgumentType);
+                }
+                catch
+                {
+                    return null;
+                }
+            });
         }
 
         public Expr ArgumentExpr => _argumentExpr.Value;

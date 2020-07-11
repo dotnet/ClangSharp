@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-using System.Text;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -26,16 +25,8 @@ namespace ClangSharp
 
                 var macroName = $"ClangSharpMacro_{macroDefinitionRecord.Spelling}";
 
-                var file = translationUnitHandle.GetFile(_filePath);
-                var fileContents = translationUnitHandle.GetFileContents(file, out var size);
-#if NETCOREAPP
-                var fileContentsBuilder = new StringBuilder(Encoding.UTF8.GetString(fileContents));
-#else
-                var fileContentsBuilder = new StringBuilder(Encoding.UTF8.GetString(fileContents.ToArray()));
-#endif
-
-                fileContentsBuilder.Append('\n');
-                fileContentsBuilder.Append($"const auto {macroName} = ");
+                _fileContentsBuilder.Append('\n');
+                _fileContentsBuilder.Append($"const auto {macroName} = ");
 
                 var sourceRangeEnd = tokens[tokens.Length - 1].GetExtent(translationUnitHandle).End;
                 var sourceRangeStart = tokens[1].GetLocation(translationUnitHandle);
@@ -43,26 +34,10 @@ namespace ClangSharp
                 var sourceRange = CXSourceRange.Create(sourceRangeStart, sourceRangeEnd);
 
                 var macroValue = GetSourceRangeContents(translationUnitHandle, sourceRange);
-                fileContentsBuilder.Append(macroValue);
+                _fileContentsBuilder.Append(macroValue);
 
-                fileContentsBuilder.Append(';');
-                fileContentsBuilder.Append('\n');
-
-                using var unsavedFile = CXUnsavedFile.Create(_filePath, fileContentsBuilder.ToString());
-                var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
-
-                var translationFlags = _translationFlags & ~CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
-                var handle = CXTranslationUnit.Parse(IndexHandle, _filePath, _clangCommandLineArgs, unsavedFiles, translationFlags);
-
-                using var translationUnit = TranslationUnit.GetOrCreate(handle);
-
-                foreach (var decl in translationUnit.TranslationUnitDecl.Decls)
-                {
-                    if ((decl is VarDecl varDecl) && (varDecl.Name == macroName))
-                    {
-                        Visit(varDecl);
-                    }
-                }
+                _fileContentsBuilder.Append(';');
+                _fileContentsBuilder.Append('\n');
             }
             else
             {

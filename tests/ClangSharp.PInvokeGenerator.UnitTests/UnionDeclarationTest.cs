@@ -407,7 +407,7 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyUnion::(anonymous union at ClangUnsavedFile.h:{line}:{column})"")]
         internal _Anonymous_e__Union Anonymous;
 
-        public ref {expectedManagedType} a => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+        public ref {expectedManagedType} a => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 
         [StructLayout(LayoutKind.Explicit)]
         public partial struct _Anonymous_e__Union
@@ -626,7 +626,7 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyUnion::(anonymous union at ClangUnsavedFile.h:7:5)"")]
         internal _Anonymous_e__Union Anonymous;
 
-        public ref double a => MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+        public ref double a => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 
         [StructLayout(LayoutKind.Explicit)]
         public partial struct _Anonymous_e__Union
