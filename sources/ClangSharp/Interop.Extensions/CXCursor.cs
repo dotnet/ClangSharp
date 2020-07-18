@@ -753,6 +753,8 @@ namespace ClangSharp.Interop
 
         public bool IsAnonymousStructOrUnion => clangsharp.Cursor_getIsAnonymousStructOrUnion(this) != 0;
 
+        public bool IsArgumentType => clangsharp.Cursor_getIsArgumentType(this) != 0;
+
         public bool IsAttribute => clang.isAttribute(Kind) != 0;
 
         public bool IsBitField => clang.Cursor_isBitField(this) != 0;
@@ -1419,7 +1421,17 @@ namespace ClangSharp.Interop
 
         public CXCursor GetTemplateArgument(uint index) => clangsharp.Cursor_getTemplateArgument(this, index);
 
-        public CXTemplateArgumentKind GetTemplateArgumentKind(uint i) => clang.Cursor_getTemplateArgumentKind(this, i);
+        public CXCursor GetTemplateArgumentAsDecl(uint i) => clangsharp.Cursor_getTemplateArgumentAsDecl(this, i);
+
+        public CXCursor GetTemplateArgumentAsExpr(uint i) => clangsharp.Cursor_getTemplateArgumentAsExpr(this, i);
+
+        public long GetTemplateArgumentAsIntegral(uint i) => clangsharp.Cursor_getTemplateArgumentAsIntegral(this, i);
+
+        public CXType GetTemplateArgumentAsType(uint i) => clangsharp.Cursor_getTemplateArgumentAsType(this, i);
+
+        public CXType GetTemplateArgumentIntegralType(uint i) => clangsharp.Cursor_getTemplateArgumentIntegralType(this, i);
+
+        public CXTemplateArgumentKind GetTemplateArgumentKind(uint i) => clangsharp.Cursor_getTemplateArgumentKind(this, i);
 
         public CXSourceLocation GetTemplateArgumentLocLocation(uint i) => clangsharp.Cursor_getTemplateArgumentLocLocation(this, i);
 
@@ -1430,6 +1442,8 @@ namespace ClangSharp.Interop
         public CXCursor GetTemplateArgumentLocSourceIntegralExpression(uint i) => clangsharp.Cursor_getTemplateArgumentLocSourceIntegralExpression(this, i);
 
         public CXCursor GetTemplateArgumentLocSourceNullPtrExpression(uint i) => clangsharp.Cursor_getTemplateArgumentLocSourceNullPtrExpression(this, i);
+
+        public CXType GetTemplateArgumentNullPtrType(uint i) => clangsharp.Cursor_getTemplateArgumentNullPtrType(this, i);
 
         public CXType GetTemplateArgumentType(uint i) => clang.Cursor_getTemplateArgumentType(this, i);
 

@@ -13,6 +13,10 @@ QualType GetQualType(CXType CT) {
     return QualType::getFromOpaquePtr(CT.data[0]);
 }
 
+CXTranslationUnit GetTypeTU(CXType CT) {
+    return static_cast<CXTranslationUnit>(CT.data[1]);
+}
+
 namespace clang::cxtype {
     static CXTypeKind GetBuiltinTypeKind(const BuiltinType* BT) {
 #define BTCASE(K) case BuiltinType::K: return CXType_##K

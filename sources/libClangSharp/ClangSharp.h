@@ -275,6 +275,8 @@ CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsAnonymousStructOrUnion(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsArgumentType(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsConversionFromLambda(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsDefined(CXCursor C);
@@ -409,6 +411,16 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTargetUnionField(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i);
 
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplateArgumentAsDecl(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplateArgumentAsExpr(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getTemplateArgumentAsType(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getTemplateArgumentIntegralType(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CXTemplateArgumentKind clangsharp_Cursor_getTemplateArgumentKind(CXCursor C, unsigned i);
+
 CLANGSHARP_LINKAGE CXSourceLocation clangsharp_Cursor_getTemplateArgumentLocLocation(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplateArgumentLocSourceDeclExpression(CXCursor C, unsigned i);
@@ -418,6 +430,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplateArgumentLocSourceExpres
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplateArgumentLocSourceIntegralExpression(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplateArgumentLocSourceNullPtrExpression(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getTemplateArgumentNullPtrType(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplatedDecl(CXCursor C);
 
@@ -451,6 +465,66 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUninstantiatedDefaultArg(CXCurs
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUsedContext(CXCursor C);
 
+CLANGSHARP_LINKAGE CXType clangsharp_Type_desugar(CXType CT);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getAddrSpaceExpr(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getAdjustedType(CXType CT);
+
+CLANGSHARP_LINKAGE CX_AttrKind clangsharp_Type_getAttrKind(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getBaseType(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getDecayedType(CXType CT);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getDeclaration(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getDeducedType(CXType CT);
+
+CLANGSHARP_LINKAGE int clangsharp_Type_getDepth(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getElementType(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getEquivalentType(CXType CT);
+
+CLANGSHARP_LINKAGE int clangsharp_Type_getIndex(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getInjectedSpecializationType(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getInjectedTST(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsSugared(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsTypeAlias(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getModifiedType(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getOriginalType(CXType CT);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getOwnedTagDecl(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getPointeeType(CXType CT);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getSizeExpr(CXType CT);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getTemplateArgumentAsDecl(CXType CT, unsigned i);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getTemplateArgumentAsExpr(CXType CT, unsigned i);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getTemplateArgumentAsType(CXType CT, unsigned i);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getTemplateArgumentIntegralType(CXType CT, unsigned i);
+
+CLANGSHARP_LINKAGE CXTemplateArgumentKind clangsharp_Type_getTemplateArgumentKind(CXType CT, unsigned i);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getTemplateArgumentNullPtrType(CXType CT, unsigned i);
+
 CLANGSHARP_LINKAGE CX_TypeClass clangsharp_Type_getTypeClass(CXType CT);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getUnderlyingExpr(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getUnderlyingType(CXType CT);
+
+CLANGSHARP_LINKAGE CXType clangsharp_Type_getValueType(CXType CT);
 
 #endif
