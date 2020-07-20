@@ -1885,12 +1885,28 @@ int clangsharp_Cursor_getNumTemplateArguments(CXCursor C) {
     if (clang_isDeclaration(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
+        if (const ClassScopeFunctionSpecializationDecl* CSFSD = dyn_cast<ClassScopeFunctionSpecializationDecl>(D)) {
+            return CSFSD->getTemplateArgsAsWritten()->getNumTemplateArgs();
+        }
+
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
             return CTPSD->getTemplateParameters()->size();
         }
 
+        if (const ClassTemplateSpecializationDecl* CTSD = dyn_cast<ClassTemplateSpecializationDecl>(D)) {
+            return CTSD->getTemplateArgs().size();
+        }
+
         if (const TemplateDecl* TD = dyn_cast<TemplateDecl>(D)) {
             return TD->getTemplateParameters()->size();
+        }
+
+        if (const VarTemplatePartialSpecializationDecl* VTPSD = dyn_cast<VarTemplatePartialSpecializationDecl>(D)) {
+            return VTPSD->getTemplateArgs().size();
+        }
+
+        if (const VarTemplateSpecializationDecl* VTSD = dyn_cast<VarTemplateSpecializationDecl>(D)) {
+            return VTSD->getTemplateArgs().size();
         }
     }
 
@@ -1924,7 +1940,11 @@ CXType clangsharp_Cursor_getOriginalType(CXCursor C) {
 CXCursor clangsharp_Cursor_getParentFunctionOrMethod(CXCursor C) {
     if (clang_isDeclaration(C.kind)) {
         const Decl* D = getCursorDecl(C);
-        return MakeCXCursor(dyn_cast<Decl>(D->getParentFunctionOrMethod()), getCursorTU(C));
+        const Decl* PD = dyn_cast_or_null<Decl>(D->getParentFunctionOrMethod());
+
+        if (PD) {
+            return MakeCXCursor(PD, getCursorTU(C));
+        }
     }
 
     return clang_getNullCursor();
