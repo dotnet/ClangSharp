@@ -455,6 +455,13 @@ namespace ClangSharp
             _outputBuilder.NeedsNewline = true;
         }
 
+        private void VisitGotoStmt(GotoStmt gotoStmt)
+        {
+            _outputBuilder.Write("goto");
+            _outputBuilder.Write(' ');
+            _outputBuilder.Write(gotoStmt.Label.Name);
+        }
+
         private void VisitIfStmt(IfStmt ifStmt)
         {
             _outputBuilder.Write("if");
@@ -762,6 +769,15 @@ namespace ClangSharp
             _outputBuilder.Write(valueString);
         }
 
+        private void VisitLabelStmt(LabelStmt labelStmt)
+        {
+            _outputBuilder.Write(labelStmt.Decl.Name);
+            _outputBuilder.WriteLine(':');
+
+            _outputBuilder.WriteIndentation();
+            Visit(labelStmt.SubStmt);
+        }
+
         private void VisitMemberExpr(MemberExpr memberExpr)
         {
             if (!memberExpr.IsImplicitAccess)
@@ -874,7 +890,11 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_GotoStmt:
+                case CX_StmtClass.CX_StmtClass_GotoStmt:
+                {
+                    VisitGotoStmt((GotoStmt)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_IfStmt:
                 {
@@ -1226,7 +1246,12 @@ namespace ClangSharp
                 }
 
                 // case CX_StmtClass.CX_StmtClass_VAArgExpr:
-                // case CX_StmtClass.CX_StmtClass_LabelStmt:
+
+                case CX_StmtClass.CX_StmtClass_LabelStmt:
+                {
+                    VisitLabelStmt((LabelStmt)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_WhileStmt:
                 {
