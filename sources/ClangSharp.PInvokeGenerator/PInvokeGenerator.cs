@@ -1344,8 +1344,8 @@ namespace ClangSharp
                 {
                     GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, out var elementSize32, out var elementSize64);
 
-                    size32 = elementSize32 * constantArrayType.Size;
-                    size64 = elementSize64 * constantArrayType.Size;
+                    size32 = elementSize32 * Math.Max(constantArrayType.Size, 1);
+                    size64 = elementSize64 * Math.Max(constantArrayType.Size, 1);
 
                     if (alignment32 == -1)
                     {
