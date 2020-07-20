@@ -1373,6 +1373,39 @@ namespace ClangSharp
                     break;
                 }
 
+                case CX_UnaryExprOrTypeTrait.CX_UETT_AlignOf:
+                case CX_UnaryExprOrTypeTrait.CX_UETT_PreferredAlignOf:
+                {
+                    long size32;
+                    long size64;
+
+                    long alignment32 = -1;
+                    long alignment64 = -1;
+
+                    GetTypeSize(unaryExprOrTypeTraitExpr, argumentType, ref alignment32, ref alignment64, out size32, out size64);
+
+                    if (alignment32 == alignment64)
+                    {
+                        _outputBuilder.Write(alignment32);
+                    }
+                    else
+                    {
+                        _outputBuilder.Write("Environment");
+                        _outputBuilder.Write('.');
+                        _outputBuilder.Write("Is64BitProcess");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write('?');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(alignment64);
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(':');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write(alignment32);
+                    }
+
+                    break;
+                }
+
                 default:
                 {
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary or type trait expression: '{unaryExprOrTypeTraitExpr.Kind}'. Generated bindings may be incomplete.", unaryExprOrTypeTraitExpr);
