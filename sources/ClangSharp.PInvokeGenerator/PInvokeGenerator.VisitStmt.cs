@@ -245,6 +245,20 @@ namespace ClangSharp
             _outputBuilder.Write("this");
         }
 
+        private void VisitCXXUuidofExpr(CXXUuidofExpr cxxUuidofExpr)
+        {
+            _outputBuilder.Write("typeof");
+            _outputBuilder.Write('(');
+
+            var type = cxxUuidofExpr.IsTypeOperand ? cxxUuidofExpr.TypeOperand : cxxUuidofExpr.ExprOperand.Type;
+            var typeName = GetRemappedTypeName(cxxUuidofExpr, context: null, type, out _);
+            _outputBuilder.Write(typeName);
+
+            _outputBuilder.Write(')');
+            _outputBuilder.Write('.');
+            _outputBuilder.Write("GUID");
+        }
+
         private void VisitDeclRefExpr(DeclRefExpr declRefExpr)
         {
             var name = GetRemappedCursorName(declRefExpr.Decl);
@@ -1029,7 +1043,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
+                {
+                    VisitCXXUuidofExpr((CXXUuidofExpr)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_CallExpr:
                 case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:

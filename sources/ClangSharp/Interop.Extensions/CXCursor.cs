@@ -845,6 +845,8 @@ namespace ClangSharp.Interop
 
         public bool IsTypeConcept => clangsharp.Cursor_getIsTypeConcept(this) != 0;
 
+        public bool IsTypeOperand => clangsharp.Cursor_getIsTypeOperand(this) != 0;
+
         public bool IsUnavailable => clangsharp.Cursor_getIsUnavailable(this) != 0;
 
         public bool IsUnexposed => clang.isUnexposed(Kind) != 0;
@@ -1265,6 +1267,8 @@ namespace ClangSharp.Interop
         public CXTranslationUnit TranslationUnit => clang.Cursor_getTranslationUnit(this);
 
         public CXType Type => clang.getCursorType(this);
+
+        public CXType TypeOperand => clangsharp.Cursor_getTypeOperand(this);
 
         public CXType TypedefDeclUnderlyingType => clang.getTypedefDeclUnderlyingType(this);
 

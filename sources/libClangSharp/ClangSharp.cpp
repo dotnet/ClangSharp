@@ -1562,6 +1562,18 @@ unsigned clangsharp_Cursor_getIsTypeConcept(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getIsTypeOperand(CXCursor C) {
+    if (clang_isExpression(C.kind)) {
+        const Expr* E = getCursorExpr(C);
+
+        if (const CXXUuidofExpr* CUE = dyn_cast<CXXUuidofExpr>(E)) {
+            return CUE->isTypeOperand();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsUnavailable(CXCursor C) {
     if (clang_isDeclaration(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -2159,6 +2171,12 @@ CXCursor clangsharp_Cursor_getSubExpr(CXCursor C) {
             return MakeCXCursor(CTE->getSubExpr(), getCursorDecl(C), getCursorTU(C));
         }
 
+        if (const CXXUuidofExpr* CUE = dyn_cast<CXXUuidofExpr>(E)) {
+            if (!CUE->isTypeOperand()) {
+                return MakeCXCursor(CUE->getExprOperand(), getCursorDecl(C), getCursorTU(C));
+            }
+        }
+
         if (const FullExpr* FE = dyn_cast<FullExpr>(E)) {
             return MakeCXCursor(FE->getSubExpr(), getCursorDecl(C), getCursorTU(C));
         }
@@ -2602,6 +2620,20 @@ CXCursor clangsharp_Cursor_getTypedefNameForAnonDecl(CXCursor C) {
     }
 
     return clang_getNullCursor();
+}
+
+CXType clangsharp_Cursor_getTypeOperand(CXCursor C) {
+    if (clang_isExpression(C.kind)) {
+        const Expr* E = getCursorExpr(C);
+
+        if (const CXXUuidofExpr* CUE = dyn_cast<CXXUuidofExpr>(E)) {
+            if (CUE->isTypeOperand()) {
+                return MakeCXType(CUE->getTypeOperandSourceInfo()->getType(), getCursorTU(C));
+            }
+        }
+    }
+
+    return MakeCXType(QualType(), getCursorTU(C));
 }
 
 CX_UnaryExprOrTypeTrait clangsharp_Cursor_getUnaryExprOrTypeTraitKind(CXCursor C) {
