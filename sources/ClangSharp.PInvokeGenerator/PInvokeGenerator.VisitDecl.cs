@@ -1863,6 +1863,12 @@ namespace ClangSharp
                     var bitwidthHexStringBacking = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
                     var typeBacking = (index > 0) ? types[index - 1] : types[0];
                     var canonicalTypeBacking = typeBacking.CanonicalType;
+
+                    if (canonicalTypeBacking.Kind == CXTypeKind.CXType_Enum)
+                    {
+                        canonicalTypeBacking = ((EnumType)canonicalTypeBacking).Decl.IntegerType.CanonicalType;
+                    }
+
                     var typeNameBacking = pinvokeGenerator.GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
 
                     switch (canonicalTypeBacking.Kind)
@@ -1923,6 +1929,11 @@ namespace ClangSharp
 
                     var bitwidthHexString = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
                     var canonicalType = fieldDecl.Type.CanonicalType;
+
+                    if (canonicalType.Kind == CXTypeKind.CXType_Enum)
+                    {
+                        canonicalType = ((EnumType)canonicalType).Decl.IntegerType.CanonicalType;
+                    }
 
                     switch (canonicalType.Kind)
                     {
