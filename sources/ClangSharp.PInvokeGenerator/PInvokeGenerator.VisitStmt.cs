@@ -1338,7 +1338,12 @@ namespace ClangSharp
                 case CX_CharacterKind.CX_CLK_UTF16:
                 {
                     _outputBuilder.Write('"');
-                    _outputBuilder.Write(stringLiteral.String);
+                    _outputBuilder.Write(stringLiteral.String.Replace("\\", "\\\\")
+                                                             .Replace("\r", "\\r")
+                                                             .Replace("\n", "\\n")
+                                                             .Replace("\t", "\\t")
+                                                             .Replace("\"", "\\\"")
+                                                             .Replace("\'", "\\\'"));
                     _outputBuilder.Write('"');
                     break;
                 }

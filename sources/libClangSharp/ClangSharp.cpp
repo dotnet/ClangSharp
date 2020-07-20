@@ -2326,6 +2326,11 @@ bool clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i, TemplateArgum
             return true;
         }
 
+        if (const VarTemplatePartialSpecializationDecl* VTPSD = dyn_cast<VarTemplatePartialSpecializationDecl>(D)) {
+            *TA = VTPSD->getTemplateArgs().get(i);
+            return true;
+        }
+
         if (const VarTemplateSpecializationDecl* VTSD = dyn_cast<VarTemplateSpecializationDecl>(D)) {
             *TA = VTSD->getTemplateArgs().get(i);
             return true;
