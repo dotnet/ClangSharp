@@ -69,4 +69,8 @@
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" IsImplicitlyDefined="true" PrivateAssets="all" />
+  </ItemGroup>
+
 </Project>
