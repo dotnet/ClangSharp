@@ -12,6 +12,11 @@
     "GenerateLLVM": {
       "commandName": "Project",
       "commandLineArgs": "\"@$(MSBuildProjectDirectory)/Properties/GenerateLLVM.rsp\" --file-directory \"$(LLVMIncludePath)\" --include-directory \"$(LLVMIncludePath)\" --libraryPath $(LibLLVMName)"
+    },
+    "GenerateTerraFX": {
+      "commandName": "Project",
+      "commandLineArgs": "@generate.rsp",
+      "workingDirectory": "C:\\Repos\\terrafx.interop.windows\\generation\\shared\\dxgi"
     }
   }
 }

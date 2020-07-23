@@ -148,7 +148,7 @@ namespace ClangSharp.Test
         [InlineData("unsigned short value = 7", @"[NativeTypeName(""unsigned short"")] ushort value = 7")]
         [InlineData("unsigned int value = 8", @"[NativeTypeName(""unsigned int"")] uint value = 8")]
         [InlineData("unsigned long long value = 9", @"[NativeTypeName(""unsigned long long"")] ulong value = 9")]
-        [InlineData("unsigned short value = 'A'", @"[NativeTypeName(""unsigned short"")] ushort value = 'A'")]
+        [InlineData("unsigned short value = 'A'", @"[NativeTypeName(""unsigned short"")] ushort value = (byte)'A'")]
         public async Task OptionalParameterTest(string nativeParameters, string expectedManagedParameters)
         {
             var inputContents = $@"void MyFunction({nativeParameters});";

@@ -13,5 +13,7 @@ namespace ClangSharp
         {
             _label = new Lazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
         }
+
+        public LabelDecl Label => _label.Value;
     }
 }

@@ -286,12 +286,7 @@ namespace ClangSharp
             _outputBuilder.Write("NativeTypeName(");
 
             _outputBuilder.Write('"');
-            _outputBuilder.Write(nativeTypeName.Replace("\\", "\\\\")
-                                               .Replace("\r", "\\r")
-                                               .Replace("\n", "\\n")
-                                               .Replace("\t", "\\t")
-                                               .Replace("\"", "\\\"")
-                                               .Replace("\'", "\\\'"));
+            _outputBuilder.Write(EscapeString(nativeTypeName));
             _outputBuilder.Write('"');
             _outputBuilder.Write(")]");
 
@@ -530,6 +525,15 @@ namespace ClangSharp
 
             return EscapeName(name);
         }
+
+        private string EscapeCharacter(char value) => EscapeString(value.ToString());
+
+        private string EscapeString(string value) => value.Replace("\\", "\\\\")
+                                                          .Replace("\r", "\\r")
+                                                          .Replace("\n", "\\n")
+                                                          .Replace("\t", "\\t")
+                                                          .Replace("\"", "\\\"")
+                                                          .Replace("\'", "\\\'");
 
         private string GetAccessSpecifierName(NamedDecl namedDecl)
         {
@@ -1344,8 +1348,8 @@ namespace ClangSharp
                 {
                     GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, out var elementSize32, out var elementSize64);
 
-                    size32 = elementSize32 * constantArrayType.Size;
-                    size64 = elementSize64 * constantArrayType.Size;
+                    size32 = elementSize32 * Math.Max(constantArrayType.Size, 1);
+                    size64 = elementSize64 * Math.Max(constantArrayType.Size, 1);
 
                     if (alignment32 == -1)
                     {
@@ -1987,9 +1991,13 @@ namespace ClangSharp
 
         private bool IsUnsafe(RecordDecl recordDecl)
         {
-            foreach (var fieldDecl in recordDecl.Fields)
+            foreach (var decl in recordDecl.Decls)
             {
-                if (IsUnsafe(fieldDecl))
+                if ((decl is FieldDecl fieldDecl) && IsUnsafe(fieldDecl))
+                {
+                    return true;
+                }
+                else if ((decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && IsUnsafe(nestedRecordDecl))
                 {
                     return true;
                 }
@@ -2429,7 +2437,8 @@ namespace ClangSharp
                 _testOutputBuilder.Write(expected);
                 _testOutputBuilder.Write(')');
                 _testOutputBuilder.Write(')');
-                _testOutputBuilder.WriteLine(';');
+                _testOutputBuilder.WriteSemicolon();
+                _testOutputBuilder.WriteNewline();
             }
             else if (_config.GenerateTestsXUnit)
             {
@@ -2440,7 +2449,8 @@ namespace ClangSharp
                 _testOutputBuilder.Write(' ');
                 _testOutputBuilder.Write(actual);
                 _testOutputBuilder.Write(')');
-                _testOutputBuilder.WriteLine(';');
+                _testOutputBuilder.WriteSemicolon();
+                _testOutputBuilder.WriteNewline();
             }
         }
 
@@ -2455,7 +2465,8 @@ namespace ClangSharp
                 _testOutputBuilder.Write(' ');
                 _testOutputBuilder.Write("Is.True");
                 _testOutputBuilder.Write(')');
-                _testOutputBuilder.WriteLine(';');
+                _testOutputBuilder.WriteSemicolon();
+                _testOutputBuilder.WriteNewline();
             }
             else if (_config.GenerateTestsXUnit)
             {
@@ -2463,7 +2474,8 @@ namespace ClangSharp
                 _testOutputBuilder.Write('(');
                 _testOutputBuilder.Write(actual);
                 _testOutputBuilder.Write(')');
-                _testOutputBuilder.WriteLine(';');
+                _testOutputBuilder.WriteSemicolon();
+                _testOutputBuilder.WriteNewline();
             }
         }
 

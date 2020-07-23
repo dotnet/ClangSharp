@@ -10,6 +10,7 @@
 #include <clang/AST/Type.h>
 
 clang::QualType GetQualType(CXType CT);
+CXTranslationUnit GetTypeTU(CXType CT);
 
 namespace clang::cxtype {
     CXType MakeCXType(QualType T, CXTranslationUnit TU);

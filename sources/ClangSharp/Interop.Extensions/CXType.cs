@@ -11,11 +11,19 @@ namespace ClangSharp.Interop
     {
         public uint AddressSpace => (kind != CXTypeKind.CXType_Invalid) ? clang.getAddressSpace(this) : default;
 
+        public CXCursor AddrSpaceExpr => clangsharp.Type_getAddrSpaceExpr(this);
+
+        public CXType AdjustedType => clangsharp.Type_getAdjustedType(this);
+
         public long AlignOf => clang.Type_getAlignOf(this);
 
         public CXType ArrayElementType => clang.getArrayElementType(this);
 
         public long ArraySize => clang.getArraySize(this);
+
+        public CX_AttrKind AttrKind => clangsharp.Type_getAttrKind(this);
+
+        public CXType BaseType => clangsharp.Type_getBaseType(this);
 
         public CXType CanonicalType => clang.getCanonicalType(this);
 
@@ -23,13 +31,27 @@ namespace ClangSharp.Interop
 
         public CXRefQualifierKind CXXRefQualifier => clang.Type_getCXXRefQualifier(this);
 
-        public CXCursor Declaration => clang.getTypeDeclaration(this);
+        public CXType DecayedType => clangsharp.Type_getDecayedType(this);
 
-        public CXType ElementType => clang.getElementType(this);
+        public CXCursor Declaration => clangsharp.Type_getDeclaration(this);
+
+        public CXType DeducedType => clangsharp.Type_getDeducedType(this);
+
+        public int Depth => clangsharp.Type_getDepth(this);
+
+        public CXType ElementType => clangsharp.Type_getElementType(this);
+
+        public CXType EquivalentType => clangsharp.Type_getEquivalentType(this);
 
         public CXCursor_ExceptionSpecificationKind ExceptionSpecificationType => (CXCursor_ExceptionSpecificationKind)clang.getExceptionSpecificationType(this);
 
         public CXCallingConv FunctionTypeCallingConv => clang.getFunctionTypeCallingConv(this);
+
+        public int Index => clangsharp.Type_getIndex(this);
+
+        public CXType InjectedSpecializationType => clangsharp.Type_getInjectedSpecializationType(this);
+
+        public CXType InjectedTST => clangsharp.Type_getInjectedTST(this);
 
         public bool IsCanonical => Equals(CanonicalType);
 
@@ -41,13 +63,17 @@ namespace ClangSharp.Interop
 
         public bool IsRestrictQualified => clang.isRestrictQualifiedType(this) != 0;
 
+        public bool IsSugared => clangsharp.Type_getIsSugared(this) != 0;
+
         public bool IsTransparentTagTypedef => clang.Type_isTransparentTagTypedef(this) != 0;
+
+        public bool IsTypeAlias => clangsharp.Type_getIsTypeAlias(this) != 0;
 
         public bool IsVolatileQualified => clang.isVolatileQualifiedType(this) != 0;
 
         public CXString KindSpelling => clang.getTypeKindSpelling(kind);
 
-        public CXType ModifiedType => clang.Type_getModifiedType(this);
+        public CXType ModifiedType => clangsharp.Type_getModifiedType(this);
 
         public CXType NamedType => clang.Type_getNamedType(this);
 
@@ -65,9 +91,15 @@ namespace ClangSharp.Interop
 
         public CXType ObjCObjectBaseType => clang.Type_getObjCObjectBaseType(this);
 
-        public CXType PointeeType => clang.getPointeeType(this);
+        public CXType OriginalType => clangsharp.Type_getOriginalType(this);
+
+        public CXCursor OwnedTagDecl => clangsharp.Type_getOwnedTagDecl(this);
+
+        public CXType PointeeType => clangsharp.Type_getPointeeType(this);
 
         public CXType ResultType => clang.getResultType(this);
+
+        public CXCursor SizeExpr => clangsharp.Type_getSizeExpr(this);
 
         public long SizeOf => clang.Type_getSizeOf(this);
 
@@ -141,6 +173,12 @@ namespace ClangSharp.Interop
 
         public CXString TypedefName => clang.getTypedefName(this);
 
+        public CXCursor UnderlyingExpr => clangsharp.Type_getUnderlyingExpr(this);
+
+        public CXType UnderlyingType => clangsharp.Type_getUnderlyingType(this);
+
+        public CXType ValueType => clangsharp.Type_getValueType(this);
+
         internal string DebuggerDisplayString
         {
             get
@@ -152,6 +190,8 @@ namespace ClangSharp.Interop
         public static bool operator ==(CXType left, CXType right) => clang.equalTypes(left, right) != 0;
 
         public static bool operator !=(CXType left, CXType right) => clang.equalTypes(left, right) == 0;
+
+        public CXType Desugar() => clangsharp.Type_desugar(this);
 
         public override bool Equals(object obj) => (obj is CXType other) && Equals(other);
 
@@ -173,7 +213,19 @@ namespace ClangSharp.Interop
             return clang.Type_getOffsetOf(this, marshaledS);
         }
 
-        public CXType GetTemplateArgumentAsType(uint i) => clang.Type_getTemplateArgumentAsType(this, i);
+        public CXCursor GetTemplateArgumentAsDecl(uint i) => clangsharp.Type_getTemplateArgumentAsDecl(this, i);
+
+        public CXCursor GetTemplateArgumentAsExpr(uint i) => clangsharp.Type_getTemplateArgumentAsExpr(this, i);
+
+        public long GetTemplateArgumentAsIntegral(uint i) => clangsharp.Type_getTemplateArgumentAsIntegral(this, i);
+
+        public CXType GetTemplateArgumentAsType(uint i) => clangsharp.Type_getTemplateArgumentAsType(this, i);
+
+        public CXType GetTemplateArgumentIntegralType(uint i) => clangsharp.Type_getTemplateArgumentIntegralType(this, i);
+
+        public CXTemplateArgumentKind GetTemplateArgumentKind(uint i) => clangsharp.Type_getTemplateArgumentKind(this, i);
+
+        public CXType GetTemplateArgumentNullPtrType(uint i) => clangsharp.Type_getTemplateArgumentNullPtrType(this, i);
 
         public override string ToString() => Spelling.ToString();
 
