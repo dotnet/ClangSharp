@@ -119,34 +119,40 @@ namespace ClangSharp
             WriteLine(value);
         }
 
-        public void WriteLine()
-        {
-            _contents.Add(_currentLine.ToString());
-            _currentLine.Clear();
-        }
-
         public void WriteLine<T>(T value)
         {
             Write(value);
-            WriteLine();
+            WriteNewline();
+        }
+
+        public void WriteNewline()
+        {
+            _contents.Add(_currentLine.ToString());
+            _currentLine.Clear();
+            NeedsNewline = false;
         }
 
         public void WriteNewlineIfNeeded()
         {
             if (NeedsNewline)
             {
-                WriteLine();
+                WriteNewline();   
             }
-            NeedsNewline = false;
+        }
+
+        public void WriteSemicolon()
+        {
+            Write(';');
+            NeedsSemicolon = false;
+            NeedsNewline = true;
         }
 
         public void WriteSemicolonIfNeeded()
         {
             if (NeedsSemicolon)
             {
-                WriteLine(';');
+                WriteSemicolon();   
             }
-            NeedsSemicolon = true;
         }
     }
 }

@@ -334,11 +334,15 @@ void MyFunction()
             switch (value)
             {
                 case 0:
+                {
                     return 0;
+                }
 
                 case 2:
                 case 3:
+                {
                     return 5;
+                }
             }
 
             return -1;
@@ -368,7 +372,9 @@ static inline int MyFunction(MyEnum x)
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+            var expectedOutputContents = @"using static ClangSharp.Test.MyEnum;
+
+namespace ClangSharp.Test
 {
     public enum MyEnum
     {
@@ -733,7 +739,9 @@ int MyFunction()
             int i = 0;
 
             while (i < count)
+            {
                 i++;
+            }
 
             return i;
         }
@@ -949,41 +957,63 @@ int MyFunction()
         public static int MyFunction(int count)
         {
             for (int i = 0; i < count; i--)
+            {
                 i += 2;
+            }
 
             int x;
 
             for (x = 0; x < count; x--)
+            {
                 x += 2;
+            }
 
             x = 0;
             for (; x < count; x--)
+            {
                 x += 2;
+            }
 
             for (int i = 0;; i--)
+            {
                 i += 2;
+            }
 
             for (x = 0;; x--)
+            {
                 x += 2;
+            }
 
             for (int i = 0; i < count;)
+            {
                 i++;
+            }
 
             for (x = 0; x < count;)
+            {
                 x++;
+            }
 
             x = 0;
             for (; x < count;)
+            {
                 x++;
+            }
 
             for (int i = 0;;)
+            {
                 i++;
+            }
 
             for (x = 0;;)
+            {
                 x++;
+            }
 
             for (;;)
+            {
                 return -1;
+            }
         }
     }
 }
@@ -1125,9 +1155,13 @@ int MyFunction()
         public static int MyFunction(bool condition, int lhs, int rhs)
         {
             if (condition)
+            {
                 return lhs;
+            }
             else
+            {
                 return rhs;
+            }
         }
     }
 }
@@ -1543,7 +1577,9 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
             switch (value)
             {
                 default:
+                {
                     return 0;
+                }
             }
         }
     }
@@ -1742,7 +1778,9 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
             int i = 0;
 
             while (i < count)
+            {
                 i++;
+            }
 
             return i;
         }

@@ -351,7 +351,7 @@ namespace ClangSharp
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write(escapedName);
                     _outputBuilder.Write('[');
-                    _outputBuilder.Write(constantArrayType.Size);
+                    _outputBuilder.Write(Math.Max(constantArrayType.Size, 1));
 
                     var elementType = constantArrayType.ElementType;
 
@@ -381,7 +381,8 @@ namespace ClangSharp
                 _outputBuilder.Write(escapedName);
             }
 
-            _outputBuilder.WriteLine(';');
+            _outputBuilder.WriteSemicolon();
+            _outputBuilder.WriteNewline();
         }
 
         private void VisitFunctionDecl(FunctionDecl functionDecl)
@@ -605,7 +606,8 @@ namespace ClangSharp
 
             if ((body is null) || isVirtual)
             {
-                _outputBuilder.WriteLine(';');
+                _outputBuilder.WriteSemicolon();
+                _outputBuilder.WriteNewline();
             }
             else
             {
@@ -614,35 +616,26 @@ namespace ClangSharp
                 int firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
                 int lastCtorInitializer = (functionDecl.Body != null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
 
+                _outputBuilder.WriteBlockStart();
+
+                if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
+                {
+                    VisitCtorInitializers(this, cxxConstructorDecl, firstCtorInitializer, lastCtorInitializer);
+                }
+
                 if (body is CompoundStmt compoundStmt)
                 {
-                    _outputBuilder.WriteBlockStart();
-                    _outputBuilder.NeedsSemicolon = true;
-
-                    if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
-                    {
-                        VisitCtorInitializers(this, cxxConstructorDecl, firstCtorInitializer, lastCtorInitializer);
-                    }
-
                     VisitStmts(compoundStmt.Body);
-                    _outputBuilder.WriteBlockEnd();
                 }
                 else
                 {
-                    _outputBuilder.WriteBlockStart();
                     _outputBuilder.WriteIndentation();
-
-                    _outputBuilder.NeedsSemicolon = true;
-
-                    if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
-                    {
-                        VisitCtorInitializers(this, cxxConstructorDecl, firstCtorInitializer, lastCtorInitializer);
-                    }
                     Visit(body);
-
-                    _outputBuilder.WriteSemicolonIfNeeded();
-                    _outputBuilder.WriteBlockEnd();
                 }
+
+                _outputBuilder.WriteSemicolonIfNeeded();
+                _outputBuilder.WriteNewlineIfNeeded();
+                _outputBuilder.WriteBlockEnd();
             }
             _outputBuilder.NeedsNewline = true;
 
@@ -657,47 +650,43 @@ namespace ClangSharp
             {
                 var outputBuilder = pinvokeGenerator._outputBuilder;
 
-                if (firstCtorInitializer < lastCtorInitializer)
+                for (int i = firstCtorInitializer; i < lastCtorInitializer; i++)
                 {
-                    for (int i = firstCtorInitializer; i < lastCtorInitializer; i++)
+                    if (cxxConstructorDecl.CursorChildren[i] is Attr)
                     {
-                        if (cxxConstructorDecl.CursorChildren[i] is Attr)
-                        {
-                            continue;
-                        }
-
-                        var memberRef = (Ref)cxxConstructorDecl.CursorChildren[i];
-                        var memberInit = (Stmt)cxxConstructorDecl.CursorChildren[++i];
-
-                        if (memberInit is ImplicitValueInitExpr)
-                        {
-                            continue;
-                        }
-
-                        var memberRefName = pinvokeGenerator.GetRemappedCursorName(memberRef.Referenced);
-                        var memberInitName = memberInit.Spelling;
-
-                        if ((memberInit is ImplicitCastExpr implicitCastExpr) && (implicitCastExpr.SubExpr is DeclRefExpr declRefExpr))
-                        {
-                            memberInitName = pinvokeGenerator.GetRemappedCursorName(declRefExpr.Decl);
-                        }
-                        outputBuilder.WriteIndentation();
-
-                        if (memberRefName.Equals(memberInitName))
-                        {
-                            outputBuilder.Write("this");
-                            outputBuilder.Write('.');
-                        }
-
-                        pinvokeGenerator.Visit(memberRef);
-                        outputBuilder.Write(' ');
-                        outputBuilder.Write('=');
-                        outputBuilder.Write(' ');
-                        pinvokeGenerator.Visit(memberInit);
-                        outputBuilder.WriteSemicolonIfNeeded();
+                        continue;
                     }
 
-                    outputBuilder.NeedsSemicolon = false;
+                    var memberRef = (Ref)cxxConstructorDecl.CursorChildren[i];
+                    var memberInit = (Stmt)cxxConstructorDecl.CursorChildren[++i];
+
+                    if (memberInit is ImplicitValueInitExpr)
+                    {
+                        continue;
+                    }
+
+                    var memberRefName = pinvokeGenerator.GetRemappedCursorName(memberRef.Referenced);
+                    var memberInitName = memberInit.Spelling;
+
+                    if ((memberInit is ImplicitCastExpr implicitCastExpr) && (implicitCastExpr.SubExpr is DeclRefExpr declRefExpr))
+                    {
+                        memberInitName = pinvokeGenerator.GetRemappedCursorName(declRefExpr.Decl);
+                    }
+                    outputBuilder.WriteIndentation();
+
+                    if (memberRefName.Equals(memberInitName))
+                    {
+                        outputBuilder.Write("this");
+                        outputBuilder.Write('.');
+                    }
+
+                    pinvokeGenerator.Visit(memberRef);
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('=');
+                    outputBuilder.Write(' ');
+                    pinvokeGenerator.Visit(memberInit);
+                    outputBuilder.WriteSemicolon();
+                    outputBuilder.WriteNewline();
                 }
             }
         }
@@ -918,11 +907,26 @@ namespace ClangSharp
                 {
                     if (_config.GenerateExplicitVtbls)
                     {
-                        _outputBuilder.WriteIndentedLine("public Vtbl* lpVtbl;");
+                        _outputBuilder.WriteIndented("public");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("Vtbl");
+                        _outputBuilder.Write('*');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("lpVtbl");
+                        _outputBuilder.WriteSemicolon();
+                        _outputBuilder.WriteNewline();
                     }
                     else
                     {
-                        _outputBuilder.WriteIndentedLine("public void** lpVtbl;");
+                        _outputBuilder.WriteIndented("public");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("void");
+                        _outputBuilder.Write('*');
+                        _outputBuilder.Write('*');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("lpVtbl");
+                        _outputBuilder.WriteSemicolon();
+                        _outputBuilder.WriteNewline();
                     }
                     _outputBuilder.NeedsNewline = true;
 
@@ -982,7 +986,8 @@ namespace ClangSharp
                         }
 
                         _testOutputBuilder.Write(')');
-                        _testOutputBuilder.WriteLine(';');
+                        _testOutputBuilder.WriteSemicolon();
+                        _testOutputBuilder.WriteNewline();
                         _testOutputBuilder.WriteBlockEnd();
                         _testOutputBuilder.NeedsNewline = true;
                     }
@@ -1001,7 +1006,8 @@ namespace ClangSharp
                             _outputBuilder.Write(GetRemappedCursorName(baseCxxRecordDecl));
                             _outputBuilder.Write(' ');
                             _outputBuilder.Write(GetRemappedAnonymousName(cxxBaseSpecifier, "Base"));
-                            _outputBuilder.WriteLine(';');
+                            _outputBuilder.WriteSemicolon();
+                            _outputBuilder.WriteNewline();
 
                             _outputBuilder.NeedsNewline = true;
                         }
@@ -1355,7 +1361,8 @@ namespace ClangSharp
 
                 outputBuilder.Write(escapedName);
 
-                outputBuilder.WriteLine(';');
+                outputBuilder.WriteSemicolon();
+                outputBuilder.WriteNewline();
             }
 
             static void OutputVtblHelperMethod(PInvokeGenerator pinvokeGenerator, OutputBuilder outputBuilder, CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, ref int vtblIndex, Dictionary<string, int> hitsPerName)
@@ -1432,7 +1439,8 @@ namespace ClangSharp
                         outputBuilder.Write(returnTypeName);
                         outputBuilder.Write(' ');
                         outputBuilder.Write("result");
-                        outputBuilder.WriteLine(';');
+                        outputBuilder.WriteSemicolon();
+                        outputBuilder.WriteNewline();
                         outputBuilder.WriteIndentation();
                     }
 
@@ -1537,7 +1545,8 @@ namespace ClangSharp
                     outputBuilder.Write('0');
                 }
 
-                outputBuilder.WriteLine(';');
+                outputBuilder.WriteSemicolon();
+                outputBuilder.WriteNewline();
 
                 if (pinvokeGenerator._config.GenerateCompatibleCode)
                 {
@@ -1630,7 +1639,8 @@ namespace ClangSharp
                 outputBuilder.Write(nestedRecordDeclName);
                 outputBuilder.Write(' ');
                 outputBuilder.Write(nestedRecordDeclFieldName);
-                outputBuilder.WriteLine(';');
+                outputBuilder.WriteSemicolon();
+                outputBuilder.WriteNewline();
                 outputBuilder.NeedsNewline = true;
 
                 if (!recordDecl.IsAnonymousStructOrUnion)
@@ -1739,7 +1749,8 @@ namespace ClangSharp
                                 outputBuilder.Write('-');
                                 outputBuilder.Write('>');
                                 outputBuilder.Write(fieldName);
-                                outputBuilder.WriteLine(';');
+                                outputBuilder.WriteSemicolon();
+                                outputBuilder.WriteNewline();
                                 outputBuilder.WriteBlockEnd();
                                 outputBuilder.WriteBlockEnd();
                                 outputBuilder.WriteBlockEnd();
@@ -1753,7 +1764,13 @@ namespace ClangSharp
                                 outputBuilder.Write(contextName);
                                 outputBuilder.Write('.');
                                 outputBuilder.Write(fieldName);
-                                outputBuilder.WriteLine(", 1));");
+                                outputBuilder.Write(',');
+                                outputBuilder.Write(' ');
+                                outputBuilder.Write('1');
+                                outputBuilder.Write(')');
+                                outputBuilder.Write(')');
+                                outputBuilder.WriteSemicolon();
+                                outputBuilder.WriteNewline();
                             }
                         }
 
@@ -1835,7 +1852,8 @@ namespace ClangSharp
                         outputBuilder.Write(typeName);
                         outputBuilder.Write(' ');
                         outputBuilder.Write(bitfieldName);
-                        outputBuilder.WriteLine(';');
+                        outputBuilder.WriteSemicolon();
+                        outputBuilder.WriteNewline();
                         outputBuilder.NeedsNewline = true;
                     }
                 }
@@ -2045,7 +2063,8 @@ namespace ClangSharp
                         outputBuilder.Write(')');
                     }
 
-                    outputBuilder.WriteLine(';');
+                    outputBuilder.WriteSemicolon();
+                    outputBuilder.WriteNewline();
                     outputBuilder.WriteBlockEnd();
 
                     outputBuilder.NeedsNewline = true;
@@ -2146,7 +2165,8 @@ namespace ClangSharp
                         outputBuilder.Write(')');
                     }
 
-                    outputBuilder.WriteLine(';');
+                    outputBuilder.WriteSemicolon();
+                    outputBuilder.WriteNewline();
                     outputBuilder.WriteBlockEnd();
                     outputBuilder.WriteBlockEnd();
                 }
@@ -2248,7 +2268,17 @@ namespace ClangSharp
                         sizePerDimension[d] = dimension;
                     }
 
-                    outputBuilder.WriteLine(';');
+                    if (outputBuilder.NeedsNewline)
+                    {
+                        outputBuilder.WriteSemicolon();
+                        outputBuilder.WriteNewline();
+                        outputBuilder.NeedsNewline = true;
+                    }
+                    else
+                    {
+                        outputBuilder.WriteSemicolon();
+                        outputBuilder.WriteNewline();
+                    }
                 }
 
                 outputBuilder.NeedsNewline = true;
@@ -2277,11 +2307,30 @@ namespace ClangSharp
                     outputBuilder.WriteBlockStart();
                     outputBuilder.WriteIndentedLine("get");
                     outputBuilder.WriteBlockStart();
-                    outputBuilder.WriteIndented("fixed (");
+                    outputBuilder.WriteIndented("fixed");
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('(');
                     outputBuilder.Write(typeName);
-                    outputBuilder.WriteLine("* pThis = &e0)");
+                    outputBuilder.Write('*');
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write("pThis");
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('=');
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write('&');
+                    outputBuilder.Write("e0");
+                    outputBuilder.WriteLine(')');
                     outputBuilder.WriteBlockStart();
-                    outputBuilder.WriteIndentedLine("return ref pThis[index];");
+                    outputBuilder.WriteIndented("return");
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write("ref");
+                    outputBuilder.Write(' ');
+                    outputBuilder.Write("pThis");
+                    outputBuilder.Write('[');
+                    outputBuilder.Write("index");
+                    outputBuilder.Write(']');
+                    outputBuilder.WriteSemicolon();
+                    outputBuilder.WriteNewline();
                     outputBuilder.WriteBlockEnd();
                     outputBuilder.WriteBlockEnd();
                     outputBuilder.WriteBlockEnd();
@@ -2295,7 +2344,12 @@ namespace ClangSharp
                         outputBuilder.Write("int.MaxValue");
                     }
 
-                    outputBuilder.WriteLine(")[index];");
+                    outputBuilder.Write(')');
+                    outputBuilder.Write('[');
+                    outputBuilder.Write("index");
+                    outputBuilder.Write(']');
+                    outputBuilder.WriteSemicolon();
+                    outputBuilder.WriteNewline();
                     outputBuilder.NeedsNewline = true;
                     outputBuilder.WriteIndented("public");
                     outputBuilder.Write(' ');
@@ -2325,7 +2379,8 @@ namespace ClangSharp
                     }
 
                     outputBuilder.Write(')');
-                    outputBuilder.WriteLine(';');
+                    outputBuilder.WriteSemicolon();
+                    outputBuilder.WriteNewline();
                 }
 
                 outputBuilder.WriteBlockEnd();
@@ -2392,7 +2447,8 @@ namespace ClangSharp
                     Visit(typedefDecl.CursorChildren.OfType<ParmVarDecl>());
 
                     _outputBuilder.Write(')');
-                    _outputBuilder.WriteLine(";");
+                    _outputBuilder.WriteSemicolon();
+                    _outputBuilder.WriteNewline();
                 }
                 StopUsingOutputBuilder();
             }
@@ -2572,7 +2628,7 @@ namespace ClangSharp
                         }
                     }
                 }
-                else if (type.IsLocalConstQualified && CanBeConstant(type))
+                else if (type.IsLocalConstQualified && CanBeConstant(type, varDecl.Init))
                 {
                     _outputBuilder.Write("const");
                     _outputBuilder.Write(' ');
@@ -2616,7 +2672,8 @@ namespace ClangSharp
                     Visit(varDecl.Init);
                 }
 
-                _outputBuilder.WriteLine(";");
+                _outputBuilder.WriteSemicolon();
+                _outputBuilder.WriteNewline();
 
                 if (openedOutputBuilder)
                 {
@@ -2664,15 +2721,15 @@ namespace ClangSharp
                 }
             }
 
-            bool CanBeConstant(Type type)
+            bool CanBeConstant(Type type, Expr initExpr)
             {
                 if (type is AttributedType attributedType)
                 {
-                    return CanBeConstant(attributedType.ModifiedType);
+                    return CanBeConstant(attributedType.ModifiedType, initExpr);
                 }
                 else if (type is AutoType autoType)
                 {
-                    return CanBeConstant(autoType.CanonicalType);
+                    return CanBeConstant(autoType.CanonicalType, initExpr);
                 }
                 else if (type is BuiltinType builtinType)
                 {
@@ -2696,24 +2753,262 @@ namespace ClangSharp
                         case CXTypeKind.CXType_Float:
                         case CXTypeKind.CXType_Double:
                         {
-                            return true;
+                            return IsConstant(initExpr);
                         }
                     }
                 }
                 else if (type is ElaboratedType elaboratedType)
                 {
-                    return CanBeConstant(elaboratedType.NamedType);
+                    return CanBeConstant(elaboratedType.NamedType, initExpr);
                 }
                 else if (type is EnumType enumType)
                 {
-                    return CanBeConstant(enumType.Decl.IntegerType);
+                    return CanBeConstant(enumType.Decl.IntegerType, initExpr);
                 }
                 else if (type is TypedefType typedefType)
                 {
-                    return CanBeConstant(typedefType.Decl.UnderlyingType);
+                    return CanBeConstant(typedefType.Decl.UnderlyingType, initExpr);
                 }
 
                 return false;
+            }
+        }
+
+        bool IsConstant(Expr initExpr)
+        {
+            switch (initExpr.StmtClass)
+            {
+                // case CX_StmtClass.CX_StmtClass_BinaryConditionalOperator:
+                // case CX_StmtClass.CX_StmtClass_ConditionalOperator:
+                // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:
+                // case CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr:
+                // case CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr:
+                // case CX_StmtClass.CX_StmtClass_ArraySubscriptExpr:
+                // case CX_StmtClass.CX_StmtClass_ArrayTypeTraitExpr:
+                // case CX_StmtClass.CX_StmtClass_AsTypeExpr:
+                // case CX_StmtClass.CX_StmtClass_AtomicExpr:
+
+                case CX_StmtClass.CX_StmtClass_BinaryOperator:
+                {
+                    var binaryOperator = (BinaryOperator)initExpr;
+                    return IsConstant(binaryOperator.LHS) && IsConstant(binaryOperator.RHS);
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CompoundAssignOperator:
+                // case CX_StmtClass.CX_StmtClass_BlockExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXBindTemporaryExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr:
+                {
+                    return true;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CXXConstructExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXFoldExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXNewExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXNoexceptExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXNullPtrLiteralExpr:
+                {
+                    return true;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CXXPseudoDestructorExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXRewrittenBinaryOperator:
+                // case CX_StmtClass.CX_StmtClass_CXXScalarValueInitExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXThisExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
+
+                case CX_StmtClass.CX_StmtClass_CallExpr:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
+                // case CX_StmtClass.CX_StmtClass_UserDefinedLiteral:
+                // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
+
+                case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
+                {
+                    var cStyleCastExpr = (CStyleCastExpr)initExpr;
+                    return IsConstant(cStyleCastExpr.SubExpr);
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr:
+
+                case CX_StmtClass.CX_StmtClass_ImplicitCastExpr:
+                {
+                    var implicitCastExpr = (ImplicitCastExpr)initExpr;
+                    return IsConstant(implicitCastExpr.SubExpr);
+                }
+
+                case CX_StmtClass.CX_StmtClass_CharacterLiteral:
+                {
+                    return true;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_ChooseExpr:
+                // case CX_StmtClass.CX_StmtClass_CompoundLiteralExpr:
+                // case CX_StmtClass.CX_StmtClass_ConceptSpecializationExpr:
+                // case CX_StmtClass.CX_StmtClass_ConvertVectorExpr:
+                // case CX_StmtClass.CX_StmtClass_CoawaitExpr:
+                // case CX_StmtClass.CX_StmtClass_CoyieldExpr:
+
+                case CX_StmtClass.CX_StmtClass_DeclRefExpr:
+                {
+                    var declRefExpr = (DeclRefExpr)initExpr;
+                    return (declRefExpr.Decl is EnumConstantDecl) ||
+                           ((declRefExpr.Decl is VarDecl varDecl) && IsConstant(varDecl.Init));
+                }
+
+                // case CX_StmtClass.CX_StmtClass_DependentCoawaitExpr:
+                // case CX_StmtClass.CX_StmtClass_DependentScopeDeclRefExpr:
+                // case CX_StmtClass.CX_StmtClass_DesignatedInitExpr:
+                // case CX_StmtClass.CX_StmtClass_DesignatedInitUpdateExpr:
+                // case CX_StmtClass.CX_StmtClass_ExpressionTraitExpr:
+                // case CX_StmtClass.CX_StmtClass_ExtVectorElementExpr:
+                // case CX_StmtClass.CX_StmtClass_FixedPointLiteral:
+
+                case CX_StmtClass.CX_StmtClass_FloatingLiteral:
+                {
+                    return true;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_ConstantExpr:
+                // case CX_StmtClass.CX_StmtClass_ExprWithCleanups:
+                // case CX_StmtClass.CX_StmtClass_FunctionParmPackExpr:
+                // case CX_StmtClass.CX_StmtClass_GNUNullExpr:
+                // case CX_StmtClass.CX_StmtClass_GenericSelectionExpr:
+                // case CX_StmtClass.CX_StmtClass_ImaginaryLiteral:
+                // case CX_StmtClass.CX_StmtClass_ImplicitValueInitExpr:
+                // case CX_StmtClass.CX_StmtClass_InitListExpr:
+
+                case CX_StmtClass.CX_StmtClass_IntegerLiteral:
+                {
+                    return true;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_LambdaExpr:
+                // case CX_StmtClass.CX_StmtClass_MSPropertyRefExpr:
+                // case CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr:
+                // case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
+
+                case CX_StmtClass.CX_StmtClass_MemberExpr:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_NoInitExpr:
+                // case CX_StmtClass.CX_StmtClass_OMPArraySectionExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCArrayLiteral:
+                // case CX_StmtClass.CX_StmtClass_ObjCAvailabilityCheckExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCBoolLiteralExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCBoxedExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCDictionaryLiteral:
+                // case CX_StmtClass.CX_StmtClass_ObjCEncodeExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCIndirectCopyRestoreExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCIsaExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCIvarRefExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCMessageExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCPropertyRefExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCProtocolExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCSelectorExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCStringLiteral:
+                // case CX_StmtClass.CX_StmtClass_ObjCSubscriptRefExpr:
+                // case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+                // case CX_StmtClass.CX_StmtClass_OpaqueValueExpr:
+                // case CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr:
+                // case CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr:
+                // case CX_StmtClass.CX_StmtClass_PackExpansionExpr:
+
+                case CX_StmtClass.CX_StmtClass_ParenExpr:
+                {
+                    var parenExpr = (ParenExpr)initExpr;
+                    return IsConstant(parenExpr.SubExpr);
+                }
+
+                // case CX_StmtClass.CX_StmtClass_ParenListExpr:
+                // case CX_StmtClass.CX_StmtClass_PredefinedExpr:
+                // case CX_StmtClass.CX_StmtClass_PseudoObjectExpr:
+                // case CX_StmtClass.CX_StmtClass_RequiresExpr:
+                // case CX_StmtClass.CX_StmtClass_ShuffleVectorExpr:
+                // case CX_StmtClass.CX_StmtClass_SizeOfPackExpr:
+                // case CX_StmtClass.CX_StmtClass_SourceLocExpr:
+                // case CX_StmtClass.CX_StmtClass_StmtExpr:
+
+                case CX_StmtClass.CX_StmtClass_StringLiteral:
+                {
+                    return true;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
+                // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
+                // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
+                // case CX_StmtClass.CX_StmtClass_TypoExpr:
+
+                case CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr:
+                {
+                    var unaryExprOrTypeTraitExpr = (UnaryExprOrTypeTraitExpr)initExpr;
+                    var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
+
+                    long size32;
+                    long size64;
+
+                    long alignment32 = -1;
+                    long alignment64 = -1;
+
+                    GetTypeSize(unaryExprOrTypeTraitExpr, argumentType, ref alignment32, ref alignment64, out size32, out size64);
+
+                    switch (unaryExprOrTypeTraitExpr.Kind)
+                    {
+                        case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
+                        {
+                            return (size32 == size64);
+                        }
+
+                        case CX_UnaryExprOrTypeTrait.CX_UETT_AlignOf:
+                        case CX_UnaryExprOrTypeTrait.CX_UETT_PreferredAlignOf:
+                        {
+                            return (alignment32 == alignment64);
+                        }
+
+                        default:
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                case CX_StmtClass.CX_StmtClass_UnaryOperator:
+                {
+                    var unaryOperator = (UnaryOperator)initExpr;
+                    return IsConstant(unaryOperator.SubExpr);
+                }
+
+                // case CX_StmtClass.CX_StmtClass_VAArgExpr:
+
+                default:
+                {
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported VarDecl.InitExpr: '{initExpr.StmtClassName}'. Generated bindings may not be constant.", initExpr);
+                    return false;
+                }
             }
         }
     }
