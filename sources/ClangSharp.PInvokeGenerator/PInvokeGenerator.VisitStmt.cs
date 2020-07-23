@@ -393,7 +393,7 @@ namespace ClangSharp
         {
             _outputBuilder.WriteLine("do");
 
-            VisitBody(doStmt);
+            VisitBody(doStmt.Body);
             
             _outputBuilder.WriteIndented("while");
             _outputBuilder.Write(' ');
@@ -402,6 +402,10 @@ namespace ClangSharp
             Visit(doStmt.Cond);
 
             _outputBuilder.Write(')');
+            _outputBuilder.WriteSemicolon();
+            _outputBuilder.WriteNewline();
+
+            _outputBuilder.NeedsNewline = true;
         }
 
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
@@ -550,7 +554,7 @@ namespace ClangSharp
 
             void ForEnumConstantDecl(ImplicitCastExpr implicitCastExpr, EnumConstantDecl enumConstantDecl)
             {
-                if (implicitCastExpr.DeclContext is EnumDecl enumDecl)
+                if ((implicitCastExpr.DeclContext is EnumDecl enumDecl) || (PreviousContext is BinaryOperator binaryOperator))
                 {
                     Visit(implicitCastExpr.SubExpr);
                 }
