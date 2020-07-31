@@ -1776,46 +1776,11 @@ namespace ClangSharp
             {
                 var qualifiedName = string.Empty;
                 var name = string.Empty;
+                var kind = string.Empty;
 
                 if (cursor is NamedDecl namedDecl)
                 {
-                    // We get the non-remapped name for the purpose of exclusion checks to ensure that users
-                    // can remove no-definition declarations in favor of remapped anonymous declarations.
-
-                    qualifiedName = GetCursorQualifiedName(namedDecl);
-                    name = GetCursorName(namedDecl);
-                }
-                else if (cursor is MacroDefinitionRecord macroDefinitionRecord)
-                {
-                    qualifiedName = macroDefinitionRecord.Name;
-                    name = macroDefinitionRecord.Name;
-                }
-                else
-                {
-                    return false;
-                }
-
-                if (_config.ExcludedNames.Contains(qualifiedName))
-                {
-                    if (_config.LogExclusions)
-                    {
-                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded by exact match {qualifiedName}");
-                    }
-                    return true;
-                }
-
-                if (_config.ExcludedNames.Contains(name))
-                {
-                    if (_config.LogExclusions)
-                    {
-                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded {qualifiedName} by partial match against {name}");
-                    }
-                    return true;
-                }
-
-                if (cursor is TagDecl tagDecl)
-                {
-                    if ((tagDecl.Definition != tagDecl) && (tagDecl.Definition != null))
+                    if ((namedDecl is TagDecl tagDecl) && (tagDecl.Definition != tagDecl) && (tagDecl.Definition != null))
                     {
                         // We don't want to generate bindings for anything
                         // that is not itself a definition and that has a
@@ -1825,6 +1790,107 @@ namespace ClangSharp
 
                         return true;
                     }
+
+                    // We get the non-remapped name for the purpose of exclusion checks to ensure that users
+                    // can remove no-definition declarations in favor of remapped anonymous declarations.
+
+                    qualifiedName = GetCursorQualifiedName(namedDecl);
+                    name = GetCursorName(namedDecl);
+                    kind = $"{namedDecl.DeclKindName} declaration";
+                }
+                else if (cursor is MacroDefinitionRecord macroDefinitionRecord)
+                {
+                    qualifiedName = macroDefinitionRecord.Name;
+                    name = macroDefinitionRecord.Name;
+                    kind = macroDefinitionRecord.CursorKindSpelling;
+                }
+                else
+                {
+                    return false;
+                }
+
+                bool isExcludedByConfigOption = false;
+                bool isExcludedByConflictingDefinition = false;
+
+                if (cursor is RecordDecl recordDecl)
+                {
+                    if (_config.ExcludeEmptyRecords && IsEmptyRecord(recordDecl, name))
+                    {
+                        isExcludedByConfigOption = true;
+                    }
+                }
+                else if (cursor is FunctionDecl functionDecl)
+                {
+                    if (_config.ExcludeComProxies && IsComProxy(functionDecl, name))
+                    {
+                        isExcludedByConfigOption = true;
+                    }
+                    else if (_config.ExcludeEnumOperators && IsEnumOperator(functionDecl, name))
+                    {
+                        isExcludedByConfigOption = true;
+                    }
+                    else if ((functionDecl is CXXMethodDecl cxxMethodDecl) && IsConflictingMethodDecl(cxxMethodDecl, cxxMethodDecl.Parent))
+                    {
+                        isExcludedByConflictingDefinition = true;
+                    }
+                }
+
+                if (_config.ExcludedNames.Contains(qualifiedName))
+                {
+                    if (_config.LogExclusions)
+                    {
+                        var message = $"Excluded {kind} '{qualifiedName}' by exact match";
+
+                        if (isExcludedByConfigOption)
+                        {
+                            message += "; Exclusion is unnecessary due to a config option";
+                        }
+                        else if (isExcludedByConflictingDefinition)
+                        {
+                            message += "; Exclusion is unnecessary due to a conflicting definition";
+                        }
+
+                        AddDiagnostic(DiagnosticLevel.Info, message);
+                    }
+                    return true;
+                }
+
+                if (_config.ExcludedNames.Contains(name))
+                {
+                    if (_config.LogExclusions)
+                    {
+                        var message = $"Excluded {kind} '{qualifiedName}' by partial match against {name}";
+
+                        if (isExcludedByConfigOption)
+                        {
+                            message += "; Exclusion is unnecessary due to a config option";
+                        }
+                        else if (isExcludedByConflictingDefinition)
+                        {
+                            message += "; Exclusion is unnecessary due to a conflicting definition";
+                        }
+
+                        AddDiagnostic(DiagnosticLevel.Info, message);
+                    }
+                    return true;
+                }
+
+                if (isExcludedByConfigOption)
+                {
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded {kind} '{qualifiedName}' by config option");
+                    }
+                    return true;
+                }
+
+                if (isExcludedByConflictingDefinition)
+                {
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded {kind} '{qualifiedName}' by conflicting definition");
+                    }
+                    return true;
                 }
 
                 return false;
@@ -1852,6 +1918,173 @@ namespace ClangSharp
                     return true;
                 }
 
+                return false;
+            }
+
+            bool IsComProxy(FunctionDecl functionDecl, string name)
+            {
+                var parmVarDecl = null as ParmVarDecl;
+
+                if (name.EndsWith("_UserFree") || name.EndsWith("_UserFree64") ||
+                    name.EndsWith("_UserMarshal") || name.EndsWith("_UserMarshal64") ||
+                    name.EndsWith("_UserSize") || name.EndsWith("_UserSize64") ||
+                    name.EndsWith("_UserUnmarshal") || name.EndsWith("_UserUnmarshal64"))
+                {
+                    parmVarDecl = functionDecl.Parameters.LastOrDefault();
+                }
+                else if (name.EndsWith("_Proxy") || name.EndsWith("_Stub"))
+                {
+                    parmVarDecl = functionDecl.Parameters.FirstOrDefault();
+                }
+
+                if ((parmVarDecl != null) && (parmVarDecl.Type.CanonicalType is PointerType pointerType))
+                {
+                    var typeName = GetTypeName(parmVarDecl, context: null, pointerType.PointeeType, out string nativeTypeName);
+                    return name.StartsWith($"{nativeTypeName}_");
+                }
+                return false;
+            }
+
+            bool IsConflictingMethodDecl(CXXMethodDecl cxxMethodDecl, CXXRecordDecl cxxRecordDecl)
+            {
+                var cxxMethodName = GetRemappedCursorName(cxxMethodDecl);
+                var cxxMethodDeclIndex = -1;
+
+                for (int i = 0; i < cxxRecordDecl.Methods.Count; i++)
+                {
+                    var methodDecl = cxxRecordDecl.Methods[i];
+                    var methodName = GetRemappedCursorName(methodDecl);
+
+                    if (cxxMethodName != methodName)
+                    {
+                        continue;
+                    }
+
+                    if (cxxMethodDecl == methodDecl)
+                    {
+                        cxxMethodDeclIndex = i;
+                        continue;
+                    }
+
+                    if (cxxMethodDecl.Parameters.Count != methodDecl.Parameters.Count)
+                    {
+                        continue;
+                    }
+
+                    var allMatch = true;
+
+                    for (int n = 0; n < cxxMethodDecl.Parameters.Count; n++)
+                    {
+                        var baseParameter = cxxMethodDecl.Parameters[n];
+                        var thisParameter = methodDecl.Parameters[n];
+
+                        if (baseParameter.Type == thisParameter.Type)
+                        {
+                            continue;
+                        }
+
+                        if ((baseParameter.Type is PointerType basePointerType) &&
+                            (thisParameter.Type is ReferenceType thisReferenceType) &&
+                            (basePointerType.PointeeType == thisReferenceType.PointeeType))
+                        {
+                            continue;
+                        }
+
+                        if ((baseParameter.Type is ReferenceType baseReferenceType) &&
+                            (thisParameter.Type is PointerType thisPointerType) &&
+                            (baseReferenceType.PointeeType == thisPointerType.PointeeType))
+                        {
+                            continue;
+                        }
+
+                        allMatch = false;
+                        break;
+                    }
+
+                    if (allMatch)
+                    {
+                        return (cxxMethodDeclIndex != -1);
+                    }
+                }
+
+                foreach (var @base in cxxRecordDecl.Bases)
+                {
+                    CXXRecordDecl baseRecordDecl;
+
+                    if (@base.Referenced is CXXRecordDecl)
+                    {
+                        baseRecordDecl = (CXXRecordDecl)@base.Referenced;
+                    }
+                    else if (@base.Referenced is TypedefDecl typedefDecl)
+                    {
+                        baseRecordDecl = (CXXRecordDecl)((RecordType)typedefDecl.TypeForDecl.CanonicalType).Decl;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    if (IsConflictingMethodDecl(cxxMethodDecl, baseRecordDecl))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool IsEmptyRecord(RecordDecl recordDecl, string name)
+            {
+                if ((recordDecl is CXXRecordDecl cxxRecordDecl) && ((cxxRecordDecl.Bases.Count != 0) || (cxxRecordDecl.Methods.Count != 0)))
+                {
+                    return false;
+                }
+                else if (name.EndsWith("__") && (recordDecl.Fields.Count == 1))
+                {
+                    var field = recordDecl.Fields.First();
+                    return (GetCursorName(field) == "unused") && (field.Type.CanonicalType.Kind == CXTypeKind.CXType_Int);
+                }
+                return (recordDecl.Fields.Count == 0);
+            }
+
+            bool IsEnumOperator(FunctionDecl functionDecl, string name)
+            {
+                if (name.StartsWith("operator") && ((functionDecl.Parameters.Count == 1) || (functionDecl.Parameters.Count == 2)))
+                {
+                    var parmVarDecl1 = functionDecl.Parameters[0];
+                    var parmVarDecl1Type = parmVarDecl1.Type.CanonicalType;
+
+                    if (parmVarDecl1Type is PointerType pointerType1)
+                    {
+                        parmVarDecl1Type = pointerType1.PointeeType.CanonicalType;
+                    }
+                    else if (parmVarDecl1Type is ReferenceType referenceType1)
+                    {
+                        parmVarDecl1Type = referenceType1.PointeeType.CanonicalType;
+                    }
+
+                    if ((functionDecl.Parameters.Count == 1) && (parmVarDecl1Type.Kind == CXTypeKind.CXType_Enum))
+                    {
+                        return true;
+                    }
+
+                    var parmVarDecl2 = functionDecl.Parameters[1];
+                    var parmVarDecl2Type = parmVarDecl2.Type.CanonicalType;
+
+                    if (parmVarDecl2Type is PointerType pointerType2)
+                    {
+                        parmVarDecl2Type = pointerType2.PointeeType.CanonicalType;
+                    }
+                    else if (parmVarDecl2Type is ReferenceType referenceType2)
+                    {
+                        parmVarDecl2Type = referenceType2.PointeeType.CanonicalType;
+                    }
+
+                    if ((parmVarDecl1Type == parmVarDecl2Type) && (parmVarDecl2Type.Kind == CXTypeKind.CXType_Enum))
+                    {
+                        return true;
+                    }
+                }
                 return false;
             }
         }

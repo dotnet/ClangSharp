@@ -1269,7 +1269,7 @@ namespace ClangSharp
 
                 foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
                 {
-                    if (!cxxMethodDecl.IsVirtual)
+                    if (!cxxMethodDecl.IsVirtual || pinvokeGenerator.IsExcluded(cxxMethodDecl))
                     {
                         continue;
                     }
