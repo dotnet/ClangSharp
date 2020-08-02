@@ -283,12 +283,14 @@ namespace ClangSharp
                 _outputBuilder.Write(attributePrefix);
             }
 
-            _outputBuilder.Write("NativeTypeName(");
+            _outputBuilder.Write("NativeTypeName");
+            _outputBuilder.Write('(');
 
             _outputBuilder.Write('"');
             _outputBuilder.Write(EscapeString(nativeTypeName));
             _outputBuilder.Write('"');
-            _outputBuilder.Write(")]");
+            _outputBuilder.Write(')');
+            _outputBuilder.Write(']');
 
             if (postfix is null)
             {
@@ -363,7 +365,9 @@ namespace ClangSharp
             if (isMethodClass)
             {
                 sw.Write(indentationString);
-                sw.Write("public static");
+                sw.Write("public");
+                sw.Write(' ');
+                sw.Write("static");
                 sw.Write(' ');
 
                 if (_isMethodClassUnsafe)
@@ -372,7 +376,9 @@ namespace ClangSharp
                     sw.Write(' ');
                 }
 
-                sw.Write("partial class");
+                sw.Write("partial");
+                sw.Write(' ');
+                sw.Write("class");
                 sw.Write(' ');
                 sw.WriteLine(Config.MethodClassName);
                 sw.Write(indentationString);
@@ -584,7 +590,7 @@ namespace ClangSharp
             return $"__Anonymous{kind}_{fileName}_L{line}_C{column}";
         }
 
-        private string GetArtificalFixedSizedBufferName(FieldDecl fieldDecl)
+        private string GetArtificialFixedSizedBufferName(FieldDecl fieldDecl)
         {
             var name = GetRemappedCursorName(fieldDecl);
             return $"_{name}_e__FixedBuffer";
@@ -614,12 +620,28 @@ namespace ClangSharp
                     count++;
                     remainingBits = currentSize * 8;
                     previousSize = 0;
-                    types.Add(fieldDecl.Type);
+
+                    var type = fieldDecl.Type;
+
+                    if (type.CanonicalType is EnumType enumType)
+                    {
+                        type = enumType.Decl.IntegerType;
+                    }
+
+                    types.Add(type);
                 }
                 else if (_config.GenerateUnixTypes && (currentSize > previousSize))
                 {
                     remainingBits += (currentSize - previousSize) * 8;
-                    types[types.Count - 1] = fieldDecl.Type;
+
+                    var type = fieldDecl.Type;
+
+                    if (type.CanonicalType is EnumType enumType)
+                    {
+                        type = enumType.Decl.IntegerType;
+                    }
+
+                    types[types.Count - 1] = type;
                 }
 
                 remainingBits -= fieldDecl.BitWidthValue;
@@ -713,7 +735,7 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetCursorQualifiedName(NamedDecl namedDecl)
+        private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateFunctionParameters = false)
         {
             var parts = new Stack<NamedDecl>();
 
@@ -740,8 +762,13 @@ namespace ClangSharp
 
             return qualifiedName.ToString();
 
-            static void AppendFunctionParameters(CXType functionType, StringBuilder qualifiedName)
+            void AppendFunctionParameters(CXType functionType, StringBuilder qualifiedName)
             {
+                if (truncateFunctionParameters)
+                {
+                    return;
+                }
+
                 qualifiedName.Append('(');
 
                 if (functionType.NumArgTypes != 0)
@@ -858,91 +885,14 @@ namespace ClangSharp
             }
         }
 
-        private bool GetIsUncheckedCastNeeded(string typeName, Expr subExpr)
+        private Expr GetExprAsWritten(Expr expr)
         {
-            var isUncheckedCastNeeded = false;
-
-            if (subExpr is ImplicitCastExpr implicitCastExpr)
+            if (expr is CastExpr castExpr)
             {
-                subExpr = implicitCastExpr.SubExprAsWritten;
+                expr = castExpr.SubExprAsWritten;
             }
 
-            if (subExpr is IntegerLiteral integerLiteral)
-            {
-                var signedValue = integerLiteral.Value;
-
-                switch (typeName)
-                {
-                    case "byte":
-                    case "Byte":
-                    {
-                        var unsignedValue = unchecked((uint)signedValue);
-                        isUncheckedCastNeeded = (unsignedValue < byte.MinValue) || (byte.MaxValue < unsignedValue);
-                        break;
-                    }
-
-                    case "ushort":
-                    case "UInt16":
-                    {
-                        var unsignedValue = unchecked((uint)signedValue);
-                        isUncheckedCastNeeded = (unsignedValue < ushort.MinValue) || (ushort.MaxValue < unsignedValue);
-                        break;
-                    }
-
-                    case "uint":
-                    case "UInt32":
-                    case "nuint":
-                    {
-                        var unsignedValue = unchecked((uint)signedValue);
-                        isUncheckedCastNeeded = (unsignedValue < uint.MinValue) || (uint.MaxValue < unsignedValue);
-                        break;
-                    }
-
-                    case "ulong":
-                    case "UInt64":
-                    {
-                        var unsignedValue = unchecked((ulong)signedValue);
-                        isUncheckedCastNeeded = (unsignedValue < ulong.MinValue) || (ulong.MaxValue < unsignedValue);
-                        break;
-                    }
-
-                    case "sbyte":
-                    case "SByte":
-                    {
-                        isUncheckedCastNeeded = (signedValue < sbyte.MinValue) || (sbyte.MaxValue < signedValue) || ((integerLiteral.IsNegative) && (integerLiteral.ValueString.StartsWith("0x")));
-                        break;
-                    }
-
-                    case "short":
-                    case "Int16":
-                    {
-                        isUncheckedCastNeeded = (signedValue < short.MinValue) || (short.MaxValue < signedValue) || ((integerLiteral.IsNegative) && (integerLiteral.ValueString.StartsWith("0x")));
-                        break;
-                    }
-
-                    case "int":
-                    case "Int32":
-                    case "nint":
-                    {
-                        isUncheckedCastNeeded = (signedValue < int.MinValue) || (int.MaxValue < signedValue) || ((integerLiteral.IsNegative) && (integerLiteral.ValueString.StartsWith("0x")));
-                        break;
-                    }
-
-                    case "long":
-                    case "Int64":
-                    {
-                        isUncheckedCastNeeded = (signedValue < long.MinValue) || (long.MaxValue < signedValue) || ((integerLiteral.IsNegative) && (integerLiteral.ValueString.StartsWith("0x")));
-                        break;
-                    }
-
-                    default:
-                    {
-                        break;
-                    }
-                }
-            }
-
-            return isUncheckedCastNeeded;
+            return expr;
         }
 
         private static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
@@ -973,35 +923,98 @@ namespace ClangSharp
             return (CXXRecordDecl)baseRecordType.Decl;
         }
 
-        private string GetRemappedAnonymousName(Cursor cursor, string kind)
-        {
-            var name = GetAnonymousName(cursor, kind);
-            return GetRemappedName(name, cursor, tryRemapOperatorName: true);
-        }
-
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
-            var name = GetCursorName(namedDecl);
-            return GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+            var name = GetCursorQualifiedName(namedDecl);
+            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+
+            if (remappedName != name)
+            {
+                return remappedName;
+            }
+            
+            name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+
+            if (remappedName != name)
+            {
+                return remappedName;
+            }
+
+            name = GetCursorName(namedDecl);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+
+            if (remappedName != name)
+            {
+                return remappedName;
+            }
+
+            if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith("__AnonymousField_"))
+            {
+                remappedName = "Anonymous";
+
+                if (fieldDecl.Parent.AnonymousDecls.Count > 1)
+                {
+                    var index = fieldDecl.Parent.AnonymousDecls.IndexOf(fieldDecl) + 1;
+                    remappedName += index.ToString();
+                }
+            }
+            else if ((namedDecl is RecordDecl recordDecl) && name.StartsWith("__AnonymousRecord_"))
+            {
+                remappedName = "_Anonymous";
+
+                if (recordDecl.Parent is RecordDecl parentRecordDecl)
+                {
+                    var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordDecl.TypeForDecl.CanonicalType).SingleOrDefault();
+
+                    if (matchingField != null)
+                    {
+                        remappedName = "_";
+                        remappedName += GetRemappedCursorName(matchingField);
+                    }
+                    else if (parentRecordDecl.AnonymousDecls.Count > 1)
+                    {
+                        var index = parentRecordDecl.AnonymousDecls.IndexOf(recordDecl) + 1;
+                        remappedName += index.ToString();
+                    }
+                }
+
+                remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
+            }
+
+            return remappedName;
         }
 
         private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName)
         {
-            if (!_config.RemappedNames.TryGetValue(name, out string remappedName))
+            if (_config.RemappedNames.TryGetValue(name, out string remappedName))
             {
-                if ((cursor is FunctionDecl functionDecl) && tryRemapOperatorName)
-                {
-                    TryRemapOperatorName(ref name, functionDecl);
-                }
-                remappedName = name;
+                return AddUsingDirectiveIfNeeded(remappedName);
             }
 
-            if (remappedName.Equals("Guid") || remappedName.Equals("IntPtr") || remappedName.Equals("UIntPtr"))
+            if (name.StartsWith("const ") && _config.RemappedNames.TryGetValue(name.Substring(6), out remappedName))
             {
-                _outputBuilder.AddUsingDirective("System");
+                return AddUsingDirectiveIfNeeded(remappedName);
+            }
+
+            remappedName = name;
+
+            if ((cursor is FunctionDecl functionDecl) && tryRemapOperatorName && TryRemapOperatorName(ref remappedName, functionDecl))
+            {
+                return AddUsingDirectiveIfNeeded(remappedName);
             }
 
             return remappedName;
+
+            string AddUsingDirectiveIfNeeded(string remappedName)
+            {
+                if (remappedName.Equals("Guid") || remappedName.Equals("IntPtr") || remappedName.Equals("UIntPtr"))
+                {
+                    _outputBuilder?.AddUsingDirective("System");
+                }
+
+                return remappedName;
+            }
         }
 
         private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
@@ -1009,11 +1022,66 @@ namespace ClangSharp
             var name = GetTypeName(cursor, context, type, out nativeTypeName);
             name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
 
+            if (name.Contains("::"))
+            {
+                name = name.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
+            }
+
+            var canonicalType = type.CanonicalType;
+
+            if ((canonicalType is ConstantArrayType constantArrayType) && (constantArrayType.ElementType is RecordType))
+            {
+                canonicalType = constantArrayType.ElementType;
+            }
+
+            if ((canonicalType is RecordType recordType) && name.StartsWith("__AnonymousRecord_"))
+            {
+                var recordDecl = recordType.Decl;
+                name = "_Anonymous";
+
+                if (recordDecl.Parent is RecordDecl parentRecordDecl)
+                {
+                    var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordType).SingleOrDefault();
+
+                    if (matchingField != null)
+                    {
+                        name = "_";
+                        name += GetRemappedCursorName(matchingField);
+                    }
+                    else if (parentRecordDecl.AnonymousDecls.Count > 1)
+                    {
+                        var index = parentRecordDecl.AnonymousDecls.IndexOf(cursor) + 1;
+                        name += index.ToString();
+                    }
+                }
+
+                name += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
+            }
+            else if (cursor is EnumDecl enumDecl)
+            {
+                var enumDeclName = GetRemappedCursorName(enumDecl);
+
+                if (enumDecl.Enumerators.Any((enumConstantDecl) => IsForceDwordOrForceUInt(enumDeclName, enumConstantDecl)))
+                {
+                    name = "uint";
+                }
+
+                WithType("*", ref name, ref nativeTypeName);
+                WithType(enumDeclName, ref name, ref nativeTypeName);
+            }
+
             if (nativeTypeName.Equals(name))
             {
                 nativeTypeName = string.Empty;
             }
             return name;
+
+            bool IsForceDwordOrForceUInt(string enumDeclName, EnumConstantDecl enumConstantDecl)
+            {
+                var enumConstantDeclName = GetRemappedCursorName(enumConstantDecl);
+                return (enumConstantDeclName == $"{enumDeclName}_FORCE_DWORD") || (enumConstantDeclName == $"{enumDeclName}_FORCE_UINT");
+            }
         }
 
         private string GetSourceRangeContents(CXTranslationUnit translationUnit, CXSourceRange sourceRange)
@@ -1045,8 +1113,9 @@ namespace ClangSharp
             {
                 name = GetTypeName(cursor, context, arrayType.ElementType, out var nativeElementTypeName);
 
-                if (cursor is CXXMethodDecl)
+                if ((cursor is FunctionDecl) || (cursor is ParmVarDecl))
                 {
+                    name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
                     name += '*';
                 }
             }
@@ -1273,8 +1342,15 @@ namespace ClangSharp
                     var nameBuilder = new StringBuilder();
                     nameBuilder.Append("delegate");
                     nameBuilder.Append('*');
-                    nameBuilder.Append(' ');
-                    nameBuilder.Append((callConv != "winapi") ? callConv : "stdcall");
+
+                    var isMacroDefinitionRecord = (cursor is VarDecl varDecl) && GetCursorName(varDecl).StartsWith("ClangSharpMacro_");
+
+                    if (!isMacroDefinitionRecord)
+                    {
+                        nameBuilder.Append(' ');
+                        nameBuilder.Append((callConv != "winapi") ? callConv : "stdcall");
+                    }
+
                     nameBuilder.Append('<');
 
                     if ((cursor is CXXMethodDecl cxxMethodDecl) && (context is CXXRecordDecl cxxRecordDecl))
@@ -1296,8 +1372,21 @@ namespace ClangSharp
                         }
                     }
 
+                    IEnumerable<Type> paramTypes = functionProtoType.ParamTypes;
 
-                    foreach (var paramType in functionProtoType.ParamTypes)
+                    if (isMacroDefinitionRecord)
+                    {
+                        varDecl = (VarDecl)cursor;
+
+                        if (IsStmtAsWritten(varDecl.Init, out DeclRefExpr declRefExpr) && (declRefExpr.Decl is FunctionDecl functionDecl))
+                        {
+                            cursor = functionDecl;
+                            paramTypes = functionDecl.Parameters.Select((param) => param.Type);
+                            returnTypeName = GetRemappedTypeName(cursor, context: null, functionDecl.ReturnType, out _);
+                        }
+                    }
+
+                    foreach (var paramType in paramTypes)
                     {
                         var typeName = GetRemappedTypeName(cursor, context: null, paramType, out _);
 
@@ -1337,7 +1426,7 @@ namespace ClangSharp
             return name;
         }
 
-        void GetTypeSize(Cursor cursor, Type type, ref long alignment32, ref long alignment64, out long size32, out long size64)
+        private void GetTypeSize(Cursor cursor, Type type, ref long alignment32, ref long alignment64, out long size32, out long size64)
         {
             size32 = 0;
             size64 = 0;
@@ -1491,7 +1580,7 @@ namespace ClangSharp
             {
                 GetTypeSize(cursor, enumType.Decl.IntegerType, ref alignment32, ref alignment64, out size32, out size64);
             }
-            else if ((type is FunctionType functionType) || (type is PointerType pointerType) || (type is ReferenceType referenceType))
+            else if ((type is FunctionType functionType) || (type is PointerType) || (type is ReferenceType))
             {
                 size32 = 4;
                 size64 = 8;
@@ -1814,7 +1903,7 @@ namespace ClangSharp
 
                 if (cursor is RecordDecl recordDecl)
                 {
-                    if (_config.ExcludeEmptyRecords && IsEmptyRecord(recordDecl, name))
+                    if (_config.ExcludeEmptyRecords && IsEmptyRecord(recordDecl))
                     {
                         isExcludedByConfigOption = true;
                     }
@@ -1937,10 +2026,10 @@ namespace ClangSharp
                     parmVarDecl = functionDecl.Parameters.FirstOrDefault();
                 }
 
-                if ((parmVarDecl != null) && (parmVarDecl.Type.CanonicalType is PointerType pointerType))
+                if ((parmVarDecl != null) && (parmVarDecl.Type is PointerType pointerType))
                 {
                     var typeName = GetTypeName(parmVarDecl, context: null, pointerType.PointeeType, out string nativeTypeName);
-                    return name.StartsWith($"{nativeTypeName}_");
+                    return name.StartsWith($"{nativeTypeName}_") || name.StartsWith($"{typeName}_") || (typeName == "IRpcStubBuffer");
                 }
                 return false;
             }
@@ -1975,24 +2064,24 @@ namespace ClangSharp
 
                     for (int n = 0; n < cxxMethodDecl.Parameters.Count; n++)
                     {
-                        var baseParameter = cxxMethodDecl.Parameters[n];
-                        var thisParameter = methodDecl.Parameters[n];
+                        var baseParameterType = cxxMethodDecl.Parameters[n].Type.CanonicalType;
+                        var thisParameterType = methodDecl.Parameters[n].Type.CanonicalType;
 
-                        if (baseParameter.Type == thisParameter.Type)
+                        if (baseParameterType == thisParameterType)
                         {
                             continue;
                         }
 
-                        if ((baseParameter.Type is PointerType basePointerType) &&
-                            (thisParameter.Type is ReferenceType thisReferenceType) &&
-                            (basePointerType.PointeeType == thisReferenceType.PointeeType))
+                        if ((baseParameterType is PointerType basePointerType) &&
+                            (thisParameterType is ReferenceType thisReferenceType) &&
+                            (basePointerType.PointeeType.CanonicalType == thisReferenceType.PointeeType.CanonicalType))
                         {
                             continue;
                         }
 
-                        if ((baseParameter.Type is ReferenceType baseReferenceType) &&
-                            (thisParameter.Type is PointerType thisPointerType) &&
-                            (baseReferenceType.PointeeType == thisPointerType.PointeeType))
+                        if ((baseParameterType is ReferenceType baseReferenceType) &&
+                            (thisParameterType is PointerType thisPointerType) &&
+                            (baseReferenceType.PointeeType.CanonicalType == thisPointerType.PointeeType.CanonicalType))
                         {
                             continue;
                         }
@@ -2003,7 +2092,10 @@ namespace ClangSharp
 
                     if (allMatch)
                     {
-                        return (cxxMethodDeclIndex != -1);
+                        // An index of -1 means we found a conflict before encountering
+                        // ourselves. Since we generally want to prefer the first declaration,
+                        // we want to classify ourselves as the conflicting instance.
+                        return (cxxMethodDeclIndex == -1);
                     }
                 }
 
@@ -2033,18 +2125,50 @@ namespace ClangSharp
                 return false;
             }
 
-            bool IsEmptyRecord(RecordDecl recordDecl, string name)
+            bool IsEmptyRecord(RecordDecl recordDecl)
             {
-                if ((recordDecl is CXXRecordDecl cxxRecordDecl) && ((cxxRecordDecl.Bases.Count != 0) || (cxxRecordDecl.Methods.Count != 0)))
+                if (recordDecl.Fields.Count != 0)
                 {
-                    return false;
-                }
-                else if (name.EndsWith("__") && (recordDecl.Fields.Count == 1))
-                {
+                    if (!GetCursorName(recordDecl).EndsWith("__") || (recordDecl.Fields.Count != 1))
+                    {
+                        return false;
+                    }
+
                     var field = recordDecl.Fields.First();
-                    return (GetCursorName(field) == "unused") && (field.Type.CanonicalType.Kind == CXTypeKind.CXType_Int);
+
+                    if ((GetCursorName(field) != "unused") || (field.Type.CanonicalType.Kind != CXTypeKind.CXType_Int))
+                    {
+                        return false;
+                    }
                 }
-                return (recordDecl.Fields.Count == 0);
+
+                foreach (var decl in recordDecl.Decls)
+                {
+                    if ((decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && !IsEmptyRecord(nestedRecordDecl))
+                    {
+                        return false;
+                    }
+
+                    if ((decl is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsVirtual)
+                    {
+                        return false;
+                    }
+                }
+
+                if (recordDecl is CXXRecordDecl cxxRecordDecl)
+                {
+                    foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                    {
+                        var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+
+                        if (!IsEmptyRecord(baseCxxRecordDecl))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
             }
 
             bool IsEnumOperator(FunctionDecl functionDecl, string name)
@@ -2119,16 +2243,16 @@ namespace ClangSharp
             {
                 return false;
             }
-            else if (type is ReferenceType)
-            {
-                return false;
-            }
             else if (type is RecordType recordType)
             {
                 var recordDecl = recordType.Decl;
 
                 return recordDecl.Fields.All((fieldDecl) => IsFixedSize(fieldDecl, fieldDecl.Type))
                     && (!(recordDecl is CXXRecordDecl cxxRecordDecl) || cxxRecordDecl.Methods.All((cxxMethodDecl) => !cxxMethodDecl.IsVirtual));
+            }
+            else if (type is ReferenceType)
+            {
+                return false;
             }
             else if (type is TypedefType typedefType)
             {
@@ -2152,6 +2276,48 @@ namespace ClangSharp
             }
         }
 
+        private bool IsPrevContext<T>(out T value)
+            where T : Decl
+        {
+            var previousContext = _context.Last;
+
+            while (!(previousContext.Value is Decl))
+            {
+                previousContext = previousContext.Previous;
+            }
+
+            if (previousContext.Value is T)
+            {
+                value = (T)previousContext.Value;
+                return true;
+            }
+            else
+            {
+                value = null;
+                return false;
+            }
+        }
+
+        private bool IsStmtAsWritten<T>(Cursor cursor, out T value)
+            where T : Stmt
+        {
+            if (cursor is Expr expr)
+            {
+                cursor = GetExprAsWritten(expr);
+            }
+
+            if (cursor is T)
+            {
+                value = (T)cursor;
+                return true;
+            }
+            else
+            {
+                value = null;
+                return false;
+            }
+        }
+
         private bool IsSupportedFixedSizedBufferType(string typeName)
         {
             switch (typeName)
@@ -2170,6 +2336,410 @@ namespace ClangSharp
                 case "ulong":
                 {
                     return true;
+                }
+
+                default:
+                {
+                    return false;
+                }
+            }
+        }
+
+        private bool IsUnchecked(string typeName, Stmt stmt)
+        {
+            switch (stmt.StmtClass)
+            {
+                // case CX_StmtClass.CX_StmtClass_BinaryConditionalOperator:
+
+                case CX_StmtClass.CX_StmtClass_ConditionalOperator:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:
+                // case CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr:
+                // case CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr:
+                // case CX_StmtClass.CX_StmtClass_ArraySubscriptExpr:
+                // case CX_StmtClass.CX_StmtClass_ArrayTypeTraitExpr:
+                // case CX_StmtClass.CX_StmtClass_AsTypeExpr:
+                // case CX_StmtClass.CX_StmtClass_AtomicExpr:
+
+                case CX_StmtClass.CX_StmtClass_BinaryOperator:
+                {
+                    var binaryOperator = (BinaryOperator)stmt;
+                    return IsUnchecked(typeName, binaryOperator.LHS)
+                        || IsUnchecked(typeName, binaryOperator.RHS)
+                        || IsUnchecked(typeName, binaryOperator.Handle.Evaluate);
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CompoundAssignOperator:
+                // case CX_StmtClass.CX_StmtClass_BlockExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXBindTemporaryExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr:
+                {
+                    return false;
+                }
+
+                case CX_StmtClass.CX_StmtClass_CXXConstructExpr:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXFoldExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXNewExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXNoexceptExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXNullPtrLiteralExpr:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CXXPseudoDestructorExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXRewrittenBinaryOperator:
+                // case CX_StmtClass.CX_StmtClass_CXXScalarValueInitExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXThisExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
+
+                case CX_StmtClass.CX_StmtClass_CallExpr:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
+                // case CX_StmtClass.CX_StmtClass_UserDefinedLiteral:
+                // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
+
+                case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
+                {
+                    var explicitCastExpr = (ExplicitCastExpr)stmt;
+                    typeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _);
+                    return IsUnchecked(typeName, explicitCastExpr.SubExprAsWritten);
+                }
+
+                // case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
+                // case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
+
+                // case CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr:
+
+                case CX_StmtClass.CX_StmtClass_ImplicitCastExpr:
+                {
+                    var implicitCastExpr = (ImplicitCastExpr)stmt;
+                    return IsUnchecked(typeName, implicitCastExpr.SubExprAsWritten);
+                }
+
+                case CX_StmtClass.CX_StmtClass_CharacterLiteral:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_ChooseExpr:
+                // case CX_StmtClass.CX_StmtClass_CompoundLiteralExpr:
+                // case CX_StmtClass.CX_StmtClass_ConceptSpecializationExpr:
+                // case CX_StmtClass.CX_StmtClass_ConvertVectorExpr:
+                // case CX_StmtClass.CX_StmtClass_CoawaitExpr:
+                // case CX_StmtClass.CX_StmtClass_CoyieldExpr:
+
+                case CX_StmtClass.CX_StmtClass_DeclRefExpr:
+                {
+                    var declRefExpr = (DeclRefExpr)stmt;
+                    return ((declRefExpr.Decl is VarDecl varDecl) && varDecl.HasInit && IsUnchecked(typeName, varDecl.Init));
+                }
+
+                // case CX_StmtClass.CX_StmtClass_DependentCoawaitExpr:
+                // case CX_StmtClass.CX_StmtClass_DependentScopeDeclRefExpr:
+                // case CX_StmtClass.CX_StmtClass_DesignatedInitExpr:
+                // case CX_StmtClass.CX_StmtClass_DesignatedInitUpdateExpr:
+                // case CX_StmtClass.CX_StmtClass_ExpressionTraitExpr:
+                // case CX_StmtClass.CX_StmtClass_ExtVectorElementExpr:
+                // case CX_StmtClass.CX_StmtClass_FixedPointLiteral:
+
+                case CX_StmtClass.CX_StmtClass_FloatingLiteral:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_ConstantExpr:
+                // case CX_StmtClass.CX_StmtClass_ExprWithCleanups:
+                // case CX_StmtClass.CX_StmtClass_FunctionParmPackExpr:
+                // case CX_StmtClass.CX_StmtClass_GNUNullExpr:
+                // case CX_StmtClass.CX_StmtClass_GenericSelectionExpr:
+                // case CX_StmtClass.CX_StmtClass_ImaginaryLiteral:
+                // case CX_StmtClass.CX_StmtClass_ImplicitValueInitExpr:
+
+                case CX_StmtClass.CX_StmtClass_InitListExpr:
+                {
+                    return false;
+                }
+
+                case CX_StmtClass.CX_StmtClass_IntegerLiteral:
+                {
+                    var integerLiteral = (IntegerLiteral)stmt;
+                    var signedValue = integerLiteral.Value;
+                    return IsUnchecked(typeName, signedValue, integerLiteral.IsNegative, isHex: integerLiteral.ValueString.StartsWith("0x"));
+                }
+
+                // case CX_StmtClass.CX_StmtClass_LambdaExpr:
+                // case CX_StmtClass.CX_StmtClass_MSPropertyRefExpr:
+                // case CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr:
+                // case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
+
+                case CX_StmtClass.CX_StmtClass_MemberExpr:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_NoInitExpr:
+                // case CX_StmtClass.CX_StmtClass_OMPArraySectionExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCArrayLiteral:
+                // case CX_StmtClass.CX_StmtClass_ObjCAvailabilityCheckExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCBoolLiteralExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCBoxedExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCDictionaryLiteral:
+                // case CX_StmtClass.CX_StmtClass_ObjCEncodeExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCIndirectCopyRestoreExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCIsaExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCIvarRefExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCMessageExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCPropertyRefExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCProtocolExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCSelectorExpr:
+                // case CX_StmtClass.CX_StmtClass_ObjCStringLiteral:
+                // case CX_StmtClass.CX_StmtClass_ObjCSubscriptRefExpr:
+                // case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+                // case CX_StmtClass.CX_StmtClass_OpaqueValueExpr:
+                // case CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr:
+                // case CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr:
+                // case CX_StmtClass.CX_StmtClass_PackExpansionExpr:
+
+                case CX_StmtClass.CX_StmtClass_ParenExpr:
+                {
+                    var parenExpr = (ParenExpr)stmt;
+                    return IsUnchecked(typeName, parenExpr.SubExpr)
+                        || IsUnchecked(typeName, parenExpr.Handle.Evaluate);
+                }
+
+                // case CX_StmtClass.CX_StmtClass_ParenListExpr:
+                // case CX_StmtClass.CX_StmtClass_PredefinedExpr:
+                // case CX_StmtClass.CX_StmtClass_PseudoObjectExpr:
+                // case CX_StmtClass.CX_StmtClass_RequiresExpr:
+                // case CX_StmtClass.CX_StmtClass_ShuffleVectorExpr:
+                // case CX_StmtClass.CX_StmtClass_SizeOfPackExpr:
+                // case CX_StmtClass.CX_StmtClass_SourceLocExpr:
+                // case CX_StmtClass.CX_StmtClass_StmtExpr:
+
+                case CX_StmtClass.CX_StmtClass_StringLiteral:
+                {
+                    return false;
+                }
+
+                // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
+                // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
+                // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
+                // case CX_StmtClass.CX_StmtClass_TypoExpr:
+
+                case CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr:
+                {
+                    var unaryExprOrTypeTraitExpr = (UnaryExprOrTypeTraitExpr)stmt;
+
+                    var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
+
+                    long size32;
+                    long size64;
+
+                    long alignment32 = -1;
+                    long alignment64 = -1;
+
+                    GetTypeSize(unaryExprOrTypeTraitExpr, argumentType, ref alignment32, ref alignment64, out size32, out size64);
+
+                    switch (unaryExprOrTypeTraitExpr.Kind)
+                    {
+                        case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
+                        {
+                            switch (typeName)
+                            {
+                                case "byte":
+                                case "Byte":
+                                case "ushort":
+                                case "UInt16":
+                                case "uint":
+                                case "UInt32":
+                                case "nuint":
+                                case "sbyte":
+                                case "SByte":
+                                case "short":
+                                case "Int16":
+                                {
+                                    return (size32 != size64) || !IsPrevContext<VarDecl>(out _);
+                                }
+
+                                case "ulong":
+                                case "UInt64":
+                                case "int":
+                                case "Int32":
+                                case "nint":
+                                case "long":
+                                case "Int64":
+                                {
+                                    return false;
+                                }
+
+                                default:
+                                {
+                                    return false;
+                                }
+                            }
+                        }
+
+                        default:
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                case CX_StmtClass.CX_StmtClass_UnaryOperator:
+                {
+                    var unaryOperator = (UnaryOperator)stmt;
+                    return IsUnchecked(typeName, unaryOperator.SubExpr)
+                        || IsUnchecked(typeName, unaryOperator.Handle.Evaluate)
+                        || ((unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_Minus) && IsUnsigned(typeName));
+                }
+
+                // case CX_StmtClass.CX_StmtClass_VAArgExpr:
+
+                default:
+                {
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported statement class: '{stmt.StmtClassName}'. Generated bindings may not be unchecked.", stmt);
+                    return false;
+                }
+            }
+
+            bool IsUnsigned(string typeName)
+            {
+                switch (typeName)
+                {
+                    case "byte":
+                    case "Byte":
+                    case "UInt16":
+                    case "nuint":
+                    case "uint":
+                    case "UInt32":
+                    case "ulong":
+                    case "UInt64":
+                    case "ushort":
+                    {
+                        return true;
+                    }
+
+                    case "Int16":
+                    case "int":
+                    case "Int32":
+                    case "long":
+                    case "Int64":
+                    case "nint":
+                    case "sbyte":
+                    case "SByte":
+                    case "short":
+                    {
+                        return false;
+                    }
+
+                    default:
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        private bool IsUnchecked(string typeName, CXEvalResult evalResult)
+        {
+            if ((evalResult.Kind != CXEvalResultKind.CXEval_Int) && ((evalResult.Kind != CXEvalResultKind.CXEval_UnExposed) || !IsPrevContext<EnumConstantDecl>(out _)))
+            {
+                return false;
+            }
+
+            var signedValue = evalResult.AsLongLong;
+            return IsUnchecked(typeName, signedValue, (signedValue < 0), isHex: false);
+        }
+
+        private bool IsUnchecked(string typeName, long signedValue, bool isNegative, bool isHex)
+        {
+            switch (typeName)
+            {
+                case "byte":
+                case "Byte":
+                {
+                    var unsignedValue = unchecked((uint)signedValue);
+                    return (unsignedValue < byte.MinValue) || (byte.MaxValue < unsignedValue);
+                }
+
+                case "ushort":
+                case "UInt16":
+                {
+                    var unsignedValue = unchecked((uint)signedValue);
+                    return (unsignedValue < ushort.MinValue) || (ushort.MaxValue < unsignedValue);
+                }
+
+                case "uint":
+                case "UInt32":
+                case "nuint":
+                {
+                    var unsignedValue = unchecked((uint)signedValue);
+                    return (unsignedValue < uint.MinValue) || (uint.MaxValue < unsignedValue);
+                }
+
+                case "ulong":
+                case "UInt64":
+                {
+                    var unsignedValue = unchecked((ulong)signedValue);
+                    return (unsignedValue < ulong.MinValue) || (ulong.MaxValue < unsignedValue);
+                }
+
+                case "sbyte":
+                case "SByte":
+                {
+                    return (signedValue < sbyte.MinValue) || (sbyte.MaxValue < signedValue) || (isNegative && isHex);
+                }
+
+                case "short":
+                case "Int16":
+                {
+                    return (signedValue < short.MinValue) || (short.MaxValue < signedValue) || (isNegative && isHex);
+                }
+
+                case "int":
+                case "Int32":
+                case "nint":
+                {
+                    return (signedValue < int.MinValue) || (int.MaxValue < signedValue) || (isNegative && isHex);
+                }
+
+                case "long":
+                case "Int64":
+                {
+                    return (signedValue < long.MinValue) || (long.MaxValue < signedValue) || (isNegative && isHex);
                 }
 
                 default:
@@ -2327,6 +2897,20 @@ namespace ClangSharp
             }
 
             return false;
+        }
+
+        private void ParenthesizeStmt(Stmt stmt)
+        {
+            if (IsStmtAsWritten<ParenExpr>(stmt, out _))
+            {
+                Visit(stmt);
+            }
+            else
+            {
+                _outputBuilder.Write('(');
+                Visit(stmt);
+                _outputBuilder.Write(')');
+            }
         }
 
         private string PrefixAndStripName(string name)
@@ -2554,6 +3138,35 @@ namespace ClangSharp
             }
         }
 
+        private void UncheckStmt(string typeName, Stmt stmt)
+        {
+            if (IsUnchecked(typeName, stmt))
+            {
+                _outputBuilder.Write("unchecked");
+
+                var needsCast = IsStmtAsWritten<IntegerLiteral>(stmt, out _) && (stmt.DeclContext is EnumDecl);
+
+                if (needsCast)
+                {
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write(typeName);
+                    _outputBuilder.Write(')');
+                }
+
+                ParenthesizeStmt(stmt);
+
+                if (needsCast)
+                {
+                    _outputBuilder.Write(')');
+                }
+            }
+            else
+            {
+                Visit(stmt);
+            }
+        }
+
         private void Visit(Cursor cursor)
         {
             var currentContext = _context.AddLast(cursor);
@@ -2640,7 +3253,13 @@ namespace ClangSharp
         {
             if (_config.WithSetLastErrors.Contains("*") || _config.WithSetLastErrors.Contains(remappedName))
             {
-                _outputBuilder.Write(", SetLastError = true");
+                _outputBuilder.Write(',');
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("SetLastError");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write('=');
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("true");
             }
         }
 

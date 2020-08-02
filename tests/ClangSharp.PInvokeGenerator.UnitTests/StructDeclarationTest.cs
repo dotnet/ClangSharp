@@ -71,7 +71,7 @@ struct MyStruct3
 {
     public partial struct MyStruct1
     {
-        internal uint _bitfield1;
+        public uint _bitfield1;
 
         [NativeTypeName(""unsigned int : 24"")]
         public uint o0_b0_24
@@ -87,7 +87,7 @@ struct MyStruct3
             }
         }
 
-        internal uint _bitfield2;
+        public uint _bitfield2;
 
         [NativeTypeName(""unsigned int : 16"")]
         public uint o4_b0_16
@@ -131,7 +131,7 @@ struct MyStruct3
             }
         }
 
-        internal byte _bitfield3;
+        public byte _bitfield3;
 
         [NativeTypeName(""unsigned char : 1"")]
         public byte o8_b0_1
@@ -147,7 +147,7 @@ struct MyStruct3
             }
         }
 
-        internal int _bitfield4;
+        public int _bitfield4;
 
         [NativeTypeName(""int : 1"")]
         public int o12_b0_1
@@ -180,7 +180,7 @@ struct MyStruct3
 
     public partial struct MyStruct2
     {
-        internal uint _bitfield1;
+        public uint _bitfield1;
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
@@ -198,7 +198,7 @@ struct MyStruct3
 
         public int x;
 
-        internal uint _bitfield2;
+        public uint _bitfield2;
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o8_b0_1
@@ -217,7 +217,7 @@ struct MyStruct3
 
     public partial struct MyStruct3
     {
-        internal uint _bitfield;
+        public uint _bitfield;
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
@@ -285,7 +285,7 @@ struct MyStruct3
 {
     public partial struct MyStruct1
     {
-        internal uint _bitfield1;
+        public uint _bitfield1;
 
         [NativeTypeName(""unsigned int : 24"")]
         public uint o0_b0_24
@@ -301,7 +301,7 @@ struct MyStruct3
             }
         }
 
-        internal uint _bitfield2;
+        public uint _bitfield2;
 
         [NativeTypeName(""unsigned int : 16"")]
         public uint o4_b0_16
@@ -390,7 +390,7 @@ struct MyStruct3
 
     public partial struct MyStruct2
     {
-        internal uint _bitfield1;
+        public uint _bitfield1;
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
@@ -408,7 +408,7 @@ struct MyStruct3
 
         public int x;
 
-        internal uint _bitfield2;
+        public uint _bitfield2;
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o8_b0_1
@@ -427,7 +427,7 @@ struct MyStruct3
 
     public partial struct MyStruct3
     {
-        internal uint _bitfield;
+        public uint _bitfield;
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
@@ -541,9 +541,9 @@ struct MyOtherStruct
 
         public partial struct _c_e__FixedBuffer
         {{
-            internal MyStruct e0;
-            internal MyStruct e1;
-            internal MyStruct e2;
+            public MyStruct e0;
+            public MyStruct e1;
+            public MyStruct e2;
 
             public unsafe ref MyStruct this[int index]
             {{
@@ -598,9 +598,9 @@ namespace ClangSharp.Test
 
         public partial struct _c_e__FixedBuffer
         {{
-            internal MyStruct e0;
-            internal MyStruct e1;
-            internal MyStruct e2;
+            public MyStruct e0;
+            public MyStruct e1;
+            public MyStruct e2;
 
             public ref MyStruct this[int index] => ref AsSpan()[index];
 
@@ -648,41 +648,41 @@ namespace ClangSharp.Test
 
         public partial struct _c_e__FixedBuffer
         {{
-            internal MyStruct e0_0_0_0;
-            internal MyStruct e1_0_0_0;
+            public MyStruct e0_0_0_0;
+            public MyStruct e1_0_0_0;
 
-            internal MyStruct e0_0_1_0;
-            internal MyStruct e1_0_1_0;
+            public MyStruct e0_0_1_0;
+            public MyStruct e1_0_1_0;
 
-            internal MyStruct e0_0_2_0;
-            internal MyStruct e1_0_2_0;
+            public MyStruct e0_0_2_0;
+            public MyStruct e1_0_2_0;
 
-            internal MyStruct e0_0_0_1;
-            internal MyStruct e1_0_0_1;
+            public MyStruct e0_0_0_1;
+            public MyStruct e1_0_0_1;
 
-            internal MyStruct e0_0_1_1;
-            internal MyStruct e1_0_1_1;
+            public MyStruct e0_0_1_1;
+            public MyStruct e1_0_1_1;
 
-            internal MyStruct e0_0_2_1;
-            internal MyStruct e1_0_2_1;
+            public MyStruct e0_0_2_1;
+            public MyStruct e1_0_2_1;
 
-            internal MyStruct e0_0_0_2;
-            internal MyStruct e1_0_0_2;
+            public MyStruct e0_0_0_2;
+            public MyStruct e1_0_0_2;
 
-            internal MyStruct e0_0_1_2;
-            internal MyStruct e1_0_1_2;
+            public MyStruct e0_0_1_2;
+            public MyStruct e1_0_1_2;
 
-            internal MyStruct e0_0_2_2;
-            internal MyStruct e1_0_2_2;
+            public MyStruct e0_0_2_2;
+            public MyStruct e1_0_2_2;
 
-            internal MyStruct e0_0_0_3;
-            internal MyStruct e1_0_0_3;
+            public MyStruct e0_0_0_3;
+            public MyStruct e1_0_0_3;
 
-            internal MyStruct e0_0_1_3;
-            internal MyStruct e1_0_1_3;
+            public MyStruct e0_0_1_3;
+            public MyStruct e1_0_1_3;
 
-            internal MyStruct e0_0_2_3;
-            internal MyStruct e1_0_2_3;
+            public MyStruct e0_0_2_3;
+            public MyStruct e1_0_2_3;
 
             public ref MyStruct this[int index] => ref AsSpan()[index];
 
@@ -730,9 +730,9 @@ struct MyOtherStruct
 
         public partial struct _c_e__FixedBuffer
         {{
-            internal MyStruct e0;
-            internal MyStruct e1;
-            internal MyStruct e2;
+            public MyStruct e0;
+            public MyStruct e1;
+            public MyStruct e2;
 
             public unsafe ref MyStruct this[int index]
             {{
@@ -790,9 +790,9 @@ namespace ClangSharp.Test
 
         public partial struct _c_e__FixedBuffer
         {{
-            internal MyStruct e0;
-            internal MyStruct e1;
-            internal MyStruct e2;
+            public MyStruct e0;
+            public MyStruct e1;
+            public MyStruct e2;
 
             public ref MyStruct this[int index] => ref AsSpan()[index];
 
@@ -806,10 +806,10 @@ namespace ClangSharp.Test
         }
 
         [Theory]
-        [InlineData("double *", "IntPtr")]
-        [InlineData("short *", "IntPtr")]
-        [InlineData("int *", "IntPtr")]
-        [InlineData("float *", "IntPtr")]
+        [InlineData("double *", "double*")]
+        [InlineData("short *", "short*")]
+        [InlineData("int *", "int*")]
+        [InlineData("float *", "float*")]
         public async Task FixedSizedBufferPointerTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
@@ -818,31 +818,33 @@ namespace ClangSharp.Test
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
-using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
+            var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
         [NativeTypeName(""{nativeType}[3]"")]
         public _c_e__FixedBuffer c;
 
-        public partial struct _c_e__FixedBuffer
+        public unsafe partial struct _c_e__FixedBuffer
         {{
-            internal {expectedManagedType} e0;
-            internal {expectedManagedType} e1;
-            internal {expectedManagedType} e2;
+            public {expectedManagedType} e0;
+            public {expectedManagedType} e1;
+            public {expectedManagedType} e2;
 
-            public ref {expectedManagedType} this[int index] => ref AsSpan()[index];
-
-            public Span<{expectedManagedType}> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
+            public ref {expectedManagedType} this[int index]
+            {{
+                get
+                {{
+                    fixed ({expectedManagedType}* pThis = &e0)
+                    {{
+                        return ref pThis[index];
+                    }}
+                }}
+            }}
         }}
     }}
 }}
 ";
-
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
@@ -1000,7 +1002,7 @@ namespace ClangSharp.Test
         public {expectedManagedType} y;
 
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
-        internal _Anonymous_e__Struct Anonymous;
+        public _Anonymous_e__Struct Anonymous;
 
         public ref {expectedManagedType} z => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
 
@@ -1058,37 +1060,35 @@ namespace ClangSharp.Test
         public int y;
 
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:6:5)"")]
-        internal _Anonymous_e__Struct Anonymous;
+        public _Anonymous_e__Struct Anonymous;
 
         public ref int z => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
 
         public ref int w => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));
 
-        [NativeTypeName(""int : 16"")]
         public int o0_b0_16
         {
             get
             {
-                return Anonymous.Anonymous._bitfield & 0xFFFF;
+                return Anonymous.Anonymous.o0_b0_16;
             }
 
             set
             {
-                Anonymous.Anonymous._bitfield = (Anonymous.Anonymous._bitfield & ~0xFFFF) | (value & 0xFFFF);
+                Anonymous.Anonymous.o0_b0_16 = value;
             }
         }
 
-        [NativeTypeName(""int : 4"")]
         public int o0_b16_4
         {
             get
             {
-                return (Anonymous.Anonymous._bitfield >> 16) & 0xF;
+                return Anonymous.Anonymous.o0_b16_4;
             }
 
             set
             {
-                Anonymous.Anonymous._bitfield = (Anonymous.Anonymous._bitfield & ~(0xF << 16)) | ((value & 0xF) << 16);
+                Anonymous.Anonymous.o0_b16_4 = value;
             }
         }
 
@@ -1097,13 +1097,41 @@ namespace ClangSharp.Test
             public int z;
 
             [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:10:9)"")]
-            internal _Anonymous_e__Struct Anonymous;
+            public _Anonymous_e__Struct Anonymous;
 
             public partial struct _Anonymous_e__Struct
             {
                 public int w;
 
-                internal int _bitfield;
+                public int _bitfield;
+
+                [NativeTypeName(""int : 16"")]
+                public int o0_b0_16
+                {
+                    get
+                    {
+                        return _bitfield & 0xFFFF;
+                    }
+
+                    set
+                    {
+                        _bitfield = (_bitfield & ~0xFFFF) | (value & 0xFFFF);
+                    }
+                }
+
+                [NativeTypeName(""int : 4"")]
+                public int o0_b16_4
+                {
+                    get
+                    {
+                        return (_bitfield >> 16) & 0xF;
+                    }
+
+                    set
+                    {
+                        _bitfield = (_bitfield & ~(0xF << 16)) | ((value & 0xF) << 16);
+                    }
+                }
             }
         }
     }
@@ -1370,7 +1398,7 @@ namespace ClangSharp.Test
         public double b;
 
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:7:5)"")]
-        internal _Anonymous_e__Struct Anonymous;
+        public _Anonymous_e__Struct Anonymous;
 
         public ref double a => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 

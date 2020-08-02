@@ -135,9 +135,9 @@ namespace ClangSharp.Test
 
         public partial struct _c_e__FixedBuffer
         {{
-            internal MyUnion e0;
-            internal MyUnion e1;
-            internal MyUnion e2;
+            public MyUnion e0;
+            public MyUnion e1;
+            public MyUnion e2;
 
             public unsafe ref MyUnion this[int index]
             {{
@@ -196,9 +196,9 @@ namespace ClangSharp.Test
 
         public partial struct _c_e__FixedBuffer
         {{
-            internal MyUnion e0;
-            internal MyUnion e1;
-            internal MyUnion e2;
+            public MyUnion e0;
+            public MyUnion e1;
+            public MyUnion e2;
 
             public ref MyUnion this[int index] => ref AsSpan()[index];
 
@@ -252,9 +252,9 @@ namespace ClangSharp.Test
 
         public partial struct _c_e__FixedBuffer
         {{
-            internal MyUnion e0;
-            internal MyUnion e1;
-            internal MyUnion e2;
+            public MyUnion e0;
+            public MyUnion e1;
+            public MyUnion e2;
 
             public unsafe ref MyUnion this[int index]
             {{
@@ -316,9 +316,9 @@ namespace ClangSharp.Test
 
         public partial struct _c_e__FixedBuffer
         {{
-            internal MyUnion e0;
-            internal MyUnion e1;
-            internal MyUnion e2;
+            public MyUnion e0;
+            public MyUnion e1;
+            public MyUnion e2;
 
             public ref MyUnion this[int index] => ref AsSpan()[index];
 
@@ -405,7 +405,7 @@ namespace ClangSharp.Test
 
         [FieldOffset(0)]
         [NativeTypeName(""MyUnion::(anonymous union at ClangUnsavedFile.h:{line}:{column})"")]
-        internal _Anonymous_e__Union Anonymous;
+        public _Anonymous_e__Union Anonymous;
 
         public ref {expectedManagedType} a => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 
@@ -624,7 +624,7 @@ namespace ClangSharp.Test
 
         [FieldOffset(0)]
         [NativeTypeName(""MyUnion::(anonymous union at ClangUnsavedFile.h:7:5)"")]
-        internal _Anonymous_e__Union Anonymous;
+        public _Anonymous_e__Union Anonymous;
 
         public ref double a => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 
