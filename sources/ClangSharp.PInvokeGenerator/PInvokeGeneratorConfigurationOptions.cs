@@ -34,5 +34,11 @@ namespace ClangSharp
         GenerateTestsXUnit = 0x00000400,
 
         GenerateMacroBindings = 0x00000800,
+
+        ExcludeComProxies = 0x00001000,
+
+        ExcludeEmptyRecords = 0x00002000,
+
+        ExcludeEnumOperators = 0x00004000,
     }
 }

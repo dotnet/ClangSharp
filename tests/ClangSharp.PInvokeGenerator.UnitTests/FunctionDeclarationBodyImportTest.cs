@@ -387,7 +387,7 @@ namespace ClangSharp.Test
     {
         public static int MyFunction(MyEnum x)
         {
-            return x == MyEnum_Value0 || x == MyEnum_Value1 || x == MyEnum_Value2;
+            return (x == MyEnum_Value0 || x == MyEnum_Value1 || x == MyEnum_Value2) ? 1 : 0;
         }
     }
 }
@@ -469,7 +469,7 @@ namespace ClangSharp.Test
     {
         public static int MyFunction(float input)
         {
-            return (int)input;
+            return (int)(input);
         }
     }
 }
@@ -493,7 +493,7 @@ namespace ClangSharp.Test
     {
         public static int MyFunction(float input)
         {
-            return (int)input;
+            return (int)(input);
         }
     }
 }
@@ -587,7 +587,7 @@ namespace ClangSharp.Test
         [return: NativeTypeName(""MyStructB *"")]
         public static MyStructB* MyFunction([NativeTypeName(""MyStructA *"")] MyStructA* input)
         {{
-            return (MyStructB*)input;
+            return (MyStructB*)(input);
         }}
     }}
 }}
@@ -612,7 +612,7 @@ namespace ClangSharp.Test
         [return: NativeTypeName(""int *"")]
         public static int* MyFunction([NativeTypeName(""void *"")] void* input)
         {
-            return (int*)input;
+            return (int*)(input);
         }
     }
 }
@@ -637,7 +637,7 @@ namespace ClangSharp.Test
         [return: NativeTypeName(""int *"")]
         public static int* MyFunction([NativeTypeName(""void *"")] void* input)
         {
-            return (int*)input;
+            return (int*)(input);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace ClangSharp.Interop
         {
             get
             {
-                var pStr = clang.EvalResult_getAsStr(this);
+                var pStr = Kind == CXEvalResultKind.CXEval_StrLiteral ? clang.EvalResult_getAsStr(this) : null;
 
                 if (pStr is null)
                 {

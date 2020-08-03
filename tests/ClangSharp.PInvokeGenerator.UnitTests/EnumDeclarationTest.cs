@@ -408,7 +408,7 @@ namespace ClangSharp.Test
     {
         MyEnum_Value0,
         MyEnum_Value1,
-        MyEnum_Value2 = unchecked((int)0x80000000),
+        MyEnum_Value2 = unchecked((int)(0x80000000)),
     }
 }
 ";

@@ -122,6 +122,24 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "exclude-com-proxies":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeComProxies;
+                        break;
+                    }
+
+                    case "exclude-empty-records":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeEmptyRecords;
+                        break;
+                    }
+
+                    case "exclude-enum-operators":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeEnumOperators;
+                        break;
+                    }
+
                     case "explicit-vtbls":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;

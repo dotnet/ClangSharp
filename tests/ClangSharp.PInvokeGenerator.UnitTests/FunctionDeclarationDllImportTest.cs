@@ -37,7 +37,7 @@ namespace ClangSharp.Test
 
 namespace ClangSharp.Test
 {
-    public static partial class Methods
+    public static unsafe partial class Methods
     {
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
         public static extern void MyFunction([NativeTypeName(""const float [4]"")] float* color);
@@ -53,8 +53,7 @@ namespace ClangSharp.Test
         {
             var inputContents = @"void MyFunction(void (*callback)());";
 
-            var expectedOutputContents = @"using System;
-using System.Runtime.InteropServices;
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -148,7 +147,7 @@ namespace ClangSharp.Test
         [InlineData("unsigned short value = 7", @"[NativeTypeName(""unsigned short"")] ushort value = 7")]
         [InlineData("unsigned int value = 8", @"[NativeTypeName(""unsigned int"")] uint value = 8")]
         [InlineData("unsigned long long value = 9", @"[NativeTypeName(""unsigned long long"")] ulong value = 9")]
-        [InlineData("unsigned short value = 'A'", @"[NativeTypeName(""unsigned short"")] ushort value = (byte)'A'")]
+        [InlineData("unsigned short value = 'A'", @"[NativeTypeName(""unsigned short"")] ushort value = (byte)('A')")]
         public async Task OptionalParameterTest(string nativeParameters, string expectedManagedParameters)
         {
             var inputContents = $@"void MyFunction({nativeParameters});";
