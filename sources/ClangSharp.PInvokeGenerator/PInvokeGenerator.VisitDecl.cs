@@ -902,6 +902,23 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(']');
                 }
 
+                var uuid = recordDecl.Attrs.Where((attr) => attr.Kind == CX_AttrKind.CX_AttrKind_Uuid).SingleOrDefault();
+
+                if (uuid != null)
+                {
+                    var uuidText = GetSourceRangeContents(recordDecl.TranslationUnit.Handle, uuid.Extent).Split(new char[] { '"' }, StringSplitOptions.RemoveEmptyEntries)[1];
+
+                    _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                    _outputBuilder.WriteIndented('[');
+                    _outputBuilder.Write("Guid");
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write('"');
+                    _outputBuilder.Write(uuidText);
+                    _outputBuilder.Write('"');
+                    _outputBuilder.Write(')');
+                    _outputBuilder.WriteLine(']');
+                }
+
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
                 _outputBuilder.Write(' ');
 

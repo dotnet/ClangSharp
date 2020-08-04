@@ -914,6 +914,44 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task GuidTest()
+        {
+            var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+
+struct __declspec(uuid(""00000000-0000-0000-C000-000000000046"")) MyStruct1
+{{
+    int x;
+}};
+
+struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000046"") MyStruct2
+{{
+    int x;
+}};
+";
+
+            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    [Guid(""00000000-0000-0000-C000-000000000046"")]
+    public partial struct MyStruct1
+    {{
+        public int x;
+    }}
+
+    [Guid(""00000000-0000-0000-C000-000000000046"")]
+    public partial struct MyStruct2
+    {{
+        public int x;
+    }}
+}}
+";
+
+            var excludedNames = new string[] { "DECLSPEC_UUID" };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+        }
+
+        [Fact]
         public async Task InheritanceTest()
         {
             var inputContents = @"struct MyStruct1A
