@@ -21,6 +21,8 @@ namespace ClangSharp
 
         public long InitVal => Handle.EnumConstantDeclValue;
 
+        public ulong UnsignedInitVal => Handle.EnumConstantDeclUnsignedValue;
+
         public bool IsNegative => Handle.IsNegative;
 
         public bool IsNonNegative => Handle.IsNonNegative;
