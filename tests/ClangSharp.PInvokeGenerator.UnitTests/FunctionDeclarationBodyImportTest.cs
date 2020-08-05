@@ -569,6 +569,7 @@ namespace ClangSharp.Test
         }}
     }}
 
+    [NativeTypeName(""struct MyStructB : MyStructA"")]
     public unsafe partial struct MyStructB
     {{
         public void** lpVtbl;

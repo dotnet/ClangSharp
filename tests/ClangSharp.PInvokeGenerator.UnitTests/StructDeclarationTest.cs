@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -914,6 +915,58 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task GuidTest()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // Unix doesn't support __declspec(uuid(""))
+                return;
+            }
+
+            var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+
+struct __declspec(uuid(""00000000-0000-0000-C000-000000000046"")) MyStruct1
+{{
+    int x;
+}};
+
+struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyStruct2
+{{
+    int x;
+}};
+";
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    [Guid(""00000000-0000-0000-C000-000000000046"")]
+    public partial struct MyStruct1
+    {{
+        public int x;
+    }}
+
+    [Guid(""00000000-0000-0000-C000-000000000047"")]
+    public partial struct MyStruct2
+    {{
+        public int x;
+    }}
+
+    public static partial class Methods
+    {{
+        public static readonly Guid IID_MyStruct1 = new Guid(0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
+
+        public static readonly Guid IID_MyStruct2 = new Guid(0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x47);
+    }}
+}}
+";
+
+            var excludedNames = new string[] { "DECLSPEC_UUID" };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+        }
+
+        [Fact]
         public async Task InheritanceTest()
         {
             var inputContents = @"struct MyStruct1A
@@ -951,6 +1004,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         public int y;
     }
 
+    [NativeTypeName(""struct MyStruct2 : MyStruct1A, MyStruct1B"")]
     public partial struct MyStruct2
     {
         public MyStruct1A __AnonymousBase_ClangUnsavedFile_L13_C20;
@@ -1571,6 +1625,7 @@ struct MyStruct1B : MyStruct1A
         }
     }
 
+    [NativeTypeName(""struct MyStruct1B : MyStruct1A"")]
     public partial struct MyStruct1B
     {
         public void MyMethod()

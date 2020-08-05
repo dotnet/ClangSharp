@@ -201,5 +201,26 @@ namespace ClangSharp.Test
 
             await ValidateGeneratedBindings(inputContents, expectedOutputContents);
         }
+
+        [Fact]
+        public async Task UncheckedConversionMacroTest2()
+        {
+            var inputContents = $@"#define MyMacro1(x, y, z) ((int)(((unsigned long)(x)<<31) | ((unsigned long)(y)<<16) | ((unsigned long)(z))))
+#define MyMacro2(n) MyMacro1(1, 2, n)
+#define MyMacro3 MyMacro2(3)";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""#define MyMacro3 MyMacro2(3)"")]
+        public const int MyMacro3 = unchecked((int)(((uint)(1) << 31) | ((uint)(2) << 16) | ((uint)(3))));
+    }}
+}}
+";
+
+            var excludedNames = new string[] { "MyMacro1", "MyMacro2" };
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+        }
     }
 }

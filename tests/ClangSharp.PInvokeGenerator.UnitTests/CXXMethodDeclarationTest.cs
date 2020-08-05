@@ -712,7 +712,7 @@ namespace ClangSharp.Test
 
     public static partial class Methods
     {
-        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""MyFunction"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void MyFunction();
     }
 }
