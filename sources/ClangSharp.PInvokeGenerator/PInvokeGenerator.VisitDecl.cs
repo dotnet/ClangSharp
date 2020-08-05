@@ -458,25 +458,21 @@ namespace ClangSharp
                     _outputBuilder.Write(' ');
                 }
 
-                _outputBuilder.Write("EntryPoint");
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write('=');
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write('"');
+                var entryPoint = (cxxMethodDecl is null) ? GetCursorName(functionDecl) : cxxMethodDecl.Handle.Mangling.CString;
 
-                if (cxxMethodDecl is null)
+                if (entryPoint != name)
                 {
-                    var unmappedName = GetCursorName(functionDecl);
-                    _outputBuilder.Write(unmappedName);
-                }
-                else
-                {
-                    _outputBuilder.Write(cxxMethodDecl.Handle.Mangling);
+                    _outputBuilder.Write("EntryPoint");
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write('=');
+                    _outputBuilder.Write(' ');
+                    _outputBuilder.Write('"');
+                    _outputBuilder.Write(entryPoint);
+                    _outputBuilder.Write('"');
+                    _outputBuilder.Write(',');
+                    _outputBuilder.Write(' ');
                 }
 
-                _outputBuilder.Write('"');
-                _outputBuilder.Write(',');
-                _outputBuilder.Write(' ');
                 _outputBuilder.Write("ExactSpelling");
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write('=');
