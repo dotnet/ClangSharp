@@ -24,6 +24,7 @@ namespace ClangSharp
         private readonly List<Diagnostic> _diagnostics;
         private readonly LinkedList<Cursor> _context;
         private readonly Dictionary<string, Guid> _uuidsToGenerate;
+        private readonly HashSet<string> _generatedUuids;
         private readonly PInvokeGeneratorConfiguration _config;
 
         private string _filePath;
@@ -56,6 +57,7 @@ namespace ClangSharp
             _context = new LinkedList<Cursor>();
             _config = config;
             _uuidsToGenerate = new Dictionary<string, Guid>();
+            _generatedUuids = new HashSet<string>();
         }
 
         ~PInvokeGenerator()
@@ -80,6 +82,44 @@ namespace ClangSharp
             bool emitNamespaceDeclaration = true;
             bool leaveStreamOpen = false;
 
+            foreach (var foundUuid in _uuidsToGenerate)
+            {
+                var iidName = foundUuid.Key;
+
+                if (_generatedUuids.Contains(iidName))
+                {
+                    continue;
+                }
+
+                var iidValue = foundUuid.Value.ToString("X").ToUpperInvariant().Replace("{", "").Replace("}", "").Replace('X', 'x').Replace(",", ", ");
+
+                StartUsingOutputBuilder(_config.MethodClassName);
+
+                _outputBuilder.AddUsingDirective("System");
+
+                _outputBuilder.WriteIndented("public");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("static");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("readonly");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("Guid");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write(iidName);
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write('=');
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("new");
+                _outputBuilder.Write(' ');
+                _outputBuilder.Write("Guid");
+                _outputBuilder.Write('(');
+                _outputBuilder.Write(iidValue);
+                _outputBuilder.Write(')');
+                _outputBuilder.WriteLine(';');
+
+                StopUsingOutputBuilder();
+            }
+
             if (!_config.GenerateMultipleFiles)
             {
                 var outputPath = _config.OutputLocation;
@@ -91,11 +131,6 @@ namespace ClangSharp
 
                 foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
                 {
-                    if (_config.MethodClassName.Equals(outputBuilder.Name) && _uuidsToGenerate.Any())
-                    {
-                        outputBuilder.AddUsingDirective("System");
-                    }
-
                     usingDirectives = usingDirectives.Concat(outputBuilder.UsingDirectives);
                     staticUsingDirectives = staticUsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
                 }
@@ -331,11 +366,6 @@ namespace ClangSharp
                     sw.WriteLine(_config.HeaderText);
                 }
 
-                if (isMethodClass && _uuidsToGenerate.Any())
-                {
-                    outputBuilder.AddUsingDirective("System");
-                }
-
                 var usingDirectives = outputBuilder.UsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
 
                 if (usingDirectives.Any())
@@ -414,34 +444,6 @@ namespace ClangSharp
 
             if (isMethodClass)
             {
-                foreach (var foundUuid in _uuidsToGenerate)
-                {
-                    var iidName = foundUuid.Key;
-                    var iidValue = foundUuid.Value.ToString("X").Replace("{", "").Replace("}", "");
-
-                    sw.WriteLine();
-                    sw.Write(indentationString);
-                    sw.Write("public");
-                    sw.Write(' ');
-                    sw.Write("static");
-                    sw.Write(' ');
-                    sw.Write("readonly");
-                    sw.Write(' ');
-                    sw.Write("Guid");
-                    sw.Write(' ');
-                    sw.Write(iidName);
-                    sw.Write(' ');
-                    sw.Write('=');
-                    sw.Write(' ');
-                    sw.Write("new");
-                    sw.Write(' ');
-                    sw.Write("Guid");
-                    sw.Write('(');
-                    sw.Write(iidValue);
-                    sw.Write(')');
-                    sw.WriteLine(';');
-                }
-
                 sw.Write(outputBuilder.IndentationString);
                 sw.WriteLine('}');
             }
@@ -578,8 +580,7 @@ namespace ClangSharp
                                                           .Replace("\r", "\\r")
                                                           .Replace("\n", "\\n")
                                                           .Replace("\t", "\\t")
-                                                          .Replace("\"", "\\\"")
-                                                          .Replace("\'", "\\\'");
+                                                          .Replace("\"", "\\\"");
 
         private string GetAccessSpecifierName(NamedDecl namedDecl)
         {
@@ -925,14 +926,24 @@ namespace ClangSharp
             }
         }
 
-        private Expr GetExprAsWritten(Expr expr)
+        private Expr GetExprAsWritten(Expr expr, bool removeParens)
         {
-            if (expr is CastExpr castExpr)
+            do
             {
-                expr = castExpr.SubExprAsWritten;
+                if (expr is ImplicitCastExpr implicitCastExpr)
+                {
+                    expr = implicitCastExpr.SubExprAsWritten;
+                }
+                else if (removeParens && (expr is ParenExpr parenExpr))
+                {
+                    expr = parenExpr.SubExpr;
+                }
+                else
+                {
+                    return expr;
+                }
             }
-
-            return expr;
+            while (true);
         }
 
         private static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
@@ -1418,7 +1429,7 @@ namespace ClangSharp
                     {
                         varDecl = (VarDecl)cursor;
 
-                        if (IsStmtAsWritten(varDecl.Init, out DeclRefExpr declRefExpr) && (declRefExpr.Decl is FunctionDecl functionDecl))
+                        if (IsStmtAsWritten(varDecl.Init, out DeclRefExpr declRefExpr, removeParens: true) && (declRefExpr.Decl is FunctionDecl functionDecl))
                         {
                             cursor = functionDecl;
                             paramTypes = functionDecl.Parameters.Select((param) => param.Type);
@@ -1854,6 +1865,47 @@ namespace ClangSharp
             return hasDirectVtbl || (indirectVtblCount != 0);
         }
 
+        private bool IsEnumOperator(FunctionDecl functionDecl, string name)
+        {
+            if (name.StartsWith("operator") && ((functionDecl.Parameters.Count == 1) || (functionDecl.Parameters.Count == 2)))
+            {
+                var parmVarDecl1 = functionDecl.Parameters[0];
+                var parmVarDecl1Type = parmVarDecl1.Type.CanonicalType;
+
+                if (parmVarDecl1Type is PointerType pointerType1)
+                {
+                    parmVarDecl1Type = pointerType1.PointeeType.CanonicalType;
+                }
+                else if (parmVarDecl1Type is ReferenceType referenceType1)
+                {
+                    parmVarDecl1Type = referenceType1.PointeeType.CanonicalType;
+                }
+
+                if ((functionDecl.Parameters.Count == 1) && (parmVarDecl1Type.Kind == CXTypeKind.CXType_Enum))
+                {
+                    return true;
+                }
+
+                var parmVarDecl2 = functionDecl.Parameters[1];
+                var parmVarDecl2Type = parmVarDecl2.Type.CanonicalType;
+
+                if (parmVarDecl2Type is PointerType pointerType2)
+                {
+                    parmVarDecl2Type = pointerType2.PointeeType.CanonicalType;
+                }
+                else if (parmVarDecl2Type is ReferenceType referenceType2)
+                {
+                    parmVarDecl2Type = referenceType2.PointeeType.CanonicalType;
+                }
+
+                if ((parmVarDecl1Type == parmVarDecl2Type) && (parmVarDecl2Type.Kind == CXTypeKind.CXType_Enum))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private bool IsExcluded(Cursor cursor)
         {
             if (IsAlwaysIncluded(cursor))
@@ -2210,47 +2262,6 @@ namespace ClangSharp
 
                 return !TryGetUuid(recordDecl, out _);
             }
-
-            bool IsEnumOperator(FunctionDecl functionDecl, string name)
-            {
-                if (name.StartsWith("operator") && ((functionDecl.Parameters.Count == 1) || (functionDecl.Parameters.Count == 2)))
-                {
-                    var parmVarDecl1 = functionDecl.Parameters[0];
-                    var parmVarDecl1Type = parmVarDecl1.Type.CanonicalType;
-
-                    if (parmVarDecl1Type is PointerType pointerType1)
-                    {
-                        parmVarDecl1Type = pointerType1.PointeeType.CanonicalType;
-                    }
-                    else if (parmVarDecl1Type is ReferenceType referenceType1)
-                    {
-                        parmVarDecl1Type = referenceType1.PointeeType.CanonicalType;
-                    }
-
-                    if ((functionDecl.Parameters.Count == 1) && (parmVarDecl1Type.Kind == CXTypeKind.CXType_Enum))
-                    {
-                        return true;
-                    }
-
-                    var parmVarDecl2 = functionDecl.Parameters[1];
-                    var parmVarDecl2Type = parmVarDecl2.Type.CanonicalType;
-
-                    if (parmVarDecl2Type is PointerType pointerType2)
-                    {
-                        parmVarDecl2Type = pointerType2.PointeeType.CanonicalType;
-                    }
-                    else if (parmVarDecl2Type is ReferenceType referenceType2)
-                    {
-                        parmVarDecl2Type = referenceType2.PointeeType.CanonicalType;
-                    }
-
-                    if ((parmVarDecl1Type == parmVarDecl2Type) && (parmVarDecl2Type.Kind == CXTypeKind.CXType_Enum))
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
         }
 
         private bool IsFixedSize(Cursor cursor, Type type)
@@ -2316,10 +2327,10 @@ namespace ClangSharp
             }
         }
 
-        private bool IsPrevContext<T>(out T value)
+        private bool IsPrevContextDecl<T>(out T value)
             where T : Decl
         {
-            var previousContext = _context.Last;
+            var previousContext = _context.Last.Previous;
 
             while (!(previousContext.Value is Decl))
             {
@@ -2338,12 +2349,34 @@ namespace ClangSharp
             }
         }
 
-        private bool IsStmtAsWritten<T>(Cursor cursor, out T value)
+        private bool IsPrevContextStmt<T>(out T value)
+            where T : Stmt
+        {
+            var previousContext = _context.Last.Previous;
+
+            while ((previousContext.Value is ParenExpr) || (previousContext.Value is ImplicitCastExpr))
+            {
+                previousContext = previousContext.Previous;
+            }
+
+            if (previousContext.Value is T)
+            {
+                value = (T)previousContext.Value;
+                return true;
+            }
+            else
+            {
+                value = null;
+                return false;
+            }
+        }
+
+        private bool IsStmtAsWritten<T>(Cursor cursor, out T value, bool removeParens = false)
             where T : Stmt
         {
             if (cursor is Expr expr)
             {
-                cursor = GetExprAsWritten(expr);
+                cursor = GetExprAsWritten(expr, removeParens);
             }
 
             if (cursor is T)
@@ -2385,7 +2418,7 @@ namespace ClangSharp
             }
         }
 
-        private bool IsUnchecked(string typeName, Stmt stmt)
+        private bool IsUnchecked(string targetTypeName, Stmt stmt)
         {
             switch (stmt.StmtClass)
             {
@@ -2393,7 +2426,10 @@ namespace ClangSharp
 
                 case CX_StmtClass.CX_StmtClass_ConditionalOperator:
                 {
-                    return false;
+                    var conditionalOperator = (ConditionalOperator)stmt;
+                    return IsUnchecked(targetTypeName, conditionalOperator.LHS)
+                        || IsUnchecked(targetTypeName, conditionalOperator.RHS)
+                        || IsUnchecked(targetTypeName, conditionalOperator.Handle.Evaluate);
                 }
 
                 // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:
@@ -2407,9 +2443,10 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_BinaryOperator:
                 {
                     var binaryOperator = (BinaryOperator)stmt;
-                    return IsUnchecked(typeName, binaryOperator.LHS)
-                        || IsUnchecked(typeName, binaryOperator.RHS)
-                        || IsUnchecked(typeName, binaryOperator.Handle.Evaluate);
+                    return IsUnchecked(targetTypeName, binaryOperator.LHS)
+                        || IsUnchecked(targetTypeName, binaryOperator.RHS)
+                        || IsUnchecked(targetTypeName, binaryOperator.Handle.Evaluate)
+                        || IsOverflow(binaryOperator);
                 }
 
                 // case CX_StmtClass.CX_StmtClass_CompoundAssignOperator:
@@ -2463,7 +2500,11 @@ namespace ClangSharp
                     return false;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
+                case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_UserDefinedLiteral:
                 // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
 
@@ -2471,8 +2512,11 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
                 {
                     var explicitCastExpr = (ExplicitCastExpr)stmt;
-                    typeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _);
-                    return IsUnchecked(typeName, explicitCastExpr.SubExprAsWritten);
+                    var explicitCastExprTypeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _);
+
+                    return IsUnchecked(targetTypeName, explicitCastExpr.SubExprAsWritten)
+                        || IsUnchecked(targetTypeName, explicitCastExpr.Handle.Evaluate)
+                        || (IsUnsigned(targetTypeName) != IsUnsigned(explicitCastExprTypeName));
                 }
 
                 // case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
@@ -2485,7 +2529,10 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_ImplicitCastExpr:
                 {
                     var implicitCastExpr = (ImplicitCastExpr)stmt;
-                    return IsUnchecked(typeName, implicitCastExpr.SubExprAsWritten);
+                    var implicitCastExprTypeName = GetRemappedTypeName(implicitCastExpr, context: null, implicitCastExpr.Type, out _);
+
+                    return IsUnchecked(targetTypeName, implicitCastExpr.SubExprAsWritten)
+                        || IsUnchecked(targetTypeName, implicitCastExpr.Handle.Evaluate);
                 }
 
                 case CX_StmtClass.CX_StmtClass_CharacterLiteral:
@@ -2503,7 +2550,7 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_DeclRefExpr:
                 {
                     var declRefExpr = (DeclRefExpr)stmt;
-                    return ((declRefExpr.Decl is VarDecl varDecl) && varDecl.HasInit && IsUnchecked(typeName, varDecl.Init));
+                    return (declRefExpr.Decl is VarDecl varDecl) && varDecl.HasInit && IsUnchecked(targetTypeName, varDecl.Init);
                 }
 
                 // case CX_StmtClass.CX_StmtClass_DependentCoawaitExpr:
@@ -2536,7 +2583,7 @@ namespace ClangSharp
                 {
                     var integerLiteral = (IntegerLiteral)stmt;
                     var signedValue = integerLiteral.Value;
-                    return IsUnchecked(typeName, signedValue, integerLiteral.IsNegative, isHex: integerLiteral.ValueString.StartsWith("0x"));
+                    return IsUnchecked(targetTypeName, signedValue, integerLiteral.IsNegative, isHex: integerLiteral.ValueString.StartsWith("0x"));
                 }
 
                 // case CX_StmtClass.CX_StmtClass_LambdaExpr:
@@ -2575,8 +2622,8 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_ParenExpr:
                 {
                     var parenExpr = (ParenExpr)stmt;
-                    return IsUnchecked(typeName, parenExpr.SubExpr)
-                        || IsUnchecked(typeName, parenExpr.Handle.Evaluate);
+                    return IsUnchecked(targetTypeName, parenExpr.SubExpr)
+                        || IsUnchecked(targetTypeName, parenExpr.Handle.Evaluate);
                 }
 
                 // case CX_StmtClass.CX_StmtClass_ParenListExpr:
@@ -2616,7 +2663,7 @@ namespace ClangSharp
                     {
                         case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
                         {
-                            switch (typeName)
+                            switch (targetTypeName)
                             {
                                 case "byte":
                                 case "Byte":
@@ -2630,7 +2677,7 @@ namespace ClangSharp
                                 case "short":
                                 case "Int16":
                                 {
-                                    return (size32 != size64) || !IsPrevContext<VarDecl>(out _);
+                                    return (size32 != size64) || !IsPrevContextDecl<VarDecl>(out _);
                                 }
 
                                 case "ulong":
@@ -2661,9 +2708,9 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_UnaryOperator:
                 {
                     var unaryOperator = (UnaryOperator)stmt;
-                    return IsUnchecked(typeName, unaryOperator.SubExpr)
-                        || IsUnchecked(typeName, unaryOperator.Handle.Evaluate)
-                        || ((unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_Minus) && IsUnsigned(typeName));
+                    return IsUnchecked(targetTypeName, unaryOperator.SubExpr)
+                        || IsUnchecked(targetTypeName, unaryOperator.Handle.Evaluate)
+                        || ((unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_Minus) && IsUnsigned(targetTypeName));
                 }
 
                 // case CX_StmtClass.CX_StmtClass_VAArgExpr:
@@ -2672,6 +2719,52 @@ namespace ClangSharp
                 {
                     AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported statement class: '{stmt.StmtClassName}'. Generated bindings may not be unchecked.", stmt);
                     return false;
+                }
+            }
+
+            bool IsOverflow(BinaryOperator binaryOperator)
+            {
+                var lhs = binaryOperator.LHS;
+                var rhs = binaryOperator.RHS;
+
+                if (!IsStmtAsWritten<IntegerLiteral>(lhs, out var lhsIntegerLiteral, removeParens: true) || !IsStmtAsWritten<IntegerLiteral>(rhs, out var rhsIntegerLiteral, removeParens: true))
+                {
+                    return false;
+                }
+
+                var targetTypeName = GetRemappedTypeName(binaryOperator, context: null, binaryOperator.Type, out _);
+                var isUnsigned = IsUnsigned(targetTypeName);
+
+                switch (binaryOperator.Opcode)
+                {
+                    case CX_BinaryOperatorKind.CX_BO_Add:
+                    {
+                        if (isUnsigned)
+                        {
+                            return unchecked((ulong)lhsIntegerLiteral.Value + (ulong)rhsIntegerLiteral.Value < (ulong)lhsIntegerLiteral.Value);
+                        }
+                        else
+                        {
+                            return unchecked(lhsIntegerLiteral.Value + rhsIntegerLiteral.Value < lhsIntegerLiteral.Value);
+                        }
+                    }
+
+                    case CX_BinaryOperatorKind.CX_BO_Sub:
+                    {
+                        if (isUnsigned)
+                        {
+                            return unchecked((ulong)lhsIntegerLiteral.Value - (ulong)rhsIntegerLiteral.Value > (ulong)lhsIntegerLiteral.Value);
+                        }
+                        else
+                        {
+                            return unchecked(lhsIntegerLiteral.Value - rhsIntegerLiteral.Value > lhsIntegerLiteral.Value);
+                        }
+                    }
+
+                    default:
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -2715,7 +2808,7 @@ namespace ClangSharp
 
         private bool IsUnchecked(string typeName, CXEvalResult evalResult)
         {
-            if ((evalResult.Kind != CXEvalResultKind.CXEval_Int) && ((evalResult.Kind != CXEvalResultKind.CXEval_UnExposed) || !IsPrevContext<EnumConstantDecl>(out _)))
+            if (evalResult.Kind != CXEvalResultKind.CXEval_Int)
             {
                 return false;
             }
@@ -3204,19 +3297,53 @@ namespace ClangSharp
             }
         }
 
-        private void UncheckStmt(string typeName, Stmt stmt)
+        private void UncheckStmt(string targetTypeName, Stmt stmt)
         {
-            if (IsUnchecked(typeName, stmt))
+            if (IsUnchecked(targetTypeName, stmt))
             {
                 _outputBuilder.Write("unchecked");
 
-                var needsCast = IsStmtAsWritten<IntegerLiteral>(stmt, out _) && (stmt.DeclContext is EnumDecl);
+                var needsCast = IsStmtAsWritten<IntegerLiteral>(stmt, out _, removeParens: true) && (stmt.DeclContext is EnumDecl);
+
+                if (IsStmtAsWritten<UnaryExprOrTypeTraitExpr>(stmt, out var unaryExprOrTypeTraitExpr, removeParens: true) && ((CurrentContext is VarDecl) || IsPrevContextDecl<VarDecl>(out _)))
+                {
+                    var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
+
+                    long size32;
+                    long size64;
+
+                    long alignment32 = -1;
+                    long alignment64 = -1;
+
+                    GetTypeSize(unaryExprOrTypeTraitExpr, argumentType, ref alignment32, ref alignment64, out size32, out size64);
+
+                    switch (unaryExprOrTypeTraitExpr.Kind)
+                    {
+                        case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
+                        {
+                            needsCast |= (size32 != size64);
+                            break;
+                        }
+
+                        case CX_UnaryExprOrTypeTrait.CX_UETT_AlignOf:
+                        case CX_UnaryExprOrTypeTrait.CX_UETT_PreferredAlignOf:
+                        {
+                            needsCast |= (alignment32 != alignment64);
+                            break;
+                        }
+
+                        default:
+                        {
+                            break;
+                        }
+                    }
+                }
 
                 if (needsCast)
                 {
                     _outputBuilder.Write('(');
                     _outputBuilder.Write('(');
-                    _outputBuilder.Write(typeName);
+                    _outputBuilder.Write(targetTypeName);
                     _outputBuilder.Write(')');
                 }
 

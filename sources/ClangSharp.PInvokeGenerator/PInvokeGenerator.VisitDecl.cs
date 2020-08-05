@@ -65,8 +65,7 @@ namespace ClangSharp
 
                 case CX_DeclKind.CX_DeclKind_Namespace:
                 {
-                    // We don't currently include the namespace name anywhere in the
-                    // generated bindings. We might want to in the future...
+                    VisitNamespaceDecl((NamespaceDecl)decl);
                     break;
                 }
 
@@ -568,9 +567,7 @@ namespace ClangSharp
             {
                 Debug.Assert(cxxRecordDecl != null);
 
-                var previousContext = PreviousContext;
-
-                if (!(previousContext is CXXRecordDecl thisCursor))
+                if (!IsPrevContextDecl<CXXRecordDecl>(out CXXRecordDecl thisCursor))
                 {
                     thisCursor = cxxRecordDecl;
                 }
@@ -707,6 +704,17 @@ namespace ClangSharp
             }
         }
 
+        private void VisitNamespaceDecl(NamespaceDecl namespaceDecl)
+        {
+            // We don't currently include the namespace name anywhere in the
+            // generated bindings. We might want to in the future...
+
+            foreach (var cursor in namespaceDecl.CursorChildren)
+            {
+                Visit(cursor);
+            }
+        }
+
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl)
         {
             if (IsExcluded(parmVarDecl))
@@ -714,18 +722,17 @@ namespace ClangSharp
                 return;
             }
 
-            var previousContext = PreviousContext;
-
-            if (previousContext is FunctionDecl functionDecl)
+            if (IsPrevContextDecl<FunctionDecl>(out var functionDecl))
             {
                 ForFunctionDecl(parmVarDecl, functionDecl);
             }
-            else if (previousContext is TypedefDecl typedefDecl)
+            else if (IsPrevContextDecl<TypedefDecl>(out var typedefDecl))
             {
                 ForTypedefDecl(parmVarDecl, typedefDecl);
             }
             else
             {
+                IsPrevContextDecl<Decl>(out var previousContext);
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.", previousContext);
             }
 
@@ -919,6 +926,7 @@ namespace ClangSharp
 
                     if (_testOutputBuilder != null)
                     {
+                        _testOutputBuilder.AddUsingDirective("System");
                         _testOutputBuilder.AddUsingDirective($"static {_config.Namespace}.{_config.MethodClassName}");
 
                         _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"Guid\" /> of the <see cref=");
@@ -2746,13 +2754,11 @@ namespace ClangSharp
 
         private void VisitVarDecl(VarDecl varDecl)
         {
-            var previousContext = PreviousContext;
-
-            if (previousContext is DeclStmt declStmt)
+            if (IsPrevContextStmt<DeclStmt>(out var declStmt))
             {
                 ForDeclStmt(varDecl, declStmt);
             }
-            else if ((previousContext is TranslationUnitDecl) || (previousContext is LinkageSpecDecl) || (previousContext is RecordDecl))
+            else if (IsPrevContextDecl<TranslationUnitDecl>(out _) || IsPrevContextDecl<LinkageSpecDecl>(out _) || IsPrevContextDecl<RecordDecl>(out _))
             {
                 if (!varDecl.HasInit)
                 {
@@ -2760,22 +2766,18 @@ namespace ClangSharp
                     return;
                 }
 
+                var type = varDecl.Type;
                 var isMacroDefinitionRecord = false;
 
                 var nativeName = GetCursorName(varDecl);
                 if (nativeName.StartsWith("ClangSharpMacro_"))
                 {
+                    type = varDecl.Init.Type;
                     nativeName = nativeName.Substring("ClangSharpMacro_".Length);
                     isMacroDefinitionRecord = true;
                 }
                 var name = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false);
 
-                if (_uuidsToGenerate.ContainsKey(nativeName))
-                {
-                    _uuidsToGenerate.Remove(nativeName);
-                }
-
-                var type = varDecl.Type;
                 var openedOutputBuilder = false;
 
                 if (_outputBuilder is null)
@@ -2783,7 +2785,7 @@ namespace ClangSharp
                     StartUsingOutputBuilder(_config.MethodClassName);
                     openedOutputBuilder = true;
 
-                    if (IsUnsafe(varDecl, type) && (!varDecl.HasInit || !IsStmtAsWritten<StringLiteral>(varDecl.Init, out _)))
+                    if (IsUnsafe(varDecl, type) && (!varDecl.HasInit || !IsStmtAsWritten<StringLiteral>(varDecl.Init, out _, removeParens: true)))
                     {
                         _isMethodClassUnsafe = true;
                     }
@@ -2796,6 +2798,11 @@ namespace ClangSharp
                 WithUsings(name);
 
                 var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
+
+                if (typeName == "Guid")
+                {
+                    _generatedUuids.Add(name);
+                }
 
                 if (isMacroDefinitionRecord)
                 {
@@ -2818,7 +2825,7 @@ namespace ClangSharp
 
                 var isProperty = false;
 
-                if (IsStmtAsWritten<StringLiteral>(varDecl.Init, out StringLiteral stringLiteral))
+                if (IsStmtAsWritten<StringLiteral>(varDecl.Init, out var stringLiteral, removeParens: true))
                 {
                     switch (stringLiteral.Kind)
                     {
@@ -2860,7 +2867,7 @@ namespace ClangSharp
                         }
                     }
                 }
-                else if (type.IsLocalConstQualified && CanBeConstant(type, varDecl.Init))
+                else if ((type.IsLocalConstQualified || isMacroDefinitionRecord) && CanBeConstant(type, varDecl.Init))
                 {
                     _outputBuilder.Write("const");
                     _outputBuilder.Write(' ');
@@ -2870,7 +2877,7 @@ namespace ClangSharp
                     _outputBuilder.Write("static");
                     _outputBuilder.Write(' ');
 
-                    if (type.IsLocalConstQualified)
+                    if (type.IsLocalConstQualified || isMacroDefinitionRecord)
                     {
                         _outputBuilder.Write("readonly");
                         _outputBuilder.Write(' ');
@@ -2922,6 +2929,7 @@ namespace ClangSharp
             }
             else
             {
+                IsPrevContextDecl<Decl>(out var previousContext);
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.", previousContext);
             }
 
@@ -3078,7 +3086,23 @@ namespace ClangSharp
 
                 // case CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
+                {
+                    var cxxOperatorCall = (CXXOperatorCallExpr)initExpr;
+
+                    if (cxxOperatorCall.CalleeDecl is FunctionDecl functionDecl)
+                    {
+                        var functionDeclName = GetCursorName(functionDecl);
+
+                        if (IsEnumOperator(functionDecl, functionDeclName))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_UserDefinedLiteral:
                 // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
 

@@ -11,11 +11,11 @@ namespace ClangSharp.Interop
             Handle = handle;
         }
 
-        public double AsDouble => clang.EvalResult_getAsDouble(this);
+        public double AsDouble => (Kind == CXEvalResultKind.CXEval_Float) ? clang.EvalResult_getAsDouble(this) : 0;
 
-        public int AsInt => clang.EvalResult_getAsInt(this);
+        public int AsInt => (Kind == CXEvalResultKind.CXEval_Int) ? clang.EvalResult_getAsInt(this) : 0;
 
-        public long AsLongLong => clang.EvalResult_getAsLongLong(this);
+        public long AsLongLong => (Kind == CXEvalResultKind.CXEval_Int) ? clang.EvalResult_getAsLongLong(this) : 0;
 
         public string AsStr
         {
@@ -33,11 +33,11 @@ namespace ClangSharp.Interop
             }
         }
 
-        public ulong AsUnsigned => clang.EvalResult_getAsUnsigned(this);
+        public ulong AsUnsigned => (Kind == CXEvalResultKind.CXEval_Int) ? clang.EvalResult_getAsUnsigned(this) : 0;
 
         public IntPtr Handle { get; set; }
 
-        public bool IsUnsignedInt => clang.EvalResult_isUnsignedInt(this) != 0;
+        public bool IsUnsignedInt => (Kind == CXEvalResultKind.CXEval_Int) && (clang.EvalResult_isUnsignedInt(this) != 0);
 
         public CXEvalResultKind Kind => clang.EvalResult_getKind(this);
 

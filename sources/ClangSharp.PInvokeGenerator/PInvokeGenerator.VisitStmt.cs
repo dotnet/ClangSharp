@@ -154,7 +154,7 @@ namespace ClangSharp
                     }
                     else
                     {
-                        var isPreviousExplicitCast = IsStmtAsWritten<ExplicitCastExpr>(PreviousContext, out _);
+                        var isPreviousExplicitCast = IsPrevContextStmt<ExplicitCastExpr>(out _);
 
                         if (!isPreviousExplicitCast)
                         {
@@ -323,12 +323,46 @@ namespace ClangSharp
                     _outputBuilder.Write('.');
                 }
 
+                var functionDeclName = GetCursorName(functionDecl);
+                var args = cxxOperatorCallExpr.Args;
+
+                if (IsEnumOperator(functionDecl, functionDeclName))
+                {
+                    switch (functionDeclName)
+                    {
+                        case "operator|":
+                        case "operator|=":
+                        case "operator&":
+                        case "operator&=":
+                        case "operator^":
+                        case "operator^=":
+                        {
+                            Visit(args[0]);
+                            _outputBuilder.Write(' ');
+                            _outputBuilder.Write(functionDeclName.Substring(8));
+                            _outputBuilder.Write(' ');
+                            Visit(args[1]);
+                            return;
+                        }
+
+                        case "operator~":
+                        {
+                            _outputBuilder.Write(functionDeclName.Substring(8));
+                            Visit(args[0]);
+                            return;
+                        }
+
+                        default:
+                        {
+                            break;
+                        }
+                    }
+                }
+
                 var name = GetRemappedCursorName(functionDecl);
                 _outputBuilder.Write(name);
 
                 _outputBuilder.Write('(');
-
-                var args = cxxOperatorCallExpr.Args;
 
                 if (args.Count != 0)
                 {
@@ -647,11 +681,11 @@ namespace ClangSharp
             {
                 var subExpr = implicitCastExpr.SubExprAsWritten;
 
-                if ((PreviousContext is BinaryOperator binaryOperator) && ((binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_EQ) || (binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_NE)))
+                if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator) && ((binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_EQ) || (binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_NE)))
                 {
                     Visit(subExpr);
                 }
-                else if (IsPrevContext<EnumConstantDecl>(out _))
+                else if (IsPrevContextDecl<EnumConstantDecl>(out _))
                 {
                     Visit(subExpr);
                 }
@@ -921,7 +955,7 @@ namespace ClangSharp
 
         private void VisitReturnStmt(ReturnStmt returnStmt)
         {
-            if (IsPrevContext<FunctionDecl>(out var functionDecl) && (functionDecl.ReturnType.CanonicalType.Kind != CXTypeKind.CXType_Void))
+            if (IsPrevContextDecl<FunctionDecl>(out var functionDecl) && (functionDecl.ReturnType.CanonicalType.Kind != CXTypeKind.CXType_Void))
             {
                 _outputBuilder.Write("return");
 
@@ -1365,7 +1399,7 @@ namespace ClangSharp
                 {
                     var context = string.Empty;
 
-                    if (IsPrevContext<NamedDecl>(out var namedDecl))
+                    if (IsPrevContextDecl<NamedDecl>(out var namedDecl))
                     {
                         context = $" in {GetCursorQualifiedName(namedDecl)}";
                     }
@@ -1509,7 +1543,7 @@ namespace ClangSharp
             {
                 case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
                 {
-                    if ((size32 == size64) && IsPrevContext<VarDecl>(out _))
+                    if ((size32 == size64) && IsPrevContextDecl<VarDecl>(out _))
                     {
                         _outputBuilder.Write(size32);
                     }
@@ -1522,7 +1556,7 @@ namespace ClangSharp
 
                         var parentType = null as Type;
 
-                        if (PreviousContext is CallExpr callExpr)
+                        if (IsPrevContextStmt<CallExpr>(out var callExpr))
                         {
                             var index = callExpr.Args.IndexOf(unaryExprOrTypeTraitExpr);
                             var calleeDecl = callExpr.CalleeDecl;
@@ -1537,11 +1571,11 @@ namespace ClangSharp
                             }
 
                         }
-                        else if (PreviousContext is Expr expr)
+                        else if (IsPrevContextStmt<Expr>(out var expr))
                         {
                             parentType = expr.Type.CanonicalType;
                         }
-                        else if (PreviousContext is TypeDecl typeDecl)
+                        else if (IsPrevContextDecl<TypeDecl>(out var typeDecl))
                         {
                             parentType = typeDecl.TypeForDecl.CanonicalType;
                         }
@@ -1637,7 +1671,7 @@ namespace ClangSharp
 
                 case CX_UnaryOperatorKind.CX_UO_LNot:
                 {
-                    var subExpr = GetExprAsWritten(unaryOperator.SubExpr);
+                    var subExpr = GetExprAsWritten(unaryOperator.SubExpr, removeParens: true);
                     var canonicalType = subExpr.Type.CanonicalType;
 
                     if (canonicalType.IsIntegerType && (canonicalType.Kind != CXTypeKind.CXType_Bool))

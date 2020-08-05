@@ -923,13 +923,14 @@ struct __declspec(uuid(""00000000-0000-0000-C000-000000000046"")) MyStruct1
     int x;
 }};
 
-struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000046"") MyStruct2
+struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyStruct2
 {{
     int x;
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -939,10 +940,17 @@ namespace ClangSharp.Test
         public int x;
     }}
 
-    [Guid(""00000000-0000-0000-C000-000000000046"")]
+    [Guid(""00000000-0000-0000-C000-000000000047"")]
     public partial struct MyStruct2
     {{
         public int x;
+    }}
+
+    public static partial class Methods
+    {{
+        public static readonly Guid IID_MyStruct1 = new Guid(0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
+
+        public static readonly Guid IID_MyStruct2 = new Guid(0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x47);
     }}
 }}
 ";
