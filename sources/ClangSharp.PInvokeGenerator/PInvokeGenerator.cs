@@ -23,6 +23,7 @@ namespace ClangSharp
         private readonly HashSet<string> _visitedFiles;
         private readonly List<Diagnostic> _diagnostics;
         private readonly LinkedList<Cursor> _context;
+        private readonly Dictionary<string, Guid> _uuidsToGenerate;
         private readonly PInvokeGeneratorConfiguration _config;
 
         private string _filePath;
@@ -54,6 +55,7 @@ namespace ClangSharp
             _diagnostics = new List<Diagnostic>();
             _context = new LinkedList<Cursor>();
             _config = config;
+            _uuidsToGenerate = new Dictionary<string, Guid>();
         }
 
         ~PInvokeGenerator()
@@ -89,6 +91,11 @@ namespace ClangSharp
 
                 foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
                 {
+                    if (_config.MethodClassName.Equals(outputBuilder.Name) && _uuidsToGenerate.Any())
+                    {
+                        outputBuilder.AddUsingDirective("System");
+                    }
+
                     usingDirectives = usingDirectives.Concat(outputBuilder.UsingDirectives);
                     staticUsingDirectives = staticUsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
                 }
@@ -324,6 +331,11 @@ namespace ClangSharp
                     sw.WriteLine(_config.HeaderText);
                 }
 
+                if (isMethodClass && _uuidsToGenerate.Any())
+                {
+                    outputBuilder.AddUsingDirective("System");
+                }
+
                 var usingDirectives = outputBuilder.UsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
 
                 if (usingDirectives.Any())
@@ -402,6 +414,34 @@ namespace ClangSharp
 
             if (isMethodClass)
             {
+                foreach (var foundUuid in _uuidsToGenerate)
+                {
+                    var iidName = foundUuid.Key;
+                    var iidValue = foundUuid.Value.ToString("X").Replace("{", "").Replace("}", "");
+
+                    sw.WriteLine();
+                    sw.Write(indentationString);
+                    sw.Write("public");
+                    sw.Write(' ');
+                    sw.Write("static");
+                    sw.Write(' ');
+                    sw.Write("readonly");
+                    sw.Write(' ');
+                    sw.Write("Guid");
+                    sw.Write(' ');
+                    sw.Write(iidName);
+                    sw.Write(' ');
+                    sw.Write('=');
+                    sw.Write(' ');
+                    sw.Write("new");
+                    sw.Write(' ');
+                    sw.Write("Guid");
+                    sw.Write('(');
+                    sw.Write(iidValue);
+                    sw.Write(')');
+                    sw.WriteLine(';');
+                }
+
                 sw.Write(outputBuilder.IndentationString);
                 sw.WriteLine('}');
             }
@@ -2168,7 +2208,7 @@ namespace ClangSharp
                     }
                 }
 
-                return true;
+                return !TryGetUuid(recordDecl, out _);
             }
 
             bool IsEnumOperator(FunctionDecl functionDecl, string name)
@@ -2989,6 +3029,32 @@ namespace ClangSharp
                 _testOutputBuilder = null;
             }
             _outputBuilderUsers--;
+        }
+
+        private bool TryGetUuid(RecordDecl recordDecl, out Guid uuid)
+        {
+            var uuidAttrs = recordDecl.Attrs.Where((attr) => attr.Kind == CX_AttrKind.CX_AttrKind_Uuid);
+
+            if (uuidAttrs.Count() == 0)
+            {
+                uuid = Guid.Empty;
+                return false;
+            }
+            else if (uuidAttrs.Count() != 1)
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Multiply uuid attributes for {recordDecl.Name}. Falling back to first attribute.", recordDecl);
+            }
+
+            var uuidAttr = uuidAttrs.First();
+            var uuidAttrText = GetSourceRangeContents(recordDecl.TranslationUnit.Handle, uuidAttr.Extent);
+            var uuidText = uuidAttrText.Split(new char[] { '"' }, StringSplitOptions.RemoveEmptyEntries)[1];
+
+            if (!Guid.TryParse(uuidText, out uuid))
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Failed to parse uuid attr text '{uuidAttrText}'. Extracted portion: '{uuidText}'.", recordDecl);
+                return false;
+            }
+            return true;
         }
 
         private bool TryRemapOperatorName(ref string name, FunctionDecl functionDecl)

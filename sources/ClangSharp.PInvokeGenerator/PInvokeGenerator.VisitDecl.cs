@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using ClangSharp.Interop;
@@ -898,65 +899,25 @@ namespace ClangSharp
                     _outputBuilder.WriteLine(']');
                 }
 
-                var uuid = recordDecl.Attrs.Where((attr) => attr.Kind == CX_AttrKind.CX_AttrKind_Uuid).SingleOrDefault();
-
-                if (uuid != null)
+                if (TryGetUuid(recordDecl, out Guid uuid))
                 {
-                    var uuidText = GetSourceRangeContents(recordDecl.TranslationUnit.Handle, uuid.Extent).Split(new char[] { '"' }, StringSplitOptions.RemoveEmptyEntries)[1];
-
                     _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+
                     _outputBuilder.WriteIndented('[');
                     _outputBuilder.Write("Guid");
                     _outputBuilder.Write('(');
                     _outputBuilder.Write('"');
-                    _outputBuilder.Write(uuidText);
+                    _outputBuilder.Write(uuid.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant());
                     _outputBuilder.Write('"');
                     _outputBuilder.Write(')');
                     _outputBuilder.WriteLine(']');
-                }
 
-                _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
-                _outputBuilder.Write(' ');
+                    var nativeName = GetCursorName(recordDecl);
+                    var iidName = GetRemappedName($"IID_{nativeName}", recordDecl, tryRemapOperatorName: false);
 
-                if (IsUnsafe(recordDecl))
-                {
-                    _outputBuilder.Write("unsafe");
-                    _outputBuilder.Write(' ');
-                }
+                    _uuidsToGenerate.Add(iidName, uuid);
 
-                _outputBuilder.Write("partial struct");
-                _outputBuilder.Write(' ');
-                _outputBuilder.WriteLine(EscapeName(name));
-                _outputBuilder.WriteBlockStart();
-
-                if (hasVtbl)
-                {
-                    if (_config.GenerateExplicitVtbls)
-                    {
-                        _outputBuilder.WriteIndented("public");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write("Vtbl");
-                        _outputBuilder.Write('*');
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write("lpVtbl");
-                        _outputBuilder.WriteSemicolon();
-                        _outputBuilder.WriteNewline();
-                    }
-                    else
-                    {
-                        _outputBuilder.WriteIndented("public");
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write("void");
-                        _outputBuilder.Write('*');
-                        _outputBuilder.Write('*');
-                        _outputBuilder.Write(' ');
-                        _outputBuilder.Write("lpVtbl");
-                        _outputBuilder.WriteSemicolon();
-                        _outputBuilder.WriteNewline();
-                    }
-                    _outputBuilder.NeedsNewline = true;
-
-                    if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                    if (_testOutputBuilder != null)
                     {
                         _testOutputBuilder.AddUsingDirective($"static {_config.Namespace}.{_config.MethodClassName}");
 
@@ -1002,9 +963,7 @@ namespace ClangSharp
                             _testOutputBuilder.Write('(');
                         }
 
-                        _testOutputBuilder.Write("IID");
-                        _testOutputBuilder.Write('_');
-                        _testOutputBuilder.Write(EscapeName(name));
+                        _testOutputBuilder.Write(iidName);
 
                         if (_config.GenerateTestsNUnit)
                         {
@@ -1017,6 +976,48 @@ namespace ClangSharp
                         _testOutputBuilder.WriteBlockEnd();
                         _testOutputBuilder.NeedsNewline = true;
                     }
+                }
+
+                _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
+                _outputBuilder.Write(' ');
+
+                if (IsUnsafe(recordDecl))
+                {
+                    _outputBuilder.Write("unsafe");
+                    _outputBuilder.Write(' ');
+                }
+
+                _outputBuilder.Write("partial struct");
+                _outputBuilder.Write(' ');
+                _outputBuilder.WriteLine(EscapeName(name));
+                _outputBuilder.WriteBlockStart();
+
+                if (hasVtbl)
+                {
+                    if (_config.GenerateExplicitVtbls)
+                    {
+                        _outputBuilder.WriteIndented("public");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("Vtbl");
+                        _outputBuilder.Write('*');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("lpVtbl");
+                        _outputBuilder.WriteSemicolon();
+                        _outputBuilder.WriteNewline();
+                    }
+                    else
+                    {
+                        _outputBuilder.WriteIndented("public");
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("void");
+                        _outputBuilder.Write('*');
+                        _outputBuilder.Write('*');
+                        _outputBuilder.Write(' ');
+                        _outputBuilder.Write("lpVtbl");
+                        _outputBuilder.WriteSemicolon();
+                        _outputBuilder.WriteNewline();
+                    }
+                    _outputBuilder.NeedsNewline = true;
                 }
 
                 if (cxxRecordDecl != null)
@@ -1102,7 +1103,7 @@ namespace ClangSharp
 
                     GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32, out var size64);
 
-                    if ((size32 == 0) || (size64 == 0))
+                    if (((size32 == 0) || (size64 == 0)) && !TryGetUuid(recordDecl, out _))
                     {
                         AddDiagnostic(DiagnosticLevel.Info, $"{EscapeName(name)} has a size of 0");
                     }
@@ -1135,14 +1136,14 @@ namespace ClangSharp
                         _testOutputBuilder.WriteLine(')');
                         _testOutputBuilder.WriteBlockStart();
 
-                        WithTestAssertEqual($"{size64}", $"sizeof({EscapeName(name)})");
+                        WithTestAssertEqual($"{Math.Max(size64, 1)}", $"sizeof({EscapeName(name)})");
 
                         _testOutputBuilder.WriteBlockEnd();
                         _testOutputBuilder.WriteIndentedLine("else");
                         _testOutputBuilder.WriteBlockStart();
                     }
 
-                    WithTestAssertEqual($"{size32}", $"sizeof({EscapeName(name)})");
+                    WithTestAssertEqual($"{Math.Max(size32, 1)}", $"sizeof({EscapeName(name)})");
 
                     if (size32 != size64)
                     {
@@ -2740,6 +2741,11 @@ namespace ClangSharp
                     isMacroDefinitionRecord = true;
                 }
                 var name = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false);
+
+                if (_uuidsToGenerate.ContainsKey(nativeName))
+                {
+                    _uuidsToGenerate.Remove(nativeName);
+                }
 
                 var type = varDecl.Type;
                 var openedOutputBuilder = false;
