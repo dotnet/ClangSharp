@@ -1881,9 +1881,9 @@ namespace ClangSharp
                     parmVarDecl1Type = referenceType1.PointeeType.CanonicalType;
                 }
 
-                if ((functionDecl.Parameters.Count == 1) && (parmVarDecl1Type.Kind == CXTypeKind.CXType_Enum))
+                if (functionDecl.Parameters.Count == 1)
                 {
-                    return true;
+                    return (parmVarDecl1Type.Kind == CXTypeKind.CXType_Enum);
                 }
 
                 var parmVarDecl2 = functionDecl.Parameters[1];
