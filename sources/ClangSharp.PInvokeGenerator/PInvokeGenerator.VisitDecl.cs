@@ -978,6 +978,34 @@ namespace ClangSharp
                     }
                 }
 
+                if ((cxxRecordDecl != null) && cxxRecordDecl.Bases.Any())
+                {
+                    var nativeTypeNameBuilder = new StringBuilder();
+
+                    nativeTypeNameBuilder.Append(recordDecl.IsUnion ? "union" : "struct");
+                    nativeTypeNameBuilder.Append(' ');
+
+                    nativeTypeNameBuilder.Append(GetCursorName(cxxRecordDecl));
+
+                    nativeTypeNameBuilder.Append(' ');
+                    nativeTypeNameBuilder.Append(':');
+                    nativeTypeNameBuilder.Append(' ');
+
+                    var baseName = GetCursorName(cxxRecordDecl.Bases[0].Referenced);
+                    nativeTypeNameBuilder.Append(baseName);
+
+                    for (int i = 1; i < cxxRecordDecl.Bases.Count; i++)
+                    {
+                        nativeTypeNameBuilder.Append(',');
+                        nativeTypeNameBuilder.Append(' ');
+
+                        baseName = GetCursorName(cxxRecordDecl.Bases[i].Referenced);
+                        nativeTypeNameBuilder.Append(baseName);
+                    }
+
+                    AddNativeTypeNameAttribute(nativeTypeNameBuilder.ToString());
+                }
+
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
                 _outputBuilder.Write(' ');
 

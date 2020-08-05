@@ -989,6 +989,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         public int y;
     }
 
+    [NativeTypeName(""struct MyStruct2 : MyStruct1A, MyStruct1B"")]
     public partial struct MyStruct2
     {
         public MyStruct1A __AnonymousBase_ClangUnsavedFile_L13_C20;
@@ -1609,6 +1610,7 @@ struct MyStruct1B : MyStruct1A
         }
     }
 
+    [NativeTypeName(""struct MyStruct1B : MyStruct1A"")]
     public partial struct MyStruct1B
     {
         public void MyMethod()
