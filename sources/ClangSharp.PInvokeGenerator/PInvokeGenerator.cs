@@ -2886,7 +2886,7 @@ namespace ClangSharp
         {
             var type = fieldDecl.Type;
 
-            if (type is ConstantArrayType)
+            if (type.CanonicalType is ConstantArrayType)
             {
                 var name = GetTypeName(fieldDecl, context: null, type, out _);
 

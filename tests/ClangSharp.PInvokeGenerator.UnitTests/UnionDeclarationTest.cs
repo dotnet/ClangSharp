@@ -368,13 +368,17 @@ namespace ClangSharp.Test
         }
 
         [Theory]
-        [InlineData("double", "double", 7, 5)]
-        [InlineData("short", "short", 7, 5)]
-        [InlineData("int", "int", 7, 5)]
-        [InlineData("float", "float", 7, 5)]
+        [InlineData("double", "double", 11, 5)]
+        [InlineData("short", "short", 11, 5)]
+        [InlineData("int", "int", 11, 5)]
+        [InlineData("float", "float", 11, 5)]
         public async Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column)
         {
-            var inputContents = $@"union MyUnion
+            var inputContents = $@"typedef struct {{
+    {nativeType} value;
+}} MyStruct;
+
+union MyUnion
 {{
     {nativeType} r;
     {nativeType} g;
@@ -383,16 +387,26 @@ namespace ClangSharp.Test
     union
     {{
         {nativeType} a;
+
+        MyStruct s;
+
+        {nativeType} buffer[4];
     }};
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
+    public partial struct MyStruct
+    {{
+        public {expectedManagedType} value;
+    }}
+
     [StructLayout(LayoutKind.Explicit)]
-    public partial struct MyUnion
+    public unsafe partial struct MyUnion
     {{
         [FieldOffset(0)]
         public {expectedManagedType} r;
@@ -409,11 +423,22 @@ namespace ClangSharp.Test
 
         public ref {expectedManagedType} a => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
 
+        public ref MyStruct s => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.s, 1));
+
+        public Span<{expectedManagedType}> buffer => MemoryMarshal.CreateSpan(ref Anonymous.buffer[0], 4);
+
         [StructLayout(LayoutKind.Explicit)]
-        public partial struct _Anonymous_e__Union
+        public unsafe partial struct _Anonymous_e__Union
         {{
             [FieldOffset(0)]
             public {expectedManagedType} a;
+
+            [FieldOffset(0)]
+            public MyStruct s;
+
+            [FieldOffset(0)]
+            [NativeTypeName(""{nativeType} [4]"")]
+            public fixed {expectedManagedType} buffer[4];
         }}
     }}
 }}

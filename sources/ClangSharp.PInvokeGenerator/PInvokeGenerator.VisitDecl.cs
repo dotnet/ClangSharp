@@ -327,7 +327,7 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
             }
 
-            if (type is ConstantArrayType constantArrayType)
+            if (type.CanonicalType is ConstantArrayType constantArrayType)
             {
                 if (IsSupportedFixedSizedBufferType(typeName))
                 {
@@ -341,7 +341,7 @@ namespace ClangSharp
 
                     var elementType = constantArrayType.ElementType;
 
-                    while (elementType is ConstantArrayType subConstantArrayType)
+                    while (elementType.CanonicalType is ConstantArrayType subConstantArrayType)
                     {
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write('*');
@@ -1245,7 +1245,7 @@ namespace ClangSharp
 
                 Visit(recordDecl.Decls, excludedCursors);
 
-                foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type is ConstantArrayType))
+                foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type.CanonicalType is ConstantArrayType))
                 {
                     VisitConstantArrayFieldDecl(this, recordDecl, constantArray);
                 }
@@ -1748,42 +1748,41 @@ namespace ClangSharp
                         outputBuilder.Write(' ');
 
                         var isFixedSizedBuffer = (type.CanonicalType is ConstantArrayType);
+                        var generateCompatibleCode = pinvokeGenerator._config.GenerateCompatibleCode;
 
-                        if (!fieldDecl.IsBitField && !isFixedSizedBuffer)
+                        if (!fieldDecl.IsBitField && (!isFixedSizedBuffer || generateCompatibleCode))
                         {
                             outputBuilder.Write("ref");
                             outputBuilder.Write(' ');
                         }
 
-                        if ((type.CanonicalType is RecordType recordType) && string.IsNullOrWhiteSpace(recordType.Decl.Name))
+                        if (type.CanonicalType is RecordType recordType)
                         {
-                            var nestedRecordDeclName = pinvokeGenerator.GetRemappedTypeName(recordType.Decl, context: null, recordType, out string nativeTypeName);
-                            var tmpRecordDecl = (RecordDecl)recordType.Decl.DeclContext;
+                            var recordDecl = recordType.Decl;
 
-                            while (tmpRecordDecl != rootRecordDecl)
+                            while ((recordDecl.DeclContext is RecordDecl parentRecordDecl) && (parentRecordDecl != rootRecordDecl))
                             {
-                                outputBuilder.Write(pinvokeGenerator.GetRemappedCursorName(tmpRecordDecl));
+                                outputBuilder.Write(pinvokeGenerator.GetRemappedCursorName(parentRecordDecl));
                                 outputBuilder.Write('.');
-                                tmpRecordDecl = (RecordDecl)tmpRecordDecl.DeclContext;
+                                recordDecl = parentRecordDecl;
                             }
                         }
 
-                        var generateCompatibleCode = pinvokeGenerator._config.GenerateCompatibleCode;
+                        var isSupportedFixedSizedBufferType = isFixedSizedBuffer && pinvokeGenerator.IsSupportedFixedSizedBufferType(typeName);
 
                         if (isFixedSizedBuffer)
                         {
-                            if (generateCompatibleCode)
-                            {
-                                outputBuilder.Write(contextType);
-                                outputBuilder.Write('.');
-
-                                typeName = pinvokeGenerator.GetArtificialFixedSizedBufferName(fieldDecl);
-                            }
-                            else
+                            if (!generateCompatibleCode)
                             {
                                 outputBuilder.AddUsingDirective("System");
                                 outputBuilder.Write("Span");
-                                outputBuilder.Write('<');
+                                outputBuilder.Write('<'); 
+                            }
+                            else if(!isSupportedFixedSizedBufferType)
+                            {
+                                outputBuilder.Write(contextType);
+                                outputBuilder.Write('.');
+                                typeName = pinvokeGenerator.GetArtificialFixedSizedBufferName(fieldDecl);
                             }
                         }
                         
@@ -1862,6 +1861,14 @@ namespace ClangSharp
                             outputBuilder.Write('-');
                             outputBuilder.Write('>');
                             outputBuilder.Write(fieldName);
+
+                            if (isSupportedFixedSizedBufferType)
+                            {
+                                outputBuilder.Write('[');
+                                outputBuilder.Write('0');
+                                outputBuilder.Write(']');
+                            }
+
                             outputBuilder.WriteSemicolon();
                             outputBuilder.WriteNewline();
                             outputBuilder.WriteBlockEnd();
@@ -1885,8 +1892,6 @@ namespace ClangSharp
                                 outputBuilder.Write("GetReference");
                                 outputBuilder.Write('(');
                             }
-
-                            var isSupportedFixedSizedBufferType = isFixedSizedBuffer && pinvokeGenerator.IsSupportedFixedSizedBufferType(typeName);
 
                             if (!isFixedSizedBuffer || isSupportedFixedSizedBufferType)
                             {
@@ -2347,10 +2352,10 @@ namespace ClangSharp
 
             static void VisitConstantArrayFieldDecl(PInvokeGenerator pinvokeGenerator, RecordDecl recordDecl, FieldDecl constantArray)
             {
-                Debug.Assert(constantArray.Type is ConstantArrayType);
+                Debug.Assert(constantArray.Type.CanonicalType is ConstantArrayType);
 
                 var outputBuilder = pinvokeGenerator._outputBuilder;
-                var type = (ConstantArrayType)constantArray.Type;
+                var type = (ConstantArrayType)constantArray.Type.CanonicalType;
                 var typeName = pinvokeGenerator.GetRemappedTypeName(constantArray, context: null, constantArray.Type, out _);
 
                 if (pinvokeGenerator.IsSupportedFixedSizedBufferType(typeName))
@@ -2403,7 +2408,7 @@ namespace ClangSharp
 
                 var elementType = type.ElementType;
 
-                while (elementType is ConstantArrayType subConstantArrayType)
+                while (elementType.CanonicalType is ConstantArrayType subConstantArrayType)
                 {
                     totalSize *= Math.Max(subConstantArrayType.Size, 1);
                     sizePerDimension.Add((0, Math.Max(subConstantArrayType.Size, 1)));
