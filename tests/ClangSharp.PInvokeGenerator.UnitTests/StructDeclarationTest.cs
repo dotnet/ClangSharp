@@ -1133,6 +1133,110 @@ struct MyStruct
         }} w;
 
         MyUnion u;
+        {nativeType} buffer1[4];
+        MyUnion buffer2[4];
+    }};
+}};
+";
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    [StructLayout(LayoutKind.Explicit)]
+    public partial struct MyUnion
+    {{
+        [FieldOffset(0)]
+        public {expectedManagedType} value;
+    }}
+
+    public unsafe partial struct MyStruct
+    {{
+        public {expectedManagedType} x;
+
+        public {expectedManagedType} y;
+
+        [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
+        public _Anonymous_e__Struct Anonymous;
+
+        public ref {expectedManagedType} z => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+
+        public ref _Anonymous_e__Struct._w_e__Struct w => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));
+
+        public ref MyUnion u => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));
+
+        public Span<{expectedManagedType}> buffer1 => MemoryMarshal.CreateSpan(ref Anonymous.buffer1[0], 4);
+
+        public Span<MyUnion> buffer2 => Anonymous.buffer2.AsSpan();
+
+        public unsafe partial struct _Anonymous_e__Struct
+        {{
+            public {expectedManagedType} z;
+
+            [NativeTypeName(""struct (anonymous struct at ClangUnsavedFile.h:14:9)"")]
+            public _w_e__Struct w;
+
+            public MyUnion u;
+
+            [NativeTypeName(""{nativeType} [4]"")]
+            public fixed {expectedManagedType} buffer1[4];
+
+            [NativeTypeName(""MyUnion [4]"")]
+            public _buffer2_e__FixedBuffer buffer2;
+
+            public partial struct _w_e__Struct
+            {{
+                public {expectedManagedType} value;
+            }}
+
+            public partial struct _buffer2_e__FixedBuffer
+            {{
+                public MyUnion e0;
+                public MyUnion e1;
+                public MyUnion e2;
+                public MyUnion e3;
+
+                public ref MyUnion this[int index] => ref AsSpan()[index];
+
+                public Span<MyUnion> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 4);
+            }}
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("double", "double", 10, 5)]
+        [InlineData("short", "short", 10, 5)]
+        [InlineData("int", "int", 10, 5)]
+        [InlineData("float", "float", 10, 5)]
+        public async Task NestedAnonymousCompatibleTest(string nativeType, string expectedManagedType, int line, int column)
+        {
+            var inputContents = $@"typedef union {{
+    {nativeType} value;
+}} MyUnion;
+
+struct MyStruct
+{{
+    {nativeType} x;
+    {nativeType} y;
+
+    struct
+    {{
+        {nativeType} z;
+
+        struct
+        {{
+            {nativeType} value;
+        }} w;
+
+        MyUnion u;
+        {nativeType} buffer1[4];
+        MyUnion buffer2[4];
     }};
 }};
 ";
@@ -1148,7 +1252,7 @@ namespace ClangSharp.Test
         public {expectedManagedType} value;
     }}
 
-    public partial struct MyStruct
+    public unsafe partial struct MyStruct
     {{
         public {expectedManagedType} x;
 
@@ -1157,13 +1261,62 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
         public _Anonymous_e__Struct Anonymous;
 
-        public ref {expectedManagedType} z => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+        public ref {expectedManagedType} z
+        {{
+            get
+            {{
+                fixed (_Anonymous_e__Struct* pField = &Anonymous)
+                {{
+                    return ref pField->z;
+                }}
+            }}
+        }}
 
-        public ref _Anonymous_e__Struct._w_e__Struct w => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));
+        public ref _Anonymous_e__Struct._w_e__Struct w
+        {{
+            get
+            {{
+                fixed (_Anonymous_e__Struct* pField = &Anonymous)
+                {{
+                    return ref pField->w;
+                }}
+            }}
+        }}
 
-        public ref MyUnion u => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));
+        public ref MyUnion u
+        {{
+            get
+            {{
+                fixed (_Anonymous_e__Struct* pField = &Anonymous)
+                {{
+                    return ref pField->u;
+                }}
+            }}
+        }}
 
-        public partial struct _Anonymous_e__Struct
+        public ref {expectedManagedType} buffer1
+        {{
+            get
+            {{
+                fixed (_Anonymous_e__Struct* pField = &Anonymous)
+                {{
+                    return ref pField->buffer1[0];
+                }}
+            }}
+        }}
+
+        public ref _Anonymous_e__Struct._buffer2_e__FixedBuffer buffer2
+        {{
+            get
+            {{
+                fixed (_Anonymous_e__Struct* pField = &Anonymous)
+                {{
+                    return ref pField->buffer2;
+                }}
+            }}
+        }}
+
+        public unsafe partial struct _Anonymous_e__Struct
         {{
             public {expectedManagedType} z;
 
@@ -1172,20 +1325,45 @@ namespace ClangSharp.Test
 
             public MyUnion u;
 
+            [NativeTypeName(""{nativeType} [4]"")]
+            public fixed {expectedManagedType} buffer1[4];
+
+            [NativeTypeName(""MyUnion [4]"")]
+            public _buffer2_e__FixedBuffer buffer2;
+
             public partial struct _w_e__Struct
             {{
                 public {expectedManagedType} value;
+            }}
+
+            public partial struct _buffer2_e__FixedBuffer
+            {{
+                public MyUnion e0;
+                public MyUnion e1;
+                public MyUnion e2;
+                public MyUnion e3;
+
+                public unsafe ref MyUnion this[int index]
+                {{
+                    get
+                    {{
+                        fixed (MyUnion* pThis = &e0)
+                        {{
+                            return ref pThis[index];
+                        }}
+                    }}
+                }}
             }}
         }}
     }}
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
         }
 
         [Fact]
-        public async Task NestedAnonymousBitfieldTest()
+        public async Task NestedAnonymousWithBitfieldTest()
         {
             var inputContents = @"struct MyStruct
 {

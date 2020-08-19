@@ -1748,8 +1748,9 @@ namespace ClangSharp
                         outputBuilder.Write(' ');
 
                         var isFixedSizedBuffer = (type.CanonicalType is ConstantArrayType);
+                        var generateCompatibleCode = pinvokeGenerator._config.GenerateCompatibleCode;
 
-                        if (!fieldDecl.IsBitField && !isFixedSizedBuffer)
+                        if (!fieldDecl.IsBitField && (!isFixedSizedBuffer || generateCompatibleCode))
                         {
                             outputBuilder.Write("ref");
                             outputBuilder.Write(' ');
@@ -1767,22 +1768,21 @@ namespace ClangSharp
                             }
                         }
 
-                        var generateCompatibleCode = pinvokeGenerator._config.GenerateCompatibleCode;
+                        var isSupportedFixedSizedBufferType = isFixedSizedBuffer && pinvokeGenerator.IsSupportedFixedSizedBufferType(typeName);
 
                         if (isFixedSizedBuffer)
                         {
-                            if (generateCompatibleCode)
-                            {
-                                outputBuilder.Write(contextType);
-                                outputBuilder.Write('.');
-
-                                typeName = pinvokeGenerator.GetArtificialFixedSizedBufferName(fieldDecl);
-                            }
-                            else
+                            if (!generateCompatibleCode)
                             {
                                 outputBuilder.AddUsingDirective("System");
                                 outputBuilder.Write("Span");
-                                outputBuilder.Write('<');
+                                outputBuilder.Write('<'); 
+                            }
+                            else if(!isSupportedFixedSizedBufferType)
+                            {
+                                outputBuilder.Write(contextType);
+                                outputBuilder.Write('.');
+                                typeName = pinvokeGenerator.GetArtificialFixedSizedBufferName(fieldDecl);
                             }
                         }
                         
@@ -1861,6 +1861,14 @@ namespace ClangSharp
                             outputBuilder.Write('-');
                             outputBuilder.Write('>');
                             outputBuilder.Write(fieldName);
+
+                            if (isSupportedFixedSizedBufferType)
+                            {
+                                outputBuilder.Write('[');
+                                outputBuilder.Write('0');
+                                outputBuilder.Write(']');
+                            }
+
                             outputBuilder.WriteSemicolon();
                             outputBuilder.WriteNewline();
                             outputBuilder.WriteBlockEnd();
@@ -1884,8 +1892,6 @@ namespace ClangSharp
                                 outputBuilder.Write("GetReference");
                                 outputBuilder.Write('(');
                             }
-
-                            var isSupportedFixedSizedBufferType = isFixedSizedBuffer && pinvokeGenerator.IsSupportedFixedSizedBufferType(typeName);
 
                             if (!isFixedSizedBuffer || isSupportedFixedSizedBufferType)
                             {

@@ -389,11 +389,14 @@ union MyUnion
         {nativeType} a;
 
         MyStruct s;
+
+        {nativeType} buffer[4];
     }};
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -403,7 +406,7 @@ namespace ClangSharp.Test
     }}
 
     [StructLayout(LayoutKind.Explicit)]
-    public partial struct MyUnion
+    public unsafe partial struct MyUnion
     {{
         [FieldOffset(0)]
         public {expectedManagedType} r;
@@ -422,14 +425,20 @@ namespace ClangSharp.Test
 
         public ref MyStruct s => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.s, 1));
 
+        public Span<{expectedManagedType}> buffer => MemoryMarshal.CreateSpan(ref Anonymous.buffer[0], 4);
+
         [StructLayout(LayoutKind.Explicit)]
-        public partial struct _Anonymous_e__Union
+        public unsafe partial struct _Anonymous_e__Union
         {{
             [FieldOffset(0)]
             public {expectedManagedType} a;
 
             [FieldOffset(0)]
             public MyStruct s;
+
+            [FieldOffset(0)]
+            [NativeTypeName(""{nativeType} [4]"")]
+            public fixed {expectedManagedType} buffer[4];
         }}
     }}
 }}
