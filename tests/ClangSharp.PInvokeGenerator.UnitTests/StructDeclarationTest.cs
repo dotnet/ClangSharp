@@ -1022,13 +1022,17 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         }
 
         [Theory]
-        [InlineData("double", "double", 6, 5)]
-        [InlineData("short", "short", 6, 5)]
-        [InlineData("int", "int", 6, 5)]
-        [InlineData("float", "float", 6, 5)]
+        [InlineData("double", "double", 10, 5)]
+        [InlineData("short", "short", 10, 5)]
+        [InlineData("int", "int", 10, 5)]
+        [InlineData("float", "float", 10, 5)]
         public async Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column)
         {
-            var inputContents = $@"struct MyStruct
+            var inputContents = $@"typedef union {{
+    {nativeType} value;
+}} MyUnion;
+
+struct MyStruct
 {{
     {nativeType} x;
     {nativeType} y;
@@ -1041,6 +1045,8 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
         {{
             {nativeType} value;
         }} w;
+
+        MyUnion u;
     }};
 }};
 ";
@@ -1049,6 +1055,13 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 
 namespace ClangSharp.Test
 {{
+    [StructLayout(LayoutKind.Explicit)]
+    public partial struct MyUnion
+    {{
+        [FieldOffset(0)]
+        public {expectedManagedType} value;
+    }}
+
     public partial struct MyStruct
     {{
         public {expectedManagedType} x;
@@ -1062,12 +1075,16 @@ namespace ClangSharp.Test
 
         public ref _Anonymous_e__Struct._w_e__Struct w => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));
 
+        public ref MyUnion u => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));
+
         public partial struct _Anonymous_e__Struct
         {{
             public {expectedManagedType} z;
 
-            [NativeTypeName(""struct (anonymous struct at ClangUnsavedFile.h:10:9)"")]
+            [NativeTypeName(""struct (anonymous struct at ClangUnsavedFile.h:14:9)"")]
             public _w_e__Struct w;
+
+            public MyUnion u;
 
             public partial struct _w_e__Struct
             {{

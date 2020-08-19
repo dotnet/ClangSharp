@@ -1755,16 +1755,15 @@ namespace ClangSharp
                             outputBuilder.Write(' ');
                         }
 
-                        if ((type.CanonicalType is RecordType recordType) && string.IsNullOrWhiteSpace(recordType.Decl.Name))
+                        if (type.CanonicalType is RecordType recordType)
                         {
-                            var nestedRecordDeclName = pinvokeGenerator.GetRemappedTypeName(recordType.Decl, context: null, recordType, out string nativeTypeName);
-                            var tmpRecordDecl = (RecordDecl)recordType.Decl.DeclContext;
+                            var recordDecl = recordType.Decl;
 
-                            while (tmpRecordDecl != rootRecordDecl)
+                            while ((recordDecl.DeclContext is RecordDecl parentRecordDecl) && (parentRecordDecl != rootRecordDecl))
                             {
-                                outputBuilder.Write(pinvokeGenerator.GetRemappedCursorName(tmpRecordDecl));
+                                outputBuilder.Write(pinvokeGenerator.GetRemappedCursorName(parentRecordDecl));
                                 outputBuilder.Write('.');
-                                tmpRecordDecl = (RecordDecl)tmpRecordDecl.DeclContext;
+                                recordDecl = parentRecordDecl;
                             }
                         }
 
