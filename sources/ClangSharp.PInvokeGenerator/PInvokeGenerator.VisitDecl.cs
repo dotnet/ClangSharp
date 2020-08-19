@@ -327,7 +327,7 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
             }
 
-            if (type is ConstantArrayType constantArrayType)
+            if (type.CanonicalType is ConstantArrayType constantArrayType)
             {
                 if (IsSupportedFixedSizedBufferType(typeName))
                 {
@@ -341,7 +341,7 @@ namespace ClangSharp
 
                     var elementType = constantArrayType.ElementType;
 
-                    while (elementType is ConstantArrayType subConstantArrayType)
+                    while (elementType.CanonicalType is ConstantArrayType subConstantArrayType)
                     {
                         _outputBuilder.Write(' ');
                         _outputBuilder.Write('*');
@@ -1245,7 +1245,7 @@ namespace ClangSharp
 
                 Visit(recordDecl.Decls, excludedCursors);
 
-                foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type is ConstantArrayType))
+                foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type.CanonicalType is ConstantArrayType))
                 {
                     VisitConstantArrayFieldDecl(this, recordDecl, constantArray);
                 }
@@ -2346,10 +2346,10 @@ namespace ClangSharp
 
             static void VisitConstantArrayFieldDecl(PInvokeGenerator pinvokeGenerator, RecordDecl recordDecl, FieldDecl constantArray)
             {
-                Debug.Assert(constantArray.Type is ConstantArrayType);
+                Debug.Assert(constantArray.Type.CanonicalType is ConstantArrayType);
 
                 var outputBuilder = pinvokeGenerator._outputBuilder;
-                var type = (ConstantArrayType)constantArray.Type;
+                var type = (ConstantArrayType)constantArray.Type.CanonicalType;
                 var typeName = pinvokeGenerator.GetRemappedTypeName(constantArray, context: null, constantArray.Type, out _);
 
                 if (pinvokeGenerator.IsSupportedFixedSizedBufferType(typeName))
@@ -2402,7 +2402,7 @@ namespace ClangSharp
 
                 var elementType = type.ElementType;
 
-                while (elementType is ConstantArrayType subConstantArrayType)
+                while (elementType.CanonicalType is ConstantArrayType subConstantArrayType)
                 {
                     totalSize *= Math.Max(subConstantArrayType.Size, 1);
                     sizePerDimension.Add((0, Math.Max(subConstantArrayType.Size, 1)));

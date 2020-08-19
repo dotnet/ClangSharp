@@ -697,6 +697,58 @@ namespace ClangSharp.Test
         }
 
         [Theory]
+        [InlineData("double", "double")]
+        [InlineData("short", "short")]
+        [InlineData("int", "int")]
+        [InlineData("float", "float")]
+        public async Task FixedSizedBufferNonPrimitiveTypedefTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} value;
+}};
+
+typedef MyStruct MyBuffer[3];
+
+struct MyOtherStruct
+{{
+    MyBuffer c;
+}};
+";
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        public {expectedManagedType} value;
+    }}
+
+    public partial struct MyOtherStruct
+    {{
+        [NativeTypeName(""MyBuffer"")]
+        public _c_e__FixedBuffer c;
+
+        public partial struct _c_e__FixedBuffer
+        {{
+            public MyStruct e0;
+            public MyStruct e1;
+            public MyStruct e2;
+
+            public ref MyStruct this[int index] => ref AsSpan()[index];
+
+            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
+        }}
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
         [InlineData("unsigned char", "byte")]
         [InlineData("long long", "long")]
         [InlineData("signed char", "sbyte")]
@@ -907,6 +959,40 @@ namespace ClangSharp.Test
     {{
         [NativeTypeName(""{nativeType} [2][1][3][4]"")]
         public fixed {expectedManagedType} c[2 * 1 * 3 * 4];
+    }}
+}}
+";
+
+            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("unsigned char", "byte")]
+        [InlineData("double", "double")]
+        [InlineData("short", "short")]
+        [InlineData("int", "int")]
+        [InlineData("long long", "long")]
+        [InlineData("signed char", "sbyte")]
+        [InlineData("float", "float")]
+        [InlineData("unsigned short", "ushort")]
+        [InlineData("unsigned int", "uint")]
+        [InlineData("unsigned long long", "ulong")]
+        public async Task FixedSizedBufferPrimitiveTypedefTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"typedef {nativeType} MyBuffer[3];
+
+struct MyStruct
+{{
+    MyBuffer c;
+}};
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public unsafe partial struct MyStruct
+    {{
+        [NativeTypeName(""MyBuffer"")]
+        public fixed {expectedManagedType} c[3];
     }}
 }}
 ";
