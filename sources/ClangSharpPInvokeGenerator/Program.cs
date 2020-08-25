@@ -146,6 +146,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "generate-aggressive-inlining":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateAggresiveInlining;
+                        break;
+                    }
+
                     case "generate-macro-bindings":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;

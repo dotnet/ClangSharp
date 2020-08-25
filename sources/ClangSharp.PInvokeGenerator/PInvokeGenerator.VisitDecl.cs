@@ -1446,6 +1446,20 @@ namespace ClangSharp
 
                 var currentContext = _context.AddLast(cxxMethodDecl);
 
+                if (_config.GenerateAggressiveInlining)
+                {
+                    _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+
+                    _outputBuilder.WriteIndented('[');
+                    _outputBuilder.Write("MethodImpl");
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write("MethodImplOptions");
+                    _outputBuilder.Write('.');
+                    _outputBuilder.Write("AggressiveInlining");
+                    _outputBuilder.Write(')');
+                    _outputBuilder.WriteLine(']');
+                }
+
                 var returnType = cxxMethodDecl.ReturnType;
                 var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName, attributePrefix: "return: ");
@@ -1734,6 +1748,20 @@ namespace ClangSharp
                     if (declaration is FieldDecl fieldDecl)
                     {
                         var type = fieldDecl.Type;
+
+                        if (_config.GenerateAggressiveInlining)
+                        {
+                            _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+
+                            _outputBuilder.WriteIndented('[');
+                            _outputBuilder.Write("MethodImpl");
+                            _outputBuilder.Write('(');
+                            _outputBuilder.Write("MethodImplOptions");
+                            _outputBuilder.Write('.');
+                            _outputBuilder.Write("AggressiveInlining");
+                            _outputBuilder.Write(')');
+                            _outputBuilder.WriteLine(']');
+                        }
 
                         var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var fieldNativeTypeName);
                         var fieldName = GetRemappedCursorName(fieldDecl);
@@ -2166,6 +2194,20 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(fieldDecl);
                 var escapedName = EscapeName(name);
 
+                if (_config.GenerateAggressiveInlining)
+                {
+                    _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+
+                    _outputBuilder.WriteIndented('[');
+                    _outputBuilder.Write("MethodImpl");
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write("MethodImplOptions");
+                    _outputBuilder.Write('.');
+                    _outputBuilder.Write("AggressiveInlining");
+                    _outputBuilder.Write(')');
+                    _outputBuilder.WriteLine(']');
+                }
+
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(fieldDecl));
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(typeName);
@@ -2455,6 +2497,21 @@ namespace ClangSharp
                 }
 
                 _outputBuilder.NeedsNewline = true;
+
+                if (_config.GenerateAggressiveInlining)
+                {
+                    _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+
+                    _outputBuilder.WriteIndented('[');
+                    _outputBuilder.Write("MethodImpl");
+                    _outputBuilder.Write('(');
+                    _outputBuilder.Write("MethodImplOptions");
+                    _outputBuilder.Write('.');
+                    _outputBuilder.Write("AggressiveInlining");
+                    _outputBuilder.Write(')');
+                    _outputBuilder.WriteLine(']');
+                }
+
                 _outputBuilder.WriteIndented("public");
                 _outputBuilder.Write(' ');
 
@@ -2545,7 +2602,23 @@ namespace ClangSharp
                     _outputBuilder.Write(']');
                     _outputBuilder.WriteSemicolon();
                     _outputBuilder.WriteNewline();
+
                     _outputBuilder.NeedsNewline = true;
+
+                    if (_config.GenerateAggressiveInlining)
+                    {
+                        _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+
+                        _outputBuilder.WriteIndented('[');
+                        _outputBuilder.Write("MethodImpl");
+                        _outputBuilder.Write('(');
+                        _outputBuilder.Write("MethodImplOptions");
+                        _outputBuilder.Write('.');
+                        _outputBuilder.Write("AggressiveInlining");
+                        _outputBuilder.Write(')');
+                        _outputBuilder.WriteLine(']');
+                    }
+
                     _outputBuilder.WriteIndented("public");
                     _outputBuilder.Write(' ');
                     _outputBuilder.Write("Span");

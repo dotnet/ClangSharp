@@ -40,5 +40,7 @@ namespace ClangSharp
         ExcludeEmptyRecords = 0x00002000,
 
         ExcludeEnumOperators = 0x00004000,
+
+        GenerateAggressiveInlining = 0x00008000,
     }
 }
