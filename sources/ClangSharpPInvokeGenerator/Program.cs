@@ -148,7 +148,7 @@ namespace ClangSharp
 
                     case "generate-aggressive-inlining":
                     {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateAggresiveInlining;
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateAggressiveInlining;
                         break;
                     }
 
