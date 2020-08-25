@@ -131,8 +131,8 @@ namespace ClangSharp
 
                 foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
                 {
-                    usingDirectives = usingDirectives.Concat(outputBuilder.UsingDirectives);
-                    staticUsingDirectives = staticUsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
+                    usingDirectives = usingDirectives.Concat(_outputBuilder.UsingDirectives);
+                    staticUsingDirectives = staticUsingDirectives.Concat(_outputBuilder.StaticUsingDirectives);
                 }
 
                 usingDirectives = usingDirectives.Distinct()
@@ -165,13 +165,13 @@ namespace ClangSharp
 
             foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
             {
-                var outputPath = outputBuilder.IsTestOutput ? _config.TestOutputLocation : _config.OutputLocation;
+                var outputPath = _outputBuilder.IsTestOutput ? _config.TestOutputLocation : _config.OutputLocation;
 
-                var isMethodClass = _config.MethodClassName.Equals(outputBuilder.Name);
+                var isMethodClass = _config.MethodClassName.Equals(_outputBuilder.Name);
 
                 if (_config.GenerateMultipleFiles)
                 {
-                    outputPath = Path.Combine(outputPath, $"{outputBuilder.Name}.cs");
+                    outputPath = Path.Combine(outputPath, $"{_outputBuilder.Name}.cs");
                     stream = _outputStreamFactory(outputPath);
                     emitNamespaceDeclaration = true;
                 }
@@ -366,7 +366,7 @@ namespace ClangSharp
                     sw.WriteLine(_config.HeaderText);
                 }
 
-                var usingDirectives = outputBuilder.UsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
+                var usingDirectives = _outputBuilder.UsingDirectives.Concat(_outputBuilder.StaticUsingDirectives);
 
                 if (usingDirectives.Any())
                 {
@@ -382,7 +382,7 @@ namespace ClangSharp
                 }
             }
 
-            var indentationString = outputBuilder.IndentationString;
+            var indentationString = _outputBuilder.IndentationString;
 
             if (emitNamespaceDeclaration)
             {
@@ -390,7 +390,7 @@ namespace ClangSharp
                 sw.Write(' ');
                 sw.Write(Config.Namespace);
 
-                if (outputBuilder.IsTestOutput)
+                if (_outputBuilder.IsTestOutput)
                 {
                     sw.Write('.');
                     sw.Write("UnitTests");
@@ -426,10 +426,10 @@ namespace ClangSharp
                 sw.Write(indentationString);
                 sw.WriteLine('{');
 
-                indentationString += outputBuilder.IndentationString;
+                indentationString += _outputBuilder.IndentationString;
             }
 
-            foreach (var line in outputBuilder.Contents)
+            foreach (var line in _outputBuilder.Contents)
             {
                 if (string.IsNullOrWhiteSpace(line))
                 {
@@ -444,7 +444,7 @@ namespace ClangSharp
 
             if (isMethodClass)
             {
-                sw.Write(outputBuilder.IndentationString);
+                sw.Write(_outputBuilder.IndentationString);
                 sw.WriteLine('}');
             }
 
@@ -904,7 +904,7 @@ namespace ClangSharp
                 qualifiedName.Append('>');
             }
 
-            static void AppendTemplateParameters(TemplateDecl templateDecl, StringBuilder qualifiedName)
+            void AppendTemplateParameters(TemplateDecl templateDecl, StringBuilder qualifiedName)
             {
                 qualifiedName.Append('<');
 
