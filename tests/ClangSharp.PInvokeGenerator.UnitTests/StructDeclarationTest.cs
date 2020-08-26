@@ -603,7 +603,13 @@ namespace ClangSharp.Test
             public MyStruct e1;
             public MyStruct e2;
 
-            public ref MyStruct this[int index] => ref AsSpan()[index];
+            public ref MyStruct this[int index]
+            {{
+                get
+                {{
+                    return ref AsSpan()[index];
+                }}
+            }}
 
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
@@ -685,7 +691,13 @@ namespace ClangSharp.Test
             public MyStruct e0_0_2_3;
             public MyStruct e1_0_2_3;
 
-            public ref MyStruct this[int index] => ref AsSpan()[index];
+            public ref MyStruct this[int index]
+            {{
+                get
+                {{
+                    return ref AsSpan()[index];
+                }}
+            }}
 
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 24);
         }}
@@ -737,7 +749,13 @@ namespace ClangSharp.Test
             public MyStruct e1;
             public MyStruct e2;
 
-            public ref MyStruct this[int index] => ref AsSpan()[index];
+            public ref MyStruct this[int index]
+            {{
+                get
+                {{
+                    return ref AsSpan()[index];
+                }}
+            }}
 
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
@@ -847,7 +865,13 @@ namespace ClangSharp.Test
             public MyStruct e1;
             public MyStruct e2;
 
-            public ref MyStruct this[int index] => ref AsSpan()[index];
+            public ref MyStruct this[int index]
+            {{
+                get
+                {{
+                    return ref AsSpan()[index];
+                }}
+            }}
 
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
@@ -1160,15 +1184,45 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
         public _Anonymous_e__Struct Anonymous;
 
-        public ref {expectedManagedType} z => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+        public ref {expectedManagedType} z
+        {{
+            get
+            {{
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+            }}
+        }}
 
-        public ref _Anonymous_e__Struct._w_e__Struct w => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));
+        public ref _Anonymous_e__Struct._w_e__Struct w
+        {{
+            get
+            {{
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));
+            }}
+        }}
 
-        public ref MyUnion u => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));
+        public ref MyUnion u
+        {{
+            get
+            {{
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));
+            }}
+        }}
 
-        public Span<{expectedManagedType}> buffer1 => MemoryMarshal.CreateSpan(ref Anonymous.buffer1[0], 4);
+        public Span<{expectedManagedType}> buffer1
+        {{
+            get
+            {{
+                return MemoryMarshal.CreateSpan(ref Anonymous.buffer1[0], 4);
+            }}
+        }}
 
-        public Span<MyUnion> buffer2 => Anonymous.buffer2.AsSpan();
+        public Span<MyUnion> buffer2
+        {{
+            get
+            {{
+                return Anonymous.buffer2.AsSpan();
+            }}
+        }}
 
         public unsafe partial struct _Anonymous_e__Struct
         {{
@@ -1197,7 +1251,13 @@ namespace ClangSharp.Test
                 public MyUnion e2;
                 public MyUnion e3;
 
-                public ref MyUnion this[int index] => ref AsSpan()[index];
+                public ref MyUnion this[int index]
+                {{
+                    get
+                    {{
+                        return ref AsSpan()[index];
+                    }}
+                }}
 
                 public Span<MyUnion> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 4);
             }}
@@ -1397,9 +1457,21 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:6:5)"")]
         public _Anonymous_e__Struct Anonymous;
 
-        public ref int z => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+        public ref int z
+        {
+            get
+            {
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+            }
+        }
 
-        public ref int w => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));
+        public ref int w
+        {
+            get
+            {
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));
+            }
+        }
 
         public int o0_b0_16
         {
@@ -1735,7 +1807,13 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:7:5)"")]
         public _Anonymous_e__Struct Anonymous;
 
-        public ref double a => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+        public ref double a
+        {
+            get
+            {
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+            }
+        }
 
         public partial struct _Anonymous_e__Struct
         {

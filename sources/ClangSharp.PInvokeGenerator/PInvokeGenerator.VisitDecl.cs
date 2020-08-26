@@ -1545,12 +1545,6 @@ namespace ClangSharp
                     {
                         var type = fieldDecl.Type;
 
-                        if (_config.GenerateAggressiveInlining)
-                        {
-                            _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
-                            _outputBuilder.WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                        }
-
                         var accessSpecifier = GetAccessSpecifierName(anonymousRecordDecl);
                         var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var fieldNativeTypeName);
                         var name = GetRemappedCursorName(fieldDecl);
@@ -1612,13 +1606,20 @@ namespace ClangSharp
 
                         generateCompatibleCode |= ((type.CanonicalType is PointerType) || (type.CanonicalType is ReferenceType)) && ((typeName != "IntPtr") && (typeName != "UIntPtr"));
 
+                        _outputBuilder.WriteNewline();
+                        _outputBuilder.WriteBlockStart();
+
+                        if (_config.GenerateAggressiveInlining)
+                        {
+                            _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                            _outputBuilder.WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                        }
+
+                        _outputBuilder.WriteIndentedLine("get");
+                        _outputBuilder.WriteBlockStart();
+
                         if (fieldDecl.IsBitField)
                         {
-                            _outputBuilder.WriteNewline();
-                            _outputBuilder.WriteBlockStart();
-
-                            _outputBuilder.WriteIndentedLine("get");
-                            _outputBuilder.WriteBlockStart();
                             _outputBuilder.WriteIndented("return ");
                             _outputBuilder.Write(contextName);
                             _outputBuilder.Write('.');
@@ -1629,6 +1630,12 @@ namespace ClangSharp
 
                             _outputBuilder.WriteNewline();
 
+                            if (_config.GenerateAggressiveInlining)
+                            {
+                                _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                                _outputBuilder.WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                            }
+
                             _outputBuilder.WriteIndentedLine("set");
                             _outputBuilder.WriteBlockStart();
                             _outputBuilder.WriteIndented(contextName);
@@ -1637,18 +1644,9 @@ namespace ClangSharp
                             _outputBuilder.Write(" = value");
                             _outputBuilder.WriteSemicolon();
                             _outputBuilder.WriteNewline();
-                            _outputBuilder.WriteBlockEnd();
-
-                            _outputBuilder.WriteBlockEnd();
                         }
                         else if (generateCompatibleCode)
                         {
-                            _outputBuilder.WriteNewline();
-                            _outputBuilder.WriteBlockStart();
-
-                            _outputBuilder.WriteIndentedLine("get");
-                            _outputBuilder.WriteBlockStart();
-
                             _outputBuilder.WriteIndented("fixed (");
                             _outputBuilder.Write(contextType);
                             _outputBuilder.Write("* pField = &");
@@ -1666,12 +1664,10 @@ namespace ClangSharp
                             _outputBuilder.WriteSemicolon();
                             _outputBuilder.WriteNewline();
                             _outputBuilder.WriteBlockEnd();
-                            _outputBuilder.WriteBlockEnd();
-                            _outputBuilder.WriteBlockEnd();
                         }
                         else
                         {
-                            _outputBuilder.Write(" => ");
+                            _outputBuilder.WriteIndented("return ");
 
                             if (!isFixedSizedBuffer)
                             {
@@ -1709,6 +1705,9 @@ namespace ClangSharp
                             _outputBuilder.WriteSemicolon();
                             _outputBuilder.WriteNewline();
                         }
+
+                        _outputBuilder.WriteBlockEnd();
+                        _outputBuilder.WriteBlockEnd();
 
                         _outputBuilder.NeedsNewline = true;
                     }
@@ -1945,18 +1944,19 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(fieldDecl);
                 var escapedName = EscapeName(name);
 
-                if (_config.GenerateAggressiveInlining)
-                {
-                    _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
-                    _outputBuilder.WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                }
-
                 _outputBuilder.WriteIndented(accessSpecifier);
                 _outputBuilder.Write(' ');
                 _outputBuilder.Write(typeName);
                 _outputBuilder.Write(' ');
                 _outputBuilder.WriteLine(escapedName);
                 _outputBuilder.WriteBlockStart();
+
+                if (_config.GenerateAggressiveInlining)
+                {
+                    _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                    _outputBuilder.WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                }
+
                 _outputBuilder.WriteIndentedLine("get");
                 _outputBuilder.WriteBlockStart();
                 _outputBuilder.WriteIndented("return ");
@@ -2000,6 +2000,12 @@ namespace ClangSharp
                 _outputBuilder.WriteBlockEnd();
 
                 _outputBuilder.NeedsNewline = true;
+
+                if (_config.GenerateAggressiveInlining)
+                {
+                    _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                    _outputBuilder.WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                }
 
                 _outputBuilder.WriteIndentedLine("set");
                 _outputBuilder.WriteBlockStart();
@@ -2203,13 +2209,6 @@ namespace ClangSharp
                 }
 
                 _outputBuilder.NeedsNewline = true;
-
-                if (_config.GenerateAggressiveInlining)
-                {
-                    _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
-                    _outputBuilder.WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                }
-
                 _outputBuilder.WriteIndented("public ");
 
                 var generateCompatibleCode = _config.GenerateCompatibleCode;
@@ -2232,6 +2231,13 @@ namespace ClangSharp
                 {
                     _outputBuilder.WriteLine("this[int index]");
                     _outputBuilder.WriteBlockStart();
+
+                    if (_config.GenerateAggressiveInlining)
+                    {
+                        _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                        _outputBuilder.WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                    }
+
                     _outputBuilder.WriteIndentedLine("get");
                     _outputBuilder.WriteBlockStart();
                     _outputBuilder.WriteIndented("fixed (");
@@ -2247,7 +2253,18 @@ namespace ClangSharp
                 }
                 else
                 {
-                    _outputBuilder.Write("this[int index] => ref AsSpan(");
+                    _outputBuilder.WriteLine("this[int index]");
+                    _outputBuilder.WriteBlockStart();
+
+                    if (_config.GenerateAggressiveInlining)
+                    {
+                        _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                        _outputBuilder.WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                    }
+
+                    _outputBuilder.WriteIndentedLine("get");
+                    _outputBuilder.WriteBlockStart();
+                    _outputBuilder.WriteIndented("return ref AsSpan(");
 
                     if (type.Size == 1)
                     {
@@ -2257,6 +2274,8 @@ namespace ClangSharp
                     _outputBuilder.Write(")[index]");
                     _outputBuilder.WriteSemicolon();
                     _outputBuilder.WriteNewline();
+                    _outputBuilder.WriteBlockEnd();
+                    _outputBuilder.WriteBlockEnd();
 
                     _outputBuilder.NeedsNewline = true;
 
