@@ -1008,7 +1008,7 @@ namespace ClangSharp
 
                     WithTestAttribute();
 
-                    _testOutputBuilder.WriteIndentedLine("public static void SizeOftest()");
+                    _testOutputBuilder.WriteIndentedLine("public static void SizeOfTest()");
                     _testOutputBuilder.WriteBlockStart();
 
                     if (size32 != size64)
@@ -1428,7 +1428,7 @@ namespace ClangSharp
                     var escapedParmVarDeclName = EscapeName(parmVarDeclName);
                     _outputBuilder.Write(escapedParmVarDeclName);
 
-                    if (name.Equals("param"))
+                    if (parmVarDeclName.Equals("param"))
                     {
                         _outputBuilder.Write(index);
                     }

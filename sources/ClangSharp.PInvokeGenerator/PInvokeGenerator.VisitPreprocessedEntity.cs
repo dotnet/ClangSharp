@@ -8,14 +8,21 @@ namespace ClangSharp
     {
         private unsafe void VisitMacroDefinitionRecord(MacroDefinitionRecord macroDefinitionRecord)
         {
-            var translationUnitHandle = macroDefinitionRecord.TranslationUnit.Handle;
-            var tokens = translationUnitHandle.Tokenize(macroDefinitionRecord.Extent).ToArray();
+            if (IsExcluded(macroDefinitionRecord))
+            {
+                return;
+            }
 
             if (macroDefinitionRecord.IsFunctionLike)
             {
                 AddDiagnostic(DiagnosticLevel.Warning, $"Function like macro definition records are not supported: '{macroDefinitionRecord.Name}'. Generated bindings may be incomplete.", macroDefinitionRecord);
+                return;
             }
-            else if ((tokens[0].Kind == Interop.CXTokenKind.CXToken_Identifier) && (tokens[0].GetSpelling(translationUnitHandle).CString == macroDefinitionRecord.Spelling))
+
+            var translationUnitHandle = macroDefinitionRecord.TranslationUnit.Handle;
+            var tokens = translationUnitHandle.Tokenize(macroDefinitionRecord.Extent).ToArray();
+
+            if ((tokens[0].Kind == CXTokenKind.CXToken_Identifier) && (tokens[0].GetSpelling(translationUnitHandle).CString == macroDefinitionRecord.Spelling))
             {
                 if (tokens.Length == 1)
                 {
@@ -49,6 +56,7 @@ namespace ClangSharp
         {
             if (preprocessingDirective is InclusionDirective)
             {
+                // Not currently handling inclusion directives
             }
             else if (preprocessingDirective is MacroDefinitionRecord macroDefinitionRecord)
             {
@@ -63,11 +71,6 @@ namespace ClangSharp
         private void VisitPreprocessedEntity(PreprocessedEntity preprocessedEntity)
         {
             if (!_config.GenerateMacroBindings)
-            {
-                return;
-            }
-
-            if (IsExcluded(preprocessedEntity))
             {
                 return;
             }

@@ -1914,10 +1914,16 @@ namespace ClangSharp
                 // defined in an imported header file. We want to also check if the expansion location is
                 // in the main file to catch these cases and ensure we still generate bindings for them.
 
-                declLocation.GetExpansionLocation(out file, out uint line, out uint column, out _);
-                declLocation = cursor.TranslationUnit.Handle.GetLocation(file, line, column);
+                declLocation.GetExpansionLocation(out CXFile expansionFile, out uint line, out uint column, out _);
+                if (expansionFile == file)
+                {
+                    // clang_getLocation is a very expensive call, so exit early if the expansion file is the same
+                    return true;
+                }
 
-                if (IsIncludedFileOrLocation(cursor, file, declLocation))
+                var expansionLocation = cursor.TranslationUnit.Handle.GetLocation(file, line, column);
+
+                if (IsIncludedFileOrLocation(cursor, file, expansionLocation))
                 {
                     return false;
                 }
