@@ -1285,8 +1285,14 @@ namespace ClangSharp
 
             void OutputVtblHelperMethod(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, ref int vtblIndex, Dictionary<string, int> hitsPerName)
             {
-                if (!cxxMethodDecl.IsVirtual || IsExcluded(cxxMethodDecl))
+                if (!cxxMethodDecl.IsVirtual)
                 {
+                    return;
+                }
+
+                if (IsExcluded(cxxMethodDecl))
+                {
+                    vtblIndex += 1;
                     return;
                 }
 
