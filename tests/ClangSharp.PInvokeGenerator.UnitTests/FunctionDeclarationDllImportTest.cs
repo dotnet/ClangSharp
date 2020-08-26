@@ -25,7 +25,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, libraryPath: string.Empty);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty);
         }
 
         [Fact]
@@ -109,7 +109,7 @@ namespace ClangSharp.Test
             {
                 ["MyFunction"] = "ClangSharpPInvokeGenerator"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
         }
 
         [Fact]
@@ -133,7 +133,7 @@ namespace ClangSharp.Test
             {
                 ["*"] = "ClangSharpPInvokeGenerator"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
         }
 
         [Theory]
@@ -164,7 +164,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -186,7 +186,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -212,7 +212,7 @@ namespace ClangSharp.Test
             var withCallConvs = new Dictionary<string, string> {
                 ["MyFunction1"] = "Winapi"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
         }
 
         [Fact]
@@ -239,7 +239,7 @@ namespace ClangSharp.Test
             {
                 ["*"] = "Winapi"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
         }
 
         [Fact]
@@ -267,7 +267,7 @@ namespace ClangSharp.Test
                 ["*"] = "Winapi",
                 ["MyFunction2"] = "StdCall"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
         }
 
         [Fact]
@@ -294,7 +294,7 @@ namespace ClangSharp.Test
             {
                 "MyFunction1"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
         }
 
         [Fact]
@@ -321,7 +321,7 @@ namespace ClangSharp.Test
             {
                 "*"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
         }
     }
 }

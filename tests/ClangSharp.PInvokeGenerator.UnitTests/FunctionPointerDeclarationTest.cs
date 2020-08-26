@@ -22,7 +22,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }

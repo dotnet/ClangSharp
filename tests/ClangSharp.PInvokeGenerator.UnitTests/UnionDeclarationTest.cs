@@ -42,7 +42,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -84,7 +84,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -94,7 +94,7 @@ namespace ClangSharp.Test
             var expectedOutputContents = string.Empty;
 
             var excludedNames = new string[] { "MyUnion" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
         [Theory]
@@ -154,7 +154,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
         }
 
         [Theory]
@@ -214,7 +214,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -277,7 +277,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
         }
 
         [Theory]
@@ -340,7 +340,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -376,7 +376,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -474,7 +474,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -535,7 +535,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -605,7 +605,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -623,7 +623,7 @@ namespace ClangSharp.Test
     }}
 }}
 ";
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -643,7 +643,7 @@ namespace ClangSharp.Test
 ";
 
             var remappedNames = new Dictionary<string, string> { ["_MyUnion"] = "MyUnion" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
         [Fact]
@@ -703,7 +703,7 @@ namespace ClangSharp.Test
                 ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
                 ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Union"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
         [Theory]
@@ -742,7 +742,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -786,7 +786,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -834,7 +834,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }

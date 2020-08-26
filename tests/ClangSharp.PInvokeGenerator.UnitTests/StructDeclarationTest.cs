@@ -37,7 +37,7 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -251,7 +251,7 @@ struct MyStruct3
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -461,7 +461,7 @@ struct MyStruct3
 }
 ";
 
-            await ValidateGeneratedUnixBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateUnixTypes);
         }
 
         [Theory]
@@ -497,7 +497,7 @@ struct MyStruct3
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -507,7 +507,7 @@ struct MyStruct3
             var expectedOutputContents = string.Empty;
 
             var excludedNames = new string[] { "MyStruct" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
         [Theory]
@@ -561,7 +561,7 @@ struct MyOtherStruct
 }}
 ";
 
-            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
         }
 
         [Theory]
@@ -617,7 +617,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -705,7 +705,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -763,7 +763,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -820,7 +820,7 @@ struct MyOtherStruct
 }}
 ";
 
-            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
         }
 
         [Theory]
@@ -879,7 +879,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -923,7 +923,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -955,7 +955,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -987,7 +987,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1021,7 +1021,7 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1073,7 +1073,7 @@ namespace ClangSharp.Test
 ";
 
             var excludedNames = new string[] { "DECLSPEC_UUID" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
         [Fact]
@@ -1128,7 +1128,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1266,7 +1266,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1419,7 +1419,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
         }
 
         [Fact]
@@ -1545,7 +1545,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1583,7 +1583,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1633,7 +1633,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1692,7 +1692,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1707,7 +1707,7 @@ namespace ClangSharp.Test
     }}
 }}
 ";
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1731,7 +1731,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1757,7 +1757,7 @@ struct example_s {
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1774,7 +1774,7 @@ struct example_s {
 ";
 
             var remappedNames = new Dictionary<string, string> { ["_MyStruct"] = "MyStruct" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
         [Fact]
@@ -1827,7 +1827,7 @@ namespace ClangSharp.Test
                 ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
                 ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Struct"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
         [Theory]
@@ -1860,7 +1860,7 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1878,7 +1878,7 @@ typedef struct MyStruct& MyStructRef;
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1916,7 +1916,7 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1958,7 +1958,7 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1994,7 +1994,7 @@ struct MyStruct1B : MyStruct1A
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }
