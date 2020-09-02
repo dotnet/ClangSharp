@@ -37,7 +37,7 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -93,7 +93,7 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -124,7 +124,7 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -149,7 +149,7 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -209,7 +209,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -283,7 +283,7 @@ int MyFunctionB(MyStruct* x)
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -314,7 +314,7 @@ int MyFunctionB(MyStruct* x)
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -415,7 +415,7 @@ int MyFunctionB(MyStruct* x)
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -472,7 +472,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -525,7 +525,7 @@ MyStruct operator-(MyStruct lhs, MyStruct rhs)
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -598,7 +598,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -650,7 +650,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -681,7 +681,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -718,7 +718,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -791,7 +791,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
         }
 
         [Fact]
@@ -868,7 +868,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }

@@ -37,7 +37,7 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -251,7 +251,7 @@ struct MyStruct3
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -461,7 +461,7 @@ struct MyStruct3
 }
 ";
 
-            await ValidateGeneratedUnixBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateUnixTypes);
         }
 
         [Theory]
@@ -497,7 +497,7 @@ struct MyStruct3
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -507,7 +507,7 @@ struct MyStruct3
             var expectedOutputContents = string.Empty;
 
             var excludedNames = new string[] { "MyStruct" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
         [Theory]
@@ -561,7 +561,7 @@ struct MyOtherStruct
 }}
 ";
 
-            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
         }
 
         [Theory]
@@ -603,7 +603,13 @@ namespace ClangSharp.Test
             public MyStruct e1;
             public MyStruct e2;
 
-            public ref MyStruct this[int index] => ref AsSpan()[index];
+            public ref MyStruct this[int index]
+            {{
+                get
+                {{
+                    return ref AsSpan()[index];
+                }}
+            }}
 
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
@@ -611,7 +617,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -685,7 +691,13 @@ namespace ClangSharp.Test
             public MyStruct e0_0_2_3;
             public MyStruct e1_0_2_3;
 
-            public ref MyStruct this[int index] => ref AsSpan()[index];
+            public ref MyStruct this[int index]
+            {{
+                get
+                {{
+                    return ref AsSpan()[index];
+                }}
+            }}
 
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 24);
         }}
@@ -693,7 +705,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -737,7 +749,13 @@ namespace ClangSharp.Test
             public MyStruct e1;
             public MyStruct e2;
 
-            public ref MyStruct this[int index] => ref AsSpan()[index];
+            public ref MyStruct this[int index]
+            {{
+                get
+                {{
+                    return ref AsSpan()[index];
+                }}
+            }}
 
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
@@ -745,7 +763,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -802,7 +820,7 @@ struct MyOtherStruct
 }}
 ";
 
-            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
         }
 
         [Theory]
@@ -847,7 +865,13 @@ namespace ClangSharp.Test
             public MyStruct e1;
             public MyStruct e2;
 
-            public ref MyStruct this[int index] => ref AsSpan()[index];
+            public ref MyStruct this[int index]
+            {{
+                get
+                {{
+                    return ref AsSpan()[index];
+                }}
+            }}
 
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
@@ -855,7 +879,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -899,7 +923,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -931,7 +955,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -963,7 +987,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -997,7 +1021,7 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1049,7 +1073,7 @@ namespace ClangSharp.Test
 ";
 
             var excludedNames = new string[] { "DECLSPEC_UUID" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
         [Fact]
@@ -1104,7 +1128,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1160,15 +1184,45 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
         public _Anonymous_e__Struct Anonymous;
 
-        public ref {expectedManagedType} z => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+        public ref {expectedManagedType} z
+        {{
+            get
+            {{
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+            }}
+        }}
 
-        public ref _Anonymous_e__Struct._w_e__Struct w => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));
+        public ref _Anonymous_e__Struct._w_e__Struct w
+        {{
+            get
+            {{
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));
+            }}
+        }}
 
-        public ref MyUnion u => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));
+        public ref MyUnion u
+        {{
+            get
+            {{
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));
+            }}
+        }}
 
-        public Span<{expectedManagedType}> buffer1 => MemoryMarshal.CreateSpan(ref Anonymous.buffer1[0], 4);
+        public Span<{expectedManagedType}> buffer1
+        {{
+            get
+            {{
+                return MemoryMarshal.CreateSpan(ref Anonymous.buffer1[0], 4);
+            }}
+        }}
 
-        public Span<MyUnion> buffer2 => Anonymous.buffer2.AsSpan();
+        public Span<MyUnion> buffer2
+        {{
+            get
+            {{
+                return Anonymous.buffer2.AsSpan();
+            }}
+        }}
 
         public unsafe partial struct _Anonymous_e__Struct
         {{
@@ -1197,7 +1251,13 @@ namespace ClangSharp.Test
                 public MyUnion e2;
                 public MyUnion e3;
 
-                public ref MyUnion this[int index] => ref AsSpan()[index];
+                public ref MyUnion this[int index]
+                {{
+                    get
+                    {{
+                        return ref AsSpan()[index];
+                    }}
+                }}
 
                 public Span<MyUnion> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 4);
             }}
@@ -1206,7 +1266,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1359,7 +1419,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedCompatibleBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
         }
 
         [Fact]
@@ -1397,9 +1457,21 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:6:5)"")]
         public _Anonymous_e__Struct Anonymous;
 
-        public ref int z => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+        public ref int z
+        {
+            get
+            {
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+            }
+        }
 
-        public ref int w => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));
+        public ref int w
+        {
+            get
+            {
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));
+            }
+        }
 
         public int o0_b0_16
         {
@@ -1473,7 +1545,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1511,7 +1583,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1561,7 +1633,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1620,7 +1692,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1635,7 +1707,7 @@ namespace ClangSharp.Test
     }}
 }}
 ";
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1659,7 +1731,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1685,7 +1757,7 @@ struct example_s {
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1702,7 +1774,7 @@ struct example_s {
 ";
 
             var remappedNames = new Dictionary<string, string> { ["_MyStruct"] = "MyStruct" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
         [Fact]
@@ -1735,7 +1807,13 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:7:5)"")]
         public _Anonymous_e__Struct Anonymous;
 
-        public ref double a => ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+        public ref double a
+        {
+            get
+            {
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+            }
+        }
 
         public partial struct _Anonymous_e__Struct
         {
@@ -1749,7 +1827,7 @@ namespace ClangSharp.Test
                 ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
                 ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Struct"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
         [Theory]
@@ -1782,7 +1860,7 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1800,7 +1878,7 @@ typedef struct MyStruct& MyStructRef;
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1838,7 +1916,7 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -1880,7 +1958,7 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -1916,7 +1994,7 @@ struct MyStruct1B : MyStruct1A
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }

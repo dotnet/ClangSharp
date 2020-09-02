@@ -30,7 +30,7 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace ClangSharp.UnitTests
             var expectedOutputContents = string.Empty;
 
             var excludedNames = new string[] { "MyEnum" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
         [Theory]
@@ -98,7 +98,7 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -130,7 +130,7 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -156,7 +156,7 @@ namespace ClangSharp.UnitTests
 ";
 
             var remappedNames = new Dictionary<string, string> { ["_MyEnum"] = "MyEnum" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames: null, remappedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
         [Fact]
@@ -194,7 +194,7 @@ namespace ClangSharp.Test
             {
                 ["MyEnum1"] = new List<string>() { "Flags" }
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withAttributes: withAttributes);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
         }
 
         [Fact]
@@ -233,7 +233,7 @@ namespace ClangSharp.Test
             {
                 ["*"] = new List<string>() { "Flags" }
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withAttributes: withAttributes);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
         }
 
         [Fact]
@@ -275,7 +275,7 @@ namespace ClangSharp.Test
                 ["*"] = new List<string>() { "Flags" },
                 ["MyEnum2"] = new List<string>() { "EditorBrowsable(EditorBrowsableState.Never)" }
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withAttributes: withAttributes);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
         }
 
         [Fact]
@@ -312,7 +312,7 @@ namespace ClangSharp.Test
             {
                 ["MyEnum1"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withUsings: withNamespaces);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
         [Fact]
@@ -349,7 +349,7 @@ namespace ClangSharp.Test
             {
                 ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withUsings: withNamespaces);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
         [Fact]
@@ -388,7 +388,7 @@ namespace ClangSharp.Test
                 ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" },
                 ["MyEnum2"] = new List<string>() { "System" }
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withUsings: withNamespaces);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
         [Fact]
@@ -413,7 +413,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -442,7 +442,7 @@ namespace ClangSharp.Test
             var withTypes = new Dictionary<string, string> {
                 ["MyEnum"] = "uint"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withTypes: withTypes);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
 
         [Fact]
@@ -472,7 +472,7 @@ namespace ClangSharp.Test
             {
                 ["MyEnum"] = "uint"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withTypes: withTypes);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
 
         [Fact]
@@ -509,7 +509,7 @@ enum MyEnum2 : int
             {
                 ["*"] = "uint"
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withTypes: withTypes);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
 
         [Fact]
@@ -546,7 +546,7 @@ enum MyEnum2 : int
                 ["*"] = "uint",
                 ["MyEnum1"] = "int",
             };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, withTypes: withTypes);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
     }
 }

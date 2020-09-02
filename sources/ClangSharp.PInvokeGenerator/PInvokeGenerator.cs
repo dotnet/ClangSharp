@@ -97,25 +97,13 @@ namespace ClangSharp
 
                 _outputBuilder.AddUsingDirective("System");
 
-                _outputBuilder.WriteIndented("public");
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("static");
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("readonly");
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("Guid");
-                _outputBuilder.Write(' ');
+                _outputBuilder.WriteIndented("public static readonly Guid ");
                 _outputBuilder.Write(iidName);
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write('=');
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("new");
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("Guid");
-                _outputBuilder.Write('(');
+                _outputBuilder.Write(" = new Guid(");
                 _outputBuilder.Write(iidValue);
-                _outputBuilder.Write(')');
-                _outputBuilder.WriteLine(';');
+                _outputBuilder.Write(")");
+                _outputBuilder.WriteSemicolon();
+                _outputBuilder.WriteNewline();
 
                 StopUsingOutputBuilder();
             }
@@ -152,8 +140,7 @@ namespace ClangSharp
 
                         foreach (var usingDirective in usingDirectives)
                         {
-                            sw.Write("using");
-                            sw.Write(' ');
+                            sw.Write("using ");
                             sw.Write(usingDirective);
                             sw.WriteLine(';');
                         }
@@ -325,14 +312,9 @@ namespace ClangSharp
                 _outputBuilder.Write(attributePrefix);
             }
 
-            _outputBuilder.Write("NativeTypeName");
-            _outputBuilder.Write('(');
-
-            _outputBuilder.Write('"');
+            _outputBuilder.Write("NativeTypeName(\"");
             _outputBuilder.Write(EscapeString(nativeTypeName));
-            _outputBuilder.Write('"');
-            _outputBuilder.Write(')');
-            _outputBuilder.Write(']');
+            _outputBuilder.Write("\")]");
 
             if (postfix is null)
             {
@@ -372,8 +354,7 @@ namespace ClangSharp
                 {
                     foreach(var usingDirective in usingDirectives)
                     {
-                        sw.Write("using");
-                        sw.Write(' ');
+                        sw.Write("using ");
                         sw.Write(usingDirective);
                         sw.WriteLine(';');
                     }
@@ -386,14 +367,12 @@ namespace ClangSharp
 
             if (emitNamespaceDeclaration)
             {
-                sw.Write("namespace");
-                sw.Write(' ');
+                sw.Write("namespace ");
                 sw.Write(Config.Namespace);
 
                 if (outputBuilder.IsTestOutput)
                 {
-                    sw.Write('.');
-                    sw.Write("UnitTests");
+                    sw.Write(".UnitTests");
                 }
 
                 sw.WriteLine();
@@ -407,21 +386,14 @@ namespace ClangSharp
             if (isMethodClass)
             {
                 sw.Write(indentationString);
-                sw.Write("public");
-                sw.Write(' ');
-                sw.Write("static");
-                sw.Write(' ');
+                sw.Write("public static ");
 
                 if (_isMethodClassUnsafe)
                 {
-                    sw.Write("unsafe");
-                    sw.Write(' ');
+                    sw.Write("unsafe ");
                 }
 
-                sw.Write("partial");
-                sw.Write(' ');
-                sw.Write("class");
-                sw.Write(' ');
+                sw.Write("partial class ");
                 sw.WriteLine(Config.MethodClassName);
                 sw.Write(indentationString);
                 sw.WriteLine('{');
@@ -904,7 +876,7 @@ namespace ClangSharp
                 qualifiedName.Append('>');
             }
 
-            static void AppendTemplateParameters(TemplateDecl templateDecl, StringBuilder qualifiedName)
+            void AppendTemplateParameters(TemplateDecl templateDecl, StringBuilder qualifiedName)
             {
                 qualifiedName.Append('<');
 
@@ -1942,10 +1914,16 @@ namespace ClangSharp
                 // defined in an imported header file. We want to also check if the expansion location is
                 // in the main file to catch these cases and ensure we still generate bindings for them.
 
-                declLocation.GetExpansionLocation(out file, out uint line, out uint column, out _);
-                declLocation = cursor.TranslationUnit.Handle.GetLocation(file, line, column);
+                declLocation.GetExpansionLocation(out CXFile expansionFile, out uint line, out uint column, out _);
+                if (expansionFile == file)
+                {
+                    // clang_getLocation is a very expensive call, so exit early if the expansion file is the same
+                    return true;
+                }
 
-                if (IsIncludedFileOrLocation(cursor, file, declLocation))
+                var expansionLocation = cursor.TranslationUnit.Handle.GetLocation(file, line, column);
+
+                if (IsIncludedFileOrLocation(cursor, file, expansionLocation))
                 {
                     return false;
                 }
@@ -3341,8 +3319,7 @@ namespace ClangSharp
 
                 if (needsCast)
                 {
-                    _outputBuilder.Write('(');
-                    _outputBuilder.Write('(');
+                    _outputBuilder.Write("((");
                     _outputBuilder.Write(targetTypeName);
                     _outputBuilder.Write(')');
                 }

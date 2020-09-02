@@ -26,7 +26,7 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -50,7 +50,7 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace ClangSharp.Test
             var excludedNames = new string[] { "GUID" };
             var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames, remappedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames, remappedNames: remappedNames);
         }
 
         [Theory]
@@ -108,7 +108,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -127,7 +127,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Theory]
@@ -139,7 +139,7 @@ namespace ClangSharp.Test
         {
             var inputContents = $@"{nativeType} MyVariable;";
             var expectedOutputContents = "";
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -159,7 +159,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -177,7 +177,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -199,7 +199,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
         [Fact]
@@ -220,7 +220,7 @@ namespace ClangSharp.Test
 ";
 
             var excludedNames = new string[] { "MyMacro1", "MyMacro2" };
-            await ValidateGeneratedBindings(inputContents, expectedOutputContents, excludedNames);
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
     }
 }
