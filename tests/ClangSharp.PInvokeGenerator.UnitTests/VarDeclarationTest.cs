@@ -222,5 +222,24 @@ namespace ClangSharp.Test
             var excludedNames = new string[] { "MyMacro1", "MyMacro2" };
             await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
+
+        [Fact]
+        public async Task UncheckedPointerMacroTest()
+        {
+            var inputContents = $@"#define Macro1 ((int*) -1)";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static unsafe partial class Methods
+    {{
+        [NativeTypeName(""#define Macro1 ((int*) -1)"")]
+        public static readonly int* Macro1 = unchecked((int*)(-1));
+    }}
+}}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
     }
 }

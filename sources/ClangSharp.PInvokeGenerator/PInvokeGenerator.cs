@@ -2759,6 +2759,7 @@ namespace ClangSharp
                     case "ulong":
                     case "UInt64":
                     case "ushort":
+                    case var _ when typeName.EndsWith("*"):
                     {
                         return true;
                     }
