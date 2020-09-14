@@ -1290,9 +1290,12 @@ namespace ClangSharp
                     return;
                 }
 
-                if (IsExcluded(cxxMethodDecl))
+                if (IsExcluded(cxxMethodDecl, out var isExcludedByConflictingDefinition))
                 {
-                    vtblIndex += 1;
+                    if (!isExcludedByConflictingDefinition)
+                    {
+                        vtblIndex += 1;
+                    }
                     return;
                 }
 

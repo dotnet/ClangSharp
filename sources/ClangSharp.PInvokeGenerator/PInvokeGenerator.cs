@@ -1878,14 +1878,18 @@ namespace ClangSharp
             return false;
         }
 
-        private bool IsExcluded(Cursor cursor)
+        private bool IsExcluded(Cursor cursor) => IsExcluded(cursor, out _);
+
+        private bool IsExcluded(Cursor cursor, out bool isExcludedByConflictingDefinition)
         {
+            isExcludedByConflictingDefinition = false;
+
             if (IsAlwaysIncluded(cursor))
             {
                 return false;
             }
 
-            return IsExcludedByFile(cursor) || IsExcludedByName(cursor);
+            return IsExcludedByFile(cursor) || IsExcludedByName(cursor, out isExcludedByConflictingDefinition);
 
             bool IsAlwaysIncluded(Cursor cursor)
             {
@@ -1931,11 +1935,14 @@ namespace ClangSharp
                 return true;
             }
 
-            bool IsExcludedByName(Cursor cursor)
+            bool IsExcludedByName(Cursor cursor, out bool isExcludedByConflictingDefinition)
             {
                 var qualifiedName = string.Empty;
                 var name = string.Empty;
                 var kind = string.Empty;
+
+                var isExcludedByConfigOption = false;
+                isExcludedByConflictingDefinition = false;
 
                 if (cursor is NamedDecl namedDecl)
                 {
@@ -1967,10 +1974,6 @@ namespace ClangSharp
                 {
                     return false;
                 }
-
-                bool isExcludedByConfigOption = false;
-                bool isExcludedByConflictingDefinition = false;
-
                 if (cursor is RecordDecl recordDecl)
                 {
                     if (_config.ExcludeEmptyRecords && IsEmptyRecord(recordDecl))
