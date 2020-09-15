@@ -1064,21 +1064,24 @@ namespace ClangSharp
                     }
                 }
 
-                foreach (var cxxConstructorDecl in cxxRecordDecl.Ctors)
+                if (cxxRecordDecl != null)
                 {
-                    Visit(cxxConstructorDecl);
-                    _outputBuilder.NeedsNewline = true;
-                }
+                    foreach (var cxxConstructorDecl in cxxRecordDecl.Ctors)
+                    {
+                        Visit(cxxConstructorDecl);
+                        _outputBuilder.NeedsNewline = true;
+                    }
 
-                if (cxxRecordDecl.HasUserDeclaredDestructor)
-                {
-                    Visit(cxxRecordDecl.Destructor);
-                    _outputBuilder.NeedsNewline = true;
-                }
+                    if (cxxRecordDecl.HasUserDeclaredDestructor)
+                    {
+                        Visit(cxxRecordDecl.Destructor);
+                        _outputBuilder.NeedsNewline = true;
+                    }
 
-                if (hasVtbl)
-                {
-                    OutputDelegateSignatures(cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                    if (hasVtbl)
+                    {
+                        OutputDelegateSignatures(cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                    }
                 }
 
                 var excludedCursors = recordDecl.Fields.AsEnumerable<Cursor>();
