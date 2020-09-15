@@ -26,9 +26,11 @@ namespace ClangSharp.UnitTests
             "-Wno-c++11-narrowing"
         };
 
-        protected async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath)
+        protected async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[] commandlineArgs = null)
         {
             Assert.True(File.Exists(DefaultInputFileName));
+
+            commandlineArgs ??= DefaultClangCommandLineArgs;
 
             configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
 
@@ -40,10 +42,10 @@ namespace ClangSharp.UnitTests
 
             using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))
             {
-                var handle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, DefaultClangCommandLineArgs, unsavedFiles, DefaultTranslationUnitFlags);
+                var handle = CXTranslationUnit.Parse(pinvokeGenerator.IndexHandle, DefaultInputFileName, commandlineArgs, unsavedFiles, DefaultTranslationUnitFlags);
                 using var translationUnit = TranslationUnit.GetOrCreate(handle);
 
-                pinvokeGenerator.GenerateBindings(translationUnit, DefaultInputFileName, DefaultClangCommandLineArgs, DefaultTranslationUnitFlags);
+                pinvokeGenerator.GenerateBindings(translationUnit, DefaultInputFileName, commandlineArgs, DefaultTranslationUnitFlags);
 
                 if (expectedDiagnostics is null)
                 {

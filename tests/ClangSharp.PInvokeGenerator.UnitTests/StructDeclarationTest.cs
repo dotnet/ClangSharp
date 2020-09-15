@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -38,6 +39,36 @@ namespace ClangSharp.UnitTests
 ";
 
             await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        [Theory]
+        [InlineData("double", "double")]
+        [InlineData("short", "short")]
+        [InlineData("int", "int")]
+        [InlineData("float", "float")]
+        public async Task BasicTestInCMode(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"typedef struct
+{{
+    {nativeType} r;
+    {nativeType} g;
+    {nativeType} b;
+}}  MyStruct;
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        public {expectedManagedType} r;
+
+        public {expectedManagedType} g;
+
+        public {expectedManagedType} b;
+    }}
+}}
+";
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
         }
 
         [Fact]
