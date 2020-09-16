@@ -85,6 +85,11 @@ namespace ClangSharp
                     }
                 }
             }
+            else if (calleeDecl is FieldDecl)
+            {
+                Visit(callExpr.Callee);
+                VisitArgs(callExpr);
+            }
             else
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.Kind}'. Generated bindings may be incomplete.", calleeDecl);
