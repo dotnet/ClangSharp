@@ -2758,44 +2758,6 @@ namespace ClangSharp
                     }
                 }
             }
-
-            bool IsUnsigned(string typeName)
-            {
-                switch (typeName)
-                {
-                    case "byte":
-                    case "Byte":
-                    case "UInt16":
-                    case "nuint":
-                    case "uint":
-                    case "UInt32":
-                    case "ulong":
-                    case "UInt64":
-                    case "ushort":
-                    case var _ when typeName.EndsWith("*"):
-                    {
-                        return true;
-                    }
-
-                    case "Int16":
-                    case "int":
-                    case "Int32":
-                    case "long":
-                    case "Int64":
-                    case "nint":
-                    case "sbyte":
-                    case "SByte":
-                    case "short":
-                    {
-                        return false;
-                    }
-
-                    default:
-                    {
-                        return false;
-                    }
-                }
-            }
         }
 
         private bool IsUnchecked(string typeName, CXEvalResult evalResult)
@@ -2963,6 +2925,44 @@ namespace ClangSharp
             }
 
             return remappedName.Contains('*');
+        }
+
+        private static bool IsUnsigned(string typeName)
+        {
+            switch (typeName)
+            {
+                case "byte":
+                case "Byte":
+                case "UInt16":
+                case "nuint":
+                case "uint":
+                case "UInt32":
+                case "ulong":
+                case "UInt64":
+                case "ushort":
+                case var _ when typeName.EndsWith("*"):
+                {
+                    return true;
+                }
+
+                case "Int16":
+                case "int":
+                case "Int32":
+                case "long":
+                case "Int64":
+                case "nint":
+                case "sbyte":
+                case "SByte":
+                case "short":
+                {
+                    return false;
+                }
+
+                default:
+                {
+                    return false;
+                }
+            }
         }
 
         private bool NeedsReturnFixup(CXXMethodDecl cxxMethodDecl)
