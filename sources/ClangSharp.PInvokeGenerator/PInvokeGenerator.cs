@@ -664,7 +664,7 @@ namespace ClangSharp
             return types.ToArray();
         }
 
-        private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention, string remappedName)
+        private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention, string remappedName, bool isForFnptr)
         {
             if (_config.WithCallConvs.TryGetValue(remappedName, out string callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
             {
@@ -680,17 +680,17 @@ namespace ClangSharp
 
                 case CXCallingConv.CXCallingConv_X86StdCall:
                 {
-                    return "StdCall";
+                    return isForFnptr ? "Stdcall" : "StdCall";
                 }
 
                 case CXCallingConv.CXCallingConv_X86FastCall:
                 {
-                    return "FastCall";
+                    return isForFnptr ? "Fastcall" : "FastCall";
                 }
 
                 case CXCallingConv.CXCallingConv_X86ThisCall:
                 {
-                    return "ThisCall";
+                    return isForFnptr ? "Thiscall" : "ThisCall";
                 }
 
                 case CXCallingConv.CXCallingConv_Win64:
@@ -1350,7 +1350,7 @@ namespace ClangSharp
                 if (_config.GeneratePreviewCodeFnptr && (functionType is FunctionProtoType functionProtoType))
                 {
                     var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
-                    var callConv = GetCallingConventionName(cursor, functionType.CallConv, remappedName).ToLower();
+                    var callConv = GetCallingConventionName(cursor, functionType.CallConv, remappedName, isForFnptr: true);
 
                     var needsReturnFixup = false;
                     var returnTypeName = GetRemappedTypeName(cursor, context: null, functionType.ReturnType, out _);
@@ -1369,8 +1369,14 @@ namespace ClangSharp
 
                     if (!isMacroDefinitionRecord)
                     {
-                        nameBuilder.Append(' ');
-                        nameBuilder.Append((callConv != "winapi") ? callConv : "stdcall");
+                        nameBuilder.Append(" unmanaged");
+
+                        if (callConv != "Winapi")
+                        {
+                            nameBuilder.Append('[');
+                            nameBuilder.Append(callConv);
+                            nameBuilder.Append(']');
+                        }
                     }
 
                     nameBuilder.Append('<');
