@@ -232,31 +232,59 @@ namespace ClangSharp
 
         private void VisitEnumConstantDecl(EnumConstantDecl enumConstantDecl)
         {
+            var accessSpecifier = string.Empty;
             var name = GetRemappedCursorName(enumConstantDecl);
             var escapedName = EscapeName(name);
+            var isAnonymousEnum = false;
+
+            var typeName = string.Empty;
+
+            if (enumConstantDecl.DeclContext is EnumDecl enumDecl)
+            {
+                if (GetRemappedCursorName(enumDecl).StartsWith("__AnonymousEnum_"))
+                {
+                    isAnonymousEnum = true;
+                    accessSpecifier = GetAccessSpecifierName(enumDecl);
+                }
+                typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
+            }
+            else
+            {
+                typeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out var nativeTypeName);
+            }
 
             _outputBuilder.WriteIndentation();
+
+            if (isAnonymousEnum)
+            {
+                _outputBuilder.Write(accessSpecifier);
+                _outputBuilder.Write(" const ");
+                _outputBuilder.Write(typeName);
+                _outputBuilder.Write(' ');
+            }
+
             _outputBuilder.Write(escapedName);
 
             if (enumConstantDecl.InitExpr != null)
             {
                 _outputBuilder.Write(" = ");
+                UncheckStmt(typeName, enumConstantDecl.InitExpr);
+            }
+            else if (isAnonymousEnum)
+            {
+                _outputBuilder.Write(" = ");
 
-                var typeName = string.Empty;
-
-                if (enumConstantDecl.DeclContext is EnumDecl enumDecl)
+                if (IsUnsigned(typeName))
                 {
-                    typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
+                    _outputBuilder.Write(enumConstantDecl.UnsignedInitVal);
                 }
                 else
                 {
-                    typeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out var nativeTypeName);
+                    _outputBuilder.Write(enumConstantDecl.InitVal);
                 }
-
-                UncheckStmt(typeName, enumConstantDecl.InitExpr);
             }
 
-            _outputBuilder.WriteLine(',');
+            _outputBuilder.WriteLine(isAnonymousEnum ? ';' : ',');
         }
 
         private void VisitEnumDecl(EnumDecl enumDecl)
@@ -264,29 +292,42 @@ namespace ClangSharp
             var accessSpecifier = GetAccessSpecifierName(enumDecl);
             var name = GetRemappedCursorName(enumDecl);
             var escapedName = EscapeName(name);
+            var isAnonymousEnum = false;
+
+            if (name.StartsWith("__AnonymousEnum_"))
+            {
+                isAnonymousEnum = true;
+                name = _config.MethodClassName;
+            }
 
             StartUsingOutputBuilder(name);
             {
-                var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
-                AddNativeTypeNameAttribute(nativeTypeName);
-
-                _outputBuilder.WriteIndented(accessSpecifier);
-                _outputBuilder.Write(" enum ");
-                _outputBuilder.Write(escapedName);
-
-                if (!typeName.Equals("int"))
+                if (!isAnonymousEnum)
                 {
-                    _outputBuilder.Write(" : ");
-                    _outputBuilder.Write(typeName);
-                }
+                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
+                    AddNativeTypeNameAttribute(nativeTypeName);
 
-                _outputBuilder.NeedsNewline = true;
-                _outputBuilder.WriteBlockStart();
+                    _outputBuilder.WriteIndented(accessSpecifier);
+                    _outputBuilder.Write(" enum ");
+                    _outputBuilder.Write(escapedName);
+
+                    if (!typeName.Equals("int"))
+                    {
+                        _outputBuilder.Write(" : ");
+                        _outputBuilder.Write(typeName);
+                    }
+
+                    _outputBuilder.NeedsNewline = true;
+                    _outputBuilder.WriteBlockStart();
+                }
 
                 Visit(enumDecl.Enumerators);
                 Visit(enumDecl.Decls, excludedCursors: enumDecl.Enumerators);
 
-                _outputBuilder.WriteBlockEnd();
+                if (!isAnonymousEnum)
+                {
+                    _outputBuilder.WriteBlockEnd();
+                }
             }
             StopUsingOutputBuilder();
         }
@@ -1610,7 +1651,7 @@ namespace ClangSharp
                                 typeName = GetArtificialFixedSizedBufferName(fieldDecl);
                             }
                         }
-                        
+
                         _outputBuilder.Write(typeName);
 
                         if (isFixedSizedBuffer && !generateCompatibleCode)
@@ -2515,6 +2556,17 @@ namespace ClangSharp
                 var accessSpecifier = GetAccessSpecifierName(varDecl);
                 var name = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false);
                 var escapedName = EscapeName(name);
+
+                if (isMacroDefinitionRecord)
+                {
+                    if (IsStmtAsWritten<DeclRefExpr>(varDecl.Init, out var declRefExpr, removeParens: true))
+                    {
+                        if ((declRefExpr.Decl is NamedDecl namedDecl) && (name == GetCursorName(namedDecl)))
+                        {
+                            return;
+                        }
+                    }
+                }
 
                 var openedOutputBuilder = false;
 
