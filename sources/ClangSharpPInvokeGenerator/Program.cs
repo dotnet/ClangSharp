@@ -354,10 +354,16 @@ namespace ClangSharp
                         continue;
                     }
 
-                    using var translationUnit = TranslationUnit.GetOrCreate(handle);
-
-                    Console.WriteLine($"Processing '{filePath}'");
-                    pinvokeGenerator.GenerateBindings(translationUnit, filePath, clangCommandLineArgs, translationFlags);
+                    try
+                    {
+                        using var translationUnit = TranslationUnit.GetOrCreate(handle);
+                        Console.WriteLine($"Processing '{filePath}'");
+                        pinvokeGenerator.GenerateBindings(translationUnit, filePath, clangCommandLineArgs, translationFlags);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
                 }
 
                 if (pinvokeGenerator.Diagnostics.Count != 0)
