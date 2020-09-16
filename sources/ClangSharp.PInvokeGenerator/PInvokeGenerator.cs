@@ -1051,6 +1051,11 @@ namespace ClangSharp
                 name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
             }
 
+            if (type == null)
+            {
+                return name;
+            }
+
             var canonicalType = type.CanonicalType;
 
             if ((canonicalType is ConstantArrayType constantArrayType) && (constantArrayType.ElementType is RecordType))
@@ -1129,6 +1134,12 @@ namespace ClangSharp
 
         private string GetTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
+            if (type == null)
+            {
+                nativeTypeName = "int";
+                return nativeTypeName;
+            }
+
             var name = type.AsString.Replace('\\', '/');
             nativeTypeName = name;
 
