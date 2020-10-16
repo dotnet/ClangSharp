@@ -29,6 +29,8 @@ namespace ClangSharp.Interop
 
         public CXType ClassType => clang.Type_getClassType(this);
 
+        public CXCursor ColumnExpr => throw null; // clangsharp.Type_getColumnExpr(this);
+
         public CXRefQualifierKind CXXRefQualifier => clang.Type_getCXXRefQualifier(this);
 
         public CXType DecayedType => clangsharp.Type_getDecayedType(this);
@@ -63,11 +65,15 @@ namespace ClangSharp.Interop
 
         public bool IsRestrictQualified => clang.isRestrictQualifiedType(this) != 0;
 
+        public bool IsSigned => throw null; // clangsharp.Type_getIsSigned(this) != 0;
+
         public bool IsSugared => clangsharp.Type_getIsSugared(this) != 0;
 
         public bool IsTransparentTagTypedef => clang.Type_isTransparentTagTypedef(this) != 0;
 
         public bool IsTypeAlias => clangsharp.Type_getIsTypeAlias(this) != 0;
+
+        public bool IsUnsigned => throw null; // clangsharp.Type_getIsUnsigned(this) != 0;
 
         public bool IsVolatileQualified => clang.isVolatileQualifiedType(this) != 0;
 
@@ -80,6 +86,16 @@ namespace ClangSharp.Interop
         public CXTypeNullabilityKind Nullability => clang.Type_getNullability(this);
 
         public int NumArgTypes => clang.getNumArgTypes(this);
+
+        public int NumBits => throw null; // clangsharp.Type_getNumBits(this);
+
+        public CXCursor NumBitsExpr => throw null; // clangsharp.Type_getNumBitsExpr(this);
+
+        public int NumColumns => throw null; // clangsharp.Type_getNumColumns(this);
+
+        public int NumElementsFlattened => throw null; // clangsharp.Type_getNumElementsFlattened(this);
+
+        public int NumRows => throw null; // clangsharp.Type_getNumRows(this);
 
         public long NumElements => clang.getNumElements(this);
 
@@ -98,6 +114,8 @@ namespace ClangSharp.Interop
         public CXType PointeeType => clangsharp.Type_getPointeeType(this);
 
         public CXType ResultType => clang.getResultType(this);
+
+        public CXCursor RowExpr => throw null; // clangsharp.Type_getRowExpr(this);
 
         public CXCursor SizeExpr => clangsharp.Type_getSizeExpr(this);
 
@@ -133,15 +151,19 @@ namespace ClangSharp.Interop
                     CX_TypeClass.CX_TypeClass_Auto => "Auto",
                     CX_TypeClass.CX_TypeClass_DeducedTemplateSpecialization => "DeducedTemplateSpecialization",
                     CX_TypeClass.CX_TypeClass_DependentAddressSpace => "DependentAddressSpace",
+                    CX_TypeClass.CX_TypeClass_DependentExtInt => "DependentExtInt",
                     CX_TypeClass.CX_TypeClass_DependentName => "DependentName",
                     CX_TypeClass.CX_TypeClass_DependentSizedExtVector => "DependentSizedExtVector",
                     CX_TypeClass.CX_TypeClass_DependentTemplateSpecialization => "DependentTemplateSpecialization",
                     CX_TypeClass.CX_TypeClass_DependentVector => "DependentVector",
                     CX_TypeClass.CX_TypeClass_Elaborated => "Elaborated",
+                    CX_TypeClass.CX_TypeClass_ExtInt => "ExtInt",
                     CX_TypeClass.CX_TypeClass_FunctionNoProto => "FunctionNoProto",
                     CX_TypeClass.CX_TypeClass_FunctionProto => "FunctionProto",
                     CX_TypeClass.CX_TypeClass_InjectedClassName => "InjectedClassName",
                     CX_TypeClass.CX_TypeClass_MacroQualified => "MacroQualified",
+                    CX_TypeClass.CX_TypeClass_ConstantMatrix => "ConstantMatrix",
+                    CX_TypeClass.CX_TypeClass_DependentSizedMatrix => "DependentSizedMatrix",
                     CX_TypeClass.CX_TypeClass_MemberPointer => "MemberPointer",
                     CX_TypeClass.CX_TypeClass_ObjCObjectPointer => "ObjCObjectPointer",
                     CX_TypeClass.CX_TypeClass_ObjCObject => "ObjCObject",
@@ -177,7 +199,7 @@ namespace ClangSharp.Interop
 
         public CXType UnderlyingType => clangsharp.Type_getUnderlyingType(this);
 
-        public CXType ValueType => clangsharp.Type_getValueType(this);
+        public CXType ValueType => throw null; // clang.Type_getValueType(this);
 
         internal string DebuggerDisplayString
         {

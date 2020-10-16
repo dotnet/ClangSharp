@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-10.0.0/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-11.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 namespace ClangSharp.Interop
@@ -46,8 +46,9 @@ namespace ClangSharp.Interop
         CXType_UShortAccum = 36,
         CXType_UAccum = 37,
         CXType_ULongAccum = 38,
+        CXType_BFloat16 = 39,
         CXType_FirstBuiltin = CXType_Void,
-        CXType_LastBuiltin = CXType_ULongAccum,
+        CXType_LastBuiltin = CXType_BFloat16,
         CXType_Complex = 100,
         CXType_Pointer = 101,
         CXType_BlockPointer = 102,
@@ -125,5 +126,6 @@ namespace ClangSharp.Interop
         CXType_OCLIntelSubgroupAVCImeSingleRefStreamin = 174,
         CXType_OCLIntelSubgroupAVCImeDualRefStreamin = 175,
         CXType_ExtVector = 176,
+        CXType_Atomic = 177,
     }
 }

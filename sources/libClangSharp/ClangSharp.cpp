@@ -122,6 +122,10 @@ CXCursor clangsharp_Cursor_getBaseExpr(CXCursor C) {
         if (const ArraySubscriptExpr* ASE = dyn_cast<ArraySubscriptExpr>(E)) {
             return MakeCXCursor(ASE->getBase(), getCursorDecl(C), getCursorTU(C));
         }
+
+        if (const MatrixSubscriptExpr* MSE = dyn_cast<MatrixSubscriptExpr>(E)) {
+            return MakeCXCursor(MSE->getBase(), getCursorDecl(C), getCursorTU(C));
+        }
     }
 
     return clang_getNullCursor();
@@ -440,6 +444,18 @@ unsigned clangsharp_Cursor_getCharacterLiteralValue(CXCursor C) {
     }
 
     return 0;
+}
+
+CXCursor clangsharp_Cursor_getColumnIdxExpr(CXCursor C) {
+    if (clang_isExpression(C.kind)) {
+        const Expr* E = getCursorExpr(C);
+
+        if (const MatrixSubscriptExpr* MSE = dyn_cast<MatrixSubscriptExpr>(E)) {
+            return MakeCXCursor(MSE->getColumnIdx(), getCursorDecl(C), getCursorTU(C));
+        }
+    }
+
+    return clang_getNullCursor();
 }
 
 CXCursor clangsharp_Cursor_getCommonExpr(CXCursor C) {
@@ -791,6 +807,10 @@ CXCursor clangsharp_Cursor_getExpr(CXCursor C, unsigned i) {
         if (const ParenListExpr* PLE = dyn_cast<ParenListExpr>(E)) {
             return MakeCXCursor(PLE->getExpr(i), getCursorDecl(C), getCursorTU(C));
         }
+
+        if (const RecoveryExpr* RE = dyn_cast<RecoveryExpr>(E)) {
+            return MakeCXCursor(RE->subExpressions()[i], getCursorDecl(C), getCursorTU(C));
+        }
     }
 
     return clang_getNullCursor();
@@ -894,6 +914,18 @@ CXType clangsharp_Cursor_getFunctionType(CXCursor C) {
     }
 
     return MakeCXType(QualType(), getCursorTU(C));
+}
+
+MSGuidDeclParts clangsharp_Cursor_getGuidValue(CXCursor C) {
+    if (clang_isDeclaration(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const MSGuidDecl* MSGD = dyn_cast<MSGuidDecl>(D)) {
+            return MSGD->getParts();
+        }
+    }
+
+    return MSGuidDeclParts();
 }
 
 unsigned clangsharp_Cursor_getHasBody(CXCursor C) {
@@ -1275,6 +1307,18 @@ unsigned clangsharp_Cursor_getIsImplicitAccess(CXCursor C) {
 
         if (const MemberExpr* ME = dyn_cast<MemberExpr>(E)) {
             return ME->isImplicitAccess();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsIncomplete(CXCursor C) {
+    if (clang_isExpression(C.kind)) {
+        const Expr* E = getCursorExpr(C);
+
+        if (const MatrixSubscriptExpr* MSE = dyn_cast<MatrixSubscriptExpr>(E)) {
+            return MSE->isIncomplete();
         }
     }
 
@@ -2103,6 +2147,18 @@ CXCursor clangsharp_Cursor_getRhsExpr(CXCursor C) {
     return clang_getNullCursor();
 }
 
+CXCursor clangsharp_Cursor_getRowIdxExpr(CXCursor C) {
+    if (clang_isExpression(C.kind)) {
+        const Expr* E = getCursorExpr(C);
+
+        if (const MatrixSubscriptExpr* MSE = dyn_cast<MatrixSubscriptExpr>(E)) {
+            return MakeCXCursor(MSE->getRowIdx(), getCursorDecl(C), getCursorTU(C));
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
 CXSourceRange clangsharp_Cursor_getSourceRange(CXCursor C) {
     SourceRange R = getCursorSourceRange(C);
 
@@ -2777,6 +2833,10 @@ CXType clangsharp_Type_desugar(CXType CT) {
         return MakeCXType(DAST->desugar(), GetTypeTU(CT));
     }
 
+    if (const DependentExtIntType* DEIT = dyn_cast<DependentExtIntType>(TP)) {
+        return MakeCXType(DEIT->desugar(), GetTypeTU(CT));
+    }
+
     if (const DependentNameType* DNT = dyn_cast<DependentNameType>(TP)) {
         return MakeCXType(DNT->desugar(), GetTypeTU(CT));
     }
@@ -2805,6 +2865,10 @@ CXType clangsharp_Type_desugar(CXType CT) {
         return MakeCXType(ET->desugar(), GetTypeTU(CT));
     }
 
+    if (const ExtIntType* EIT = dyn_cast<ExtIntType>(TP)) {
+        return MakeCXType(EIT->desugar(), GetTypeTU(CT));
+    }
+
     if (const ExtVectorType* EVT = dyn_cast<ExtVectorType>(TP)) {
         return MakeCXType(EVT->desugar(), GetTypeTU(CT));
     }
@@ -2831,6 +2895,10 @@ CXType clangsharp_Type_desugar(CXType CT) {
 
     if (const MacroQualifiedType* MQT = dyn_cast<MacroQualifiedType>(TP)) {
         return MakeCXType(MQT->desugar(), GetTypeTU(CT));
+    }
+
+    if (const MatrixType* MT = dyn_cast<MatrixType>(TP)) {
+        return MakeCXType(MT->desugar(), GetTypeTU(CT));
     }
 
     if (const MemberPointerType* MPT = dyn_cast<MemberPointerType>(TP)) {
@@ -2953,6 +3021,18 @@ CXType clangsharp_Type_getBaseType(CXType CT) {
     return MakeCXType(QualType(), GetTypeTU(CT));
 }
 
+CXCursor clangsharp_Type_getColumnExpr(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const DependentSizedMatrixType* DSMT = dyn_cast<DependentSizedMatrixType>(TP)) {
+        CXCursor C = clang_getTypeDeclaration(CT);
+        return MakeCXCursor(DSMT->getColumnExpr(), getCursorDecl(C), GetTypeTU(CT));
+    }
+
+    return clang_getNullCursor();
+}
+
 CXType clangsharp_Type_getDecayedType(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
@@ -3013,6 +3093,10 @@ CXType clangsharp_Type_getElementType(CXType CT) {
         return MakeCXType(DVT->getElementType(), GetTypeTU(CT));
     }
 
+    if (const MatrixType* MT = dyn_cast<MatrixType>(TP)) {
+        return MakeCXType(MT->getElementType(), GetTypeTU(CT));
+    }
+
     if (const PipeType* PT = dyn_cast<PipeType>(TP)) {
         return MakeCXType(PT->getElementType(), GetTypeTU(CT));
     }
@@ -3065,6 +3149,21 @@ CXType clangsharp_Type_getInjectedTST(CXType CT) {
     return MakeCXType(QualType(), GetTypeTU(CT));
 }
 
+unsigned clangsharp_Type_getIsSigned(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const DependentExtIntType* DEIT = dyn_cast<DependentExtIntType>(TP)) {
+        return DEIT->isSigned();
+    }
+
+    if (const ExtIntType* EIT = dyn_cast<ExtIntType>(TP)) {
+        return EIT->isSigned();
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Type_getIsSugared(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
@@ -3109,6 +3208,10 @@ unsigned clangsharp_Type_getIsSugared(CXType CT) {
         return DAST->isSugared();
     }
 
+    if (const DependentExtIntType* DEIT = dyn_cast<DependentExtIntType>(TP)) {
+        return DEIT->isSugared();
+    }
+
     if (const DependentNameType* DNT = dyn_cast<DependentNameType>(TP)) {
         return DNT->isSugared();
     }
@@ -3137,6 +3240,10 @@ unsigned clangsharp_Type_getIsSugared(CXType CT) {
         return ET->isSugared();
     }
 
+    if (const ExtIntType* EIT = dyn_cast<ExtIntType>(TP)) {
+        return EIT->isSugared();
+    }
+
     if (const ExtVectorType* EVT = dyn_cast<ExtVectorType>(TP)) {
         return EVT->isSugared();
     }
@@ -3163,6 +3270,10 @@ unsigned clangsharp_Type_getIsSugared(CXType CT) {
 
     if (const MacroQualifiedType* MQT = dyn_cast<MacroQualifiedType>(TP)) {
         return MQT->isSugared();
+    }
+
+    if (const MatrixType* MT = dyn_cast<MatrixType>(TP)) {
+        return MT->isSugared();
     }
 
     if (const MemberPointerType* MPT = dyn_cast<MemberPointerType>(TP)) {
@@ -3251,6 +3362,21 @@ unsigned clangsharp_Type_getIsTypeAlias(CXType CT) {
     return 0;
 }
 
+unsigned clangsharp_Type_getIsUnsigned(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const DependentExtIntType* DEIT = dyn_cast<DependentExtIntType>(TP)) {
+        return DEIT->isUnsigned();
+    }
+
+    if (const ExtIntType* EIT = dyn_cast<ExtIntType>(TP)) {
+        return EIT->isUnsigned();
+    }
+
+    return 0;
+}
+
 CXType clangsharp_Type_getModifiedType(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
@@ -3260,6 +3386,65 @@ CXType clangsharp_Type_getModifiedType(CXType CT) {
     }
 
     return clang_Type_getModifiedType(CT);
+}
+
+int clangsharp_Type_getNumBits(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ExtIntType* EIT = dyn_cast<ExtIntType>(TP)) {
+        return EIT->getNumBits();
+    }
+
+    return -1;
+}
+
+CXCursor clangsharp_Type_getNumBitsExpr(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const DependentExtIntType* DEIT = dyn_cast<DependentExtIntType>(TP)) {
+        CXCursor C = clang_getTypeDeclaration(CT);
+        return MakeCXCursor(DEIT->getNumBitsExpr(), getCursorDecl(C), GetTypeTU(CT));
+    }
+
+    return clang_getNullCursor();
+}
+
+int clangsharp_Type_getNumColumns(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ConstantMatrixType* CMT = dyn_cast<ConstantMatrixType>(TP)) {
+        CXCursor C = clang_getTypeDeclaration(CT);
+        return CMT->getNumColumns();
+    }
+
+    return -1;
+}
+
+int clangsharp_Type_getNumElementsFlattened(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ConstantMatrixType* CMT = dyn_cast<ConstantMatrixType>(TP)) {
+        CXCursor C = clang_getTypeDeclaration(CT);
+        return CMT->getNumElementsFlattened();
+    }
+
+    return -1;
+}
+
+int clangsharp_Type_getNumRows(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const ConstantMatrixType* CMT = dyn_cast<ConstantMatrixType>(TP)) {
+        CXCursor C = clang_getTypeDeclaration(CT);
+        return CMT->getNumRows();
+    }
+
+    return -1;
 }
 
 CXType clangsharp_Type_getOriginalType(CXType CT) {
@@ -3297,6 +3482,18 @@ CXType clangsharp_Type_getPointeeType(CXType CT) {
     }
 
     return clang_getPointeeType(CT);
+}
+
+CXCursor clangsharp_Type_getRowExpr(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const DependentSizedMatrixType* DSMT = dyn_cast<DependentSizedMatrixType>(TP)) {
+        CXCursor C = clang_getTypeDeclaration(CT);
+        return MakeCXCursor(DSMT->getRowExpr(), getCursorDecl(C), GetTypeTU(CT));
+    }
+
+    return clang_getNullCursor();
 }
 
 CXCursor clangsharp_Type_getSizeExpr(CXType CT) {
@@ -3482,17 +3679,6 @@ CXType clangsharp_Type_getUnderlyingType(CXType CT) {
 
     if (const UnaryTransformType* UTT = dyn_cast<UnaryTransformType>(TP)) {
         return MakeCXType(UTT->getUnderlyingType(), GetTypeTU(CT));
-    }
-
-    return MakeCXType(QualType(), GetTypeTU(CT));
-}
-
-CXType clangsharp_Type_getValueType(CXType CT) {
-    QualType T = GetQualType(CT);
-    const Type* TP = T.getTypePtrOrNull();
-
-    if (const AtomicType* AT = dyn_cast<AtomicType>(TP)) {
-        return MakeCXType(AT->getValueType(), GetTypeTU(CT));
     }
 
     return MakeCXType(QualType(), GetTypeTU(CT));

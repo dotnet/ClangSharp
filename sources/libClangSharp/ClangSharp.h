@@ -3,6 +3,7 @@
 #ifndef LIBCLANGSHARP_CLANGSHARP_H
 #define LIBCLANGSHARP_CLANGSHARP_H
 
+#include <clang/AST/DeclCXX.h>
 #include <clang/AST/Expr.h>
 #include <clang/Basic/Specifiers.h>
 #include <clang-c/Index.h>
@@ -171,6 +172,8 @@ CLANGSHARP_LINKAGE CX_CharacterKind clangsharp_Cursor_getCharacterLiteralKind(CX
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCharacterLiteralValue(CXCursor C);
 
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getColumnIdxExpr(CXCursor C);
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCommonExpr(CXCursor C);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getComputationLhsType(CXCursor C);
@@ -238,6 +241,8 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getFunctionScopeDepth(CXCursor C);
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getFunctionScopeIndex(CXCursor C);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getFunctionType(CXCursor C);
+
+CLANGSHARP_LINKAGE clang::MSGuidDeclParts clangsharp_Cursor_getGuidValue(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasBody(CXCursor C);
 
@@ -395,6 +400,8 @@ CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getReturnType(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getRhsExpr(CXCursor C);
 
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getRowIdxExpr(CXCursor C);
+
 CLANGSHARP_LINKAGE CXSourceRange clangsharp_Cursor_getSourceRange(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getSpecialization(CXCursor C, unsigned i);
@@ -416,6 +423,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplateArgument(CXCursor C, un
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplateArgumentAsDecl(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTemplateArgumentAsExpr(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getTemplateArgumentAsIntegral(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getTemplateArgumentAsType(CXCursor C, unsigned i);
 
@@ -479,6 +488,8 @@ CLANGSHARP_LINKAGE CX_AttrKind clangsharp_Type_getAttrKind(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getBaseType(CXType CT);
 
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getColumnExpr(CXType CT);
+
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getDecayedType(CXType CT);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getDeclaration(CXType CT);
@@ -497,11 +508,25 @@ CLANGSHARP_LINKAGE CXType clangsharp_Type_getInjectedSpecializationType(CXType C
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getInjectedTST(CXType CT);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsSigned(CXType CT);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsSugared(CXType CT);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsTypeAlias(CXType CT);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsUnsigned(CXType CT);
+
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getModifiedType(CXType CT);
+
+CLANGSHARP_LINKAGE int clangsharp_Type_getNumBits(CXType CT);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getNumBitsExpr(CXType CT);
+
+CLANGSHARP_LINKAGE int clangsharp_Type_getNumColumns(CXType CT);
+
+CLANGSHARP_LINKAGE int clangsharp_Type_getNumElementsFlattened(CXType CT);
+
+CLANGSHARP_LINKAGE int clangsharp_Type_getNumRows(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getOriginalType(CXType CT);
 
@@ -509,11 +534,15 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getOwnedTagDecl(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getPointeeType(CXType CT);
 
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getRowExpr(CXType CT);
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getSizeExpr(CXType CT);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getTemplateArgumentAsDecl(CXType CT, unsigned i);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getTemplateArgumentAsExpr(CXType CT, unsigned i);
+
+CLANGSHARP_LINKAGE int64_t clangsharp_Type_getTemplateArgumentAsIntegral(CXType CT, unsigned i);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getTemplateArgumentAsType(CXType CT, unsigned i);
 
@@ -528,7 +557,5 @@ CLANGSHARP_LINKAGE CX_TypeClass clangsharp_Type_getTypeClass(CXType CT);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getUnderlyingExpr(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getUnderlyingType(CXType CT);
-
-CLANGSHARP_LINKAGE CXType clangsharp_Type_getValueType(CXType CT);
 
 #endif

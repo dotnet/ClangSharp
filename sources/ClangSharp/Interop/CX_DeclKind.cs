@@ -107,6 +107,7 @@ namespace ClangSharp.Interop
         CX_DeclKind_LastDeclarator = CX_DeclKind_VarTemplatePartialSpecialization,
         CX_DeclKind_EnumConstant,
         CX_DeclKind_IndirectField,
+        CX_DeclKind_MSGuid,
         CX_DeclKind_OMPDeclareMapper,
         CX_DeclKind_OMPDeclareReduction,
         CX_DeclKind_UnresolvedUsingValue,

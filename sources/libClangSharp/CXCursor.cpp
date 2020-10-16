@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-10.0.0/clang/tools/libclang
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-11.0.0/clang/tools/libclang
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 #include "ClangSharp.h"
@@ -435,6 +435,7 @@ namespace clang::cxcursor {
         case Stmt::ObjCDictionaryLiteralClass:
         case Stmt::ObjCBoxedExprClass:
         case Stmt::ObjCSubscriptRefExprClass:
+        case Stmt::RecoveryExprClass:
             K = CXCursor_UnexposedExpr;
             break;
 
@@ -518,8 +519,21 @@ namespace clang::cxcursor {
             K = CXCursor_ArraySubscriptExpr;
             break;
 
+        case Stmt::MatrixSubscriptExprClass:
+            // TODO: add support for MatrixSubscriptExpr.
+            K = CXCursor_UnexposedExpr;
+            break;
+
         case Stmt::OMPArraySectionExprClass:
             K = CXCursor_OMPArraySectionExpr;
+            break;
+
+        case Stmt::OMPArrayShapingExprClass:
+            K = CXCursor_OMPArrayShapingExpr;
+            break;
+
+        case Stmt::OMPIteratorExprClass:
+            K = CXCursor_OMPIteratorExpr;
             break;
 
         case Stmt::BinaryOperatorClass:
@@ -580,6 +594,10 @@ namespace clang::cxcursor {
 
         case Stmt::CXXFunctionalCastExprClass:
             K = CXCursor_CXXFunctionalCastExpr;
+            break;
+
+        case Stmt::CXXAddrspaceCastExprClass:
+            K = CXCursor_CXXAddrspaceCastExpr;
             break;
 
         case Stmt::CXXTypeidExprClass:
@@ -777,6 +795,12 @@ namespace clang::cxcursor {
             break;
         case Stmt::OMPFlushDirectiveClass:
             K = CXCursor_OMPFlushDirective;
+            break;
+        case Stmt::OMPDepobjDirectiveClass:
+            K = CXCursor_OMPDepobjDirective;
+            break;
+        case Stmt::OMPScanDirectiveClass:
+            K = CXCursor_OMPScanDirective;
             break;
         case Stmt::OMPOrderedDirectiveClass:
             K = CXCursor_OMPOrderedDirective;

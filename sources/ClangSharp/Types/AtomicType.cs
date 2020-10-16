@@ -10,7 +10,7 @@ namespace ClangSharp
         private readonly Lazy<Type> _desugaredType;
         private readonly Lazy<Type> _valueType;
 
-        internal AtomicType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_Atomic)
+        internal AtomicType(CXType handle) : base(handle, CXTypeKind.CXType_Atomic, CX_TypeClass.CX_TypeClass_Atomic)
         {
             _desugaredType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar()));
             _valueType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ValueType));
