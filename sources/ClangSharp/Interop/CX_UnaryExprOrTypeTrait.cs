@@ -8,8 +8,9 @@ namespace ClangSharp.Interop
         CX_UETT_Invalid,
         CX_UETT_SizeOf,
         CX_UETT_AlignOf,
+        CX_UETT_PreferredAlignOf,
         CX_UETT_VecStep,
         CX_UETT_OpenMPRequiredSimdAlign,
-        CX_UETT_PreferredAlignOf,
+        CX_UETT_Last = -1 + 1 + 1 + 1 + 1 + 1,
     }
 }

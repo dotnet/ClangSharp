@@ -63,6 +63,7 @@ enum CX_DeclKind {
 enum CX_FloatingSemantics {
     CX_FLK_Invalid,
     CX_FLK_IEEEhalf = llvm::APFloatBase::S_IEEEhalf + 1,
+    CX_FLK_BFloat = llvm::APFloatBase::S_BFloat + 1,
     CX_FLK_IEEEsingle = llvm::APFloatBase::S_IEEEsingle + 1,
     CX_FLK_IEEEdouble = llvm::APFloatBase::S_IEEEdouble + 1,
     CX_FLK_x87DoubleExtended = llvm::APFloatBase::S_x87DoubleExtended + 1,
@@ -99,11 +100,13 @@ enum CX_TypeClass {
 
 enum CX_UnaryExprOrTypeTrait {
     CX_UETT_Invalid,
-    CX_UETT_SizeOf = clang::UnaryExprOrTypeTrait::UETT_SizeOf + 1,
-    CX_UETT_AlignOf = clang::UnaryExprOrTypeTrait::UETT_AlignOf + 1,
-    CX_UETT_VecStep = clang::UnaryExprOrTypeTrait::UETT_VecStep + 1,
-    CX_UETT_OpenMPRequiredSimdAlign = clang::UnaryExprOrTypeTrait::UETT_OpenMPRequiredSimdAlign + 1,
-    CX_UETT_PreferredAlignOf = clang::UnaryExprOrTypeTrait::UETT_PreferredAlignOf + 1,
+ #define UNARY_EXPR_OR_TYPE_TRAIT(Spelling, Name, Key) CX_UETT_##Name,
+ #define CXX11_UNARY_EXPR_OR_TYPE_TRAIT(Spelling, Name, Key) CX_UETT_##Name,
+ #include "clang/Basic/TokenKinds.def"
+    CX_UETT_Last = -1 // CX_UETT_Last == last CX_UETT_XX in the enum.
+ #define UNARY_EXPR_OR_TYPE_TRAIT(Spelling, Name, Key) +1
+ #define CXX11_UNARY_EXPR_OR_TYPE_TRAIT(Spelling, Name, Key) +1
+ #include "clang/Basic/TokenKinds.def"
 };
 
 enum CX_UnaryOperatorKind {
