@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-10.0.0/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-11.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 using System;
@@ -237,18 +237,6 @@ namespace ClangSharp.Interop
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_uninstall_llvm_fatal_error_handler", ExactSpelling = true)]
         public static extern void uninstall_llvm_fatal_error_handler();
-
-        [NativeTypeName("#define CINDEX_VERSION_MAJOR 0")]
-        public const int CINDEX_VERSION_MAJOR = 0;
-
-        [NativeTypeName("#define CINDEX_VERSION_MINOR 59")]
-        public const int CINDEX_VERSION_MINOR = 59;
-
-        [NativeTypeName("#define CINDEX_VERSION CINDEX_VERSION_ENCODE( \\\n    CINDEX_VERSION_MAJOR,                     \\\n    CINDEX_VERSION_MINOR )")]
-        public const int CINDEX_VERSION = (((0) * 10000) + ((59) * 1));
-
-        [NativeTypeName("#define CINDEX_VERSION_STRING CINDEX_VERSION_STRINGIZE( \\\n    CINDEX_VERSION_MAJOR,                               \\\n    CINDEX_VERSION_MINOR)")]
-        public static ReadOnlySpan<byte> CINDEX_VERSION_STRING => new byte[] { 0x30, 0x2E, 0x35, 0x39, 0x00 };
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_createIndex", ExactSpelling = true)]
         [return: NativeTypeName("CXIndex")]
@@ -837,6 +825,9 @@ namespace ClangSharp.Interop
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Type_getModifiedType", ExactSpelling = true)]
         public static extern CXType Type_getModifiedType(CXType T);
 
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Type_getValueType", ExactSpelling = true)]
+        public static extern CXType Type_getValueType(CXType CT);
+
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getOffsetOfField", ExactSpelling = true)]
         [return: NativeTypeName("long long")]
         public static extern long Cursor_getOffsetOfField(CXCursor C);
@@ -1354,5 +1345,17 @@ namespace ClangSharp.Interop
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Type_visitFields", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
         public static extern uint Type_visitFields(CXType T, [NativeTypeName("CXFieldVisitor")] IntPtr visitor, [NativeTypeName("CXClientData")] void* client_data);
+
+        [NativeTypeName("#define CINDEX_VERSION_MAJOR 0")]
+        public const int CINDEX_VERSION_MAJOR = 0;
+
+        [NativeTypeName("#define CINDEX_VERSION_MINOR 60")]
+        public const int CINDEX_VERSION_MINOR = 60;
+
+        [NativeTypeName("#define CINDEX_VERSION CINDEX_VERSION_ENCODE(CINDEX_VERSION_MAJOR, CINDEX_VERSION_MINOR)")]
+        public const int CINDEX_VERSION = (((0) * 10000) + ((60) * 1));
+
+        [NativeTypeName("#define CINDEX_VERSION_STRING CINDEX_VERSION_STRINGIZE(CINDEX_VERSION_MAJOR, CINDEX_VERSION_MINOR)")]
+        public static ReadOnlySpan<byte> CINDEX_VERSION_STRING => new byte[] { 0x30, 0x2E, 0x36, 0x30, 0x00 };
     }
 }

@@ -187,7 +187,10 @@ namespace ClangSharp
 
             _context.Clear();
             _diagnostics.Clear();
+            _fileContentsBuilder.Clear();
+            _generatedUuids.Clear();
             _outputBuilderFactory.Clear();
+            _uuidsToGenerate.Clear();
             _visitedFiles.Clear();
         }
 
@@ -235,6 +238,7 @@ namespace ClangSharp
 
                 var file = translationUnitHandle.GetFile(_filePath);
                 var fileContents = translationUnitHandle.GetFileContents(file, out var size);
+
 #if NETCOREAPP
                 _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents));
 #else
@@ -249,7 +253,10 @@ namespace ClangSharp
                     }
                 }
 
-                using var unsavedFile = CXUnsavedFile.Create(_filePath, _fileContentsBuilder.ToString());
+                var unsavedFileContents = _fileContentsBuilder.ToString();
+                _fileContentsBuilder.Clear();
+
+                using var unsavedFile = CXUnsavedFile.Create(_filePath, unsavedFileContents);
                 var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
 
                 translationFlags = _translationFlags & ~CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
@@ -1026,7 +1033,7 @@ namespace ClangSharp
                 return AddUsingDirectiveIfNeeded(remappedName);
             }
 
-            return remappedName;
+            return AddUsingDirectiveIfNeeded(remappedName);
 
             string AddUsingDirectiveIfNeeded(string remappedName)
             {
@@ -1917,7 +1924,7 @@ namespace ClangSharp
                 }
 
                 var declLocation = cursor.Location;
-                declLocation.GetFileLocation(out CXFile file, out _, out _, out _);
+                declLocation.GetFileLocation(out CXFile file, out uint line, out uint column, out _);
 
                 if (IsIncludedFileOrLocation(cursor, file, declLocation))
                 {
@@ -1928,14 +1935,18 @@ namespace ClangSharp
                 // defined in an imported header file. We want to also check if the expansion location is
                 // in the main file to catch these cases and ensure we still generate bindings for them.
 
-                declLocation.GetExpansionLocation(out CXFile expansionFile, out uint line, out uint column, out _);
-                if (expansionFile == file)
+                declLocation.GetExpansionLocation(out CXFile expansionFile, out uint expansionLine, out uint expansionColumn, out _);
+
+                if ((expansionFile == file) && (expansionLine == line) && (expansionColumn == column) && (_config.TraversalNames.Length != 0))
                 {
                     // clang_getLocation is a very expensive call, so exit early if the expansion file is the same
+                    // However, if we are not explicitly specifying traversal names, its possible the expansion location
+                    // is the same, but IsMainFile is now marked as true, in which case we can't exit early.
+
                     return true;
                 }
 
-                var expansionLocation = cursor.TranslationUnit.Handle.GetLocation(file, line, column);
+                var expansionLocation = cursor.TranslationUnit.Handle.GetLocation(expansionFile, expansionLine, expansionColumn);
 
                 if (IsIncludedFileOrLocation(cursor, file, expansionLocation))
                 {
@@ -1947,15 +1958,22 @@ namespace ClangSharp
 
             bool IsExcludedByName(Cursor cursor, out bool isExcludedByConflictingDefinition)
             {
-                var qualifiedName = string.Empty;
-                var name = string.Empty;
-                var kind = string.Empty;
-
                 var isExcludedByConfigOption = false;
                 isExcludedByConflictingDefinition = false;
 
+                string qualifiedName;
+                string name;
+                string kind;
+
                 if (cursor is NamedDecl namedDecl)
                 {
+                    // We get the non-remapped name for the purpose of exclusion checks to ensure that users
+                    // can remove no-definition declarations in favor of remapped anonymous declarations.
+
+                    qualifiedName = GetCursorQualifiedName(namedDecl);
+                    name = GetCursorName(namedDecl);
+                    kind = $"{namedDecl.DeclKindName} declaration";
+
                     if ((namedDecl is TagDecl tagDecl) && (tagDecl.Definition != tagDecl) && (tagDecl.Definition != null))
                     {
                         // We don't want to generate bindings for anything
@@ -1964,15 +1982,12 @@ namespace ClangSharp
                         // still generate bindings for things which are used
                         // as opaque handles, but which aren't ever defined.
 
+                        if (_config.LogExclusions)
+                        {
+                            AddDiagnostic(DiagnosticLevel.Info, $"Excluded {kind} '{qualifiedName}' by as it is not a definition.");
+                        }
                         return true;
                     }
-
-                    // We get the non-remapped name for the purpose of exclusion checks to ensure that users
-                    // can remove no-definition declarations in favor of remapped anonymous declarations.
-
-                    qualifiedName = GetCursorQualifiedName(namedDecl);
-                    name = GetCursorName(namedDecl);
-                    kind = $"{namedDecl.DeclKindName} declaration";
                 }
                 else if (cursor is MacroDefinitionRecord macroDefinitionRecord)
                 {

@@ -53,7 +53,8 @@ namespace ClangSharp.Test
         {
             var inputContents = @"void MyFunction(void (*callback)());";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+            var expectedOutputContents = @"using System;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {

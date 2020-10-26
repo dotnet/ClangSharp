@@ -358,6 +358,7 @@ namespace ClangSharp
                     {
                         using var translationUnit = TranslationUnit.GetOrCreate(handle);
                         Console.WriteLine($"Processing '{filePath}'");
+
                         pinvokeGenerator.GenerateBindings(translationUnit, filePath, clangCommandLineArgs, translationFlags);
                     }
                     catch (Exception e)

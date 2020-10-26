@@ -410,7 +410,6 @@ namespace ClangSharp
 
             var accessSppecifier = GetAccessSpecifierName(functionDecl);
             var name = GetRemappedCursorName(functionDecl);
-            var escapedName = EscapeName(name);
 
             if (!(functionDecl.DeclContext is CXXRecordDecl cxxRecordDecl))
             {
@@ -441,7 +440,9 @@ namespace ClangSharp
 
             var cxxMethodDecl = functionDecl as CXXMethodDecl;
             var body = functionDecl.Body;
+
             var isVirtual = (cxxMethodDecl != null) && cxxMethodDecl.IsVirtual;
+            var escapedName = isVirtual ? PrefixAndStripName(name) : EscapeAndStripName(name);
 
             if (isVirtual)
             {
@@ -483,7 +484,7 @@ namespace ClangSharp
 
                 var entryPoint = (cxxMethodDecl is null) ? GetCursorName(functionDecl) : cxxMethodDecl.Handle.Mangling.CString;
 
-                if (entryPoint != name)
+                if (entryPoint != escapedName)
                 {
                     _outputBuilder.Write("EntryPoint = \"");
                     _outputBuilder.Write(entryPoint);
@@ -527,7 +528,7 @@ namespace ClangSharp
 
             if (!isVirtual)
             {
-                if (NeedsNewKeyword(name, functionDecl.Parameters))
+                if (NeedsNewKeyword(escapedName, functionDecl.Parameters))
                 {
                     _outputBuilder.Write("new ");
                 }
@@ -559,15 +560,7 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
             }
 
-            if (isVirtual)
-            {
-                _outputBuilder.Write(PrefixAndStripName(name));
-            }
-            else
-            {
-                _outputBuilder.Write(EscapeAndStripName(name));
-            }
-
+            _outputBuilder.Write(escapedName);
             _outputBuilder.Write('(');
 
             if (isVirtual)

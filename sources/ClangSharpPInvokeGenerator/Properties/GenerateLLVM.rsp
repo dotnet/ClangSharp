@@ -26,6 +26,7 @@ llvm-c/Linker.h
 llvm-c/LinkTimeOptimizer.h
 llvm-c/lto.h
 llvm-c/Object.h
+llvm-c/Orc.h
 llvm-c/OrcBindings.h
 llvm-c/Remarks.h
 llvm-c/Support.h
@@ -45,11 +46,11 @@ llvm-c/Transforms/Vectorize.h
 --methodClassName
 LLVM
 --namespace
-LLVMSharp
+LLVMSharp.Interop
 --output
 ./sources/LLVMSharp/Interop
 --test-output
-./tests/LLVMSharp/Interop
+./tests/LLVMSharp.UnitTests/Interop
 --prefixStrip
 LLVM
 --remap

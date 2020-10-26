@@ -40,8 +40,8 @@
     <Company>Microsoft</Company>
     <PackageOutputPath>$(BaseArtifactsPath)pkg/$(Configuration)/</PackageOutputPath>
     <Product>ClangSharp</Product>
-    <VersionPrefix>10.0.0</VersionPrefix>
-    <VersionSuffix>beta2</VersionSuffix>
+    <VersionPrefix>11.0.0</VersionPrefix>
+    <VersionSuffix>beta1</VersionSuffix>
   </PropertyGroup>
 
   <!-- Default settings that are otherwise undefined -->

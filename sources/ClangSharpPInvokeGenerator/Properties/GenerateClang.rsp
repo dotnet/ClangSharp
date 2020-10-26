@@ -3,6 +3,7 @@ compatible-codegen
 generate-macro-bindings
 generate-tests-xunit
 multi-file
+unix-types
 --exclude
 CINDEX_VERSION_ENCODE
 CINDEX_VERSION_STRINGIZE
@@ -26,6 +27,6 @@ ClangSharp.Interop
 --output
 ./sources/ClangSharp/Interop
 --test-output
-./tests/ClangSharp/Interop
+./tests/ClangSharp.UnitTests/InteropTests
 --prefixStrip
 clang_

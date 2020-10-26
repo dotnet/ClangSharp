@@ -41,6 +41,8 @@ namespace ClangSharp.Interop
                 {
                     CX_AttrKind.CX_AttrKind_Invalid => "Invalid",
                     CX_AttrKind.CX_AttrKind_AddressSpace => "AddressSpace",
+                    CX_AttrKind.CX_AttrKind_ArmMveStrictPolymorphism => "ArmMveStrictPolymorphism",
+                    CX_AttrKind.CX_AttrKind_CmseNSCall => "CmseNSCall",
                     CX_AttrKind.CX_AttrKind_NoDeref => "NoDeref",
                     CX_AttrKind.CX_AttrKind_ObjCGC => "ObjCGC",
                     CX_AttrKind.CX_AttrKind_ObjCInertUnsafeUnretained => "ObjCInertUnsafeUnretained",
@@ -58,6 +60,7 @@ namespace ClangSharp.Interop
                     CX_AttrKind.CX_AttrKind_TypeNullable => "TypeNullable",
                     CX_AttrKind.CX_AttrKind_UPtr => "UPtr",
                     CX_AttrKind.CX_AttrKind_FallThrough => "FallThrough",
+                    CX_AttrKind.CX_AttrKind_NoMerge => "NoMerge",
                     CX_AttrKind.CX_AttrKind_Suppress => "Suppress",
                     CX_AttrKind.CX_AttrKind_AArch64VectorPcs => "AArch64VectorPcs",
                     CX_AttrKind.CX_AttrKind_AcquireHandle => "AcquireHandle",
@@ -112,7 +115,7 @@ namespace ClangSharp.Interop
                     CX_AttrKind.CX_AttrKind_AnyX86NoCallerSavedRegisters => "AnyX86NoCallerSavedRegisters",
                     CX_AttrKind.CX_AttrKind_ArcWeakrefUnavailable => "ArcWeakrefUnavailable",
                     CX_AttrKind.CX_AttrKind_ArgumentWithTypeTag => "ArgumentWithTypeTag",
-                    CX_AttrKind.CX_AttrKind_ArmMveAlias => "ArmMveAlias",
+                    CX_AttrKind.CX_AttrKind_ArmBuiltinAlias => "ArmBuiltinAlias",
                     CX_AttrKind.CX_AttrKind_Artificial => "Artificial",
                     CX_AttrKind.CX_AttrKind_AsmLabel => "AsmLabel",
                     CX_AttrKind.CX_AttrKind_AssertCapability => "AssertCapability",
@@ -133,6 +136,8 @@ namespace ClangSharp.Interop
                     CX_AttrKind.CX_AttrKind_CPUSpecific => "CPUSpecific",
                     CX_AttrKind.CX_AttrKind_CUDAConstant => "CUDAConstant",
                     CX_AttrKind.CX_AttrKind_CUDADevice => "CUDADevice",
+                    CX_AttrKind.CX_AttrKind_CUDADeviceBuiltinSurfaceType => "CUDADeviceBuiltinSurfaceType",
+                    CX_AttrKind.CX_AttrKind_CUDADeviceBuiltinTextureType => "CUDADeviceBuiltinTextureType",
                     CX_AttrKind.CX_AttrKind_CUDAGlobal => "CUDAGlobal",
                     CX_AttrKind.CX_AttrKind_CUDAHost => "CUDAHost",
                     CX_AttrKind.CX_AttrKind_CUDAInvalidTarget => "CUDAInvalidTarget",
@@ -144,6 +149,7 @@ namespace ClangSharp.Interop
                     CX_AttrKind.CX_AttrKind_Capability => "Capability",
                     CX_AttrKind.CX_AttrKind_CapturedRecord => "CapturedRecord",
                     CX_AttrKind.CX_AttrKind_Cleanup => "Cleanup",
+                    CX_AttrKind.CX_AttrKind_CmseNSEntry => "CmseNSEntry",
                     CX_AttrKind.CX_AttrKind_CodeSeg => "CodeSeg",
                     CX_AttrKind.CX_AttrKind_Cold => "Cold",
                     CX_AttrKind.CX_AttrKind_Common => "Common",
@@ -176,7 +182,6 @@ namespace ClangSharp.Interop
                     CX_AttrKind.CX_AttrKind_GNUInline => "GNUInline",
                     CX_AttrKind.CX_AttrKind_GuardedBy => "GuardedBy",
                     CX_AttrKind.CX_AttrKind_GuardedVar => "GuardedVar",
-                    CX_AttrKind.CX_AttrKind_HIPPinnedShadow => "HIPPinnedShadow",
                     CX_AttrKind.CX_AttrKind_Hot => "Hot",
                     CX_AttrKind.CX_AttrKind_IBAction => "IBAction",
                     CX_AttrKind.CX_AttrKind_IBOutlet => "IBOutlet",
@@ -319,6 +324,7 @@ namespace ClangSharp.Interop
                     CX_AttrKind.CX_AttrKind_AlignValue => "AlignValue",
                     CX_AttrKind.CX_AttrKind_IFunc => "IFunc",
                     CX_AttrKind.CX_AttrKind_InitSeg => "InitSeg",
+                    CX_AttrKind.CX_AttrKind_LoaderUninitialized => "LoaderUninitialized",
                     CX_AttrKind.CX_AttrKind_LoopHint => "LoopHint",
                     CX_AttrKind.CX_AttrKind_Mode => "Mode",
                     CX_AttrKind.CX_AttrKind_NoBuiltin => "NoBuiltin",
@@ -454,6 +460,8 @@ namespace ClangSharp.Interop
         public CX_CharacterKind CharacterLiteralKind => clangsharp.Cursor_getCharacterLiteralKind(this);
 
         public uint CharacterLiteralValue => clangsharp.Cursor_getCharacterLiteralValue(this);
+
+        public CXCursor ColumnIdxExpr => throw null; // clangsharp.Cursor_getColumnIdxExpr(this);
 
         public CXSourceRange CommentRange => clang.Cursor_getCommentRange(this);
 
@@ -630,6 +638,7 @@ namespace ClangSharp.Interop
                     CX_DeclKind.CX_DeclKind_VarTemplatePartialSpecialization => "VarTemplatePartialSpecialization",
                     CX_DeclKind.CX_DeclKind_EnumConstant => "EnumConstant",
                     CX_DeclKind.CX_DeclKind_IndirectField => "IndirectField",
+                    CX_DeclKind.CX_DeclKind_MSGuid => "MSGuid",
                     CX_DeclKind.CX_DeclKind_OMPDeclareMapper => "OMPDeclareMapper",
                     CX_DeclKind.CX_DeclKind_OMPDeclareReduction => "OMPDeclareReduction",
                     CX_DeclKind.CX_DeclKind_UnresolvedUsingValue => "UnresolvedUsingValue",
@@ -704,6 +713,8 @@ namespace ClangSharp.Interop
         public int FunctionScopeIndex => clangsharp.Cursor_getFunctionScopeIndex(this);
 
         public CXType FunctionType => clangsharp.Cursor_getFunctionType(this);
+
+        public Guid GuidValue => throw null; // clangsharp.Cursor_getGuidValue(this);
 
         public bool HasAttrs => clang.Cursor_hasAttrs(this) != 0;
 
@@ -786,6 +797,8 @@ namespace ClangSharp.Interop
         public bool IsImplicitAccess => clangsharp.Cursor_getIsImplicitAccess(this) != 0;
 
         public bool IsInlineNamespace => clang.Cursor_isInlineNamespace(this) != 0;
+
+        public bool IsIncomplete => throw null; // clangsharp.Cursor_getIsIncomplete(this) != 0;
 
         public bool IsInvalid => clang.isInvalid(Kind) != 0;
 
@@ -967,6 +980,8 @@ namespace ClangSharp.Interop
 
         public CXCursor RhsExpr => clangsharp.Cursor_getRhsExpr(this);
 
+        public CXCursor RowIdxExpr => throw null; // clangsharp.Cursor_getRowIdxExpr(this);
+
         public CXCursor SemanticParent => clang.getCursorSemanticParent(this);
 
         public CXSourceRange SourceRange => clangsharp.Cursor_getSourceRange(this);
@@ -997,7 +1012,7 @@ namespace ClangSharp.Interop
                 Debug.Assert(CX_StmtClass.CX_StmtClass_LastCXXConstructExpr == CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr);
                 Debug.Assert(CX_StmtClass.CX_StmtClass_FirstCallExpr == CX_StmtClass.CX_StmtClass_CallExpr);
                 Debug.Assert(CX_StmtClass.CX_StmtClass_LastCallExpr == CX_StmtClass.CX_StmtClass_UserDefinedLiteral);
-                Debug.Assert(CX_StmtClass.CX_StmtClass_FirstCXXNamedCastExpr == CX_StmtClass.CX_StmtClass_CXXConstCastExpr);
+                Debug.Assert(CX_StmtClass.CX_StmtClass_FirstCXXNamedCastExpr == CX_StmtClass.CX_StmtClass_CXXAddrspaceCastExpr);
                 Debug.Assert(CX_StmtClass.CX_StmtClass_LastCXXNamedCastExpr == CX_StmtClass.CX_StmtClass_CXXStaticCastExpr);
                 Debug.Assert(CX_StmtClass.CX_StmtClass_FirstExplicitCastExpr == CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr);
                 Debug.Assert(CX_StmtClass.CX_StmtClass_LastExplicitCastExpr == CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr);
@@ -1043,6 +1058,7 @@ namespace ClangSharp.Interop
                     CX_StmtClass.CX_StmtClass_OMPCancelDirective => "OMPCancelDirective",
                     CX_StmtClass.CX_StmtClass_OMPCancellationPointDirective => "OMPCancellationPointDirective",
                     CX_StmtClass.CX_StmtClass_OMPCriticalDirective => "OMPCriticalDirective",
+                    CX_StmtClass.CX_StmtClass_OMPDepobjDirective => "OMPDepobjDirective",
                     CX_StmtClass.CX_StmtClass_OMPFlushDirective => "OMPFlushDirective",
                     CX_StmtClass.CX_StmtClass_OMPDistributeDirective => "OMPDistributeDirective",
                     CX_StmtClass.CX_StmtClass_OMPDistributeParallelForDirective => "OMPDistributeParallelForDirective",
@@ -1074,6 +1090,7 @@ namespace ClangSharp.Interop
                     CX_StmtClass.CX_StmtClass_OMPParallelDirective => "OMPParallelDirective",
                     CX_StmtClass.CX_StmtClass_OMPParallelMasterDirective => "OMPParallelMasterDirective",
                     CX_StmtClass.CX_StmtClass_OMPParallelSectionsDirective => "OMPParallelSectionsDirective",
+                    CX_StmtClass.CX_StmtClass_OMPScanDirective => "OMPScanDirective",
                     CX_StmtClass.CX_StmtClass_OMPSectionDirective => "OMPSectionDirective",
                     CX_StmtClass.CX_StmtClass_OMPSectionsDirective => "OMPSectionsDirective",
                     CX_StmtClass.CX_StmtClass_OMPSingleDirective => "OMPSingleDirective",
@@ -1148,6 +1165,7 @@ namespace ClangSharp.Interop
                     CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr => "BuiltinBitCastExpr",
                     CX_StmtClass.CX_StmtClass_CStyleCastExpr => "CStyleCastExpr",
                     CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr => "CXXFunctionalCastExpr",
+                    CX_StmtClass.CX_StmtClass_CXXAddrspaceCastExpr => "CXXAddrspaceCastExpr",
                     CX_StmtClass.CX_StmtClass_CXXConstCastExpr => "CXXConstCastExpr",
                     CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr => "CXXDynamicCastExpr",
                     CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr => "CXXReinterpretCastExpr",
@@ -1183,9 +1201,12 @@ namespace ClangSharp.Interop
                     CX_StmtClass.CX_StmtClass_MSPropertyRefExpr => "MSPropertyRefExpr",
                     CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr => "MSPropertySubscriptExpr",
                     CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr => "MaterializeTemporaryExpr",
+                    CX_StmtClass.CX_StmtClass_MatrixSubscriptExpr => "MatrixSubscriptExpr",
                     CX_StmtClass.CX_StmtClass_MemberExpr => "MemberExpr",
                     CX_StmtClass.CX_StmtClass_NoInitExpr => "NoInitExpr",
                     CX_StmtClass.CX_StmtClass_OMPArraySectionExpr => "OMPArraySectionExpr",
+                    CX_StmtClass.CX_StmtClass_OMPArrayShapingExpr => "OMPArrayShapingExpr",
+                    CX_StmtClass.CX_StmtClass_OMPIteratorExpr => "OMPIteratorExpr",
                     CX_StmtClass.CX_StmtClass_ObjCArrayLiteral => "ObjCArrayLiteral",
                     CX_StmtClass.CX_StmtClass_ObjCAvailabilityCheckExpr => "ObjCAvailabilityCheckExpr",
                     CX_StmtClass.CX_StmtClass_ObjCBoolLiteralExpr => "ObjCBoolLiteralExpr",
@@ -1210,6 +1231,7 @@ namespace ClangSharp.Interop
                     CX_StmtClass.CX_StmtClass_ParenListExpr => "ParenListExpr",
                     CX_StmtClass.CX_StmtClass_PredefinedExpr => "PredefinedExpr",
                     CX_StmtClass.CX_StmtClass_PseudoObjectExpr => "PseudoObjectExpr",
+                    CX_StmtClass.CX_StmtClass_RecoveryExpr => "RecoveryExpr",
                     CX_StmtClass.CX_StmtClass_RequiresExpr => "RequiresExpr",
                     CX_StmtClass.CX_StmtClass_ShuffleVectorExpr => "ShuffleVectorExpr",
                     CX_StmtClass.CX_StmtClass_SizeOfPackExpr => "SizeOfPackExpr",

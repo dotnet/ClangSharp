@@ -398,7 +398,8 @@ namespace ClangSharp
             }
 
             var name = GetRemappedCursorName(declRefExpr.Decl);
-            _outputBuilder.Write(EscapeAndStripName(name));
+            var escapedName = (declRefExpr.Decl is FunctionDecl) ? EscapeAndStripName(name) : EscapeName(name);
+            _outputBuilder.Write(escapedName);
         }
 
         private void VisitDeclStmt(DeclStmt declStmt)

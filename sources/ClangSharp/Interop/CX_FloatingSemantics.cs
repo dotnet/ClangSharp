@@ -7,6 +7,7 @@ namespace ClangSharp.Interop
     {
         CX_FLK_Invalid,
         CX_FLK_IEEEhalf,
+        CX_FLK_BFloat,
         CX_FLK_IEEEsingle,
         CX_FLK_IEEEdouble,
         CX_FLK_x87DoubleExtended,
