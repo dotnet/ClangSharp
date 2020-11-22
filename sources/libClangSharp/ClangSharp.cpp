@@ -1692,7 +1692,8 @@ CXCursor clangsharp_Cursor_getLambdaContextDecl(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
-            return MakeCXCursor(CRD->getLambdaContextDecl(), getCursorTU(C));
+            if( CRD->isLambda() )
+                return MakeCXCursor(CRD->getLambdaContextDecl(), getCursorTU(C));
         }
     }
 
