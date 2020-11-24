@@ -26,6 +26,7 @@ namespace ClangSharp
         private readonly Dictionary<string, Guid> _uuidsToGenerate;
         private readonly HashSet<string> _generatedUuids;
         private readonly PInvokeGeneratorConfiguration _config;
+        private readonly Dictionary<string, bool> _fileIncluded = new Dictionary<string, bool>(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
         private string _filePath;
         private string[] _clangCommandLineArgs;
@@ -293,6 +294,91 @@ namespace ClangSharp
             }
 
             _diagnostics.Add(diagnostic);
+        }
+
+        private void AddCppAttributes(ParmVarDecl parmVarDecl, string prefix = null, string postfix = null)
+        {
+            if (!_config.GenerateCppAttributes)
+            {
+                return;
+            }
+
+            if (parmVarDecl.Attrs.Count == 0)
+            {
+                return;
+            }
+
+            if (prefix is null)
+            {
+                _outputBuilder.WriteIndentation();
+            }
+            else
+            {
+                _outputBuilder.WriteNewlineIfNeeded();
+                _outputBuilder.Write(prefix);
+            }
+
+            _outputBuilder.Write($"[CppAttributeList(\"");
+
+            for (int i = 0; i < parmVarDecl.Attrs.Count; i++)
+            {
+                var attr = EscapeString(parmVarDecl.Attrs[i].Spelling);
+                if (i != 0)
+                {
+                    _outputBuilder.Write('^');
+                }
+
+                _outputBuilder.Write(attr);
+            }
+
+            _outputBuilder.Write($"\")]");
+
+            if (postfix is null)
+            {
+                _outputBuilder.NeedsNewline = true;
+            }
+            else
+            {
+                _outputBuilder.Write(postfix);
+            }
+        }
+
+        private void AddNativeInheritanceAttribute(string inheritedFromName, string prefix = null, string postfix = null, string attributePrefix = null)
+        {
+            if (prefix is null)
+            {
+                _outputBuilder.WriteIndentation();
+            }
+            else
+            {
+                _outputBuilder.WriteNewlineIfNeeded();
+                _outputBuilder.Write(prefix);
+            }
+
+            _outputBuilder.Write('[');
+
+            if (attributePrefix != null)
+            {
+                _outputBuilder.Write(attributePrefix);
+            }
+
+            _outputBuilder.Write("NativeInheritance");
+            _outputBuilder.Write('(');
+
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(EscapeString(inheritedFromName));
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(')');
+            _outputBuilder.Write(']');
+
+            if (postfix is null)
+            {
+                _outputBuilder.NeedsNewline = true;
+            }
+            else
+            {
+                _outputBuilder.Write(postfix);
+            }
         }
 
         private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
@@ -1906,6 +1992,14 @@ namespace ClangSharp
                 return false;
             }
 
+            if (_config.ExcludeFunctionsWithBody &&
+                cursor is FunctionDecl functionDecl &&
+                cursor.CursorKind == CXCursorKind.CXCursor_FunctionDecl &&
+                functionDecl.HasBody)
+            {
+                return true;
+            }
+
             return IsExcludedByFile(cursor) || IsExcludedByName(cursor, out isExcludedByConflictingDefinition);
 
             bool IsAlwaysIncluded(Cursor cursor)
@@ -2085,27 +2179,33 @@ namespace ClangSharp
 
             bool IsIncludedFileOrLocation(Cursor cursor, CXFile file, CXSourceLocation location)
             {
-                // Use case insensitive comparison on Windows
-                var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
-
                 // Normalize paths to be '/' for comparison
                 var fileName = file.Name.ToString().Replace('\\', '/');
+                bool ret;
+                if (_fileIncluded.TryGetValue(fileName, out ret))
+                {
+                    return ret;
+                }
 
                 if (_visitedFiles.Add(fileName) && _config.LogVisitedFiles)
                 {
                     AddDiagnostic(DiagnosticLevel.Info, $"Visiting {fileName}");
                 }
 
+                // Use case insensitive comparison on Windows
+                var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
                 if (_config.TraversalNames.Contains(fileName, equalityComparer))
                 {
-                    return true;
+                    ret = true;
                 }
                 else if ((_config.TraversalNames.Length == 0) && location.IsFromMainFile)
                 {
-                    return true;
+                    ret = true;
                 }
 
-                return false;
+                _fileIncluded[fileName] = ret;
+
+                return ret;
             }
 
             bool IsComProxy(FunctionDecl functionDecl, string name)

@@ -42,5 +42,13 @@ namespace ClangSharp
         ExcludeEnumOperators = 0x00004000,
 
         GenerateAggressiveInlining = 0x00008000,
+
+        ExcludeFunctionsWithBody = 0x00010000,
+
+        ExcludeAnonymousFieldHelpers = 0x00020000,
+
+        LogPotentialTypedefRemappings = 0x00040000,
+
+        GenerateCppAttributes = 0x00080000,
     }
 }
