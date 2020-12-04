@@ -26,7 +26,6 @@ namespace ClangSharp
         private readonly Dictionary<string, Guid> _uuidsToGenerate;
         private readonly HashSet<string> _generatedUuids;
         private readonly PInvokeGeneratorConfiguration _config;
-        private readonly Dictionary<string, bool> _fileIncluded = new Dictionary<string, bool>(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
         private string _filePath;
         private string[] _clangCommandLineArgs;
@@ -2181,11 +2180,6 @@ namespace ClangSharp
             {
                 // Normalize paths to be '/' for comparison
                 var fileName = file.Name.ToString().Replace('\\', '/');
-                bool ret;
-                if (_fileIncluded.TryGetValue(fileName, out ret))
-                {
-                    return ret;
-                }
 
                 if (_visitedFiles.Add(fileName) && _config.LogVisitedFiles)
                 {
@@ -2196,16 +2190,14 @@ namespace ClangSharp
                 var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
                 if (_config.TraversalNames.Contains(fileName, equalityComparer))
                 {
-                    ret = true;
+                    return true;
                 }
                 else if ((_config.TraversalNames.Length == 0) && location.IsFromMainFile)
                 {
-                    ret = true;
+                    return true;
                 }
 
-                _fileIncluded[fileName] = ret;
-
-                return ret;
+                return false;
             }
 
             bool IsComProxy(FunctionDecl functionDecl, string name)
