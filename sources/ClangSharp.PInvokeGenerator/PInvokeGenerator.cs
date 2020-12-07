@@ -319,15 +319,13 @@ namespace ClangSharp
 
             _outputBuilder.Write($"[CppAttributeList(\"");
 
-            for (int i = 0; i < parmVarDecl.Attrs.Count; i++)
+            _outputBuilder.Write(EscapeString(parmVarDecl.Attrs[0].Spelling));
+            for (int i = 1; i < parmVarDecl.Attrs.Count; i++)
             {
-                var attr = EscapeString(parmVarDecl.Attrs[i].Spelling);
-                if (i != 0)
-                {
-                    _outputBuilder.Write('^');
-                }
+                // Separator char between attributes
+                _outputBuilder.Write('^');
 
-                _outputBuilder.Write(attr);
+                _outputBuilder.Write(EscapeString(parmVarDecl.Attrs[i].Spelling));
             }
 
             _outputBuilder.Write($"\")]");
@@ -1076,10 +1074,10 @@ namespace ClangSharp
             }
             else if ((namedDecl is RecordDecl recordDecl) && name.StartsWith("__AnonymousRecord_"))
             {
-                remappedName = "_Anonymous";
-
                 if (recordDecl.Parent is RecordDecl parentRecordDecl)
                 {
+                    remappedName = "_Anonymous";
+
                     var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordDecl.TypeForDecl.CanonicalType).FirstOrDefault();
 
                     if (matchingField != null)
@@ -1092,8 +1090,9 @@ namespace ClangSharp
                         var index = parentRecordDecl.AnonymousDecls.IndexOf(recordDecl) + 1;
                         remappedName += index.ToString();
                     }
+
+                    remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
                 }
-                remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
             }
 
             return remappedName;
