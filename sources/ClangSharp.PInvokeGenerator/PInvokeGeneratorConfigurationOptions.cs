@@ -50,5 +50,7 @@ namespace ClangSharp
         LogPotentialTypedefRemappings = 0x00040000,
 
         GenerateCppAttributes = 0x00080000,
+
+        GenerateNativeInheritanceAttribute = 0x00100000,
     }
 }

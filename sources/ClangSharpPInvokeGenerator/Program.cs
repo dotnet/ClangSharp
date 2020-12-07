@@ -288,6 +288,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "generate-native-inheritance-attribute":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute;
+                        break;
+                    }
+
                     default:
                     {
                         errorList.Add($"Error: Unrecognized config switch: {configSwitch}.");

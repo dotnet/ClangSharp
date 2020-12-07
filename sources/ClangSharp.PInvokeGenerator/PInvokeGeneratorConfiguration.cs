@@ -157,6 +157,8 @@ namespace ClangSharp
 
         public bool GenerateCppAttributes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCppAttributes);
 
+        public bool GenerateNativeInheritanceAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
+
         public string MethodClassName { get; }
 
         public string MethodPrefixToStrip { get;}

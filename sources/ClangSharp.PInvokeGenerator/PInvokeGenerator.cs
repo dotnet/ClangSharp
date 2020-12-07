@@ -342,6 +342,11 @@ namespace ClangSharp
 
         private void AddNativeInheritanceAttribute(string inheritedFromName, string prefix = null, string postfix = null, string attributePrefix = null)
         {
+            if (!_config.GenerateNativeInheritanceAttribute)
+            {
+                return;
+            }
+
             if (prefix is null)
             {
                 _outputBuilder.WriteIndentation();
