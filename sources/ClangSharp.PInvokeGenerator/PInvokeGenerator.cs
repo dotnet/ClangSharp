@@ -2182,6 +2182,9 @@ namespace ClangSharp
 
             bool IsIncludedFileOrLocation(Cursor cursor, CXFile file, CXSourceLocation location)
             {
+                // Use case insensitive comparison on Windows
+                var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
                 // Normalize paths to be '/' for comparison
                 var fileName = file.Name.ToString().Replace('\\', '/');
 
@@ -2190,8 +2193,6 @@ namespace ClangSharp
                     AddDiagnostic(DiagnosticLevel.Info, $"Visiting {fileName}");
                 }
 
-                // Use case insensitive comparison on Windows
-                var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
                 if (_config.TraversalNames.Contains(fileName, equalityComparer))
                 {
                     return true;
