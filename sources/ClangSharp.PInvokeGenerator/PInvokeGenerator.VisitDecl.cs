@@ -431,11 +431,13 @@ namespace ClangSharp
                 type = attributedType.ModifiedType;
                 callConv = attributedType.Handle.FunctionTypeCallingConv;
             }
-            var functionType = (FunctionType)type;
 
-            if (callConv == CXCallingConv.CXCallingConv_Invalid)
+            if (type is FunctionType functionType)
             {
-                callConv = functionType.CallConv;
+                if (callConv == CXCallingConv.CXCallingConv_Invalid)
+                {
+                    callConv = functionType.CallConv;
+                }
             }
 
             var cxxMethodDecl = functionDecl as CXXMethodDecl;
