@@ -1,5 +1,4 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
-#define CatchAndDisplayRootCommandExceptions
 
 using System;
 using System.Collections.Generic;
@@ -50,24 +49,7 @@ namespace ClangSharp
             AddWithTypeOption(s_rootCommand);
             AddWithUsingOption(s_rootCommand);
 
-#if !CatchAndDisplayRootCommandExceptions
             return await s_rootCommand.InvokeAsync(args);
-#else
-            try
-            {
-                var ret = await s_rootCommand.InvokeAsync(args);
-                return ret;
-            }
-            catch (Exception e)
-            {
-                for (; e != null; e = e.InnerException)
-                {
-                    Console.WriteLine("Exception encountered: " + e.Message);
-                }
-
-                return -1;
-            }
-#endif
         }
 
         public static int Run(InvocationContext context)
