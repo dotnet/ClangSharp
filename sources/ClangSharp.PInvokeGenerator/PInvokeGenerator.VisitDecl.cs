@@ -345,7 +345,7 @@ namespace ClangSharp
 
             var type = fieldDecl.Type;
             var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
-
+            
             if (fieldDecl.Parent.IsUnion)
             {
                 _outputBuilder.WriteIndentedLine("[FieldOffset(0)]");
@@ -778,8 +778,6 @@ namespace ClangSharp
                 var type = parmVarDecl.Type;
                 var typeName = GetRemappedTypeName(parmVarDecl, context: null, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
-
-                var parameters = typedefDecl.CursorChildren.OfType<ParmVarDecl>().ToList();
                 AddCppAttributes(parmVarDecl, prefix: "", postfix: " ");
 
                 _outputBuilder.Write(typeName);
@@ -788,6 +786,7 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(parmVarDecl);
                 _outputBuilder.Write(EscapeName(name));
 
+                var parameters = typedefDecl.CursorChildren.OfType<ParmVarDecl>().ToList();
                 var index = parameters.IndexOf(parmVarDecl);
                 var lastIndex = parameters.Count - 1;
 
@@ -1135,6 +1134,10 @@ namespace ClangSharp
                 {
                     OutputMethods(cxxRecordDecl, cxxRecordDecl);
                     excludedCursors = excludedCursors.Concat(cxxRecordDecl.Methods);
+                }
+
+                if (recordDecl.Spelling == "WhitePoint")
+                {
                 }
 
                 Visit(recordDecl.Decls, excludedCursors);
