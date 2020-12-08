@@ -345,7 +345,7 @@ namespace ClangSharp
 
             var type = fieldDecl.Type;
             var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
-            
+
             if (fieldDecl.Parent.IsUnion)
             {
                 _outputBuilder.WriteIndentedLine("[FieldOffset(0)]");
@@ -1134,10 +1134,6 @@ namespace ClangSharp
                 {
                     OutputMethods(cxxRecordDecl, cxxRecordDecl);
                     excludedCursors = excludedCursors.Concat(cxxRecordDecl.Methods);
-                }
-
-                if (recordDecl.Spelling == "WhitePoint")
-                {
                 }
 
                 Visit(recordDecl.Decls, excludedCursors);
