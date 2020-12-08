@@ -1176,6 +1176,10 @@ namespace ClangSharp
 
                 name += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
             }
+            else if ((canonicalType is EnumType enumType) && name.StartsWith("__AnonymousEnum_"))
+            {
+                name = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _);
+            }
             else if (cursor is EnumDecl enumDecl)
             {
                 var enumDeclName = GetRemappedCursorName(enumDecl);
