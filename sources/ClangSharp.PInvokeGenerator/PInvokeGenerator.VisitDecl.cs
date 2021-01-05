@@ -2607,6 +2607,7 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
 
                 var isProperty = false;
+                var isStringLiteral = false;
 
                 if (IsStmtAsWritten<StringLiteral>(varDecl.Init, out var stringLiteral, removeParens: true))
                 {
@@ -2620,6 +2621,7 @@ namespace ClangSharp
 
                             typeName = "ReadOnlySpan<byte>";
                             isProperty = true;
+                            isStringLiteral = true;
                             break;
                         }
 
@@ -2638,6 +2640,7 @@ namespace ClangSharp
                             _outputBuilder.Write("const ");
 
                             typeName = "string";
+                            isStringLiteral = true;
                             break;
                         }
 
@@ -2664,7 +2667,7 @@ namespace ClangSharp
 
                 _outputBuilder.Write(typeName);
 
-                if (type is ArrayType)
+                if (!isStringLiteral && type is ArrayType)
                 {
                     _outputBuilder.Write("[]");
                 }
