@@ -1509,6 +1509,61 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
         }
 
         [Fact]
+        public async Task AccessUnionMemberTest()
+        {
+            var inputContents = @"union MyUnion
+{
+    struct { int a; };
+};
+
+void MyFunction()
+{
+    MyUnion myUnion;  
+    myUnion.a = 10;
+}
+";
+
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    [StructLayout(LayoutKind.Explicit)]
+    public partial struct MyUnion
+    {
+        [FieldOffset(0)]
+        [NativeTypeName(""MyUnion::(anonymous struct at ClangUnsavedFile.h:3:5)"")]
+        public _Anonymous_e__Struct Anonymous;
+
+        public ref int a
+        {
+            get
+            {
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+            }
+        }
+
+        public partial struct _Anonymous_e__Struct
+        {
+            public int a;
+        }
+    }
+
+    public static partial class Methods
+    {
+        public static void MyFunction()
+        {
+            MyUnion myUnion = new MyUnion();
+
+            myUnion.Anonymous.a = 10;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task ReturnStructTest()
         {
             var inputContents = @"struct MyStruct
