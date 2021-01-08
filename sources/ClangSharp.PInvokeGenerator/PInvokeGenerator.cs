@@ -1067,7 +1067,7 @@ namespace ClangSharp
                 return remappedName;
             }
 
-            if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith("__AnonymousField_"))
+            if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith("__AnonymousFieldDecl_"))
             {
                 remappedName = "Anonymous";
 
