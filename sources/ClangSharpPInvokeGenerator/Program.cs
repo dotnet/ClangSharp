@@ -264,6 +264,36 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "exclude-funcs-with-body":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeFunctionsWithBody;
+                        break;
+                    }
+
+                    case "log-potential-typedef-remappings":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.LogPotentialTypedefRemappings;
+                        break;
+                    }
+
+                    case "exclude-anonymous-field-helpers":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeAnonymousFieldHelpers;
+                        break;
+                    }
+
+                    case "generate-cpp-attributes":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCppAttributes;
+                        break;
+                    }
+
+                    case "generate-native-inheritance-attribute":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute;
+                        break;
+                    }
+
                     default:
                     {
                         errorList.Add($"Error: Unrecognized config switch: {configSwitch}.");

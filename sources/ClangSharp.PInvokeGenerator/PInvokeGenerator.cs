@@ -295,6 +295,94 @@ namespace ClangSharp
             _diagnostics.Add(diagnostic);
         }
 
+        private void AddCppAttributes(ParmVarDecl parmVarDecl, string prefix = null, string postfix = null)
+        {
+            if (!_config.GenerateCppAttributes)
+            {
+                return;
+            }
+
+            if (parmVarDecl.Attrs.Count == 0)
+            {
+                return;
+            }
+
+            if (prefix is null)
+            {
+                _outputBuilder.WriteIndentation();
+            }
+            else
+            {
+                _outputBuilder.WriteNewlineIfNeeded();
+                _outputBuilder.Write(prefix);
+            }
+
+            _outputBuilder.Write($"[CppAttributeList(\"");
+
+            _outputBuilder.Write(EscapeString(parmVarDecl.Attrs[0].Spelling));
+            for (int i = 1; i < parmVarDecl.Attrs.Count; i++)
+            {
+                // Separator char between attributes
+                _outputBuilder.Write('^');
+
+                _outputBuilder.Write(EscapeString(parmVarDecl.Attrs[i].Spelling));
+            }
+
+            _outputBuilder.Write($"\")]");
+
+            if (postfix is null)
+            {
+                _outputBuilder.NeedsNewline = true;
+            }
+            else
+            {
+                _outputBuilder.Write(postfix);
+            }
+        }
+
+        private void AddNativeInheritanceAttribute(string inheritedFromName, string prefix = null, string postfix = null, string attributePrefix = null)
+        {
+            if (!_config.GenerateNativeInheritanceAttribute)
+            {
+                return;
+            }
+
+            if (prefix is null)
+            {
+                _outputBuilder.WriteIndentation();
+            }
+            else
+            {
+                _outputBuilder.WriteNewlineIfNeeded();
+                _outputBuilder.Write(prefix);
+            }
+
+            _outputBuilder.Write('[');
+
+            if (attributePrefix != null)
+            {
+                _outputBuilder.Write(attributePrefix);
+            }
+
+            _outputBuilder.Write("NativeInheritance");
+            _outputBuilder.Write('(');
+
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(EscapeString(inheritedFromName));
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(')');
+            _outputBuilder.Write(']');
+
+            if (postfix is null)
+            {
+                _outputBuilder.NeedsNewline = true;
+            }
+            else
+            {
+                _outputBuilder.Write(postfix);
+            }
+        }
+
         private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
         {
             if (string.IsNullOrWhiteSpace(nativeTypeName))
@@ -991,10 +1079,10 @@ namespace ClangSharp
             }
             else if ((namedDecl is RecordDecl recordDecl) && name.StartsWith("__AnonymousRecord_"))
             {
-                remappedName = "_Anonymous";
-
                 if (recordDecl.Parent is RecordDecl parentRecordDecl)
                 {
+                    remappedName = "_Anonymous";
+
                     var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordDecl.TypeForDecl.CanonicalType).FirstOrDefault();
 
                     if (matchingField != null)
@@ -1007,8 +1095,9 @@ namespace ClangSharp
                         var index = parentRecordDecl.AnonymousDecls.IndexOf(recordDecl) + 1;
                         remappedName += index.ToString();
                     }
+
+                    remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
                 }
-                remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
             }
 
             return remappedName;
@@ -1086,6 +1175,10 @@ namespace ClangSharp
                 }
 
                 name += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
+            }
+            else if ((canonicalType is EnumType enumType) && name.StartsWith("__AnonymousEnum_"))
+            {
+                name = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _);
             }
             else if (cursor is EnumDecl enumDecl)
             {
@@ -1904,6 +1997,14 @@ namespace ClangSharp
             if (IsAlwaysIncluded(cursor))
             {
                 return false;
+            }
+
+            if (_config.ExcludeFunctionsWithBody &&
+                cursor is FunctionDecl functionDecl &&
+                cursor.CursorKind == CXCursorKind.CXCursor_FunctionDecl &&
+                functionDecl.HasBody)
+            {
+                return true;
             }
 
             return IsExcludedByFile(cursor) || IsExcludedByName(cursor, out isExcludedByConflictingDefinition);
