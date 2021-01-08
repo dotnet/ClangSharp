@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		build.cmd = build.cmd
 		build.sh = build.sh
+		CMakeLists.txt = CMakeLists.txt
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		LICENSE.txt = LICENSE.txt
@@ -24,6 +25,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sources", "sources", "{732BA761-B58E-4C34-9C96-097382A55A7A}"
 	ProjectSection(SolutionItems) = preProject
+		sources\CMakeLists.txt = sources\CMakeLists.txt
 		sources\Directory.Build.props = sources\Directory.Build.props
 		sources\Directory.Build.targets = sources\Directory.Build.targets
 	EndProjectSection
@@ -196,6 +198,27 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.win-x
 		packages\libClangSharp\libClangSharp.runtime.win-x86\libClangSharp.runtime.win-x86.nuspec = packages\libClangSharp\libClangSharp.runtime.win-x86\libClangSharp.runtime.win-x86.nuspec
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp", "libClangSharp", "{520C1055-34A1-4C72-AC24-023F84EF461D}"
+	ProjectSection(SolutionItems) = preProject
+		sources\libClangSharp\CIndexDiagnostic.cpp = sources\libClangSharp\CIndexDiagnostic.cpp
+		sources\libClangSharp\CIndexDiagnostic.h = sources\libClangSharp\CIndexDiagnostic.h
+		sources\libClangSharp\ClangSharp.cpp = sources\libClangSharp\ClangSharp.cpp
+		sources\libClangSharp\ClangSharp.h = sources\libClangSharp\ClangSharp.h
+		sources\libClangSharp\CMakeLists.txt = sources\libClangSharp\CMakeLists.txt
+		sources\libClangSharp\CXCursor.cpp = sources\libClangSharp\CXCursor.cpp
+		sources\libClangSharp\CXCursor.h = sources\libClangSharp\CXCursor.h
+		sources\libClangSharp\CXLoadedDiagnostic.cpp = sources\libClangSharp\CXLoadedDiagnostic.cpp
+		sources\libClangSharp\CXLoadedDiagnostic.h = sources\libClangSharp\CXLoadedDiagnostic.h
+		sources\libClangSharp\CXSourceLocation.cpp = sources\libClangSharp\CXSourceLocation.cpp
+		sources\libClangSharp\CXSourceLocation.h = sources\libClangSharp\CXSourceLocation.h
+		sources\libClangSharp\CXString.cpp = sources\libClangSharp\CXString.cpp
+		sources\libClangSharp\CXString.h = sources\libClangSharp\CXString.h
+		sources\libClangSharp\CXTranslationUnit.cpp = sources\libClangSharp\CXTranslationUnit.cpp
+		sources\libClangSharp\CXTranslationUnit.h = sources\libClangSharp\CXTranslationUnit.h
+		sources\libClangSharp\CXType.cpp = sources\libClangSharp\CXType.cpp
+		sources\libClangSharp\CXType.h = sources\libClangSharp\CXType.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -260,6 +283,7 @@ Global
 		{21997B0D-AE07-4F1E-8042-84EB399269D5} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{C1218464-0B5A-480E-BA13-2C6EA370987E} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{6DF42BA2-F962-4BFC-9444-D0FD53D022B0} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
+		{520C1055-34A1-4C72-AC24-023F84EF461D} = {732BA761-B58E-4C34-9C96-097382A55A7A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9D18E0B-5409-457D-B5F3-0E217136BB01}
