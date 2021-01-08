@@ -252,9 +252,9 @@ namespace ClangSharp
 
         private void VisitCXXConstructExpr(CXXConstructExpr cxxConstructExpr)
         {
-            var isCopyConstructor = cxxConstructExpr.Constructor.IsCopyConstructor;
+            var isCopyOrMoveConstructor = cxxConstructExpr.Constructor is { IsCopyConstructor: true } or { IsMoveConstructor: true };
 
-            if (!isCopyConstructor)
+            if (!isCopyOrMoveConstructor)
             {
                 _outputBuilder.Write("new ");
 
@@ -277,7 +277,7 @@ namespace ClangSharp
                 }
             }
 
-            if (!isCopyConstructor)
+            if (!isCopyOrMoveConstructor)
             {
                 _outputBuilder.Write(')');
             }

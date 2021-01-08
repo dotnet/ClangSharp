@@ -1509,6 +1509,49 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
         }
 
         [Fact]
+        public async Task ReturnStructTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    double r;
+    double g;
+    double b;
+};
+
+MyStruct MyFunction()
+{
+    MyStruct myStruct;
+    return myStruct;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public double r;
+
+        public double g;
+
+        public double b;
+    }
+
+    public static partial class Methods
+    {
+        public static MyStruct MyFunction()
+        {
+            MyStruct myStruct = new MyStruct();
+
+            return myStruct;
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task SwitchTest()
         {
             var inputContents = @"int MyFunction(int value)
