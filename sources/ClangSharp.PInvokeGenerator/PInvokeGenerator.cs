@@ -818,7 +818,6 @@ namespace ClangSharp
                     else
                     {
                         name = GetTypeName(namedDecl, context: null, typeDecl.TypeForDecl, out var nativeTypeName);
-                        Debug.Assert(string.IsNullOrWhiteSpace(nativeTypeName));
                     }
                 }
                 else if (namedDecl is ParmVarDecl)
@@ -1433,13 +1432,23 @@ namespace ClangSharp
             }
             else if (type is TagType tagType)
             {
-                if (tagType.Handle.IsConstQualified)
+                if (tagType.Decl.Handle.IsAnonymous)
+                {
+                    name = GetAnonymousName(tagType.Decl, tagType.KindSpelling);
+                }
+                else if (tagType.Handle.IsConstQualified)
                 {
                     name = GetTypeName(cursor, context, tagType.Decl.TypeForDecl, out var nativeDeclTypeName);
                 }
                 else
                 {
-                    name = GetCursorName(tagType.Decl);
+                    // The default name should be correct	
+                }
+
+                if (name.Contains("::"))
+                {
+                    name = name.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                    name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
                 }
             }
             else if (type is TypedefType typedefType)
