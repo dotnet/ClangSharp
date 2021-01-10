@@ -69,6 +69,32 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        [Theory]
+        [InlineData("MyStruct<int>", @"MyStruct<int>", "")]
+        [InlineData("MyStruct<bool>", @"[NativeTypeName(""MyStruct<bool>"")] MyStruct<byte>", "")]
+        [InlineData("MyStruct<float*>", @"[NativeTypeName(""MyStruct<float *>"")] MyStruct<UIntPtr>", "using System;\n")]
+        public async Task TemplateParameterTest(string nativeParameter, string expectedManagedParameter, string expectedUsingStatement)
+        {
+            var inputContents = @$"template <typename T> struct MyStruct;
+
+void MyFunction({nativeParameter} myStruct);";
+
+            var expectedOutputContents = $@"{expectedUsingStatement}using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void MyFunction({expectedManagedParameter} myStruct);
+    }}
+}}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyStruct" });
+        }
+
+
         [Fact]
         public async Task NoLibraryPathTest()
         {

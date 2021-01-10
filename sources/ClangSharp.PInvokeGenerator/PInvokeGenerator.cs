@@ -1027,6 +1027,10 @@ namespace ClangSharp
                 {
                     baseType = elaboratedType.CanonicalType;
                 }
+                else if (baseType is TemplateSpecializationType templateSpecializationType)
+                {
+                    baseType = templateSpecializationType.CanonicalType;
+                }
                 else if (baseType is TypedefType typedefType)
                 {
                     baseType = typedefType.Decl.UnderlyingType;
@@ -1139,12 +1143,6 @@ namespace ClangSharp
         {
             var name = GetTypeName(cursor, context, type, out nativeTypeName);
             name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
-
-            if (name.Contains("::"))
-            {
-                name = name.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
-                name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
-            }
 
             var canonicalType = type.CanonicalType;
 
@@ -1389,19 +1387,59 @@ namespace ClangSharp
             {
                 name = GetTypeNameForPointeeType(cursor, context, referenceType.PointeeType, out var nativePointeeTypeName);
             }
+            else if (type is TemplateSpecializationType templateSpecializationType)
+            {
+                var nameBuilder = new StringBuilder();
+
+                var templateTypeDecl = ((RecordType)templateSpecializationType.CanonicalType).Decl;
+                nameBuilder.Append(GetRemappedName(templateTypeDecl.Name, templateTypeDecl, tryRemapOperatorName: false));
+
+                nameBuilder.Append('<');
+
+                bool shouldWritePrecedingComma = false;
+
+                foreach (var arg in templateSpecializationType.Args)
+                {
+                    if (shouldWritePrecedingComma)
+                    {
+                        nameBuilder.Append(',');
+                        nameBuilder.Append(' ');
+
+                    }
+
+                    var typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out _);
+
+                    if (typeName == "bool")
+                    {
+                        // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                        typeName = "byte";
+                    }
+
+                    if (typeName.EndsWith("*"))
+                    {
+                        // Pointers are not yet supported as generic arguments; remap to UIntPtr
+                        typeName = "UIntPtr";
+                        _outputBuilder.AddUsingDirective("System");
+                    }    
+
+                    nameBuilder.Append(typeName);
+
+                    shouldWritePrecedingComma = true;
+                }
+
+                nameBuilder.Append('>');
+
+                name = nameBuilder.ToString();
+            }
             else if (type is TagType tagType)
             {
-                if (tagType.Decl.Handle.IsAnonymous)
-                {
-                    name = GetAnonymousName(tagType.Decl, tagType.KindSpelling);
-                }
-                else if (tagType.Handle.IsConstQualified)
+                if (tagType.Handle.IsConstQualified)
                 {
                     name = GetTypeName(cursor, context, tagType.Decl.TypeForDecl, out var nativeDeclTypeName);
                 }
                 else
                 {
-                    // The default name should be correct
+                    name = GetCursorName(tagType.Decl);
                 }
             }
             else if (type is TypedefType typedefType)
