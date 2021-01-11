@@ -2629,14 +2629,20 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
+                {
+                    var reinterpretCastExpr = (CXXReinterpretCastExpr)stmt;
+
+                    return IsUnchecked(targetTypeName, reinterpretCastExpr.SubExprAsWritten)
+                        || IsUnchecked(targetTypeName, reinterpretCastExpr.Handle.Evaluate);
+                }
 
                 // case CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr:
 
                 case CX_StmtClass.CX_StmtClass_ImplicitCastExpr:
                 {
                     var implicitCastExpr = (ImplicitCastExpr)stmt;
-                    var implicitCastExprTypeName = GetRemappedTypeName(implicitCastExpr, context: null, implicitCastExpr.Type, out _);
 
                     return IsUnchecked(targetTypeName, implicitCastExpr.SubExprAsWritten)
                         || IsUnchecked(targetTypeName, implicitCastExpr.Handle.Evaluate);
