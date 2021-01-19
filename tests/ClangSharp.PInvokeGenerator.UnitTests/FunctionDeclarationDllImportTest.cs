@@ -70,12 +70,13 @@ namespace ClangSharp.Test
         }
 
         [Theory]
-        [InlineData("MyStruct<int>", @"MyStruct<int>", "")]
-        [InlineData("MyStruct<bool>", @"[NativeTypeName(""MyStruct<bool>"")] MyStruct<byte>", "")]
-        [InlineData("MyStruct<float*>", @"[NativeTypeName(""MyStruct<float *>"")] MyStruct<UIntPtr>", "using System;\n")]
+        [InlineData("MyTemplate<int>", @"MyTemplate<int>", "")]
+        [InlineData("MyTemplate<bool>", @"[NativeTypeName(""MyTemplate<bool>"")] MyTemplate<byte>", "")]
+        [InlineData("MyTemplate<float*>", @"[NativeTypeName(""MyTemplate<float *>"")] MyTemplate<UIntPtr>", "using System;\n")]
+        [InlineData("MyTemplate<void(*)(int)>", @"[NativeTypeName(""MyTemplate<void (*)(int)>"")] MyTemplate<UIntPtr>", "using System;\n")]
         public async Task TemplateParameterTest(string nativeParameter, string expectedManagedParameter, string expectedUsingStatement)
         {
-            var inputContents = @$"template <typename T> struct MyStruct;
+            var inputContents = @$"template <typename T> struct MyTemplate;
 
 void MyFunction({nativeParameter} myStruct);";
 
@@ -91,8 +92,39 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyStruct" });
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
         }
+
+
+        [Fact]
+        public async Task TemplateMemberTest()
+        {
+            var inputContents = @$"template <typename T> struct MyTemplate
+{{
+}};
+
+struct MyStruct
+{{
+    MyTemplate<float*> a;
+}};
+";
+
+            var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        [NativeTypeName(""MyTemplate<float *>"")]
+        public MyTemplate<UIntPtr> a;
+    }}
+}}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+        }
+
+
 
 
         [Fact]

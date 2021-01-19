@@ -1403,7 +1403,6 @@ namespace ClangSharp
                     {
                         nameBuilder.Append(',');
                         nameBuilder.Append(' ');
-
                     }
 
                     var typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out _);
@@ -1588,7 +1587,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    name = "IntPtr";
+                    name = "UIntPtr";
                 }
             }
             else
