@@ -31,11 +31,11 @@ namespace ClangSharp
         {
             _parentType = parentType;
             _index = index;
-            _asDecl = new Lazy<ValueDecl>(() => _parentDecl.TranslationUnit.GetOrCreate<ValueDecl>(_parentType.Handle.GetTemplateArgumentAsDecl(_index)));
-            _asExpr = new Lazy<Expr>(() => _parentDecl.TranslationUnit.GetOrCreate<Expr>(_parentType.Handle.GetTemplateArgumentAsExpr(_index)));
-            _asType = new Lazy<Type>(() => _parentDecl.TranslationUnit.GetOrCreate<Type>(_parentType.Handle.GetTemplateArgumentAsType(_index)));
-            _integralType = new Lazy<Type>(() => _parentDecl.TranslationUnit.GetOrCreate<Type>(_parentType.Handle.GetTemplateArgumentIntegralType(_index)));
-            _nullPtrType = new Lazy<Type>(() => _parentDecl.TranslationUnit.GetOrCreate<Type>(_parentType.Handle.GetTemplateArgumentNullPtrType(_index)));
+            _asDecl = new Lazy<ValueDecl>(() => _parentType.TranslationUnit.GetOrCreate<ValueDecl>(_parentType.Handle.GetTemplateArgumentAsDecl(_index)));
+            _asExpr = new Lazy<Expr>(() => _parentType.TranslationUnit.GetOrCreate<Expr>(_parentType.Handle.GetTemplateArgumentAsExpr(_index)));
+            _asType = new Lazy<Type>(() => _parentType.TranslationUnit.GetOrCreate<Type>(_parentType.Handle.GetTemplateArgumentAsType(_index)));
+            _integralType = new Lazy<Type>(() => _parentType.TranslationUnit.GetOrCreate<Type>(_parentType.Handle.GetTemplateArgumentIntegralType(_index)));
+            _nullPtrType = new Lazy<Type>(() => _parentType.TranslationUnit.GetOrCreate<Type>(_parentType.Handle.GetTemplateArgumentNullPtrType(_index)));
         }
 
         public ValueDecl AsDecl => _asDecl.Value;
