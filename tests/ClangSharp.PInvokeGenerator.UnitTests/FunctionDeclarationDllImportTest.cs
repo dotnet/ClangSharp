@@ -72,8 +72,8 @@ namespace ClangSharp.Test
         [Theory]
         [InlineData("MyTemplate<int>", @"MyTemplate<int>", "")]
         [InlineData("MyTemplate<bool>", @"[NativeTypeName(""MyTemplate<bool>"")] MyTemplate<byte>", "")]
-        [InlineData("MyTemplate<float*>", @"[NativeTypeName(""MyTemplate<float *>"")] MyTemplate<UIntPtr>", "using System;\n")]
-        [InlineData("MyTemplate<void(*)(int)>", @"[NativeTypeName(""MyTemplate<void (*)(int)>"")] MyTemplate<UIntPtr>", "using System;\n")]
+        [InlineData("MyTemplate<float*>", @"[NativeTypeName(""MyTemplate<float *>"")] MyTemplate<IntPtr>", "using System;\n")]
+        [InlineData("MyTemplate<void(*)(int)>", @"[NativeTypeName(""MyTemplate<void (*)(int)>"")] MyTemplate<IntPtr>", "using System;\n")]
         public async Task TemplateParameterTest(string nativeParameter, string expectedManagedParameter, string expectedUsingStatement)
         {
             var inputContents = @$"template <typename T> struct MyTemplate;
@@ -116,7 +116,7 @@ namespace ClangSharp.Test
     public partial struct MyStruct
     {{
         [NativeTypeName(""MyTemplate<float *>"")]
-        public MyTemplate<UIntPtr> a;
+        public MyTemplate<IntPtr> a;
     }}
 }}
 ";

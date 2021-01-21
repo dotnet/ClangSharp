@@ -1415,8 +1415,8 @@ namespace ClangSharp
 
                     if (typeName.EndsWith("*"))
                     {
-                        // Pointers are not yet supported as generic arguments; remap to UIntPtr
-                        typeName = "UIntPtr";
+                        // Pointers are not yet supported as generic arguments; remap to IntPtr
+                        typeName = "IntPtr";
                         _outputBuilder.AddUsingDirective("System");
                     }    
 
@@ -1587,7 +1587,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    name = "UIntPtr";
+                    name = "IntPtr";
                 }
             }
             else
