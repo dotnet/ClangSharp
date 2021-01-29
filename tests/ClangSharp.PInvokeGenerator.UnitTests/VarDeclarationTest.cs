@@ -240,6 +240,26 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
+
+        [Fact]
+        public async Task UncheckedFunctionLikeCastMacroTest()
+        {
+            var inputContents = $@"#define MyMacro1 unsigned(-1)";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""#define MyMacro1 unsigned(-1)"")]
+        public const uint MyMacro1 = unchecked((uint)(-1));
+    }}
+}}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+
         [Fact]
         public async Task UncheckedConversionMacroTest2()
         {
