@@ -406,9 +406,9 @@ namespace ClangSharp.Test
 {
     public enum MyEnum
     {
-        MyEnum_Value0 = 10,
-        MyEnum_Value1 = MyEnum_Value0,
-        MyEnum_Value2 = (10) + MyEnum_Value1,
+        MyEnum_Value0 = (int)(MyEnum)(10),
+        MyEnum_Value1 = (int)(MyEnum)(MyEnum_Value0),
+        MyEnum_Value2 = ((int)(MyEnum)(10)) + MyEnum_Value1,
     }
 }
 ";
@@ -444,7 +444,7 @@ namespace ClangSharp.Test
     public enum MyEnum2
     {
         MyEnum2_Value0 = MyEnum1_Value0,
-        MyEnum2_Value1 = MyEnum1_Value0 + 10,
+        MyEnum2_Value1 = MyEnum1_Value0 + (int)(MyEnum1)(10),
     }
 }
 ";
