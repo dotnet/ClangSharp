@@ -52,5 +52,7 @@ namespace ClangSharp
         GenerateCppAttributes = 0x00080000,
 
         GenerateNativeInheritanceAttribute = 0x00100000,
+
+        DontUseUsingStaticsForEnums = 0x00200000,
     }
 }

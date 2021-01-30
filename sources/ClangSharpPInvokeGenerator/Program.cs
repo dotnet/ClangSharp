@@ -294,6 +294,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "dont-use-using-statics-for-enums":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForEnums;
+                        break;
+                    }
+
                     default:
                     {
                         errorList.Add($"Error: Unrecognized config switch: {configSwitch}.");

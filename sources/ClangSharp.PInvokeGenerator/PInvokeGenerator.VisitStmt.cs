@@ -394,7 +394,16 @@ namespace ClangSharp
             if ((declRefExpr.Decl is EnumConstantDecl enumConstantDecl) && (declRefExpr.DeclContext != enumConstantDecl.DeclContext) && (enumConstantDecl.DeclContext is NamedDecl namedDecl))
             {
                 var enumName = GetRemappedCursorName(namedDecl);
-                _outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
+
+                if (!_config.DontUseUsingStaticsForEnums)
+                {
+                    _outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
+                }
+                else
+                {
+                    _outputBuilder.Write(enumName);
+                    _outputBuilder.Write(".");
+                }
             }
 
             var name = GetRemappedCursorName(declRefExpr.Decl);
