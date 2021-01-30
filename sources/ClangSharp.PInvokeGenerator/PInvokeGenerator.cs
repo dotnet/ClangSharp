@@ -2663,6 +2663,7 @@ namespace ClangSharp
 
                 case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
                 case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 {
                     var explicitCastExpr = (ExplicitCastExpr)stmt;
                     var explicitCastExprTypeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _);
@@ -2672,7 +2673,6 @@ namespace ClangSharp
                         || (IsUnsigned(targetTypeName) != IsUnsigned(explicitCastExprTypeName));
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
 
