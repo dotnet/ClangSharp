@@ -252,19 +252,27 @@ namespace ClangSharp
 
         private void VisitCXXConstructExpr(CXXConstructExpr cxxConstructExpr)
         {
-            var isCopyOrMoveConstructor = cxxConstructExpr.Constructor is { IsCopyConstructor: true } or { IsMoveConstructor: true };
+            VisitObjectConstruction(cxxConstructExpr.Constructor, cxxConstructExpr.Args);
+        }
+
+        private void VisitCXXTemporaryObjectExpr(CXXTemporaryObjectExpr cxxTemporaryObjectExpr)
+        {
+            VisitObjectConstruction(cxxTemporaryObjectExpr.Constructor, cxxTemporaryObjectExpr.Args);
+        }
+
+        private void VisitObjectConstruction(CXXConstructorDecl constructor, IReadOnlyList<Expr> args)
+        {
+            var isCopyOrMoveConstructor = constructor is { IsCopyConstructor: true } or { IsMoveConstructor: true };
 
             if (!isCopyOrMoveConstructor)
             {
                 _outputBuilder.Write("new ");
 
-                var constructorName = GetRemappedCursorName(cxxConstructExpr.Constructor);
+                var constructorName = GetRemappedCursorName(constructor);
 
                 _outputBuilder.Write(constructorName);
                 _outputBuilder.Write('(');
             }
-
-            var args = cxxConstructExpr.Args;
 
             if (args.Count != 0)
             {
@@ -1116,7 +1124,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
+                case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
+                {
+                    VisitCXXTemporaryObjectExpr((CXXTemporaryObjectExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:

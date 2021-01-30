@@ -128,6 +128,48 @@ namespace ClangSharp.UnitTests
         }
 
         [Fact]
+        public async Task ConstructorInvocationTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    MyStruct(int val)
+    {
+        value = val;
+    }
+
+    static MyStruct get()
+    {
+        return MyStruct(10);
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public MyStruct(int val)
+        {
+            value = val;
+        }
+
+        public static MyStruct get()
+        {
+            return new MyStruct(10);
+        }
+    }
+}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+
+        [Fact]
         public async Task DestructorTest()
         {
             var inputContents = @"struct MyStruct
