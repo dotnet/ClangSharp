@@ -394,7 +394,7 @@ namespace ClangSharp.Test
         [Fact]
         public async Task WithCastToEnumType()
         {
-            var inputContents = @"enum MyEnum
+            var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0 = (MyEnum) 10,
     MyEnum_Value1 = (MyEnum) MyEnum_Value0,
@@ -420,12 +420,12 @@ namespace ClangSharp.Test
         [Fact]
         public async Task WithMultipleEnumsTest()
         {
-            var inputContents = @"enum MyEnum1
+            var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value0 = 10,
 };
 
-enum MyEnum2
+enum MyEnum2 : int
 {
     MyEnum2_Value0 = MyEnum1_Value0,
     MyEnum2_Value1 = MyEnum1_Value0 + (MyEnum1) 10,
