@@ -392,6 +392,67 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task WithCastToEnumType()
+        {
+            var inputContents = @"enum MyEnum
+{
+    MyEnum_Value0 = (MyEnum) 10,
+    MyEnum_Value1 = (MyEnum) MyEnum_Value0,
+    MyEnum_Value2 = ((MyEnum) 10) + MyEnum_Value1,
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public enum MyEnum
+    {
+        MyEnum_Value0 = 10,
+        MyEnum_Value1 = MyEnum_Value0,
+        MyEnum_Value2 = (10) + MyEnum_Value1,
+    }
+}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+
+        [Fact]
+        public async Task WithMultipleEnumsTest()
+        {
+            var inputContents = @"enum MyEnum1
+{
+    MyEnum1_Value0 = 10,
+};
+
+enum MyEnum2
+{
+    MyEnum2_Value0 = MyEnum1_Value0,
+    MyEnum2_Value1 = MyEnum1_Value0 + (MyEnum1) 10,
+};
+";
+
+            var expectedOutputContents = @"using static ClangSharp.Test.MyEnum1;
+
+namespace ClangSharp.Test
+{
+    public enum MyEnum1
+    {
+        MyEnum1_Value0 = 10,
+    }
+
+    public enum MyEnum2
+    {
+        MyEnum2_Value0 = MyEnum1_Value0,
+        MyEnum2_Value1 = MyEnum1_Value0 + 10,
+    }
+}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task WithImplicitConversionTest()
         {
             var inputContents = @"enum MyEnum : int

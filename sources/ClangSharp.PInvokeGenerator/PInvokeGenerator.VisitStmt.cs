@@ -454,6 +454,15 @@ namespace ClangSharp
 
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
         {
+            if (IsPrevContextDecl<EnumConstantDecl>(out var _) && explicitCastExpr.Type is EnumType)
+            {
+                // In C#, explicitly casting to an enum type in an enum initializer usually results in compile errors.
+                // Remove all explicit casts to an enum type; the evaluation of the constant value will still happen correctly.
+
+                Visit(explicitCastExpr.SubExprAsWritten);
+                return;
+            }
+
             var type = explicitCastExpr.Type;
             var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out var nativeTypeName);
 
