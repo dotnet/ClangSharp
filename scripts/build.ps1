@@ -9,6 +9,7 @@ Param(
   [switch] $restore,
   [string] $solution = "",
   [switch] $test,
+  [switch] $testwin32metadata,
   [ValidateSet("quiet", "minimal", "normal", "detailed", "diagnostic")][string] $verbosity = "minimal",
   [Parameter(ValueFromRemainingArguments=$true)][String[]]$properties
 )
@@ -48,6 +49,7 @@ function Help() {
     Write-Host -Object "  -solution <value>       Path to solution to build"
     Write-Host -Object "  -ci                     Set when running on CI server"
     Write-Host -Object "  -architecture <value>   Test Architecture (<auto>, amd64, x64, x86, arm64, arm)"
+    Write-Host -Object "  -testwin32metadata      Test Win32Metadata to ensure it has not regressed"
     Write-Host -Object ""
     Write-Host -Object "Command line arguments not listed above are passed through to MSBuild."
     Write-Host -Object "The above arguments can be shortened as much as to be unambiguous (e.g. -co for configuration, -t for test, etc.)."
@@ -77,6 +79,53 @@ function Test() {
 
   if ($LastExitCode -ne 0) {
     throw "'Test' failed for '$solution'"
+  }
+}
+
+function Test-Win32Metadata {
+  $win32MetadataDir = Join-Path -Path $ArtifactsDir -ChildPath "win32metadata"
+
+  if (!(Test-Path -Path "$win32MetadataDir")) {
+    & git clone "https://github.com/microsoft/win32metadata" "$win32MetadataDir"
+  }
+  pushd "$win32MetadataDir"
+
+  try {
+    & git fetch --all
+    & git reset --hard origin/master
+
+    & git submodule add https://github.com/MicrosoftDocs/sdk-api ext/sdk-api
+    & git submodule update --init --recursive
+
+    $win32MetadataToolsDir = Join-Path -Path $win32MetadataDir -ChildPath "tools"
+    $clangSharpPInvokeGeneratorOutputDir = Join-Path -Path $ArtifactsDir -ChildPath "bin\sources\ClangSharpPInvokeGenerator\$configuration\netcoreapp3.1"
+
+    $clangSharpPInvokeGeneratorBinaries = Get-ChildItem -Path "$clangSharpPInvokeGeneratorOutputDir" -File
+    Copy-Item -Path $clangSharpPInvokeGeneratorBinaries -Destination "$win32MetadataToolsDir"
+
+    $generateMetadataSourceCmd = Join-Path -Path $win32MetadataDir -ChildPath "GenerateMetadataSource.cmd"
+    & "$generateMetadataSourceCmd"
+
+    if ($LastExitCode -ne 0) {
+      throw "'GenerateMetadataSource.cmd' failed"
+    }
+
+    $buildMetadataBinCmd = Join-Path -Path $win32MetadataDir -ChildPath "BuildMetadataBin.cmd"
+    & "$buildMetadataBinCmd"
+
+    if ($LastExitCode -ne 0) {
+      throw "'BuildMetadataBin.cmd' failed"
+    }
+
+    $testMetdataBinCmd = Join-Path -Path $win32MetadataDir -ChildPath "TestMetadataBin.cmd"
+    & "$testMetdataBinCmd"
+
+    if ($LastExitCode -ne 0) {
+      throw "'TestMetadataBin.cmd' failed"
+    }
+  }
+  finally {
+    popd
   }
 }
 
@@ -136,6 +185,10 @@ try {
 
   if ($test) {
     Test
+  }
+
+  if ($testwin32metadata) {
+    Test-Win32Metadata
   }
 
   if ($pack) {
