@@ -5,13 +5,13 @@ jobs:
   steps:
   - task: BatchScript@1
     displayName: 'Run scripts/cibuild.cmd'
-    condition: eq(${{parameters.testwin32metadata}, false)
+    condition: eq(${{parameters.testwin32metadata}}, false)
     inputs:
       filename: scripts/cibuild.cmd
       arguments: '-configuration ${{parameters.configuration}} -architecture ${{parameters.architecture}}'
   - task: BatchScript@1
     displayName: 'Run scripts/cibuild.cmd -testwin32metadata'
-    condition: eq(${{parameters.testwin32metadata}, true)
+    condition: eq(${{parameters.testwin32metadata}}, true)
     inputs:
       filename: scripts/cibuild.cmd
       arguments: '-configuration ${{parameters.configuration}} -architecture ${{parameters.architecture}} -testwin32metadata'
