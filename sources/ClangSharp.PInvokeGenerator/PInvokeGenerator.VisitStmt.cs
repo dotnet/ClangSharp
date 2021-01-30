@@ -454,7 +454,16 @@ namespace ClangSharp
 
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
         {
+            if (IsPrevContextDecl<EnumConstantDecl>(out var _) && explicitCastExpr.Type is EnumType enumType)
+            {
+                _outputBuilder.Write('(');
+                var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _);
+                _outputBuilder.Write(enumUnderlyingTypeName);
+                _outputBuilder.Write(')');
+            }
+
             var type = explicitCastExpr.Type;
+
             var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out var nativeTypeName);
 
             _outputBuilder.Write('(');
