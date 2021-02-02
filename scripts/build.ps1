@@ -100,7 +100,7 @@ function Test-Win32Metadata {
     $win32MetadataToolsDir = Join-Path -Path $win32MetadataDir -ChildPath "tools"
     $clangSharpPInvokeGeneratorOutputDir = Join-Path -Path $ArtifactsDir -ChildPath "bin\sources\ClangSharpPInvokeGenerator\$configuration\netcoreapp3.1"
 
-    $clangSharpPInvokeGeneratorBinaries = Get-ChildItem -Path "$clangSharpPInvokeGeneratorOutputDir" -File
+    $clangSharpPInvokeGeneratorBinaries = (Get-ChildItem -Path "$clangSharpPInvokeGeneratorOutputDir" -File).FullName
     Copy-Item -Path $clangSharpPInvokeGeneratorBinaries -Destination "$win32MetadataToolsDir"
 
     $generateMetadataSourceCmd = Join-Path -Path $win32MetadataDir -ChildPath "GenerateMetadataSource.cmd"
