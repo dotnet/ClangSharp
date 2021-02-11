@@ -21,8 +21,9 @@
   </PropertyGroup>
 
   <!-- Settings that allow testing and packing to work by default -->
-  <PropertyGroup>
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' AND '$(PackAsTool)' != 'true'">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == '' AND '$(Contin)' != 'true'">
+    <RuntimeIdentifier>$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(OVERRIDE_RUNTIME_IDENTIFIER)' != ''">$(OVERRIDE_RUNTIME_IDENTIFIER)</RuntimeIdentifier>
   </PropertyGroup>
 
   <!-- Tool versions for tool references across all projects -->
