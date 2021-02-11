@@ -31,11 +31,20 @@ jobs:
 
 - template: azure-windows.yml
   parameters:
-    name: windows_release_x64
+    name: test_win32metadata
     pool: windows-latest
     configuration: Release
     architecture: x64
     testwin32metadata: true
+
+- template: azure-windows.yml
+  parameters:
+    name: build_nuget
+    pool: windows-latest
+    configuration: Release
+    architecture: x64
+    testwin32metadata: false
+    EXCLUDE_BUILDNUMBER_FROM_PACKAGE: true
 
 - template: azure-unix.yml
   parameters:
@@ -43,7 +52,7 @@ jobs:
     pool: ubuntu-latest
     configuration: Debug
     architecture: x64
-    rid: ubuntu.18.04-x64
+    OVERRIDE_RUNTIME_IDENTIFIER: ubuntu.18.04-x64
 
 - template: azure-unix.yml
   parameters:
@@ -51,7 +60,7 @@ jobs:
     pool: ubuntu-latest
     configuration: Release
     architecture: x64
-    rid: ubuntu.18.04-x64
+    OVERRIDE_RUNTIME_IDENTIFIER: ubuntu.18.04-x64
 
 - template: azure-unix.yml
   parameters:
