@@ -26,4 +26,5 @@ jobs:
       ArtifactName: packages
       publishLocation: Container
   variables:
-    RuntimeIdentifier: ${{parameters.rid}}
+    EXCLUDE_BUILDNUMBER_FROM_PACKAGE: ${{parameters.EXCLUDE_BUILDNUMBER_FROM_PACKAGE}}
+    OVERRIDE_RUNTIME_IDENTIFIER: ${{parameters.OVERRIDE_RUNTIME_IDENTIFIER}}
