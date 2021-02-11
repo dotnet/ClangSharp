@@ -2,16 +2,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net5.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Interop.Extensions/clang.ResolveLibrary.cs" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Remove="Interop.Extensions/clang.ResolveLibrary.cs" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="libClang" />
     <PackageReference Include="libClangSharp" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Bcl.HashCode" />
     <PackageReference Include="System.Memory" />
   </ItemGroup>
