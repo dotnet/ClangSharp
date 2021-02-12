@@ -54,30 +54,30 @@ namespace ClangSharp
 
         public static int Run(InvocationContext context)
         {
-            var additionalArgs = context.ParseResult.ValueForOption<string[]>("additional");
-            var configSwitches = context.ParseResult.ValueForOption<string[]>("config");
-            var defineMacros = context.ParseResult.ValueForOption<string[]>("define-macro");
-            var excludedNames = context.ParseResult.ValueForOption<string[]>("exclude");
-            var files = context.ParseResult.ValueForOption<string[]>("file");
-            var fileDirectory = context.ParseResult.ValueForOption<string>("file-directory");
-            var headerFile = context.ParseResult.ValueForOption<string>("headerFile");
-            var includeDirectories = context.ParseResult.ValueForOption<string[]>("include-directory");
-            var language = context.ParseResult.ValueForOption<string>("language");
-            var libraryPath = context.ParseResult.ValueForOption<string>("libraryPath");
-            var methodClassName = context.ParseResult.ValueForOption<string>("methodClassName");
-            var methodPrefixToStrip = context.ParseResult.ValueForOption<string>("prefixStrip");
-            var namespaceName = context.ParseResult.ValueForOption<string>("namespace");
-            var outputLocation = context.ParseResult.ValueForOption<string>("output");
-            var remappedNameValuePairs = context.ParseResult.ValueForOption<string[]>("remap");
-            var std = context.ParseResult.ValueForOption<string>("std");
-            var testOutputLocation = context.ParseResult.ValueForOption<string>("test-output");
-            var traversalNames = context.ParseResult.ValueForOption<string[]>("traverse");
-            var withAttributeNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-attribute");
-            var withCallConvNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-callconv");
-            var withLibraryPathNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-librarypath");
-            var withSetLastErrors = context.ParseResult.ValueForOption<string[]>("with-setlasterror");
-            var withTypeNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-type");
-            var withUsingNameValuePairs = context.ParseResult.ValueForOption<string[]>("with-using");
+            var additionalArgs = context.ParseResult.ValueForOption<string[]>("--additional");
+            var configSwitches = context.ParseResult.ValueForOption<string[]>("--config");
+            var defineMacros = context.ParseResult.ValueForOption<string[]>("--define-macro");
+            var excludedNames = context.ParseResult.ValueForOption<string[]>("--exclude");
+            var files = context.ParseResult.ValueForOption<string[]>("--file");
+            var fileDirectory = context.ParseResult.ValueForOption<string>("--file-directory");
+            var headerFile = context.ParseResult.ValueForOption<string>("--headerFile");
+            var includeDirectories = context.ParseResult.ValueForOption<string[]>("--include-directory");
+            var language = context.ParseResult.ValueForOption<string>("--language");
+            var libraryPath = context.ParseResult.ValueForOption<string>("--libraryPath");
+            var methodClassName = context.ParseResult.ValueForOption<string>("--methodClassName");
+            var methodPrefixToStrip = context.ParseResult.ValueForOption<string>("--prefixStrip");
+            var namespaceName = context.ParseResult.ValueForOption<string>("--namespace");
+            var outputLocation = context.ParseResult.ValueForOption<string>("--output");
+            var remappedNameValuePairs = context.ParseResult.ValueForOption<string[]>("--remap");
+            var std = context.ParseResult.ValueForOption<string>("--std");
+            var testOutputLocation = context.ParseResult.ValueForOption<string>("--test-output");
+            var traversalNames = context.ParseResult.ValueForOption<string[]>("--traverse");
+            var withAttributeNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-attribute");
+            var withCallConvNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-callconv");
+            var withLibraryPathNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-librarypath");
+            var withSetLastErrors = context.ParseResult.ValueForOption<string[]>("--with-setlasterror");
+            var withTypeNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-type");
+            var withUsingNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-using");
 
             var errorList = new List<string>();
 
