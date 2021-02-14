@@ -52,6 +52,26 @@ namespace ClangSharp.UnitTests
 
             await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
+          
+        [Fact]
+        public async Task InNamespaceTest()
+        {
+            var inputContents = $@"namespace Test
+{{
+    const wchar_t MyConst1[] = L""Test"";
+}}";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const wchar_t [5]"")]
+        public const string MyConst1 = ""Test"";
+    }}
+}}
+";
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
 
         [Fact]
         public async Task GuidMacroTest()
