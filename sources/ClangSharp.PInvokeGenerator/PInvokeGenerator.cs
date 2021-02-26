@@ -31,8 +31,8 @@ namespace ClangSharp
         private string[] _clangCommandLineArgs;
         private CXTranslationUnit_Flags _translationFlags;
 
-        private OutputBuilder _outputBuilder;
-        private OutputBuilder _testOutputBuilder;
+        //private OutputBuilder _outputBuilder;
+        //private OutputBuilder _testOutputBuilder;
         private int _outputBuilderUsers;
         private bool _disposed;
         private bool _isMethodClassUnsafe;
@@ -1418,7 +1418,7 @@ namespace ClangSharp
                         // Pointers are not yet supported as generic arguments; remap to IntPtr
                         typeName = "IntPtr";
                         _outputBuilder.AddUsingDirective("System");
-                    }    
+                    }
 
                     nameBuilder.Append(typeName);
 
@@ -1441,7 +1441,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    // The default name should be correct	
+                    // The default name should be correct
                 }
 
                 if (name.Contains("::"))
@@ -3200,9 +3200,9 @@ namespace ClangSharp
             }
             else
             {
-                _outputBuilder.Write('(');
+                _outputBuilder.BeginInnerValue();
                 Visit(stmt);
-                _outputBuilder.Write(')');
+                _outputBuilder.BeginOuterValue();
             }
         }
 
@@ -3461,7 +3461,7 @@ namespace ClangSharp
         {
             if (IsUnchecked(targetTypeName, stmt))
             {
-                _outputBuilder.Write("unchecked");
+                _outputBuilder.BeginUnchecked();
 
                 var needsCast = IsStmtAsWritten<IntegerLiteral>(stmt, out _, removeParens: true) && (stmt.DeclContext is EnumDecl);
 
@@ -3501,17 +3501,20 @@ namespace ClangSharp
 
                 if (needsCast)
                 {
-                    _outputBuilder.Write("((");
-                    _outputBuilder.Write(targetTypeName);
-                    _outputBuilder.Write(')');
+                    _outputBuilder.BeginInnerValue();
+                    _outputBuilder.BeginInnerCast();
+                    _outputBuilder.WriteCastType(targetTypeName);
+                    _outputBuilder.EndInnerCast();
                 }
 
                 ParenthesizeStmt(stmt);
 
                 if (needsCast)
                 {
-                    _outputBuilder.Write(')');
+                    _outputBuilder.EndInnerValue();
                 }
+
+                _outputBuilder.EndUnchecked();
             }
             else
             {

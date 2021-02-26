@@ -253,38 +253,30 @@ namespace ClangSharp
                 typeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out var nativeTypeName);
             }
 
-            _outputBuilder.WriteIndentation();
-
-            if (isAnonymousEnum)
-            {
-                _outputBuilder.Write(accessSpecifier);
-                _outputBuilder.Write(" const ");
-                _outputBuilder.Write(typeName);
-                _outputBuilder.Write(' ');
-            }
-
-            _outputBuilder.Write(escapedName);
+            _outputBuilder.BeginConstant(accessSpecifier, typeName, escapedName, isAnonymousEnum);
 
             if (enumConstantDecl.InitExpr != null)
             {
-                _outputBuilder.Write(" = ");
+                _outputBuilder.BeginConstantValue();
                 UncheckStmt(typeName, enumConstantDecl.InitExpr);
+                _outputBuilder.EndConstantValue();
             }
             else if (isAnonymousEnum)
             {
-                _outputBuilder.Write(" = ");
-
+                _outputBuilder.BeginConstantValue();
                 if (IsUnsigned(typeName))
                 {
-                    _outputBuilder.Write(enumConstantDecl.UnsignedInitVal);
+                    _outputBuilder.WriteConstantValue(enumConstantDecl.UnsignedInitVal);
                 }
                 else
                 {
-                    _outputBuilder.Write(enumConstantDecl.InitVal);
+                    _outputBuilder.WriteConstantValue(enumConstantDecl.InitVal);
                 }
+
+                _outputBuilder.EndConstantValue();
             }
 
-            _outputBuilder.WriteLine(isAnonymousEnum ? ';' : ',');
+            _outputBuilder.EndConstant(isAnonymousEnum);
         }
 
         private void VisitEnumDecl(EnumDecl enumDecl)
@@ -307,18 +299,7 @@ namespace ClangSharp
                     var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
                     AddNativeTypeNameAttribute(nativeTypeName);
 
-                    _outputBuilder.WriteIndented(accessSpecifier);
-                    _outputBuilder.Write(" enum ");
-                    _outputBuilder.Write(escapedName);
-
-                    if (!typeName.Equals("int"))
-                    {
-                        _outputBuilder.Write(" : ");
-                        _outputBuilder.Write(typeName);
-                    }
-
-                    _outputBuilder.NeedsNewline = true;
-                    _outputBuilder.WriteBlockStart();
+                    _outputBuilder.BeginEnum(accessSpecifier, typeName, escapedName);
                 }
 
                 Visit(enumDecl.Enumerators);
@@ -326,7 +307,7 @@ namespace ClangSharp
 
                 if (!isAnonymousEnum)
                 {
-                    _outputBuilder.WriteBlockEnd();
+                    _outputBuilder.EndEnum();
                 }
             }
             StopUsingOutputBuilder();
@@ -346,59 +327,34 @@ namespace ClangSharp
             var type = fieldDecl.Type;
             var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
 
+            int? offset = null;
             if (fieldDecl.Parent.IsUnion)
             {
-                _outputBuilder.WriteIndentedLine("[FieldOffset(0)]");
+                offset = 0;
             }
-            AddNativeTypeNameAttribute(nativeTypeName);
 
-            _outputBuilder.WriteIndented(accessSpecifier);
-            _outputBuilder.Write(' ');
-
-            if (NeedsNewKeyword(name))
-            {
-                _outputBuilder.Write("new ");
-            }
+            _outputBuilder.BeginField(accessSpecifier, nativeTypeName, escapedName, offset);
 
             if (type.CanonicalType is ConstantArrayType constantArrayType)
             {
-                if (IsSupportedFixedSizedBufferType(typeName))
+                var count = Math.Max(constantArrayType.Size, 1).ToString();
+                var elementType = constantArrayType.ElementType;
+                while (elementType.CanonicalType is ConstantArrayType subConstantArrayType)
                 {
-                    _outputBuilder.Write("fixed ");
-                    _outputBuilder.Write(typeName);
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(escapedName);
-                    _outputBuilder.Write('[');
-                    _outputBuilder.Write(Math.Max(constantArrayType.Size, 1));
-
-                    var elementType = constantArrayType.ElementType;
-
-                    while (elementType.CanonicalType is ConstantArrayType subConstantArrayType)
-                    {
-                        _outputBuilder.Write(" * ");
-                        _outputBuilder.Write(Math.Max(subConstantArrayType.Size, 1));
-
-                        elementType = subConstantArrayType.ElementType;
-                    }
-
-                    _outputBuilder.Write(']');
+                    count += " * ";
+                    count += Math.Max(subConstantArrayType.Size, 1).ToString();
+                    elementType = subConstantArrayType.ElementType;
                 }
-                else
-                {
-                    _outputBuilder.Write(GetArtificialFixedSizedBufferName(fieldDecl));
-                    _outputBuilder.Write(' ');
-                    _outputBuilder.Write(escapedName);
-                }
+
+                _outputBuilder.WriteFixedCountField(typeName, escapedName, GetArtificialFixedSizedBufferName(fieldDecl),
+                    count);
             }
             else
             {
-                _outputBuilder.Write(typeName);
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write(escapedName);
+                _outputBuilder.WriteRegularField(typeName, escapedName);
             }
 
-            _outputBuilder.WriteSemicolon();
-            _outputBuilder.WriteNewline();
+            _outputBuilder.EndField();
         }
 
         private void VisitFunctionDecl(FunctionDecl functionDecl)
