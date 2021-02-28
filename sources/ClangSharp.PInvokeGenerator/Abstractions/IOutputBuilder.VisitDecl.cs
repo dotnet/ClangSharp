@@ -1,3 +1,5 @@
+using System;
+
 namespace ClangSharp.Abstractions
 {
     public partial interface IOutputBuilder
@@ -22,9 +24,32 @@ namespace ClangSharp.Abstractions
         void BeginEnum(string accessSpecifier, string typeName, string escapedName);
         void EndEnum();
 
-        void BeginField(string accessSpecifier, string nativeTypeName, string escapedName, int? offset);
+        void BeginField(string accessSpecifier, string nativeTypeName, string escapedName, int? offset,
+            bool needsNewKeyword, string inheritedFrom = null);
         void WriteFixedCountField(string typeName, string escapedName, string fixedName, string count);
         void WriteRegularField(string typeName, string escapedName);
         void EndField();
+
+        void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> info);
+        void WriteReturnType(string typeString);
+        void BeginFunctionInnerPrototype(string escapedName);
+        void BeginParameter<TCustomAttrGeneratorData>(in ParameterDesc<TCustomAttrGeneratorData> info);
+        void BeginParameterDefault();
+        void EndParameterDefault();
+        void EndParameter();
+        void WriteParameterSeparator();
+        void EndFunctionInnerPrototype();
+        void BeginConstructorInitializer(string memberRefName, string memberInitName);
+        void EndConstructorInitializer();
+        void BeginFunctionBody();
+        void BeginConstructorInitializers();
+        void EndConstructorInitializers();
+        void BeginInnerFunctionBody();
+        void EndInnerFunctionBody();
+        void EndFunctionBody();
+        void EndFunctionOrDelegate(bool isVirtual, bool isBodyless);
+
+        void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info);
+        void EndStruct();
     }
 }

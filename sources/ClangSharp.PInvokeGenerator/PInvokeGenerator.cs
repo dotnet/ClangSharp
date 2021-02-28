@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using ClangSharp.Abstractions;
+using ClangSharp.CSharp;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -31,8 +33,8 @@ namespace ClangSharp
         private string[] _clangCommandLineArgs;
         private CXTranslationUnit_Flags _translationFlags;
 
-        //private OutputBuilder _outputBuilder;
-        //private OutputBuilder _testOutputBuilder;
+        private IOutputBuilder _outputBuilder;
+        private CSharpOutputBuilder _testOutputBuilder;
         private int _outputBuilderUsers;
         private bool _disposed;
         private bool _isMethodClassUnsafe;
@@ -3570,43 +3572,33 @@ namespace ClangSharp
             {
                 foreach (var attribute in attributes)
                 {
-                    if (attribute.Equals("Flags") || attribute.Equals("Obsolete"))
-                    {
-                        _outputBuilder.AddUsingDirective("System");
-                    }
-                    else if (attribute.Equals("EditorBrowsable") || attribute.StartsWith("EditorBrowsable("))
-                    {
-                        _outputBuilder.AddUsingDirective("System.ComponentModel");
-                    }
-                    else if (attribute.StartsWith("Guid("))
-                    {
-                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-                    }
-
-                    _outputBuilder.WriteIndented('[');
-                    _outputBuilder.Write(attribute);
-                    _outputBuilder.WriteLine(']');
+                    _outputBuilder.WriteCustomAttribute(attribute);
                 }
             }
         }
 
         private void WithLibraryPath(string remappedName)
         {
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(GetLibraryPath(remappedName));
+            _outputBuilder.Write('"');
+        }
+
+        private string GetLibraryPath(string remappedName)
+        {
             if (!_config.WithLibraryPaths.TryGetValue(remappedName, out string libraryPath) && !_config.WithLibraryPaths.TryGetValue("*", out libraryPath))
             {
-                _outputBuilder.Write(_config.LibraryPath);
+                return _config.LibraryPath;
             }
             else
             {
-                _outputBuilder.Write('"');
-                _outputBuilder.Write(libraryPath);
-                _outputBuilder.Write('"');
+                return libraryPath;
             }
         }
 
         private void WithSetLastError(string remappedName)
         {
-            if (_config.WithSetLastErrors.Contains("*") || _config.WithSetLastErrors.Contains(remappedName))
+            if (GetSetLastError(remappedName))
             {
                 _outputBuilder.Write(',');
                 _outputBuilder.Write(' ');
@@ -3617,6 +3609,9 @@ namespace ClangSharp
                 _outputBuilder.Write("true");
             }
         }
+
+        private bool GetSetLastError(string remappedName) => _config.WithSetLastErrors.Contains("*") ||
+                                                             _config.WithSetLastErrors.Contains(remappedName);
 
         private void WithTestAttribute()
         {
