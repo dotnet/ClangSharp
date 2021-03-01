@@ -50,6 +50,11 @@ namespace ClangSharp.Abstractions
         void EndFunctionOrDelegate(bool isVirtual, bool isBodyless);
 
         void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info);
+        bool TryBeginExplicitVtbl();
+        void EndExplicitVtbl();
         void EndStruct();
+
+        void EmitCompatibleCodeSupport();
+        void EmitFnPtrSupport();
     }
 }

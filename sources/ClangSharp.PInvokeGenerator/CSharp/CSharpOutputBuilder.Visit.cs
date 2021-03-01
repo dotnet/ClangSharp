@@ -32,5 +32,17 @@
                 Write(' ');
             }
         }
+
+        public void WriteDivider(bool force = false)
+        {
+            if (force)
+            {
+                WriteNewline();
+            }
+            else
+            {
+                NeedsNewline = true;
+            }
+        }
     }
 }

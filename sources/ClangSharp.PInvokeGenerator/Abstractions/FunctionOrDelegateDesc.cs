@@ -20,6 +20,7 @@ namespace ClangSharp.Abstractions
         public bool IsUnsafe;
         public bool IsCtxCxxRecord;
         public bool IsCxxRecordCtxUnsafe;
+        public bool IsMemberFunction;
         public Action<TCustomAttrGeneratorData> WriteCustomAttrs;
         public TCustomAttrGeneratorData CustomAttrGeneratorData;
     }

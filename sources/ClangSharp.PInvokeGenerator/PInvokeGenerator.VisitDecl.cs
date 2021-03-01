@@ -680,11 +680,8 @@ namespace ClangSharp
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
                 AddCppAttributes(parmVarDecl, prefix: "", postfix: " ");
 
-                _outputBuilder.Write(typeName);
-                _outputBuilder.Write(' ');
-
                 var name = GetRemappedCursorName(parmVarDecl);
-                _outputBuilder.Write(EscapeName(name));
+                var escapedName = EscapeName(name);
 
                 var parameters = typedefDecl.CursorChildren.OfType<ParmVarDecl>().ToList();
                 var index = parameters.IndexOf(parmVarDecl);
@@ -692,18 +689,31 @@ namespace ClangSharp
 
                 if (name.Equals("param"))
                 {
-                    _outputBuilder.Write(index);
+                    escapedName += index;
                 }
+
+                var desc = new ParameterDesc<(string Name, PInvokeGenerator This)>
+                {
+                    Name = escapedName,
+                    Type = typeName,
+                    CustomAttrGeneratorData = (name, this),
+                    WriteCustomAttrs = static _ => {}
+                };
+
+                _outputBuilder.BeginParameter(in desc);
 
                 if (parmVarDecl.HasDefaultArg)
                 {
-                    _outputBuilder.Write(" = ");
+                    _outputBuilder.BeginParameterDefault();
                     UncheckStmt(typeName, parmVarDecl.DefaultArg);
+                    _outputBuilder.EndParameterDefault();
                 }
+
+                _outputBuilder.EndParameter();
 
                 if (index != lastIndex)
                 {
-                    _outputBuilder.Write(", ");
+                    _outputBuilder.WriteParameterSeparator();
                 }
             }
         }
@@ -984,8 +994,7 @@ namespace ClangSharp
                             bitfieldRemainingBits = 0;
                         }
                         Visit(fieldDecl);
-
-                        _outputBuilder.NeedsNewline = true;
+                        _outputBuilder.WriteDivider();
                     }
                     else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
                     {
@@ -998,13 +1007,13 @@ namespace ClangSharp
                     foreach (var cxxConstructorDecl in cxxRecordDecl.Ctors)
                     {
                         Visit(cxxConstructorDecl);
-                        _outputBuilder.NeedsNewline = true;
+                        _outputBuilder.WriteDivider();
                     }
 
                     if (cxxRecordDecl.HasUserDeclaredDestructor)
                     {
                         Visit(cxxRecordDecl.Destructor);
-                        _outputBuilder.NeedsNewline = true;
+                        _outputBuilder.WriteDivider();
                     }
 
                     if (hasVtbl)
@@ -1032,25 +1041,21 @@ namespace ClangSharp
                 {
                     if (!_config.GenerateCompatibleCode)
                     {
-                        _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                        _outputBuilder.EmitCompatibleCodeSupport();
                     }
 
                     if (!_config.GeneratePreviewCodeFnptr)
                     {
-                        _outputBuilder.AddUsingDirective("System");
-                        _outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                        _outputBuilder.EmitFnPtrSupport();
                     }
 
                     int index = 0;
                     OutputVtblHelperMethods(cxxRecordDecl, cxxRecordDecl, ref index, hitsPerName: new Dictionary<string, int>());
 
-                    if (_config.GenerateExplicitVtbls)
+                    if (_config.GenerateExplicitVtbls && _outputBuilder.TryBeginExplicitVtbl())
                     {
-                        _outputBuilder.NeedsNewline = true;
-                        _outputBuilder.WriteIndentedLine("public partial struct Vtbl");
-                        _outputBuilder.WriteBlockStart();
                         OutputVtblEntries(cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
-                        _outputBuilder.WriteBlockEnd();
+                        _outputBuilder.EndExplicitVtbl();
                     }
                 }
 
@@ -1132,7 +1137,7 @@ namespace ClangSharp
 
                     if (!_config.GeneratePreviewCodeFnptr)
                     {
-                        _outputBuilder.NeedsNewline = true;
+                        _outputBuilder.WriteDivider();
 
                         var remappedName = FixupNameForMultipleHits(cxxMethodDecl, hitsPerName);
                         Debug.Assert(CurrentContext == rootCxxRecordDecl);
@@ -1159,7 +1164,7 @@ namespace ClangSharp
 
                     Debug.Assert(CurrentContext == rootCxxRecordDecl);
                     Visit(cxxMethodDecl);
-                    _outputBuilder.NeedsNewline = true;
+                    _outputBuilder.WriteDivider();
                 }
             }
 
@@ -1178,7 +1183,7 @@ namespace ClangSharp
                     foreach (var cxxMethodDecl in cxxMethodDecls)
                     {
                         OutputVtblEntry(rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
-                        _outputBuilder.NeedsNewline = true;
+                        _outputBuilder.WriteDivider();
                     }
                 }
             }
@@ -1196,23 +1201,13 @@ namespace ClangSharp
                 var accessSpecifier = GetAccessSpecifierName(cxxMethodDecl);
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl, hitsPerName);
                 var name = GetRemappedCursorName(cxxMethodDecl);
+                var escapedName = EscapeAndStripName(name);
                 RestoreNameForMultipleHits(cxxMethodDecl, hitsPerName, remappedName);
 
-                _outputBuilder.WriteIndented(accessSpecifier);
-                _outputBuilder.Write(' ');
-
-                if (NeedsNewKeyword(remappedName))
-                {
-                    _outputBuilder.Write("new ");
-                }
-
-                _outputBuilder.Write(cxxMethodDeclTypeName);
-                _outputBuilder.Write(' ');
-
-                _outputBuilder.Write(EscapeAndStripName(name));
-
-                _outputBuilder.WriteSemicolon();
-                _outputBuilder.WriteNewline();
+                _outputBuilder.BeginField(accessSpecifier, nativeTypeName, escapedName, null,
+                    NeedsNewKeyword(remappedName));
+                _outputBuilder.WriteRegularField(cxxMethodDeclTypeName, escapedName);
+                _outputBuilder.EndField();
             }
 
             void OutputVtblHelperMethod(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, ref int vtblIndex, Dictionary<string, int> hitsPerName)
@@ -1250,6 +1245,17 @@ namespace ClangSharp
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl, hitsPerName);
                 var name = GetRemappedCursorName(cxxMethodDecl);
                 RestoreNameForMultipleHits(cxxMethodDecl, hitsPerName, remappedName);
+
+                var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
+                {
+                    AccessSpecifier = accessSpecifier,
+                    CustomAttrGeneratorData = (name, this),
+                    WriteCustomAttrs = static _ => {},
+                    IsMemberFunction = true,
+                    EscapedName = EscapeAndStripName(remappedName),
+                    NativeTypeName = nativeTypeName,
+                    NeedsNewKeyword = NeedsNewKeyword(remappedName, cxxMethodDecl.Parameters)
+                };
 
                 if (NeedsNewKeyword(remappedName, cxxMethodDecl.Parameters))
                 {
@@ -1410,7 +1416,7 @@ namespace ClangSharp
 
                 foreach (var cxxMethodDecl in cxxMethodDecls)
                 {
-                    _outputBuilder.NeedsNewline = true;
+                    _outputBuilder.WriteDivider();
                     OutputVtblHelperMethod(rootCxxRecordDecl, cxxMethodDecl, ref index, hitsPerName);
                 }
             }

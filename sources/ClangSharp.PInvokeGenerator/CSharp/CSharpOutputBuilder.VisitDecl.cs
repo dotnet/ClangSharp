@@ -183,17 +183,20 @@ namespace ClangSharp.CSharp
 
             WriteIndented(desc.AccessSpecifier);
 
-            if (desc.IsVirtual)
+            if (!desc.IsMemberFunction)
             {
-                Write(" delegate");
-            }
-            else if (desc.IsDllImport || !desc.IsCxx || desc.IsStatic)
-            {
-                Write(" static");
-
-                if (desc.IsDllImport)
+                if (desc.IsVirtual)
                 {
-                    Write(" extern");
+                    Write(" delegate");
+                }
+                else if (desc.IsDllImport || !desc.IsCxx || desc.IsStatic)
+                {
+                    Write(" static");
+
+                    if (desc.IsDllImport)
+                    {
+                        Write(" extern");
+                    }
                 }
             }
 
@@ -383,6 +386,35 @@ namespace ClangSharp.CSharp
             Write(info.EscapedName);
             WriteNewline();
             WriteBlockStart();
+        }
+
+        public bool TryBeginExplicitVtbl()
+        {
+            NeedsNewline = true;
+            WriteIndentedLine("public partial struct Vtbl");
+            WriteBlockStart();
+            return true;
+        }
+
+        public void EmitCompatibleCodeSupport()
+        {
+            AddUsingDirective("System.Runtime.CompilerServices");
+        }
+
+        public void EmitFnPtrSupport()
+        {
+            AddUsingDirective("System");
+            AddUsingDirective("System.Runtime.InteropServices");
+        }
+
+        public void EndStruct()
+        {
+            WriteBlockEnd();
+        }
+
+        public void EndExplicitVtbl()
+        {
+            WriteBlockEnd();
         }
     }
 }
