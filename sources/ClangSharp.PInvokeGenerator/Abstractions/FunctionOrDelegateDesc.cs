@@ -13,6 +13,7 @@ namespace ClangSharp.Abstractions
         public bool IsVirtual;
         public bool IsDllImport;
         public bool HasFnPtrCodeGen;
+        public bool IsAggressivelyInlined;
         public bool SetLastError;
         public bool IsCxx;
         public bool IsStatic;

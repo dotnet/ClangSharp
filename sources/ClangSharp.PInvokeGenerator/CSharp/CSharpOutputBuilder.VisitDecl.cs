@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -177,6 +178,12 @@ namespace ClangSharp.CSharp
                     Write("SetLastError = true");
                 }
                 WriteLine(")]");
+            }
+
+            if (desc.IsAggressivelyInlined)
+            {
+                AddUsingDirective("System.Runtime.CompilerServices");
+                WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
             }
 
             AddNativeTypeNameAttribute(desc.NativeTypeName, attributePrefix: "return: ");
@@ -388,12 +395,11 @@ namespace ClangSharp.CSharp
             WriteBlockStart();
         }
 
-        public bool TryBeginExplicitVtbl()
+        public void BeginExplicitVtbl()
         {
             NeedsNewline = true;
             WriteIndentedLine("public partial struct Vtbl");
             WriteBlockStart();
-            return true;
         }
 
         public void EmitCompatibleCodeSupport()
@@ -415,6 +421,17 @@ namespace ClangSharp.CSharp
         public void EndExplicitVtbl()
         {
             WriteBlockEnd();
+        }
+
+        public CSharpOutputBuilder BeginCSharpCode()
+        {
+            // just write directly to this buffer
+            return this;
+        }
+
+        public void EndCSharpCode(CSharpOutputBuilder output)
+        {
+            // nop, used only by XML
         }
     }
 }

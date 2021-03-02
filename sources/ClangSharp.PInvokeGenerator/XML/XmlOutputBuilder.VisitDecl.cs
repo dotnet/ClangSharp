@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using ClangSharp.Abstractions;
+using ClangSharp.CSharp;
 
 namespace ClangSharp.XML
 {
@@ -97,6 +98,10 @@ namespace ClangSharp.XML
 
                 _sb.Append('>');
             }
+            else if (desc.IsMemberFunction)
+            {
+                _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\">");
+            }
 
             desc.WriteCustomAttrs(desc.CustomAttrGeneratorData);
             _sb.Append($"<type native=\"{desc.NativeTypeName}\">");
@@ -115,7 +120,7 @@ namespace ClangSharp.XML
 
         public void BeginParameter<TCustomAttrGeneratorData>(in ParameterDesc<TCustomAttrGeneratorData> info)
         {
-            _sb.Append($"<parameter name=\"{info.Name}\">");
+            _sb.Append($"<param name=\"{info.Name}\">");
             info.WriteCustomAttrs(info.CustomAttrGeneratorData);
             _sb.Append("<type>");
             _sb.Append(info.Type);
@@ -134,7 +139,7 @@ namespace ClangSharp.XML
 
         public void EndParameter()
         {
-            _sb.Append("</parameter>");
+            _sb.Append("</param>");
         }
 
         public void WriteParameterSeparator()
@@ -191,7 +196,93 @@ namespace ClangSharp.XML
 
         public void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info)
         {
-            throw new System.NotImplementedException();
+            _sb.Append("<struct name=\"");
+            _sb.Append(info.EscapedName);
+            _sb.Append("\" access=\"");
+            _sb.Append(info.AccessSpecifier);
+            _sb.Append('"');
+            if (info.NativeType is not null)
+            {
+                _sb.Append(" native=\"");
+                _sb.Append(info.NativeType);
+                _sb.Append('"');
+            }
+
+            if (info.NativeInheritance is not null)
+            {
+                _sb.Append(" parent=\"");
+                _sb.Append(info.NativeInheritance);
+                _sb.Append('"');
+            }
+
+            if (info.Uuid is not null)
+            {
+                _sb.Append(" uuid=\"");
+                _sb.Append(info.Uuid.Value);
+                _sb.Append('"');
+            }
+
+            if (info.HasVtbl)
+            {
+                _sb.Append(" vtbl=\"true\"");
+            }
+
+            if (info.IsUnsafe)
+            {
+                _sb.Append(" unsafe=\"true\"");
+            }
+
+            if (info.Layout is not null)
+            {
+                _sb.Append(" layout=\"");
+                _sb.Append(info.Layout.Value);
+                _sb.Append('"');
+                if (info.Layout.Pack != default)
+                {
+                    _sb.Append(" pack=\"");
+                    _sb.Append(info.Layout.Pack);
+                    _sb.Append('"');
+                }
+            }
+
+            _sb.Append('>');
+            info.WriteCustomAttrs(info.CustomAttrGeneratorData);
+        }
+
+        public void BeginExplicitVtbl() => _sb.Append("<vtbl>");
+        public void EndExplicitVtbl() => _sb.Append("</vtbl>");
+
+        public void EndStruct() => _sb.Append("</struct>");
+
+        public void EmitCompatibleCodeSupport()
+        {
+            // nop, used only by C#
+        }
+
+        public void EmitFnPtrSupport()
+        {
+            // nop, used only by C#
+        }
+
+        public CSharpOutputBuilder BeginCSharpCode()
+        {
+            _sb.Append("<code>");
+            return new CSharpOutputBuilder("__Internal", markerMode: MarkerMode.Xml);
+        }
+
+        public void EndCSharpCode(CSharpOutputBuilder output)
+        {
+            foreach (var s in output.Contents)
+            {
+                _sb.AppendLine(s);
+            }
+
+            _sb.Append("</code>");
+        }
+
+        public void WriteDivider(bool force = false)
+        {
+            // nop, used only by C#
         }
     }
 }

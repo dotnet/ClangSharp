@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using ClangSharp.CSharp;
 
 namespace ClangSharp.Abstractions
 {
@@ -50,11 +52,14 @@ namespace ClangSharp.Abstractions
         void EndFunctionOrDelegate(bool isVirtual, bool isBodyless);
 
         void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info);
-        bool TryBeginExplicitVtbl();
+        void BeginExplicitVtbl();
         void EndExplicitVtbl();
         void EndStruct();
 
         void EmitCompatibleCodeSupport();
         void EmitFnPtrSupport();
+
+        CSharpOutputBuilder BeginCSharpCode();
+        void EndCSharpCode(CSharpOutputBuilder output);
     }
 }

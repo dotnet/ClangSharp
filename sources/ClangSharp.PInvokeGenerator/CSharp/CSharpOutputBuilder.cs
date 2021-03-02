@@ -19,8 +19,9 @@ namespace ClangSharp.CSharp
         private readonly bool _isTestOutput;
 
         private int _indentationLevel;
+        private MarkerMode _markerMode;
 
-        public CSharpOutputBuilder(string name, string indentationString = DefaultIndentationString, bool isTestOutput = false)
+        public CSharpOutputBuilder(string name, string indentationString = DefaultIndentationString, bool isTestOutput = false, MarkerMode markerMode = MarkerMode.None)
         {
             _name = name;
             _contents = new List<string>();
@@ -29,6 +30,7 @@ namespace ClangSharp.CSharp
             _staticUsingDirectives = new SortedSet<string>();
             _indentationString = indentationString;
             _isTestOutput = isTestOutput;
+            _markerMode = markerMode;
         }
 
         public IEnumerable<string> Contents => _contents;
@@ -153,6 +155,35 @@ namespace ClangSharp.CSharp
             {
                 WriteSemicolon();
             }
+        }
+
+        public void BeginMarker(string kind, params KeyValuePair<string, object>[] attributes)
+        {
+            if (_markerMode != MarkerMode.Xml)
+            {
+                return;
+            }
+
+            Write('<');
+            Write(kind);
+            foreach ((string key, object value) in attributes)
+            {
+                Write(' ');
+                Write(key);
+                Write('=');
+                Write('"');
+                Write(value);
+                Write('"');
+            }
+
+            Write('>');
+        }
+
+        public void EndMarker(string kind)
+        {
+            Write("</");
+            Write(kind);
+            Write('>');
         }
     }
 }
