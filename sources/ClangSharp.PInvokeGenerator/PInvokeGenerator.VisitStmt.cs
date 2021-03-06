@@ -12,49 +12,58 @@ namespace ClangSharp
     {
         private void VisitArraySubscriptExpr(ArraySubscriptExpr arraySubscriptExpr)
         {
+            var outputBuilder = StartCSharpCode();
             Visit(arraySubscriptExpr.Base);
-            _outputBuilder.Write('[');
+            outputBuilder.Write('[');
             Visit(arraySubscriptExpr.Idx);
-            _outputBuilder.Write(']');
+            outputBuilder.Write(']');
+            StopCSharpCode();
         }
 
         private void VisitBinaryOperator(BinaryOperator binaryOperator)
         {
+            var outputBuilder = StartCSharpCode();
             Visit(binaryOperator.LHS);
-            _outputBuilder.Write(' ');
-            _outputBuilder.Write(binaryOperator.OpcodeStr);
-            _outputBuilder.Write(' ');
+            outputBuilder.Write(' ');
+            outputBuilder.Write(binaryOperator.OpcodeStr);
+            outputBuilder.Write(' ');
             Visit(binaryOperator.RHS);
+            StopCSharpCode();
         }
 
         private void VisitBreakStmt(BreakStmt breakStmt)
         {
-            _outputBuilder.Write("break");
+            StartCSharpCode().Write("break");
+            StopCSharpCode();
         }
 
         private void VisitBody(Stmt stmt)
         {
+            var outputBuilder = StartCSharpCode();
             if (stmt is CompoundStmt)
             {
                 Visit(stmt);
             }
             else
             {
-                _outputBuilder.WriteBlockStart();
-                _outputBuilder.WriteIndentation();
-                _outputBuilder.NeedsSemicolon = true;
-                _outputBuilder.NeedsNewline = true;
+                outputBuilder.WriteBlockStart();
+                outputBuilder.WriteIndentation();
+                outputBuilder.NeedsSemicolon = true;
+                outputBuilder.NeedsNewline = true;
 
                 Visit(stmt);
 
-                _outputBuilder.WriteSemicolonIfNeeded();
-                _outputBuilder.WriteNewlineIfNeeded();
-                _outputBuilder.WriteBlockEnd();
+                outputBuilder.WriteSemicolonIfNeeded();
+                outputBuilder.WriteNewlineIfNeeded();
+                outputBuilder.WriteBlockEnd();
             }
+
+            StopCSharpCode();
         }
 
         private void VisitCallExpr(CallExpr callExpr)
         {
+            var outputBuilder = StartCSharpCode();
             var calleeDecl = callExpr.CalleeDecl;
 
             if (calleeDecl is FunctionDecl functionDecl)
@@ -63,16 +72,16 @@ namespace ClangSharp
                 {
                     case "memcpy":
                     {
-                        _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
-                        _outputBuilder.Write("Unsafe.CopyBlockUnaligned");
+                        outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                        outputBuilder.Write("Unsafe.CopyBlockUnaligned");
                         VisitArgs(callExpr);
                         break;
                     }
 
                     case "memset":
                     {
-                        _outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
-                        _outputBuilder.Write("Unsafe.InitBlockUnaligned");
+                        outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                        outputBuilder.Write("Unsafe.InitBlockUnaligned");
                         VisitArgs(callExpr);
                         break;
                     }
@@ -97,7 +106,7 @@ namespace ClangSharp
 
             void VisitArgs(CallExpr callExpr)
             {
-                _outputBuilder.Write('(');
+                outputBuilder.Write('(');
 
                 var args = callExpr.Args;
 
@@ -107,34 +116,40 @@ namespace ClangSharp
 
                     for (int i = 1; i < args.Count; i++)
                     {
-                        _outputBuilder.Write(", ");
+                        outputBuilder.Write(", ");
                         Visit(args[i]);
                     }
                 }
 
-                _outputBuilder.Write(')');
+                outputBuilder.Write(')');
             }
+
+            StopCSharpCode();
         }
 
         private void VisitCaseStmt(CaseStmt caseStmt)
         {
-            _outputBuilder.Write("case ");
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write("case ");
             Visit(caseStmt.LHS);
-            _outputBuilder.WriteLine(':');
+            outputBuilder.WriteLine(':');
 
             if (caseStmt.SubStmt is SwitchCase)
             {
-                _outputBuilder.WriteIndentation();
+                outputBuilder.WriteIndentation();
                 Visit(caseStmt.SubStmt);
             }
             else
             {
                 VisitBody(caseStmt.SubStmt);
             }
+
+            StopCSharpCode();
         }
 
         private void VisitCharacterLiteral(CharacterLiteral characterLiteral)
         {
+            var outputBuilder = StartCSharpCode();
             switch (characterLiteral.Kind)
             {
                 case CX_CharacterKind.CX_CLK_Ascii:
@@ -142,13 +157,13 @@ namespace ClangSharp
                 {
                     if (characterLiteral.Value > ushort.MaxValue)
                     {
-                        _outputBuilder.Write("0x");
-                        _outputBuilder.Write(characterLiteral.Value.ToString("X8"));
+                        outputBuilder.Write("0x");
+                        outputBuilder.Write(characterLiteral.Value.ToString("X8"));
                     }
                     else if (characterLiteral.Value > byte.MaxValue)
                     {
-                        _outputBuilder.Write("0x");
-                        _outputBuilder.Write(characterLiteral.Value.ToString("X4"));
+                        outputBuilder.Write("0x");
+                        outputBuilder.Write(characterLiteral.Value.ToString("X4"));
                     }
                     else
                     {
@@ -156,16 +171,16 @@ namespace ClangSharp
 
                         if (!isPreviousExplicitCast)
                         {
-                            _outputBuilder.Write("(byte)(");
+                            outputBuilder.Write("(byte)(");
                         }
 
-                        _outputBuilder.Write('\'');
-                        _outputBuilder.Write(EscapeCharacter((char)characterLiteral.Value));
-                        _outputBuilder.Write('\'');
+                        outputBuilder.Write('\'');
+                        outputBuilder.Write(EscapeCharacter((char)characterLiteral.Value));
+                        outputBuilder.Write('\'');
 
                         if (!isPreviousExplicitCast)
                         {
-                            _outputBuilder.Write(')');
+                            outputBuilder.Write(')');
                         }
                     }
                     break;
@@ -185,22 +200,22 @@ namespace ClangSharp
                 {
                     if (characterLiteral.Value > ushort.MaxValue)
                     {
-                        _outputBuilder.Write("0x");
-                        _outputBuilder.Write(characterLiteral.Value.ToString("X8"));
+                        outputBuilder.Write("0x");
+                        outputBuilder.Write(characterLiteral.Value.ToString("X8"));
                     }
                     else
                     {
-                        _outputBuilder.Write('\'');
-                        _outputBuilder.Write(EscapeCharacter((char)characterLiteral.Value));
-                        _outputBuilder.Write('\'');
+                        outputBuilder.Write('\'');
+                        outputBuilder.Write(EscapeCharacter((char)characterLiteral.Value));
+                        outputBuilder.Write('\'');
                     }
                     break;
                 }
 
                 case CX_CharacterKind.CX_CLK_UTF32:
                 {
-                    _outputBuilder.Write("0x");
-                    _outputBuilder.Write(characterLiteral.Value.ToString("X8"));
+                    outputBuilder.Write("0x");
+                    outputBuilder.Write(characterLiteral.Value.ToString("X8"));
                     break;
                 }
 
@@ -210,36 +225,46 @@ namespace ClangSharp
                     break;
                 }
             }
+
+            StopCSharpCode();
         }
 
         private void VisitCompoundStmt(CompoundStmt compoundStmt)
         {
-            _outputBuilder.WriteBlockStart();
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.WriteBlockStart();
 
             VisitStmts(compoundStmt.Body);
 
-            _outputBuilder.WriteSemicolonIfNeeded();
-            _outputBuilder.WriteNewlineIfNeeded();
-            _outputBuilder.WriteBlockEnd();
+            outputBuilder.WriteSemicolonIfNeeded();
+            outputBuilder.WriteNewlineIfNeeded();
+            outputBuilder.WriteBlockEnd();
+            StopCSharpCode();
         }
 
         private void VisitConditionalOperator(ConditionalOperator conditionalOperator)
         {
+            var outputBuilder = StartCSharpCode();
             Visit(conditionalOperator.Cond);
-            _outputBuilder.Write(" ? ");
+            outputBuilder.Write(" ? ");
             Visit(conditionalOperator.TrueExpr);
-            _outputBuilder.Write(" : ");
+            outputBuilder.Write(" : ");
             Visit(conditionalOperator.FalseExpr);
+            StopCSharpCode();
         }
 
         private void VisitContinueStmt(ContinueStmt continueStmt)
         {
-            _outputBuilder.Write("continue");
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write("continue");
+            StopCSharpCode();
         }
 
         private void VisitCXXBoolLiteralExpr(CXXBoolLiteralExpr cxxBoolLiteralExpr)
         {
-            _outputBuilder.Write(cxxBoolLiteralExpr.ValueString);
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write(cxxBoolLiteralExpr.ValueString);
+            StopCSharpCode();
         }
 
         private void VisitCXXConstCastExpr(CXXConstCastExpr cxxConstCastExpr)
@@ -252,16 +277,17 @@ namespace ClangSharp
 
         private void VisitCXXConstructExpr(CXXConstructExpr cxxConstructExpr)
         {
+            var outputBuilder = StartCSharpCode();
             var isCopyOrMoveConstructor = cxxConstructExpr.Constructor is { IsCopyConstructor: true } or { IsMoveConstructor: true };
 
             if (!isCopyOrMoveConstructor)
             {
-                _outputBuilder.Write("new ");
+                outputBuilder.Write("new ");
 
                 var constructorName = GetRemappedCursorName(cxxConstructExpr.Constructor);
 
-                _outputBuilder.Write(constructorName);
-                _outputBuilder.Write('(');
+                outputBuilder.Write(constructorName);
+                outputBuilder.Write('(');
             }
 
             var args = cxxConstructExpr.Args;
@@ -272,15 +298,17 @@ namespace ClangSharp
 
                 for (int i = 1; i < args.Count; i++)
                 {
-                    _outputBuilder.Write(", ");
+                    outputBuilder.Write(", ");
                     Visit(args[i]);
                 }
             }
 
             if (!isCopyOrMoveConstructor)
             {
-                _outputBuilder.Write(')');
+                outputBuilder.Write(')');
             }
+
+            StopCSharpCode();
         }
 
         private void VisitCXXFunctionalCastExpr(CXXFunctionalCastExpr cxxFunctionalCastExpr)
@@ -297,11 +325,14 @@ namespace ClangSharp
 
         private void VisitCXXNullPtrLiteralExpr(CXXNullPtrLiteralExpr cxxNullPtrLiteralExpr)
         {
-            _outputBuilder.Write("null");
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write("null");
+            StopCSharpCode();
         }
 
         private void VisitCXXOperatorCallExpr(CXXOperatorCallExpr cxxOperatorCallExpr)
         {
+            var outputBuilder = StartCSharpCode();
             var calleeDecl = cxxOperatorCallExpr.CalleeDecl;
 
             if (calleeDecl is FunctionDecl functionDecl)
@@ -309,7 +340,7 @@ namespace ClangSharp
                 if (functionDecl.DeclContext is CXXRecordDecl)
                 {
                     Visit(cxxOperatorCallExpr.Args[0]);
-                    _outputBuilder.Write('.');
+                    outputBuilder.Write('.');
                 }
 
                 var functionDeclName = GetCursorName(functionDecl);
@@ -327,16 +358,16 @@ namespace ClangSharp
                         case "operator^=":
                         {
                             Visit(args[0]);
-                            _outputBuilder.Write(' ');
-                            _outputBuilder.Write(functionDeclName.Substring(8));
-                            _outputBuilder.Write(' ');
+                            outputBuilder.Write(' ');
+                            outputBuilder.Write(functionDeclName.Substring(8));
+                            outputBuilder.Write(' ');
                             Visit(args[1]);
                             return;
                         }
 
                         case "operator~":
                         {
-                            _outputBuilder.Write(functionDeclName.Substring(8));
+                            outputBuilder.Write(functionDeclName.Substring(8));
                             Visit(args[0]);
                             return;
                         }
@@ -349,9 +380,9 @@ namespace ClangSharp
                 }
 
                 var name = GetRemappedCursorName(functionDecl);
-                _outputBuilder.Write(name);
+                outputBuilder.Write(name);
 
-                _outputBuilder.Write('(');
+                outputBuilder.Write('(');
 
                 if (args.Count != 0)
                 {
@@ -360,59 +391,69 @@ namespace ClangSharp
 
                     for (int i = firstIndex + 1; i < args.Count; i++)
                     {
-                        _outputBuilder.Write(", ");
+                        outputBuilder.Write(", ");
                         Visit(args[i]);
                     }
                 }
 
-                _outputBuilder.Write(')');
+                outputBuilder.Write(')');
             }
             else
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.Kind}'. Generated bindings may be incomplete.", calleeDecl);
             }
+
+            StopCSharpCode();
         }
 
         private void VisitCXXThisExpr(CXXThisExpr cxxThisExpr)
         {
-            _outputBuilder.Write("this");
+            StartCSharpCode().Write("this");
+            StopCSharpCode();
         }
 
         private void VisitCXXUuidofExpr(CXXUuidofExpr cxxUuidofExpr)
         {
-            _outputBuilder.Write("typeof(");
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write("typeof(");
 
             var type = cxxUuidofExpr.IsTypeOperand ? cxxUuidofExpr.TypeOperand : cxxUuidofExpr.ExprOperand.Type;
             var typeName = GetRemappedTypeName(cxxUuidofExpr, context: null, type, out _);
-            _outputBuilder.Write(typeName);
+            outputBuilder.Write(typeName);
 
-            _outputBuilder.Write(").GUID");
+            outputBuilder.Write(").GUID");
+
+            StopCSharpCode();
         }
 
         private void VisitDeclRefExpr(DeclRefExpr declRefExpr)
         {
+            var outputBuilder = StartCSharpCode();
             if ((declRefExpr.Decl is EnumConstantDecl enumConstantDecl) && (declRefExpr.DeclContext != enumConstantDecl.DeclContext) && (enumConstantDecl.DeclContext is NamedDecl namedDecl))
             {
                 var enumName = GetRemappedCursorName(namedDecl);
 
                 if (!_config.DontUseUsingStaticsForEnums)
                 {
-                    _outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
+                    outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
                 }
                 else
                 {
-                    _outputBuilder.Write(enumName);
-                    _outputBuilder.Write(".");
+                    outputBuilder.Write(enumName);
+                    outputBuilder.Write(".");
                 }
             }
 
             var name = GetRemappedCursorName(declRefExpr.Decl);
             var escapedName = (declRefExpr.Decl is FunctionDecl) ? EscapeAndStripName(name) : EscapeName(name);
-            _outputBuilder.Write(escapedName);
+            outputBuilder.Write(escapedName);
+
+            StopCSharpCode();
         }
 
         private void VisitDeclStmt(DeclStmt declStmt)
         {
+            var outputBuilder = StartCSharpCode();
             if (declStmt.IsSingleDecl)
             {
                 Visit(declStmt.SingleDecl);
@@ -423,86 +464,101 @@ namespace ClangSharp
 
                 foreach (var decl in declStmt.Decls.Skip(1))
                 {
-                    _outputBuilder.Write(", ");
+                    outputBuilder.Write(", ");
                     Visit(decl);
                 }
             }
+
+            StopCSharpCode();
         }
 
         private void VisitDefaultStmt(DefaultStmt defaultStmt)
         {
-            _outputBuilder.WriteLine("default:");
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.WriteLine("default:");
 
             if (defaultStmt.SubStmt is SwitchCase)
             {
-                _outputBuilder.WriteIndentation();
+                outputBuilder.WriteIndentation();
                 Visit(defaultStmt.SubStmt);
             }
             else
             {
                 VisitBody(defaultStmt.SubStmt);
             }
+
+            StopCSharpCode();
         }
 
         private void VisitDoStmt(DoStmt doStmt)
         {
-            _outputBuilder.WriteLine("do");
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.WriteLine("do");
 
             VisitBody(doStmt.Body);
-            
-            _outputBuilder.WriteIndented("while (");
+
+            outputBuilder.WriteIndented("while (");
 
             Visit(doStmt.Cond);
 
-            _outputBuilder.Write(')');
-            _outputBuilder.WriteSemicolon();
-            _outputBuilder.WriteNewline();
+            outputBuilder.Write(')');
+            outputBuilder.WriteSemicolon();
+            outputBuilder.WriteNewline();
 
-            _outputBuilder.NeedsNewline = true;
+            outputBuilder.NeedsNewline = true;
+
+            StopCSharpCode();
         }
 
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
         {
+            var outputBuilder = StartCSharpCode();
             if (IsPrevContextDecl<EnumConstantDecl>(out var _) && explicitCastExpr.Type is EnumType enumType)
             {
-                _outputBuilder.Write('(');
+                outputBuilder.Write('(');
                 var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _);
-                _outputBuilder.Write(enumUnderlyingTypeName);
-                _outputBuilder.Write(')');
+                outputBuilder.Write(enumUnderlyingTypeName);
+                outputBuilder.Write(')');
             }
 
             var type = explicitCastExpr.Type;
 
             var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out var nativeTypeName);
 
-            _outputBuilder.Write('(');
-            _outputBuilder.Write(typeName);
-            _outputBuilder.Write(')');
+            outputBuilder.Write('(');
+            outputBuilder.Write(typeName);
+            outputBuilder.Write(')');
 
             ParenthesizeStmt(explicitCastExpr.SubExprAsWritten);
+
+            StopCSharpCode();
         }
 
         private void VisitFloatingLiteral(FloatingLiteral floatingLiteral)
         {
+            var outputBuilder = StartCSharpCode();
             if (floatingLiteral.ValueString.EndsWith(".f"))
             {
-                _outputBuilder.Write(floatingLiteral.ValueString.Substring(0, floatingLiteral.ValueString.Length - 1));
-                _outputBuilder.Write("0f");
+                outputBuilder.Write(floatingLiteral.ValueString.Substring(0, floatingLiteral.ValueString.Length - 1));
+                outputBuilder.Write("0f");
             }
             else
             {
-                _outputBuilder.Write(floatingLiteral.ValueString);
+                outputBuilder.Write(floatingLiteral.ValueString);
 
                 if (floatingLiteral.ValueString.EndsWith("."))
                 {
-                    _outputBuilder.Write('0');
+                    outputBuilder.Write('0');
                 }
             }
+
+            StopCSharpCode();
         }
 
         private void VisitForStmt(ForStmt forStmt)
         {
-            _outputBuilder.Write("for (");
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write("for (");
 
             if (forStmt.ConditionVariableDeclStmt != null)
             {
@@ -512,67 +568,77 @@ namespace ClangSharp
             {
                 Visit(forStmt.Init);
             }
-            _outputBuilder.WriteSemicolon();
+
+            outputBuilder.WriteSemicolon();
 
             if (forStmt.Cond != null)
             {
-                _outputBuilder.Write(' ');
+                outputBuilder.Write(' ');
                 Visit(forStmt.Cond);
             }
-            _outputBuilder.WriteSemicolon();
+
+            outputBuilder.WriteSemicolon();
 
             if (forStmt.Inc != null)
             {
-                _outputBuilder.Write(' ');
+                outputBuilder.Write(' ');
                 Visit(forStmt.Inc);
             }
-            _outputBuilder.WriteLine(')');
+
+            outputBuilder.WriteLine(')');
 
             VisitBody(forStmt.Body);
+            StopCSharpCode();
         }
 
         private void VisitGotoStmt(GotoStmt gotoStmt)
         {
-            _outputBuilder.Write("goto ");
-            _outputBuilder.Write(gotoStmt.Label.Name);
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write("goto ");
+            outputBuilder.Write(gotoStmt.Label.Name);
+            StopCSharpCode();
         }
 
         private void VisitIfStmt(IfStmt ifStmt)
         {
-            _outputBuilder.Write("if (");
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write("if (");
 
             Visit(ifStmt.Cond);
 
-            _outputBuilder.WriteLine(')');
+            outputBuilder.WriteLine(')');
 
             VisitBody(ifStmt.Then);
 
             if (ifStmt.Else != null)
             {
-                _outputBuilder.WriteIndented("else");
+                outputBuilder.WriteIndented("else");
 
                 if (ifStmt.Else is IfStmt)
                 {
-                    _outputBuilder.Write(' ');
+                    outputBuilder.Write(' ');
                     Visit(ifStmt.Else);
                 }
                 else
                 {
-                    _outputBuilder.WriteNewline();
+                    outputBuilder.WriteNewline();
                     VisitBody(ifStmt.Else);
                 }
             }
+
+            StopCSharpCode();
         }
 
         private void VisitImplicitCastExpr(ImplicitCastExpr implicitCastExpr)
         {
+            var outputBuilder = StartCSharpCode();
             var subExpr = implicitCastExpr.SubExprAsWritten;
 
             switch (implicitCastExpr.CastKind)
             {
                 case CX_CastKind.CX_CK_NullToPointer:
                 {
-                    _outputBuilder.Write("null");
+                    outputBuilder.Write("null");
                     break;
                 }
 
@@ -585,7 +651,7 @@ namespace ClangSharp
                     else
                     {
                         ParenthesizeStmt(subExpr);
-                        _outputBuilder.Write(" != null");
+                        outputBuilder.Write(" != null");
                     }
                     break;
                 }
@@ -611,7 +677,7 @@ namespace ClangSharp
                     else
                     {
                         ParenthesizeStmt(subExpr);
-                        _outputBuilder.Write(" != 0");
+                        outputBuilder.Write(" != 0");
                     }
                     break;
                 }
@@ -622,15 +688,15 @@ namespace ClangSharp
 
                     if (needsCast)
                     {
-                        _outputBuilder.Write("(byte)(");
+                        outputBuilder.Write("(byte)(");
                     }
 
                     ParenthesizeStmt(subExpr);
-                    _outputBuilder.Write(" ? 1 : 0");
+                    outputBuilder.Write(" ? 1 : 0");
 
                     if (needsCast)
                     {
-                        _outputBuilder.Write(')');
+                        outputBuilder.Write(')');
                     }
 
                     break;
@@ -667,33 +733,37 @@ namespace ClangSharp
                     var type = implicitCastExpr.Type;
                     var typeName = GetRemappedTypeName(implicitCastExpr, context: null, type, out var nativeTypeName);
 
-                    _outputBuilder.Write('(');
-                    _outputBuilder.Write(typeName);
-                    _outputBuilder.Write(')');
+                    outputBuilder.Write('(');
+                    outputBuilder.Write(typeName);
+                    outputBuilder.Write(')');
 
                     ParenthesizeStmt(subExpr);
                 }
             }
+
+            StopCSharpCode();
         }
 
         private void VisitImplicitValueInitExpr(ImplicitValueInitExpr implicitValueInitExpr)
         {
-            _outputBuilder.Write("default");
+            StartCSharpCode().Write("default");
+            StopCSharpCode();
         }
 
         private void VisitInitListExpr(InitListExpr initListExpr)
         {
+            var outputBuilder = StartCSharpCode();
             ForType(initListExpr, initListExpr.Type);
 
             void ForArrayType(InitListExpr initListExpr, ArrayType arrayType)
             {
-                _outputBuilder.Write("new ");
+                outputBuilder.Write("new ");
 
                 var type = initListExpr.Type;
                 var typeName = GetRemappedTypeName(initListExpr, context: null, type, out var nativeTypeName);
 
-                _outputBuilder.Write(typeName);
-                _outputBuilder.Write('[');
+                outputBuilder.Write(typeName);
+                outputBuilder.Write('[');
 
                 long size = -1;
 
@@ -708,66 +778,66 @@ namespace ClangSharp
 
                 if (size != -1)
                 {
-                    _outputBuilder.Write(size);
+                    outputBuilder.Write(size);
                 }
 
-                _outputBuilder.WriteLine(']');
-                _outputBuilder.WriteBlockStart();
+                outputBuilder.WriteLine(']');
+                outputBuilder.WriteBlockStart();
 
                 for (int i = 0; i < initListExpr.Inits.Count; i++)
                 {
-                    _outputBuilder.WriteIndentation();
+                    outputBuilder.WriteIndentation();
                     Visit(initListExpr.Inits[i]);
-                    _outputBuilder.WriteLine(',');
+                    outputBuilder.WriteLine(',');
                 }
 
                 for (int i = initListExpr.Inits.Count; i < size; i++)
                 {
-                    _outputBuilder.WriteIndentedLine("default,");
+                    outputBuilder.WriteIndentedLine("default,");
                 }
 
-                _outputBuilder.DecreaseIndentation();
-                _outputBuilder.WriteIndented('}');
-                _outputBuilder.NeedsSemicolon = true;
+                outputBuilder.DecreaseIndentation();
+                outputBuilder.WriteIndented('}');
+                outputBuilder.NeedsSemicolon = true;
             }
 
             void ForRecordType(InitListExpr initListExpr, RecordType recordType)
             {
-                _outputBuilder.Write("new ");
+                outputBuilder.Write("new ");
 
                 var type = initListExpr.Type;
                 var typeName = GetRemappedTypeName(initListExpr, context: null, type, out var nativeTypeName);
 
-                _outputBuilder.Write(typeName);
+                outputBuilder.Write(typeName);
 
                 if (typeName == "Guid")
                 {
-                    _outputBuilder.Write('(');
+                    outputBuilder.Write('(');
 
                     Visit(initListExpr.Inits[0]);
 
-                    _outputBuilder.Write(", ");
+                    outputBuilder.Write(", ");
 
                     Visit(initListExpr.Inits[1]);
 
-                    _outputBuilder.Write(", ");
+                    outputBuilder.Write(", ");
 
                     Visit(initListExpr.Inits[2]);
                     initListExpr = (InitListExpr)initListExpr.Inits[3];
 
                     for (int i = 0; i < initListExpr.Inits.Count; i++)
                     {
-                        _outputBuilder.Write(", ");
+                        outputBuilder.Write(", ");
 
                         Visit(initListExpr.Inits[i]);
                     }
 
-                    _outputBuilder.Write(')');
+                    outputBuilder.Write(')');
                 }
                 else
                 {
-                    _outputBuilder.WriteNewline();
-                    _outputBuilder.WriteBlockStart();
+                    outputBuilder.WriteNewline();
+                    outputBuilder.WriteBlockStart();
 
                     var decl = recordType.Decl;
 
@@ -782,15 +852,15 @@ namespace ClangSharp
 
                         var fieldName = GetRemappedCursorName(decl.Fields[i]);
 
-                        _outputBuilder.WriteIndented(fieldName);
-                        _outputBuilder.Write(" = ");
+                        outputBuilder.WriteIndented(fieldName);
+                        outputBuilder.Write(" = ");
                         Visit(init);
-                        _outputBuilder.WriteLine(',');
+                        outputBuilder.WriteLine(',');
                     }
 
-                    _outputBuilder.DecreaseIndentation();
-                    _outputBuilder.WriteIndented('}');
-                    _outputBuilder.NeedsSemicolon = true;
+                    outputBuilder.DecreaseIndentation();
+                    outputBuilder.WriteIndented('}');
+                    outputBuilder.NeedsSemicolon = true;
                 }
             }
 
@@ -817,6 +887,8 @@ namespace ClangSharp
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression type: '{type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
                 }
             }
+
+            StopCSharpCode();
         }
 
         private void VisitIntegerLiteral(IntegerLiteral integerLiteral)
@@ -865,20 +937,24 @@ namespace ClangSharp
                 valueString = valueString.Substring(0, valueString.Length - 1) + "U";
             }
 
-            _outputBuilder.Write(valueString);
+            StartCSharpCode().Write(valueString);
+            StopCSharpCode();
         }
 
         private void VisitLabelStmt(LabelStmt labelStmt)
         {
-            _outputBuilder.Write(labelStmt.Decl.Name);
-            _outputBuilder.WriteLine(':');
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write(labelStmt.Decl.Name);
+            outputBuilder.WriteLine(':');
 
-            _outputBuilder.WriteIndentation();
+            outputBuilder.WriteIndentation();
             Visit(labelStmt.SubStmt);
+            StopCSharpCode();
         }
 
         private void VisitMemberExpr(MemberExpr memberExpr)
         {
+            var outputBuilder = StartCSharpCode();
             if (!memberExpr.IsImplicitAccess)
             {
                 Visit(memberExpr.Base);
@@ -900,32 +976,37 @@ namespace ClangSharp
 
                 if ((type != null) && ((type is PointerType) || (type is ReferenceType)))
                 {
-                    _outputBuilder.Write("->");
+                    outputBuilder.Write("->");
                 }
                 else
                 {
-                    _outputBuilder.Write('.');
+                    outputBuilder.Write('.');
                 }
             }
-            _outputBuilder.Write(GetRemappedCursorName(memberExpr.MemberDecl));
+
+            outputBuilder.Write(GetRemappedCursorName(memberExpr.MemberDecl));
+            StopCSharpCode();
         }
 
         private void VisitParenExpr(ParenExpr parenExpr)
         {
-            _outputBuilder.Write('(');
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write('(');
             Visit(parenExpr.SubExpr);
-            _outputBuilder.Write(')');
+            outputBuilder.Write(')');
+            StopCSharpCode();
         }
 
         private void VisitReturnStmt(ReturnStmt returnStmt)
         {
+            var outputBuilder = StartCSharpCode();
             if (IsPrevContextDecl<FunctionDecl>(out var functionDecl) && (functionDecl.ReturnType.CanonicalType.Kind != CXTypeKind.CXType_Void))
             {
-                _outputBuilder.Write("return");
+                outputBuilder.Write("return");
 
                 if (returnStmt.RetValue != null)
                 {
-                    _outputBuilder.Write(' ');
+                    outputBuilder.Write(' ');
                     Visit(returnStmt.RetValue);
                 }
             }
@@ -935,8 +1016,10 @@ namespace ClangSharp
             }
             else
             {
-                _outputBuilder.Write("return");
+                outputBuilder.Write("return");
             }
+
+            StopCSharpCode();
         }
 
         private void VisitStmt(Stmt stmt)
@@ -1376,6 +1459,7 @@ namespace ClangSharp
 
         private void VisitStmts(IReadOnlyList<Stmt> stmts)
         {
+            var outputBuilder = StartCSharpCode();
             var lastIndex = stmts.Count - 1;
             var previousStmt = null as Stmt;
 
@@ -1385,17 +1469,17 @@ namespace ClangSharp
 
                 if ((previousStmt is DeclStmt) && !(stmt is DeclStmt))
                 {
-                    _outputBuilder.NeedsNewline = true;
+                    outputBuilder.NeedsNewline = true;
                 }
 
-                _outputBuilder.WriteIndentation();
-                _outputBuilder.NeedsSemicolon = true;
-                _outputBuilder.NeedsNewline = true;
+                outputBuilder.WriteIndentation();
+                outputBuilder.NeedsSemicolon = true;
+                outputBuilder.NeedsNewline = true;
 
                 Visit(stmts[i]);
 
-                _outputBuilder.WriteSemicolonIfNeeded();
-                _outputBuilder.WriteNewline();
+                outputBuilder.WriteSemicolonIfNeeded();
+                outputBuilder.WriteNewline();
 
                 previousStmt = stmt;
             }
@@ -1406,39 +1490,42 @@ namespace ClangSharp
 
                 if ((previousStmt is DeclStmt) && !(stmt is DeclStmt))
                 {
-                    _outputBuilder.NeedsNewline = true;
+                    outputBuilder.NeedsNewline = true;
                 }
 
-                _outputBuilder.WriteIndentation();
-                _outputBuilder.NeedsSemicolon = true;
-                _outputBuilder.NeedsNewline = true;
+                outputBuilder.WriteIndentation();
+                outputBuilder.NeedsSemicolon = true;
+                outputBuilder.NeedsNewline = true;
 
                 Visit(stmt);
 
-                _outputBuilder.WriteSemicolonIfNeeded();
-                _outputBuilder.WriteNewlineIfNeeded();
+                outputBuilder.WriteSemicolonIfNeeded();
+                outputBuilder.WriteNewlineIfNeeded();
             }
+
+            StopCSharpCode();
         }
 
         private void VisitStringLiteral(StringLiteral stringLiteral)
         {
+            var outputBuilder = StartCSharpCode();
             switch (stringLiteral.Kind)
             {
                 case CX_CharacterKind.CX_CLK_Ascii:
                 case CX_CharacterKind.CX_CLK_UTF8:
                 {
-                    _outputBuilder.Write("new byte[] { ");
+                    outputBuilder.Write("new byte[] { ");
 
                     var bytes = Encoding.UTF8.GetBytes(stringLiteral.String);
 
                     foreach (var b in bytes)
                     {
-                        _outputBuilder.Write("0x");
-                        _outputBuilder.Write(b.ToString("X2"));
-                        _outputBuilder.Write(", ");
+                        outputBuilder.Write("0x");
+                        outputBuilder.Write(b.ToString("X2"));
+                        outputBuilder.Write(", ");
                     }
 
-                    _outputBuilder.Write("0x00 }");
+                    outputBuilder.Write("0x00 }");
                     break;
                 }
 
@@ -1454,9 +1541,9 @@ namespace ClangSharp
 
                 case CX_CharacterKind.CX_CLK_UTF16:
                 {
-                    _outputBuilder.Write('"');
-                    _outputBuilder.Write(EscapeString(stringLiteral.String));
-                    _outputBuilder.Write('"');
+                    outputBuilder.Write('"');
+                    outputBuilder.Write(EscapeString(stringLiteral.String));
+                    outputBuilder.Write('"');
                     break;
                 }
 
@@ -1466,21 +1553,28 @@ namespace ClangSharp
                     break;
                 }
             }
+
+            StopCSharpCode();
         }
 
         private void VisitSwitchStmt(SwitchStmt switchStmt)
         {
-            _outputBuilder.Write("switch (");
+            var outputBuilder = StartCSharpCode();
+
+            outputBuilder.Write("switch (");
 
             Visit(switchStmt.Cond);
 
-            _outputBuilder.WriteLine(')');
+            outputBuilder.WriteLine(')');
 
             VisitBody(switchStmt.Body);
+
+            StopCSharpCode();
         }
 
         private void VisitUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr unaryExprOrTypeTraitExpr)
         {
+            var outputBuilder = StartCSharpCode();
             var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
 
             long size32;
@@ -1497,7 +1591,7 @@ namespace ClangSharp
                 {
                     if ((size32 == size64) && IsPrevContextDecl<VarDecl>(out _))
                     {
-                        _outputBuilder.Write(size32);
+                        outputBuilder.Write(size32);
                     }
                     else
                     {
@@ -1545,16 +1639,16 @@ namespace ClangSharp
 
                         if (needsCast)
                         {
-                            _outputBuilder.Write("(uint)(");
+                            outputBuilder.Write("(uint)(");
                         }
 
-                        _outputBuilder.Write("sizeof(");
-                        _outputBuilder.Write(typeName);
-                        _outputBuilder.Write(')');
+                        outputBuilder.Write("sizeof(");
+                        outputBuilder.Write(typeName);
+                        outputBuilder.Write(')');
 
                         if (needsCast)
                         {
-                            _outputBuilder.Write(')');
+                            outputBuilder.Write(')');
                         }
                     }
                     break;
@@ -1565,14 +1659,14 @@ namespace ClangSharp
                 {
                     if (alignment32 == alignment64)
                     {
-                        _outputBuilder.Write(alignment32);
+                        outputBuilder.Write(alignment32);
                     }
                     else
                     {
-                        _outputBuilder.Write("Environment.Is64BitProcess ? ");
-                        _outputBuilder.Write(alignment64);
-                        _outputBuilder.Write(" : ");
-                        _outputBuilder.Write(alignment32);
+                        outputBuilder.Write("Environment.Is64BitProcess ? ");
+                        outputBuilder.Write(alignment64);
+                        outputBuilder.Write(" : ");
+                        outputBuilder.Write(alignment32);
                     }
 
                     break;
@@ -1584,17 +1678,20 @@ namespace ClangSharp
                     break;
                 }
             }
+
+            StopCSharpCode();
         }
 
         private void VisitUnaryOperator(UnaryOperator unaryOperator)
         {
+            var outputBuilder = StartCSharpCode();
             switch (unaryOperator.Opcode)
             {
                 case CX_UnaryOperatorKind.CX_UO_PostInc:
                 case CX_UnaryOperatorKind.CX_UO_PostDec:
                 {
                     Visit(unaryOperator.SubExpr);
-                    _outputBuilder.Write(unaryOperator.OpcodeStr);
+                    outputBuilder.Write(unaryOperator.OpcodeStr);
                     break;
                 }
 
@@ -1605,7 +1702,7 @@ namespace ClangSharp
                 case CX_UnaryOperatorKind.CX_UO_Minus:
                 case CX_UnaryOperatorKind.CX_UO_Not:
                 {
-                    _outputBuilder.Write(unaryOperator.OpcodeStr);
+                    outputBuilder.Write(unaryOperator.OpcodeStr);
                     Visit(unaryOperator.SubExpr);
                     break;
                 }
@@ -1618,16 +1715,16 @@ namespace ClangSharp
                     if (canonicalType.IsIntegerType && (canonicalType.Kind != CXTypeKind.CXType_Bool))
                     {
                         Visit(subExpr);
-                        _outputBuilder.Write(" == 0");
+                        outputBuilder.Write(" == 0");
                     }
                     else if ((canonicalType is PointerType) || (canonicalType is ReferenceType))
                     {
                         Visit(subExpr);
-                        _outputBuilder.Write(" == null");
+                        outputBuilder.Write(" == null");
                     }
                     else
                     {
-                        _outputBuilder.Write(unaryOperator.OpcodeStr);
+                        outputBuilder.Write(unaryOperator.OpcodeStr);
                         Visit(unaryOperator.SubExpr);
                     }
                     break;
@@ -1641,7 +1738,7 @@ namespace ClangSharp
                     }
                     else
                     {
-                        _outputBuilder.Write(unaryOperator.OpcodeStr);
+                        outputBuilder.Write(unaryOperator.OpcodeStr);
                         Visit(unaryOperator.SubExpr);
                     }
                     break;
@@ -1653,17 +1750,23 @@ namespace ClangSharp
                     break;
                 }
             }
+
+            StopCSharpCode();
         }
 
         private void VisitWhileStmt(WhileStmt whileStmt)
         {
-            _outputBuilder.Write("while (");
+            var outputBuilder = StartCSharpCode();
+
+            outputBuilder.Write("while (");
 
             Visit(whileStmt.Cond);
 
-            _outputBuilder.WriteLine(')');
+            outputBuilder.WriteLine(')');
 
             VisitBody(whileStmt.Body);
+
+            StopCSharpCode();
         }
     }
 }

@@ -7,7 +7,8 @@ namespace ClangSharp
         private void VisitRef(Ref @ref)
         {
             var name = GetRemappedCursorName(@ref.Referenced);
-            _outputBuilder.Write(name);
+            StartCSharpCode().Write(name);
+            StopCSharpCode();
         }
     }
 }

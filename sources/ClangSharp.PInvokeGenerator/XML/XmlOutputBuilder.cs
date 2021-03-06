@@ -1,10 +1,24 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Linq;
 using ClangSharp.Abstractions;
 
 namespace ClangSharp.XML
 {
     public partial class XmlOutputBuilder : IOutputBuilder
     {
-        public void WriteCustomAttribute(string attribute)
-            => _sb.AppendLine($"<attribute>{attribute}</attribute>");
+        public XmlOutputBuilder(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; }
+        public string Extension { get; } = ".xml";
+        public bool IsTestOutput { get; } = false;
+
+        public IEnumerable<string> Contents => XElement.Parse("<tmp>" + _sb + "</tmp>")
+            .Element("tmp")?
+            .Nodes()
+            .SelectMany(x => x.ToString().Split('\n'));
     }
 }

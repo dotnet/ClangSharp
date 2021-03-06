@@ -16,14 +16,14 @@ namespace ClangSharp.Abstractions
         void BeginUnchecked();
         void EndUnchecked();
 
-        void BeginConstant(string accessSpecifier, string typeName, string escapedName, bool isAnonymousEnum);
-        void BeginConstantValue();
+        void BeginConstant(string accessSpecifier, string typeName, string escapedName, ConstantKind kind);
+        void BeginConstantValue(bool isGetOnlyProperty = false);
         void WriteConstantValue(long value);
         void WriteConstantValue(ulong value);
         void EndConstantValue();
-        void EndConstant(bool isAnonymousEnum);
+        void EndConstant(bool isConstant);
 
-        void BeginEnum(string accessSpecifier, string typeName, string escapedName);
+        void BeginEnum(string accessSpecifier, string typeName, string escapedName, string nativeTypeName);
         void EndEnum();
 
         void BeginField(string accessSpecifier, string nativeTypeName, string escapedName, int? offset,
@@ -32,7 +32,8 @@ namespace ClangSharp.Abstractions
         void WriteRegularField(string typeName, string escapedName);
         void EndField();
 
-        void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> info);
+        void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> info,
+            ref bool isMethodClassUnsafe);
         void WriteReturnType(string typeString);
         void BeginFunctionInnerPrototype(string escapedName);
         void BeginParameter<TCustomAttrGeneratorData>(in ParameterDesc<TCustomAttrGeneratorData> info);
@@ -43,12 +44,12 @@ namespace ClangSharp.Abstractions
         void EndFunctionInnerPrototype();
         void BeginConstructorInitializer(string memberRefName, string memberInitName);
         void EndConstructorInitializer();
-        void BeginFunctionBody();
+        void BeginBody(bool isExpressionBody = false);
         void BeginConstructorInitializers();
         void EndConstructorInitializers();
         void BeginInnerFunctionBody();
         void EndInnerFunctionBody();
-        void EndFunctionBody();
+        void EndBody(bool isExpressionBody = false);
         void EndFunctionOrDelegate(bool isVirtual, bool isBodyless);
 
         void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info);
@@ -58,8 +59,23 @@ namespace ClangSharp.Abstractions
 
         void EmitCompatibleCodeSupport();
         void EmitFnPtrSupport();
+        void EmitSystemSupport();
 
         CSharpOutputBuilder BeginCSharpCode();
         void EndCSharpCode(CSharpOutputBuilder output);
+
+        void BeginGetter(bool aggressivelyInlined);
+        void EndGetter();
+        void BeginSetter(bool aggressivelyInlined);
+        void EndSetter();
+
+        void BeginIndexer(string accessSpecifier, bool isUnsafe);
+        void WriteIndexer(string typeName);
+        void BeginIndexerParameters();
+        void EndIndexerParameters();
+        void EndIndexer();
+
+        void BeginDereference();
+        void EndDereference();
     }
 }

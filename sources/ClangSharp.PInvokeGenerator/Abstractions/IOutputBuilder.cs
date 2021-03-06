@@ -1,8 +1,11 @@
+using System.Collections.Generic;
+
 namespace ClangSharp.Abstractions
 {
     public partial interface IOutputBuilder
     {
-        void WriteCustomAttribute(string attribute);
-        void WriteDivider(bool force = false);
+        bool IsTestOutput { get; }
+        string Name { get; }
+        string Extension { get; }
     }
 }

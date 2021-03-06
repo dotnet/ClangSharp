@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ClangSharp.Abstractions
 {
@@ -6,6 +7,8 @@ namespace ClangSharp.Abstractions
     {
         public string Type;
         public string Name;
+        public string NativeTypeName;
+        public IEnumerable<string> CppAttributes;
         public Action<TCustomAttrGeneratorData> WriteCustomAttrs;
         public TCustomAttrGeneratorData CustomAttrGeneratorData;
     }

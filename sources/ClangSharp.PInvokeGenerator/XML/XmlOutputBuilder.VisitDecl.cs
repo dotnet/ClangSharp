@@ -18,27 +18,21 @@ namespace ClangSharp.XML
         public void BeginUnchecked() => _sb.Append("<unchecked>");
         public void EndUnchecked() => _sb.Append("</unchecked>");
 
-        public void BeginConstant(string accessSpecifier, string typeName, string escapedName, bool isAnonymousEnum)
+        public void BeginConstant(string accessSpecifier, string typeName, string escapedName, ConstantKind kind)
         {
-            if (isAnonymousEnum)
-            {
-                _sb.Append($"<constant name=\"{escapedName}\" access=\"{accessSpecifier}\">");
-            }
-            else
-            {
-                _sb.Append($"<enumerator name=\"{escapedName}\" access=\"{accessSpecifier}\">");
-            }
-
-            _sb.Append($"<type>{typeName}</type>");
+            _sb.Append((kind & ConstantKind.Enumerator) == 0
+                ? $"<constant name=\"{escapedName}\" access=\"{accessSpecifier}\">"
+                : $"<enumerator name=\"{escapedName}\" access=\"{accessSpecifier}\">");
+            _sb.Append($"<type primitive=\"{(kind & ConstantKind.PrimitiveConstant) != 0}\">{typeName}</type>");
         }
 
-        public void BeginConstantValue() => _sb.Append("<value>");
+        public void BeginConstantValue(bool isGetOnlyProperty = false) => _sb.Append("<value>");
         public void WriteConstantValue(long value) => _sb.Append(value);
         public void WriteConstantValue(ulong value) => _sb.Append(value);
         public void EndConstantValue() => _sb.Append("</value>");
-        public void EndConstant(bool isAnonymousEnum) => _sb.Append(isAnonymousEnum ? "</constant>" : "</enumerator>");
+        public void EndConstant(bool isConstant) => _sb.Append(isConstant ? "</constant>" : "</enumerator>");
 
-        public void BeginEnum(string accessSpecifier, string typeName, string escapedName)
+        public void BeginEnum(string accessSpecifier, string typeName, string escapedName, string nativeTypeName)
             => _sb.Append($"<enumeration name=\"{escapedName}\" access=\"{accessSpecifier}\"><type>{typeName}</type>");
 
         public void EndEnum() => _sb.Append("</enumeration>");
@@ -66,7 +60,8 @@ namespace ClangSharp.XML
 
         public void WriteRegularField(string typeName, string escapedName) => _sb.Append($">{typeName}</type>");
         public void EndField() => _sb.Append("</field>");
-        public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc)
+        public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(
+            in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc, ref bool isMethodClassUnsafe)
         {
             if (desc.IsVirtual)
             {
@@ -152,7 +147,7 @@ namespace ClangSharp.XML
             // nop, used only in C#
         }
 
-        public void BeginFunctionBody()
+        public void BeginBody(bool isExpressionBody = false)
         {
             // nop, used only by C#
         }
@@ -186,7 +181,7 @@ namespace ClangSharp.XML
             _sb.Append("</body>");
         }
 
-        public void EndFunctionBody()
+        public void EndBody(bool isExpressionBody = false)
         {
             // nop, used only by C#
         }
@@ -264,6 +259,11 @@ namespace ClangSharp.XML
             // nop, used only by C#
         }
 
+        public void EmitSystemSupport()
+        {
+            // nop, used only by C#
+        }
+
         public CSharpOutputBuilder BeginCSharpCode()
         {
             _sb.Append("<code>");
@@ -280,9 +280,66 @@ namespace ClangSharp.XML
             _sb.Append("</code>");
         }
 
-        public void WriteDivider(bool force = false)
+        public void BeginGetter(bool aggressivelyInlined)
+        {
+            _sb.Append("<get");
+            if (aggressivelyInlined)
+            {
+                _sb.Append(" inlining=\"aggressive\"");
+            }
+
+            _sb.Append('>');
+        }
+
+        public void EndGetter()
+        {
+            _sb.Append("</get>");
+        }
+
+        public void BeginSetter(bool aggressivelyInlined)
+        {
+            _sb.Append("<set");
+            if (aggressivelyInlined)
+            {
+                _sb.Append(" inlining=\"aggressive\"");
+            }
+
+            _sb.Append('>');
+        }
+
+        public void EndSetter()
+        {
+            _sb.Append("</set>");
+        }
+
+        public void BeginIndexer(string accessSpecifier, bool isUnsafe)
+        {
+            _sb.Append("<indexer access=\"");
+            _sb.Append(accessSpecifier);
+            _sb.Append(isUnsafe ? "\" unsafe=\"true\">" : "\">");
+        }
+
+        public void WriteIndexer(string typeName)
+        {
+            _sb.Append("<type>");
+            _sb.Append(typeName);
+            _sb.Append("</type>");
+        }
+
+        public void BeginIndexerParameters()
         {
             // nop, used only by C#
         }
+
+        public void EndIndexerParameters()
+        {
+            // nop, used only by C#
+        }
+
+        public void EndIndexer() => _sb.Append("</indexer>");
+
+        public void BeginDereference() => _sb.Append("<deref>");
+
+        public void EndDereference() => _sb.Append("</deref>");
     }
 }

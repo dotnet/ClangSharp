@@ -41,6 +41,8 @@ namespace ClangSharp.CSharp
 
         public string Name => _name;
 
+        public string Extension { get; } = ".cs";
+
         public bool NeedsNewline { get; set; }
 
         public bool NeedsSemicolon { get; set; }
@@ -166,13 +168,13 @@ namespace ClangSharp.CSharp
 
             Write('<');
             Write(kind);
-            foreach ((string key, object value) in attributes)
+            foreach (var kvp in attributes)
             {
                 Write(' ');
-                Write(key);
+                Write(kvp.Key);
                 Write('=');
                 Write('"');
-                Write(value);
+                Write(kvp.Value);
                 Write('"');
             }
 
@@ -181,9 +183,122 @@ namespace ClangSharp.CSharp
 
         public void EndMarker(string kind)
         {
+            if (_markerMode != MarkerMode.Xml)
+            {
+                return;
+            }
+
             Write("</");
             Write(kind);
             Write('>');
+        }
+
+        private void AddCppAttributes(IEnumerable<string> attrs, string prefix = null, string postfix = null)
+        {
+            var attributeList = string.Join("^", attrs);
+            if (string.IsNullOrWhiteSpace(attributeList))
+            {
+                return;
+            }
+
+            if (prefix is null)
+            {
+                WriteIndentation();
+            }
+            else
+            {
+                WriteNewlineIfNeeded();
+                Write(prefix);
+            }
+
+            Write("[CppAttributeList(\"");
+            Write(attributeList);
+            Write("\")]");
+
+            if (postfix is null)
+            {
+                NeedsNewline = true;
+            }
+            else
+            {
+                Write(postfix);
+            }
+        }
+
+        private void AddNativeInheritanceAttribute(string inheritedFromName, string prefix = null, string postfix = null, string attributePrefix = null)
+        {
+            if (prefix is null)
+            {
+                WriteIndentation();
+            }
+            else
+            {
+                WriteNewlineIfNeeded();
+                Write(prefix);
+            }
+
+            Write('[');
+
+            if (attributePrefix != null)
+            {
+                Write(attributePrefix);
+            }
+
+            Write("NativeInheritance");
+            Write('(');
+
+            Write('"');
+            Write(PInvokeGenerator.EscapeString(inheritedFromName));
+            Write('"');
+            Write(')');
+            Write(']');
+
+            if (postfix is null)
+            {
+                NeedsNewline = true;
+            }
+            else
+            {
+                Write(postfix);
+            }
+        }
+
+        private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
+        {
+            if (string.IsNullOrWhiteSpace(nativeTypeName))
+            {
+                return;
+            }
+
+            if (prefix is null)
+            {
+                WriteIndentation();
+            }
+            else
+            {
+                WriteNewlineIfNeeded();
+                Write(prefix);
+            }
+
+            Write('[');
+
+            if (attributePrefix != null)
+            {
+                Write(attributePrefix);
+            }
+
+            Write("NativeTypeName(\"");
+            Write(PInvokeGenerator.EscapeString(nativeTypeName));
+            Write("\")]");
+
+            if (postfix is null)
+            {
+                NeedsNewline = true;
+            }
+            else
+            {
+                Write(postfix);
+            }
         }
     }
 }

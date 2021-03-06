@@ -10,6 +10,7 @@ using System.Text;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 using ClangSharp.Interop;
+using ClangSharp.XML;
 
 namespace ClangSharp
 {
@@ -35,6 +36,8 @@ namespace ClangSharp
 
         private IOutputBuilder _outputBuilder;
         private CSharpOutputBuilder _testOutputBuilder;
+        private CSharpOutputBuilder _stmtOutputBuilder;
+        private int _stmtOutputBuilderUsers;
         private int _outputBuilderUsers;
         private bool _disposed;
         private bool _isMethodClassUnsafe;
@@ -47,7 +50,7 @@ namespace ClangSharp
             }
 
             _index = CXIndex.Create();
-            _outputBuilderFactory = new OutputBuilderFactory();
+            _outputBuilderFactory = new OutputBuilderFactory(_config.OutputMode);
             _outputStreamFactory = outputStreamFactory ?? ((path) => {
                 var directoryPath = Path.GetDirectoryName(path);
                 Directory.CreateDirectory(directoryPath);
@@ -80,7 +83,7 @@ namespace ClangSharp
         public void Close()
         {
             Stream stream = null;
-            OutputBuilder methodClassOutputBuilder = null;
+            IOutputBuilder methodClassOutputBuilder = null;
             bool emitNamespaceDeclaration = true;
             bool leaveStreamOpen = false;
 
@@ -97,15 +100,7 @@ namespace ClangSharp
 
                 StartUsingOutputBuilder(_config.MethodClassName);
 
-                _outputBuilder.AddUsingDirective("System");
-
-                _outputBuilder.WriteIndented("public static readonly Guid ");
-                _outputBuilder.Write(iidName);
-                _outputBuilder.Write(" = new Guid(");
-                _outputBuilder.Write(iidValue);
-                _outputBuilder.Write(")");
-                _outputBuilder.WriteSemicolon();
-                _outputBuilder.WriteNewline();
+                _outputBuilder.WriteIid(iidName, iidValue);
 
                 StopUsingOutputBuilder();
             }
@@ -121,8 +116,11 @@ namespace ClangSharp
 
                 foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
                 {
-                    usingDirectives = usingDirectives.Concat(outputBuilder.UsingDirectives);
-                    staticUsingDirectives = staticUsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
+                    if (outputBuilder is CSharpOutputBuilder csharpOutputBuilder)
+                    {
+                        usingDirectives = usingDirectives.Concat(csharpOutputBuilder.UsingDirectives);
+                        staticUsingDirectives = staticUsingDirectives.Concat(csharpOutputBuilder.StaticUsingDirectives);
+                    }
                 }
 
                 usingDirectives = usingDirectives.Distinct()
@@ -138,16 +136,32 @@ namespace ClangSharp
                     using var sw = new StreamWriter(stream, defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
                     {
                         sw.NewLine = "\n";
-                        sw.Write(_config.HeaderText);
-
-                        foreach (var usingDirective in usingDirectives)
+                        if (_config.OutputMode == PInvokeGeneratorOutputMode.Csharp)
                         {
-                            sw.Write("using ");
-                            sw.Write(usingDirective);
-                            sw.WriteLine(';');
-                        }
+                            sw.Write(_config.HeaderText);
 
-                        sw.WriteLine();
+                            foreach (var usingDirective in usingDirectives)
+                            {
+                                sw.Write("using ");
+                                sw.Write(usingDirective);
+                                sw.WriteLine(';');
+                            }
+
+                            sw.WriteLine();
+                        }
+                        else if (_config.OutputMode == PInvokeGeneratorOutputMode.Xml)
+                        {
+                            sw.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>");
+                            sw.WriteLine("<bindings>");
+                            sw.WriteLine("    <comment>");
+                            foreach (var ln in _config.HeaderText.Split('\n'))
+                            {
+                                sw.Write("        ");
+                                sw.WriteLine(ln);
+                            }
+
+                            sw.WriteLine("    </comment>");
+                        }
                     }
                 }
             }
@@ -160,7 +174,7 @@ namespace ClangSharp
 
                 if (_config.GenerateMultipleFiles)
                 {
-                    outputPath = Path.Combine(outputPath, $"{outputBuilder.Name}.cs");
+                    outputPath = Path.Combine(outputPath, $"{outputBuilder.Name}{outputBuilder.Extension}");
                     stream = _outputStreamFactory(outputPath);
                     emitNamespaceDeclaration = true;
                 }
@@ -297,133 +311,7 @@ namespace ClangSharp
             _diagnostics.Add(diagnostic);
         }
 
-        private void AddCppAttributes(ParmVarDecl parmVarDecl, string prefix = null, string postfix = null)
-        {
-            if (!_config.GenerateCppAttributes)
-            {
-                return;
-            }
-
-            if (parmVarDecl.Attrs.Count == 0)
-            {
-                return;
-            }
-
-            if (prefix is null)
-            {
-                _outputBuilder.WriteIndentation();
-            }
-            else
-            {
-                _outputBuilder.WriteNewlineIfNeeded();
-                _outputBuilder.Write(prefix);
-            }
-
-            _outputBuilder.Write($"[CppAttributeList(\"");
-
-            _outputBuilder.Write(EscapeString(parmVarDecl.Attrs[0].Spelling));
-            for (int i = 1; i < parmVarDecl.Attrs.Count; i++)
-            {
-                // Separator char between attributes
-                _outputBuilder.Write('^');
-
-                _outputBuilder.Write(EscapeString(parmVarDecl.Attrs[i].Spelling));
-            }
-
-            _outputBuilder.Write($"\")]");
-
-            if (postfix is null)
-            {
-                _outputBuilder.NeedsNewline = true;
-            }
-            else
-            {
-                _outputBuilder.Write(postfix);
-            }
-        }
-
-        private void AddNativeInheritanceAttribute(string inheritedFromName, string prefix = null, string postfix = null, string attributePrefix = null)
-        {
-            if (!_config.GenerateNativeInheritanceAttribute)
-            {
-                return;
-            }
-
-            if (prefix is null)
-            {
-                _outputBuilder.WriteIndentation();
-            }
-            else
-            {
-                _outputBuilder.WriteNewlineIfNeeded();
-                _outputBuilder.Write(prefix);
-            }
-
-            _outputBuilder.Write('[');
-
-            if (attributePrefix != null)
-            {
-                _outputBuilder.Write(attributePrefix);
-            }
-
-            _outputBuilder.Write("NativeInheritance");
-            _outputBuilder.Write('(');
-
-            _outputBuilder.Write('"');
-            _outputBuilder.Write(EscapeString(inheritedFromName));
-            _outputBuilder.Write('"');
-            _outputBuilder.Write(')');
-            _outputBuilder.Write(']');
-
-            if (postfix is null)
-            {
-                _outputBuilder.NeedsNewline = true;
-            }
-            else
-            {
-                _outputBuilder.Write(postfix);
-            }
-        }
-
-        private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
-        {
-            if (string.IsNullOrWhiteSpace(nativeTypeName))
-            {
-                return;
-            }
-
-            if (prefix is null)
-            {
-                _outputBuilder.WriteIndentation();
-            }
-            else
-            {
-                _outputBuilder.WriteNewlineIfNeeded();
-                _outputBuilder.Write(prefix);
-            }
-
-            _outputBuilder.Write('[');
-
-            if (attributePrefix != null)
-            {
-                _outputBuilder.Write(attributePrefix);
-            }
-
-            _outputBuilder.Write("NativeTypeName(\"");
-            _outputBuilder.Write(EscapeString(nativeTypeName));
-            _outputBuilder.Write("\")]");
-
-            if (postfix is null)
-            {
-                _outputBuilder.NeedsNewline = true;
-            }
-            else
-            {
-                _outputBuilder.Write(postfix);
-            }
-        }
-
-        private void CloseOutputBuilder(Stream stream, OutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen, bool emitNamespaceDeclaration)
+        private void CloseOutputBuilder(Stream stream, IOutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen, bool emitNamespaceDeclaration)
         {
             if (stream is null)
             {
@@ -440,86 +328,172 @@ namespace ClangSharp
 
             if (_config.GenerateMultipleFiles)
             {
-                if (_config.HeaderText != string.Empty)
+                if (outputBuilder is CSharpOutputBuilder csharpOutputBuilder)
                 {
-                    sw.WriteLine(_config.HeaderText);
-                }
-
-                var usingDirectives = outputBuilder.UsingDirectives.Concat(outputBuilder.StaticUsingDirectives);
-
-                if (usingDirectives.Any())
-                {
-                    foreach(var usingDirective in usingDirectives)
+                    if (_config.HeaderText != string.Empty)
                     {
-                        sw.Write("using ");
-                        sw.Write(usingDirective);
-                        sw.WriteLine(';');
+                        sw.WriteLine(_config.HeaderText);
+                    }
+
+                    var usingDirectives = csharpOutputBuilder.UsingDirectives.Concat(csharpOutputBuilder.StaticUsingDirectives);
+
+                    if (usingDirectives.Any())
+                    {
+                        foreach (var usingDirective in usingDirectives)
+                        {
+                            sw.Write("using ");
+                            sw.Write(usingDirective);
+                            sw.WriteLine(';');
+                        }
+
+                        sw.WriteLine();
+                    }
+                }
+                else if (outputBuilder is XmlOutputBuilder xmlOutputBuilder)
+                {
+                      sw.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>");
+                      sw.WriteLine("<bindings>");
+                      sw.WriteLine("    <comment>");
+                      foreach (var ln in _config.HeaderText.Split('\n'))
+                      {
+                          sw.Write("        ");
+                          sw.WriteLine(ln);
+                      }
+
+                      sw.WriteLine("    </comment>");
+                }
+            }
+
+            if (outputBuilder is CSharpOutputBuilder csOutputBuilder)
+            {
+                ForCSharp(csOutputBuilder);
+            }
+            else if (outputBuilder is XmlOutputBuilder xmlOutputBuilder)
+            {
+                ForXml(xmlOutputBuilder);
+            }
+
+            void ForCSharp(CSharpOutputBuilder csharpOutputBuilder)
+            {
+                var indentationString = csharpOutputBuilder.IndentationString;
+
+                if (emitNamespaceDeclaration)
+                {
+                    sw.Write("namespace ");
+                    sw.Write(Config.Namespace);
+
+                    if (csharpOutputBuilder.IsTestOutput)
+                    {
+                        sw.Write(".UnitTests");
                     }
 
                     sw.WriteLine();
-                }
-            }
-
-            var indentationString = outputBuilder.IndentationString;
-
-            if (emitNamespaceDeclaration)
-            {
-                sw.Write("namespace ");
-                sw.Write(Config.Namespace);
-
-                if (outputBuilder.IsTestOutput)
-                {
-                    sw.Write(".UnitTests");
-                }
-
-                sw.WriteLine();
-                sw.WriteLine('{');
-            }
-            else
-            {
-                sw.WriteLine();
-            }
-
-            if (isMethodClass)
-            {
-                sw.Write(indentationString);
-                sw.Write("public static ");
-
-                if (_isMethodClassUnsafe)
-                {
-                    sw.Write("unsafe ");
-                }
-
-                sw.Write("partial class ");
-                sw.WriteLine(Config.MethodClassName);
-                sw.Write(indentationString);
-                sw.WriteLine('{');
-
-                indentationString += outputBuilder.IndentationString;
-            }
-
-            foreach (var line in outputBuilder.Contents)
-            {
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    sw.WriteLine();
+                    sw.WriteLine('{');
                 }
                 else
                 {
+                    sw.WriteLine();
+                }
+
+                if (isMethodClass)
+                {
                     sw.Write(indentationString);
-                    sw.WriteLine(line);
+                    sw.Write("public static ");
+
+                    if (_isMethodClassUnsafe)
+                    {
+                        sw.Write("unsafe ");
+                    }
+
+                    sw.Write("partial class ");
+                    sw.WriteLine(Config.MethodClassName);
+                    sw.Write(indentationString);
+                    sw.WriteLine('{');
+
+                    indentationString += csharpOutputBuilder.IndentationString;
+                }
+
+                foreach (var line in csharpOutputBuilder.Contents)
+                {
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        sw.WriteLine();
+                    }
+                    else
+                    {
+                        sw.Write(indentationString);
+                        sw.WriteLine(line);
+                    }
+                }
+
+                if (isMethodClass)
+                {
+                    sw.Write(csharpOutputBuilder.IndentationString);
+                    sw.WriteLine('}');
+                }
+
+                if (_config.GenerateMultipleFiles)
+                {
+                    sw.WriteLine('}');
                 }
             }
 
-            if (isMethodClass)
+            void ForXml(XmlOutputBuilder xmlOutputBuilder)
             {
-                sw.Write(outputBuilder.IndentationString);
-                sw.WriteLine('}');
-            }
+                const string indent = "    ";
+                var indentationString = indent;
+                if (emitNamespaceDeclaration)
+                {
+                    sw.Write(indentationString);
+                    sw.Write("<namespace name=\"");
+                    sw.Write(Config.Namespace);
+                    sw.WriteLine("\">");
+                    indentationString += indent;
+                }
 
-            if (_config.GenerateMultipleFiles)
-            {
-                sw.WriteLine('}');
+                if (isMethodClass)
+                {
+                    sw.Write(indentationString);
+                    sw.Write("<class name=\"");
+                    sw.Write(Config.MethodClassName);
+                    sw.Write("\" access=\"public\" static=\"true\"");
+                    if (_isMethodClassUnsafe)
+                    {
+                        sw.Write(" unsafe=\"true\"");
+                    }
+
+                    sw.WriteLine('>');
+                    indentationString += indent;
+                }
+
+                foreach (var line in xmlOutputBuilder.Contents)
+                {
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        sw.WriteLine();
+                    }
+                    else
+                    {
+                        sw.Write(indentationString);
+                        sw.WriteLine(line);
+                    }
+                }
+
+                if (isMethodClass)
+                {
+                    indentationString = indentationString.Substring(0, indentationString.Length - indent.Length);
+                    sw.Write(indentationString);
+                    sw.WriteLine("</class>");
+                }
+
+                if (_config.GenerateMultipleFiles)
+                {
+                    indentationString = indentationString.Substring(0, indentationString.Length - indent.Length);
+                    sw.Write(indentationString);
+                    sw.WriteLine("</namespace>");
+                }
+
+                sw.WriteLine("</bindings>");
             }
         }
 
@@ -643,13 +617,13 @@ namespace ClangSharp
             return EscapeName(name);
         }
 
-        private string EscapeCharacter(char value) => EscapeString(value.ToString());
+        internal static string EscapeCharacter(char value) => EscapeString(value.ToString());
 
-        private string EscapeString(string value) => value.Replace("\\", "\\\\")
-                                                          .Replace("\r", "\\r")
-                                                          .Replace("\n", "\\n")
-                                                          .Replace("\t", "\\t")
-                                                          .Replace("\"", "\\\"");
+        internal static string EscapeString(string value) => value.Replace("\\", "\\\\")
+                                                                 .Replace("\r", "\\r")
+                                                                 .Replace("\n", "\\n")
+                                                                 .Replace("\t", "\\t")
+                                                                 .Replace("\"", "\\\"");
 
         private string GetAccessSpecifierName(NamedDecl namedDecl)
         {
@@ -1133,7 +1107,7 @@ namespace ClangSharp
             {
                 if (remappedName.Equals("Guid") || remappedName.Equals("IntPtr") || remappedName.Equals("UIntPtr"))
                 {
-                    _outputBuilder?.AddUsingDirective("System");
+                    _outputBuilder?.EmitSystemSupport();
                 }
 
                 return remappedName;
@@ -1419,7 +1393,7 @@ namespace ClangSharp
                     {
                         // Pointers are not yet supported as generic arguments; remap to IntPtr
                         typeName = "IntPtr";
-                        _outputBuilder.AddUsingDirective("System");
+                        _outputBuilder.EmitSystemSupport();
                     }
 
                     nameBuilder.Append(typeName);
@@ -2546,7 +2520,7 @@ namespace ClangSharp
             }
         }
 
-        private bool IsSupportedFixedSizedBufferType(string typeName)
+        internal static bool IsSupportedFixedSizedBufferType(string typeName)
         {
             switch (typeName)
             {
@@ -3204,7 +3178,7 @@ namespace ClangSharp
             {
                 _outputBuilder.BeginInnerValue();
                 Visit(stmt);
-                _outputBuilder.BeginOuterValue();
+                _outputBuilder.EndInnerValue();
             }
         }
 
@@ -3225,7 +3199,7 @@ namespace ClangSharp
                 Debug.Assert(_outputBuilderUsers >= 1);
                 _outputBuilderUsers++;
 
-                _outputBuilder.NeedsNewline = true;
+                _outputBuilder.WriteDivider();
 
                 if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
                 {
@@ -3248,7 +3222,7 @@ namespace ClangSharp
 
                 if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
                 {
-                    _testOutputBuilder = _outputBuilderFactory.Create($"{name}Tests", isTestOutput: true);
+                    _testOutputBuilder = _outputBuilderFactory.CreateTests($"{name}Tests");
 
                     _testOutputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
@@ -3264,11 +3238,11 @@ namespace ClangSharp
             }
             else
             {
-                _outputBuilder.NeedsNewline = true;
+                _outputBuilder.WriteDivider();
 
                 if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
                 {
-                    _testOutputBuilder = _outputBuilderFactory.GetOutputBuilder($"{name}Tests");
+                    _testOutputBuilder = _outputBuilderFactory.GetTestOutputBuilder($"{name}Tests");
                     Debug.Assert(_testOutputBuilder.IsTestOutput);
                     _testOutputBuilder.NeedsNewline = true;
                 }
@@ -3527,6 +3501,7 @@ namespace ClangSharp
         private void Visit(Cursor cursor)
         {
             var currentContext = _context.AddLast(cursor);
+            var currentStmtUsers = _stmtOutputBuilder is not null ? (int?)_stmtOutputBuilderUsers : null;
 
             if (cursor is Attr attr)
             {
@@ -3549,6 +3524,7 @@ namespace ClangSharp
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported cursor: '{cursor.CursorKindSpelling}'. Generated bindings may be incomplete.", cursor);
             }
 
+            Debug.Assert(currentStmtUsers == (_stmtOutputBuilder is not null ? (int?)_stmtOutputBuilderUsers : null));
             Debug.Assert(_context.Last == currentContext);
             _context.RemoveLast();
         }
@@ -3577,13 +3553,6 @@ namespace ClangSharp
             }
         }
 
-        private void WithLibraryPath(string remappedName)
-        {
-            _outputBuilder.Write('"');
-            _outputBuilder.Write(GetLibraryPath(remappedName));
-            _outputBuilder.Write('"');
-        }
-
         private string GetLibraryPath(string remappedName)
         {
             if (!_config.WithLibraryPaths.TryGetValue(remappedName, out string libraryPath) && !_config.WithLibraryPaths.TryGetValue("*", out libraryPath))
@@ -3593,20 +3562,6 @@ namespace ClangSharp
             else
             {
                 return libraryPath;
-            }
-        }
-
-        private void WithSetLastError(string remappedName)
-        {
-            if (GetSetLastError(remappedName))
-            {
-                _outputBuilder.Write(',');
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("SetLastError");
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write('=');
-                _outputBuilder.Write(' ');
-                _outputBuilder.Write("true");
             }
         }
 
@@ -3705,8 +3660,33 @@ namespace ClangSharp
             {
                 foreach (var @using in usings)
                 {
-                    _outputBuilder.AddUsingDirective(@using);
+                    _outputBuilder.EmitUsingDirective(@using);
                 }
+            }
+        }
+
+        private CSharpOutputBuilder StartCSharpCode()
+        {
+            if (_stmtOutputBuilder is null)
+            {
+                _stmtOutputBuilder = _outputBuilder.BeginCSharpCode();
+                _stmtOutputBuilderUsers = 1;
+            }
+            else
+            {
+                _stmtOutputBuilderUsers++;
+            }
+
+            return _stmtOutputBuilder;
+        }
+
+        private void StopCSharpCode()
+        {
+            _stmtOutputBuilderUsers--;
+            if (_stmtOutputBuilderUsers <= 0)
+            {
+                _outputBuilder.EndCSharpCode(_stmtOutputBuilder);
+                _stmtOutputBuilder = null;
             }
         }
     }

@@ -44,5 +44,19 @@
                 NeedsNewline = true;
             }
         }
+
+        public void WriteIid(string iidName, string iidValue)
+        {
+            AddUsingDirective("System");
+            WriteIndented("public static readonly Guid ");
+            Write(iidName);
+            Write(" = new Guid(");
+            Write(iidValue);
+            Write(")");
+            WriteSemicolon();
+            WriteNewline();
+        }
+
+        public void EmitUsingDirective(string directive) => AddUsingDirective(directive);
     }
 }

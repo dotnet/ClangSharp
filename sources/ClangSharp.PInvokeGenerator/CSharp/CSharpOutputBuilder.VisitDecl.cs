@@ -22,14 +22,26 @@ namespace ClangSharp.CSharp
             // nop, used only by XML
         }
 
-        public void BeginConstant(string accessSpecifier, string typeName, string escapedName, bool isAnonymousEnum)
+        public void BeginConstant(string accessSpecifier, string typeName, string escapedName, ConstantKind kind)
         {
             WriteIndentation();
 
-            if (isAnonymousEnum)
+            if ((kind & ConstantKind.PrimitiveConstant) != 0)
             {
                 Write(accessSpecifier);
                 Write(" const ");
+                Write(typeName);
+                Write(' ');
+            }
+            else if ((kind & ConstantKind.NonPrimitiveConstant) != 0)
+            {
+                Write(accessSpecifier);
+                Write(" static ");
+                if ((kind & ConstantKind.ReadOnly) != 0)
+                {
+                    Write(" readonly ");
+                }
+
                 Write(typeName);
                 Write(' ');
             }
@@ -37,9 +49,9 @@ namespace ClangSharp.CSharp
             Write(escapedName);
         }
 
-        public void BeginConstantValue()
+        public void BeginConstantValue(bool isGetOnlyProperty = false)
         {
-            Write(" = ");
+            Write(isGetOnlyProperty ? " => " : " = ");
         }
 
         public void WriteConstantValue(long value) => Write(value);
@@ -50,10 +62,15 @@ namespace ClangSharp.CSharp
             // nop, used only by the XML backend
         }
 
-        public void EndConstant(bool isAnonymousEnum) => WriteLine(isAnonymousEnum ? ';' : ',');
+        public void EndConstant(bool isConstant) => WriteLine(isConstant ? ';' : ',');
 
-        public void BeginEnum(string accessSpecifier, string typeName, string escapedName)
+        public void BeginEnum(string accessSpecifier, string typeName, string escapedName, string nativeTypeName)
         {
+            if (nativeTypeName is not null)
+            {
+                AddNativeTypeNameAttribute(nativeTypeName);
+            }
+
             WriteIndented(accessSpecifier);
             Write(" enum ");
             Write(escapedName);
@@ -94,7 +111,7 @@ namespace ClangSharp.CSharp
 
         public void WriteFixedCountField(string typeName, string escapedName, string fixedName, string count)
         {
-            if (IsSupportedFixedSizedBufferType(typeName))
+            if (PInvokeGenerator.IsSupportedFixedSizedBufferType(typeName))
             {
                 Write("fixed ");
                 Write(typeName);
@@ -127,7 +144,8 @@ namespace ClangSharp.CSharp
         }
 
         public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(
-            in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc)
+            in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc,
+            ref bool isMethodClassUnsafe)
         {
             desc.WriteCustomAttrs(desc.CustomAttrGeneratorData);
             if (desc.IsVirtual)
@@ -186,7 +204,10 @@ namespace ClangSharp.CSharp
                 WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
             }
 
-            AddNativeTypeNameAttribute(desc.NativeTypeName, attributePrefix: "return: ");
+            if (desc.NativeTypeName is not null)
+            {
+                AddNativeTypeNameAttribute(desc.NativeTypeName, attributePrefix: "return: ");
+            }
 
             WriteIndented(desc.AccessSpecifier);
 
@@ -222,7 +243,7 @@ namespace ClangSharp.CSharp
                     //if (cxxRecordDecl is null)
                     if (!desc.IsCtxCxxRecord)
                     {
-                        _isMethodClassUnsafe = true;
+                        isMethodClassUnsafe = true;
                     }
                     //else if (!IsUnsafe(cxxRecordDecl))
                     else if (!desc.IsCxxRecordCtxUnsafe)
@@ -247,6 +268,16 @@ namespace ClangSharp.CSharp
 
         public void BeginParameter<TCustomAttrGeneratorData>(in ParameterDesc<TCustomAttrGeneratorData> info)
         {
+            if (info.NativeTypeName is not null)
+            {
+                AddNativeTypeNameAttribute(info.NativeTypeName, prefix: "", postfix: " ");
+            }
+
+            if (info.CppAttributes is not null)
+            {
+                AddCppAttributes(info.CppAttributes, prefix: "", postfix: " ");
+            }
+
             _customAttrIsForParameter = true;
             info.WriteCustomAttrs(info.CustomAttrGeneratorData);
             _customAttrIsForParameter = false;
@@ -302,10 +333,17 @@ namespace ClangSharp.CSharp
             WriteNewline();
         }
 
-        public void BeginFunctionBody()
+        public void BeginBody(bool isExpressionBody = false)
         {
-            NeedsNewline = true;
-            WriteBlockStart();
+            if (isExpressionBody)
+            {
+                Write(" => ");
+            }
+            else
+            {
+                NeedsNewline = true;
+                WriteBlockStart();
+            }
         }
 
         public void BeginConstructorInitializers()
@@ -328,8 +366,13 @@ namespace ClangSharp.CSharp
             // nop, used only by XML
         }
 
-        public void EndFunctionBody()
+        public void EndBody(bool isExpressionBody = false)
         {
+            if (isExpressionBody)
+            {
+                return;
+            }
+
             WriteSemicolonIfNeeded();
             WriteNewlineIfNeeded();
             WriteBlockEnd();
@@ -413,6 +456,11 @@ namespace ClangSharp.CSharp
             AddUsingDirective("System.Runtime.InteropServices");
         }
 
+        public void EmitSystemSupport()
+        {
+            AddUsingDirective("System");
+        }
+
         public void EndStruct()
         {
             WriteBlockEnd();
@@ -430,6 +478,84 @@ namespace ClangSharp.CSharp
         }
 
         public void EndCSharpCode(CSharpOutputBuilder output)
+        {
+            // nop, used only by XML
+        }
+
+        public void BeginGetter(bool aggressivelyInlined)
+        {
+            if (aggressivelyInlined)
+            {
+                AddUsingDirective("System.Runtime.CompilerServices");
+                WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            }
+
+            WriteIndentedLine("get");
+            WriteBlockStart();
+        }
+
+        public void EndGetter()
+        {
+            WriteBlockEnd();
+            WriteNewline();
+        }
+
+        public void BeginSetter(bool aggressivelyInlined)
+        {
+            if (aggressivelyInlined)
+            {
+                AddUsingDirective("System.Runtime.CompilerServices");
+                WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            }
+
+            WriteIndentedLine("set");
+            WriteBlockStart();
+        }
+
+        public void EndSetter()
+        {
+            WriteBlockEnd();
+            WriteNewline();
+        }
+
+        public void BeginIndexer(string accessSpecifier, bool isUnsafe)
+        {
+            NeedsNewline = true;
+            WriteIndented(accessSpecifier);
+            Write(' ');
+            if (isUnsafe)
+            {
+                Write("unsafe ");
+            }
+        }
+
+        public void WriteIndexer(string typeName)
+        {
+            Write(typeName);
+            Write(" this");
+        }
+
+        public void BeginIndexerParameters()
+        {
+            Write('[');
+        }
+
+        public void EndIndexerParameters()
+        {
+            Write(']');
+        }
+
+        public void EndIndexer()
+        {
+            // nop, used only by XML
+        }
+
+        public void BeginDereference()
+        {
+            Write('&');
+        }
+
+        public void EndDereference()
         {
             // nop, used only by XML
         }
