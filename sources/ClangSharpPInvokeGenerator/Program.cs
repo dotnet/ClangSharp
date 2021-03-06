@@ -853,7 +853,7 @@ namespace ClangSharp
 
         private static void AddOutputModeOption(RootCommand rootCommand)
         {
-            var option = new Option(new string[] { "--output-mode", "-m" }, "The mode describing how the information collected from the headers are presented in the resultant bindings.")
+            var option = new Option(new string[] { "--output-mode", "-om" }, "The mode describing how the information collected from the headers are presented in the resultant bindings.")
             {
                 Argument = new Argument("<arg>")
                 {
