@@ -263,7 +263,7 @@ namespace ClangSharp
                     out var nativeTypeName);
             }
 
-            _outputBuilder.BeginConstant(accessSpecifier, typeName, escapedName,
+            _outputBuilder.BeginConstant(accessSpecifier, typeName, escapedName, null,
                 isAnonymousEnum ? ConstantKind.PrimitiveConstant : ConstantKind.Enumerator);
 
             if (enumConstantDecl.InitExpr != null)
@@ -877,7 +877,7 @@ namespace ClangSharp
                     Uuid = nullableUuid,
                     CustomAttrGeneratorData = (name, this),
                     WriteCustomAttrs = static _ => { },
-                    NativeType = nativeNameWithExtras ?? nativeName,
+                    NativeType = nativeNameWithExtras,
                     NativeInheritance = _config.GenerateNativeInheritanceAttribute ? nativeInheritance : null
                 };
                 _outputBuilder.BeginStruct(in desc);
@@ -1389,7 +1389,7 @@ namespace ClangSharp
 
                 body.Write('(');
 
-                body.BeginMarker("param", new KeyValuePair<string, object>("special", "&this"));
+                body.BeginMarker("param", new KeyValuePair<string, object>("special", "thisPtr"));
                 if (_config.GenerateCompatibleCode)
                 {
                     body.Write("pThis");
@@ -1424,6 +1424,7 @@ namespace ClangSharp
 
                     body.BeginMarker("param", new KeyValuePair<string, object>("name", escapedParmVarDeclName));
                     body.Write(escapedParmVarDeclName);
+                    body.EndMarker("param");
                 }
 
                 body.Write(')');
@@ -1547,7 +1548,7 @@ namespace ClangSharp
                         var name = GetRemappedCursorName(fieldDecl);
                         var escapedName = EscapeName(name);
 
-                        _outputBuilder.BeginField(accessSpecifier, fieldNativeTypeName, escapedName, null, false);
+                        _outputBuilder.BeginField(accessSpecifier, null, escapedName, null, false);
 
                         var isFixedSizedBuffer = (type.CanonicalType is ConstantArrayType);
                         var generateCompatibleCode = _config.GenerateCompatibleCode;
@@ -1700,6 +1701,7 @@ namespace ClangSharp
                         }
 
                         _outputBuilder.EndBody();
+                        _outputBuilder.WriteDivider();
                     }
                     else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
                     {
@@ -2104,6 +2106,7 @@ namespace ClangSharp
                 _outputBuilder.EndCSharpCode(code);
                 _outputBuilder.EndSetter();
                 _outputBuilder.EndBody();
+                _outputBuilder.WriteDivider();
 
                 remainingBits -= fieldDecl.BitWidthValue;
                 previousSize = Math.Max(previousSize, currentSize);
@@ -2579,11 +2582,6 @@ namespace ClangSharp
                     nativeTypeName = nativeTypeNameBuilder.ToString();
                 }
 
-                // TODO FIXME REMOVE LINES AddNativeTypeNameAttribute(nativeTypeName);
-// TODO FIXME REMOVE LINES
-                // TODO FIXME REMOVE LINES _outputBuilder.WriteIndented(accessSpecifier);
-                // TODO FIXME REMOVE LINES _outputBuilder.Write(' ');
-
                 var isProperty = false;
                 var isStringLiteral = false;
 
@@ -2651,7 +2649,7 @@ namespace ClangSharp
                     typeName += "[]";
                 }
 
-                _outputBuilder.BeginConstant(accessSpecifier, typeName, escapedName, kind);
+                _outputBuilder.BeginConstant(accessSpecifier, typeName, escapedName, nativeTypeName, kind);
 
                 if (varDecl.HasInit)
                 {
@@ -2677,7 +2675,6 @@ namespace ClangSharp
                 }
 
                 _outputBuilder.EndConstant(true);
-                _outputBuilder.WriteDivider(true);
 
                 if (openedOutputBuilder)
                 {

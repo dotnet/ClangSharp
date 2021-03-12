@@ -18,7 +18,8 @@ namespace ClangSharp.XML
         public void BeginUnchecked() => _sb.Append("<unchecked>");
         public void EndUnchecked() => _sb.Append("</unchecked>");
 
-        public void BeginConstant(string accessSpecifier, string typeName, string escapedName, ConstantKind kind)
+        public void BeginConstant(string accessSpecifier, string typeName, string escapedName, string nativeTypeName,
+            ConstantKind kind)
         {
             _sb.Append((kind & ConstantKind.Enumerator) == 0
                 ? $"<constant name=\"{escapedName}\" access=\"{accessSpecifier}\">"
@@ -51,7 +52,7 @@ namespace ClangSharp.XML
                 _sb.Append($" offset=\"{offset}\"");
             }
 
-            _sb.Append(" />");
+            _sb.Append('>');
             _sb.Append($"<type native=\"{nativeTypeName}\"");
         }
 
@@ -59,7 +60,7 @@ namespace ClangSharp.XML
             => _sb.Append($" count=\"{count}\" fixed=\"{fixedName}\">{typeName}</type>");
 
         public void WriteRegularField(string typeName, string escapedName) => _sb.Append($">{typeName}</type>");
-        public void EndField() => _sb.Append("</field>");
+        public void EndField(bool isBodyless = true) => _sb.Append("</field>");
         public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(
             in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc, ref bool isMethodClassUnsafe)
         {
@@ -274,7 +275,7 @@ namespace ClangSharp.XML
         {
             foreach (var s in output.Contents)
             {
-                _sb.AppendLine(s);
+                _sb.AppendLine(s.Replace("<", "&lt;").Replace(">", "&gt;"));
             }
 
             _sb.Append("</code>");

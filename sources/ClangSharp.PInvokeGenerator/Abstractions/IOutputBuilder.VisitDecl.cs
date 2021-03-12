@@ -16,7 +16,8 @@ namespace ClangSharp.Abstractions
         void BeginUnchecked();
         void EndUnchecked();
 
-        void BeginConstant(string accessSpecifier, string typeName, string escapedName, ConstantKind kind);
+        void BeginConstant(string accessSpecifier, string typeName, string escapedName, string nativeTypeName,
+            ConstantKind kind);
         void BeginConstantValue(bool isGetOnlyProperty = false);
         void WriteConstantValue(long value);
         void WriteConstantValue(ulong value);
@@ -30,7 +31,7 @@ namespace ClangSharp.Abstractions
             bool needsNewKeyword, string inheritedFrom = null);
         void WriteFixedCountField(string typeName, string escapedName, string fixedName, string count);
         void WriteRegularField(string typeName, string escapedName);
-        void EndField();
+        void EndField(bool isBodyless = true);
 
         void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> info,
             ref bool isMethodClassUnsafe);

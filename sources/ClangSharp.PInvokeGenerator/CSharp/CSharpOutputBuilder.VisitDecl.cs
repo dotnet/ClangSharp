@@ -22,8 +22,14 @@ namespace ClangSharp.CSharp
             // nop, used only by XML
         }
 
-        public void BeginConstant(string accessSpecifier, string typeName, string escapedName, ConstantKind kind)
+        public void BeginConstant(string accessSpecifier, string typeName, string escapedName, string nativeTypeName,
+            ConstantKind kind)
         {
+            if (nativeTypeName is not null)
+            {
+                AddNativeTypeNameAttribute(nativeTypeName);
+            }
+
             WriteIndentation();
 
             if ((kind & ConstantKind.PrimitiveConstant) != 0)
@@ -39,7 +45,7 @@ namespace ClangSharp.CSharp
                 Write(" static ");
                 if ((kind & ConstantKind.ReadOnly) != 0)
                 {
-                    Write(" readonly ");
+                    Write("readonly ");
                 }
 
                 Write(typeName);
@@ -136,11 +142,14 @@ namespace ClangSharp.CSharp
             Write(escapedName);
         }
 
-        public void EndField()
+        public void EndField(bool isBodyless = true)
         {
-            WriteSemicolon();
-            WriteNewline();
-            NeedsNewline = true;
+            if (isBodyless)
+            {
+                WriteSemicolon();
+                WriteNewline();
+                NeedsNewline = true;
+            }
         }
 
         public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(
@@ -193,7 +202,7 @@ namespace ClangSharp.CSharp
                 Write("ExactSpelling = true");
                 if (desc.SetLastError)
                 {
-                    Write("SetLastError = true");
+                    Write(", SetLastError = true");
                 }
                 WriteLine(")]");
             }

@@ -17,7 +17,6 @@ namespace ClangSharp.XML
         public bool IsTestOutput { get; } = false;
 
         public IEnumerable<string> Contents => XElement.Parse("<tmp>" + _sb + "</tmp>")
-            .Element("tmp")?
             .Nodes()
             .SelectMany(x => x.ToString().Split('\n'));
     }
