@@ -45,6 +45,11 @@
             }
         }
 
+        public void SuppressDivider()
+        {
+            NeedsNewline = false;
+        }
+
         public void WriteIid(string iidName, string iidValue)
         {
             AddUsingDirective("System");

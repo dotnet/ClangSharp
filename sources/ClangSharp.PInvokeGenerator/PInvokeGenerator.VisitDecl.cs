@@ -1548,6 +1548,7 @@ namespace ClangSharp
                         var name = GetRemappedCursorName(fieldDecl);
                         var escapedName = EscapeName(name);
 
+                        _outputBuilder.WriteDivider(true);
                         _outputBuilder.BeginField(accessSpecifier, null, escapedName, null, false);
 
                         var isFixedSizedBuffer = (type.CanonicalType is ConstantArrayType);
@@ -1740,8 +1741,6 @@ namespace ClangSharp
                 ref int index, ref long previousSize, ref long remainingBits)
             {
                 Debug.Assert(fieldDecl.IsBitField);
-
-                var outputBuilder = _outputBuilder;
 
                 var type = fieldDecl.Type;
                 var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
@@ -1941,6 +1940,7 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(fieldDecl);
                 var escapedName = EscapeName(name);
 
+                _outputBuilder.WriteDivider();
                 _outputBuilder.BeginField(accessSpecifier, nativeTypeName, escapedName, null, false);
                 _outputBuilder.WriteRegularField(typeName, escapedName);
                 _outputBuilder.BeginBody();
@@ -2001,6 +2001,7 @@ namespace ClangSharp
 
                 _outputBuilder.BeginSetter(_config.GenerateAggressiveInlining);
                 code = _outputBuilder.BeginCSharpCode();
+                code.WriteIndentation();
 
                 if (!string.IsNullOrWhiteSpace(contextName))
                 {
@@ -2198,6 +2199,7 @@ namespace ClangSharp
                     _outputBuilder.BeginField(accessSpecifier, null, fieldName, null, false);
                     _outputBuilder.WriteRegularField(typeName, fieldName);
                     _outputBuilder.EndField();
+                    _outputBuilder.SuppressDivider();
                 }
 
                 var generateCompatibleCode = _config.GenerateCompatibleCode;
@@ -2280,7 +2282,8 @@ namespace ClangSharp
                         EscapedName = "AsSpan",
                         IsAggressivelyInlined = _config.GenerateAggressiveInlining,
                         CustomAttrGeneratorData = (name, this),
-                        WriteCustomAttrs = static _ => {}
+                        WriteCustomAttrs = static _ => {},
+                        IsStatic = false
                     };
 
                     _outputBuilder.BeginFunctionOrDelegate(in function, ref _isMethodClassUnsafe);

@@ -18,6 +18,11 @@ namespace ClangSharp.XML
             // nop, used only by C#
         }
 
+        public void SuppressDivider()
+        {
+            // nop, used only by C#
+        }
+
         public void EmitUsingDirective(string directive)
         {
             // nop, used only by C#

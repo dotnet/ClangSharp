@@ -14,7 +14,7 @@ namespace ClangSharp.CSharp
 
         public void BeginInnerCast() => Write('(');
         public void WriteCastType(string targetTypeName) => Write(targetTypeName);
-        public void EndInnerCast() => Write('(');
+        public void EndInnerCast() => Write(')');
 
         public void BeginUnchecked() => Write("unchecked");
         public void EndUnchecked()
@@ -226,7 +226,7 @@ namespace ClangSharp.CSharp
                 {
                     Write(" delegate");
                 }
-                else if (desc.IsDllImport || !desc.IsCxx || desc.IsStatic)
+                else if (desc.IsStatic ?? (desc.IsDllImport || !desc.IsCxx))
                 {
                     Write(" static");
 
@@ -377,14 +377,12 @@ namespace ClangSharp.CSharp
 
         public void EndBody(bool isExpressionBody = false)
         {
-            if (isExpressionBody)
-            {
-                return;
-            }
-
             WriteSemicolonIfNeeded();
             WriteNewlineIfNeeded();
-            WriteBlockEnd();
+            if (!isExpressionBody)
+            {
+                WriteBlockEnd();
+            }
         }
 
         public void EndFunctionOrDelegate(bool isVirtual, bool isBodyless)
@@ -506,11 +504,11 @@ namespace ClangSharp.CSharp
         public void EndGetter()
         {
             WriteBlockEnd();
-            WriteNewline();
         }
 
         public void BeginSetter(bool aggressivelyInlined)
         {
+            WriteNewline();
             if (aggressivelyInlined)
             {
                 AddUsingDirective("System.Runtime.CompilerServices");
@@ -524,7 +522,7 @@ namespace ClangSharp.CSharp
         public void EndSetter()
         {
             WriteBlockEnd();
-            WriteNewline();
+            NeedsNewline = false;
         }
 
         public void BeginIndexer(string accessSpecifier, bool isUnsafe)
@@ -556,7 +554,7 @@ namespace ClangSharp.CSharp
 
         public void EndIndexer()
         {
-            // nop, used only by XML
+            NeedsNewline = true;
         }
 
         public void BeginDereference()

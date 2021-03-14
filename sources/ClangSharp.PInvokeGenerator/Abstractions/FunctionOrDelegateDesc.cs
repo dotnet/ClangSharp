@@ -16,7 +16,7 @@ namespace ClangSharp.Abstractions
         public bool IsAggressivelyInlined;
         public bool SetLastError;
         public bool IsCxx;
-        public bool IsStatic;
+        public bool? IsStatic; // true - static, false - not static, null - infer
         public bool NeedsNewKeyword;
         public bool IsUnsafe;
         public bool IsCtxCxxRecord;
