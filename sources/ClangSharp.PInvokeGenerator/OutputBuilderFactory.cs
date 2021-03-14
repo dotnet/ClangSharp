@@ -8,7 +8,7 @@ using ClangSharp.XML;
 
 namespace ClangSharp
 {
-    public sealed class OutputBuilderFactory
+    internal sealed class OutputBuilderFactory
     {
         private readonly PInvokeGeneratorOutputMode _mode;
         private readonly Dictionary<string, IOutputBuilder> _outputBuilders;
