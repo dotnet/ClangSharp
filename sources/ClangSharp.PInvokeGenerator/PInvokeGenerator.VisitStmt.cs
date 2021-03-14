@@ -362,6 +362,7 @@ namespace ClangSharp
                             outputBuilder.Write(functionDeclName.Substring(8));
                             outputBuilder.Write(' ');
                             Visit(args[1]);
+                            StopCSharpCode();
                             return;
                         }
 
@@ -369,6 +370,7 @@ namespace ClangSharp
                         {
                             outputBuilder.Write(functionDeclName.Substring(8));
                             Visit(args[0]);
+                            StopCSharpCode();
                             return;
                         }
 

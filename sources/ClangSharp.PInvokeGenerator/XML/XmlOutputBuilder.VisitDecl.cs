@@ -24,7 +24,9 @@ namespace ClangSharp.XML
             _sb.Append((kind & ConstantKind.Enumerator) == 0
                 ? $"<constant name=\"{escapedName}\" access=\"{accessSpecifier}\">"
                 : $"<enumerator name=\"{escapedName}\" access=\"{accessSpecifier}\">");
-            _sb.Append($"<type primitive=\"{(kind & ConstantKind.PrimitiveConstant) != 0}\">{typeName}</type>");
+            _sb.Append($"<type primitive=\"{(kind & ConstantKind.PrimitiveConstant) != 0}\">");
+            _sb.Append(typeName.Replace("<", "&lt;").Replace(">", "&gt;"));
+            _sb.Append("</type>");
         }
 
         public void BeginConstantValue(bool isGetOnlyProperty = false) => _sb.Append("<value>");
@@ -57,9 +59,11 @@ namespace ClangSharp.XML
         }
 
         public void WriteFixedCountField(string typeName, string escapedName, string fixedName, string count)
-            => _sb.Append($" count=\"{count}\" fixed=\"{fixedName}\">{typeName}</type>");
+            => _sb.Append($" count=\"{count}\" fixed=\"{fixedName}\">" +
+                          $"{typeName.Replace("<", "&lt;").Replace(">", "&gt;")}</type>");
 
-        public void WriteRegularField(string typeName, string escapedName) => _sb.Append($">{typeName}</type>");
+        public void WriteRegularField(string typeName, string escapedName)
+            => _sb.Append($">{typeName.Replace("<", "&lt;").Replace(">", "&gt;")}</type>");
         public void EndField(bool isBodyless = true) => _sb.Append("</field>");
         public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(
             in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc, ref bool isMethodClassUnsafe)
@@ -70,7 +74,7 @@ namespace ClangSharp.XML
                 _sb.Append($"<delegate name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\"");
                 if (desc.CallingConventionName != "Winapi")
                 {
-                    _sb.Append($" convention=\"{desc.CallingConventionName}\">");
+                    _sb.Append($" convention=\"{desc.CallingConventionName}\"");
                 }
             }
             else if (desc.IsDllImport)
@@ -91,21 +95,39 @@ namespace ClangSharp.XML
                 {
                     _sb.Append(" setlasterror=\"true\"");
                 }
-
-                _sb.Append('>');
             }
-            else if (desc.IsMemberFunction)
+            else
             {
-                _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\">");
+                _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\"");
             }
+
+            if (!desc.IsMemberFunction && (desc.IsStatic ?? (desc.IsDllImport || !desc.IsCxx)))
+            {
+                _sb.Append(" static=\"true\"");
+            }
+
+            if (!desc.IsUnsafe)
+            {
+                _sb.Append(" unsafe=\"true\"");
+            }
+
+            _sb.Append('>');
 
             desc.WriteCustomAttrs(desc.CustomAttrGeneratorData);
-            _sb.Append($"<type native=\"{desc.NativeTypeName}\">");
+            _sb.Append("<type");
+            if (!string.IsNullOrWhiteSpace(desc.NativeTypeName))
+            {
+                _sb.Append(" native=\"");
+                _sb.Append(desc.NativeTypeName);
+                _sb.Append('"');
+            }
+
+            _sb.Append('>');
         }
 
         public void WriteReturnType(string typeString)
         {
-            _sb.Append(typeString);
+            _sb.Append(typeString.Replace("<", "&lt;").Replace(">", "&gt;"));
             _sb.Append("</type>");
         }
 
@@ -119,7 +141,7 @@ namespace ClangSharp.XML
             _sb.Append($"<param name=\"{info.Name}\">");
             info.WriteCustomAttrs(info.CustomAttrGeneratorData);
             _sb.Append("<type>");
-            _sb.Append(info.Type);
+            _sb.Append(info.Type.Replace("<", "&lt;").Replace(">", "&gt;"));
             _sb.Append("</type>");
         }
 
@@ -273,9 +295,14 @@ namespace ClangSharp.XML
 
         public void EndCSharpCode(CSharpOutputBuilder output)
         {
+            output.WritePendingLine();
             foreach (var s in output.Contents)
             {
-                _sb.AppendLine(s.Replace("<", "&lt;").Replace(">", "&gt;"));
+                _sb.AppendLine(s.Replace("&", "&amp;")
+                    .Replace("<", "&lt;")
+                    .Replace(">", "&gt;")
+                    .Replace("/*M*/&lt;", "<")
+                    .Replace("/*M*/&gt;", ">"));
             }
 
             _sb.Append("</code>");
@@ -323,7 +350,7 @@ namespace ClangSharp.XML
         public void WriteIndexer(string typeName)
         {
             _sb.Append("<type>");
-            _sb.Append(typeName);
+            _sb.Append(typeName.Replace("<", "&lt;").Replace(">", "&gt;"));
             _sb.Append("</type>");
         }
 

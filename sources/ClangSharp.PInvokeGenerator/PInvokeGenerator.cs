@@ -3176,9 +3176,20 @@ namespace ClangSharp
             }
             else
             {
-                _outputBuilder.BeginInnerValue();
-                Visit(stmt);
-                _outputBuilder.EndInnerValue();
+                if (_stmtOutputBuilderUsers > 0)
+                {
+                    _stmtOutputBuilder.Write('(');
+                    _stmtOutputBuilder.BeginMarker("value");
+                    Visit(stmt);
+                    _stmtOutputBuilder.EndMarker("value");
+                    _stmtOutputBuilder.Write(')');
+                }
+                else
+                {
+                    _outputBuilder.BeginInnerValue();
+                    Visit(stmt);
+                    _outputBuilder.EndInnerValue();
+                }
             }
         }
 

@@ -1702,6 +1702,7 @@ namespace ClangSharp
                         }
 
                         _outputBuilder.EndBody();
+                        _outputBuilder.EndField(false);
                         _outputBuilder.WriteDivider();
                     }
                     else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
@@ -2107,6 +2108,7 @@ namespace ClangSharp
                 _outputBuilder.EndCSharpCode(code);
                 _outputBuilder.EndSetter();
                 _outputBuilder.EndBody();
+                _outputBuilder.EndField(false);
                 _outputBuilder.WriteDivider();
 
                 remainingBits -= fieldDecl.BitWidthValue;
@@ -2283,7 +2285,8 @@ namespace ClangSharp
                         IsAggressivelyInlined = _config.GenerateAggressiveInlining,
                         CustomAttrGeneratorData = (name, this),
                         WriteCustomAttrs = static _ => {},
-                        IsStatic = false
+                        IsStatic = false,
+                        IsMemberFunction = true
                     };
 
                     _outputBuilder.BeginFunctionOrDelegate(in function, ref _isMethodClassUnsafe);

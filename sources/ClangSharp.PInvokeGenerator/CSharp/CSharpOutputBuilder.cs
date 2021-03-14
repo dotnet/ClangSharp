@@ -144,6 +144,14 @@ namespace ClangSharp.CSharp
             }
         }
 
+        public void WritePendingLine()
+        {
+            if (_currentLine.Length > 0)
+            {
+                WriteNewline();
+            }
+        }
+
         public void WriteSemicolon()
         {
             Write(';');
@@ -166,7 +174,7 @@ namespace ClangSharp.CSharp
                 return;
             }
 
-            Write('<');
+            Write("/*M*/<");
             Write(kind);
             foreach (var kvp in attributes)
             {
@@ -178,7 +186,7 @@ namespace ClangSharp.CSharp
                 Write('"');
             }
 
-            Write('>');
+            Write("/*M*/>");
         }
 
         public void EndMarker(string kind)
@@ -188,9 +196,9 @@ namespace ClangSharp.CSharp
                 return;
             }
 
-            Write("</");
+            Write("/*M*/</");
             Write(kind);
-            Write('>');
+            Write("/*M*/>");
         }
 
         private void AddCppAttributes(IEnumerable<string> attrs, string prefix = null, string postfix = null)
