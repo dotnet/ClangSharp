@@ -2,7 +2,7 @@
 
 namespace ClangSharp.Abstractions
 {
-    public struct FunctionOrDelegateDesc<TCustomAttrGeneratorData>
+    internal struct FunctionOrDelegateDesc<TCustomAttrGeneratorData>
     {
         public string AccessSpecifier;
         public string NativeTypeName;

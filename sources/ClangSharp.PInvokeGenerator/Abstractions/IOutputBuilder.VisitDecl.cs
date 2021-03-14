@@ -4,7 +4,7 @@ using ClangSharp.CSharp;
 
 namespace ClangSharp.Abstractions
 {
-    public partial interface IOutputBuilder
+    internal partial interface IOutputBuilder
     {
         void BeginInnerValue();
         void EndInnerValue();

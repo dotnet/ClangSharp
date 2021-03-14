@@ -1,6 +1,6 @@
 namespace ClangSharp.CSharp
 {
-    public enum MarkerMode
+    internal enum MarkerMode
     {
         None,
         Xml

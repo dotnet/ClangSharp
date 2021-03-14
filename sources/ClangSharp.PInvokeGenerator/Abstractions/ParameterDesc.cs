@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ClangSharp.Abstractions
 {
-    public struct ParameterDesc<TCustomAttrGeneratorData>
+    internal struct ParameterDesc<TCustomAttrGeneratorData>
     {
         public string Type;
         public string Name;

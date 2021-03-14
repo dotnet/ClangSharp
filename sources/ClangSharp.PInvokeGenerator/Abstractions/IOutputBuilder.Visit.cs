@@ -1,6 +1,6 @@
 namespace ClangSharp.Abstractions
 {
-    public partial interface IOutputBuilder
+    internal partial interface IOutputBuilder
     {
         void WriteDivider(bool force = false);
         void SuppressDivider();

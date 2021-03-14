@@ -5,7 +5,7 @@ using ClangSharp.CSharp;
 
 namespace ClangSharp.XML
 {
-    public partial class XmlOutputBuilder
+    internal partial class XmlOutputBuilder
     {
         private StringBuilder _sb = new();
         public void BeginInnerValue() => _sb.Append("<value>");

@@ -1,6 +1,6 @@
 namespace ClangSharp.XML
 {
-    public partial class XmlOutputBuilder
+    internal partial class XmlOutputBuilder
     {
         public void WriteCustomAttribute(string attribute)
             => _sb.AppendLine($"<attribute>{attribute}</attribute>");

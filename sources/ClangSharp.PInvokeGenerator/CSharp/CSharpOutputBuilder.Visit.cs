@@ -1,6 +1,6 @@
 ﻿namespace ClangSharp.CSharp
 {
-    public partial class CSharpOutputBuilder
+    internal partial class CSharpOutputBuilder
     {
         private bool _customAttrIsForParameter = false;
         public void WriteCustomAttribute(string attribute)

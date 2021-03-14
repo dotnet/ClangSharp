@@ -7,7 +7,7 @@ using ClangSharp.Abstractions;
 
 namespace ClangSharp.XML
 {
-    public partial class XmlOutputBuilder : IOutputBuilder
+    internal partial class XmlOutputBuilder : IOutputBuilder
     {
         public XmlOutputBuilder(string name)
         {

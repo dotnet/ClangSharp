@@ -7,7 +7,7 @@ using ClangSharp.Abstractions;
 
 namespace ClangSharp.CSharp
 {
-    public partial class CSharpOutputBuilder : IOutputBuilder
+    internal partial class CSharpOutputBuilder : IOutputBuilder
     {
         public void BeginInnerValue() => Write('(');
         public void EndInnerValue() => Write(')');

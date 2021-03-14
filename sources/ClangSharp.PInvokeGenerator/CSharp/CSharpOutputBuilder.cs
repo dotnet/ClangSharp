@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ClangSharp.CSharp
 {
-    public sealed partial class CSharpOutputBuilder
+    internal sealed partial class CSharpOutputBuilder
     {
         public const string DefaultIndentationString = "    ";
 

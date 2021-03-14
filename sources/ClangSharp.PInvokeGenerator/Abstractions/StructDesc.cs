@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp.Abstractions
 {
-    public struct StructDesc<TCustomAttrGeneratorData>
+    internal struct StructDesc<TCustomAttrGeneratorData>
     {
         public string AccessSpecifier;
         public string EscapedName;

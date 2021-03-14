@@ -3,7 +3,7 @@ using System;
 namespace ClangSharp.Abstractions
 {
     [Flags]
-    public enum ConstantKind
+    internal enum ConstantKind
     {
         None = 0,
         ReadOnly = 1 << 0,
