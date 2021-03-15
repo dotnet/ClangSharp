@@ -18,14 +18,13 @@ namespace ClangSharp.XML
         public void BeginUnchecked() => _sb.Append("<unchecked>");
         public void EndUnchecked() => _sb.Append("</unchecked>");
 
-        public void BeginConstant(string accessSpecifier, string typeName, string escapedName, string nativeTypeName,
-            ConstantKind kind)
+        public void BeginConstant(in ConstantDesc desc)
         {
-            _sb.Append((kind & ConstantKind.Enumerator) == 0
-                ? $"<constant name=\"{escapedName}\" access=\"{accessSpecifier}\">"
-                : $"<enumerator name=\"{escapedName}\" access=\"{accessSpecifier}\">");
-            _sb.Append($"<type primitive=\"{(kind & ConstantKind.PrimitiveConstant) != 0}\">");
-            _sb.Append(typeName.Replace("<", "&lt;").Replace(">", "&gt;"));
+            _sb.Append((desc.Kind & ConstantKind.Enumerator) == 0
+                ? $"<constant name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\">"
+                : $"<enumerator name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\">");
+            _sb.Append($"<type primitive=\"{(desc.Kind & ConstantKind.PrimitiveConstant) != 0}\">");
+            _sb.Append(desc.TypeName.Replace("<", "&lt;").Replace(">", "&gt;"));
             _sb.Append("</type>");
         }
 

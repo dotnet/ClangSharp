@@ -16,8 +16,7 @@ namespace ClangSharp.Abstractions
         void BeginUnchecked();
         void EndUnchecked();
 
-        void BeginConstant(string accessSpecifier, string typeName, string escapedName, string nativeTypeName,
-            ConstantKind kind);
+        void BeginConstant(in ConstantDesc desc);
         void BeginConstantValue(bool isGetOnlyProperty = false);
         void WriteConstantValue(long value);
         void WriteConstantValue(ulong value);

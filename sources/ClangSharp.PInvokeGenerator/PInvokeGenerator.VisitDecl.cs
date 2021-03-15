@@ -263,8 +263,16 @@ namespace ClangSharp
                     out var nativeTypeName);
             }
 
-            _outputBuilder.BeginConstant(accessSpecifier, typeName, escapedName, null,
-                isAnonymousEnum ? ConstantKind.PrimitiveConstant : ConstantKind.Enumerator);
+            var desc = new ConstantDesc
+            {
+                AccessSpecifier = accessSpecifier,
+                TypeName = typeName,
+                EscapedName = escapedName,
+                NativeTypeName = null,
+                Kind = isAnonymousEnum ? ConstantKind.PrimitiveConstant : ConstantKind.Enumerator
+            };
+
+            _outputBuilder.BeginConstant(in desc);
 
             if (enumConstantDecl.InitExpr != null)
             {
@@ -2660,7 +2668,16 @@ namespace ClangSharp
                     typeName += "[]";
                 }
 
-                _outputBuilder.BeginConstant(accessSpecifier, typeName, escapedName, nativeTypeName, kind);
+                var desc = new ConstantDesc
+                {
+                    AccessSpecifier = accessSpecifier,
+                    TypeName = typeName,
+                    EscapedName = escapedName,
+                    NativeTypeName = nativeTypeName,
+                    Kind = kind
+                };
+
+                _outputBuilder.BeginConstant(in desc);
 
                 if (varDecl.HasInit)
                 {

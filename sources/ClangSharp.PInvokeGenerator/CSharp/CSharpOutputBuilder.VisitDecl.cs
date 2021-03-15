@@ -22,37 +22,36 @@ namespace ClangSharp.CSharp
             // nop, used only by XML
         }
 
-        public void BeginConstant(string accessSpecifier, string typeName, string escapedName, string nativeTypeName,
-            ConstantKind kind)
+        public void BeginConstant(in ConstantDesc desc)
         {
-            if (nativeTypeName is not null)
+            if (desc.NativeTypeName is not null)
             {
-                AddNativeTypeNameAttribute(nativeTypeName);
+                AddNativeTypeNameAttribute(desc.NativeTypeName);
             }
 
             WriteIndentation();
 
-            if ((kind & ConstantKind.PrimitiveConstant) != 0)
+            if ((desc.Kind & ConstantKind.PrimitiveConstant) != 0)
             {
-                Write(accessSpecifier);
+                Write(desc.AccessSpecifier);
                 Write(" const ");
-                Write(typeName);
+                Write(desc.TypeName);
                 Write(' ');
             }
-            else if ((kind & ConstantKind.NonPrimitiveConstant) != 0)
+            else if ((desc.Kind & ConstantKind.NonPrimitiveConstant) != 0)
             {
-                Write(accessSpecifier);
+                Write(desc.AccessSpecifier);
                 Write(" static ");
-                if ((kind & ConstantKind.ReadOnly) != 0)
+                if ((desc.Kind & ConstantKind.ReadOnly) != 0)
                 {
                     Write("readonly ");
                 }
 
-                Write(typeName);
+                Write(desc.TypeName);
                 Write(' ');
             }
 
-            Write(escapedName);
+            Write(desc.EscapedName);
         }
 
         public void BeginConstantValue(bool isGetOnlyProperty = false)
