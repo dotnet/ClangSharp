@@ -2203,7 +2203,7 @@ namespace ClangSharp
                     _outputBuilder.BeginField(accessSpecifier, null, fieldName, null, false);
                     _outputBuilder.WriteRegularField(typeName, fieldName);
                     _outputBuilder.EndField();
-                    if (separateStride)
+                    if (!separateStride)
                     {
                         _outputBuilder.SuppressDivider();
                     }
