@@ -2192,7 +2192,7 @@ namespace ClangSharp
                             previousDimension.index = 0;
                             dimension.index++;
                             sizePerDimension[d - 1] = previousDimension;
-                            _outputBuilder.WriteDivider();
+                            _outputBuilder.WriteDivider(true);
                         }
 
                         sizePerDimension[d] = dimension;
