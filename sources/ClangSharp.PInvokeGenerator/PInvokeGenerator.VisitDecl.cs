@@ -436,7 +436,7 @@ namespace ClangSharp
                 HasFnPtrCodeGen = _config.GeneratePreviewCodeFnptr,
                 SetLastError = GetSetLastError(name),
                 IsCxx = cxxMethodDecl is not null,
-                IsStatic = cxxMethodDecl?.IsStatic ?? true,
+                IsStatic = isDllImport || (cxxMethodDecl?.IsStatic ?? true),
                 NeedsNewKeyword = NeedsNewKeyword(escapedName, functionDecl.Parameters),
                 IsUnsafe = IsUnsafe(functionDecl),
                 IsCtxCxxRecord = cxxRecordDecl is not null,
