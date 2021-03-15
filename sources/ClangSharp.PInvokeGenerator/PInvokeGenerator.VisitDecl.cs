@@ -2199,15 +2199,15 @@ namespace ClangSharp
                         sizePerDimension[d] = dimension;
                     }
 
-                    if (firstDimension == sizePerDimension[0].size && i != totalSize - 1)
-                    {
-                        _outputBuilder.WriteDivider(true);
-                    }
-
                     _outputBuilder.BeginField(accessSpecifier, null, fieldName, null, false);
                     _outputBuilder.WriteRegularField(typeName, fieldName);
                     _outputBuilder.EndField();
                     _outputBuilder.SuppressDivider();
+
+                    if (firstDimension == sizePerDimension[0].size && i != totalSize - 1)
+                    {
+                        _outputBuilder.WriteDivider(true);
+                    }
                 }
 
                 var generateCompatibleCode = _config.GenerateCompatibleCode;
