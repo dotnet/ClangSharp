@@ -2176,7 +2176,8 @@ namespace ClangSharp
                 for (long i = 0; i < totalSize; i++)
                 {
                     var dimension = sizePerDimension[0];
-                    var fieldName = "e" + dimension.index++;
+                    var firstDimension = dimension.index++;
+                    var fieldName = "e" + firstDimension;
                     sizePerDimension[0] = dimension;
 
                     for (int d = 1; d < sizePerDimension.Count; d++)
@@ -2192,10 +2193,15 @@ namespace ClangSharp
                             previousDimension.index = 0;
                             dimension.index++;
                             sizePerDimension[d - 1] = previousDimension;
-                            _outputBuilder.WriteDivider(true);
+                            // _outputBuilder.WriteDivider();
                         }
 
                         sizePerDimension[d] = dimension;
+                    }
+
+                    if (firstDimension == sizePerDimension[0].size && i != totalSize - 1)
+                    {
+                        _outputBuilder.WriteDivider(true);
                     }
 
                     _outputBuilder.BeginField(accessSpecifier, null, fieldName, null, false);
