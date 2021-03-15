@@ -430,7 +430,7 @@ namespace ClangSharp
                 EscapedName = escapedName,
                 EntryPoint = entryPoint,
                 CallingConventionName = callingConventionName,
-                LibraryPath = isDllImport ? GetLibraryPath(name) : null,
+                LibraryPath = isDllImport ? GetLibraryPath(name).Unquote() : null,
                 IsVirtual = isVirtual,
                 IsDllImport = isDllImport,
                 HasFnPtrCodeGen = _config.GeneratePreviewCodeFnptr,
@@ -2182,7 +2182,7 @@ namespace ClangSharp
                     for (int d = 1; d < sizePerDimension.Count; d++)
                     {
                         dimension = sizePerDimension[d];
-                        fieldName += '_' + dimension.index;
+                        fieldName += "_" + dimension.index;
                         sizePerDimension[d] = dimension;
 
                         var previousDimension = sizePerDimension[d - 1];
