@@ -39,22 +39,21 @@ namespace ClangSharp.XML
 
         public void EndEnum() => _sb.Append("</enumeration>");
 
-        public void BeginField(string accessSpecifier, string nativeTypeName, string escapedName, int? offset,
-            bool needsNewKeyword, string inheritedFrom = null)
+        public void BeginField(in FieldDesc desc)
         {
-            _sb.Append($"<field name=\"{escapedName}\" access=\"{accessSpecifier}\"");
-            if (inheritedFrom is not null)
+            _sb.Append($"<field name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\"");
+            if (desc.InheritedFrom is not null)
             {
-                _sb.Append($" inherited=\"{inheritedFrom}\"");
+                _sb.Append($" inherited=\"{desc.InheritedFrom}\"");
             }
 
-            if (offset is not null)
+            if (desc.Offset is not null)
             {
-                _sb.Append($" offset=\"{offset}\"");
+                _sb.Append($" offset=\"{desc.Offset}\"");
             }
 
             _sb.Append('>');
-            _sb.Append($"<type native=\"{nativeTypeName}\"");
+            _sb.Append($"<type native=\"{desc.NativeTypeName}\"");
         }
 
         public void WriteFixedCountField(string typeName, string escapedName, string fixedName, string count)

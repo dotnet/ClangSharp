@@ -92,23 +92,22 @@ namespace ClangSharp.CSharp
 
         public void EndEnum() => WriteBlockEnd();
 
-        public void BeginField(string accessSpecifier, string nativeTypeName, string escapedName, int? offset,
-            bool needsNewKeyword, string inheritedFrom = null)
+        public void BeginField(in FieldDesc desc)
         {
-            if (offset is not null)
+            if (desc.Offset is not null)
             {
-                WriteIndentedLine($"[FieldOffset({offset})]");
+                WriteIndentedLine($"[FieldOffset({desc.Offset})]");
             }
 
-            if (nativeTypeName is not null)
+            if (desc.NativeTypeName is not null)
             {
-                AddNativeTypeNameAttribute(nativeTypeName);
+                AddNativeTypeNameAttribute(desc.NativeTypeName);
             }
 
-            WriteIndented(accessSpecifier);
+            WriteIndented(desc.AccessSpecifier);
             Write(' ');
 
-            if (needsNewKeyword)
+            if (desc.NeedsNewKeyword)
             {
                 Write("new ");
             }

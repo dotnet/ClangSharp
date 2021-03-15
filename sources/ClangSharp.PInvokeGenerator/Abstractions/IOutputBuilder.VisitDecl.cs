@@ -26,8 +26,7 @@ namespace ClangSharp.Abstractions
         void BeginEnum(string accessSpecifier, string typeName, string escapedName, string nativeTypeName);
         void EndEnum();
 
-        void BeginField(string accessSpecifier, string nativeTypeName, string escapedName, int? offset,
-            bool needsNewKeyword, string inheritedFrom = null);
+        void BeginField(in FieldDesc desc);
         void WriteFixedCountField(string typeName, string escapedName, string fixedName, string count);
         void WriteRegularField(string typeName, string escapedName);
         void EndField(bool isBodyless = true);

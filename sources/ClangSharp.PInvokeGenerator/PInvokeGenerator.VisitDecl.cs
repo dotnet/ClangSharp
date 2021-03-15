@@ -352,7 +352,16 @@ namespace ClangSharp
                 offset = 0;
             }
 
-            _outputBuilder.BeginField(accessSpecifier, nativeTypeName, escapedName, offset, NeedsNewKeyword(name));
+            var desc = new FieldDesc
+            {
+                AccessSpecifier = accessSpecifier,
+                NativeTypeName = nativeTypeName,
+                EscapedName = escapedName,
+                Offset = offset,
+                NeedsNewKeyword = NeedsNewKeyword(name)
+            };
+
+            _outputBuilder.BeginField(in desc);
 
             if (type.CanonicalType is ConstantArrayType constantArrayType)
             {
@@ -892,7 +901,15 @@ namespace ClangSharp
 
                 if (hasVtbl)
                 {
-                    _outputBuilder.BeginField("public", null, "lpVtbl", null, false);
+                    var fieldDesc = new FieldDesc
+                    {
+                        AccessSpecifier = "public",
+                        NativeTypeName = null,
+                        EscapedName = "lpVtbl",
+                        Offset = null,
+                        NeedsNewKeyword = false
+                    };
+                    _outputBuilder.BeginField(in fieldDesc);
                     if (_config.GenerateExplicitVtbls)
                     {
                         _outputBuilder.WriteRegularField("Vtbl*", "lpVtbl");
@@ -918,8 +935,17 @@ namespace ClangSharp
                             baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier,
                                 tryRemapOperatorName: true);
 
-                            _outputBuilder.BeginField(GetAccessSpecifierName(baseCxxRecordDecl), null, baseFieldName,
-                                null, false, parent);
+                            var fieldDesc = new FieldDesc
+                            {
+                                AccessSpecifier = GetAccessSpecifierName(baseCxxRecordDecl),
+                                NativeTypeName = null,
+                                EscapedName = baseFieldName,
+                                Offset = null,
+                                NeedsNewKeyword = false,
+                                InheritedFrom = parent
+                            };
+
+                            _outputBuilder.BeginField(in fieldDesc);
                             _outputBuilder.WriteRegularField(parent, baseFieldName);
                             _outputBuilder.EndField();
                         }
@@ -1255,8 +1281,16 @@ namespace ClangSharp
                 var escapedName = EscapeAndStripName(name);
                 RestoreNameForMultipleHits(cxxMethodDecl, hitsPerName, remappedName);
 
-                _outputBuilder.BeginField(accessSpecifier, nativeTypeName, escapedName, null,
-                    NeedsNewKeyword(remappedName));
+                var desc = new FieldDesc
+                {
+                    AccessSpecifier = accessSpecifier,
+                    NativeTypeName = nativeTypeName,
+                    EscapedName = escapedName,
+                    Offset = null,
+                    NeedsNewKeyword = NeedsNewKeyword(remappedName)
+                };
+
+                _outputBuilder.BeginField(in desc);
                 _outputBuilder.WriteRegularField(cxxMethodDeclTypeName, escapedName);
                 _outputBuilder.EndField();
             }
@@ -1525,8 +1559,16 @@ namespace ClangSharp
                 var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, context: null,
                     nestedRecordDecl.TypeForDecl, out string nativeTypeName);
 
-                _outputBuilder.BeginField("public", nativeTypeName, nestedRecordDeclFieldName,
-                    recordDecl.IsUnion ? 0 : null, false);
+                var desc = new FieldDesc
+                {
+                    AccessSpecifier = "public",
+                    NativeTypeName = nativeTypeName,
+                    EscapedName = nestedRecordDeclFieldName,
+                    Offset = recordDecl.IsUnion ? 0 : null,
+                    NeedsNewKeyword = false
+                };
+
+                _outputBuilder.BeginField(in desc);
                 _outputBuilder.WriteRegularField(nestedRecordDeclName, nestedRecordDeclFieldName);
                 _outputBuilder.EndField();
 
@@ -1556,8 +1598,17 @@ namespace ClangSharp
                         var name = GetRemappedCursorName(fieldDecl);
                         var escapedName = EscapeName(name);
 
+                        var desc = new FieldDesc
+                        {
+                            AccessSpecifier = accessSpecifier,
+                            NativeTypeName = null,
+                            EscapedName = escapedName,
+                            Offset = null,
+                            NeedsNewKeyword = false
+                        };
+
                         _outputBuilder.WriteDivider(true);
-                        _outputBuilder.BeginField(accessSpecifier, null, escapedName, null, false);
+                        _outputBuilder.BeginField(in desc);
 
                         var isFixedSizedBuffer = (type.CanonicalType is ConstantArrayType);
                         var generateCompatibleCode = _config.GenerateCompatibleCode;
@@ -1785,8 +1836,15 @@ namespace ClangSharp
 
                     if (fieldDecl.Parent == recordDecl)
                     {
-                        _outputBuilder.BeginField("public", null, bitfieldName, fieldDecl.Parent.IsUnion ? 0 : null,
-                            false);
+                        var fieldDesc = new FieldDesc
+                        {
+                            AccessSpecifier = "public",
+                            NativeTypeName = null,
+                            EscapedName = bitfieldName,
+                            Offset = fieldDecl.Parent.IsUnion ? 0 : null,
+                            NeedsNewKeyword = false
+                        };
+                        _outputBuilder.BeginField(in fieldDesc);
                         _outputBuilder.WriteRegularField(typeNameBacking, bitfieldName);
                         _outputBuilder.EndField();
                     }
@@ -1949,8 +2007,17 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(fieldDecl);
                 var escapedName = EscapeName(name);
 
+                var desc = new FieldDesc
+                {
+                    AccessSpecifier = accessSpecifier,
+                    NativeTypeName = nativeTypeName,
+                    EscapedName = escapedName,
+                    Offset = null,
+                    NeedsNewKeyword = false
+                };
+
                 _outputBuilder.WriteDivider();
-                _outputBuilder.BeginField(accessSpecifier, nativeTypeName, escapedName, null, false);
+                _outputBuilder.BeginField(in desc);
                 _outputBuilder.WriteRegularField(typeName, escapedName);
                 _outputBuilder.BeginBody();
                 _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
@@ -2208,7 +2275,16 @@ namespace ClangSharp
                         sizePerDimension[d] = dimension;
                     }
 
-                    _outputBuilder.BeginField(accessSpecifier, null, fieldName, null, false);
+                    var fieldDesc = new FieldDesc
+                    {
+                        AccessSpecifier = accessSpecifier,
+                        NativeTypeName = null,
+                        EscapedName = fieldName,
+                        Offset = null,
+                        NeedsNewKeyword = false
+                    };
+
+                    _outputBuilder.BeginField(in fieldDesc);
                     _outputBuilder.WriteRegularField(typeName, fieldName);
                     _outputBuilder.EndField();
                     if (!separateStride)
