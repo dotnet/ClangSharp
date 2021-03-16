@@ -21,8 +21,8 @@ namespace ClangSharp.XML
         public void BeginConstant(in ConstantDesc desc)
         {
             _sb.Append((desc.Kind & ConstantKind.Enumerator) == 0
-                ? $"<constant name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\">"
-                : $"<enumerator name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\">");
+                ? $"<constant name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">"
+                : $"<enumerator name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
             _sb.Append($"<type primitive=\"{(desc.Kind & ConstantKind.PrimitiveConstant) != 0}\">");
             _sb.Append(desc.TypeName.Replace("<", "&lt;").Replace(">", "&gt;"));
             _sb.Append("</type>");
@@ -34,14 +34,14 @@ namespace ClangSharp.XML
         public void EndConstantValue() => _sb.Append("</value>");
         public void EndConstant(bool isConstant) => _sb.Append(isConstant ? "</constant>" : "</enumerator>");
 
-        public void BeginEnum(string accessSpecifier, string typeName, string escapedName, string nativeTypeName)
-            => _sb.Append($"<enumeration name=\"{escapedName}\" access=\"{accessSpecifier}\"><type>{typeName}</type>");
+        public void BeginEnum(AccessSpecifier accessSpecifier, string typeName, string escapedName, string nativeTypeName)
+            => _sb.Append($"<enumeration name=\"{escapedName}\" access=\"{accessSpecifier.AsString()}\"><type>{typeName}</type>");
 
         public void EndEnum() => _sb.Append("</enumeration>");
 
         public void BeginField(in FieldDesc desc)
         {
-            _sb.Append($"<field name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\"");
+            _sb.Append($"<field name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
             if (desc.InheritedFrom is not null)
             {
                 _sb.Append($" inherited=\"{desc.InheritedFrom}\"");
@@ -69,7 +69,7 @@ namespace ClangSharp.XML
             if (desc.IsVirtual)
             {
                 Debug.Assert(!desc.HasFnPtrCodeGen);
-                _sb.Append($"<delegate name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\"");
+                _sb.Append($"<delegate name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
                 if (desc.CallingConventionName != "Winapi")
                 {
                     _sb.Append($" convention=\"{desc.CallingConventionName}\"");
@@ -77,7 +77,7 @@ namespace ClangSharp.XML
             }
             else if (desc.IsDllImport)
             {
-                _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\"");
+                _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
                 _sb.Append($" lib=\"{desc.LibraryPath}\"");
                 if (desc.CallingConventionName != "Winapi")
                 {
@@ -96,7 +96,7 @@ namespace ClangSharp.XML
             }
             else
             {
-                _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier}\"");
+                _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
             }
 
             if (!desc.IsMemberFunction && (desc.IsStatic ?? (desc.IsDllImport || !desc.IsCxx)))
@@ -215,7 +215,7 @@ namespace ClangSharp.XML
             _sb.Append("<struct name=\"");
             _sb.Append(info.EscapedName);
             _sb.Append("\" access=\"");
-            _sb.Append(info.AccessSpecifier);
+            _sb.Append(info.AccessSpecifier.AsString());
             _sb.Append('"');
             if (info.NativeType is not null)
             {
@@ -338,10 +338,10 @@ namespace ClangSharp.XML
             _sb.Append("</set>");
         }
 
-        public void BeginIndexer(string accessSpecifier, bool isUnsafe)
+        public void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe)
         {
             _sb.Append("<indexer access=\"");
-            _sb.Append(accessSpecifier);
+            _sb.Append(accessSpecifier.AsString());
             _sb.Append(isUnsafe ? "\" unsafe=\"true\">" : "\">");
         }
 

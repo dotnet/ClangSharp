@@ -23,7 +23,7 @@ namespace ClangSharp.Abstractions
         void EndConstantValue();
         void EndConstant(bool isConstant);
 
-        void BeginEnum(string accessSpecifier, string typeName, string escapedName, string nativeTypeName);
+        void BeginEnum(AccessSpecifier accessSpecifier, string typeName, string escapedName, string nativeTypeName);
         void EndEnum();
 
         void BeginField(in FieldDesc desc);
@@ -68,7 +68,7 @@ namespace ClangSharp.Abstractions
         void BeginSetter(bool aggressivelyInlined);
         void EndSetter();
 
-        void BeginIndexer(string accessSpecifier, bool isUnsafe);
+        void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe);
         void WriteIndexer(string typeName);
         void BeginIndexerParameters();
         void EndIndexerParameters();

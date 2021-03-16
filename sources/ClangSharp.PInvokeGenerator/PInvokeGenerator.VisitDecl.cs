@@ -240,7 +240,7 @@ namespace ClangSharp
 
         private void VisitEnumConstantDecl(EnumConstantDecl enumConstantDecl)
         {
-            var accessSpecifier = string.Empty;
+            var accessSpecifier = AccessSpecifier.None;
             var name = GetRemappedCursorName(enumConstantDecl);
             var escapedName = EscapeName(name);
             var isAnonymousEnum = false;
@@ -252,7 +252,7 @@ namespace ClangSharp
                 if (GetRemappedCursorName(enumDecl).StartsWith("__AnonymousEnum_"))
                 {
                     isAnonymousEnum = true;
-                    accessSpecifier = GetAccessSpecifierName(enumDecl);
+                    accessSpecifier = GetAccessSpecifier(enumDecl);
                 }
 
                 typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
@@ -300,7 +300,7 @@ namespace ClangSharp
 
         private void VisitEnumDecl(EnumDecl enumDecl)
         {
-            var accessSpecifier = GetAccessSpecifierName(enumDecl);
+            var accessSpecifier = GetAccessSpecifier(enumDecl);
             var name = GetRemappedCursorName(enumDecl);
             var escapedName = EscapeName(name);
             var isAnonymousEnum = false;
@@ -339,7 +339,7 @@ namespace ClangSharp
                 return;
             }
 
-            var accessSpecifier = GetAccessSpecifierName(fieldDecl);
+            var accessSpecifier = GetAccessSpecifier(fieldDecl);
             var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
 
@@ -392,7 +392,7 @@ namespace ClangSharp
                 return;
             }
 
-            var accessSppecifier = GetAccessSpecifierName(functionDecl);
+            var accessSppecifier = GetAccessSpecifier(functionDecl);
             var name = GetRemappedCursorName(functionDecl);
 
             var cxxMethodDecl = functionDecl as CXXMethodDecl;
@@ -886,7 +886,7 @@ namespace ClangSharp
 
                 var desc = new StructDesc<(string Name, PInvokeGenerator This)>
                 {
-                    AccessSpecifier = GetAccessSpecifierName(recordDecl),
+                    AccessSpecifier = GetAccessSpecifier(recordDecl),
                     EscapedName = escapedName,
                     IsUnsafe = IsUnsafe(recordDecl),
                     HasVtbl = hasVtbl,
@@ -903,7 +903,7 @@ namespace ClangSharp
                 {
                     var fieldDesc = new FieldDesc
                     {
-                        AccessSpecifier = "public",
+                        AccessSpecifier = AccessSpecifier.Public,
                         NativeTypeName = null,
                         EscapedName = "lpVtbl",
                         Offset = null,
@@ -937,7 +937,7 @@ namespace ClangSharp
 
                             var fieldDesc = new FieldDesc
                             {
-                                AccessSpecifier = GetAccessSpecifierName(baseCxxRecordDecl),
+                                AccessSpecifier = GetAccessSpecifier(baseCxxRecordDecl),
                                 NativeTypeName = null,
                                 EscapedName = baseFieldName,
                                 Offset = null,
@@ -1275,7 +1275,7 @@ namespace ClangSharp
                 var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type,
                     out var nativeTypeName);
 
-                var accessSpecifier = GetAccessSpecifierName(cxxMethodDecl);
+                var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl, hitsPerName);
                 var name = GetRemappedCursorName(cxxMethodDecl);
                 var escapedName = EscapeAndStripName(name);
@@ -1314,7 +1314,7 @@ namespace ClangSharp
                 }
 
                 var currentContext = _context.AddLast(cxxMethodDecl);
-                var accessSpecifier = GetAccessSpecifierName(cxxMethodDecl);
+                var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var returnType = cxxMethodDecl.ReturnType;
                 var returnTypeName =
                     GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
@@ -1561,7 +1561,7 @@ namespace ClangSharp
 
                 var desc = new FieldDesc
                 {
-                    AccessSpecifier = "public",
+                    AccessSpecifier = AccessSpecifier.Public,
                     NativeTypeName = nativeTypeName,
                     EscapedName = nestedRecordDeclFieldName,
                     Offset = recordDecl.IsUnion ? 0 : null,
@@ -1593,7 +1593,7 @@ namespace ClangSharp
                     {
                         var type = fieldDecl.Type;
 
-                        var accessSpecifier = GetAccessSpecifierName(anonymousRecordDecl);
+                        var accessSpecifier = GetAccessSpecifier(anonymousRecordDecl);
                         var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var fieldNativeTypeName);
                         var name = GetRemappedCursorName(fieldDecl);
                         var escapedName = EscapeName(name);
@@ -1838,7 +1838,7 @@ namespace ClangSharp
                     {
                         var fieldDesc = new FieldDesc
                         {
-                            AccessSpecifier = "public",
+                            AccessSpecifier = AccessSpecifier.Public,
                             NativeTypeName = null,
                             EscapedName = bitfieldName,
                             Offset = fieldDecl.Parent.IsUnion ? 0 : null,
@@ -2003,7 +2003,7 @@ namespace ClangSharp
 
                 canonicalType = type.CanonicalType;
 
-                var accessSpecifier = GetAccessSpecifierName(fieldDecl);
+                var accessSpecifier = GetAccessSpecifier(fieldDecl);
                 var name = GetRemappedCursorName(fieldDecl);
                 var escapedName = EscapeName(name);
 
@@ -2215,7 +2215,7 @@ namespace ClangSharp
                     layout.Pack = (int) alignment;
                 }
 
-                var accessSpecifier = GetAccessSpecifierName(constantArray);
+                var accessSpecifier = GetAccessSpecifier(constantArray);
                 var canonicalElementType = type.ElementType.CanonicalType;
                 var isUnsafeElementType =
                     ((canonicalElementType is PointerType) || (canonicalElementType is ReferenceType)) &&
@@ -2297,7 +2297,7 @@ namespace ClangSharp
 
                 if (generateCompatibleCode || isUnsafeElementType)
                 {
-                    _outputBuilder.BeginIndexer("public", generateCompatibleCode && !isUnsafeElementType);
+                    _outputBuilder.BeginIndexer(AccessSpecifier.Public, generateCompatibleCode && !isUnsafeElementType);
                     _outputBuilder.WriteIndexer($"ref {typeName}");
                     _outputBuilder.BeginIndexerParameters();
                     var param = new ParameterDesc<(string Name, PInvokeGenerator This)>
@@ -2331,7 +2331,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    _outputBuilder.BeginIndexer("public", false);
+                    _outputBuilder.BeginIndexer(AccessSpecifier.Public, false);
                     _outputBuilder.WriteIndexer($"ref {typeName}");
                     _outputBuilder.BeginIndexerParameters();
                     var param = new ParameterDesc<(string Name, PInvokeGenerator This)>
@@ -2369,7 +2369,7 @@ namespace ClangSharp
 
                     var function = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
                     {
-                        AccessSpecifier = "public",
+                        AccessSpecifier = AccessSpecifier.Public,
                         EscapedName = "AsSpan",
                         IsAggressivelyInlined = _config.GenerateAggressiveInlining,
                         CustomAttrGeneratorData = (name, this),
@@ -2457,7 +2457,7 @@ namespace ClangSharp
                 {
                     var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
                     {
-                        AccessSpecifier = GetAccessSpecifierName(typedefDecl),
+                        AccessSpecifier = GetAccessSpecifier(typedefDecl),
                         CallingConventionName = callingConventionName,
                         CustomAttrGeneratorData = (name, this),
                         EscapedName = escapedName,
@@ -2620,7 +2620,7 @@ namespace ClangSharp
                     isMacroDefinitionRecord = true;
                 }
 
-                var accessSpecifier = GetAccessSpecifierName(varDecl);
+                var accessSpecifier = GetAccessSpecifier(varDecl);
                 var name = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false);
                 var escapedName = EscapeName(name);
 

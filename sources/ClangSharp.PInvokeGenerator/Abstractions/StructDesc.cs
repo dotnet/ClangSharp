@@ -5,7 +5,7 @@ namespace ClangSharp.Abstractions
 {
     internal struct StructDesc<TCustomAttrGeneratorData>
     {
-        public string AccessSpecifier { get; set; }
+        public AccessSpecifier AccessSpecifier { get; set; }
         public string EscapedName { get; set; }
         public string NativeType { get; set; }
         public string NativeInheritance { get; set; }

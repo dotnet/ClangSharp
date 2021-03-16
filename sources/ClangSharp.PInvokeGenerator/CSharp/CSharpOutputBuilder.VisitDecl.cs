@@ -33,14 +33,14 @@ namespace ClangSharp.CSharp
 
             if ((desc.Kind & ConstantKind.PrimitiveConstant) != 0)
             {
-                Write(desc.AccessSpecifier);
+                Write(desc.AccessSpecifier.AsString());
                 Write(" const ");
                 Write(desc.TypeName);
                 Write(' ');
             }
             else if ((desc.Kind & ConstantKind.NonPrimitiveConstant) != 0)
             {
-                Write(desc.AccessSpecifier);
+                Write(desc.AccessSpecifier.AsString());
                 Write(" static ");
                 if ((desc.Kind & ConstantKind.ReadOnly) != 0)
                 {
@@ -69,14 +69,14 @@ namespace ClangSharp.CSharp
 
         public void EndConstant(bool isConstant) => WriteLine(isConstant ? ';' : ',');
 
-        public void BeginEnum(string accessSpecifier, string typeName, string escapedName, string nativeTypeName)
+        public void BeginEnum(AccessSpecifier accessSpecifier, string typeName, string escapedName, string nativeTypeName)
         {
             if (nativeTypeName is not null)
             {
                 AddNativeTypeNameAttribute(nativeTypeName);
             }
 
-            WriteIndented(accessSpecifier);
+            WriteIndented(accessSpecifier.AsString());
             Write(" enum ");
             Write(escapedName);
 
@@ -104,7 +104,7 @@ namespace ClangSharp.CSharp
                 AddNativeTypeNameAttribute(desc.NativeTypeName);
             }
 
-            WriteIndented(desc.AccessSpecifier);
+            WriteIndented(desc.AccessSpecifier.AsString());
             Write(' ');
 
             if (desc.NeedsNewKeyword)
@@ -216,7 +216,7 @@ namespace ClangSharp.CSharp
                 AddNativeTypeNameAttribute(desc.NativeTypeName, attributePrefix: "return: ");
             }
 
-            WriteIndented(desc.AccessSpecifier);
+            WriteIndented(desc.AccessSpecifier.AsString());
 
             if (!desc.IsMemberFunction)
             {
@@ -429,7 +429,7 @@ namespace ClangSharp.CSharp
                 AddNativeInheritanceAttribute(info.NativeInheritance);
             }
 
-            WriteIndented(info.AccessSpecifier);
+            WriteIndented(info.AccessSpecifier.AsString());
             Write(' ');
 
             if (info.IsUnsafe)
@@ -523,10 +523,10 @@ namespace ClangSharp.CSharp
             NeedsNewline = false;
         }
 
-        public void BeginIndexer(string accessSpecifier, bool isUnsafe)
+        public void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe)
         {
             NeedsNewline = true;
-            WriteIndented(accessSpecifier);
+            WriteIndented(accessSpecifier.AsString());
             Write(' ');
             if (isUnsafe)
             {

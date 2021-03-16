@@ -2,7 +2,7 @@
 {
     internal struct FieldDesc
     {
-        public string AccessSpecifier { get; set; }
+        public AccessSpecifier AccessSpecifier { get; set; }
         public string NativeTypeName { get; set; }
         public string EscapedName { get; set; }
         public int? Offset { get; set; }

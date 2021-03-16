@@ -35,7 +35,7 @@ namespace ClangSharp
 
             var outputBuilder = _mode switch
             {
-                PInvokeGeneratorOutputMode.Csharp => (IOutputBuilder) new CSharpOutputBuilder(name),
+                PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name),
                 PInvokeGeneratorOutputMode.Xml => new XmlOutputBuilder(name),
                 _ => throw new ArgumentOutOfRangeException()
             };

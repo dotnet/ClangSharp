@@ -4,7 +4,7 @@ namespace ClangSharp.Abstractions
 {
     internal struct FunctionOrDelegateDesc<TCustomAttrGeneratorData>
     {
-        public string AccessSpecifier { get; set; }
+        public AccessSpecifier AccessSpecifier { get; set; }
         public string NativeTypeName { get; set; }
         public string EscapedName { get; set; }
         public string EntryPoint { get; set; }

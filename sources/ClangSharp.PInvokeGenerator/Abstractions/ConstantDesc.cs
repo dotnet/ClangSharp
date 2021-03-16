@@ -2,7 +2,7 @@
 {
     internal struct ConstantDesc
     {
-        public string AccessSpecifier { get; set; }
+        public AccessSpecifier AccessSpecifier { get; set; }
         public string TypeName { get; set; }
         public string EscapedName { get; set; }
         public string NativeTypeName { get; set; }

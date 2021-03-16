@@ -861,7 +861,7 @@ namespace ClangSharp
                     Arity = ArgumentArity.ExactlyOne
                 }
             };
-            option.Argument.SetDefaultValue(PInvokeGeneratorOutputMode.Csharp);
+            option.Argument.SetDefaultValue(PInvokeGeneratorOutputMode.CSharp);
 
             rootCommand.AddOption(option);
         }

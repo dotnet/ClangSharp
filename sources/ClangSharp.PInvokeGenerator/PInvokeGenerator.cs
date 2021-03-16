@@ -136,7 +136,7 @@ namespace ClangSharp
                     using var sw = new StreamWriter(stream, defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
                     {
                         sw.NewLine = "\n";
-                        if (_config.OutputMode == PInvokeGeneratorOutputMode.Csharp)
+                        if (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp)
                         {
                             sw.Write(_config.HeaderText);
 
@@ -625,40 +625,40 @@ namespace ClangSharp
                                                                  .Replace("\t", "\\t")
                                                                  .Replace("\"", "\\\"");
 
-        private string GetAccessSpecifierName(NamedDecl namedDecl)
+        private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl)
         {
-            string name;
+            AccessSpecifier name;
 
             switch (namedDecl.Access)
             {
                 case CX_CXXAccessSpecifier.CX_CXXInvalidAccessSpecifier:
                 {
                     // Top level declarations will have an invalid access specifier
-                    name = "public";
+                    name = AccessSpecifier.Public;
                     break;
                 }
 
                 case CX_CXXAccessSpecifier.CX_CXXPublic:
                 {
-                    name = "public";
+                    name = AccessSpecifier.Public;
                     break;
                 }
 
                 case CX_CXXAccessSpecifier.CX_CXXProtected:
                 {
-                    name = "protected";
+                    name = AccessSpecifier.Protected;
                     break;
                 }
 
                 case CX_CXXAccessSpecifier.CX_CXXPrivate:
                 {
-                    name = "private";
+                    name = AccessSpecifier.Private;
                     break;
                 }
 
                 default:
                 {
-                    name = "internal";
+                    name = AccessSpecifier.Internal;
                     AddDiagnostic(DiagnosticLevel.Warning, $"Unknown access specifier: '{namedDecl.Access}'. Falling back to '{name}'.", namedDecl);
                     break;
                 }
