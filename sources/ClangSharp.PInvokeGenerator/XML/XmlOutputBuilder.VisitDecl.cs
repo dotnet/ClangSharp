@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
@@ -70,18 +71,18 @@ namespace ClangSharp.XML
             {
                 Debug.Assert(!desc.HasFnPtrCodeGen);
                 _sb.Append($"<delegate name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
-                if (desc.CallingConventionName != "Winapi")
+                if (desc.CallingConvention != CallingConvention.Winapi)
                 {
-                    _sb.Append($" convention=\"{desc.CallingConventionName}\"");
+                    _sb.Append($" convention=\"{desc.CallingConvention.AsString(false)}\"");
                 }
             }
             else if (desc.IsDllImport)
             {
                 _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
                 _sb.Append($" lib=\"{desc.LibraryPath}\"");
-                if (desc.CallingConventionName != "Winapi")
+                if (desc.CallingConvention != CallingConvention.Winapi)
                 {
-                    _sb.Append($" convention=\"{desc.CallingConventionName}\"");
+                    _sb.Append($" convention=\"{desc.CallingConvention.AsString(false)}\"");
                 }
 
                 if (desc.EntryPoint != desc.EscapedName)

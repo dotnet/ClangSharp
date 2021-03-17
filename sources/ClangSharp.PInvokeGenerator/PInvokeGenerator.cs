@@ -735,43 +735,48 @@ namespace ClangSharp
             return types.ToArray();
         }
 
-        private string GetCallingConventionName(Cursor cursor, CXCallingConv callingConvention, string remappedName, bool isForFnptr)
+        private CallingConvention GetCallingConvention(Cursor cursor, CXCallingConv callingConvention, string remappedName)
         {
             if (_config.WithCallConvs.TryGetValue(remappedName, out string callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
             {
-                return callConv;
+                if (Enum.TryParse(callConv, true, out CallingConvention callConvEnum))
+                {
+                    return callConvEnum;
+                }
+
+                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported manually-specified calling convention: '{callConv}'. Determining convention from cursor.", cursor);
             }
 
             switch (callingConvention)
             {
                 case CXCallingConv.CXCallingConv_C:
                 {
-                    return "Cdecl";
+                    return CallingConvention.Cdecl;
                 }
 
                 case CXCallingConv.CXCallingConv_X86StdCall:
                 {
-                    return isForFnptr ? "Stdcall" : "StdCall";
+                    return CallingConvention.StdCall;
                 }
 
                 case CXCallingConv.CXCallingConv_X86FastCall:
                 {
-                    return isForFnptr ? "Fastcall" : "FastCall";
+                    return CallingConvention.FastCall;
                 }
 
                 case CXCallingConv.CXCallingConv_X86ThisCall:
                 {
-                    return isForFnptr ? "Thiscall" : "ThisCall";
+                    return CallingConvention.ThisCall;
                 }
 
                 case CXCallingConv.CXCallingConv_Win64:
                 {
-                    return "Winapi";
+                    return CallingConvention.Winapi;
                 }
 
                 default:
                 {
-                    var name = "Winapi";
+                    const CallingConvention name = CallingConvention.Winapi;
                     AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported calling convention: '{callingConvention}'. Falling back to '{name}'.", cursor);
                     return name;
                 }
@@ -1472,7 +1477,7 @@ namespace ClangSharp
                 if (_config.GeneratePreviewCodeFnptr && (functionType is FunctionProtoType functionProtoType))
                 {
                     var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
-                    var callConv = GetCallingConventionName(cursor, functionType.CallConv, remappedName, isForFnptr: true);
+                    var callConv = GetCallingConvention(cursor, functionType.CallConv, remappedName);
 
                     var needsReturnFixup = false;
                     var returnTypeName = GetRemappedTypeName(cursor, context: null, functionType.ReturnType, out _);
@@ -1493,10 +1498,10 @@ namespace ClangSharp
                     {
                         nameBuilder.Append(" unmanaged");
 
-                        if (callConv != "Winapi")
+                        if (callConv != CallingConvention.Winapi)
                         {
                             nameBuilder.Append('[');
-                            nameBuilder.Append(callConv);
+                            nameBuilder.Append(callConv.AsString(true));
                             nameBuilder.Append(']');
                         }
                     }

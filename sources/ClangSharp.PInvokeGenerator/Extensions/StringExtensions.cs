@@ -1,4 +1,6 @@
-﻿using ClangSharp.Abstractions;
+﻿using System;
+using System.Runtime.InteropServices;
+using ClangSharp.Abstractions;
 
 namespace ClangSharp
 {
@@ -18,6 +20,16 @@ namespace ClangSharp
             AccessSpecifier.PrivateProtected => "private protected",
             AccessSpecifier.Private => "private",
             _ => "public"
+        };
+
+        public static string AsString(this CallingConvention value, bool isForFnPtr) => value switch
+        {
+            CallingConvention.Winapi => "Winapi",
+            CallingConvention.Cdecl => "Cdecl",
+            CallingConvention.StdCall => isForFnPtr ? "Stdcall" : "StdCall",
+            CallingConvention.ThisCall => isForFnPtr ? "Thiscall" : "ThisCall",
+            CallingConvention.FastCall => isForFnPtr ? "Fastcall" : "FastCall",
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
         };
     }
 }

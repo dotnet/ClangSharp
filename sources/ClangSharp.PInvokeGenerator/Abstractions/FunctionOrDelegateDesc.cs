@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Abstractions
 {
@@ -8,8 +9,8 @@ namespace ClangSharp.Abstractions
         public string NativeTypeName { get; set; }
         public string EscapedName { get; set; }
         public string EntryPoint { get; set; }
-        public string CallingConventionName { get; set; }
         public string LibraryPath { get; set; }
+        public CallingConvention CallingConvention { get; set; }
         public FunctionOrDelegateFlags Flags { get; set; }
 
         public bool IsVirtual

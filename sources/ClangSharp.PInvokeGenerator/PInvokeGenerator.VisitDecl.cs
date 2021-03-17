@@ -434,7 +434,7 @@ namespace ClangSharp
                 }
             }
 
-            var callingConventionName = GetCallingConventionName(functionDecl, callConv, name, isForFnptr: false);
+            var callingConventionName = GetCallingConvention(functionDecl, callConv, name);
             var entryPoint = !isVirtual && body is null
                 ? (cxxMethodDecl is null) ? GetCursorName(functionDecl) : cxxMethodDecl.Handle.Mangling.CString
                 : null;
@@ -446,7 +446,7 @@ namespace ClangSharp
                 NativeTypeName = nativeTypeName,
                 EscapedName = escapedName,
                 EntryPoint = entryPoint,
-                CallingConventionName = callingConventionName,
+                CallingConvention = callingConventionName,
                 LibraryPath = isDllImport ? GetLibraryPath(name).Unquote() : null,
                 IsVirtual = isVirtual,
                 IsDllImport = isDllImport,
@@ -2444,10 +2444,10 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(typedefDecl);
                 var escapedName = EscapeName(name);
 
-                    var callingConventionName = GetCallingConventionName(typedefDecl,
+                    var callingConventionName = GetCallingConvention(typedefDecl,
                         (parentType is AttributedType)
                             ? parentType.Handle.FunctionTypeCallingConv
-                            : functionProtoType.CallConv, name, isForFnptr: false);
+                            : functionProtoType.CallConv, name);
 
                     var returnType = functionProtoType.ReturnType;
                     var returnTypeName =
@@ -2458,7 +2458,7 @@ namespace ClangSharp
                     var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
                     {
                         AccessSpecifier = GetAccessSpecifier(typedefDecl),
-                        CallingConventionName = callingConventionName,
+                        CallingConvention = callingConventionName,
                         CustomAttrGeneratorData = (name, this),
                         EscapedName = escapedName,
                         IsVirtual = true, // such that it outputs as a delegate

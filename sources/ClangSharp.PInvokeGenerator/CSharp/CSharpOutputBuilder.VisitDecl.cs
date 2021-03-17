@@ -162,10 +162,10 @@ namespace ClangSharp.CSharp
                 AddUsingDirective("System.Runtime.InteropServices");
                 WriteIndented("[UnmanagedFunctionPointer");
 
-                if (desc.CallingConventionName != "Winapi")
+                if (desc.CallingConvention != CallingConvention.Winapi)
                 {
                     Write("(CallingConvention.");
-                    Write(desc.CallingConventionName);
+                    Write(desc.CallingConvention);
                     Write(')');
                 }
 
@@ -183,10 +183,10 @@ namespace ClangSharp.CSharp
 
                 Write(", ");
 
-                if (desc.CallingConventionName != "Winapi")
+                if (desc.CallingConvention != CallingConvention.Winapi)
                 {
                     Write("CallingConvention = CallingConvention.");
-                    Write(desc.CallingConventionName);
+                    Write(desc.CallingConvention);
                     Write(", ");
                 }
 
