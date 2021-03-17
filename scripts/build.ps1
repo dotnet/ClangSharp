@@ -103,25 +103,25 @@ function Test-Win32Metadata {
     $clangSharpPInvokeGeneratorBinaries = (Get-ChildItem -Path "$clangSharpPInvokeGeneratorOutputDir" -File).FullName
     Copy-Item -Path $clangSharpPInvokeGeneratorBinaries -Destination "$win32MetadataToolsDir"
 
-    $generateMetadataSourceCmd = Join-Path -Path $win32MetadataDir -ChildPath "GenerateMetadataSource.cmd"
-    & "$generateMetadataSourceCmd"
+    $generateMetadataSourcePs1 = Join-Path -Path $win32MetadataDir -ChildPath "scripts\GenerateMetadataSource.ps1"
+    & "$generateMetadataSourcePs1"
 
     if ($LastExitCode -ne 0) {
-      throw "'GenerateMetadataSource.cmd' failed"
+      throw "'GenerateMetadataSource.ps1' failed"
     }
 
-    $buildMetadataBinCmd = Join-Path -Path $win32MetadataDir -ChildPath "BuildMetadataBin.cmd"
-    & "$buildMetadataBinCmd"
+    $buildMetadataBinPs1 = Join-Path -Path $win32MetadataDir -ChildPath "scripts\BuildMetadataBin.ps1"
+    & "$buildMetadataBinPs1"
 
     if ($LastExitCode -ne 0) {
-      throw "'BuildMetadataBin.cmd' failed"
+      throw "'BuildMetadataBin.ps1' failed"
     }
 
-    $testMetdataBinCmd = Join-Path -Path $win32MetadataDir -ChildPath "TestMetadataBin.cmd"
-    & "$testMetdataBinCmd"
+    $testWinmdBinaryPs1 = Join-Path -Path $win32MetadataDir -ChildPath "scripts\TestWinmdBinary.ps1"
+    & "$testWinmdBinaryPs1"
 
     if ($LastExitCode -ne 0) {
-      throw "'TestMetadataBin.cmd' failed"
+      throw "'TestWinmdBinary.ps1' failed"
     }
   }
   finally {
