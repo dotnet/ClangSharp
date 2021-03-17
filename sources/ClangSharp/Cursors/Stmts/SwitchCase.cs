@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -8,7 +9,6 @@ namespace ClangSharp
     public class SwitchCase : Stmt
     {
         private readonly Lazy<SwitchCase> _nextSwitchCase;
-        private readonly Lazy<Stmt> _subStmt;
 
         private protected SwitchCase(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
@@ -18,11 +18,26 @@ namespace ClangSharp
             }
 
             _nextSwitchCase = new Lazy<SwitchCase>(() => TranslationUnit.GetOrCreate<SwitchCase>(Handle.NextSwitchCase));
-            _subStmt = new Lazy<Stmt>(() => TranslationUnit.GetOrCreate<Stmt>(Handle.SubStmt));
         }
 
         public SwitchCase NextSwitchCase => _nextSwitchCase.Value;
 
-        public Stmt SubStmt => _subStmt.Value;
+        public Stmt SubStmt
+        {
+            get
+            {
+                if (this is CaseStmt CS)
+                {
+                    return CS.SubStmt;
+                }
+                else if (this is DefaultStmt DS)
+                {
+                    return DS.SubStmt;
+                }
+
+                Debug.Fail("SwitchCase is neither a CaseStmt nor a DefaultStmt!");
+                return null;
+            }
+        }
     }
 }

@@ -20,6 +20,6 @@ namespace ClangSharp
 
         public bool IsSingleDecl => Decls.Count == 1;
 
-        public Decl SingleDecl => Decls.Single();
+        public Decl SingleDecl => Decls.SingleOrDefault();
     }
 }

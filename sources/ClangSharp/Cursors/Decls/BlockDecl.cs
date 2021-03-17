@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace ClangSharp
 {
-    public sealed class BlockDecl : Decl, IDeclContext
+    public sealed partial class BlockDecl : Decl, IDeclContext
     {
         private readonly Lazy<Decl> _blockManglingContextDecl;
         private readonly Lazy<IReadOnlyList<Capture>> _captures;

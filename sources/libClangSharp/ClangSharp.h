@@ -3,8 +3,15 @@
 #ifndef LIBCLANGSHARP_CLANGSHARP_H
 #define LIBCLANGSHARP_CLANGSHARP_H
 
+#include <clang/AST/Decl.h>
 #include <clang/AST/DeclCXX.h>
+#include <clang/AST/DeclObjC.h>
 #include <clang/AST/Expr.h>
+#include <clang/AST/ExprCXX.h>
+#include <clang/AST/ExprObjC.h>
+#include <clang/AST/Stmt.h>
+#include <clang/AST/StmtCXX.h>
+#include <clang/AST/StmtObjC.h>
 #include <clang/AST/VTableBuilder.h>
 #include <clang/Basic/Specifiers.h>
 #include <clang-c/Index.h>
@@ -35,6 +42,13 @@ enum CX_BinaryOperatorKind {
     CX_BO_Invalid,
 #define BINARY_OPERATION(Name, Spelling) CX_BO_##Name,
 #include <clang/AST/OperationKinds.def>
+};
+
+enum CX_CapturedRegionKind {
+    CX_CR_Invalid,
+    CX_CR_Default = clang::CR_Default + 1,
+    CX_CR_ObjCAtFinally = clang::CR_ObjCAtFinally + 1,
+    CX_CR_OpenMP = clang::CR_OpenMP + 1,
 };
 
 enum CX_CastKind {
@@ -82,7 +96,7 @@ enum CX_TemplateSpecializationKind {
 };
 
 enum CX_StmtClass {
-    CX_StmtClass_Invalid,
+    CX_StmtClass_Invalid = clang::Stmt::NoStmtClass,
 #define STMT(CLASS, PARENT) CX_StmtClass_##CLASS,
 #define STMT_RANGE(BASE, FIRST, LAST) CX_StmtClass_First##BASE = CX_StmtClass_##FIRST, CX_StmtClass_Last##BASE = CX_StmtClass_##LAST,
 #define LAST_STMT_RANGE(BASE, FIRST, LAST) CX_StmtClass_First##BASE = CX_StmtClass_##FIRST, CX_StmtClass_Last##BASE = CX_StmtClass_##LAST
@@ -116,6 +130,14 @@ enum CX_UnaryOperatorKind {
 #include <clang/AST/OperationKinds.def>
 };
 
+enum CX_VariableCaptureKind {
+    CX_VCK_Invalid,
+    CX_VCK_This = clang::CapturedStmt::VCK_This + 1,
+    CX_VCK_ByRef = clang::CapturedStmt::VCK_ByRef + 1,
+    CX_VCK_ByCopy = clang::CapturedStmt::VCK_ByCopy + 1,
+    CX_VCK_VLAType = clang::CapturedStmt::VCK_VLAType + 1
+};
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getArgumentType(CXCursor C);
@@ -125,6 +147,8 @@ CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getArraySize(CXCursor C);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getAssociatedConstraint(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getAsFunction(CXCursor C);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getAttr(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CX_AttrKind clangsharp_Cursor_getAttrKind(CXCursor C);
 
@@ -150,9 +174,15 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCalleeExpr(CXCursor C);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getCallResultType(CXCursor C);
 
+CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getCaughtType(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCanAvoidCopyToHeap(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCaptureCopyExpr(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCapturedVar(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CX_VariableCaptureKind clangsharp_Cursor_getCaptureKind(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCaptureHasCopyExpr(CXCursor C, unsigned i);
 
@@ -163,6 +193,14 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCaptureIsEscapingByRef(CXCursor
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCaptureIsNested(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCaptureIsNonEscapingByRef(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCapturedDecl(CXCursor C);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCapturedRecordDecl(CXCursor C);
+
+CLANGSHARP_LINKAGE CX_CapturedRegionKind clangsharp_Cursor_getCapturedRegionKind(CXCursor C);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCapturedStmt(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCapturesCXXThis(CXCursor C);
 
@@ -187,8 +225,6 @@ CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getComputationLhsType(CXCursor C);
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getComputationResultType(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCondExpr(CXCursor C);
-
-CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getConditionVariableDeclStmt(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getConstraintExpr(CXCursor C);
 
@@ -254,6 +290,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasBody(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasDefaultArg(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasElseStorage(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasExplicitTemplateArgs(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasExternalStorage(CXCursor C);
@@ -266,15 +304,19 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasInheritedDefaultArg(CXCursor
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasInit(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasInitStorage(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasLeadingEmptyMacro(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasLocalStorage(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasPlaceholderTypeConstraint(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasVarStorage(CXCursor C);
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getHoldingVar(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getIdxExpr(CXCursor C);
-
-CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getIncExpr(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getInClassInitializer(CXCursor C);
 
@@ -284,11 +326,17 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getInstantiatedFromMember(CXCursor
 
 CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsAllEnumCasesCovered(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsAnonymousStructOrUnion(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsArgumentType(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsConstexpr(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsConversionFromLambda(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsCXXTry(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsDefined(CXCursor C);
 
@@ -299,6 +347,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsExpandedParameterPack(CXCurso
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsExternC(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsGlobal(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsIfExists(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsImplicitAccess(CXCursor C);
 
@@ -381,6 +431,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getNonClosureContext(CXCursor C);
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumAssociatedConstraints(CXCursor C);
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumArguments(CXCursor C);
+
+CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumAttrs(CXCursor C);
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumCaptures(CXCursor C);
 
