@@ -5,6 +5,7 @@
 
 #include <clang/AST/DeclCXX.h>
 #include <clang/AST/Expr.h>
+#include <clang/AST/VTableBuilder.h>
 #include <clang/Basic/Specifiers.h>
 #include <clang-c/Index.h>
 
@@ -175,6 +176,8 @@ CLANGSHARP_LINKAGE CX_CharacterKind clangsharp_Cursor_getCharacterLiteralKind(CX
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCharacterLiteralValue(CXCursor C);
 
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getChild(CXCursor C, unsigned i);
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getColumnIdxExpr(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCommonExpr(CXCursor C);
@@ -299,6 +302,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsGlobal(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsImplicitAccess(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsIncomplete(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsLocalVarDecl(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsLocalVarDeclOrParm(CXCursor C);
@@ -378,6 +383,8 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumAssociatedConstraints(CXCursor C)
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumArguments(CXCursor C);
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumCaptures(CXCursor C);
+
+CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumChildren(CXCursor C);
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumExprs(CXCursor C);
 
@@ -480,6 +487,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUnderlyingDecl(CXCursor C);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUninstantiatedDefaultArg(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUsedContext(CXCursor C);
+
+CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getVtblIdx(CXCursor C);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_desugar(CXType CT);
 

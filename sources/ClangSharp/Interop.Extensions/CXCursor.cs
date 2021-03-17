@@ -461,7 +461,7 @@ namespace ClangSharp.Interop
 
         public uint CharacterLiteralValue => clangsharp.Cursor_getCharacterLiteralValue(this);
 
-        public CXCursor ColumnIdxExpr => throw null; // clangsharp.Cursor_getColumnIdxExpr(this);
+        public CXCursor ColumnIdxExpr => clangsharp.Cursor_getColumnIdxExpr(this);
 
         public CXSourceRange CommentRange => clang.Cursor_getCommentRange(this);
 
@@ -714,7 +714,7 @@ namespace ClangSharp.Interop
 
         public CXType FunctionType => clangsharp.Cursor_getFunctionType(this);
 
-        public Guid GuidValue => throw null; // clangsharp.Cursor_getGuidValue(this);
+        public Guid GuidValue => clangsharp.Cursor_getGuidValue(this);
 
         public bool HasAttrs => clang.Cursor_hasAttrs(this) != 0;
 
@@ -798,7 +798,7 @@ namespace ClangSharp.Interop
 
         public bool IsInlineNamespace => clang.Cursor_isInlineNamespace(this) != 0;
 
-        public bool IsIncomplete => throw null; // clangsharp.Cursor_getIsIncomplete(this) != 0;
+        public bool IsIncomplete => clangsharp.Cursor_getIsIncomplete(this) != 0;
 
         public bool IsInvalid => clang.isInvalid(Kind) != 0;
 
@@ -920,6 +920,8 @@ namespace ClangSharp.Interop
 
         public int NumCaptures => clangsharp.Cursor_getNumCaptures(this);
 
+        public int NumChildren => clangsharp.Cursor_getNumChildren(this);
+
         public int NumExprs => clangsharp.Cursor_getNumExprs(this);
 
         public uint NumOverloadedDecls => clang.getNumOverloadedDecls(this);
@@ -980,7 +982,7 @@ namespace ClangSharp.Interop
 
         public CXCursor RhsExpr => clangsharp.Cursor_getRhsExpr(this);
 
-        public CXCursor RowIdxExpr => throw null; // clangsharp.Cursor_getRowIdxExpr(this);
+        public CXCursor RowIdxExpr => clangsharp.Cursor_getRowIdxExpr(this);
 
         public CXCursor SemanticParent => clang.getCursorSemanticParent(this);
 
@@ -1312,6 +1314,8 @@ namespace ClangSharp.Interop
 
         public CXVisibilityKind Visibility => clang.getCursorVisibility(this);
 
+        public long VtblIdx => clangsharp.Cursor_getVtblIdx(this);
+
         internal string DebuggerDisplayString
         {
             get
@@ -1387,6 +1391,8 @@ namespace ClangSharp.Interop
         public bool GetCaptureIsNonEscapingByRef(uint index) => clangsharp.Cursor_getCaptureIsNonEscapingByRef(this, index) != 0;
 
         public CXCursor GetCaptureVariable(uint index) => clangsharp.Cursor_getCaptureVariable(this, index);
+
+        public CXCursor GetChild(uint index) => clangsharp.Cursor_getChild(this, index);
 
         public void GetDefinitionSpellingAndExtent(out string spelling, out uint startLine, out uint startColumn, out uint endLine, out uint endColumn)
         {

@@ -1117,9 +1117,7 @@ namespace ClangSharp
                         _outputBuilder.EmitFnPtrSupport();
                     }
 
-                    int index = 0;
-                    OutputVtblHelperMethods(cxxRecordDecl, cxxRecordDecl, ref index,
-                        hitsPerName: new Dictionary<string, int>());
+                    OutputVtblHelperMethods(cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
 
                     if (_config.GenerateExplicitVtbls)
                     {
@@ -1294,8 +1292,7 @@ namespace ClangSharp
                 _outputBuilder.EndField();
             }
 
-            void OutputVtblHelperMethod(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, ref int vtblIndex,
-                Dictionary<string, int> hitsPerName)
+            void OutputVtblHelperMethod(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
             {
                 if (!cxxMethodDecl.IsVirtual)
                 {
@@ -1304,11 +1301,6 @@ namespace ClangSharp
 
                 if (IsExcluded(cxxMethodDecl, out var isExcludedByConflictingDefinition))
                 {
-                    if (!isExcludedByConflictingDefinition)
-                    {
-                        vtblIndex += 1;
-                    }
-
                     return;
                 }
 
@@ -1416,7 +1408,7 @@ namespace ClangSharp
                     body.Write(cxxMethodDeclTypeName);
                     body.Write(")(lpVtbl[");
                     body.BeginMarker("vtbl", new KeyValuePair<string, object>("explicit", false));
-                    body.Write(vtblIndex);
+                    body.Write(cxxMethodDecl.VtblIndex);
                     body.EndMarker("vtbl");
                     body.Write("])");
 
@@ -1490,19 +1482,17 @@ namespace ClangSharp
                 _outputBuilder.EndInnerFunctionBody();
                 _outputBuilder.EndBody();
                 _outputBuilder.EndFunctionOrDelegate(false, false);
-                vtblIndex += 1;
 
                 Debug.Assert(_context.Last == currentContext);
                 _context.RemoveLast();
             }
 
-            void OutputVtblHelperMethods(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, ref int index,
-                Dictionary<string, int> hitsPerName)
+            void OutputVtblHelperMethods(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputVtblHelperMethods(rootCxxRecordDecl, baseCxxRecordDecl, ref index, hitsPerName);
+                    OutputVtblHelperMethods(rootCxxRecordDecl, baseCxxRecordDecl, hitsPerName);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -1511,7 +1501,7 @@ namespace ClangSharp
                 foreach (var cxxMethodDecl in cxxMethodDecls)
                 {
                     _outputBuilder.WriteDivider();
-                    OutputVtblHelperMethod(rootCxxRecordDecl, cxxMethodDecl, ref index, hitsPerName);
+                    OutputVtblHelperMethod(rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
                 }
             }
 

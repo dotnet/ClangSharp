@@ -40,5 +40,7 @@ namespace ClangSharp
         public Type ThisType => _thisType.Value;
 
         public Type ThisObjectType => _thisObjectType.Value;
+
+        public long VtblIndex => Handle.VtblIdx;
     }
 }

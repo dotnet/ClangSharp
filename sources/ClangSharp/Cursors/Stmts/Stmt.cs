@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -19,7 +18,19 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
-            _children = new Lazy<IReadOnlyList<Stmt>>(() => CursorChildren.OfType<Stmt>().ToList());
+            _children = new Lazy<IReadOnlyList<Stmt>>(() => {
+                var numChildren = Handle.NumChildren;
+                var children = new List<Stmt>(numChildren);
+
+                for (int i = 0; i < numChildren; i++)
+                {
+                    var child = TranslationUnit.GetOrCreate<Stmt>(Handle.GetChild(unchecked((uint)i)));
+                    children.Add(child);
+                }
+
+                return children;
+            });
+
             _declContext = new Lazy<IDeclContext>(() => {
                 var semanticParent = TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent);
 
