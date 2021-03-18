@@ -252,9 +252,9 @@ namespace ClangSharp
 
         private void VisitCXXConstructExpr(CXXConstructExpr cxxConstructExpr)
         {
-            var isCopyConstructor = cxxConstructExpr.Constructor.IsCopyConstructor;
+            var isCopyOrMoveConstructor = cxxConstructExpr.Constructor is { IsCopyConstructor: true } or { IsMoveConstructor: true };
 
-            if (!isCopyConstructor)
+            if (!isCopyOrMoveConstructor)
             {
                 _outputBuilder.Write("new ");
 
@@ -277,7 +277,7 @@ namespace ClangSharp
                 }
             }
 
-            if (!isCopyConstructor)
+            if (!isCopyOrMoveConstructor)
             {
                 _outputBuilder.Write(')');
             }
@@ -394,7 +394,16 @@ namespace ClangSharp
             if ((declRefExpr.Decl is EnumConstantDecl enumConstantDecl) && (declRefExpr.DeclContext != enumConstantDecl.DeclContext) && (enumConstantDecl.DeclContext is NamedDecl namedDecl))
             {
                 var enumName = GetRemappedCursorName(namedDecl);
-                _outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
+
+                if (!_config.DontUseUsingStaticsForEnums)
+                {
+                    _outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
+                }
+                else
+                {
+                    _outputBuilder.Write(enumName);
+                    _outputBuilder.Write(".");
+                }
             }
 
             var name = GetRemappedCursorName(declRefExpr.Decl);
@@ -454,7 +463,16 @@ namespace ClangSharp
 
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
         {
+            if (IsPrevContextDecl<EnumConstantDecl>(out var _) && explicitCastExpr.Type is EnumType enumType)
+            {
+                _outputBuilder.Write('(');
+                var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _);
+                _outputBuilder.Write(enumUnderlyingTypeName);
+                _outputBuilder.Write(')');
+            }
+
             var type = explicitCastExpr.Type;
+
             var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out var nativeTypeName);
 
             _outputBuilder.Write('(');

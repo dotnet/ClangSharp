@@ -295,6 +295,94 @@ namespace ClangSharp
             _diagnostics.Add(diagnostic);
         }
 
+        private void AddCppAttributes(ParmVarDecl parmVarDecl, string prefix = null, string postfix = null)
+        {
+            if (!_config.GenerateCppAttributes)
+            {
+                return;
+            }
+
+            if (parmVarDecl.Attrs.Count == 0)
+            {
+                return;
+            }
+
+            if (prefix is null)
+            {
+                _outputBuilder.WriteIndentation();
+            }
+            else
+            {
+                _outputBuilder.WriteNewlineIfNeeded();
+                _outputBuilder.Write(prefix);
+            }
+
+            _outputBuilder.Write($"[CppAttributeList(\"");
+
+            _outputBuilder.Write(EscapeString(parmVarDecl.Attrs[0].Spelling));
+            for (int i = 1; i < parmVarDecl.Attrs.Count; i++)
+            {
+                // Separator char between attributes
+                _outputBuilder.Write('^');
+
+                _outputBuilder.Write(EscapeString(parmVarDecl.Attrs[i].Spelling));
+            }
+
+            _outputBuilder.Write($"\")]");
+
+            if (postfix is null)
+            {
+                _outputBuilder.NeedsNewline = true;
+            }
+            else
+            {
+                _outputBuilder.Write(postfix);
+            }
+        }
+
+        private void AddNativeInheritanceAttribute(string inheritedFromName, string prefix = null, string postfix = null, string attributePrefix = null)
+        {
+            if (!_config.GenerateNativeInheritanceAttribute)
+            {
+                return;
+            }
+
+            if (prefix is null)
+            {
+                _outputBuilder.WriteIndentation();
+            }
+            else
+            {
+                _outputBuilder.WriteNewlineIfNeeded();
+                _outputBuilder.Write(prefix);
+            }
+
+            _outputBuilder.Write('[');
+
+            if (attributePrefix != null)
+            {
+                _outputBuilder.Write(attributePrefix);
+            }
+
+            _outputBuilder.Write("NativeInheritance");
+            _outputBuilder.Write('(');
+
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(EscapeString(inheritedFromName));
+            _outputBuilder.Write('"');
+            _outputBuilder.Write(')');
+            _outputBuilder.Write(']');
+
+            if (postfix is null)
+            {
+                _outputBuilder.NeedsNewline = true;
+            }
+            else
+            {
+                _outputBuilder.Write(postfix);
+            }
+        }
+
         private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
         {
             if (string.IsNullOrWhiteSpace(nativeTypeName))
@@ -730,7 +818,6 @@ namespace ClangSharp
                     else
                     {
                         name = GetTypeName(namedDecl, context: null, typeDecl.TypeForDecl, out var nativeTypeName);
-                        Debug.Assert(string.IsNullOrWhiteSpace(nativeTypeName));
                     }
                 }
                 else if (namedDecl is ParmVarDecl)
@@ -939,6 +1026,10 @@ namespace ClangSharp
                 {
                     baseType = elaboratedType.CanonicalType;
                 }
+                else if (baseType is TemplateSpecializationType templateSpecializationType)
+                {
+                    baseType = templateSpecializationType.CanonicalType;
+                }
                 else if (baseType is TypedefType typedefType)
                 {
                     baseType = typedefType.Decl.UnderlyingType;
@@ -979,7 +1070,7 @@ namespace ClangSharp
                 return remappedName;
             }
 
-            if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith("__AnonymousField_"))
+            if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith("__AnonymousFieldDecl_"))
             {
                 remappedName = "Anonymous";
 
@@ -991,10 +1082,10 @@ namespace ClangSharp
             }
             else if ((namedDecl is RecordDecl recordDecl) && name.StartsWith("__AnonymousRecord_"))
             {
-                remappedName = "_Anonymous";
-
                 if (recordDecl.Parent is RecordDecl parentRecordDecl)
                 {
+                    remappedName = "_Anonymous";
+
                     var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordDecl.TypeForDecl.CanonicalType).FirstOrDefault();
 
                     if (matchingField != null)
@@ -1007,8 +1098,9 @@ namespace ClangSharp
                         var index = parentRecordDecl.AnonymousDecls.IndexOf(recordDecl) + 1;
                         remappedName += index.ToString();
                     }
+
+                    remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
                 }
-                remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
             }
 
             return remappedName;
@@ -1051,12 +1143,6 @@ namespace ClangSharp
             var name = GetTypeName(cursor, context, type, out nativeTypeName);
             name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
 
-            if (name.Contains("::"))
-            {
-                name = name.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
-                name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
-            }
-
             var canonicalType = type.CanonicalType;
 
             if ((canonicalType is ConstantArrayType constantArrayType) && (constantArrayType.ElementType is RecordType))
@@ -1086,6 +1172,10 @@ namespace ClangSharp
                 }
 
                 name += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
+            }
+            else if ((canonicalType is EnumType enumType) && name.StartsWith("__AnonymousEnum_"))
+            {
+                name = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _);
             }
             else if (cursor is EnumDecl enumDecl)
             {
@@ -1296,6 +1386,49 @@ namespace ClangSharp
             {
                 name = GetTypeNameForPointeeType(cursor, context, referenceType.PointeeType, out var nativePointeeTypeName);
             }
+            else if (type is TemplateSpecializationType templateSpecializationType)
+            {
+                var nameBuilder = new StringBuilder();
+
+                var templateTypeDecl = ((RecordType)templateSpecializationType.CanonicalType).Decl;
+                nameBuilder.Append(GetRemappedName(templateTypeDecl.Name, templateTypeDecl, tryRemapOperatorName: false));
+
+                nameBuilder.Append('<');
+
+                bool shouldWritePrecedingComma = false;
+
+                foreach (var arg in templateSpecializationType.Args)
+                {
+                    if (shouldWritePrecedingComma)
+                    {
+                        nameBuilder.Append(',');
+                        nameBuilder.Append(' ');
+                    }
+
+                    var typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out _);
+
+                    if (typeName == "bool")
+                    {
+                        // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                        typeName = "byte";
+                    }
+
+                    if (typeName.EndsWith("*"))
+                    {
+                        // Pointers are not yet supported as generic arguments; remap to IntPtr
+                        typeName = "IntPtr";
+                        _outputBuilder.AddUsingDirective("System");
+                    }    
+
+                    nameBuilder.Append(typeName);
+
+                    shouldWritePrecedingComma = true;
+                }
+
+                nameBuilder.Append('>');
+
+                name = nameBuilder.ToString();
+            }
             else if (type is TagType tagType)
             {
                 if (tagType.Decl.Handle.IsAnonymous)
@@ -1308,7 +1441,13 @@ namespace ClangSharp
                 }
                 else
                 {
-                    // The default name should be correct
+                    // The default name should be correct	
+                }
+
+                if (name.Contains("::"))
+                {
+                    name = name.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                    name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
                 }
             }
             else if (type is TypedefType typedefType)
@@ -1904,6 +2043,14 @@ namespace ClangSharp
             if (IsAlwaysIncluded(cursor))
             {
                 return false;
+            }
+
+            if (_config.ExcludeFunctionsWithBody &&
+                cursor is FunctionDecl functionDecl &&
+                cursor.CursorKind == CXCursorKind.CXCursor_FunctionDecl &&
+                functionDecl.HasBody)
+            {
+                return true;
             }
 
             return IsExcludedByFile(cursor) || IsExcludedByName(cursor, out isExcludedByConflictingDefinition);
@@ -2516,6 +2663,7 @@ namespace ClangSharp
 
                 case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
                 case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 {
                     var explicitCastExpr = (ExplicitCastExpr)stmt;
                     var explicitCastExprTypeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _);
@@ -2525,17 +2673,22 @@ namespace ClangSharp
                         || (IsUnsigned(targetTypeName) != IsUnsigned(explicitCastExprTypeName));
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
+                {
+                    var reinterpretCastExpr = (CXXReinterpretCastExpr)stmt;
+
+                    return IsUnchecked(targetTypeName, reinterpretCastExpr.SubExprAsWritten)
+                        || IsUnchecked(targetTypeName, reinterpretCastExpr.Handle.Evaluate);
+                }
 
                 // case CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr:
 
                 case CX_StmtClass.CX_StmtClass_ImplicitCastExpr:
                 {
                     var implicitCastExpr = (ImplicitCastExpr)stmt;
-                    var implicitCastExprTypeName = GetRemappedTypeName(implicitCastExpr, context: null, implicitCastExpr.Type, out _);
 
                     return IsUnchecked(targetTypeName, implicitCastExpr.SubExprAsWritten)
                         || IsUnchecked(targetTypeName, implicitCastExpr.Handle.Evaluate);

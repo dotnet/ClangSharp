@@ -69,6 +69,64 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        [Theory]
+        [InlineData("MyTemplate<int>", @"MyTemplate<int>", "")]
+        [InlineData("MyTemplate<bool>", @"[NativeTypeName(""MyTemplate<bool>"")] MyTemplate<byte>", "")]
+        [InlineData("MyTemplate<float*>", @"[NativeTypeName(""MyTemplate<float *>"")] MyTemplate<IntPtr>", "using System;\n")]
+        [InlineData("MyTemplate<void(*)(int)>", @"[NativeTypeName(""MyTemplate<void (*)(int)>"")] MyTemplate<IntPtr>", "using System;\n")]
+        public async Task TemplateParameterTest(string nativeParameter, string expectedManagedParameter, string expectedUsingStatement)
+        {
+            var inputContents = @$"template <typename T> struct MyTemplate;
+
+void MyFunction({nativeParameter} myStruct);";
+
+            var expectedOutputContents = $@"{expectedUsingStatement}using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void MyFunction({expectedManagedParameter} myStruct);
+    }}
+}}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+        }
+
+
+        [Fact]
+        public async Task TemplateMemberTest()
+        {
+            var inputContents = @$"template <typename T> struct MyTemplate
+{{
+}};
+
+struct MyStruct
+{{
+    MyTemplate<float*> a;
+}};
+";
+
+            var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        [NativeTypeName(""MyTemplate<float *>"")]
+        public MyTemplate<IntPtr> a;
+    }}
+}}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+        }
+
+
+
+
         [Fact]
         public async Task NoLibraryPathTest()
         {

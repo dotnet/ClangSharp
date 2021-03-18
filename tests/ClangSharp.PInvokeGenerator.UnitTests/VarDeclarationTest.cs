@@ -181,6 +181,44 @@ namespace ClangSharp.Test
         }
 
         [Fact]
+        public async Task WideStringLiteralConstTest()
+        {
+            var inputContents = $@"const wchar_t MyConst1[] = L""Test"";";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const wchar_t [5]"")]
+        public const string MyConst1 = ""Test"";
+    }}
+}}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
+        public async Task StringLiteralConstTest()
+        {
+            var inputContents = $@"const char MyConst1[] = ""Test"";";
+
+            var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const char [5]"")]
+        public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+    }}
+}}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        [Fact]
         public async Task UncheckedConversionMacroTest()
         {
             var inputContents = $@"#define MyMacro1 (long)0x80000000L
@@ -201,6 +239,26 @@ namespace ClangSharp.Test
 
             await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
+
+
+        [Fact]
+        public async Task UncheckedFunctionLikeCastMacroTest()
+        {
+            var inputContents = $@"#define MyMacro1 unsigned(-1)";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""#define MyMacro1 unsigned(-1)"")]
+        public const uint MyMacro1 = unchecked((uint)(-1));
+    }}
+}}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
+
 
         [Fact]
         public async Task UncheckedConversionMacroTest2()
@@ -241,5 +299,22 @@ namespace ClangSharp.Test
             await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        [Fact]
+        public async Task UncheckedReinterpretCastMacroTest()
+        {
+            var inputContents = $@"#define Macro1 reinterpret_cast<int*>(-1)";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static unsafe partial class Methods
+    {{
+        [NativeTypeName(""#define Macro1 reinterpret_cast<int*>(-1)"")]
+        public static readonly int* Macro1 = unchecked((int*)(-1));
+    }}
+}}
+";
+
+            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        }
     }
 }

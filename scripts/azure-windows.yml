@@ -5,9 +5,16 @@ jobs:
   steps:
   - task: BatchScript@1
     displayName: 'Run scripts/cibuild.cmd'
+    condition: eq(${{parameters.testwin32metadata}}, false)
     inputs:
       filename: scripts/cibuild.cmd
       arguments: '-configuration ${{parameters.configuration}} -architecture ${{parameters.architecture}}'
+  - task: BatchScript@1
+    displayName: 'Run scripts/cibuild.cmd -testwin32metadata'
+    condition: eq(${{parameters.testwin32metadata}}, true)
+    inputs:
+      filename: scripts/cibuild.cmd
+      arguments: '-configuration ${{parameters.configuration}} -architecture ${{parameters.architecture}} -testwin32metadata'
   - task: PublishTestResults@2
     displayName: 'Publish Test Results'
     inputs:
@@ -24,3 +31,6 @@ jobs:
       PathtoPublish: artifacts/pkg/${{parameters.configuration}}
       ArtifactName: packages
       publishLocation: Container
+  variables:
+    EXCLUDE_BUILDNUMBER_FROM_PACKAGE: ${{parameters.EXCLUDE_BUILDNUMBER_FROM_PACKAGE}}
+    OVERRIDE_RUNTIME_IDENTIFIER: ${{parameters.OVERRIDE_RUNTIME_IDENTIFIER}}

@@ -431,11 +431,13 @@ namespace ClangSharp
                 type = attributedType.ModifiedType;
                 callConv = attributedType.Handle.FunctionTypeCallingConv;
             }
-            var functionType = (FunctionType)type;
 
-            if (callConv == CXCallingConv.CXCallingConv_Invalid)
+            if (type is FunctionType functionType)
             {
-                callConv = functionType.CallConv;
+                if (callConv == CXCallingConv.CXCallingConv_Invalid)
+                {
+                    callConv = functionType.CallConv;
+                }
             }
 
             var cxxMethodDecl = functionDecl as CXXMethodDecl;
@@ -740,6 +742,7 @@ namespace ClangSharp
                 }
 
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
+                AddCppAttributes(parmVarDecl, prefix: "", postfix: " ");
 
                 _outputBuilder.Write(typeName);
                 _outputBuilder.Write(' ');
@@ -775,6 +778,7 @@ namespace ClangSharp
                 var type = parmVarDecl.Type;
                 var typeName = GetRemappedTypeName(parmVarDecl, context: null, type, out var nativeTypeName);
                 AddNativeTypeNameAttribute(nativeTypeName, prefix: "", postfix: " ");
+                AddCppAttributes(parmVarDecl, prefix: "", postfix: " ");
 
                 _outputBuilder.Write(typeName);
                 _outputBuilder.Write(' ');
@@ -934,6 +938,7 @@ namespace ClangSharp
                     }
 
                     AddNativeTypeNameAttribute(nativeTypeNameBuilder.ToString());
+                    AddNativeInheritanceAttribute(GetCursorName(cxxRecordDecl.Bases.Last().Referenced));
                 }
 
                 _outputBuilder.WriteIndented(GetAccessSpecifierName(recordDecl));
@@ -1590,6 +1595,11 @@ namespace ClangSharp
 
             void VisitAnonymousRecordDeclFields(RecordDecl rootRecordDecl, RecordDecl anonymousRecordDecl, string contextType, string contextName)
             {
+                if (_config.ExcludeAnonymousFieldHelpers)
+                {
+                    return;
+                }
+
                 foreach (var declaration in anonymousRecordDecl.Decls)
                 {
                     if (declaration is FieldDecl fieldDecl)
@@ -2489,9 +2499,26 @@ namespace ClangSharp
                 {
                     ForPointeeType(typedefDecl, parentType: null, referenceType.PointeeType);
                 }
-                else if (underlyingType is TagType)
+                else if (underlyingType is TagType underlyingTagType)
                 {
-                    // Nothing to do for tag types
+                    // See if there's a potential typedef remapping we want to log
+                    if (_config.LogPotentialTypedefRemappings)
+                    {
+                        var typedefName = typedefDecl.UnderlyingDecl.Name;
+                        var possibleNamesToRemap = new string[] { "_" + typedefName, "_tag" + typedefName, "tag" + typedefName };
+                        var underlyingName = underlyingTagType.AsString;
+
+                        foreach (var possibleNameToRemap in possibleNamesToRemap)
+                        {
+                            if (!_config.RemappedNames.ContainsKey(possibleNameToRemap))
+                            {
+                                if (possibleNameToRemap == underlyingName)
+                                {
+                                    AddDiagnostic(DiagnosticLevel.Info, $"Potential remap: {possibleNameToRemap}={typedefName}");
+                                }
+                            }
+                        }
+                    }
                 }
                 else if (underlyingType is TypedefType typedefType)
                 {
@@ -2607,6 +2634,7 @@ namespace ClangSharp
                 _outputBuilder.Write(' ');
 
                 var isProperty = false;
+                var isStringLiteral = false;
 
                 if (IsStmtAsWritten<StringLiteral>(varDecl.Init, out var stringLiteral, removeParens: true))
                 {
@@ -2620,6 +2648,7 @@ namespace ClangSharp
 
                             typeName = "ReadOnlySpan<byte>";
                             isProperty = true;
+                            isStringLiteral = true;
                             break;
                         }
 
@@ -2638,6 +2667,7 @@ namespace ClangSharp
                             _outputBuilder.Write("const ");
 
                             typeName = "string";
+                            isStringLiteral = true;
                             break;
                         }
 
@@ -2664,7 +2694,7 @@ namespace ClangSharp
 
                 _outputBuilder.Write(typeName);
 
-                if (type is ArrayType)
+                if (!isStringLiteral && type is ArrayType)
                 {
                     _outputBuilder.Write("[]");
                 }
@@ -2883,22 +2913,16 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
 
                 case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
+                case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 {
-                    var cStyleCastExpr = (CStyleCastExpr)initExpr;
-                    return IsConstant(cStyleCastExpr.SubExprAsWritten);
+                    var cxxFunctionalCastExpr = (ExplicitCastExpr)initExpr;
+                    return IsConstant(cxxFunctionalCastExpr.SubExprAsWritten);
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
-
-                case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
-                {
-                    var cxxStaticCastExpr = (CXXStaticCastExpr)initExpr;
-                    return IsConstant(cxxStaticCastExpr.SubExprAsWritten);
-                }
-
                 // case CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr:
 
                 case CX_StmtClass.CX_StmtClass_ImplicitCastExpr:
