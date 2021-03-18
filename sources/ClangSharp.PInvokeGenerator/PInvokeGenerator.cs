@@ -1592,8 +1592,8 @@ namespace ClangSharp
             }
             else
             {
-                name = GetTypeName(cursor, context, pointeeType, out nativePointeeTypeName);
-                name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
+                // Otherwise fields that point at anonymous structs get the wrong name
+                name = GetRemappedTypeName(cursor, context, pointeeType, out nativePointeeTypeName);
                 name += '*';
             }
 
