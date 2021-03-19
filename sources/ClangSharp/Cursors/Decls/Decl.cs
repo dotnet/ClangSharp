@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -13,6 +12,7 @@ namespace ClangSharp
         private readonly Lazy<IReadOnlyList<Attr>> _attrs;
         private readonly Lazy<Stmt> _body;
         private readonly Lazy<Decl> _canonicalDecl;
+        private readonly Lazy<IReadOnlyList<Decl>> _decls;
         private readonly Lazy<IDeclContext> _declContext;
         private readonly Lazy<TemplateDecl> _describedTemplate;
         private readonly Lazy<IDeclContext> _lexicalDeclContext;
@@ -32,9 +32,36 @@ namespace ClangSharp
             }
 
             _asFunction = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.AsFunction));
-            _attrs = new Lazy<IReadOnlyList<Attr>>(() => CursorChildren.OfType<Attr>().ToList());
+
+            _attrs = new Lazy<IReadOnlyList<Attr>>(() => {
+                var attrCount = Handle.NumAttrs;
+                var attrs = new List<Attr>(attrCount);
+
+                for (int i = 0; i < attrCount; i++)
+                {
+                    var attr = TranslationUnit.GetOrCreate<Attr>(Handle.GetAttr(unchecked((uint)i)));
+                    attrs.Add(attr);
+                }
+
+                return attrs;
+            });
+
             _body = new Lazy<Stmt>(() => TranslationUnit.GetOrCreate<Stmt>(Handle.Body));
             _canonicalDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
+
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => {
+                var declCount = Handle.NumDecls;
+                var decls = new List<Decl>(declCount);
+
+                for (int i = 0; i < declCount; i++)
+                {
+                    var decl = TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i)));
+                    decls.Add(decl);
+                }
+
+                return decls;
+            });
+
             _declContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.SemanticParent) as IDeclContext);
             _describedTemplate = new Lazy<TemplateDecl>(() => TranslationUnit.GetOrCreate<TemplateDecl>(Handle.DescribedTemplate));
             _lexicalDeclContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.LexicalParent) as IDeclContext);
@@ -62,6 +89,8 @@ namespace ClangSharp
         public IDeclContext DeclContext => _declContext.Value;
 
         public string DeclKindName => Handle.DeclKindSpelling;
+
+        public IReadOnlyList<Decl> Decls => _decls.Value;
 
         public TemplateDecl DescribedTemplate => _describedTemplate.Value;
 

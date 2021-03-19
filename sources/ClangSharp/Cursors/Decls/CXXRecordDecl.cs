@@ -35,20 +35,20 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
-            _bases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => CursorChildren.OfType<CXXBaseSpecifier>().ToList());
-            _ctors = new Lazy<IReadOnlyList<CXXConstructorDecl>>(() => Methods.OfType<CXXConstructorDecl>().ToList());
+                _bases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => CursorChildren.OfType<CXXBaseSpecifier>().ToList());
+                _ctors = new Lazy<IReadOnlyList<CXXConstructorDecl>>(() => Methods.OfType<CXXConstructorDecl>().ToList());
             _dependentLambdaCallOperator = new Lazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.DependentLambdaCallOperator));
-            _describedClassTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.DescribedClassTemplate));
+            _describedClassTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.DescribedCursorTemplate));
             _destructor = new Lazy<CXXDestructorDecl>(() => TranslationUnit.GetOrCreate<CXXDestructorDecl>(Handle.Destructor));
-            _friends = new Lazy<IReadOnlyList<FriendDecl>>(() => Decls.OfType<FriendDecl>().ToList());
+                _friends = new Lazy<IReadOnlyList<FriendDecl>>(() => Decls.OfType<FriendDecl>().ToList());
             _instantiatedFromMemberClass = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.InstantiatedFromMember));
             _lambdaCallOperator = new Lazy<CXXMethodDecl>(() => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.LambdaCallOperator));
             _lambdaContextDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.LambdaContextDecl));
             _lambdaStaticInvoker = new Lazy<CXXMethodDecl>(() => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.LambdaStaticInvoker));
-            _methods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => Decls.OfType<CXXMethodDecl>().ToList());
+                _methods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => Decls.OfType<CXXMethodDecl>().ToList());
             _mostRecentNonInjectedDecl = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.MostRecentNonInjectedDecl));
             _templateInstantiationPattern = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.TemplateInstantiationPattern));
-            _vbases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => Bases.Where((@base) => @base.IsVirtual).ToList());
+                _vbases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => Bases.Where((@base) => @base.IsVirtual).ToList());
         }
 
         public bool IsAbstract => Handle.CXXRecord_IsAbstract;

@@ -7,6 +7,43 @@ namespace ClangSharp
 {
     public class Expr : ValueStmt
     {
+        private static readonly Func<Expr, Expr> IgnoreImplicitCastsSingleStep = (E) =>
+        {
+            if (E is ImplicitCastExpr ICE)
+            {
+                return ICE.SubExpr;
+            }
+
+            if (E is FullExpr FE)
+            {
+                return FE.SubExpr;
+            }
+
+            return E;
+        };
+
+        private static readonly Func<Expr, Expr> IgnoreImplicitSingleStep = (E) =>
+        {
+            Expr SubE = IgnoreImplicitCastsSingleStep(E);
+
+            if (SubE != E)
+            {
+                return SubE;
+            }
+
+            if (E is MaterializeTemporaryExpr MTE)
+            {
+                return MTE.SubExpr;
+            }
+
+            if (E is CXXBindTemporaryExpr BTE)
+            {
+                return BTE.SubExpr;
+            }
+
+            return E;
+        };
+
         private static readonly Func<Expr, Expr> IgnoreParensSingleStep = (E) =>
         {
             if (E is ParenExpr PE)
@@ -56,6 +93,8 @@ namespace ClangSharp
         public bool ContainsUnexpandedParameterPack => (Dependence & CX_ExprDependence.CX_ED_UnexpandedPack) != 0;
 
         public CX_ExprDependence Dependence => Handle.ExprDependence;
+
+        public Expr IgnoreImplicit => IgnoreExprNodes(this, IgnoreImplicitSingleStep);
 
         public Expr IgnoreParens => IgnoreExprNodes(this, IgnoreParensSingleStep);
 

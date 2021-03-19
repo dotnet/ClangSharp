@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -11,13 +10,14 @@ namespace ClangSharp
     {
         private readonly Lazy<Type> _callResultType;
         private readonly Lazy<Type> _declaredReturnType;
-        private readonly Lazy<IReadOnlyList<Decl>> _decls;
         private readonly Lazy<FunctionDecl> _definition;
+        private readonly Lazy<FunctionTemplateDecl> _describedFunctionDecl;
         private readonly Lazy<FunctionDecl> _instantiatedFromMemberFunction;
         private readonly Lazy<IReadOnlyList<ParmVarDecl>> _parameters;
         private readonly Lazy<FunctionTemplateDecl> _primaryTemplate;
         private readonly Lazy<Type> _returnType;
         private readonly Lazy<FunctionDecl> _templateInstantiationPattern;
+        private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateSpecializationArgs;
 
         internal FunctionDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_FunctionDecl, CX_DeclKind.CX_DeclKind_Function)
         {
@@ -32,9 +32,10 @@ namespace ClangSharp
 
             _callResultType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CallResultType));
             _declaredReturnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.DeclaredReturnType));
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
             _definition = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.Definition));
+            _describedFunctionDecl = new Lazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.DescribedCursorTemplate));
             _instantiatedFromMemberFunction = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.InstantiatedFromMember));
+
             _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => {
                 var parameterCount = Handle.NumArguments;
                 var parameters = new List<ParmVarDecl>(parameterCount);
@@ -47,9 +48,23 @@ namespace ClangSharp
 
                 return parameters;
             });
+
             _primaryTemplate = new Lazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.PrimaryTemplate));
             _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
             _templateInstantiationPattern = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.TemplateInstantiationPattern));
+
+            _templateSpecializationArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
+                var templateArgCount = Handle.NumTemplateArguments;
+                var templateArgs = new List<TemplateArgument>(templateArgCount);
+
+                for (int i = 0; i < templateArgCount; i++)
+                {
+                    var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
+                    templateArgs.Add(templateArg);
+                }
+
+                return templateArgs;
+            });
         }
 
         public Type CallResultType => _callResultType.Value;
@@ -58,9 +73,9 @@ namespace ClangSharp
 
         public Type DeclaredReturnType => _declaredReturnType.Value;
 
-        public IReadOnlyList<Decl> Decls => _decls.Value;
-
         public FunctionDecl Definition => _definition.Value;
+
+        public FunctionTemplateDecl DescribedFunctionDecl => _describedFunctionDecl.Value;
 
         public CXCursor_ExceptionSpecificationKind ExceptionSpecType => (CXCursor_ExceptionSpecificationKind)Handle.ExceptionSpecificationType;
 
@@ -68,7 +83,7 @@ namespace ClangSharp
 
         public bool HasImplicitReturnZero => Handle.HasImplicitReturnZero;
 
-        public FunctionDecl InstantiatedFromMemberEnum => _instantiatedFromMemberFunction.Value;
+        public FunctionDecl InstantiatedFromMemberFunction => _instantiatedFromMemberFunction.Value;
 
         public bool IsDefaulted => Handle.CXXMethod_IsDefaulted;
 
@@ -92,6 +107,8 @@ namespace ClangSharp
 
         public bool IsVariadic => Handle.IsVariadic;
 
+        public string NameInfoName => Handle.Name.CString;
+
         public IReadOnlyList<ParmVarDecl> Parameters => _parameters.Value;
 
         public FunctionTemplateDecl PrimaryTemplate => _primaryTemplate.Value;
@@ -101,6 +118,8 @@ namespace ClangSharp
         public CX_StorageClass StorageClass => Handle.StorageClass;
 
         public FunctionDecl TemplateInstantiationPattern => _templateInstantiationPattern.Value;
+
+        public IReadOnlyList<TemplateArgument> TemplateSpecializationArgs => _templateSpecializationArgs.Value;
 
         public CX_TemplateSpecializationKind TemplateSpecializationKind => Handle.TemplateSpecializationKind;
     }

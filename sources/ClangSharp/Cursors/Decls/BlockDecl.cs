@@ -3,7 +3,6 @@
 using ClangSharp.Interop;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ClangSharp
 {
@@ -11,7 +10,6 @@ namespace ClangSharp
     {
         private readonly Lazy<Decl> _blockManglingContextDecl;
         private readonly Lazy<IReadOnlyList<Capture>> _captures;
-        private readonly Lazy<IReadOnlyList<Decl>> _decls;
         private readonly Lazy<IReadOnlyList<ParmVarDecl>> _parameters;
 
         internal BlockDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_Block)
@@ -29,7 +27,6 @@ namespace ClangSharp
 
                 return captures;
             });
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
             _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => {
                 var parameterCount = Handle.NumArguments;
                 var parameters = new List<ParmVarDecl>(parameterCount);
@@ -57,8 +54,6 @@ namespace ClangSharp
         public bool CapturesCXXThis => Handle.CapturesCXXThis;
 
         public CompoundStmt CompoundBody => (CompoundStmt)Body;
-
-        public IReadOnlyList<Decl> Decls => _decls.Value;
 
         public bool DoesNotEscape => Handle.DoesNotEscape;
 

@@ -3,6 +3,7 @@
 using ClangSharp.Interop;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace ClangSharp
 {
@@ -13,6 +14,19 @@ namespace ClangSharp
 
         internal ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ClassTemplateSpecialization)
         {
+            _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
+            _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
+                var templateArgCount = Handle.NumTemplateArguments;
+                var templateArgs = new List<TemplateArgument>(templateArgCount);
+
+                for (int i = 0; i < templateArgCount; i++)
+                {
+                    var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
+                    templateArgs.Add(templateArg);
+                }
+
+                return templateArgs;
+            });
         }
 
         private protected ClassTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
@@ -36,6 +50,35 @@ namespace ClangSharp
                 return templateArgs;
             });
         }
+
+        public bool IsClassScopeExplicitSpecialization => IsExplicitSpecialization && (LexicalDeclContext is CXXRecordDecl);
+
+        public bool IsExplicitInstantiationOrSpecialization
+        {
+            get
+            {
+                switch (SpecializationKind)
+                {
+                    case CX_TemplateSpecializationKind.CX_TSK_ExplicitSpecialization:
+                    case CX_TemplateSpecializationKind.CX_TSK_ExplicitInstantiationDeclaration:
+                    case CX_TemplateSpecializationKind.CX_TSK_ExplicitInstantiationDefinition:
+                    {
+                        return true;
+                    }
+
+                    case CX_TemplateSpecializationKind.CX_TSK_Undeclared:
+                    case CX_TemplateSpecializationKind.CX_TSK_ImplicitInstantiation:
+                    {
+                        return false;
+                    }
+                }
+
+                Debug.Fail("bad template specialization kind");
+                return false;
+            }
+        }
+
+        public bool IsExplicitSpecialization => SpecializationKind == CX_TemplateSpecializationKind.CX_TSK_ExplicitSpecialization;
 
         public new ClassTemplateSpecializationDecl MostRecentDecl => (ClassTemplateSpecializationDecl)base.MostRecentDecl;
 

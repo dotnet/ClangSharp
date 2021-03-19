@@ -3,20 +3,17 @@
 using ClangSharp.Interop;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ClangSharp
 {
     public sealed class CapturedDecl : Decl, IDeclContext
     {
         private readonly Lazy<ImplicitParamDecl> _contextParam;
-        private readonly Lazy<IReadOnlyList<Decl>> _decls;
         private readonly Lazy<IReadOnlyList<ImplicitParamDecl>> _parameters;
 
         internal CapturedDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_Captured)
         {
             _contextParam = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.ContextParam));
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
             _parameters = new Lazy<IReadOnlyList<ImplicitParamDecl>>(() => {
                 var parameterCount = Handle.NumArguments;
                 var parameters = new List<ImplicitParamDecl>(parameterCount);
@@ -33,9 +30,7 @@ namespace ClangSharp
 
         public ImplicitParamDecl ContextParam => _contextParam.Value;
 
-        public int ContextParamPosition => Handle.ContextParamPosition;
-
-        public IReadOnlyList<Decl> Decls => _decls.Value;
+        public uint ContextParamPosition => unchecked((uint)Handle.ContextParamPosition);
 
         public bool IsNothrow => Handle.IsNothrow;
 
