@@ -21,7 +21,7 @@ namespace ClangSharp
 
         public new TypedefNameDecl CanonicalDecl => (TypedefNameDecl)base.CanonicalDecl;
 
-        public bool IsTransparentTag => Handle.IsTransparentTag;
+        public bool IsTransparentTag => Handle.IsTransparent;
 
         public Type UnderlyingType => _underlyingType.Value;
     }

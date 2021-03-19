@@ -9,5 +9,7 @@ namespace ClangSharp
         internal ImplicitCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ImplicitCastExpr)
         {
         }
+
+        public bool IsPartOfExplicitCast => !Handle.IsImplicit;
     }
 }

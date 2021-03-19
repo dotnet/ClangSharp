@@ -23,9 +23,5 @@ namespace ClangSharp
         public bool IsInline => Handle.IsInlineNamespace;
 
         public IReadOnlyList<Decl> Decls => _decls.Value;
-
-        public IDeclContext LexicalParent => LexicalDeclContext;
-
-        public IDeclContext Parent => DeclContext;
     }
 }

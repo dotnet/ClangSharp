@@ -26,9 +26,5 @@ namespace ClangSharp
         public bool IsClassMethod() => CursorKind == CXCursorKind.CXCursor_ObjCClassMethodDecl;
 
         public bool IsInstanceMethod() => CursorKind == CXCursorKind.CXCursor_ObjCInstanceMethodDecl;
-
-        public IDeclContext LexicalParent => LexicalDeclContext;
-
-        public IDeclContext Parent => DeclContext;
     }
 }

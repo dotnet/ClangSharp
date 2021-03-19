@@ -7,9 +7,14 @@
 #include "CXCursor.h"
 #include "CXSourceLocation.h"
 
+#pragma warning(push)
+#pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Frontend/ASTUnit.h>
 #include <clang/Lex/Lexer.h>
+
+#pragma warning(pop)
 
 void createNullLocation(CXFile* file, unsigned* line, unsigned* column, unsigned* offset) {
     if (file)

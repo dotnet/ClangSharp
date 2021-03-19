@@ -39,10 +39,6 @@ namespace ClangSharp
 
         public bool IsNothrow => Handle.IsNothrow;
 
-        public IDeclContext LexicalParent => LexicalDeclContext;
-
         public IReadOnlyList<ImplicitParamDecl> Parameters => _parameters.Value;
-
-        public IDeclContext Parent => DeclContext;
     }
 }

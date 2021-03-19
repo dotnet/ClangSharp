@@ -6,10 +6,15 @@
 #ifndef LIBCLANGSHARP_CXSOURCELOCATION_H
 #define LIBCLANGSHARP_CXSOURCELOCATION_H
 
+#pragma warning(push)
+#pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Basic/SourceLocation.h>
 #include <clang/Basic/SourceManager.h>
 #include <clang-c/Index.h>
+
+#pragma warning(pop)
 
 void createNullLocation(CXFile* file, unsigned* line, unsigned* column, unsigned* offset);
 

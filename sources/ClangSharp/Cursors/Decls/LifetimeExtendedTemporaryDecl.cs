@@ -9,5 +9,7 @@ namespace ClangSharp
         internal LifetimeExtendedTemporaryDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_LifetimeExtendedTemporary)
         {
         }
+
+        public ValueDecl ExtendingDecl => null;
     }
 }

@@ -15,13 +15,13 @@ namespace ClangSharp
         {
             Debug.Assert(NumChildren is 1);
 
-            _caughtType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CaughtType));
+            _caughtType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
             _exceptionDecl = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
         }
 
-        public Type CaughtType => null;
+        public Type CaughtType => _caughtType.Value;
 
-        public VarDecl ExceptionDecl => null;
+        public VarDecl ExceptionDecl => _exceptionDecl.Value;
 
         public Stmt HandlerBlock => Children[0];
     }

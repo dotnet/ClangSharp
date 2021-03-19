@@ -18,6 +18,8 @@ namespace ClangSharp
 
         public LabelDecl Decl => _decl.Value;
 
+        public string Name => Handle.Name.CString;
+
         public Stmt SubStmt => Children[0];
     }
 }

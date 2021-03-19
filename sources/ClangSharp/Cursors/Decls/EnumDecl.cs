@@ -34,6 +34,8 @@ namespace ClangSharp
 
         public Type IntegerType => _integerType.Value;
 
+        public bool IsComplete => IsCompleteDefinition || (IntegerType is not null);
+
         public bool IsScoped => Handle.EnumDecl_IsScoped;
 
         public new EnumDecl MostRecentDecl => (EnumDecl)base.MostRecentDecl;

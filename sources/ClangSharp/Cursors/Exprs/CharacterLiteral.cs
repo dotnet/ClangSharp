@@ -12,6 +12,8 @@ namespace ClangSharp
 
         internal CharacterLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CharacterLiteral, CX_StmtClass.CX_StmtClass_CharacterLiteral)
         {
+            Debug.Assert(NumChildren is 0);
+
             _valueString = new Lazy<string>(() => {
                 var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 

@@ -21,6 +21,7 @@ namespace ClangSharp
         private readonly Lazy<Decl> _nonClosureContext;
         private readonly Lazy<IDeclContext> _parentFunctionOrMethod;
         private readonly Lazy<Decl> _previousDecl;
+        private readonly Lazy<IDeclContext> _redeclContext;
         private readonly Lazy<TranslationUnitDecl> _translationUnitDecl;
 
         private protected Decl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind)
@@ -42,6 +43,7 @@ namespace ClangSharp
             _nonClosureContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NonClosureContext));
             _parentFunctionOrMethod = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.ParentFunctionOrMethod) as IDeclContext);
             _previousDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.PreviousDecl));
+            _redeclContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.RedeclContext) as IDeclContext);
             _translationUnitDecl = new Lazy<TranslationUnitDecl>(() => TranslationUnit.GetOrCreate<TranslationUnitDecl>(Handle.TranslationUnit.Cursor));
         }
 
@@ -69,15 +71,46 @@ namespace ClangSharp
 
         public bool IsDeprecated => Handle.IsDeprecated;
 
+        public bool IsInStdNamespace => (DeclContext?.IsStdNamespace).GetValueOrDefault();
+
         public bool IsInvalidDecl => Handle.IsInvalidDeclaration;
 
+        public bool IsNamespace => Kind == CX_DeclKind.CX_DeclKind_Namespace;
+
+        public bool IsStdNamespace
+        {
+            get
+            {
+                if (this is not NamespaceDecl ND)
+                {
+                    return false;
+                }
+
+                if (ND.IsInline)
+                {
+                    return ND.Parent.IsStdNamespace;
+                }
+
+                if (!ND.Parent.RedeclContext.IsTranslationUnit)
+                {
+                    return false;
+                }
+
+                return ND.Name == "std";
+            }
+        }
+
         public bool IsTemplated => Handle.IsTemplated;
+
+        public bool IsTranslationUnit => Kind == CX_DeclKind.CX_DeclKind_TranslationUnit;
 
         public bool IsUnavailable => Handle.IsUnavailable;
 
         public CX_DeclKind Kind => Handle.DeclKind;
 
         public IDeclContext LexicalDeclContext => _lexicalDeclContext.Value;
+
+        public IDeclContext LexicalParent => (this is IDeclContext) ? LexicalDeclContext : null;
 
         public uint MaxAlignment => Handle.MaxAlignment;
 
@@ -87,9 +120,13 @@ namespace ClangSharp
 
         public Decl NonClosureContext => _nonClosureContext.Value;
 
-        // public IDeclContext ParentFunctionOrMethod => _parentFunctionOrMethod.Value;
+        public IDeclContext Parent => (this is IDeclContext) ? DeclContext : null;
+
+        public IDeclContext ParentFunctionOrMethod => _parentFunctionOrMethod.Value;
 
         public Decl PreviousDecl => _previousDecl.Value;
+
+        public IDeclContext RedeclContext => _redeclContext.Value;
 
         public CXSourceRange SourceRange => clangsharp.Cursor_getSourceRange(Handle);
 

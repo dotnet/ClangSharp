@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -16,20 +17,21 @@ namespace ClangSharp
         {
             _arrayFiller = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
             _initializedFieldInUnion = new Lazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.Referenced));
-            _inits = new Lazy<IReadOnlyList<Expr>>(() => {
-                var initCount = Handle.NumExprs;
-                var inits = new List<Expr>(initCount);
-
-                for (int i = 0; i < initCount; i++)
-                {
-                    var init = TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i)));
-                    inits.Add(init);
-                }
-
-                return inits;
-            });
+            _inits = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());
         }
 
+        public Expr ArrayFiller => _arrayFiller.Value;
+
+        public bool HasArrayFiller => ArrayFiller is not null;
+
+        public FieldDecl InitializedFieldInUnion => _initializedFieldInUnion.Value;
+
         public IReadOnlyList<Stmt> Inits => _inits.Value;
+
+        public bool IsExplicit => !Handle.IsImplicit;
+
+        public bool IsTransparent => Handle.IsTransparent;
+
+        public uint NumInits => NumChildren;
     }
 }

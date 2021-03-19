@@ -12,6 +12,8 @@ namespace ClangSharp
 
         internal CXXBoolLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXBoolLiteralExpr, CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr)
         {
+            Debug.Assert(NumChildren is 0);
+
             _valueString = new Lazy<string>(() => {
                 var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
@@ -24,7 +26,7 @@ namespace ClangSharp
             });
         }
 
-        public bool Value => Handle.CXXBoolLiteralExprValue;
+        public bool Value => Handle.BoolLiteralValue;
 
         public string ValueString => _valueString.Value;
     }

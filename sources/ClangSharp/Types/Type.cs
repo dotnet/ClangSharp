@@ -10,6 +10,8 @@ namespace ClangSharp
     public unsafe class Type : IEquatable<Type>
     {
         private readonly Lazy<Type> _canonicalType;
+        private readonly Lazy<Type> _desugar;
+        private readonly Lazy<Type> _pointeeType;
         private readonly Lazy<TranslationUnit> _translationUnit;
 
         protected Type(CXType handle, CXTypeKind expectedKind, CX_TypeClass expectedTypeClass)
@@ -26,14 +28,42 @@ namespace ClangSharp
             Handle = handle;
 
             _canonicalType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CanonicalType));
+            _desugar = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar));
+            _pointeeType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
             _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate((CXTranslationUnit)Handle.data[1]));
         }
 
+        public CXXRecordDecl AsCXXRecordDecl => AsTagDecl as CXXRecordDecl;
+
         public string AsString => Handle.Spelling.ToString();
+
+        public TagDecl AsTagDecl
+        {
+            get
+            {
+                if (GetAs<TagType>() is TagType TT)
+                {
+                    return TT.Decl;
+                }
+
+                if (GetAs<InjectedClassNameType>() is InjectedClassNameType Injected)
+                {
+                    return Injected.Decl;
+                }
+
+                return null;
+            }
+        }
 
         public Type CanonicalType => _canonicalType.Value;
 
+        public Type Desugar => _desugar.Value;
+
         public CXType Handle { get; }
+
+        public bool IsAnyPointerType => IsAnyPointerType || IsObjCObjectPointerType;
+
+        public bool IsExtIntType => CanonicalType is ExtIntType;
 
         public bool IsIntegerType
         {
@@ -48,19 +78,60 @@ namespace ClangSharp
             }
         }
 
-        public bool IsPointerType => this is PointerType;
+        public bool IsIntegralOrEnumerationType
+        {
+            get
+            {
+                if (CanonicalType is BuiltinType BT)
+                {
+                    return (BT.Kind >= CXTypeKind.CXType_Bool) && (BT.Kind <= CXTypeKind.CXType_Int128);
+                }
+
+                if (CanonicalType is EnumType ET)
+                {
+                    return ET.Decl.IsComplete;
+                }
+
+                return IsExtIntType;
+            }
+        }
 
         public bool IsLocalConstQualified => Handle.IsConstQualified;
+
+        public bool IsObjCObjectPointerType => CanonicalType is ObjCObjectPointerType;
+
+        public bool IsPointerType => CanonicalType is PointerType;
+
+        public bool IsSugared => Handle.IsSugared;
 
         public CXTypeKind Kind => Handle.kind;
 
         public string KindSpelling => Handle.KindSpelling.ToString();
+
+        public Type PointeeType => _pointeeType.Value;
 
         public TranslationUnit TranslationUnit => _translationUnit.Value;
 
         public CX_TypeClass TypeClass => Handle.TypeClass;
 
         public string TypeClassSpelling => Handle.TypeClassSpelling;
+
+        public Type UnqualifiedDesugaredType
+        {
+            get
+            {
+                Type Cur = this;
+
+                while (true)
+                {
+                    if (!Cur.IsSugared)
+                    {
+                        return Cur;
+                    }
+                    Cur = Cur.Desugar;
+                }
+            }
+        }
 
         public static bool operator ==(Type left, Type right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
 
@@ -122,6 +193,24 @@ namespace ClangSharp
         public override bool Equals(object obj) => (obj is Type other) && Equals(other);
 
         public bool Equals(Type other) => this == other;
+
+        public T GetAs<T>()
+            where T : Type
+        {
+            Debug.Assert(typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with getAs!");
+
+            if (this is T Ty)
+            {
+                return Ty;
+            }
+
+            if (CanonicalType is not T)
+            {
+                return null;
+            }
+
+            return (T)UnqualifiedDesugaredType;
+        }
 
         public override int GetHashCode() => Handle.GetHashCode();
 

@@ -24,9 +24,5 @@ namespace ClangSharp
         public IReadOnlyList<Decl> Decls => _decls.Value;
 
         public CXLanguageKind Langage => Handle.Language;
-
-        public IDeclContext LexicalParent => LexicalDeclContext;
-
-        public IDeclContext Parent => DeclContext;
     }
 }

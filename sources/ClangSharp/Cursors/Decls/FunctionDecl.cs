@@ -92,11 +92,7 @@ namespace ClangSharp
 
         public bool IsVariadic => Handle.IsVariadic;
 
-        public IDeclContext LexicalParent => LexicalDeclContext;
-
         public IReadOnlyList<ParmVarDecl> Parameters => _parameters.Value;
-
-        public IDeclContext Parent => DeclContext;
 
         public FunctionTemplateDecl PrimaryTemplate => _primaryTemplate.Value;
 

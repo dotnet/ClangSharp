@@ -9,5 +9,7 @@ namespace ClangSharp
         internal CXXThisExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXThisExpr, CX_StmtClass.CX_StmtClass_CXXThisExpr)
         {
         }
+
+        public bool IsImplicit => Handle.IsImplicit;
     }
 }

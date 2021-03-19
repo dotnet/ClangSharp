@@ -1,33 +1,31 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-using System;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class CXXFoldExpr : Expr
     {
-        private readonly Lazy<Expr> _init;
-        private readonly Lazy<Expr> _lhs;
-        private readonly Lazy<Expr> _pattern;
-        private readonly Lazy<Expr> _rhs;
-
         internal CXXFoldExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_CXXFoldExpr)
         {
-            _init = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.InitExpr));
-            _lhs = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.LhsExpr));
-            _pattern = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
-            _rhs = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.RhsExpr));
+            Debug.Assert(NumChildren is 3);
         }
 
-        public Expr Init => _init.Value;
+        public UnresolvedLookupExpr Callee => (UnresolvedLookupExpr)Children[0];
 
-        public Expr LHS => _lhs.Value;
+        public Expr Init => IsLeftFold ? LHS : RHS;
+
+        public bool IsLeftFold => !IsRightFold;
+
+        public bool IsRightFold => (LHS != null) && LHS.ContainsUnexpandedParameterPack;
+
+        public Expr LHS => (Expr)Children[1];
 
         public CX_BinaryOperatorKind Operator => Handle.BinaryOperatorKind;
 
-        public Expr Pattern => _pattern.Value;
+        public Expr Pattern => IsLeftFold ? RHS : LHS;
 
-        public Expr RHS => _rhs.Value;
+        public Expr RHS => (Expr)Children[2];
     }
 }

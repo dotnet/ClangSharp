@@ -33,7 +33,7 @@ namespace ClangSharp
 
                 for (int i = 0; i < parameterCount; i++)
                 {
-                    var parameter = TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateArgument(unchecked((uint)i)));
+                    var parameter = TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)i)));
                     parameters.Add(parameter);
                 }
 

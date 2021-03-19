@@ -9,5 +9,7 @@ namespace ClangSharp
         internal CXXFunctionalCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXFunctionalCastExpr, CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr)
         {
         }
+
+        public bool IsListInitialization => Handle.IsListInitialization;
     }
 }

@@ -8,14 +8,12 @@ namespace ClangSharp
     public sealed class InjectedClassNameType : Type
     {
         private readonly Lazy<CXXRecordDecl> _decl;
-        private readonly Lazy<Type> _desugaredType;
         private readonly Lazy<Type> _injectedSpecializationType;
         private readonly Lazy<TemplateSpecializationType> _injectedTST;
 
         internal InjectedClassNameType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_InjectedClassName)
         {
             _decl = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(handle.Declaration));
-            _desugaredType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar()));
             _injectedSpecializationType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.InjectedSpecializationType));
             _injectedTST = new Lazy<TemplateSpecializationType>(() => TranslationUnit.GetOrCreate<TemplateSpecializationType>(Handle.InjectedTST));
         }
@@ -25,9 +23,5 @@ namespace ClangSharp
         public Type InjectedSpecializationType => _injectedSpecializationType.Value;
 
         public TemplateSpecializationType InjectedTST => _injectedTST.Value;
-
-        public bool IsSugared => Handle.IsSugared;
-
-        public Type Desugar() => _desugaredType.Value;
     }
 }

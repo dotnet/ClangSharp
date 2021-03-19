@@ -30,6 +30,6 @@ namespace ClangSharp
 
         public ConstructorUsingShadowDecl NominatedBaseClassShadowDecl => _nominatedBaseClassShadowDecl.Value;
 
-        public CXXRecordDecl Parent => (CXXRecordDecl)DeclContext;
+        public new CXXRecordDecl Parent => (CXXRecordDecl)DeclContext;
     }
 }

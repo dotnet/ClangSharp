@@ -7,30 +7,30 @@ namespace ClangSharp
 {
     public sealed class TemplateArgumentLoc
     {
-        private readonly TemplateArgument _argument;
-        private readonly Decl _parentDecl;
-        private readonly uint _index;
-
+        private readonly Lazy<TemplateArgument> _argument;
         private readonly Lazy<Expr> _sourceDeclExpression;
         private readonly Lazy<Expr> _sourceExpression;
         private readonly Lazy<Expr> _sourceIntegralExpression;
         private readonly Lazy<Expr> _sourceNullPtrExpression;
+        private readonly Lazy<TranslationUnit> _translationUnit;
 
-        internal TemplateArgumentLoc(Decl parentDecl, uint index)
+        internal TemplateArgumentLoc(CX_TemplateArgumentLoc handle)
         {
-            _argument = new TemplateArgument(parentDecl, index);
-            _parentDecl = parentDecl;
-            _index = index;
+            Handle = handle;
 
-            _sourceDeclExpression = new Lazy<Expr>(() => _parentDecl.TranslationUnit.GetOrCreate<Expr>(_parentDecl.Handle.GetTemplateArgumentLocSourceDeclExpression(_index)));
-            _sourceExpression = new Lazy<Expr>(() => _parentDecl.TranslationUnit.GetOrCreate<Expr>(_parentDecl.Handle.GetTemplateArgumentLocSourceExpression(_index)));
-            _sourceIntegralExpression = new Lazy<Expr>(() => _parentDecl.TranslationUnit.GetOrCreate<Expr>(_parentDecl.Handle.GetTemplateArgumentLocSourceIntegralExpression(_index)));
-            _sourceNullPtrExpression = new Lazy<Expr>(() => _parentDecl.TranslationUnit.GetOrCreate<Expr>(_parentDecl.Handle.GetTemplateArgumentLocSourceNullPtrExpression(_index)));
+            _argument = new Lazy<TemplateArgument>(() => _translationUnit.Value.GetOrCreate(Handle.Argument));
+            _sourceDeclExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceDeclExpression));
+            _sourceExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceExpression));
+            _sourceIntegralExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceIntegralExpression));
+            _sourceNullPtrExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceNullPtrExpression));
+            _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
         }
 
-        public TemplateArgument Argument => _argument;
+        public TemplateArgument Argument => _argument.Value;
 
-        public CXSourceLocation Location => _parentDecl.Handle.GetTemplateArgumentLocLocation(_index);
+        public CXSourceLocation Location => Handle.Location;
+
+        public CX_TemplateArgumentLoc Handle { get; }
 
         public Expr SourceDeclExpression => _sourceDeclExpression.Value;
 
@@ -39,5 +39,7 @@ namespace ClangSharp
         public Expr SourceIntegralExpression => _sourceIntegralExpression.Value;
 
         public Expr SourceNullPtrExpression => _sourceNullPtrExpression.Value;
+
+        public CXSourceRange SourceRange => Handle.SourceRange;
     }
 }

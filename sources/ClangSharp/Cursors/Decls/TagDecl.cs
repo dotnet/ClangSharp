@@ -33,6 +33,8 @@ namespace ClangSharp
 
         public bool IsClass => CursorKind == CXCursorKind.CXCursor_ClassDecl;
 
+        public bool IsCompleteDefinition => Handle.IsCompleteDefinition;
+
         public bool IsEnum => CursorKind == CXCursorKind.CXCursor_EnumDecl;
 
         public bool IsStruct => CursorKind == CXCursorKind.CXCursor_StructDecl;
@@ -40,10 +42,6 @@ namespace ClangSharp
         public bool IsThisDeclarationADefinition => Handle.IsThisDeclarationADefinition;
 
         public bool IsUnion => CursorKind == CXCursorKind.CXCursor_UnionDecl;
-
-        public IDeclContext LexicalParent => LexicalDeclContext;
-
-        public IDeclContext Parent => DeclContext;
 
         public TypedefNameDecl TypedefNameForAnonDecl => _typedefNameForAnonDecl.Value;
     }

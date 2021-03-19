@@ -14,5 +14,7 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
         }
+
+        public string CastName => Handle.Name.CString;
     }
 }
