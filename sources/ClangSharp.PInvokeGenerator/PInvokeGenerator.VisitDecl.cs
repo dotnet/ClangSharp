@@ -1333,7 +1333,8 @@ namespace ClangSharp
                     IsMemberFunction = true,
                     NativeTypeName = nativeTypeName,
                     NeedsNewKeyword = NeedsNewKeyword(remappedName, cxxMethodDecl.Parameters),
-                    HasFnPtrCodeGen = _config.GeneratePreviewCodeFnptr
+                    HasFnPtrCodeGen = _config.GeneratePreviewCodeFnptr,
+                    IsUnsafe = true
                 };
 
                 _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
