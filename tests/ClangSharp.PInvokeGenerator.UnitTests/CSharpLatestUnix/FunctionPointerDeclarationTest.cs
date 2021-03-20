@@ -1,15 +1,12 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace ClangSharp.UnitTests
 {
-    public sealed class FunctionPointerDeclarationTest : PInvokeGeneratorTest
+    public sealed class CSharpLatestUnix_FunctionPointerDeclarationTest : FunctionPointerDeclarationTest
     {
-        [Fact]
-        public async Task BasicTest()
+        public override Task BasicTest()
         {
             var inputContents = @"typedef void (*Callback)();";
 
@@ -22,7 +19,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }

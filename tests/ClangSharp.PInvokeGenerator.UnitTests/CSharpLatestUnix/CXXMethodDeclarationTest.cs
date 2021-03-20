@@ -3,14 +3,12 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace ClangSharp.UnitTests
 {
-    public sealed class CXXMethodDeclarationTest : PInvokeGeneratorTest
+    public sealed class CSharpLatestUnix_CXXMethodDeclarationTest : CXXMethodDeclarationTest
     {
-        [Fact]
-        public async Task ConstructorTest()
+        public override Task ConstructorTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -37,11 +35,10 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ConstructorWithInitializeTest()
+        public override Task ConstructorWithInitializeTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -93,11 +90,10 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ConversionTest()
+        public override Task ConversionTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -124,11 +120,10 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task DestructorTest()
+        public override Task DestructorTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -149,11 +144,10 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task InstanceTest()
+        public override Task InstanceTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -209,11 +203,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task MemberCallTest()
+        public override Task MemberCallTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -283,11 +276,10 @@ int MyFunctionB(MyStruct* x)
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task MemberTest()
+        public override Task MemberTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -314,11 +306,10 @@ int MyFunctionB(MyStruct* x)
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task NewKeywordTest()
+        public override Task NewKeywordTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -415,11 +406,10 @@ int MyFunctionB(MyStruct* x)
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task NewKeywordVirtualTest()
+        public override Task NewKeywordVirtualTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -472,11 +462,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task OperatorTest()
+        public override Task OperatorTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -525,11 +514,10 @@ MyStruct operator-(MyStruct lhs, MyStruct rhs)
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task OperatorCallTest()
+        public override Task OperatorCallTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -598,11 +586,10 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task StaticTest()
+        public override Task StaticTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -650,11 +637,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ThisTest()
+        public override Task ThisTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -681,11 +667,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task UnsafeDoesNotImpactDllImportTest()
+        public override Task UnsafeDoesNotImpactDllImportTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -718,84 +703,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task VirtualCompatibleTest()
-        {
-            var inputContents = @"struct MyStruct
-{
-    virtual void MyVoidMethod() = 0;
-
-    virtual char MyInt8Method()
-    {
-        return 0;
-    }
-
-    virtual int MyInt32Method();
-};
-";
-
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "ThisCall";
-            }
-
-            var expectedOutputContents = $@"using System;
-using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{{
-    public unsafe partial struct MyStruct
-    {{
-        public void** lpVtbl;
-
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
-        public delegate void _MyVoidMethod(MyStruct* pThis);
-
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
-        [return: NativeTypeName(""char"")]
-        public delegate sbyte _MyInt8Method(MyStruct* pThis);
-
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
-        public delegate int _MyInt32Method(MyStruct* pThis);
-
-        public void MyVoidMethod()
-        {{
-            fixed (MyStruct* pThis = &this)
-            {{
-                Marshal.GetDelegateForFunctionPointer<_MyVoidMethod>((IntPtr)(lpVtbl[0]))(pThis);
-            }}
-        }}
-
-        [return: NativeTypeName(""char"")]
-        public sbyte MyInt8Method()
-        {{
-            fixed (MyStruct* pThis = &this)
-            {{
-                return Marshal.GetDelegateForFunctionPointer<_MyInt8Method>((IntPtr)(lpVtbl[1]))(pThis);
-            }}
-        }}
-
-        public int MyInt32Method()
-        {{
-            fixed (MyStruct* pThis = &this)
-            {{
-                return Marshal.GetDelegateForFunctionPointer<_MyInt32Method>((IntPtr)(lpVtbl[2]))(pThis);
-            }}
-        }}
-    }}
-}}
-";
-
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
-        }
-
-        [Fact]
-        public async Task VirtualTest()
+        public override Task VirtualTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -868,7 +779,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }

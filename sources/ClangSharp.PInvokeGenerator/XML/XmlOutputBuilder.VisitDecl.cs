@@ -297,11 +297,12 @@ namespace ClangSharp.XML
             output.WritePendingLine();
             foreach (var s in output.Contents)
             {
-                _sb.AppendLine(s.Replace("&", "&amp;")
+                _sb.Append(s.Replace("&", "&amp;")
                     .Replace("<", "&lt;")
                     .Replace(">", "&gt;")
                     .Replace("/*M*/&lt;", "<")
                     .Replace("/*M*/&gt;", ">"));
+                _sb.Append('\n');
             }
 
             _sb.Append("</code>");

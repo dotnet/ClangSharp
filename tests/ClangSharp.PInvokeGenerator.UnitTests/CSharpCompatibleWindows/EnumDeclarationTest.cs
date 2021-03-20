@@ -2,14 +2,12 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace ClangSharp.UnitTests
 {
-    public sealed class EnumDeclarationTest : PInvokeGeneratorTest
+    public sealed class CSharpCompatibleWindows_EnumDeclarationTest : EnumDeclarationTest
     {
-        [Fact]
-        public async Task BasicTest()
+        public override Task BasicTest()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -30,11 +28,10 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task BasicValueTest()
+        public override Task BasicValueTest()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -55,11 +52,10 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ExcludeTest()
+        public override Task ExcludeTest()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -72,12 +68,10 @@ namespace ClangSharp.UnitTests
             var expectedOutputContents = string.Empty;
 
             var excludedNames = new string[] { "MyEnum" };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
-        [Theory]
-        [InlineData("short", "short")]
-        public async Task ExplicitTypedTest(string nativeType, string expectedManagedType)
+        public override Task ExplicitTypedTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"enum MyEnum : {nativeType}
 {{
@@ -98,17 +92,10 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task ExplicitTypedWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        public override Task ExplicitTypedWithNativeTypeNameTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"enum MyEnum : {nativeType}
 {{
@@ -130,11 +117,10 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task RemapTest()
+        public override Task RemapTest()
         {
             var inputContents = @"typedef enum _MyEnum : int
 {
@@ -156,11 +142,10 @@ namespace ClangSharp.UnitTests
 ";
 
             var remappedNames = new Dictionary<string, string> { ["_MyEnum"] = "MyEnum" };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
-        [Fact]
-        public async Task WithAttributeTest()
+        public override Task WithAttributeTest()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -194,11 +179,10 @@ namespace ClangSharp.Test
             {
                 ["MyEnum1"] = new List<string>() { "Flags" }
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
         }
 
-        [Fact]
-        public async Task WithAttributeStarTest()
+        public override Task WithAttributeStarTest()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -233,11 +217,10 @@ namespace ClangSharp.Test
             {
                 ["*"] = new List<string>() { "Flags" }
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
         }
 
-        [Fact]
-        public async Task WithAttributeStarPlusTest()
+        public override Task WithAttributeStarPlusTest()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -275,11 +258,10 @@ namespace ClangSharp.Test
                 ["*"] = new List<string>() { "Flags" },
                 ["MyEnum2"] = new List<string>() { "EditorBrowsable(EditorBrowsableState.Never)" }
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
         }
 
-        [Fact]
-        public async Task WithNamespaceTest()
+        public override Task WithNamespaceTest()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -312,11 +294,10 @@ namespace ClangSharp.Test
             {
                 ["MyEnum1"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
-        [Fact]
-        public async Task WithNamespaceStarTest()
+        public override Task WithNamespaceStarTest()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -349,11 +330,10 @@ namespace ClangSharp.Test
             {
                 ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
-        [Fact]
-        public async Task WithNamespaceStarPlusTest()
+        public override Task WithNamespaceStarPlusTest()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -388,11 +368,10 @@ namespace ClangSharp.Test
                 ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" },
                 ["MyEnum2"] = new List<string>() { "System" }
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
-        [Fact]
-        public async Task WithCastToEnumType()
+        public override Task WithCastToEnumType()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -413,12 +392,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-
-        [Fact]
-        public async Task WithMultipleEnumsTest()
+        public override Task WithMultipleEnumsTest()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -449,11 +426,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task WithImplicitConversionTest()
+        public override Task WithImplicitConversionTest()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -474,11 +450,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task WithTypeTest()
+        public override Task WithTypeTest()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -503,11 +478,10 @@ namespace ClangSharp.Test
             var withTypes = new Dictionary<string, string> {
                 ["MyEnum"] = "uint"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
 
-        [Fact]
-        public async Task WithTypeAndImplicitConversionTest()
+        public override Task WithTypeAndImplicitConversionTest()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -533,11 +507,10 @@ namespace ClangSharp.Test
             {
                 ["MyEnum"] = "uint"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
 
-        [Fact]
-        public async Task WithTypeStarTest()
+        public override Task WithTypeStarTest()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -570,11 +543,10 @@ enum MyEnum2 : int
             {
                 ["*"] = "uint"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
 
-        [Fact]
-        public async Task WithTypeStarOverrideTest()
+        public override Task WithTypeStarOverrideTest()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -607,7 +579,7 @@ enum MyEnum2 : int
                 ["*"] = "uint",
                 ["MyEnum1"] = "int",
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
     }
 }

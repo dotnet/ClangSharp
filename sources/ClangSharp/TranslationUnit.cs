@@ -144,7 +144,11 @@ namespace ClangSharp
             {
                 Handle.Dispose();
             }
-            _createdTranslationUnits.Remove(Handle);
+
+            lock (_createTranslationUnitLock)
+            {
+                _createdTranslationUnits.Remove(Handle);
+            }
         }
     }
 }

@@ -1,19 +1,14 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace ClangSharp.UnitTests
 {
-    public sealed class VarDeclarationTest : PInvokeGeneratorTest
+    public sealed class CSharpLatestUnix_VarDeclarationTest : VarDeclarationTest
     {
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public async Task BasicTest(string nativeType, string expectedManagedType)
+        public override Task BasicTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"{nativeType} MyVariable = 0;";
 
@@ -26,17 +21,10 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        public override Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"{nativeType} MyVariable = 0;";
 
@@ -50,11 +38,10 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task GuidMacroTest()
+        public override Task GuidMacroTest()
         {
             var inputContents = $@"struct GUID {{
     unsigned long  Data1;
@@ -80,17 +67,10 @@ namespace ClangSharp.Test
             var excludedNames = new string[] { "GUID" };
             var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames, remappedNames: remappedNames);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames, remappedNames: remappedNames);
         }
 
-        [Theory]
-        [InlineData("0", "int", "0")]
-        [InlineData("0U", "uint", "0U")]
-        [InlineData("0LL", "long", "0L")]
-        [InlineData("0ULL", "ulong", "0UL")]
-        [InlineData("0.0", "double", "0.0")]
-        [InlineData("0.f", "float", "0.0f")]
-        public async Task MacroTest(string nativeValue, string expectedManagedType, string expectedManagedValue)
+        public override Task MacroTest(string nativeValue, string expectedManagedType, string expectedManagedValue)
         {
             var inputContents = $@"#define MyMacro1 {nativeValue}
 #define MyMacro2 MyMacro1";
@@ -108,11 +88,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task MultilineMacroTest()
+        public override Task MultilineMacroTest()
         {
             var inputContents = $@"#define MyMacro1 0 + \
 1";
@@ -127,23 +106,17 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("double")]
-        [InlineData("short")]
-        [InlineData("int")]
-        [InlineData("float")]
-        public async Task NoInitializerTest(string nativeType)
+        public override Task NoInitializerTest(string nativeType)
         {
             var inputContents = $@"{nativeType} MyVariable;";
             var expectedOutputContents = "";
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task Utf8StringLiteralMacroTest()
+        public override Task Utf8StringLiteralMacroTest()
         {
             var inputContents = $@"#define MyMacro1 ""Test""";
 
@@ -159,11 +132,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task Utf16StringLiteralMacroTest()
+        public override Task Utf16StringLiteralMacroTest()
         {
             var inputContents = $@"#define MyMacro1 u""Test""";
 
@@ -177,29 +149,16 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task WideStringLiteralConstTest()
-        {
-            var inputContents = $@"const wchar_t MyConst1[] = L""Test"";";
-
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public static partial class Methods
-    {{
-        [NativeTypeName(""const wchar_t [5]"")]
-        public const string MyConst1 = ""Test"";
-    }}
-}}
-";
-
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+        public override Task WideStringLiteralConstTest()
+{
+            // Unsupported string literal kind: 'CX_CLK_Wide'
+            return Task.CompletedTask;
         }
 
-        [Fact]
-        public async Task StringLiteralConstTest()
+        public override Task StringLiteralConstTest()
         {
             var inputContents = $@"const char MyConst1[] = ""Test"";";
 
@@ -215,21 +174,22 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task UncheckedConversionMacroTest()
+        public override Task UncheckedConversionMacroTest()
         {
             var inputContents = $@"#define MyMacro1 (long)0x80000000L
 #define MyMacro2 (int)0x80000000";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+            var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
         [NativeTypeName(""#define MyMacro1 (long)0x80000000L"")]
-        public const int MyMacro1 = unchecked((int)(0x80000000));
+        public const IntPtr MyMacro1 = (IntPtr)(0x80000000);
 
         [NativeTypeName(""#define MyMacro2 (int)0x80000000"")]
         public const int MyMacro2 = unchecked((int)(0x80000000));
@@ -237,12 +197,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-
-        [Fact]
-        public async Task UncheckedFunctionLikeCastMacroTest()
+        public override Task UncheckedFunctionLikeCastMacroTest()
         {
             var inputContents = $@"#define MyMacro1 unsigned(-1)";
 
@@ -256,33 +214,32 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-
-        [Fact]
-        public async Task UncheckedConversionMacroTest2()
+        public override Task UncheckedConversionMacroTest2()
         {
             var inputContents = $@"#define MyMacro1(x, y, z) ((int)(((unsigned long)(x)<<31) | ((unsigned long)(y)<<16) | ((unsigned long)(z))))
 #define MyMacro2(n) MyMacro1(1, 2, n)
 #define MyMacro3 MyMacro2(3)";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+            var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
         [NativeTypeName(""#define MyMacro3 MyMacro2(3)"")]
-        public const int MyMacro3 = unchecked((int)(((uint)(1) << 31) | ((uint)(2) << 16) | ((uint)(3))));
+        public const int MyMacro3 = unchecked((int)(((UIntPtr)(1) << 31) | ((UIntPtr)(2) << 16) | ((UIntPtr)(3))));
     }}
 }}
 ";
 
             var excludedNames = new string[] { "MyMacro1", "MyMacro2" };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
-        [Fact]
-        public async Task UncheckedPointerMacroTest()
+        public override Task UncheckedPointerMacroTest()
         {
             var inputContents = $@"#define Macro1 ((int*) -1)";
 
@@ -296,11 +253,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task UncheckedReinterpretCastMacroTest()
+        public override Task UncheckedReinterpretCastMacroTest()
         {
             var inputContents = $@"#define Macro1 reinterpret_cast<int*>(-1)";
 
@@ -314,7 +270,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }

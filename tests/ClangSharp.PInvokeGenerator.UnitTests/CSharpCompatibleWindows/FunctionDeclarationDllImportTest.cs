@@ -2,14 +2,12 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace ClangSharp.UnitTests
 {
-    public sealed class FunctionDeclarationDllImportTest : PInvokeGeneratorTest
+    public sealed class CSharpCompatibleWindows_FunctionDeclarationDllImportTest : FunctionDeclarationDllImportTest
     {
-        [Fact]
-        public async Task BasicTest()
+        public override Task BasicTest()
         {
             var inputContents = @"void MyFunction();";
 
@@ -25,11 +23,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ArrayParameterTest()
+        public override Task ArrayParameterTest()
         {
             var inputContents = @"void MyFunction(const float color[4]);";
 
@@ -45,11 +42,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task FunctionPointerParameterTest()
+        public override Task FunctionPointerParameterTest()
         {
             var inputContents = @"void MyFunction(void (*callback)());";
 
@@ -66,15 +62,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("MyTemplate<int>", @"MyTemplate<int>", "")]
-        [InlineData("MyTemplate<bool>", @"[NativeTypeName(""MyTemplate<bool>"")] MyTemplate<byte>", "")]
-        [InlineData("MyTemplate<float*>", @"[NativeTypeName(""MyTemplate<float *>"")] MyTemplate<IntPtr>", "using System;\n")]
-        [InlineData("MyTemplate<void(*)(int)>", @"[NativeTypeName(""MyTemplate<void (*)(int)>"")] MyTemplate<IntPtr>", "using System;\n")]
-        public async Task TemplateParameterTest(string nativeParameter, string expectedManagedParameter, string expectedUsingStatement)
+        public override Task TemplateParameterTest(string nativeParameter, string expectedManagedParameter, string expectedUsingStatement)
         {
             var inputContents = @$"template <typename T> struct MyTemplate;
 
@@ -92,12 +83,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
         }
 
-
-        [Fact]
-        public async Task TemplateMemberTest()
+        public override Task TemplateMemberTest()
         {
             var inputContents = @$"template <typename T> struct MyTemplate
 {{
@@ -121,14 +110,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
         }
 
-
-
-
-        [Fact]
-        public async Task NoLibraryPathTest()
+        public override Task NoLibraryPathTest()
         {
             var inputContents = @"void MyFunction();";
 
@@ -144,11 +129,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty);
         }
 
-        [Fact]
-        public async Task WithLibraryPathTest()
+        public override Task WithLibraryPathTest()
         {
             var inputContents = @"void MyFunction();";
 
@@ -168,11 +152,10 @@ namespace ClangSharp.Test
             {
                 ["MyFunction"] = "ClangSharpPInvokeGenerator"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
         }
 
-        [Fact]
-        public async Task WithLibraryPathStarTest()
+        public override Task WithLibraryPathStarTest()
         {
             var inputContents = @"void MyFunction();";
 
@@ -192,22 +175,10 @@ namespace ClangSharp.Test
             {
                 ["*"] = "ClangSharpPInvokeGenerator"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
         }
 
-        [Theory]
-        [InlineData("unsigned char value = 0", @"[NativeTypeName(""unsigned char"")] byte value = 0")]
-        [InlineData("double value = 1.0", @"double value = 1.0")]
-        [InlineData("short value = 2", @"short value = 2")]
-        [InlineData("int value = 3", @"int value = 3")]
-        [InlineData("long long value = 4", @"[NativeTypeName(""long long"")] long value = 4")]
-        [InlineData("signed char value = 5", @"[NativeTypeName(""signed char"")] sbyte value = 5")]
-        [InlineData("float value = 6.0f", @"float value = 6.0f")]
-        [InlineData("unsigned short value = 7", @"[NativeTypeName(""unsigned short"")] ushort value = 7")]
-        [InlineData("unsigned int value = 8", @"[NativeTypeName(""unsigned int"")] uint value = 8")]
-        [InlineData("unsigned long long value = 9", @"[NativeTypeName(""unsigned long long"")] ulong value = 9")]
-        [InlineData("unsigned short value = 'A'", @"[NativeTypeName(""unsigned short"")] ushort value = (byte)('A')")]
-        public async Task OptionalParameterTest(string nativeParameters, string expectedManagedParameters)
+        public override Task OptionalParameterTest(string nativeParameters, string expectedManagedParameters)
         {
             var inputContents = $@"void MyFunction({nativeParameters});";
 
@@ -223,13 +194,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("void* value = nullptr", @"[NativeTypeName(""void *"")] void* value = null")]
-        [InlineData("void* value = 0", @"[NativeTypeName(""void *"")] void* value = null")]
-        public async Task OptionalParameterUnsafeTest(string nativeParameters, string expectedManagedParameters)
+        public override Task OptionalParameterUnsafeTest(string nativeParameters, string expectedManagedParameters)
         {
             var inputContents = $@"void MyFunction({nativeParameters});";
 
@@ -245,11 +213,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task WithCallConvTest()
+        public override Task WithCallConvTest()
         {
             var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
 
@@ -271,11 +238,10 @@ namespace ClangSharp.Test
             var withCallConvs = new Dictionary<string, string> {
                 ["MyFunction1"] = "Winapi"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
         }
 
-        [Fact]
-        public async Task WithCallConvStarTest()
+        public override Task WithCallConvStarTest()
         {
             var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
 
@@ -298,11 +264,10 @@ namespace ClangSharp.Test
             {
                 ["*"] = "Winapi"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
         }
 
-        [Fact]
-        public async Task WithCallConvStarOverrideTest()
+        public override Task WithCallConvStarOverrideTest()
         {
             var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
 
@@ -326,11 +291,10 @@ namespace ClangSharp.Test
                 ["*"] = "Winapi",
                 ["MyFunction2"] = "StdCall"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
         }
 
-        [Fact]
-        public async Task WithSetLastErrorTest()
+        public override Task WithSetLastErrorTest()
         {
             var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
 
@@ -353,11 +317,10 @@ namespace ClangSharp.Test
             {
                 "MyFunction1"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
         }
 
-        [Fact]
-        public async Task WithSetLastErrorStarTest()
+        public override Task WithSetLastErrorStarTest()
         {
             var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
 
@@ -380,7 +343,7 @@ namespace ClangSharp.Test
             {
                 "*"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
         }
     }
 }
