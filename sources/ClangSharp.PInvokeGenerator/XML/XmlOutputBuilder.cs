@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using ClangSharp.Abstractions;
@@ -27,7 +26,8 @@ namespace ClangSharp.XML
                 {
                     Indent = true,
                     IndentChars = "    ",
-                    ConformanceLevel = ConformanceLevel.Fragment
+                    ConformanceLevel = ConformanceLevel.Fragment,
+                    NewLineChars = "\n",
                 });
 
                 foreach (var node in XElement.Parse("<tmp>" + _sb + "</tmp>").Nodes())

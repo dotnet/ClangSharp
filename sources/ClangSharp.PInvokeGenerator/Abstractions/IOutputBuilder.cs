@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace ClangSharp.Abstractions
 {
     internal partial interface IOutputBuilder

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using ClangSharp.CSharp;
 
 namespace ClangSharp.Abstractions

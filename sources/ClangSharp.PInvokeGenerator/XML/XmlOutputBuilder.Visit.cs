@@ -3,7 +3,7 @@ namespace ClangSharp.XML
     internal partial class XmlOutputBuilder
     {
         public void WriteCustomAttribute(string attribute)
-            => _sb.AppendLine($"<attribute>{attribute}</attribute>");
+            => _sb.Append($"<attribute>{attribute}</attribute>\n");
         public void WriteIid(string iidName, string iidValue)
         {
             _sb.Append("<iid name=\"");
