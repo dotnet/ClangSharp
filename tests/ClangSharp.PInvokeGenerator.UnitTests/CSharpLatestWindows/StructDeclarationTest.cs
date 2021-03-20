@@ -2,20 +2,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace ClangSharp.UnitTests
 {
-    public sealed class StructDeclarationTest : PInvokeGeneratorTest
+    public sealed class CSharpLatestWindows_StructDeclarationTest : StructDeclarationTest
     {
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public async Task BasicTest(string nativeType, string expectedManagedType)
+        public override Task BasicTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -38,15 +31,10 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public async Task BasicTestInCMode(string nativeType, string expectedManagedType)
+        public override Task BasicTestInCMode(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef struct
 {{
@@ -68,11 +56,39 @@ namespace ClangSharp.UnitTests
     }}
 }}
 ";
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
         }
 
-        [Fact]
-        public async Task BitfieldWindowsTest()
+        public override Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} r;
+    {nativeType} g;
+    {nativeType} b;
+}};
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        [NativeTypeName(""{nativeType}"")]
+        public {expectedManagedType} r;
+
+        [NativeTypeName(""{nativeType}"")]
+        public {expectedManagedType} g;
+
+        [NativeTypeName(""{nativeType}"")]
+        public {expectedManagedType} b;
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task BitfieldTest()
         {
             var inputContents = @"struct MyStruct1
 {
@@ -282,325 +298,19 @@ struct MyStruct3
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task BitfieldUnixTest()
-        {
-            var inputContents = @"struct MyStruct1
-{
-    unsigned int o0_b0_24 : 24;
-    unsigned int o4_b0_16 : 16;
-    unsigned int o4_b16_3 : 3;
-    int o4_b19_3 : 3;
-    unsigned char o4_b22_1 : 1;
-    int o4_b23_1 : 1;
-    int o4_b24_1 : 1;
-};
-
-struct MyStruct2
-{
-    unsigned int o0_b0_1 : 1;
-    int x;
-    unsigned int o8_b0_1 : 1;
-};
-
-struct MyStruct3
-{
-    unsigned int o0_b0_1 : 1;
-    unsigned int o0_b1_1 : 1;
-};
-";
-
-            var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public partial struct MyStruct1
-    {
-        public uint _bitfield1;
-
-        [NativeTypeName(""unsigned int : 24"")]
-        public uint o0_b0_24
-        {
-            get
-            {
-                return _bitfield1 & 0xFFFFFFu;
-            }
-
-            set
-            {
-                _bitfield1 = (_bitfield1 & ~0xFFFFFFu) | (value & 0xFFFFFFu);
-            }
-        }
-
-        public uint _bitfield2;
-
-        [NativeTypeName(""unsigned int : 16"")]
-        public uint o4_b0_16
-        {
-            get
-            {
-                return _bitfield2 & 0xFFFFu;
-            }
-
-            set
-            {
-                _bitfield2 = (_bitfield2 & ~0xFFFFu) | (value & 0xFFFFu);
-            }
-        }
-
-        [NativeTypeName(""unsigned int : 3"")]
-        public uint o4_b16_3
-        {
-            get
-            {
-                return (_bitfield2 >> 16) & 0x7u;
-            }
-
-            set
-            {
-                _bitfield2 = (_bitfield2 & ~(0x7u << 16)) | ((value & 0x7u) << 16);
-            }
-        }
-
-        [NativeTypeName(""int : 3"")]
-        public int o4_b19_3
-        {
-            get
-            {
-                return (int)((_bitfield2 >> 19) & 0x7u);
-            }
-
-            set
-            {
-                _bitfield2 = (_bitfield2 & ~(0x7u << 19)) | (uint)((value & 0x7) << 19);
-            }
-        }
-
-        [NativeTypeName(""unsigned char : 1"")]
-        public byte o4_b22_1
-        {
-            get
-            {
-                return (byte)((_bitfield2 >> 22) & 0x1u);
-            }
-
-            set
-            {
-                _bitfield2 = (_bitfield2 & ~(0x1u << 22)) | (uint)((value & 0x1u) << 22);
-            }
-        }
-
-        [NativeTypeName(""int : 1"")]
-        public int o4_b23_1
-        {
-            get
-            {
-                return (int)((_bitfield2 >> 23) & 0x1u);
-            }
-
-            set
-            {
-                _bitfield2 = (_bitfield2 & ~(0x1u << 23)) | (uint)((value & 0x1) << 23);
-            }
-        }
-
-        [NativeTypeName(""int : 1"")]
-        public int o4_b24_1
-        {
-            get
-            {
-                return (int)((_bitfield2 >> 24) & 0x1u);
-            }
-
-            set
-            {
-                _bitfield2 = (_bitfield2 & ~(0x1u << 24)) | (uint)((value & 0x1) << 24);
-            }
-        }
-    }
-
-    public partial struct MyStruct2
-    {
-        public uint _bitfield1;
-
-        [NativeTypeName(""unsigned int : 1"")]
-        public uint o0_b0_1
-        {
-            get
-            {
-                return _bitfield1 & 0x1u;
-            }
-
-            set
-            {
-                _bitfield1 = (_bitfield1 & ~0x1u) | (value & 0x1u);
-            }
-        }
-
-        public int x;
-
-        public uint _bitfield2;
-
-        [NativeTypeName(""unsigned int : 1"")]
-        public uint o8_b0_1
-        {
-            get
-            {
-                return _bitfield2 & 0x1u;
-            }
-
-            set
-            {
-                _bitfield2 = (_bitfield2 & ~0x1u) | (value & 0x1u);
-            }
-        }
-    }
-
-    public partial struct MyStruct3
-    {
-        public uint _bitfield;
-
-        [NativeTypeName(""unsigned int : 1"")]
-        public uint o0_b0_1
-        {
-            get
-            {
-                return _bitfield & 0x1u;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~0x1u) | (value & 0x1u);
-            }
-        }
-
-        [NativeTypeName(""unsigned int : 1"")]
-        public uint o0_b1_1
-        {
-            get
-            {
-                return (_bitfield >> 1) & 0x1u;
-            }
-
-            set
-            {
-                _bitfield = (_bitfield & ~(0x1u << 1)) | ((value & 0x1u) << 1);
-            }
-        }
-    }
-}
-";
-
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateUnixTypes);
-        }
-
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
-{{
-    {nativeType} r;
-    {nativeType} g;
-    {nativeType} b;
-}};
-";
-
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public partial struct MyStruct
-    {{
-        [NativeTypeName(""{nativeType}"")]
-        public {expectedManagedType} r;
-
-        [NativeTypeName(""{nativeType}"")]
-        public {expectedManagedType} g;
-
-        [NativeTypeName(""{nativeType}"")]
-        public {expectedManagedType} b;
-    }}
-}}
-";
-
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
-        }
-
-        [Fact]
-        public async Task ExcludeTest()
+        public override Task ExcludeTest()
         {
             var inputContents = "typedef struct MyStruct MyStruct;";
             var expectedOutputContents = string.Empty;
 
             var excludedNames = new string[] { "MyStruct" };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public async Task FixedSizedBufferNonPrimitiveCompatibleTest(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
-{{
-    {nativeType} value;
-}};
-
-struct MyOtherStruct
-{{
-    MyStruct c[3];
-}};
-";
-
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public partial struct MyStruct
-    {{
-        public {expectedManagedType} value;
-    }}
-
-    public partial struct MyOtherStruct
-    {{
-        [NativeTypeName(""MyStruct [3]"")]
-        public _c_e__FixedBuffer c;
-
-        public partial struct _c_e__FixedBuffer
-        {{
-            public MyStruct e0;
-            public MyStruct e1;
-            public MyStruct e2;
-
-            public unsafe ref MyStruct this[int index]
-            {{
-                get
-                {{
-                    fixed (MyStruct* pThis = &e0)
-                    {{
-                        return ref pThis[index];
-                    }}
-                }}
-            }}
-        }}
-    }}
-}}
-";
-
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
-        }
-
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public async Task FixedSizedBufferNonPrimitiveTest(string nativeType, string expectedManagedType)
+        public override Task FixedSizedBufferNonPrimitiveTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -648,15 +358,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public async Task FixedSizedBufferNonPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType)
+        public override Task FixedSizedBufferNonPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -736,15 +441,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public async Task FixedSizedBufferNonPrimitiveTypedefTest(string nativeType, string expectedManagedType)
+        public override Task FixedSizedBufferNonPrimitiveTypedefTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -794,74 +494,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task FixedSizedBufferNonPrimitiveWithNativeTypeNameCompatibleTest(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
-{{
-    {nativeType} value;
-}};
-
-struct MyOtherStruct
-{{
-    MyStruct c[3];
-}};
-";
-
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public partial struct MyStruct
-    {{
-        [NativeTypeName(""{nativeType}"")]
-        public {expectedManagedType} value;
-    }}
-
-    public partial struct MyOtherStruct
-    {{
-        [NativeTypeName(""MyStruct [3]"")]
-        public _c_e__FixedBuffer c;
-
-        public partial struct _c_e__FixedBuffer
-        {{
-            public MyStruct e0;
-            public MyStruct e1;
-            public MyStruct e2;
-
-            public unsafe ref MyStruct this[int index]
-            {{
-                get
-                {{
-                    fixed (MyStruct* pThis = &e0)
-                    {{
-                        return ref pThis[index];
-                    }}
-                }}
-            }}
-        }}
-    }}
-}}
-";
-
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
-        }
-
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        public override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -910,15 +546,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("double *", "double*")]
-        [InlineData("short *", "short*")]
-        [InlineData("int *", "int*")]
-        [InlineData("float *", "float*")]
-        public async Task FixedSizedBufferPointerTest(string nativeType, string expectedManagedType)
+        public override Task FixedSizedBufferPointerTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -954,21 +585,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task FixedSizedBufferPrimitiveTest(string nativeType, string expectedManagedType)
+        public override Task FixedSizedBufferPrimitiveTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -986,21 +606,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task FixedSizedBufferPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType)
+        public override Task FixedSizedBufferPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -1018,21 +627,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task FixedSizedBufferPrimitiveTypedefTest(string nativeType, string expectedManagedType)
+        public override Task FixedSizedBufferPrimitiveTypedefTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef {nativeType} MyBuffer[3];
 
@@ -1052,18 +650,11 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task GuidTest()
+        public override Task GuidTest()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // Unix doesn't support __declspec(uuid(""))
-                return;
-            }
-
             var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
 
 struct __declspec(uuid(""00000000-0000-0000-C000-000000000046"")) MyStruct1
@@ -1104,11 +695,10 @@ namespace ClangSharp.Test
 ";
 
             var excludedNames = new string[] { "DECLSPEC_UUID" };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
-        [Fact]
-        public async Task InheritanceTest()
+        public override Task InheritanceTest()
         {
             var inputContents = @"struct MyStruct1A
 {
@@ -1159,15 +749,10 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("double", "double", 10, 5)]
-        [InlineData("short", "short", 10, 5)]
-        [InlineData("int", "int", 10, 5)]
-        [InlineData("float", "float", 10, 5)]
-        public async Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column)
+        public override Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column)
         {
             var inputContents = $@"typedef union {{
     {nativeType} value;
@@ -1297,164 +882,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("double", "double", 10, 5)]
-        [InlineData("short", "short", 10, 5)]
-        [InlineData("int", "int", 10, 5)]
-        [InlineData("float", "float", 10, 5)]
-        public async Task NestedAnonymousCompatibleTest(string nativeType, string expectedManagedType, int line, int column)
-        {
-            var inputContents = $@"typedef union {{
-    {nativeType} value;
-}} MyUnion;
-
-struct MyStruct
-{{
-    {nativeType} x;
-    {nativeType} y;
-
-    struct
-    {{
-        {nativeType} z;
-
-        struct
-        {{
-            {nativeType} value;
-        }} w;
-
-        MyUnion u;
-        {nativeType} buffer1[4];
-        MyUnion buffer2[4];
-    }};
-}};
-";
-
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{{
-    [StructLayout(LayoutKind.Explicit)]
-    public partial struct MyUnion
-    {{
-        [FieldOffset(0)]
-        public {expectedManagedType} value;
-    }}
-
-    public unsafe partial struct MyStruct
-    {{
-        public {expectedManagedType} x;
-
-        public {expectedManagedType} y;
-
-        [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
-        public _Anonymous_e__Struct Anonymous;
-
-        public ref {expectedManagedType} z
-        {{
-            get
-            {{
-                fixed (_Anonymous_e__Struct* pField = &Anonymous)
-                {{
-                    return ref pField->z;
-                }}
-            }}
-        }}
-
-        public ref _Anonymous_e__Struct._w_e__Struct w
-        {{
-            get
-            {{
-                fixed (_Anonymous_e__Struct* pField = &Anonymous)
-                {{
-                    return ref pField->w;
-                }}
-            }}
-        }}
-
-        public ref MyUnion u
-        {{
-            get
-            {{
-                fixed (_Anonymous_e__Struct* pField = &Anonymous)
-                {{
-                    return ref pField->u;
-                }}
-            }}
-        }}
-
-        public ref {expectedManagedType} buffer1
-        {{
-            get
-            {{
-                fixed (_Anonymous_e__Struct* pField = &Anonymous)
-                {{
-                    return ref pField->buffer1[0];
-                }}
-            }}
-        }}
-
-        public ref _Anonymous_e__Struct._buffer2_e__FixedBuffer buffer2
-        {{
-            get
-            {{
-                fixed (_Anonymous_e__Struct* pField = &Anonymous)
-                {{
-                    return ref pField->buffer2;
-                }}
-            }}
-        }}
-
-        public unsafe partial struct _Anonymous_e__Struct
-        {{
-            public {expectedManagedType} z;
-
-            [NativeTypeName(""struct (anonymous struct at ClangUnsavedFile.h:14:9)"")]
-            public _w_e__Struct w;
-
-            public MyUnion u;
-
-            [NativeTypeName(""{nativeType} [4]"")]
-            public fixed {expectedManagedType} buffer1[4];
-
-            [NativeTypeName(""MyUnion [4]"")]
-            public _buffer2_e__FixedBuffer buffer2;
-
-            public partial struct _w_e__Struct
-            {{
-                public {expectedManagedType} value;
-            }}
-
-            public partial struct _buffer2_e__FixedBuffer
-            {{
-                public MyUnion e0;
-                public MyUnion e1;
-                public MyUnion e2;
-                public MyUnion e3;
-
-                public unsafe ref MyUnion this[int index]
-                {{
-                    get
-                    {{
-                        fixed (MyUnion* pThis = &e0)
-                        {{
-                            return ref pThis[index];
-                        }}
-                    }}
-                }}
-            }}
-        }}
-    }}
-}}
-";
-
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
-        }
-
-        [Fact]
-        public async Task NestedAnonymousWithBitfieldTest()
+        public override Task NestedAnonymousWithBitfieldTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -1576,11 +1007,107 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task NewKeywordTest()
+        public override Task NestedTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} r;
+    {nativeType} g;
+    {nativeType} b;
+
+    struct MyNestedStruct
+    {{
+        {nativeType} r;
+        {nativeType} g;
+        {nativeType} b;
+        {nativeType} a;
+    }};
+}};
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        public {expectedManagedType} r;
+
+        public {expectedManagedType} g;
+
+        public {expectedManagedType} b;
+
+        public partial struct MyNestedStruct
+        {{
+            public {expectedManagedType} r;
+
+            public {expectedManagedType} g;
+
+            public {expectedManagedType} b;
+
+            public {expectedManagedType} a;
+        }}
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task NestedWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} r;
+    {nativeType} g;
+    {nativeType} b;
+
+    struct MyNestedStruct
+    {{
+        {nativeType} r;
+        {nativeType} g;
+        {nativeType} b;
+        {nativeType} a;
+    }};
+}};
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        [NativeTypeName(""{nativeType}"")]
+        public {expectedManagedType} r;
+
+        [NativeTypeName(""{nativeType}"")]
+        public {expectedManagedType} g;
+
+        [NativeTypeName(""{nativeType}"")]
+        public {expectedManagedType} b;
+
+        public partial struct MyNestedStruct
+        {{
+            [NativeTypeName(""{nativeType}"")]
+            public {expectedManagedType} r;
+
+            [NativeTypeName(""{nativeType}"")]
+            public {expectedManagedType} g;
+
+            [NativeTypeName(""{nativeType}"")]
+            public {expectedManagedType} b;
+
+            [NativeTypeName(""{nativeType}"")]
+            public {expectedManagedType} a;
+        }}
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task NewKeywordTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -1614,120 +1141,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public async Task NestedTest(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
-{{
-    {nativeType} r;
-    {nativeType} g;
-    {nativeType} b;
-
-    struct MyNestedStruct
-    {{
-        {nativeType} r;
-        {nativeType} g;
-        {nativeType} b;
-        {nativeType} a;
-    }};
-}};
-";
-
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public partial struct MyStruct
-    {{
-        public {expectedManagedType} r;
-
-        public {expectedManagedType} g;
-
-        public {expectedManagedType} b;
-
-        public partial struct MyNestedStruct
-        {{
-            public {expectedManagedType} r;
-
-            public {expectedManagedType} g;
-
-            public {expectedManagedType} b;
-
-            public {expectedManagedType} a;
-        }}
-    }}
-}}
-";
-
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
-        }
-
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task NestedWithNativeTypeNameTest(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
-{{
-    {nativeType} r;
-    {nativeType} g;
-    {nativeType} b;
-
-    struct MyNestedStruct
-    {{
-        {nativeType} r;
-        {nativeType} g;
-        {nativeType} b;
-        {nativeType} a;
-    }};
-}};
-";
-
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public partial struct MyStruct
-    {{
-        [NativeTypeName(""{nativeType}"")]
-        public {expectedManagedType} r;
-
-        [NativeTypeName(""{nativeType}"")]
-        public {expectedManagedType} g;
-
-        [NativeTypeName(""{nativeType}"")]
-        public {expectedManagedType} b;
-
-        public partial struct MyNestedStruct
-        {{
-            [NativeTypeName(""{nativeType}"")]
-            public {expectedManagedType} r;
-
-            [NativeTypeName(""{nativeType}"")]
-            public {expectedManagedType} g;
-
-            [NativeTypeName(""{nativeType}"")]
-            public {expectedManagedType} b;
-
-            [NativeTypeName(""{nativeType}"")]
-            public {expectedManagedType} a;
-        }}
-    }}
-}}
-";
-
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
-        }
-
-        [Fact]
-        public async Task NoDefinitionTest()
+        public override Task NoDefinitionTest()
         {
             var inputContents = "typedef struct MyStruct MyStruct;";
 
@@ -1738,11 +1155,10 @@ namespace ClangSharp.Test
     }}
 }}
 ";
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task PointerToSelfTest()
+        public override Task PointerToSelfTest()
         {
             var inputContents = @"struct example_s {
    example_s* next;
@@ -1762,11 +1178,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task PointerToSelfViaTypedefTest()
+        public override Task PointerToSelfViaTypedefTest()
         {
             var inputContents = @"typedef struct example_s example_t;
 
@@ -1788,11 +1203,10 @@ struct example_s {
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task RemapTest()
+        public override Task RemapTest()
         {
             var inputContents = "typedef struct _MyStruct MyStruct;";
 
@@ -1805,11 +1219,10 @@ struct example_s {
 ";
 
             var remappedNames = new Dictionary<string, string> { ["_MyStruct"] = "MyStruct" };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
-        [Fact]
-        public async Task RemapNestedAnonymousTest()
+        public override Task RemapNestedAnonymousTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -1858,15 +1271,10 @@ namespace ClangSharp.Test
                 ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
                 ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Struct"
             };
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public async Task SkipNonDefinitionTest(string nativeType, string expectedManagedType)
+        public override Task SkipNonDefinitionTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef struct MyStruct MyStruct;
 
@@ -1891,11 +1299,10 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task SkipNonDefinitionPointerTest()
+        public override Task SkipNonDefinitionPointerTest()
         {
             var inputContents = @"typedef struct MyStruct* MyStructPtr;
 typedef struct MyStruct& MyStructRef;
@@ -1909,17 +1316,10 @@ typedef struct MyStruct& MyStructRef;
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task SkipNonDefinitionWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        public override Task SkipNonDefinitionWithNativeTypeNameTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef struct MyStruct MyStruct;
 
@@ -1947,21 +1347,10 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public async Task TypedefTest(string nativeType, string expectedManagedType)
+        public override Task TypedefTest(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef {nativeType} MyTypedefAlias;
 
@@ -1989,11 +1378,10 @@ struct MyStruct
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task UsingDeclarationTest()
+        public override Task UsingDeclarationTest()
         {
             var inputContents = @"struct MyStruct1A
 {
@@ -2025,7 +1413,7 @@ struct MyStruct1B : MyStruct1A
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }

@@ -3,14 +3,12 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace ClangSharp.UnitTests
 {
-    public sealed class FunctionDeclarationBodyImportTest : PInvokeGeneratorTest
+    public sealed class CSharpLatestUnix_FunctionDeclarationBodyImportTest : FunctionDeclarationBodyImportTest
     {
-        [Fact]
-        public async Task ArraySubscriptTest()
+        public override Task ArraySubscriptTest()
         {
             var inputContents = @"int MyFunction(int* pData, int index)
 {
@@ -30,11 +28,10 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task BasicTest()
+        public override Task BasicTest()
         {
             var inputContents = @"void MyFunction()
 {
@@ -52,32 +49,10 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("%")]
-        [InlineData("%=")]
-        [InlineData("&")]
-        [InlineData("&=")]
-        [InlineData("*")]
-        [InlineData("*=")]
-        [InlineData("+")]
-        [InlineData("+=")]
-        [InlineData("-")]
-        [InlineData("-=")]
-        [InlineData("/")]
-        [InlineData("/=")]
-        [InlineData("<<")]
-        [InlineData("<<=")]
-        [InlineData("=")]
-        [InlineData(">>")]
-        [InlineData(">>=")]
-        [InlineData("^")]
-        [InlineData("^=")]
-        [InlineData("|")]
-        [InlineData("|=")]
-        public async Task BinaryOperatorBasicTest(string opcode)
+        public override Task BinaryOperatorBasicTest(string opcode)
         {
             var inputContents = $@"int MyFunction(int x, int y)
 {{
@@ -97,17 +72,10 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("==")]
-        [InlineData("!=")]
-        [InlineData("<")]
-        [InlineData("<=")]
-        [InlineData(">")]
-        [InlineData(">=")]
-        public async Task BinaryOperatorCompareTest(string opcode)
+        public override Task BinaryOperatorCompareTest(string opcode)
         {
             var inputContents = $@"bool MyFunction(int x, int y)
 {{
@@ -127,13 +95,10 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("&&")]
-        [InlineData("||")]
-        public async Task BinaryOperatorBooleanTest(string opcode)
+        public override Task BinaryOperatorBooleanTest(string opcode)
         {
             var inputContents = $@"bool MyFunction(bool x, bool y)
 {{
@@ -153,11 +118,10 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task BreakTest()
+        public override Task BreakTest()
         {
             var inputContents = @"int MyFunction(int value)
 {
@@ -187,11 +151,10 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CallFunctionTest()
+        public override Task CallFunctionTest()
         {
             var inputContents = @"void MyCalledFunction()
 {
@@ -219,11 +182,10 @@ void MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CallFunctionWithArgsTest()
+        public override Task CallFunctionWithArgsTest()
         {
             var inputContents = @"void MyCalledFunction(int x, int y)
 {
@@ -251,11 +213,10 @@ void MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CaseTest()
+        public override Task CaseTest()
         {
             var inputContents = @"int MyFunction(int value)
 {
@@ -303,11 +264,10 @@ void MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CaseNoCompoundTest()
+        public override Task CaseNoCompoundTest()
         {
             var inputContents = @"int MyFunction(int value)
 {
@@ -351,11 +311,10 @@ void MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CompareMultipleEnumTest()
+        public override Task CompareMultipleEnumTest()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -393,11 +352,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ConditionalOperatorTest()
+        public override Task ConditionalOperatorTest()
         {
             var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
 {
@@ -417,11 +375,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ContinueTest()
+        public override Task ContinueTest()
         {
             var inputContents = @"int MyFunction(int value)
 {
@@ -451,11 +408,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CStyleFunctionalCastTest()
+        public override Task CStyleFunctionalCastTest()
         {
             var inputContents = @"int MyFunction(float input)
 {
@@ -475,11 +431,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CxxFunctionalCastTest()
+        public override Task CxxFunctionalCastTest()
         {
             var inputContents = @"int MyFunction(float input)
 {
@@ -499,11 +454,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CxxConstCastTest()
+        public override Task CxxConstCastTest()
         {
             var inputContents = @"void* MyFunction(const void* input)
 {
@@ -524,11 +478,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CxxDynamicCastTest()
+        public override Task CxxDynamicCastTest()
         {
             var inputContents = @"struct MyStructA
 {
@@ -594,11 +547,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CxxReinterpretCastTest()
+        public override Task CxxReinterpretCastTest()
         {
             var inputContents = @"int* MyFunction(void* input)
 {
@@ -619,11 +571,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task CxxStaticCastTest()
+        public override Task CxxStaticCastTest()
         {
             var inputContents = @"int* MyFunction(void* input)
 {
@@ -644,11 +595,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task DeclTest()
+        public override Task DeclTest()
         {
             var inputContents = @"\
 int MyFunction()
@@ -674,11 +624,10 @@ int MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task DoTest()
+        public override Task DoTest()
         {
             var inputContents = @"int MyFunction(int count)
 {
@@ -714,11 +663,10 @@ int MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task DoNonCompoundTest()
+        public override Task DoNonCompoundTest()
         {
             var inputContents = @"int MyFunction(int count)
 {
@@ -750,11 +698,10 @@ int MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ForTest()
+        public override Task ForTest()
         {
             var inputContents = @"int MyFunction(int count)
 {
@@ -897,11 +844,10 @@ int MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ForNonCompoundTest()
+        public override Task ForNonCompoundTest()
         {
             var inputContents = @"int MyFunction(int count)
 {
@@ -1020,11 +966,10 @@ int MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task IfTest()
+        public override Task IfTest()
         {
             var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
 {
@@ -1054,11 +999,10 @@ int MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task IfElseTest()
+        public override Task IfElseTest()
         {
             var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
 {
@@ -1092,11 +1036,10 @@ int MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task IfElseIfTest()
+        public override Task IfElseIfTest()
         {
             var inputContents = @"int MyFunction(bool condition1, int a, int b, bool condition2, int c)
 {
@@ -1134,11 +1077,10 @@ int MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task IfElseNonCompoundTest()
+        public override Task IfElseNonCompoundTest()
         {
             var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
 {
@@ -1168,11 +1110,10 @@ int MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task InitListForArrayTest()
+        public override Task InitListForArrayTest()
         {
             var inputContents = @"
 void MyFunction()
@@ -1213,11 +1154,10 @@ void MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task InitListForRecordDeclTest()
+        public override Task InitListForRecordDeclTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -1277,11 +1217,10 @@ MyStruct MyFunction2()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task MemberTest()
+        public override Task MemberTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -1321,11 +1260,10 @@ int MyFunction2(MyStruct* instance)
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task RefToPtrTest()
+        public override Task RefToPtrTest()
         {
             var inputContents = @"struct MyStruct {
     int value;
@@ -1354,11 +1292,10 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ReturnCXXNullPtrTest()
+        public override Task ReturnCXXNullPtrTest()
         {
             var inputContents = @"void* MyFunction()
 {
@@ -1379,13 +1316,10 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("false")]
-        [InlineData("true")]
-        public async Task ReturnCXXBooleanLiteralTest(string value)
+        public override Task ReturnCXXBooleanLiteralTest(string value)
         {
             var inputContents = $@"bool MyFunction()
 {{
@@ -1405,13 +1339,10 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("5e-1")]
-        [InlineData("3.14")]
-        public async Task ReturnFloatingLiteralDoubleTest(string value)
+        public override Task ReturnFloatingLiteralDoubleTest(string value)
         {
             var inputContents = $@"double MyFunction()
 {{
@@ -1431,13 +1362,10 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("5e-1f")]
-        [InlineData("3.14f")]
-        public async Task ReturnFloatingLiteralSingleTest(string value)
+        public override Task ReturnFloatingLiteralSingleTest(string value)
         {
             var inputContents = $@"float MyFunction()
 {{
@@ -1457,11 +1385,10 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ReturnEmptyTest()
+        public override Task ReturnEmptyTest()
         {
             var inputContents = @"void MyFunction()
 {
@@ -1481,11 +1408,10 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ReturnIntegerLiteralInt32Test()
+        public override Task ReturnIntegerLiteralInt32Test()
         {
             var inputContents = @"int MyFunction()
 {
@@ -1505,11 +1431,10 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task AccessUnionMemberTest()
+        public override Task AccessUnionMemberTest()
         {
             var inputContents = @"union MyUnion
 {
@@ -1560,11 +1485,10 @@ namespace ClangSharp.Test
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task ReturnStructTest()
+        public override Task ReturnStructTest()
         {
             var inputContents = @"struct MyStruct
 {
@@ -1603,11 +1527,10 @@ MyStruct MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task SwitchTest()
+        public override Task SwitchTest()
         {
             var inputContents = @"int MyFunction(int value)
 {
@@ -1639,11 +1562,10 @@ MyStruct MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task SwitchNonCompoundTest()
+        public override Task SwitchNonCompoundTest()
         {
             var inputContents = @"int MyFunction(int value)
 {
@@ -1685,11 +1607,10 @@ MyStruct MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task UnaryOperatorAddrOfTest()
+        public override Task UnaryOperatorAddrOfTest()
         {
             var inputContents = @"int* MyFunction(int value)
 {
@@ -1710,11 +1631,10 @@ MyStruct MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task UnaryOperatorDerefTest()
+        public override Task UnaryOperatorDerefTest()
         {
             var inputContents = @"int MyFunction(int* value)
 {
@@ -1734,11 +1654,10 @@ MyStruct MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task UnaryOperatorLogicalNotTest()
+        public override Task UnaryOperatorLogicalNotTest()
         {
             var inputContents = @"bool MyFunction(bool value)
 {
@@ -1758,13 +1677,10 @@ MyStruct MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("++")]
-        [InlineData("--")]
-        public async Task UnaryOperatorPostfixTest(string opcode)
+        public override Task UnaryOperatorPostfixTest(string opcode)
         {
             var inputContents = $@"int MyFunction(int value)
 {{
@@ -1784,16 +1700,10 @@ MyStruct MyFunction()
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Theory]
-        [InlineData("+")]
-        [InlineData("++")]
-        [InlineData("-")]
-        [InlineData("--")]
-        [InlineData("~")]
-        public async Task UnaryOperatorPrefixTest(string opcode)
+        public override Task UnaryOperatorPrefixTest(string opcode)
         {
             var inputContents = $@"int MyFunction(int value)
 {{
@@ -1813,11 +1723,10 @@ MyStruct MyFunction()
 }}
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task WhileTest()
+        public override Task WhileTest()
         {
             var inputContents = @"int MyFunction(int count)
 {
@@ -1851,11 +1760,10 @@ MyStruct MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        [Fact]
-        public async Task WhileNonCompoundTest()
+        public override Task WhileNonCompoundTest()
         {
             var inputContents = @"int MyFunction(int count)
 {
@@ -1887,7 +1795,7 @@ MyStruct MyFunction()
 }
 ";
 
-            await ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }
