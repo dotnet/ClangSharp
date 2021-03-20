@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace ClangSharp.UnitTests
@@ -132,138 +133,139 @@ union MyUnion3
     unsigned int o0_b1_1 : 1;
 };
 ";
+            string expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", Pack = 1" : "";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+            var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
-{
-    [StructLayout(LayoutKind.Explicit, Pack = 1)]
+{{
+    [StructLayout(LayoutKind.Explicit{expectedPack})]
     public partial struct MyUnion1
-    {
+    {{
         [FieldOffset(0)]
         public uint _bitfield1;
 
         [NativeTypeName(""unsigned int : 24"")]
         public uint o0_b0_24
-        {
+        {{
             get
-            {
+            {{
                 return _bitfield1 & 0xFFFFFFu;
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield1 = (_bitfield1 & ~0xFFFFFFu) | (value & 0xFFFFFFu);
-            }
-        }
+            }}
+        }}
 
         [FieldOffset(0)]
         public uint _bitfield2;
 
         [NativeTypeName(""unsigned int : 16"")]
         public uint o4_b0_16
-        {
+        {{
             get
-            {
+            {{
                 return _bitfield2 & 0xFFFFu;
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield2 = (_bitfield2 & ~0xFFFFu) | (value & 0xFFFFu);
-            }
-        }
+            }}
+        }}
 
         [NativeTypeName(""unsigned int : 3"")]
         public uint o4_b16_3
-        {
+        {{
             get
-            {
+            {{
                 return (_bitfield2 >> 16) & 0x7u;
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield2 = (_bitfield2 & ~(0x7u << 16)) | ((value & 0x7u) << 16);
-            }
-        }
+            }}
+        }}
 
         [NativeTypeName(""int : 3"")]
         public int o4_b19_3
-        {
+        {{
             get
-            {
+            {{
                 return (int)((_bitfield2 >> 19) & 0x7u);
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield2 = (_bitfield2 & ~(0x7u << 19)) | (uint)((value & 0x7) << 19);
-            }
-        }
+            }}
+        }}
 
         [NativeTypeName(""unsigned char : 1"")]
         public byte o4_b22_1
-        {
+        {{
             get
-            {
+            {{
                 return (byte)((_bitfield2 >> 22) & 0x1u);
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield2 = (_bitfield2 & ~(0x1u << 22)) | (uint)((value & 0x1u) << 22);
-            }
-        }
+            }}
+        }}
 
         [NativeTypeName(""int : 1"")]
         public int o4_b23_1
-        {
+        {{
             get
-            {
+            {{
                 return (int)((_bitfield2 >> 23) & 0x1u);
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield2 = (_bitfield2 & ~(0x1u << 23)) | (uint)((value & 0x1) << 23);
-            }
-        }
+            }}
+        }}
 
         [NativeTypeName(""int : 1"")]
         public int o4_b24_1
-        {
+        {{
             get
-            {
+            {{
                 return (int)((_bitfield2 >> 24) & 0x1u);
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield2 = (_bitfield2 & ~(0x1u << 24)) | (uint)((value & 0x1) << 24);
-            }
-        }
-    }
+            }}
+        }}
+    }}
 
     [StructLayout(LayoutKind.Explicit)]
     public partial struct MyUnion2
-    {
+    {{
         [FieldOffset(0)]
         public uint _bitfield1;
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
-        {
+        {{
             get
-            {
+            {{
                 return _bitfield1 & 0x1u;
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield1 = (_bitfield1 & ~0x1u) | (value & 0x1u);
-            }
-        }
+            }}
+        }}
 
         [FieldOffset(0)]
         public int x;
@@ -273,54 +275,54 @@ namespace ClangSharp.Test
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o8_b0_1
-        {
+        {{
             get
-            {
+            {{
                 return _bitfield2 & 0x1u;
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield2 = (_bitfield2 & ~0x1u) | (value & 0x1u);
-            }
-        }
-    }
+            }}
+        }}
+    }}
 
-    [StructLayout(LayoutKind.Explicit, Pack = 1)]
+    [StructLayout(LayoutKind.Explicit{expectedPack})]
     public partial struct MyUnion3
-    {
+    {{
         [FieldOffset(0)]
         public uint _bitfield;
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
-        {
+        {{
             get
-            {
+            {{
                 return _bitfield & 0x1u;
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield = (_bitfield & ~0x1u) | (value & 0x1u);
-            }
-        }
+            }}
+        }}
 
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b1_1
-        {
+        {{
             get
-            {
+            {{
                 return (_bitfield >> 1) & 0x1u;
-            }
+            }}
 
             set
-            {
+            {{
                 _bitfield = (_bitfield & ~(0x1u << 1)) | ((value & 0x1u) << 1);
-            }
-        }
-    }
-}
+            }}
+        }}
+    }}
+}}
 ";
 
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
@@ -711,6 +713,12 @@ namespace ClangSharp.Test
         }
         public override Task GuidTest()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // Non-Windows doesn't support __declspec(uuid(""))
+                return Task.CompletedTask;
+            }
+
             var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
 
 union __declspec(uuid(""00000000-0000-0000-C000-000000000046"")) MyUnion1

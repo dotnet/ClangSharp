@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace ClangSharp.UnitTests
@@ -655,6 +656,12 @@ struct MyStruct
 
         public override Task GuidTest()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // Non-Windows doesn't support __declspec(uuid(""))
+                return Task.CompletedTask;
+            }
+
             var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
 
 struct __declspec(uuid(""00000000-0000-0000-C000-000000000046"")) MyStruct1
