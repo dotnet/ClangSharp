@@ -19,7 +19,7 @@ namespace ClangSharp
         private readonly Dictionary<string, IReadOnlyList<string>> _withUsings;
         private readonly PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorOutputMode outputMode = PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
         {
             if (excludedNames is null)
             {
@@ -44,6 +44,21 @@ namespace ClangSharp
             if (string.IsNullOrWhiteSpace(namespaceName))
             {
                 throw new ArgumentNullException(nameof(namespaceName));
+            }
+
+            if (outputMode != PInvokeGeneratorOutputMode.CSharp && outputMode != PInvokeGeneratorOutputMode.Xml)
+            {
+                throw new ArgumentOutOfRangeException(nameof(options));
+            }
+
+            if (outputMode == PInvokeGeneratorOutputMode.Xml &&
+                (options & PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles) == 0 &&
+                ((options & PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) != 0 ||
+                 (options & PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit) != 0))
+            {
+                // we can't mix XML and C#! we're in XML mode, not generating multiple files, and generating tests; fail
+                throw new ArgumentException("Can't generate tests in XML mode without multiple files.",
+                    nameof(options));
             }
 
             if (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode) && options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode))
@@ -80,6 +95,7 @@ namespace ClangSharp
             MethodClassName = methodClassName;
             MethodPrefixToStrip = methodPrefixToStrip;
             Namespace = namespaceName;
+            OutputMode = outputMode;
             OutputLocation = Path.GetFullPath(outputLocation);
             TestOutputLocation = !string.IsNullOrWhiteSpace(testOutputLocation) ? Path.GetFullPath(testOutputLocation) : string.Empty;
 
@@ -166,6 +182,8 @@ namespace ClangSharp
         public string MethodPrefixToStrip { get;}
 
         public string Namespace { get; }
+
+        public PInvokeGeneratorOutputMode OutputMode { get; }
 
         public string OutputLocation { get; }
 

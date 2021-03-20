@@ -48,6 +48,7 @@ namespace ClangSharp
             AddWithSetLastErrorOption(s_rootCommand);
             AddWithTypeOption(s_rootCommand);
             AddWithUsingOption(s_rootCommand);
+            AddOutputModeOption(s_rootCommand);
 
             return await s_rootCommand.InvokeAsync(args);
         }
@@ -78,6 +79,7 @@ namespace ClangSharp
             var withSetLastErrors = context.ParseResult.ValueForOption<string[]>("--with-setlasterror");
             var withTypeNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-type");
             var withUsingNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-using");
+            var outputMode = context.ParseResult.ValueForOption<PInvokeGeneratorOutputMode>("--output-mode");
 
             var errorList = new List<string>();
 
@@ -342,7 +344,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
 
             if (config.GenerateMacroBindings)
             {
@@ -845,6 +847,21 @@ namespace ClangSharp
                 }
             };
             option.Argument.SetDefaultValue(Array.Empty<string>());
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddOutputModeOption(RootCommand rootCommand)
+        {
+            var option = new Option(new string[] { "--output-mode", "-om" }, "The mode describing how the information collected from the headers are presented in the resultant bindings.")
+            {
+                Argument = new Argument("<arg>")
+                {
+                    ArgumentType = typeof(PInvokeGeneratorOutputMode),
+                    Arity = ArgumentArity.ExactlyOne
+                }
+            };
+            option.Argument.SetDefaultValue(PInvokeGeneratorOutputMode.CSharp);
 
             rootCommand.AddOption(option);
         }
