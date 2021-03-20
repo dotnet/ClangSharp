@@ -62,7 +62,7 @@ namespace ClangSharp
                     return null;
                 }
 
-                Expr E = InitExprs.First().IgnoreImplicit;
+                Expr E = InitExprs.FirstOrDefault()?.IgnoreImplicit;
 
                 if (E is CXXConstructExpr Construct)
                 {

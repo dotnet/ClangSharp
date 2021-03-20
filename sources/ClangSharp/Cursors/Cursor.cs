@@ -10,7 +10,7 @@ namespace ClangSharp
     [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
     public unsafe class Cursor : IEquatable<Cursor>
     {
-        private readonly Lazy<List<Cursor>> _cursorChildren;
+        private readonly Lazy<IReadOnlyList<Cursor>> _cursorChildren;
         private readonly Lazy<TranslationUnit> _translationUnit;
 
         private protected Cursor(CXCursor handle, CXCursorKind expectedCursorKind)
@@ -21,7 +21,7 @@ namespace ClangSharp
             }
             Handle = handle;
 
-            _cursorChildren = new Lazy<List<Cursor>>(() => {
+            _cursorChildren = new Lazy<IReadOnlyList<Cursor>>(() => {
                 var cursors = new List<Cursor>();
 
                 Handle.VisitChildren((cursor, parent, clientData) => {
@@ -32,6 +32,7 @@ namespace ClangSharp
 
                 return cursors;
             });
+
             _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
         }
 

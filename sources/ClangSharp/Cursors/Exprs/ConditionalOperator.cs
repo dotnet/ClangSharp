@@ -14,12 +14,12 @@ namespace ClangSharp
 
         public new Expr Cond => (Expr)Children[0];
 
-        public new Expr FalseExpr => LHS;
+        public new Expr FalseExpr => RHS;
 
         public Expr LHS => (Expr)Children[1];
 
         public Expr RHS => (Expr)Children[2];
 
-        public new Expr TrueExpr => RHS;
+        public new Expr TrueExpr => LHS;
     }
 }

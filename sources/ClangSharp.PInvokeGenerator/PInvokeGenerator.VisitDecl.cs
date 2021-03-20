@@ -145,7 +145,13 @@ namespace ClangSharp
 
                 // case CX_DeclKind.CX_DeclKind_UsingDirective:
                 // case CX_DeclKind.CX_DeclKind_UsingPack:
-                // case CX_DeclKind.CX_DeclKind_UsingShadow:
+
+                case CX_DeclKind.CX_DeclKind_UsingShadow:
+                {
+                    VisitUsingShadowDecl((UsingShadowDecl)decl);
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_ConstructorUsingShadow:
                 // case CX_DeclKind.CX_DeclKind_Binding:
 
@@ -197,7 +203,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_DeclKind.CX_DeclKind_IndirectField:
+                case CX_DeclKind.CX_DeclKind_IndirectField:
+                {
+                    VisitIndirectFieldDecl((IndirectFieldDecl)decl);
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_OMPDeclareMapper:
                 // case CX_DeclKind.CX_DeclKind_OMPDeclareReduction:
                 // case CX_DeclKind.CX_DeclKind_UnresolvedUsingValue:
@@ -297,6 +308,244 @@ namespace ClangSharp
             _outputBuilder.EndConstant(isAnonymousEnum);
         }
 
+        private void VisitIndirectFieldDecl(IndirectFieldDecl indirectFieldDecl)
+        {
+            if (IsPrevContextDecl<RecordDecl>(out var prevContext) && prevContext.IsAnonymousStructOrUnion)
+            {
+                // We shouldn't process indirect fields where the prev context is an anonymous record decl
+                return;
+            }
+
+            var fieldDecl = indirectFieldDecl.AnonField;
+            var anonymousRecordDecl = fieldDecl.Parent;
+
+            var rootRecordDecl = anonymousRecordDecl;
+
+            var contextNameParts = new Stack<string>();
+            var contextTypeParts = new Stack<string>();
+
+            while (rootRecordDecl.Parent is RecordDecl parentRecordDecl)
+            {
+                var contextNamePart = GetRemappedCursorName(rootRecordDecl);
+
+                if (contextNamePart.StartsWith("_"))
+                {
+                    int suffixLength = 0;
+
+                    if (contextNamePart.EndsWith("_e__Union"))
+                    {
+                        suffixLength = 10;
+                    }
+                    else if (contextNamePart.EndsWith("_e__Struct"))
+                    {
+                        suffixLength = 11;
+                    }
+
+                    if (suffixLength != 0)
+                    {
+                        contextNamePart = contextNamePart.Substring(1, contextNamePart.Length - suffixLength);
+                    }
+                }
+
+                contextNameParts.Push(EscapeName(contextNamePart));
+                contextTypeParts.Push(GetRemappedTypeName(anonymousRecordDecl, context: null, anonymousRecordDecl.TypeForDecl, out string nativeTypeName));
+
+                if (!rootRecordDecl.IsAnonymousStructOrUnion)
+                {
+                    break;
+                }
+
+                rootRecordDecl = parentRecordDecl;
+            }
+
+            var contextNameBuilder = new StringBuilder(contextNameParts.Pop());
+            var contextTypeBuilder = new StringBuilder(contextTypeParts.Pop());
+
+            while (contextNameParts.Count != 0)
+            {
+                contextNameBuilder.Append('.');
+                contextNameBuilder.Append(contextNameParts.Pop());
+
+                contextTypeBuilder.Append('.');
+                contextTypeBuilder.Append(contextTypeParts.Pop());
+            }
+
+            var contextName = contextNameBuilder.ToString();
+            var contextType = contextTypeBuilder.ToString();
+
+            var type = fieldDecl.Type;
+
+            var accessSpecifier = GetAccessSpecifier(anonymousRecordDecl);
+            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var fieldNativeTypeName);
+            var name = GetRemappedCursorName(fieldDecl);
+            var escapedName = EscapeName(name);
+
+            var desc = new FieldDesc
+            {
+                AccessSpecifier = accessSpecifier,
+                NativeTypeName = null,
+                EscapedName = escapedName,
+                Offset = null,
+                NeedsNewKeyword = false
+            };
+
+            _outputBuilder.WriteDivider(true);
+            _outputBuilder.BeginField(in desc);
+
+            var isFixedSizedBuffer = (type.CanonicalType is ConstantArrayType);
+            var generateCompatibleCode = _config.GenerateCompatibleCode;
+            var typeString = string.Empty;
+
+            if (!fieldDecl.IsBitField && (!isFixedSizedBuffer || generateCompatibleCode))
+            {
+                typeString = "ref ";
+            }
+
+            if (type.CanonicalType is RecordType recordType)
+            {
+                var recordDecl = recordType.Decl;
+
+                while ((recordDecl.DeclContext is RecordDecl parentRecordDecl) && (parentRecordDecl != rootRecordDecl))
+                {
+                    var parentRecordDeclName = GetRemappedCursorName(parentRecordDecl);
+                    var escapedParentRecordDeclName = EscapeName(parentRecordDeclName);
+
+                    typeString += escapedParentRecordDeclName + '.';
+
+                    recordDecl = parentRecordDecl;
+                }
+            }
+
+            var isSupportedFixedSizedBufferType =
+                isFixedSizedBuffer && IsSupportedFixedSizedBufferType(typeName);
+
+            if (isFixedSizedBuffer)
+            {
+                if (!generateCompatibleCode)
+                {
+                    _outputBuilder.EmitSystemSupport();
+                    typeString += "Span<";
+                }
+                else if (!isSupportedFixedSizedBufferType)
+                {
+                    typeString += contextType + '.';
+                    typeName = GetArtificialFixedSizedBufferName(fieldDecl);
+                }
+            }
+
+            typeString += typeName;
+            if (isFixedSizedBuffer && !generateCompatibleCode)
+            {
+                typeString += '>';
+            }
+
+            _outputBuilder.WriteRegularField(typeString, escapedName);
+
+            generateCompatibleCode |=
+                ((type.CanonicalType is PointerType) || (type.CanonicalType is ReferenceType)) &&
+                ((typeName != "IntPtr") && (typeName != "UIntPtr"));
+
+            _outputBuilder.BeginBody();
+            _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
+            var code = _outputBuilder.BeginCSharpCode();
+
+            if (fieldDecl.IsBitField)
+            {
+                code.WriteIndented("return ");
+                code.Write(contextName);
+                code.Write('.');
+                code.Write(escapedName);
+                code.WriteSemicolon();
+                code.WriteNewline();
+                _outputBuilder.EndCSharpCode(code);
+
+                _outputBuilder.EndGetter();
+
+                _outputBuilder.BeginSetter(_config.GenerateAggressiveInlining);
+
+                code = _outputBuilder.BeginCSharpCode();
+                code.WriteIndented(contextName);
+                code.Write('.');
+                code.Write(escapedName);
+                code.Write(" = value");
+                code.WriteSemicolon();
+                code.WriteNewline();
+                _outputBuilder.EndCSharpCode(code);
+
+                _outputBuilder.EndSetter();
+            }
+            else if (generateCompatibleCode)
+            {
+                code.WriteIndented("fixed (");
+                code.Write(contextType);
+                code.Write("* pField = &");
+                code.Write(contextName);
+                code.WriteLine(')');
+                code.WriteBlockStart();
+                code.WriteIndented("return ref pField->");
+                code.Write(escapedName);
+
+                if (isSupportedFixedSizedBufferType)
+                {
+                    code.Write("[0]");
+                }
+
+                code.WriteSemicolon();
+                code.WriteNewline();
+                code.WriteBlockEnd();
+                _outputBuilder.EndCSharpCode(code);
+
+                _outputBuilder.EndGetter();
+            }
+            else
+            {
+                code.WriteIndented("return ");
+
+                if (!isFixedSizedBuffer)
+                {
+                    code.AddUsingDirective("System.Runtime.InteropServices");
+                    code.Write("ref MemoryMarshal.GetReference(");
+                }
+
+                if (!isFixedSizedBuffer || isSupportedFixedSizedBufferType)
+                {
+                    code.Write("MemoryMarshal.CreateSpan(ref ");
+                }
+
+                code.Write(contextName);
+                code.Write('.');
+                code.Write(escapedName);
+
+                if (isFixedSizedBuffer)
+                {
+                    if (isSupportedFixedSizedBufferType)
+                    {
+                        code.Write("[0], ");
+                        code.Write(((ConstantArrayType)type.CanonicalType).Size);
+                    }
+                    else
+                    {
+                        code.Write(".AsSpan(");
+                    }
+                }
+                else
+                {
+                    code.Write(", 1)");
+                }
+
+                code.Write(')');
+                code.WriteSemicolon();
+                code.WriteNewline();
+                _outputBuilder.EndCSharpCode(code);
+
+                _outputBuilder.EndGetter();
+            }
+
+            _outputBuilder.EndBody();
+            _outputBuilder.EndField(false);
+            _outputBuilder.WriteDivider();
+        }
+
         private void VisitEnumDecl(EnumDecl enumDecl)
         {
             var accessSpecifier = GetAccessSpecifier(enumDecl);
@@ -386,6 +635,12 @@ namespace ClangSharp
 
         private void VisitFunctionDecl(FunctionDecl functionDecl)
         {
+            if (!functionDecl.IsUserProvided)
+            {
+                // We shouldn't process injected functions
+                return;
+            }
+
             if (IsExcluded(functionDecl))
             {
                 return;
@@ -616,10 +871,8 @@ namespace ClangSharp
 
         private void VisitLinkageSpecDecl(LinkageSpecDecl linkageSpecDecl)
         {
-            foreach (var cursor in linkageSpecDecl.CursorChildren)
-            {
-                Visit(cursor);
-            }
+            Visit(linkageSpecDecl.Decls);
+            Visit(linkageSpecDecl.CursorChildren, linkageSpecDecl.Decls);
         }
 
         private void VisitNamespaceDecl(NamespaceDecl namespaceDecl)
@@ -627,10 +880,8 @@ namespace ClangSharp
             // We don't currently include the namespace name anywhere in the
             // generated bindings. We might want to in the future...
 
-            foreach (var cursor in namespaceDecl.CursorChildren)
-            {
-                Visit(cursor);
-            }
+            Visit(namespaceDecl.Decls);
+            Visit(namespaceDecl.CursorChildren, namespaceDecl.Decls);
         }
 
         private void VisitParmVarDecl(ParmVarDecl parmVarDecl)
@@ -759,6 +1010,12 @@ namespace ClangSharp
 
         private void VisitRecordDecl(RecordDecl recordDecl)
         {
+            if (recordDecl.IsInjectedClassName)
+            {
+                // We shouldn't process injected records
+                return;
+            }
+
             var nativeName = GetCursorName(recordDecl);
             var name = GetRemappedCursorName(recordDecl);
             var escapedName = EscapeName(name);
@@ -1044,29 +1301,23 @@ namespace ClangSharp
                 var bitfieldPreviousSize = 0L;
                 var bitfieldRemainingBits = 0L;
 
-                foreach (var declaration in recordDecl.Decls)
+                foreach (var fieldDecl in recordDecl.Fields)
                 {
-                    if (declaration is FieldDecl fieldDecl)
+                    if (fieldDecl.IsBitField)
                     {
-                        if (fieldDecl.IsBitField)
-                        {
-                            VisitBitfieldDecl(fieldDecl, bitfieldTypes, recordDecl, contextName: "", ref bitfieldIndex,
-                                ref bitfieldPreviousSize, ref bitfieldRemainingBits);
-                        }
-                        else
-                        {
-                            bitfieldPreviousSize = 0;
-                            bitfieldRemainingBits = 0;
-                        }
+                        VisitBitfieldDecl(fieldDecl, bitfieldTypes, recordDecl, contextName: "", ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
+                    }
+                    else
+                    {
+                        bitfieldPreviousSize = 0;
+                        bitfieldRemainingBits = 0;
+                    }
 
-                        Visit(fieldDecl);
-                        _outputBuilder.WriteDivider();
-                    }
-                    else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
-                    {
-                        VisitAnonymousRecordDecl(recordDecl, nestedRecordDecl);
-                    }
+                    Visit(fieldDecl);
+                    _outputBuilder.WriteDivider();
                 }
+
+                Visit(recordDecl.IndirectFields);
 
                 if (cxxRecordDecl != null)
                 {
@@ -1089,7 +1340,7 @@ namespace ClangSharp
                     }
                 }
 
-                var excludedCursors = recordDecl.Fields.AsEnumerable<Cursor>();
+                var excludedCursors = recordDecl.Fields.AsEnumerable<Cursor>().Concat(recordDecl.IndirectFields);
 
                 if (cxxRecordDecl != null)
                 {
@@ -1520,271 +1771,6 @@ namespace ClangSharp
                     else
                     {
                         remappedNames[name] = remappedName;
-                    }
-                }
-            }
-
-            void VisitAnonymousRecordDecl(RecordDecl recordDecl, RecordDecl nestedRecordDecl)
-            {
-                var nestedRecordDeclFieldName = GetRemappedCursorName(nestedRecordDecl);
-
-                if (nestedRecordDeclFieldName.StartsWith("_"))
-                {
-                    int suffixLength = 0;
-
-                    if (nestedRecordDeclFieldName.EndsWith("_e__Union"))
-                    {
-                        suffixLength = 10;
-                    }
-                    else if (nestedRecordDeclFieldName.EndsWith("_e__Struct"))
-                    {
-                        suffixLength = 11;
-                    }
-
-                    if (suffixLength != 0)
-                    {
-                        nestedRecordDeclFieldName =
-                            nestedRecordDeclFieldName.Substring(1, nestedRecordDeclFieldName.Length - suffixLength);
-                    }
-                }
-
-                var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, context: null,
-                    nestedRecordDecl.TypeForDecl, out string nativeTypeName);
-
-                var desc = new FieldDesc
-                {
-                    AccessSpecifier = AccessSpecifier.Public,
-                    NativeTypeName = nativeTypeName,
-                    EscapedName = nestedRecordDeclFieldName,
-                    Offset = recordDecl.IsUnion ? 0 : null,
-                    NeedsNewKeyword = false
-                };
-
-                _outputBuilder.BeginField(in desc);
-                _outputBuilder.WriteRegularField(nestedRecordDeclName, nestedRecordDeclFieldName);
-                _outputBuilder.EndField();
-
-                if (!recordDecl.IsAnonymousStructOrUnion)
-                {
-                    VisitAnonymousRecordDeclFields(recordDecl, nestedRecordDecl, nestedRecordDeclName,
-                        nestedRecordDeclFieldName);
-                }
-            }
-
-            void VisitAnonymousRecordDeclFields(RecordDecl rootRecordDecl, RecordDecl anonymousRecordDecl,
-                string contextType, string contextName)
-            {
-                if (_config.ExcludeAnonymousFieldHelpers)
-                {
-                    return;
-                }
-
-                foreach (var declaration in anonymousRecordDecl.Decls)
-                {
-                    if (declaration is FieldDecl fieldDecl)
-                    {
-                        var type = fieldDecl.Type;
-
-                        var accessSpecifier = GetAccessSpecifier(anonymousRecordDecl);
-                        var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var fieldNativeTypeName);
-                        var name = GetRemappedCursorName(fieldDecl);
-                        var escapedName = EscapeName(name);
-
-                        var desc = new FieldDesc
-                        {
-                            AccessSpecifier = accessSpecifier,
-                            NativeTypeName = null,
-                            EscapedName = escapedName,
-                            Offset = null,
-                            NeedsNewKeyword = false
-                        };
-
-                        _outputBuilder.WriteDivider(true);
-                        _outputBuilder.BeginField(in desc);
-
-                        var isFixedSizedBuffer = (type.CanonicalType is ConstantArrayType);
-                        var generateCompatibleCode = _config.GenerateCompatibleCode;
-                        var typeString = string.Empty;
-
-                        if (!fieldDecl.IsBitField && (!isFixedSizedBuffer || generateCompatibleCode))
-                        {
-                            typeString = "ref ";
-                        }
-
-                        if (type.CanonicalType is RecordType recordType)
-                        {
-                            var recordDecl = recordType.Decl;
-
-                            while ((recordDecl.DeclContext is RecordDecl parentRecordDecl) &&
-                                   (parentRecordDecl != rootRecordDecl))
-                            {
-                                var parentRecordDeclName = GetRemappedCursorName(parentRecordDecl);
-                                var escapedParentRecordDeclName = EscapeName(parentRecordDeclName);
-
-                                typeString += escapedParentRecordDeclName + '.';
-
-                                recordDecl = parentRecordDecl;
-                            }
-                        }
-
-                        var isSupportedFixedSizedBufferType =
-                            isFixedSizedBuffer && IsSupportedFixedSizedBufferType(typeName);
-
-                        if (isFixedSizedBuffer)
-                        {
-                            if (!generateCompatibleCode)
-                            {
-                                _outputBuilder.EmitSystemSupport();
-                                typeString += "Span<";
-                            }
-                            else if (!isSupportedFixedSizedBufferType)
-                            {
-                                typeString += contextType + '.';
-                                typeName = GetArtificialFixedSizedBufferName(fieldDecl);
-                            }
-                        }
-
-                        typeString += typeName;
-                        if (isFixedSizedBuffer && !generateCompatibleCode)
-                        {
-                            typeString += '>';
-                        }
-
-                        _outputBuilder.WriteRegularField(typeString, escapedName);
-
-                        generateCompatibleCode |=
-                            ((type.CanonicalType is PointerType) || (type.CanonicalType is ReferenceType)) &&
-                            ((typeName != "IntPtr") && (typeName != "UIntPtr"));
-
-                        _outputBuilder.BeginBody();
-                        _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
-                        var code = _outputBuilder.BeginCSharpCode();
-
-                        if (fieldDecl.IsBitField)
-                        {
-                            code.WriteIndented("return ");
-                            code.Write(contextName);
-                            code.Write('.');
-                            code.Write(escapedName);
-                            code.WriteSemicolon();
-                            code.WriteNewline();
-                            _outputBuilder.EndCSharpCode(code);
-
-                            _outputBuilder.EndGetter();
-
-                            _outputBuilder.BeginSetter(_config.GenerateAggressiveInlining);
-
-                            code = _outputBuilder.BeginCSharpCode();
-                            code.WriteIndented(contextName);
-                            code.Write('.');
-                            code.Write(escapedName);
-                            code.Write(" = value");
-                            code.WriteSemicolon();
-                            code.WriteNewline();
-                            _outputBuilder.EndCSharpCode(code);
-
-                            _outputBuilder.EndSetter();
-                        }
-                        else if (generateCompatibleCode)
-                        {
-                            code.WriteIndented("fixed (");
-                            code.Write(contextType);
-                            code.Write("* pField = &");
-                            code.Write(contextName);
-                            code.WriteLine(')');
-                            code.WriteBlockStart();
-                            code.WriteIndented("return ref pField->");
-                            code.Write(escapedName);
-
-                            if (isSupportedFixedSizedBufferType)
-                            {
-                                code.Write("[0]");
-                            }
-
-                            code.WriteSemicolon();
-                            code.WriteNewline();
-                            code.WriteBlockEnd();
-                            _outputBuilder.EndCSharpCode(code);
-
-                            _outputBuilder.EndGetter();
-                        }
-                        else
-                        {
-                            code.WriteIndented("return ");
-
-                            if (!isFixedSizedBuffer)
-                            {
-                                code.AddUsingDirective("System.Runtime.InteropServices");
-                                code.Write("ref MemoryMarshal.GetReference(");
-                            }
-
-                            if (!isFixedSizedBuffer || isSupportedFixedSizedBufferType)
-                            {
-                                code.Write("MemoryMarshal.CreateSpan(ref ");
-                            }
-
-                            code.Write(contextName);
-                            code.Write('.');
-                            code.Write(escapedName);
-
-                            if (isFixedSizedBuffer)
-                            {
-                                if (isSupportedFixedSizedBufferType)
-                                {
-                                    code.Write("[0], ");
-                                    code.Write(((ConstantArrayType)type.CanonicalType).Size);
-                                }
-                                else
-                                {
-                                    code.Write(".AsSpan(");
-                                }
-                            }
-                            else
-                            {
-                                code.Write(", 1)");
-                            }
-
-                            code.Write(')');
-                            code.WriteSemicolon();
-                            code.WriteNewline();
-                            _outputBuilder.EndCSharpCode(code);
-
-                            _outputBuilder.EndGetter();
-                        }
-
-                        _outputBuilder.EndBody();
-                        _outputBuilder.EndField(false);
-                        _outputBuilder.WriteDivider();
-                    }
-                    else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
-                    {
-                        var nestedRecordDeclName = GetRemappedTypeName(nestedRecordDecl, context: null,
-                            nestedRecordDecl.TypeForDecl, out string nativeTypeName);
-                        var name = GetRemappedCursorName(nestedRecordDecl);
-
-                        if (name.StartsWith("_"))
-                        {
-                            int suffixLength = 0;
-
-                            if (name.EndsWith("_e__Union"))
-                            {
-                                suffixLength = 10;
-                            }
-                            else if (name.EndsWith("_e__Struct"))
-                            {
-                                suffixLength = 11;
-                            }
-
-                            if (suffixLength != 0)
-                            {
-                                name = name.Substring(1, name.Length - suffixLength);
-                            }
-                        }
-
-                        var escapedName = EscapeName(name);
-
-                        VisitAnonymousRecordDeclFields(rootRecordDecl, nestedRecordDecl,
-                            $"{contextType}.{nestedRecordDeclName}", $"{contextName}.{escapedName}");
                     }
                 }
             }
@@ -2416,10 +2402,8 @@ namespace ClangSharp
 
         private void VisitTranslationUnitDecl(TranslationUnitDecl translationUnitDecl)
         {
-            foreach (var cursor in translationUnitDecl.CursorChildren)
-            {
-                Visit(cursor);
-            }
+            Visit(translationUnitDecl.Decls);
+            Visit(translationUnitDecl.CursorChildren, translationUnitDecl.Decls);
         }
 
         private void VisitTypedefDecl(TypedefDecl typedefDecl)
@@ -2584,6 +2568,11 @@ namespace ClangSharp
                     return type.AsString;
                 }
             }
+        }
+
+        private void VisitUsingShadowDecl(UsingShadowDecl usingShadowDecl)
+        {
+            // Nothing to handle for binding generation
         }
 
         private void VisitVarDecl(VarDecl varDecl)
@@ -2780,6 +2769,10 @@ namespace ClangSharp
                 {
                     _outputBuilder.WriteDivider();
                 }
+            }
+            else if (IsPrevContextDecl<FunctionDecl>(out var functionDecl))
+            {
+                // This should be handled in the function body as part of a DeclStmt
             }
             else
             {

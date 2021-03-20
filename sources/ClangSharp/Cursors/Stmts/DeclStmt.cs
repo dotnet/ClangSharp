@@ -13,7 +13,18 @@ namespace ClangSharp
 
         internal DeclStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclStmt, CX_StmtClass.CX_StmtClass_DeclStmt)
         {
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
+            _decls = new Lazy<IReadOnlyList<Decl>>(() => {
+                var numDecls = Handle.NumDecls;
+                var decls = new List<Decl>(numDecls);
+
+                for (var i = 0; i < numDecls; i++)
+                {
+                    var decl = TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i)));
+                    decls.Add(decl);
+                }
+
+                return decls;
+            });
         }
 
         public IReadOnlyList<Decl> Decls => _decls.Value;

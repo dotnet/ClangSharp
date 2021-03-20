@@ -89,6 +89,10 @@ namespace ClangSharp
 
         public bool IsDefined => Handle.IsDefined;
 
+        public bool IsDeleted => Handle.IsDeleted;
+
+        public bool IsExplicitlyDefaulted => Handle.IsExplicitlyDefaulted;
+
         public bool IsExternC => Handle.IsExternC;
 
         public bool IsGlobal => Handle.IsGlobal;
@@ -104,6 +108,8 @@ namespace ClangSharp
         public bool IsStatic => Handle.IsStatic;
 
         public bool IsThisDeclarationADefinition => Handle.IsThisDeclarationADefinition;
+
+        public bool IsUserProvided => Handle.IsUserProvided;
 
         public bool IsVariadic => Handle.IsVariadic;
 

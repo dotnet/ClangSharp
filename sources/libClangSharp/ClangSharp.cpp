@@ -31,7 +31,7 @@ CX_TemplateArgument MakeCXTemplateArgument(const TemplateArgument* TA, CXCursor 
 
     CX_TemplateArgument T;
 
-    T.kind = static_cast<CXTemplateArgumentKind>(TA->getKind() + 1);
+    T.kind = static_cast<CXTemplateArgumentKind>(TA->getKind());
     T.xdata = 1;
     T.parentCursor = Parent;
     T.value = TA;
@@ -44,7 +44,7 @@ CX_TemplateArgument MakeCXTemplateArgument(const TemplateArgument* TA, CXType Pa
     CX_TemplateArgument T;
 
     if (TA) {
-        T.kind = static_cast<CXTemplateArgumentKind>(TA->getKind() + 1);
+        T.kind = static_cast<CXTemplateArgumentKind>(TA->getKind());
         T.xdata = 2;
         T.parentType = Parent;
     }
@@ -69,8 +69,16 @@ CX_TemplateArgumentLoc MakeCXTemplateArgumentLoc(const TemplateArgumentLoc* TAL,
     return T;
 }
 
+bool isDeclOrTU(CXCursorKind kind) {
+    return clang_isDeclaration(kind) || clang_isTranslationUnit(kind);
+}
+
+bool isStmtOrExpr(CXCursorKind kind) {
+    return clang_isStatement(kind) || clang_isExpression(kind);
+}
+
 CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -86,10 +94,10 @@ CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CastExpr* CE = dyn_cast<CastExpr>(E)) {
+        if (const CastExpr* CE = dyn_cast<CastExpr>(S)) {
             unsigned n = 0;
 
             for (auto path : CE->path()) {
@@ -100,13 +108,13 @@ CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i) {
             }
         }
 
-        if (const CXXUnresolvedConstructExpr* CXXUCE = dyn_cast<CXXUnresolvedConstructExpr>(E)) {
+        if (const CXXUnresolvedConstructExpr* CXXUCE = dyn_cast<CXXUnresolvedConstructExpr>(S)) {
             if (i < CXXUCE->arg_size()) {
                 return MakeCXCursor(CXXUCE->getArg(i), getCursorDecl(C), getCursorTU(C));
             }
         }
 
-        if (const ExprWithCleanups* EWC = dyn_cast<ExprWithCleanups>(E)) {
+        if (const ExprWithCleanups* EWC = dyn_cast<ExprWithCleanups>(S)) {
             if (i < EWC->getNumObjects()) {
                 llvm::PointerUnion<BlockDecl*, CompoundLiteralExpr*> object = EWC->getObject(i);
 
@@ -124,10 +132,10 @@ CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i) {
 }
 
 CXType clangsharp_Cursor_getArgumentType(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const UnaryExprOrTypeTraitExpr* UETTE = dyn_cast<UnaryExprOrTypeTraitExpr>(E)) {
+        if (const UnaryExprOrTypeTraitExpr* UETTE = dyn_cast<UnaryExprOrTypeTraitExpr>(S)) {
             if (UETTE->isArgumentType()) {
                 return MakeCXType(UETTE->getArgumentType(), getCursorTU(C));
             }
@@ -138,10 +146,10 @@ CXType clangsharp_Cursor_getArgumentType(CXCursor C) {
 }
 
 int64_t clangsharp_Cursor_getArraySize(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const ArrayInitLoopExpr* AILE = dyn_cast<ArrayInitLoopExpr>(E)) {
+        if (const ArrayInitLoopExpr* AILE = dyn_cast<ArrayInitLoopExpr>(S)) {
             return AILE->getArraySize().getSExtValue();
         }
     }
@@ -150,7 +158,7 @@ int64_t clangsharp_Cursor_getArraySize(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getAssociatedConstraint(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
@@ -203,7 +211,7 @@ CXCursor clangsharp_Cursor_getAssociatedConstraint(CXCursor C, unsigned i) {
 }
 
 CXCursor clangsharp_Cursor_getAsFunction(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return MakeCXCursor(D->getAsFunction(), getCursorTU(C));
     }
@@ -212,7 +220,7 @@ CXCursor clangsharp_Cursor_getAsFunction(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getAttr(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         SmallVector<Attr*, 4> attrs = D->getAttrs();
 
@@ -221,7 +229,7 @@ CXCursor clangsharp_Cursor_getAttr(CXCursor C, unsigned i) {
         }
     }
 
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const AttributedStmt* AS = dyn_cast<AttributedStmt>(S)) {
@@ -245,19 +253,40 @@ CX_AttrKind clangsharp_Cursor_getAttrKind(CXCursor C) {
     return CX_AttrKind_Invalid;
 }
 
-CX_BinaryOperatorKind clangsharp_Cursor_getBinaryOpcode(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+CXCursor clangsharp_Cursor_getBase(CXCursor C, unsigned i) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
 
-        if (const BinaryOperator* BO = dyn_cast<BinaryOperator>(E)) {
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            if (CXXRD->getDefinition()) {
+                unsigned n = 0;
+
+                for (auto& base : CXXRD->bases()) {
+                    if (n == i) {
+                        return MakeCXCursor(&base, getCursorTU(C));
+                    }
+                    n++;
+                }
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
+CX_BinaryOperatorKind clangsharp_Cursor_getBinaryOpcode(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const BinaryOperator* BO = dyn_cast<BinaryOperator>(S)) {
             return static_cast<CX_BinaryOperatorKind>(BO->getOpcode() + 1);
         }
 
-        if (const CXXFoldExpr* CFE = dyn_cast<CXXFoldExpr>(E)) {
+        if (const CXXFoldExpr* CFE = dyn_cast<CXXFoldExpr>(S)) {
             return static_cast<CX_BinaryOperatorKind>(CFE->getOperator() + 1);
         }
 
-        if (const CXXRewrittenBinaryOperator* CRBO = dyn_cast<CXXRewrittenBinaryOperator>(E)) {
+        if (const CXXRewrittenBinaryOperator* CRBO = dyn_cast<CXXRewrittenBinaryOperator>(S)) {
             return static_cast<CX_BinaryOperatorKind>(CRBO->getOperator() + 1);
         }
     }
@@ -275,7 +304,7 @@ CXString clangsharp_Cursor_getBinaryOpcodeSpelling(CX_BinaryOperatorKind Op) {
 }
 
 CXCursor clangsharp_Cursor_getBindingDecl(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const DecompositionDecl* DD = dyn_cast<DecompositionDecl>(D)) {
@@ -289,7 +318,7 @@ CXCursor clangsharp_Cursor_getBindingDecl(CXCursor C, unsigned i) {
 }
 
 CXCursor clangsharp_Cursor_getBindingExpr(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BindingDecl* BD = dyn_cast<BindingDecl>(D)) {
@@ -301,7 +330,7 @@ CXCursor clangsharp_Cursor_getBindingExpr(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getBitWidth(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FieldDecl* FD = dyn_cast<FieldDecl>(D)) {
@@ -313,7 +342,7 @@ CXCursor clangsharp_Cursor_getBitWidth(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getBlockManglingContextDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -325,7 +354,7 @@ CXCursor clangsharp_Cursor_getBlockManglingContextDecl(CXCursor C) {
 }
 
 int clangsharp_Cursor_getBlockManglingNumber(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -337,7 +366,7 @@ int clangsharp_Cursor_getBlockManglingNumber(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getBlockMissingReturnType(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -349,7 +378,7 @@ unsigned clangsharp_Cursor_getBlockMissingReturnType(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getBody(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return MakeCXCursor(D->getBody(), D, getCursorTU(C));
     }
@@ -358,7 +387,7 @@ CXCursor clangsharp_Cursor_getBody(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getCallResultType(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -370,7 +399,7 @@ CXType clangsharp_Cursor_getCallResultType(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getCanAvoidCopyToHeap(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -381,8 +410,17 @@ unsigned clangsharp_Cursor_getCanAvoidCopyToHeap(CXCursor C) {
     return 0;
 }
 
+CXCursor clangsharp_Cursor_getCanonical(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+        return MakeCXCursor(D->getCanonicalDecl(), getCursorTU(C));
+    }
+
+    return clang_getCanonicalCursor(C);
+}
+
 CXCursor clangsharp_Cursor_getCaptureCopyExpr(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -398,7 +436,7 @@ CXCursor clangsharp_Cursor_getCaptureCopyExpr(CXCursor C, unsigned i) {
 }
 
 CXCursor clangsharp_Cursor_getCapturedVar(CXCursor C, unsigned i) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const CapturedStmt* CS = dyn_cast<CapturedStmt>(S)) {
@@ -417,7 +455,7 @@ CXCursor clangsharp_Cursor_getCapturedVar(CXCursor C, unsigned i) {
 }
 
 CX_VariableCaptureKind clangsharp_Cursor_getCaptureKind(CXCursor C, unsigned i) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const CapturedStmt* CS = dyn_cast<CapturedStmt>(S)) {
@@ -436,7 +474,7 @@ CX_VariableCaptureKind clangsharp_Cursor_getCaptureKind(CXCursor C, unsigned i) 
 }
 
 unsigned clangsharp_Cursor_getCaptureHasCopyExpr(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -452,7 +490,7 @@ unsigned clangsharp_Cursor_getCaptureHasCopyExpr(CXCursor C, unsigned i) {
 }
 
 unsigned clangsharp_Cursor_getCaptureIsByRef(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -468,7 +506,7 @@ unsigned clangsharp_Cursor_getCaptureIsByRef(CXCursor C, unsigned i) {
 }
 
 unsigned clangsharp_Cursor_getCaptureIsEscapingByRef(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -484,7 +522,7 @@ unsigned clangsharp_Cursor_getCaptureIsEscapingByRef(CXCursor C, unsigned i) {
 }
 
 unsigned clangsharp_Cursor_getCaptureIsNested(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -500,7 +538,7 @@ unsigned clangsharp_Cursor_getCaptureIsNested(CXCursor C, unsigned i) {
 }
 
 unsigned clangsharp_Cursor_getCaptureIsNonEscapingByRef(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -516,7 +554,7 @@ unsigned clangsharp_Cursor_getCaptureIsNonEscapingByRef(CXCursor C, unsigned i) 
 }
 
 CXCursor clangsharp_Cursor_getCapturedDecl(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const CapturedStmt* CS = dyn_cast<CapturedStmt>(S)) {
@@ -528,7 +566,7 @@ CXCursor clangsharp_Cursor_getCapturedDecl(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getCapturedRecordDecl(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const CapturedStmt* CS = dyn_cast<CapturedStmt>(S)) {
@@ -540,7 +578,7 @@ CXCursor clangsharp_Cursor_getCapturedRecordDecl(CXCursor C) {
 }
 
 CX_CapturedRegionKind clangsharp_Cursor_getCapturedRegionKind(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const CapturedStmt* CS = dyn_cast<CapturedStmt>(S)) {
@@ -552,7 +590,7 @@ CX_CapturedRegionKind clangsharp_Cursor_getCapturedRegionKind(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getCapturedStmt(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const CapturedStmt* CS = dyn_cast<CapturedStmt>(S)) {
@@ -564,7 +602,7 @@ CXCursor clangsharp_Cursor_getCapturedStmt(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getCapturesCXXThis(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -576,7 +614,7 @@ unsigned clangsharp_Cursor_getCapturesCXXThis(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getCapturesVariable(CXCursor C, CXCursor V) {
-    if (clang_isDeclaration(C.kind) && clang_isDeclaration(V.kind)) {
+    if (isDeclOrTU(C.kind) && isDeclOrTU(V.kind)) {
         const BlockDecl* BD = dyn_cast<BlockDecl>(getCursorDecl(C));
         const VarDecl* VD = dyn_cast<VarDecl>(getCursorDecl(V));
 
@@ -589,7 +627,7 @@ unsigned clangsharp_Cursor_getCapturesVariable(CXCursor C, CXCursor V) {
 }
 
 CXCursor clangsharp_Cursor_getCaptureVariable(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -605,10 +643,10 @@ CXCursor clangsharp_Cursor_getCaptureVariable(CXCursor C, unsigned i) {
 }
 
 CX_CastKind clangsharp_Cursor_getCastKind(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CastExpr* CastEx = dyn_cast<CastExpr>(E)) {
+        if (const CastExpr* CastEx = dyn_cast<CastExpr>(S)) {
             return static_cast<CX_CastKind>(CastEx->getCastKind() + 1);
         }
     }
@@ -617,14 +655,14 @@ CX_CastKind clangsharp_Cursor_getCastKind(CXCursor C) {
 }
 
 CX_CharacterKind clangsharp_Cursor_getCharacterLiteralKind(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CharacterLiteral* CL = dyn_cast<CharacterLiteral>(E)) {
+        if (const CharacterLiteral* CL = dyn_cast<CharacterLiteral>(S)) {
             return static_cast<CX_CharacterKind>(CL->getKind() + 1);
         }
 
-        if (const StringLiteral* SL = dyn_cast<StringLiteral>(E)) {
+        if (const StringLiteral* SL = dyn_cast<StringLiteral>(S)) {
             return static_cast<CX_CharacterKind>(SL->getKind() + 1);
         }
     }
@@ -633,10 +671,10 @@ CX_CharacterKind clangsharp_Cursor_getCharacterLiteralKind(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getCharacterLiteralValue(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CharacterLiteral* CL = dyn_cast<CharacterLiteral>(E)) {
+        if (const CharacterLiteral* CL = dyn_cast<CharacterLiteral>(S)) {
             return CL->getValue();
         }
     }
@@ -645,7 +683,7 @@ unsigned clangsharp_Cursor_getCharacterLiteralValue(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getChild(CXCursor C, unsigned i) {
-    if (clang_isExpression(C.kind) || clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         unsigned n = 0;
@@ -662,10 +700,10 @@ CXCursor clangsharp_Cursor_getChild(CXCursor C, unsigned i) {
 }
 
 CXType clangsharp_Cursor_getComputationLhsType(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CompoundAssignOperator* CAO = dyn_cast<CompoundAssignOperator>(E)) {
+        if (const CompoundAssignOperator* CAO = dyn_cast<CompoundAssignOperator>(S)) {
             return MakeCXType(CAO->getComputationLHSType(), getCursorTU(C));
         }
     }
@@ -674,10 +712,10 @@ CXType clangsharp_Cursor_getComputationLhsType(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getComputationResultType(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CompoundAssignOperator* CAO = dyn_cast<CompoundAssignOperator>(E)) {
+        if (const CompoundAssignOperator* CAO = dyn_cast<CompoundAssignOperator>(S)) {
             return MakeCXType(CAO->getComputationResultType(), getCursorTU(C));
         }
     }
@@ -686,7 +724,7 @@ CXType clangsharp_Cursor_getComputationResultType(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getConstraintExpr(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ConceptDecl* CD = dyn_cast<ConceptDecl>(D)) {
@@ -698,7 +736,7 @@ CXCursor clangsharp_Cursor_getConstraintExpr(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getConstructedBaseClass(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ConstructorUsingShadowDecl* CUSD = dyn_cast<ConstructorUsingShadowDecl>(D)) {
@@ -710,7 +748,7 @@ CXCursor clangsharp_Cursor_getConstructedBaseClass(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getConstructedBaseClassShadowDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ConstructorUsingShadowDecl* CUSD = dyn_cast<ConstructorUsingShadowDecl>(D)) {
@@ -722,10 +760,10 @@ CXCursor clangsharp_Cursor_getConstructedBaseClassShadowDecl(CXCursor C) {
 }
 
 CX_ConstructionKind clangsharp_Cursor_getConstructionKind(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(E)) {
+        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(S)) {
             return static_cast<CX_ConstructionKind>(CXXCE->getConstructionKind() + 1);
         }
     }
@@ -734,7 +772,7 @@ CX_ConstructionKind clangsharp_Cursor_getConstructionKind(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getConstructsVirtualBase(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ConstructorUsingShadowDecl* CUSD = dyn_cast<ConstructorUsingShadowDecl>(D)) {
@@ -742,10 +780,10 @@ unsigned clangsharp_Cursor_getConstructsVirtualBase(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXInheritedCtorInitExpr* CXXICIE = dyn_cast<CXXInheritedCtorInitExpr>(E)) {
+        if (const CXXInheritedCtorInitExpr* CXXICIE = dyn_cast<CXXInheritedCtorInitExpr>(S)) {
             return CXXICIE->constructsVBase();
         }
     }
@@ -754,7 +792,7 @@ unsigned clangsharp_Cursor_getConstructsVirtualBase(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getContextParam(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CapturedDecl* CD = dyn_cast<CapturedDecl>(D)) {
@@ -766,7 +804,7 @@ CXCursor clangsharp_Cursor_getContextParam(CXCursor C) {
 }
 
 int clangsharp_Cursor_getContextParamPosition(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CapturedDecl* CD = dyn_cast<CapturedDecl>(D)) {
@@ -777,19 +815,38 @@ int clangsharp_Cursor_getContextParamPosition(CXCursor C) {
     return -1;
 }
 
-unsigned clangsharp_Cursor_getBoolLiteralValue(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+CXCursor clangsharp_Cursor_getCtor(CXCursor C, unsigned i) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
 
-        if (const CXXBoolLiteralExpr* CBLE = dyn_cast<CXXBoolLiteralExpr>(E)) {
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            unsigned n = 0;
+
+            for (auto ctor : CXXRD->ctors()) {
+                if (n == i) {
+                    return MakeCXCursor(ctor, getCursorTU(C));
+                }
+                n++;
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
+unsigned clangsharp_Cursor_getBoolLiteralValue(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const CXXBoolLiteralExpr* CBLE = dyn_cast<CXXBoolLiteralExpr>(S)) {
             return CBLE->getValue();
         }
 
-        if (const CXXNoexceptExpr* CXXNE = dyn_cast<CXXNoexceptExpr>(E)) {
+        if (const CXXNoexceptExpr* CXXNE = dyn_cast<CXXNoexceptExpr>(S)) {
             return CXXNE->getValue();
         }
 
-        if (const ObjCBoolLiteralExpr* OCBLE = dyn_cast<ObjCBoolLiteralExpr>(E)) {
+        if (const ObjCBoolLiteralExpr* OCBLE = dyn_cast<ObjCBoolLiteralExpr>(S)) {
             return OCBLE->getValue();
         }
     }
@@ -798,7 +855,7 @@ unsigned clangsharp_Cursor_getBoolLiteralValue(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getDeclaredReturnType(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -810,7 +867,7 @@ CXType clangsharp_Cursor_getDeclaredReturnType(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getDecl(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const DeclContext* DC = dyn_cast<DeclContext>(D)) {
@@ -825,10 +882,10 @@ CXCursor clangsharp_Cursor_getDecl(CXCursor C, unsigned i) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(E)) {
+        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(S)) {
             if (i == 0) {
                 return MakeCXCursor(CXXNE->getOperatorDelete(), getCursorTU(C));
             }
@@ -837,13 +894,24 @@ CXCursor clangsharp_Cursor_getDecl(CXCursor C, unsigned i) {
             }
         }
 
-        if (const FunctionParmPackExpr* FPPE = dyn_cast<FunctionParmPackExpr>(E)) {
+        if (const DeclStmt* DS = dyn_cast<DeclStmt>(S)) {
+            unsigned n = 0;
+
+            for (auto decl : DS->decls()) {
+                if (n == i) {
+                    return MakeCXCursor(decl, getCursorTU(C));
+                }
+                n++;
+            }
+        }
+
+        if (const FunctionParmPackExpr* FPPE = dyn_cast<FunctionParmPackExpr>(S)) {
             if (i < FPPE->getNumExpansions()) {
                 return MakeCXCursor(FPPE->getExpansion(i), getCursorTU(C));
             }
         }
 
-        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(E)) {
+        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(S)) {
             unsigned n = 0;
 
             for (auto decl : OE->decls()) {
@@ -859,7 +927,7 @@ CXCursor clangsharp_Cursor_getDecl(CXCursor C, unsigned i) {
 }
 
 CX_DeclKind clangsharp_Cursor_getDeclKind(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return static_cast<CX_DeclKind>(D->getKind() + 1);
     }
@@ -868,7 +936,7 @@ CX_DeclKind clangsharp_Cursor_getDeclKind(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getDecomposedDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BindingDecl* BD = dyn_cast<BindingDecl>(D)) {
@@ -880,7 +948,7 @@ CXCursor clangsharp_Cursor_getDecomposedDecl(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getDefaultArg(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -896,7 +964,7 @@ CXCursor clangsharp_Cursor_getDefaultArg(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getDefaultArgType(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const TemplateTypeParmDecl* TTPD = dyn_cast<TemplateTypeParmDecl>(D)) {
@@ -907,8 +975,32 @@ CXType clangsharp_Cursor_getDefaultArgType(CXCursor C) {
     return MakeCXType(QualType(), getCursorTU(C));
 }
 
+CXCursor clangsharp_Cursor_getDefinition(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
+            return MakeCXCursor(FD->getDefinition(), getCursorTU(C));
+        }
+
+        if (const ObjCProtocolDecl* OCPD = dyn_cast<ObjCProtocolDecl>(D)) {
+            return MakeCXCursor(OCPD->getDefinition(), getCursorTU(C));
+        }
+
+        if (const TagDecl* TD = dyn_cast<TagDecl>(D)) {
+            return MakeCXCursor(TD->getDefinition(), getCursorTU(C));
+        }
+
+        if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
+            return MakeCXCursor(VD->getDefinition(), getCursorTU(C));
+        }
+    }
+
+    return clang_getCursorDefinition(C);
+}
+
 CXCursor clangsharp_Cursor_getDependentLambdaCallOperator(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
@@ -920,7 +1012,7 @@ CXCursor clangsharp_Cursor_getDependentLambdaCallOperator(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getDescribedCursorTemplate(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplateSpecializationDecl* CTSD = dyn_cast<ClassTemplateSpecializationDecl>(D)) {
@@ -940,7 +1032,7 @@ CXCursor clangsharp_Cursor_getDescribedCursorTemplate(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getDescribedTemplate(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return MakeCXCursor(D->getDescribedTemplate(), getCursorTU(C));
     }
@@ -949,7 +1041,7 @@ CXCursor clangsharp_Cursor_getDescribedTemplate(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getDestructor(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
@@ -961,7 +1053,7 @@ CXCursor clangsharp_Cursor_getDestructor(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getDoesNotEscape(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -973,14 +1065,14 @@ unsigned clangsharp_Cursor_getDoesNotEscape(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getDoesUsualArrayDeleteWantSize(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(E)) {
+        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(S)) {
             return CXXNE->doesUsualArrayDeleteWantSize();
         }
 
-        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(E)) {
+        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(S)) {
             return CXXDE->doesUsualArrayDeleteWantSize();
         }
     }
@@ -989,7 +1081,7 @@ unsigned clangsharp_Cursor_getDoesUsualArrayDeleteWantSize(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getEnumDeclPromotionType(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const EnumDecl* ED = dyn_cast<EnumDecl>(D)) {
@@ -1000,8 +1092,27 @@ CXType clangsharp_Cursor_getEnumDeclPromotionType(CXCursor C) {
     return MakeCXType(QualType(), getCursorTU(C));
 }
 
+CXCursor clangsharp_Cursor_getEnumerator(CXCursor C, unsigned i) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const EnumDecl* ED = dyn_cast<EnumDecl>(D)) {
+            unsigned n = 0;
+
+            for (auto enumerator : ED->enumerators()) {
+                if (n == i) {
+                    return MakeCXCursor(enumerator, getCursorTU(C));
+                }
+                n++;
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
 CXType clangsharp_Cursor_getExpansionType(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -1015,7 +1126,7 @@ CXType clangsharp_Cursor_getExpansionType(CXCursor C, unsigned i) {
 }
 
 CXCursor clangsharp_Cursor_getExpr(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
@@ -1070,16 +1181,19 @@ CXCursor clangsharp_Cursor_getExpr(CXCursor C, unsigned i) {
 }
 
 CX_ExprDependence clangsharp_Cursor_getExprDependence(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
-        return static_cast<CX_ExprDependence>(E->getDependence());
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const Expr* E = dyn_cast<Expr>(S)) {
+            return static_cast<CX_ExprDependence>(E->getDependence());
+        }
     }
 
     return CX_ED_None;
 }
 
 int clangsharp_Cursor_getFieldIndex(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FieldDecl* FD = dyn_cast<FieldDecl>(D)) {
@@ -1091,10 +1205,10 @@ int clangsharp_Cursor_getFieldIndex(CXCursor C) {
 }
 
 CX_FloatingSemantics clangsharp_Cursor_getFloatingLiteralSemantics(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const FloatingLiteral* FL = dyn_cast<FloatingLiteral>(E)) {
+        if (const FloatingLiteral* FL = dyn_cast<FloatingLiteral>(S)) {
             return static_cast<CX_FloatingSemantics>(FL->getRawSemantics() + 1);
         }
     }
@@ -1103,10 +1217,10 @@ CX_FloatingSemantics clangsharp_Cursor_getFloatingLiteralSemantics(CXCursor C) {
 }
 
 double clangsharp_Cursor_getFloatingLiteralValueAsApproximateDouble(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const FloatingLiteral* FL = dyn_cast<FloatingLiteral>(E)) {
+        if (const FloatingLiteral* FL = dyn_cast<FloatingLiteral>(S)) {
             return FL->getValueAsApproximateDouble();
         }
     }
@@ -1115,10 +1229,10 @@ double clangsharp_Cursor_getFloatingLiteralValueAsApproximateDouble(CXCursor C) 
 }
 
 CXCursor clangsharp_Cursor_getFoundDecl(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(E)) {
+        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(S)) {
             return MakeCXCursor(DRE->getFoundDecl(), getCursorTU(C));
         }
     }
@@ -1126,8 +1240,48 @@ CXCursor clangsharp_Cursor_getFoundDecl(CXCursor C) {
     return clang_getNullCursor();
 }
 
+CXCursor clangsharp_Cursor_getField(CXCursor C, unsigned i) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const RecordDecl* RD = dyn_cast<RecordDecl>(D)) {
+            unsigned n = 0;
+
+            for (auto field : RD->fields()) {
+                if (n == i) {
+                    return MakeCXCursor(field, getCursorTU(C));
+                }
+                n++;
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
+CXCursor clangsharp_Cursor_getFriend(CXCursor C, unsigned i) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            if (CXXRD->getDefinition()) {
+                unsigned n = 0;
+
+                for (auto f : CXXRD->friends()) {
+                    if (n == i) {
+                        return MakeCXCursor(f, getCursorTU(C));
+                    }
+                    n++;
+                }
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
 CXCursor clangsharp_Cursor_getFriendDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FriendDecl* FD = dyn_cast<FriendDecl>(D)) {
@@ -1143,7 +1297,7 @@ CXCursor clangsharp_Cursor_getFriendDecl(CXCursor C) {
 }
 
 int clangsharp_Cursor_getFunctionScopeDepth(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ParmVarDecl* PVD = dyn_cast<ParmVarDecl>(D)) {
@@ -1155,7 +1309,7 @@ int clangsharp_Cursor_getFunctionScopeDepth(CXCursor C) {
 }
 
 int clangsharp_Cursor_getFunctionScopeIndex(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ParmVarDecl* PVD = dyn_cast<ParmVarDecl>(D)) {
@@ -1167,7 +1321,7 @@ int clangsharp_Cursor_getFunctionScopeIndex(CXCursor C) {
 }
 
 MSGuidDeclParts clangsharp_Cursor_getGuidValue(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const MSGuidDecl* MSGD = dyn_cast<MSGuidDecl>(D)) {
@@ -1179,18 +1333,18 @@ MSGuidDeclParts clangsharp_Cursor_getGuidValue(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHadMultipleCandidates(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(E)) {
+        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(S)) {
             return CXXCE->hadMultipleCandidates();
         }
 
-        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(E)) {
+        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(S)) {
             return DRE->hadMultipleCandidates();
         }
 
-        if (const MemberExpr* ME = dyn_cast<MemberExpr>(E)) {
+        if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
             return ME->hadMultipleCandidates();
         }
     }
@@ -1199,7 +1353,7 @@ unsigned clangsharp_Cursor_getHadMultipleCandidates(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasBody(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -1211,7 +1365,7 @@ unsigned clangsharp_Cursor_getHasBody(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasDefaultArg(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -1231,7 +1385,7 @@ unsigned clangsharp_Cursor_getHasDefaultArg(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasElseStorage(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const IfStmt* IS = dyn_cast<IfStmt>(S)) {
@@ -1243,7 +1397,7 @@ unsigned clangsharp_Cursor_getHasElseStorage(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasExplicitTemplateArgs(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassScopeFunctionSpecializationDecl* CSFSD = dyn_cast<ClassScopeFunctionSpecializationDecl>(D)) {
@@ -1251,26 +1405,26 @@ unsigned clangsharp_Cursor_getHasExplicitTemplateArgs(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(E)) {
+        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(S)) {
             return CXXDSME->hasExplicitTemplateArgs();
         }
 
-        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(E)) {
+        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(S)) {
             return DRE->hasExplicitTemplateArgs();
         }
 
-        if (const DependentScopeDeclRefExpr* DSDRE = dyn_cast<DependentScopeDeclRefExpr>(E)) {
+        if (const DependentScopeDeclRefExpr* DSDRE = dyn_cast<DependentScopeDeclRefExpr>(S)) {
             return DSDRE->hasExplicitTemplateArgs();
         }
 
-        if (const MemberExpr* ME = dyn_cast<MemberExpr>(E)) {
+        if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
             return ME->hasExplicitTemplateArgs();
         }
 
-        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(E)) {
+        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(S)) {
             return OE->hasExplicitTemplateArgs();
         }
     }
@@ -1279,7 +1433,7 @@ unsigned clangsharp_Cursor_getHasExplicitTemplateArgs(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasExternalStorage(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
@@ -1291,7 +1445,7 @@ unsigned clangsharp_Cursor_getHasExternalStorage(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasGlobalStorage(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
@@ -1303,7 +1457,7 @@ unsigned clangsharp_Cursor_getHasGlobalStorage(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasImplicitReturnZero(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -1315,7 +1469,7 @@ unsigned clangsharp_Cursor_getHasImplicitReturnZero(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasInheritedDefaultArg(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -1339,7 +1493,7 @@ unsigned clangsharp_Cursor_getHasInheritedDefaultArg(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasInit(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
@@ -1347,10 +1501,10 @@ unsigned clangsharp_Cursor_getHasInit(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(E)) {
+        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(S)) {
             return CXXNE->hasInitializer();
         }
     }
@@ -1359,7 +1513,7 @@ unsigned clangsharp_Cursor_getHasInit(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasInitStorage(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const IfStmt* IS = dyn_cast<IfStmt>(S)) {
@@ -1375,7 +1529,7 @@ unsigned clangsharp_Cursor_getHasInitStorage(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasLeadingEmptyMacro(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const NullStmt* NS = dyn_cast<NullStmt>(S)) {
@@ -1387,7 +1541,7 @@ unsigned clangsharp_Cursor_getHasLeadingEmptyMacro(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasLocalStorage(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
@@ -1399,7 +1553,7 @@ unsigned clangsharp_Cursor_getHasLocalStorage(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasPlaceholderTypeConstraint(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -1411,26 +1565,26 @@ unsigned clangsharp_Cursor_getHasPlaceholderTypeConstraint(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getHasTemplateKeyword(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(E)) {
+        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(S)) {
             return CXXDSME->hasTemplateKeyword();
         }
 
-        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(E)) {
+        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(S)) {
             return DRE->hasTemplateKeyword();
         }
 
-        if (const DependentScopeDeclRefExpr* DSDRE = dyn_cast<DependentScopeDeclRefExpr>(E)) {
+        if (const DependentScopeDeclRefExpr* DSDRE = dyn_cast<DependentScopeDeclRefExpr>(S)) {
             return DSDRE->hasTemplateKeyword();
         }
 
-        if (const MemberExpr* ME = dyn_cast<MemberExpr>(E)) {
+        if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
             return ME->hasTemplateKeyword();
         }
 
-        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(E)) {
+        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(S)) {
             return OE->hasTemplateKeyword();
         }
     }
@@ -1438,9 +1592,92 @@ unsigned clangsharp_Cursor_getHasTemplateKeyword(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getHasUserDeclaredConstructor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasUserDeclaredConstructor();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasUserDeclaredCopyAssignment(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasUserDeclaredCopyAssignment();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasUserDeclaredCopyConstructor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasUserDeclaredCopyConstructor();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasUserDeclaredDestructor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasUserDeclaredDestructor();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasUserDeclaredMoveAssignment(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasUserDeclaredMoveAssignment();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasUserDeclaredMoveConstructor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasUserDeclaredMoveConstructor();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasUserDeclaredMoveOperation(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() && CXXRD->hasUserDeclaredMoveOperation();
+        }
+    }
+
+    return 0;
+}
 
 unsigned clangsharp_Cursor_getHasVarStorage(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const IfStmt* IS = dyn_cast<IfStmt>(S)) {
@@ -1460,7 +1697,7 @@ unsigned clangsharp_Cursor_getHasVarStorage(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getInClassInitializer(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FieldDecl* FD = dyn_cast<FieldDecl>(D)) {
@@ -1472,7 +1709,7 @@ CXCursor clangsharp_Cursor_getInClassInitializer(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getInheritedConstructor(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
@@ -1484,10 +1721,10 @@ CXCursor clangsharp_Cursor_getInheritedConstructor(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getInheritedFromVBase(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXInheritedCtorInitExpr* CXXICIE = dyn_cast<CXXInheritedCtorInitExpr>(E)) {
+        if (const CXXInheritedCtorInitExpr* CXXICIE = dyn_cast<CXXInheritedCtorInitExpr>(S)) {
             return CXXICIE->inheritedFromVBase();
         }
     }
@@ -1496,7 +1733,7 @@ unsigned clangsharp_Cursor_getInheritedFromVBase(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getInitExpr(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const EnumConstantDecl* ECD = dyn_cast<EnumConstantDecl>(D)) {
@@ -1512,7 +1749,7 @@ CXCursor clangsharp_Cursor_getInitExpr(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getInjectedSpecializationType(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
@@ -1524,7 +1761,7 @@ CXType clangsharp_Cursor_getInjectedSpecializationType(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getInstantiatedFromMember(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
@@ -1556,10 +1793,10 @@ CXCursor clangsharp_Cursor_getInstantiatedFromMember(CXCursor C) {
 }
 
 int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(E)) {
+        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(S)) {
             return IL->getValue().getSExtValue();
         }
     }
@@ -1568,7 +1805,7 @@ int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsAllEnumCasesCovered(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const SwitchStmt* SS = dyn_cast<SwitchStmt>(S)) {
@@ -1580,10 +1817,10 @@ unsigned clangsharp_Cursor_getIsAllEnumCasesCovered(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsAlwaysNull(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXDynamicCastExpr* CXXDCE = dyn_cast<CXXDynamicCastExpr>(E)) {
+        if (const CXXDynamicCastExpr* CXXDCE = dyn_cast<CXXDynamicCastExpr>(S)) {
             return CXXDCE->isAlwaysNull();
         }
     }
@@ -1592,7 +1829,7 @@ unsigned clangsharp_Cursor_getIsAlwaysNull(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsAnonymousStructOrUnion(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FieldDecl* FD = dyn_cast<FieldDecl>(D)) {
@@ -1608,10 +1845,10 @@ unsigned clangsharp_Cursor_getIsAnonymousStructOrUnion(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsArgumentType(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const UnaryExprOrTypeTraitExpr* UETTE = dyn_cast<UnaryExprOrTypeTraitExpr>(E)) {
+        if (const UnaryExprOrTypeTraitExpr* UETTE = dyn_cast<UnaryExprOrTypeTraitExpr>(S)) {
             return UETTE->isArgumentType();
         }
     }
@@ -1620,14 +1857,14 @@ unsigned clangsharp_Cursor_getIsArgumentType(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsArrayForm(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(E)) {
+        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(S)) {
             return CXXDE->isArrayForm();
         }
 
-        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(E)) {
+        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(S)) {
             return CXXNE->isArray();
         }
     }
@@ -1636,10 +1873,10 @@ unsigned clangsharp_Cursor_getIsArrayForm(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsArrayFormAsWritten(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(E)) {
+        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(S)) {
             return CXXDE->isArrayFormAsWritten();
         }
     }
@@ -1648,30 +1885,30 @@ unsigned clangsharp_Cursor_getIsArrayFormAsWritten(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsArrow(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(E)) {
+        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(S)) {
             return CXXDSME->isArrow();
         }
 
-        if (const MemberExpr* ME = dyn_cast<MemberExpr>(E)) {
+        if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
             return ME->isArrow();
         }
 
-        if (const ObjCIsaExpr* OCIE = dyn_cast<ObjCIsaExpr>(E)) {
+        if (const ObjCIsaExpr* OCIE = dyn_cast<ObjCIsaExpr>(S)) {
             return OCIE->isArrow();
         }
 
-        if (const ObjCIvarRefExpr* OCIRE = dyn_cast<ObjCIvarRefExpr>(E)) {
+        if (const ObjCIvarRefExpr* OCIRE = dyn_cast<ObjCIvarRefExpr>(S)) {
             return OCIRE->isArrow();
         }
 
-        if (const CXXPseudoDestructorExpr* CXXPSDE = dyn_cast<CXXPseudoDestructorExpr>(E)) {
+        if (const CXXPseudoDestructorExpr* CXXPSDE = dyn_cast<CXXPseudoDestructorExpr>(S)) {
             return CXXPSDE->isArrow();
         }
 
-        if (const UnresolvedMemberExpr* UME = dyn_cast<UnresolvedMemberExpr>(E)) {
+        if (const UnresolvedMemberExpr* UME = dyn_cast<UnresolvedMemberExpr>(S)) {
             return UME->isArrow();
         }
     }
@@ -1680,7 +1917,7 @@ unsigned clangsharp_Cursor_getIsArrow(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsCompleteDefinition(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const TagDecl* TD = dyn_cast<TagDecl>(D)) {
@@ -1692,10 +1929,10 @@ unsigned clangsharp_Cursor_getIsCompleteDefinition(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsConditionTrue(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const ChooseExpr* CE = dyn_cast<ChooseExpr>(E)) {
+        if (const ChooseExpr* CE = dyn_cast<ChooseExpr>(S)) {
             if (!CE->isConditionDependent()) {
                 return CE->isConditionTrue();
             }
@@ -1706,7 +1943,7 @@ unsigned clangsharp_Cursor_getIsConditionTrue(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsConstexpr(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const IfStmt* IS = dyn_cast<IfStmt>(S)) {
@@ -1718,7 +1955,7 @@ unsigned clangsharp_Cursor_getIsConstexpr(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsConversionFromLambda(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -1730,7 +1967,7 @@ unsigned clangsharp_Cursor_getIsConversionFromLambda(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsCopyOrMoveConstructor(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
@@ -1742,7 +1979,7 @@ unsigned clangsharp_Cursor_getIsCopyOrMoveConstructor(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsCXXTry(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const SEHTryStmt* SEHTS = dyn_cast<SEHTryStmt>(S)) {
@@ -1754,7 +1991,7 @@ unsigned clangsharp_Cursor_getIsCXXTry(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsDefined(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -1766,7 +2003,7 @@ unsigned clangsharp_Cursor_getIsDefined(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsDelegatingConstructor(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
@@ -1777,8 +2014,20 @@ unsigned clangsharp_Cursor_getIsDelegatingConstructor(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getIsDeleted(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
+            return !FD->isDeleted();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsDeprecated(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return D->isDeprecated();
     }
@@ -1786,8 +2035,32 @@ unsigned clangsharp_Cursor_getIsDeprecated(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getIsElidable(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(S)) {
+            return CXXCE->isElidable();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsExplicitlyDefaulted(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
+            return !FD->isExplicitlyDefaulted();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsExternC(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -1799,7 +2072,7 @@ unsigned clangsharp_Cursor_getIsExternC(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsExpandedParameterPack(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const TemplateTemplateParmDecl* TTPD = dyn_cast<TemplateTemplateParmDecl>(D)) {
@@ -1815,10 +2088,10 @@ unsigned clangsharp_Cursor_getIsExpandedParameterPack(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsFileScope(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CompoundLiteralExpr* CLE = dyn_cast<CompoundLiteralExpr>(E)) {
+        if (const CompoundLiteralExpr* CLE = dyn_cast<CompoundLiteralExpr>(S)) {
             return CLE->isFileScope();
         }
     }
@@ -1827,7 +2100,7 @@ unsigned clangsharp_Cursor_getIsFileScope(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsGlobal(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -1835,14 +2108,14 @@ unsigned clangsharp_Cursor_getIsGlobal(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(E)) {
+        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(S)) {
             return CXXNE->isGlobalNew();
         }
 
-        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(E)) {
+        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(S)) {
             return CXXDE->isGlobalDelete();
         }
     }
@@ -1850,8 +2123,20 @@ unsigned clangsharp_Cursor_getIsGlobal(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getIsInjectedClassName(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const RecordDecl* RD = dyn_cast<RecordDecl>(D)) {
+            return RD->isInjectedClassName();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsIfExists(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const MSDependentExistsStmt* MSDES = dyn_cast<MSDependentExistsStmt>(S)) {
@@ -1863,7 +2148,7 @@ unsigned clangsharp_Cursor_getIsIfExists(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsImplicit(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
@@ -1879,22 +2164,22 @@ unsigned clangsharp_Cursor_getIsImplicit(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXThisExpr* CXXTE = dyn_cast<CXXThisExpr>(E)) {
+        if (const CXXThisExpr* CXXTE = dyn_cast<CXXThisExpr>(S)) {
             return CXXTE->isImplicit();
         }
 
-        if (const ImplicitCastExpr* ICE = dyn_cast<ImplicitCastExpr>(E)) {
+        if (const ImplicitCastExpr* ICE = dyn_cast<ImplicitCastExpr>(S)) {
             return !ICE->isPartOfExplicitCast();
         }
 
-        if (const InitListExpr* ILE = dyn_cast<InitListExpr>(E)) {
+        if (const InitListExpr* ILE = dyn_cast<InitListExpr>(S)) {
             return !ILE->isExplicit();
         }
 
-        if (const MemberExpr* ME = dyn_cast<MemberExpr>(E)) {
+        if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
             return ME->isImplicitAccess();
         }
     }
@@ -1903,10 +2188,10 @@ unsigned clangsharp_Cursor_getIsImplicit(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsIncomplete(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const MatrixSubscriptExpr* MSE = dyn_cast<MatrixSubscriptExpr>(E)) {
+        if (const MatrixSubscriptExpr* MSE = dyn_cast<MatrixSubscriptExpr>(S)) {
             return MSE->isIncomplete();
         }
     }
@@ -1915,7 +2200,7 @@ unsigned clangsharp_Cursor_getIsIncomplete(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsInheritingConstructor(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
@@ -1927,18 +2212,18 @@ unsigned clangsharp_Cursor_getIsInheritingConstructor(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsListInitialization(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(E)) {
+        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(S)) {
             return CXXCE->isListInitialization();
         }
 
-        if (const CXXFunctionalCastExpr* CXXFCE = dyn_cast<CXXFunctionalCastExpr>(E)) {
+        if (const CXXFunctionalCastExpr* CXXFCE = dyn_cast<CXXFunctionalCastExpr>(S)) {
             return CXXFCE->isListInitialization();
         }
 
-        if (const CXXUnresolvedConstructExpr* CXXUCE = dyn_cast<CXXUnresolvedConstructExpr>(E)) {
+        if (const CXXUnresolvedConstructExpr* CXXUCE = dyn_cast<CXXUnresolvedConstructExpr>(S)) {
             return CXXUCE->isListInitialization();
         }
     }
@@ -1947,7 +2232,7 @@ unsigned clangsharp_Cursor_getIsListInitialization(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsLocalVarDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
@@ -1959,7 +2244,7 @@ unsigned clangsharp_Cursor_getIsLocalVarDecl(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsLocalVarDeclOrParm(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
@@ -1971,7 +2256,7 @@ unsigned clangsharp_Cursor_getIsLocalVarDeclOrParm(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsMemberSpecialization(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
@@ -1987,7 +2272,7 @@ unsigned clangsharp_Cursor_getIsMemberSpecialization(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsNegative(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const EnumConstantDecl* ECD = dyn_cast<EnumConstantDecl>(D)) {
@@ -1995,10 +2280,10 @@ unsigned clangsharp_Cursor_getIsNegative(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(E)) {
+        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(S)) {
             return IL->getValue().isNegative();
         }
     }
@@ -2007,7 +2292,7 @@ unsigned clangsharp_Cursor_getIsNegative(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsNonNegative(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const EnumConstantDecl* ECD = dyn_cast<EnumConstantDecl>(D)) {
@@ -2015,10 +2300,10 @@ unsigned clangsharp_Cursor_getIsNonNegative(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(E)) {
+        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(S)) {
             return IL->getValue().isNonNegative();
         }
     }
@@ -2027,7 +2312,7 @@ unsigned clangsharp_Cursor_getIsNonNegative(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsNoReturn(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -2039,7 +2324,7 @@ unsigned clangsharp_Cursor_getIsNoReturn(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsNothrow(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CapturedDecl* CD = dyn_cast<CapturedDecl>(D)) {
@@ -2051,7 +2336,7 @@ unsigned clangsharp_Cursor_getIsNothrow(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsOverloadedOperator(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -2063,7 +2348,7 @@ unsigned clangsharp_Cursor_getIsOverloadedOperator(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsPackExpansion(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -2083,7 +2368,7 @@ unsigned clangsharp_Cursor_getIsPackExpansion(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsParameterPack(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -2103,10 +2388,10 @@ unsigned clangsharp_Cursor_getIsParameterPack(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsPartiallySubstituted(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const SizeOfPackExpr* SOPE = dyn_cast<SizeOfPackExpr>(E)) {
+        if (const SizeOfPackExpr* SOPE = dyn_cast<SizeOfPackExpr>(S)) {
             return SOPE->isPartiallySubstituted();
         }
     }
@@ -2115,10 +2400,10 @@ unsigned clangsharp_Cursor_getIsPartiallySubstituted(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsPotentiallyEvaluated(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXTypeidExpr* CXXTE = dyn_cast<CXXTypeidExpr>(E)) {
+        if (const CXXTypeidExpr* CXXTE = dyn_cast<CXXTypeidExpr>(S)) {
             return CXXTE->isPotentiallyEvaluated();
         }
     }
@@ -2127,7 +2412,7 @@ unsigned clangsharp_Cursor_getIsPotentiallyEvaluated(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsPure(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -2139,10 +2424,10 @@ unsigned clangsharp_Cursor_getIsPure(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsResultDependent(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const GenericSelectionExpr* GSE = dyn_cast<GenericSelectionExpr>(E)) {
+        if (const GenericSelectionExpr* GSE = dyn_cast<GenericSelectionExpr>(S)) {
             return GSE->isResultDependent();
         }
     }
@@ -2151,10 +2436,10 @@ unsigned clangsharp_Cursor_getIsResultDependent(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsReversed(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXRewrittenBinaryOperator* CXXRBO = dyn_cast<CXXRewrittenBinaryOperator>(E)) {
+        if (const CXXRewrittenBinaryOperator* CXXRBO = dyn_cast<CXXRewrittenBinaryOperator>(S)) {
             return CXXRBO->isReversed();
         }
     }
@@ -2163,7 +2448,7 @@ unsigned clangsharp_Cursor_getIsReversed(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsSigned(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const EnumConstantDecl* ECD = dyn_cast<EnumConstantDecl>(D)) {
@@ -2175,7 +2460,7 @@ unsigned clangsharp_Cursor_getIsSigned(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsStatic(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -2187,7 +2472,7 @@ unsigned clangsharp_Cursor_getIsStatic(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsStaticDataMember(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
@@ -2199,10 +2484,10 @@ unsigned clangsharp_Cursor_getIsStaticDataMember(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsStdInitListInitialization(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(E)) {
+        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(S)) {
             return CXXCE->isStdInitListInitialization();
         }
     }
@@ -2211,7 +2496,7 @@ unsigned clangsharp_Cursor_getIsStdInitListInitialization(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsStrictlyPositive(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const EnumConstantDecl* ECD = dyn_cast<EnumConstantDecl>(D)) {
@@ -2219,10 +2504,10 @@ unsigned clangsharp_Cursor_getIsStrictlyPositive(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(E)) {
+        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(S)) {
             return IL->getValue().isStrictlyPositive();
         }
     }
@@ -2231,7 +2516,7 @@ unsigned clangsharp_Cursor_getIsStrictlyPositive(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsTemplated(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return D->isTemplated();
     }
@@ -2240,7 +2525,7 @@ unsigned clangsharp_Cursor_getIsTemplated(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsThisDeclarationADefinition(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplateDecl* CTD = dyn_cast<ClassTemplateDecl>(D)) {
@@ -2272,10 +2557,10 @@ unsigned clangsharp_Cursor_getIsThisDeclarationADefinition(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsThrownVariableInScope(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXThrowExpr* CXXTE = dyn_cast<CXXThrowExpr>(E)) {
+        if (const CXXThrowExpr* CXXTE = dyn_cast<CXXThrowExpr>(S)) {
             return CXXTE->isThrownVariableInScope();
         }
     }
@@ -2284,7 +2569,7 @@ unsigned clangsharp_Cursor_getIsThrownVariableInScope(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsTransparent(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const TypedefNameDecl* TND = dyn_cast<TypedefNameDecl>(D)) {
@@ -2292,10 +2577,10 @@ unsigned clangsharp_Cursor_getIsTransparent(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const InitListExpr* ILE = dyn_cast<InitListExpr>(E)) {
+        if (const InitListExpr* ILE = dyn_cast<InitListExpr>(S)) {
             return ILE->isTransparent();
         }
     }
@@ -2304,7 +2589,7 @@ unsigned clangsharp_Cursor_getIsTransparent(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsTypeConcept(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ConceptDecl* CTD = dyn_cast<ConceptDecl>(D)) {
@@ -2316,7 +2601,7 @@ unsigned clangsharp_Cursor_getIsTypeConcept(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsUnavailable(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return D->isUnavailable();
     }
@@ -2325,7 +2610,7 @@ unsigned clangsharp_Cursor_getIsUnavailable(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsUnnamedBitfield(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FieldDecl* FD = dyn_cast<FieldDecl>(D)) {
@@ -2337,7 +2622,7 @@ unsigned clangsharp_Cursor_getIsUnnamedBitfield(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsUnsigned(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const EnumConstantDecl* ECD = dyn_cast<EnumConstantDecl>(D)) {
@@ -2349,7 +2634,7 @@ unsigned clangsharp_Cursor_getIsUnsigned(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getIsUnsupportedFriend(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FriendDecl* FD = dyn_cast<FriendDecl>(D)) {
@@ -2360,8 +2645,20 @@ unsigned clangsharp_Cursor_getIsUnsupportedFriend(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getIsUserProvided(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
+            return FD->isUserProvided();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsVariadic(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -2373,7 +2670,7 @@ unsigned clangsharp_Cursor_getIsVariadic(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getLambdaCallOperator(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
@@ -2385,7 +2682,7 @@ CXCursor clangsharp_Cursor_getLambdaCallOperator(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getLambdaContextDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
@@ -2399,7 +2696,7 @@ CXCursor clangsharp_Cursor_getLambdaContextDecl(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getLambdaStaticInvoker(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
@@ -2411,10 +2708,10 @@ CXCursor clangsharp_Cursor_getLambdaStaticInvoker(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getLhsExpr(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXRewrittenBinaryOperator* CRBO = dyn_cast<CXXRewrittenBinaryOperator>(E)) {
+        if (const CXXRewrittenBinaryOperator* CRBO = dyn_cast<CXXRewrittenBinaryOperator>(S)) {
             return MakeCXCursor(CRBO->getLHS(), getCursorDecl(C), getCursorTU(C));
         }
     }
@@ -2423,7 +2720,7 @@ CXCursor clangsharp_Cursor_getLhsExpr(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getMaxAlignment(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return D->getMaxAlignment();
     }
@@ -2431,8 +2728,27 @@ unsigned clangsharp_Cursor_getMaxAlignment(CXCursor C) {
     return 0;
 }
 
+CXCursor clangsharp_Cursor_getMethod(CXCursor C, unsigned i) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            unsigned n = 0;
+
+            for (auto method : CXXRD->methods()) {
+                if (n == i) {
+                    return MakeCXCursor(method, getCursorTU(C));
+                }
+                n++;
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
 CXCursor clangsharp_Cursor_getMostRecentDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return MakeCXCursor(D->getMostRecentDecl(), getCursorTU(C));
     }
@@ -2440,20 +2756,8 @@ CXCursor clangsharp_Cursor_getMostRecentDecl(CXCursor C) {
     return clang_getNullCursor();
 }
 
-CXCursor clangsharp_Cursor_getMostRecentNonInjectedDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
-        const Decl* D = getCursorDecl(C);
-
-        if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
-            return MakeCXCursor(CRD->getMostRecentNonInjectedDecl(), getCursorTU(C));
-        }
-    }
-
-    return clang_getNullCursor();
-}
-
 CXString clangsharp_Cursor_getName(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -2465,56 +2769,52 @@ CXString clangsharp_Cursor_getName(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(E)) {
+        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(S)) {
             return createDup(
                 CXXDSME->getMemberNameInfo().getAsString());
         }
 
-        if (const CXXNamedCastExpr* CXXNCE = dyn_cast<CXXNamedCastExpr>(E)) {
+        if (const CXXNamedCastExpr* CXXNCE = dyn_cast<CXXNamedCastExpr>(S)) {
             return createDup(
                 CXXNCE->getCastName());
         }
 
-        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(E)) {
+        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(S)) {
             return createDup(
                 DRE->getNameInfo().getAsString());
         }
 
-        if (const DependentScopeDeclRefExpr* DSDRE = dyn_cast<DependentScopeDeclRefExpr>(E)) {
+        if (const DependentScopeDeclRefExpr* DSDRE = dyn_cast<DependentScopeDeclRefExpr>(S)) {
             return createDup(
                 DSDRE->getDeclName().getAsString());
         }
-
-        if (const MemberExpr* ME = dyn_cast<MemberExpr>(E)) {
-            return createDup(
-                ME->getMemberNameInfo().getAsString());
-        }
-
-        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(E)) {
-            return createDup(
-                OE->getName().getAsString());
-        }
-
-        if (const UnresolvedMemberExpr* UME = dyn_cast<UnresolvedMemberExpr>(E)) {
-            return createDup(
-                UME->getMemberName().getAsString());
-        }
-    }
-
-    if (clang_isStatement(C.kind)) {
-        const Stmt* S = getCursorStmt(C);
 
         if (const LabelStmt* LS = dyn_cast<LabelStmt>(S)) {
             return createDup(
                 LS->getName());
         }
 
+        if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
+            return createDup(
+                ME->getMemberNameInfo().getAsString());
+        }
+
         if (const MSDependentExistsStmt* MSDES = dyn_cast<MSDependentExistsStmt>(S)) {
             return createDup(
                 MSDES->getNameInfo().getAsString());
+        }
+
+        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(S)) {
+            return createDup(
+                OE->getName().getAsString());
+        }
+
+        if (const UnresolvedMemberExpr* UME = dyn_cast<UnresolvedMemberExpr>(S)) {
+            return createDup(
+                UME->getMemberName().getAsString());
         }
     }
 
@@ -2522,7 +2822,7 @@ CXString clangsharp_Cursor_getName(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getNextDeclInContext(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return MakeCXCursor(D->getNextDeclInContext(), getCursorTU(C));
     }
@@ -2531,7 +2831,7 @@ CXCursor clangsharp_Cursor_getNextDeclInContext(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getNextSwitchCase(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const SwitchCase* SC = dyn_cast<SwitchCase>(S)) {
@@ -2543,7 +2843,7 @@ CXCursor clangsharp_Cursor_getNextSwitchCase(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getNominatedBaseClass(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ConstructorUsingShadowDecl* CUSD = dyn_cast<ConstructorUsingShadowDecl>(D)) {
@@ -2555,7 +2855,7 @@ CXCursor clangsharp_Cursor_getNominatedBaseClass(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getNominatedBaseClassShadowDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ConstructorUsingShadowDecl* CUSD = dyn_cast<ConstructorUsingShadowDecl>(D)) {
@@ -2567,7 +2867,7 @@ CXCursor clangsharp_Cursor_getNominatedBaseClassShadowDecl(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getNonClosureContext(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return MakeCXCursor(D->getNonClosureContext(), getCursorTU(C));
     }
@@ -2576,7 +2876,7 @@ CXCursor clangsharp_Cursor_getNonClosureContext(CXCursor C) {
 }
 
 int clangsharp_Cursor_getNumArguments(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -2588,18 +2888,18 @@ int clangsharp_Cursor_getNumArguments(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CastExpr* CE = dyn_cast<CastExpr>(E)) {
+        if (const CastExpr* CE = dyn_cast<CastExpr>(S)) {
             return CE->path_size();
         }
 
-        if (const CXXUnresolvedConstructExpr* CXXUCE = dyn_cast<CXXUnresolvedConstructExpr>(E)) {
+        if (const CXXUnresolvedConstructExpr* CXXUCE = dyn_cast<CXXUnresolvedConstructExpr>(S)) {
             return CXXUCE->arg_size();
         }
 
-        if (const ExprWithCleanups* EWC = dyn_cast<ExprWithCleanups>(E)) {
+        if (const ExprWithCleanups* EWC = dyn_cast<ExprWithCleanups>(S)) {
             return EWC->getNumObjects();
         }
     }
@@ -2608,10 +2908,10 @@ int clangsharp_Cursor_getNumArguments(CXCursor C) {
 }
 
 int clangsharp_Cursor_getNumAssocs(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const GenericSelectionExpr* GSE = dyn_cast<GenericSelectionExpr>(E)) {
+        if (const GenericSelectionExpr* GSE = dyn_cast<GenericSelectionExpr>(S)) {
             return GSE->getNumAssocs();
         }
     }
@@ -2620,7 +2920,7 @@ int clangsharp_Cursor_getNumAssocs(CXCursor C) {
 }
 
 int clangsharp_Cursor_getNumAssociatedConstraints(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
@@ -2658,12 +2958,12 @@ int clangsharp_Cursor_getNumAssociatedConstraints(CXCursor C) {
 }
 
 int clangsharp_Cursor_getNumAttrs(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return D->getAttrs().size();
     }
 
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const AttributedStmt* AS = dyn_cast<AttributedStmt>(S)) {
@@ -2674,8 +2974,32 @@ int clangsharp_Cursor_getNumAttrs(CXCursor C) {
     return -1;
 }
 
+int clangsharp_Cursor_getNumBases(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() ? CXXRD->getNumBases() : 0;
+        }
+    }
+
+    return -1;
+}
+
+int clangsharp_Cursor_getNumBindings(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const DecompositionDecl* DD = dyn_cast<DecompositionDecl>(D)) {
+            return DD->bindings().size();
+        }
+    }
+
+    return -1;
+}
+
 int clangsharp_Cursor_getNumCaptures(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BlockDecl* BD = dyn_cast<BlockDecl>(D)) {
@@ -2687,7 +3011,7 @@ int clangsharp_Cursor_getNumCaptures(CXCursor C) {
 }
 
 int clangsharp_Cursor_getNumChildren(CXCursor C) {
-    if (clang_isExpression(C.kind) || clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
         unsigned n = 0;
 
@@ -2701,8 +3025,26 @@ int clangsharp_Cursor_getNumChildren(CXCursor C) {
     return -1;
 }
 
+int clangsharp_Cursor_getNumCtors(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            unsigned n = 0;
+
+            for (auto ctor : CXXRD->ctors()) {
+                n++;
+            }
+
+            return n;
+        }
+    }
+
+    return -1;
+}
+
 int clangsharp_Cursor_getNumDecls(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const DeclContext* DC = dyn_cast<DeclContext>(D)) {
@@ -2718,18 +3060,28 @@ int clangsharp_Cursor_getNumDecls(CXCursor C) {
         return 0;
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(E)) {
+        if (const CXXNewExpr* CXXNE = dyn_cast<CXXNewExpr>(S)) {
             return 2;
         }
 
-        if (const FunctionParmPackExpr* FPPE = dyn_cast<FunctionParmPackExpr>(E)) {
+        if (const DeclStmt* DS = dyn_cast<DeclStmt>(S)) {
+            unsigned n = 0;
+
+            for (auto decl : DS->decls()) {
+                n++;
+            }
+
+            return n;
+        }
+
+        if (const FunctionParmPackExpr* FPPE = dyn_cast<FunctionParmPackExpr>(S)) {
             return FPPE->getNumExpansions();
         }
 
-        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(E)) {
+        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(S)) {
             return OE->getNumDecls();
         }
     }
@@ -2737,8 +3089,26 @@ int clangsharp_Cursor_getNumDecls(CXCursor C) {
     return -1;
 }
 
+int clangsharp_Cursor_getNumEnumerators(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const EnumDecl* ED = dyn_cast<EnumDecl>(D)) {
+            unsigned n = 0;
+
+            for (auto enumerator : ED->enumerators()) {
+                n++;
+            }
+
+            return n;
+        }
+    }
+
+    return -1;
+}
+
 int clangsharp_Cursor_getNumExpansionTypes(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -2750,7 +3120,7 @@ int clangsharp_Cursor_getNumExpansionTypes(CXCursor C) {
 }
 
 int clangsharp_Cursor_getNumExprs(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
@@ -2761,8 +3131,64 @@ int clangsharp_Cursor_getNumExprs(CXCursor C) {
     return -1;
 }
 
+int clangsharp_Cursor_getNumFields(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const RecordDecl* RD = dyn_cast<RecordDecl>(D)) {
+            unsigned n = 0;
+
+            for (auto f : RD->fields()) {
+                n++;
+            }
+
+            return n;
+        }
+    }
+
+    return -1;
+}
+
+int clangsharp_Cursor_getNumFriends(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            unsigned n = 0;
+
+            if (CXXRD->getDefinition()) {
+                for (auto f : CXXRD->friends()) {
+                    n++;
+                }
+            }
+
+            return n;
+        }
+    }
+
+    return -1;
+}
+
+int clangsharp_Cursor_getNumMethods(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            unsigned n = 0;
+
+            for (auto method : CXXRD->methods()) {
+                n++;
+            }
+
+            return n;
+        }
+    }
+
+    return -1;
+}
+
 int clangsharp_Cursor_getNumProtocols(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ObjCProtocolDecl* OCPD = dyn_cast<ObjCProtocolDecl>(D)) {
@@ -2774,7 +3200,7 @@ int clangsharp_Cursor_getNumProtocols(CXCursor C) {
 }
 
 int clangsharp_Cursor_getNumSpecializations(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassScopeFunctionSpecializationDecl* CSFSD = dyn_cast<ClassScopeFunctionSpecializationDecl>(D)) {
@@ -2796,7 +3222,7 @@ int clangsharp_Cursor_getNumSpecializations(CXCursor C) {
 }
 
 int clangsharp_Cursor_getNumTemplateArguments(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassScopeFunctionSpecializationDecl* CSFSD = dyn_cast<ClassScopeFunctionSpecializationDecl>(D)) {
@@ -2808,7 +3234,8 @@ int clangsharp_Cursor_getNumTemplateArguments(CXCursor C) {
         }
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
-            return FD->getTemplateSpecializationArgs()->size();
+            const TemplateArgumentList* TAL = FD->getTemplateSpecializationArgs();
+            return TAL && TAL->size();
         }
 
         if (FunctionTemplateDecl* FTD = const_cast<FunctionTemplateDecl*>(dyn_cast<FunctionTemplateDecl>(D))) {
@@ -2820,34 +3247,34 @@ int clangsharp_Cursor_getNumTemplateArguments(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(E)) {
+        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(S)) {
             return CXXDSME->getNumTemplateArgs();
         }
 
-        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(E)) {
+        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(S)) {
             return DRE->getNumTemplateArgs();
         }
 
-        if (const DependentScopeDeclRefExpr* DSDRE = dyn_cast<DependentScopeDeclRefExpr>(E)) {
+        if (const DependentScopeDeclRefExpr* DSDRE = dyn_cast<DependentScopeDeclRefExpr>(S)) {
             return DSDRE->getNumTemplateArgs();
         }
 
-        if (const MemberExpr* ME = dyn_cast<MemberExpr>(E)) {
+        if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
             return ME->getNumTemplateArgs();
         }
 
-        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(E)) {
+        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(S)) {
             return OE->getNumTemplateArgs();
         }
 
-        if (const SizeOfPackExpr* SOPE = dyn_cast<SizeOfPackExpr>(E)) {
+        if (const SizeOfPackExpr* SOPE = dyn_cast<SizeOfPackExpr>(S)) {
             return SOPE->getPartialArguments().size();
         }
 
-        if (const SubstNonTypeTemplateParmPackExpr* SNTTPPE = dyn_cast<SubstNonTypeTemplateParmPackExpr>(E)) {
+        if (const SubstNonTypeTemplateParmPackExpr* SNTTPPE = dyn_cast<SubstNonTypeTemplateParmPackExpr>(S)) {
             return 1;
         }
     }
@@ -2856,7 +3283,7 @@ int clangsharp_Cursor_getNumTemplateArguments(CXCursor C) {
 }
 
 int clangsharp_Cursor_getNumTemplateParameters(CXCursor C, unsigned listIndex) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
@@ -2906,7 +3333,7 @@ int clangsharp_Cursor_getNumTemplateParameters(CXCursor C, unsigned listIndex) {
 }
 
 int clangsharp_Cursor_getNumTemplateParameterLists(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
@@ -2941,11 +3368,23 @@ int clangsharp_Cursor_getNumTemplateParameterLists(CXCursor C) {
     return -1;
 }
 
-CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+int clangsharp_Cursor_getNumVBases(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
 
-        if (const BinaryConditionalOperator* BCO = dyn_cast<BinaryConditionalOperator>(E)) {
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->getDefinition() ? CXXRD->getNumVBases() : 0;
+        }
+    }
+
+    return -1;
+}
+
+CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const BinaryConditionalOperator* BCO = dyn_cast<BinaryConditionalOperator>(S)) {
             return MakeCXCursor(BCO->getOpaqueValue(), getCursorDecl(C), getCursorTU(C));
         }
     }
@@ -2954,7 +3393,7 @@ CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getOriginalType(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ParmVarDecl* PVD = dyn_cast<ParmVarDecl>(D)) {
@@ -2966,10 +3405,10 @@ CXType clangsharp_Cursor_getOriginalType(CXCursor C) {
 }
 
 CX_OverloadedOperatorKind clangsharp_Cursor_getOverloadedOperatorKind(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXOperatorCallExpr* CXXOCE = dyn_cast<CXXOperatorCallExpr>(E)) {
+        if (const CXXOperatorCallExpr* CXXOCE = dyn_cast<CXXOperatorCallExpr>(S)) {
             return static_cast<CX_OverloadedOperatorKind>(CXXOCE->getOperator());
         }
     }
@@ -2978,10 +3417,10 @@ CX_OverloadedOperatorKind clangsharp_Cursor_getOverloadedOperatorKind(CXCursor C
 }
 
 int clangsharp_Cursor_getPackLength(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const SizeOfPackExpr* SOPE = dyn_cast<SizeOfPackExpr>(E)) {
+        if (const SizeOfPackExpr* SOPE = dyn_cast<SizeOfPackExpr>(S)) {
             return SOPE->getPackLength();
         }
     }
@@ -2990,7 +3429,7 @@ int clangsharp_Cursor_getPackLength(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getParentFunctionOrMethod(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const Decl* PD = dyn_cast_or_null<Decl>(D->getParentFunctionOrMethod())) {
@@ -3002,7 +3441,7 @@ CXCursor clangsharp_Cursor_getParentFunctionOrMethod(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getPlaceholderTypeConstraint(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -3014,7 +3453,7 @@ CXCursor clangsharp_Cursor_getPlaceholderTypeConstraint(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getPreviousDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
         return MakeCXCursor(D->getPreviousDecl(), getCursorTU(C));
     }
@@ -3023,7 +3462,7 @@ CXCursor clangsharp_Cursor_getPreviousDecl(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getPrimaryTemplate(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -3035,7 +3474,7 @@ CXCursor clangsharp_Cursor_getPrimaryTemplate(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getProtocol(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ObjCProtocolDecl* OCPD = dyn_cast<ObjCProtocolDecl>(D)) {
@@ -3054,7 +3493,7 @@ CXCursor clangsharp_Cursor_getProtocol(CXCursor C, unsigned i) {
 }
 
 CXCursor clangsharp_Cursor_getRedeclContext(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const DeclContext* DC = dyn_cast<DeclContext>(D)) {
@@ -3066,91 +3505,47 @@ CXCursor clangsharp_Cursor_getRedeclContext(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getReferenced(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const AddrLabelExpr* ALE = dyn_cast<AddrLabelExpr>(E)) {
+        if (const AddrLabelExpr* ALE = dyn_cast<AddrLabelExpr>(S)) {
             return MakeCXCursor(ALE->getLabel(), getCursorTU(C));
         }
 
-        if (const BlockExpr* BE = dyn_cast<BlockExpr>(E)) {
+        if (const BlockExpr* BE = dyn_cast<BlockExpr>(S)) {
             return MakeCXCursor(BE->getBlockDecl(), getCursorTU(C));
         }
 
-        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(E)) {
+        if (const CXXCatchStmt* CXXCS = dyn_cast<CXXCatchStmt>(S)) {
+            return MakeCXCursor(CXXCS->getExceptionDecl(), getCursorTU(C));
+        }
+
+        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(S)) {
             return MakeCXCursor(CXXCE->getConstructor(), getCursorTU(C));
         }
 
-        if (const CXXDefaultArgExpr* CXXDAE = dyn_cast<CXXDefaultArgExpr>(E)) {
+        if (const CXXDefaultArgExpr* CXXDAE = dyn_cast<CXXDefaultArgExpr>(S)) {
             return MakeCXCursor(CXXDAE->getParam(), getCursorTU(C));
         }
 
-        if (const CXXDefaultInitExpr* CXXDIE = dyn_cast<CXXDefaultInitExpr>(E)) {
+        if (const CXXDefaultInitExpr* CXXDIE = dyn_cast<CXXDefaultInitExpr>(S)) {
             return MakeCXCursor(CXXDIE->getField(), getCursorTU(C));
         }
 
-        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(E)) {
+        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(S)) {
             return MakeCXCursor(CXXDE->getOperatorDelete(), getCursorTU(C));
         }
 
-        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(E)) {
+        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(S)) {
             return MakeCXCursor(CXXDSME->getFirstQualifierFoundInScope(), getCursorTU(C));
         }
 
-        if (const CXXUuidofExpr* CXXUE = dyn_cast<CXXUuidofExpr>(E)) {
+        if (const CXXUuidofExpr* CXXUE = dyn_cast<CXXUuidofExpr>(S)) {
             return MakeCXCursor(CXXUE->getGuidDecl(), getCursorTU(C));
         }
 
-        if (const FunctionParmPackExpr* FPPE = dyn_cast<FunctionParmPackExpr>(E)) {
+        if (const FunctionParmPackExpr* FPPE = dyn_cast<FunctionParmPackExpr>(S)) {
             return MakeCXCursor(FPPE->getParameterPack(), getCursorTU(C));
-        }
-
-        if (const InitListExpr* ILE = dyn_cast<InitListExpr>(E)) {
-            return MakeCXCursor(ILE->getInitializedFieldInUnion(), getCursorTU(C));
-        }
-
-        if (const MaterializeTemporaryExpr* MTE = dyn_cast<MaterializeTemporaryExpr>(E)) {
-            return MakeCXCursor(MTE->getLifetimeExtendedTemporaryDecl(), getCursorTU(C));
-        }
-
-        if (const ObjCArrayLiteral* OCAL = dyn_cast<ObjCArrayLiteral>(E)) {
-            return MakeCXCursor(OCAL->getArrayWithObjectsMethod(), getCursorTU(C));
-        }
-
-        if (const ObjCBoxedExpr* OCBE = dyn_cast<ObjCBoxedExpr>(E)) {
-            return MakeCXCursor(OCBE->getBoxingMethod(), getCursorTU(C));
-        }
-
-        if (const ObjCIvarRefExpr* OCIRE = dyn_cast<ObjCIvarRefExpr>(E)) {
-            return MakeCXCursor(OCIRE->getDecl(), getCursorTU(C));
-        }
-
-        if (const ObjCProtocolExpr* OCPE = dyn_cast<ObjCProtocolExpr>(E)) {
-            return MakeCXCursor(OCPE->getProtocol(), getCursorTU(C));
-        }
-
-        if (const ObjCSubscriptRefExpr* OCSRE = dyn_cast<ObjCSubscriptRefExpr>(E)) {
-            return MakeCXCursor(OCSRE->getAtIndexMethodDecl(), getCursorTU(C));
-        }
-
-        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(E)) {
-            return MakeCXCursor(OE->getNamingClass(), getCursorTU(C));
-        }
-
-        if (const SubstNonTypeTemplateParmExpr* SNTTPE = dyn_cast<SubstNonTypeTemplateParmExpr>(E)) {
-            return MakeCXCursor(SNTTPE->getParameter(), getCursorTU(C));
-        }
-
-        if (const SubstNonTypeTemplateParmPackExpr* SNTTPPE = dyn_cast<SubstNonTypeTemplateParmPackExpr>(E)) {
-            return MakeCXCursor(SNTTPPE->getParameterPack(), getCursorTU(C));
-        }
-    }
-
-    if (clang_isStatement(C.kind)) {
-        const Stmt* S = getCursorStmt(C);
-
-        if (const CXXCatchStmt* CXXCS = dyn_cast<CXXCatchStmt>(S)) {
-            return MakeCXCursor(CXXCS->getExceptionDecl(), getCursorTU(C));
         }
 
         if (const GotoStmt* GS = dyn_cast<GotoStmt>(S)) {
@@ -3161,16 +3556,56 @@ CXCursor clangsharp_Cursor_getReferenced(CXCursor C) {
             return MakeCXCursor(IGS->getConstantTarget(), getCursorTU(C));
         }
 
+        if (const InitListExpr* ILE = dyn_cast<InitListExpr>(S)) {
+            return MakeCXCursor(ILE->getInitializedFieldInUnion(), getCursorTU(C));
+        }
+
         if (const LabelStmt* LS = dyn_cast<LabelStmt>(S)) {
             return MakeCXCursor(LS->getDecl(), getCursorTU(C));
+        }
+
+        if (const MaterializeTemporaryExpr* MTE = dyn_cast<MaterializeTemporaryExpr>(S)) {
+            return MakeCXCursor(MTE->getLifetimeExtendedTemporaryDecl(), getCursorTU(C));
+        }
+
+        if (const ObjCArrayLiteral* OCAL = dyn_cast<ObjCArrayLiteral>(S)) {
+            return MakeCXCursor(OCAL->getArrayWithObjectsMethod(), getCursorTU(C));
         }
 
         if (const ObjCAtCatchStmt* OCACS = dyn_cast<ObjCAtCatchStmt>(S)) {
             return MakeCXCursor(OCACS->getCatchParamDecl(), getCursorTU(C));
         }
 
+        if (const ObjCBoxedExpr* OCBE = dyn_cast<ObjCBoxedExpr>(S)) {
+            return MakeCXCursor(OCBE->getBoxingMethod(), getCursorTU(C));
+        }
+
+        if (const ObjCIvarRefExpr* OCIRE = dyn_cast<ObjCIvarRefExpr>(S)) {
+            return MakeCXCursor(OCIRE->getDecl(), getCursorTU(C));
+        }
+
+        if (const ObjCProtocolExpr* OCPE = dyn_cast<ObjCProtocolExpr>(S)) {
+            return MakeCXCursor(OCPE->getProtocol(), getCursorTU(C));
+        }
+
+        if (const ObjCSubscriptRefExpr* OCSRE = dyn_cast<ObjCSubscriptRefExpr>(S)) {
+            return MakeCXCursor(OCSRE->getAtIndexMethodDecl(), getCursorTU(C));
+        }
+
+        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(S)) {
+            return MakeCXCursor(OE->getNamingClass(), getCursorTU(C));
+        }
+
         if (const ReturnStmt* RS = dyn_cast<ReturnStmt>(S)) {
             return MakeCXCursor(RS->getNRVOCandidate(), getCursorTU(C));
+        }
+
+        if (const SubstNonTypeTemplateParmExpr* SNTTPE = dyn_cast<SubstNonTypeTemplateParmExpr>(S)) {
+            return MakeCXCursor(SNTTPE->getParameter(), getCursorTU(C));
+        }
+
+        if (const SubstNonTypeTemplateParmPackExpr* SNTTPPE = dyn_cast<SubstNonTypeTemplateParmPackExpr>(S)) {
+            return MakeCXCursor(SNTTPPE->getParameterPack(), getCursorTU(C));
         }
     }
 
@@ -3178,10 +3613,10 @@ CXCursor clangsharp_Cursor_getReferenced(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getRequiresZeroInitialization(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(E)) {
+        if (const CXXConstructExpr* CXXCE = dyn_cast<CXXConstructExpr>(S)) {
             return CXXCE->requiresZeroInitialization();
         }
     }
@@ -3190,16 +3625,16 @@ unsigned clangsharp_Cursor_getRequiresZeroInitialization(CXCursor C) {
 }
 
 int clangsharp_Cursor_getResultIndex(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const GenericSelectionExpr* GSE = dyn_cast<GenericSelectionExpr>(E)) {
+        if (const GenericSelectionExpr* GSE = dyn_cast<GenericSelectionExpr>(S)) {
             if (!GSE->isResultDependent()) {
                 return GSE->getResultIndex();
             }
         }
 
-        if (const PseudoObjectExpr* POE = dyn_cast<PseudoObjectExpr>(E)) {
+        if (const PseudoObjectExpr* POE = dyn_cast<PseudoObjectExpr>(S)) {
             return POE->getResultExprIndex();
         }
     }
@@ -3208,7 +3643,7 @@ int clangsharp_Cursor_getResultIndex(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getReturnType(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
@@ -3224,10 +3659,10 @@ CXType clangsharp_Cursor_getReturnType(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getRhsExpr(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXRewrittenBinaryOperator* CRBO = dyn_cast<CXXRewrittenBinaryOperator>(E)) {
+        if (const CXXRewrittenBinaryOperator* CRBO = dyn_cast<CXXRewrittenBinaryOperator>(S)) {
             return MakeCXCursor(CRBO->getRHS(), getCursorDecl(C), getCursorTU(C));
         }
     }
@@ -3236,10 +3671,10 @@ CXCursor clangsharp_Cursor_getRhsExpr(CXCursor C) {
 }
 
 unsigned clangsharp_Cursor_getShouldCopy(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const ObjCIndirectCopyRestoreExpr* OCICRE = dyn_cast<ObjCIndirectCopyRestoreExpr>(E)) {
+        if (const ObjCIndirectCopyRestoreExpr* OCICRE = dyn_cast<ObjCIndirectCopyRestoreExpr>(S)) {
             return OCICRE->shouldCopy();
         }
     }
@@ -3257,7 +3692,7 @@ CXSourceRange clangsharp_Cursor_getSourceRange(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getSpecialization(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassScopeFunctionSpecializationDecl* CSFSD = dyn_cast<ClassScopeFunctionSpecializationDecl>(D)) {
@@ -3282,7 +3717,7 @@ CXCursor clangsharp_Cursor_getSpecialization(CXCursor C, unsigned i) {
 }
 
 CX_StmtClass clangsharp_Cursor_getStmtClass(CXCursor C) {
-    if (clang_isExpression(C.kind) || clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
         return static_cast<CX_StmtClass>(S->getStmtClass());
     }
@@ -3291,10 +3726,10 @@ CX_StmtClass clangsharp_Cursor_getStmtClass(CXCursor C) {
 }
 
 CXString clangsharp_Cursor_getStringLiteralValue(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const StringLiteral* SL = dyn_cast<StringLiteral>(E)) {
+        if (const StringLiteral* SL = dyn_cast<StringLiteral>(S)) {
             return createDup(SL->getString());
         }
     }
@@ -3303,7 +3738,7 @@ CXString clangsharp_Cursor_getStringLiteralValue(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getSubDecl(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const BindingDecl* BD = dyn_cast<BindingDecl>(D)) {
@@ -3365,24 +3800,24 @@ CXCursor clangsharp_Cursor_getSubDecl(CXCursor C, unsigned i) {
 }
 
 CXCursor clangsharp_Cursor_getSubExpr(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const InitListExpr* ILE = dyn_cast<InitListExpr>(E)) {
+        if (const InitListExpr* ILE = dyn_cast<InitListExpr>(S)) {
             return MakeCXCursor(ILE->getArrayFiller(), getCursorDecl(C), getCursorTU(C));
         }
 
-        if (const OpaqueValueExpr* OVE = dyn_cast<OpaqueValueExpr>(E)) {
+        if (const OpaqueValueExpr* OVE = dyn_cast<OpaqueValueExpr>(S)) {
             return MakeCXCursor(OVE->getSourceExpr(), getCursorDecl(C), getCursorTU(C));
         }
 
-        if (const UnaryExprOrTypeTraitExpr* UETTE = dyn_cast<UnaryExprOrTypeTraitExpr>(E)) {
+        if (const UnaryExprOrTypeTraitExpr* UETTE = dyn_cast<UnaryExprOrTypeTraitExpr>(S)) {
             if (!UETTE->isArgumentType()) {
                 return MakeCXCursor(UETTE->getArgumentExpr(), getCursorDecl(C), getCursorTU(C));
             }
         }
 
-        if (const UnaryOperator* UO = dyn_cast<UnaryOperator>(E)) {
+        if (const UnaryOperator* UO = dyn_cast<UnaryOperator>(S)) {
             return MakeCXCursor(UO->getSubExpr(), getCursorDecl(C), getCursorTU(C));
         }
     }
@@ -3391,7 +3826,7 @@ CXCursor clangsharp_Cursor_getSubExpr(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getSubStmt(CXCursor C) {
-    if (clang_isStatement(C.kind)) {
+    if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
         if (const SwitchStmt* SS = dyn_cast<SwitchStmt>(S)) {
@@ -3403,10 +3838,10 @@ CXCursor clangsharp_Cursor_getSubStmt(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getSubExprAsWritten(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CastExpr* CE = dyn_cast<CastExpr>(E)) {
+        if (const CastExpr* CE = dyn_cast<CastExpr>(S)) {
             return MakeCXCursor(CE->getSubExprAsWritten(), getCursorDecl(C), getCursorTU(C));
         }
     }
@@ -3415,10 +3850,10 @@ CXCursor clangsharp_Cursor_getSubExprAsWritten(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getTargetUnionField(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CastExpr* CE = dyn_cast<CastExpr>(E)) {
+        if (const CastExpr* CE = dyn_cast<CastExpr>(S)) {
             if (CE->getCastKind() == CK_ToUnion) {
                 return MakeCXCursor(CE->getTargetUnionField(), getCursorTU(C));
             }
@@ -3429,7 +3864,7 @@ CXCursor clangsharp_Cursor_getTargetUnionField(CXCursor C) {
 }
 
 CX_TemplateArgument clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplateSpecializationDecl* CTSD = dyn_cast<ClassTemplateSpecializationDecl>(D)) {
@@ -3440,8 +3875,10 @@ CX_TemplateArgument clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i
         }
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
-            if (i < FD->getTemplateSpecializationArgs()->size()) {
-                const TemplateArgument* TA = &(*FD->getTemplateSpecializationArgs())[i];
+            const TemplateArgumentList* TAL = FD->getTemplateSpecializationArgs();
+
+            if (TAL && (i < TAL->size())) {
+                const TemplateArgument* TA = &(*TAL)[i];
                 return MakeCXTemplateArgument(TA, C, getCursorTU(C));
             }
         }
@@ -3461,10 +3898,10 @@ CX_TemplateArgument clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const SizeOfPackExpr* SOPE = dyn_cast<SizeOfPackExpr>(E)) {
+        if (const SizeOfPackExpr* SOPE = dyn_cast<SizeOfPackExpr>(S)) {
             ArrayRef<TemplateArgument> partialArguments = SOPE->getPartialArguments();
 
             if (i < partialArguments.size()) {
@@ -3473,7 +3910,7 @@ CX_TemplateArgument clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i
             }
         }
 
-        if (const SubstNonTypeTemplateParmPackExpr* SNTTPPE = dyn_cast<SubstNonTypeTemplateParmPackExpr>(E)) {
+        if (const SubstNonTypeTemplateParmPackExpr* SNTTPPE = dyn_cast<SubstNonTypeTemplateParmPackExpr>(S)) {
             if (i == 0) {
                 const TemplateArgument* TA = &SNTTPPE->getArgumentPack();
                 return MakeCXTemplateArgument(TA, C, getCursorTU(C));
@@ -3485,7 +3922,7 @@ CX_TemplateArgument clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i
 }
 
 CX_TemplateArgumentLoc clangsharp_Cursor_getTemplateArgumentLoc(CXCursor C, unsigned i) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassScopeFunctionSpecializationDecl* CSFSD = dyn_cast<ClassScopeFunctionSpecializationDecl>(D)) {
@@ -3503,38 +3940,38 @@ CX_TemplateArgumentLoc clangsharp_Cursor_getTemplateArgumentLoc(CXCursor C, unsi
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(E)) {
+        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(S)) {
             if (i < CXXDSME->getNumTemplateArgs()) {
                 const TemplateArgumentLoc* TAL = &CXXDSME->getTemplateArgs()[i];
                 return MakeCXTemplateArgumentLoc(TAL, C, getCursorTU(C));
             }
         }
 
-        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(E)) {
+        if (const DeclRefExpr* DRE = dyn_cast<DeclRefExpr>(S)) {
             if (i < DRE->getNumTemplateArgs()) {
                 const TemplateArgumentLoc* TAL = &DRE->getTemplateArgs()[i];
                 return MakeCXTemplateArgumentLoc(TAL, C, getCursorTU(C));
             }
         }
 
-        if (const DependentScopeDeclRefExpr* DSDRE = dyn_cast<DependentScopeDeclRefExpr>(E)) {
+        if (const DependentScopeDeclRefExpr* DSDRE = dyn_cast<DependentScopeDeclRefExpr>(S)) {
             if (i < DSDRE->getNumTemplateArgs()) {
                 const TemplateArgumentLoc* TAL = &DSDRE->getTemplateArgs()[i];
                 return MakeCXTemplateArgumentLoc(TAL, C, getCursorTU(C));
             }
         }
 
-        if (const MemberExpr* ME = dyn_cast<MemberExpr>(E)) {
+        if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
             if (i < ME->getNumTemplateArgs()) {
                 const TemplateArgumentLoc* TAL = &ME->getTemplateArgs()[i];
                 return MakeCXTemplateArgumentLoc(TAL, C, getCursorTU(C));
             }
         }
 
-        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(E)) {
+        if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(S)) {
             if (i < OE->getNumTemplateArgs()) {
                 const TemplateArgumentLoc* TAL = &OE->getTemplateArgs()[i];
                 return MakeCXTemplateArgumentLoc(TAL, C, getCursorTU(C));
@@ -3546,7 +3983,7 @@ CX_TemplateArgumentLoc clangsharp_Cursor_getTemplateArgumentLoc(CXCursor C, unsi
 }
 
 CXCursor clangsharp_Cursor_getTemplateParameter(CXCursor C, unsigned listIndex, unsigned parameterIndex) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
@@ -3624,7 +4061,7 @@ CXCursor clangsharp_Cursor_getTemplateParameter(CXCursor C, unsigned listIndex, 
 }
 
 CXCursor clangsharp_Cursor_getTemplatedDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXDeductionGuideDecl* CXXDGD = dyn_cast<CXXDeductionGuideDecl>(D)) {
@@ -3640,7 +4077,7 @@ CXCursor clangsharp_Cursor_getTemplatedDecl(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getTemplateInstantiationPattern(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
@@ -3660,7 +4097,7 @@ CXCursor clangsharp_Cursor_getTemplateInstantiationPattern(CXCursor C) {
 }
 
 CX_TemplateSpecializationKind clangsharp_Cursor_getTemplateSpecializationKind(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
@@ -3680,7 +4117,7 @@ CX_TemplateSpecializationKind clangsharp_Cursor_getTemplateSpecializationKind(CX
 }
 
 int clangsharp_Cursor_getTemplateTypeParmDepth(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -3700,7 +4137,7 @@ int clangsharp_Cursor_getTemplateTypeParmDepth(CXCursor C) {
 }
 
 int clangsharp_Cursor_getTemplateTypeParmIndex(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -3724,7 +4161,7 @@ int clangsharp_Cursor_getTemplateTypeParmIndex(CXCursor C) {
 }
 
 int clangsharp_Cursor_getTemplateTypeParmPosition(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
@@ -3740,7 +4177,7 @@ int clangsharp_Cursor_getTemplateTypeParmPosition(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getThisObjectType(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXMethodDecl* CMD = dyn_cast<CXXMethodDecl>(D)) {
@@ -3752,7 +4189,7 @@ CXType clangsharp_Cursor_getThisObjectType(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getThisType(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXMethodDecl* CMD = dyn_cast<CXXMethodDecl>(D)) {
@@ -3764,7 +4201,7 @@ CXType clangsharp_Cursor_getThisType(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getTrailingRequiresClause(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const DeclaratorDecl* DD = dyn_cast<DeclaratorDecl>(D)) {
@@ -3776,7 +4213,7 @@ CXCursor clangsharp_Cursor_getTrailingRequiresClause(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getTypedefNameForAnonDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const TagDecl* TD = dyn_cast<TagDecl>(D)) {
@@ -3788,7 +4225,7 @@ CXCursor clangsharp_Cursor_getTypedefNameForAnonDecl(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getTypeOperand(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConversionDecl* CXXCD = dyn_cast<CXXConversionDecl>(D)) {
@@ -3800,71 +4237,67 @@ CXType clangsharp_Cursor_getTypeOperand(CXCursor C) {
         }
     }
 
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CompoundLiteralExpr* CLE = dyn_cast<CompoundLiteralExpr>(E)) {
+        if (const CompoundLiteralExpr* CLE = dyn_cast<CompoundLiteralExpr>(S)) {
             return MakeCXType(CLE->getTypeSourceInfo()->getType(), getCursorTU(C));
         }
 
-        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(E)) {
+        if (const CXXCatchStmt* CXXCS = dyn_cast<CXXCatchStmt>(S)) {
+            return MakeCXType(CXXCS->getCaughtType(), getCursorTU(C));
+        }
+
+        if (const CXXDeleteExpr* CXXDE = dyn_cast<CXXDeleteExpr>(S)) {
             return MakeCXType(CXXDE->getDestroyedType(), getCursorTU(C));
         }
 
-        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(E)) {
+        if (const CXXDependentScopeMemberExpr* CXXDSME = dyn_cast<CXXDependentScopeMemberExpr>(S)) {
             return MakeCXType(CXXDSME->getBaseType(), getCursorTU(C));
         }
 
-        if (const CXXScalarValueInitExpr* CXXSVIE = dyn_cast<CXXScalarValueInitExpr>(E)) {
+        if (const CXXScalarValueInitExpr* CXXSVIE = dyn_cast<CXXScalarValueInitExpr>(S)) {
             return MakeCXType(CXXSVIE->getTypeSourceInfo()->getType(), getCursorTU(C));
         }
 
-        if (const CXXTemporaryObjectExpr* CXXTOE = dyn_cast<CXXTemporaryObjectExpr>(E)) {
+        if (const CXXTemporaryObjectExpr* CXXTOE = dyn_cast<CXXTemporaryObjectExpr>(S)) {
             return MakeCXType(CXXTOE->getTypeSourceInfo()->getType(), getCursorTU(C));
         }
 
-        if (const CXXTypeidExpr* CXXTE = dyn_cast<CXXTypeidExpr>(E)) {
+        if (const CXXTypeidExpr* CXXTE = dyn_cast<CXXTypeidExpr>(S)) {
             if (CXXTE->isTypeOperand()) {
                 return MakeCXType(CXXTE->getTypeOperandSourceInfo()->getType(), getCursorTU(C));
             }
         }
 
-        if (const CXXUnresolvedConstructExpr* CXXUCE = dyn_cast<CXXUnresolvedConstructExpr>(E)) {
+        if (const CXXUnresolvedConstructExpr* CXXUCE = dyn_cast<CXXUnresolvedConstructExpr>(S)) {
             return MakeCXType(CXXUCE->getTypeAsWritten(), getCursorTU(C));
         }
 
-        if (const CXXUuidofExpr* CXXUE = dyn_cast<CXXUuidofExpr>(E)) {
+        if (const CXXUuidofExpr* CXXUE = dyn_cast<CXXUuidofExpr>(S)) {
             if (CXXUE->isTypeOperand()) {
                 return MakeCXType(CXXUE->getTypeOperandSourceInfo()->getType(), getCursorTU(C));
             }
         }
 
-        if (const ExplicitCastExpr* ECE = dyn_cast<ExplicitCastExpr>(E)) {
+        if (const ExplicitCastExpr* ECE = dyn_cast<ExplicitCastExpr>(S)) {
             return MakeCXType(ECE->getTypeAsWritten(), getCursorTU(C));
         }
 
-        if (const ObjCEncodeExpr* OCEE = dyn_cast<ObjCEncodeExpr>(E)) {
+        if (const ObjCEncodeExpr* OCEE = dyn_cast<ObjCEncodeExpr>(S)) {
             return MakeCXType(OCEE->getEncodedType(), getCursorTU(C));
         }
 
-        if (const OffsetOfExpr* OOE = dyn_cast<OffsetOfExpr>(E)) {
+        if (const OffsetOfExpr* OOE = dyn_cast<OffsetOfExpr>(S)) {
             return MakeCXType(OOE->getTypeSourceInfo()->getType(), getCursorTU(C));
         }
 
-        if (const CXXPseudoDestructorExpr* CXXPSDE = dyn_cast<CXXPseudoDestructorExpr>(E)) {
+        if (const CXXPseudoDestructorExpr* CXXPSDE = dyn_cast<CXXPseudoDestructorExpr>(S)) {
             return MakeCXType(CXXPSDE->getDestroyedType(), getCursorTU(C));
         }
 
-        if (const UnresolvedMemberExpr* UME = dyn_cast<UnresolvedMemberExpr>(E)) {
+        if (const UnresolvedMemberExpr* UME = dyn_cast<UnresolvedMemberExpr>(S)) {
             return MakeCXType(UME->getBaseType(), getCursorTU(C));
-        }
-    }
-
-    if (clang_isStatement(C.kind)) {
-        const Stmt* S = getCursorStmt(C);
-
-        if (const CXXCatchStmt* CXXCS = dyn_cast<CXXCatchStmt>(S)) {
-            return MakeCXType(CXXCS->getCaughtType(), getCursorTU(C));
         }
     }
 
@@ -3872,10 +4305,10 @@ CXType clangsharp_Cursor_getTypeOperand(CXCursor C) {
 }
 
 CX_UnaryExprOrTypeTrait clangsharp_Cursor_getUnaryExprOrTypeTraitKind(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const UnaryExprOrTypeTraitExpr* UETTE = dyn_cast<UnaryExprOrTypeTraitExpr>(E)) {
+        if (const UnaryExprOrTypeTraitExpr* UETTE = dyn_cast<UnaryExprOrTypeTraitExpr>(S)) {
             return static_cast<CX_UnaryExprOrTypeTrait>(UETTE->getKind() + 1);
         }
     }
@@ -3884,9 +4317,9 @@ CX_UnaryExprOrTypeTrait clangsharp_Cursor_getUnaryExprOrTypeTraitKind(CXCursor C
 }
 
 CX_UnaryOperatorKind clangsharp_Cursor_getUnaryOpcode(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
-        if (const UnaryOperator* UnOp = dyn_cast<UnaryOperator>(E)) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+        if (const UnaryOperator* UnOp = dyn_cast<UnaryOperator>(S)) {
             return static_cast<CX_UnaryOperatorKind>(UnOp->getOpcode() + 1);
         }
     }
@@ -3904,7 +4337,7 @@ CXString clangsharp_Cursor_getUnaryOpcodeSpelling(CX_UnaryOperatorKind Op) {
 }
 
 CXCursor clangsharp_Cursor_getUnderlyingDecl(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const NamedDecl* ND = dyn_cast<NamedDecl>(D)) {
@@ -3916,7 +4349,7 @@ CXCursor clangsharp_Cursor_getUnderlyingDecl(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getUninstantiatedDefaultArg(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const ParmVarDecl* PVD = dyn_cast<ParmVarDecl>(D)) {
@@ -3928,14 +4361,14 @@ CXCursor clangsharp_Cursor_getUninstantiatedDefaultArg(CXCursor C) {
 }
 
 CXCursor clangsharp_Cursor_getUsedContext(CXCursor C) {
-    if (clang_isExpression(C.kind)) {
-        const Expr* E = getCursorExpr(C);
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
 
-        if (const CXXDefaultArgExpr* CDAE = dyn_cast<CXXDefaultArgExpr>(E)) {
+        if (const CXXDefaultArgExpr* CDAE = dyn_cast<CXXDefaultArgExpr>(S)) {
             return MakeCXCursor(dyn_cast<Decl>(CDAE->getUsedContext()), getCursorTU(C));
         }
 
-        if (const CXXDefaultInitExpr* CDIE = dyn_cast<CXXDefaultInitExpr>(E)) {
+        if (const CXXDefaultInitExpr* CDIE = dyn_cast<CXXDefaultInitExpr>(S)) {
             return MakeCXCursor(dyn_cast<Decl>(CDIE->getUsedContext()), getCursorTU(C));
         }
     }
@@ -3943,8 +4376,29 @@ CXCursor clangsharp_Cursor_getUsedContext(CXCursor C) {
     return clang_getNullCursor();
 }
 
+CXCursor clangsharp_Cursor_getVBase(CXCursor C, unsigned i) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            if (CXXRD->getDefinition()) {
+                unsigned n = 0;
+
+                for (auto& vbase : CXXRD->vbases()) {
+                    if (n == i) {
+                        return MakeCXCursor(&vbase, getCursorTU(C));
+                    }
+                    n++;
+                }
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
 int64_t clangsharp_Cursor_getVtblIdx(CXCursor C) {
-    if (clang_isDeclaration(C.kind) || clang_isTranslationUnit(C.kind)) {
+    if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXMethodDecl* CMD = dyn_cast<CXXMethodDecl>(D)) {

@@ -22,7 +22,7 @@ namespace ClangSharp.UnitTests
 
             using var translationUnit = CreateTranslationUnit(inputContents);
 
-            var recordDecl = translationUnit.TranslationUnitDecl.Decls.OfType<RecordDecl>().Single();
+            var recordDecl = translationUnit.TranslationUnitDecl.Decls.OfType<RecordDecl>().Where((recordDecl) => recordDecl.Name == "MyStruct").Single();
             var accessSpecDecl = recordDecl.Decls.OfType<AccessSpecDecl>().Single();
 
             Assert.Equal(expectedAccessSpecifier, accessSpecDecl.Access);

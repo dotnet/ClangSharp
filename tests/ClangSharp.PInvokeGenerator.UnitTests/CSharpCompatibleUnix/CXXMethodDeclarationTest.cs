@@ -447,7 +447,7 @@ namespace ClangSharp.Test
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType>((IntPtr)(lpVtbl[0]))(pThis, obj);
+                return Marshal.GetDelegateForFunctionPointer<_GetType>((IntPtr)(lpVtbl[2]))(pThis, obj);
             }}
         }}
 
@@ -463,7 +463,7 @@ namespace ClangSharp.Test
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType2>((IntPtr)(lpVtbl[2]))(pThis, objA, objB);
+                return Marshal.GetDelegateForFunctionPointer<_GetType2>((IntPtr)(lpVtbl[0]))(pThis, objA, objB);
             }}
         }}
     }}
