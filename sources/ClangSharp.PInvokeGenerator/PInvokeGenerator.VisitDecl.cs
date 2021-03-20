@@ -1334,6 +1334,8 @@ namespace ClangSharp
                     NativeTypeName = nativeTypeName,
                     NeedsNewKeyword = NeedsNewKeyword(remappedName, cxxMethodDecl.Parameters),
                     HasFnPtrCodeGen = _config.GeneratePreviewCodeFnptr,
+                    IsCtxCxxRecord = true,
+                    IsCxxRecordCtxUnsafe = IsUnsafe(cxxRecordDecl),
                     IsUnsafe = true
                 };
 
