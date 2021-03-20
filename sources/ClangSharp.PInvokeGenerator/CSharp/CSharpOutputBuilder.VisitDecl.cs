@@ -222,6 +222,10 @@ namespace ClangSharp.CSharp
             {
                 if (desc.IsVirtual)
                 {
+                    if (desc.IsUnsafe && !desc.IsCxxRecordCtxUnsafe)
+                    {
+                        Write(" unsafe");
+                    }
                     Write(" delegate");
                 }
                 else if (desc.IsStatic ?? (desc.IsDllImport || !desc.IsCxx))
