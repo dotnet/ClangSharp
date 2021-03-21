@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
+
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -25,7 +27,7 @@ namespace ClangSharp.XML
                 ? $"<constant name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">"
                 : $"<enumerator name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
             _sb.Append($"<type primitive=\"{(desc.Kind & ConstantKind.PrimitiveConstant) != 0}\">");
-            _sb.Append(desc.TypeName.Replace("<", "&lt;").Replace(">", "&gt;"));
+            _sb.Append(EscapeText(desc.TypeName));
             _sb.Append("</type>");
         }
 
@@ -36,7 +38,10 @@ namespace ClangSharp.XML
         public void EndConstant(bool isConstant) => _sb.Append(isConstant ? "</constant>" : "</enumerator>");
 
         public void BeginEnum(AccessSpecifier accessSpecifier, string typeName, string escapedName, string nativeTypeName)
-            => _sb.Append($"<enumeration name=\"{escapedName}\" access=\"{accessSpecifier.AsString()}\"><type>{typeName}</type>");
+        {
+            _sb.Append($"<enumeration name=\"{escapedName}\" access=\"{accessSpecifier.AsString()}\">");
+            _sb.Append($"<type>{typeName}</type>");
+        }
 
         public void EndEnum() => _sb.Append("</enumeration>");
 
@@ -54,15 +59,22 @@ namespace ClangSharp.XML
             }
 
             _sb.Append('>');
-            _sb.Append($"<type native=\"{desc.NativeTypeName}\"");
+            _sb.Append("<type");
+
+            if (!string.IsNullOrWhiteSpace(desc.NativeTypeName))
+            {
+                _sb.Append(" native=\"");
+                _sb.Append(EscapeText(desc.NativeTypeName));
+                _sb.Append('"');
+            }
         }
 
         public void WriteFixedCountField(string typeName, string escapedName, string fixedName, string count)
             => _sb.Append($" count=\"{count}\" fixed=\"{fixedName}\">" +
-                          $"{typeName.Replace("<", "&lt;").Replace(">", "&gt;")}</type>");
+                          $"{EscapeText(typeName)}</type>");
 
         public void WriteRegularField(string typeName, string escapedName)
-            => _sb.Append($">{typeName.Replace("<", "&lt;").Replace(">", "&gt;")}</type>");
+            => _sb.Append($">{EscapeText(typeName)}</type>");
         public void EndField(bool isBodyless = true) => _sb.Append("</field>");
         public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(
             in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc, ref bool isMethodClassUnsafe)
@@ -105,7 +117,7 @@ namespace ClangSharp.XML
                 _sb.Append(" static=\"true\"");
             }
 
-            if (!desc.IsUnsafe)
+            if (desc.IsUnsafe)
             {
                 _sb.Append(" unsafe=\"true\"");
             }
@@ -113,11 +125,12 @@ namespace ClangSharp.XML
             _sb.Append('>');
 
             desc.WriteCustomAttrs(desc.CustomAttrGeneratorData);
+
             _sb.Append("<type");
             if (!string.IsNullOrWhiteSpace(desc.NativeTypeName))
             {
                 _sb.Append(" native=\"");
-                _sb.Append(desc.NativeTypeName);
+                _sb.Append(EscapeText(desc.NativeTypeName));
                 _sb.Append('"');
             }
 
@@ -126,7 +139,7 @@ namespace ClangSharp.XML
 
         public void WriteReturnType(string typeString)
         {
-            _sb.Append(typeString.Replace("<", "&lt;").Replace(">", "&gt;"));
+            _sb.Append(EscapeText(typeString));
             _sb.Append("</type>");
         }
 
@@ -140,7 +153,7 @@ namespace ClangSharp.XML
             _sb.Append($"<param name=\"{info.Name}\">");
             info.WriteCustomAttrs(info.CustomAttrGeneratorData);
             _sb.Append("<type>");
-            _sb.Append(info.Type.Replace("<", "&lt;").Replace(">", "&gt;"));
+            _sb.Append(EscapeText(info.Type));
             _sb.Append("</type>");
         }
 
@@ -295,14 +308,20 @@ namespace ClangSharp.XML
         public void EndCSharpCode(CSharpOutputBuilder output)
         {
             output.WritePendingLine();
+
+            var needsNewline = false;
+
             foreach (var s in output.Contents)
             {
-                _sb.Append(s.Replace("&", "&amp;")
-                    .Replace("<", "&lt;")
-                    .Replace(">", "&gt;")
-                    .Replace("/*M*/&lt;", "<")
-                    .Replace("/*M*/&gt;", ">"));
-                _sb.Append('\n');
+                if (needsNewline)
+                {
+                    _sb.Append('\n');
+                }
+
+                _sb.Append(EscapeText(s).Replace("/*M*/&lt;", "<")
+                                        .Replace("/*M*/&gt;", ">"));
+
+                needsNewline = true;
             }
 
             _sb.Append("</code>");
@@ -350,7 +369,7 @@ namespace ClangSharp.XML
         public void WriteIndexer(string typeName)
         {
             _sb.Append("<type>");
-            _sb.Append(typeName.Replace("<", "&lt;").Replace(">", "&gt;"));
+            _sb.Append(EscapeText(typeName));
             _sb.Append("</type>");
         }
 
