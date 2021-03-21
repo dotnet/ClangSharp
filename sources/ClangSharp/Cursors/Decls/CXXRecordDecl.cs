@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -130,6 +128,10 @@ namespace ClangSharp
 
         public IReadOnlyList<FriendDecl> Friends => _friends.Value;
 
+        public bool HasDefinition => Definition is not null;
+
+        public bool HasFriends => Handle.NumFriends != 0;
+
         public bool HasUserDeclaredConstructor => Handle.HasUserDeclaredConstructor;
 
         public bool HasUserDeclaredCopyAssignment => Handle.HasUserDeclaredCopyAssignment;
@@ -169,6 +171,10 @@ namespace ClangSharp
                 return Recent;
             }
         }
+
+        public uint NumBases => unchecked((uint)Handle.NumBases);
+
+        public uint NumVBases => unchecked((uint)Handle.NumVBases);
 
         public new CXXRecordDecl PreviousDecl => (CXXRecordDecl)base.PreviousDecl;
 

@@ -7,6 +7,10 @@ namespace ClangSharp.Interop
     {
         public CX_TemplateNameKind kind;
 
+        [NativeTypeName("const void *")]
         public void* value;
+
+        [NativeTypeName("CXTranslationUnit")]
+        public CXTranslationUnitImpl* tu;
     }
 }

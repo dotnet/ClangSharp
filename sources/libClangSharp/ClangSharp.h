@@ -36,6 +36,13 @@
 #define CLANGSHARP_LINKAGE EXTERN_C
 #endif
 
+enum CX_AtomicOperatorKind {
+    CX_AO_Invalid,
+#define BUILTIN(ID, TYPE, ATTRS)
+#define ATOMIC_BUILTIN(ID, TYPE, ATTRS) CX_AO##ID,
+#include <clang/Basic/Builtins.def>
+};
+
 enum CX_AttrKind {
     CX_AttrKind_Invalid,
 #define ATTR(X) CX_AttrKind_##X,
@@ -196,31 +203,19 @@ enum CX_VariableCaptureKind {
 
 struct CX_TemplateArgument {
     CXTemplateArgumentKind kind;
-    int xdata;
-
-    union {
-        CXCursor parentCursor;
-        CXType parentType;
-    };
-
     const clang::TemplateArgument* value;
     CXTranslationUnit tu;
 };
 
 struct CX_TemplateArgumentLoc {
-    int xdata;
-
-    union {
-        CXCursor parentCursor;
-    };
-
     const clang::TemplateArgumentLoc* value;
     CXTranslationUnit tu;
 };
 
 struct CX_TemplateName {
     CX_TemplateNameKind kind;
-    void* value;
+    const void* value;
+    CXTranslationUnit tu;
 };
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i);
@@ -232,6 +227,8 @@ CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getArraySize(CXCursor C);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getAssociatedConstraint(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getAsFunction(CXCursor C);
+
+CLANGSHARP_LINKAGE CX_AtomicOperatorKind clangsharp_Cursor_getAtomicOpcode(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getAttr(CXCursor C, unsigned i);
 
@@ -455,6 +452,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsArrayFormAsWritten(CXCursor C
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsArrow(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsClassExtension(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsCompleteDefinition(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsConditionTrue(CXCursor C);
@@ -550,6 +549,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsTransparent(CXCursor C);
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsTypeConcept(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsUnavailable(CXCursor C);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsUnconditionallyVisible(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsUnnamedBitfield(CXCursor C);
 
@@ -745,6 +746,12 @@ CLANGSHARP_LINKAGE CXType clangsharp_TemplateArgument_getNonTypeTemplateArgument
 
 CLANGSHARP_LINKAGE CXType clangsharp_TemplateArgument_getNullPtrType(CX_TemplateArgument T);
 
+CLANGSHARP_LINKAGE int clangsharp_TemplateArgument_getNumPackElements(CX_TemplateArgument T);
+
+CLANGSHARP_LINKAGE CX_TemplateArgument clangsharp_TemplateArgument_getPackElement(CX_TemplateArgument T, unsigned i);
+
+CLANGSHARP_LINKAGE CX_TemplateArgument clangsharp_TemplateArgument_getPackExpansionPattern(CX_TemplateArgument T);
+
 CLANGSHARP_LINKAGE CXType clangsharp_TemplateArgument_getParamTypeForDecl(CX_TemplateArgument T);
 
 CLANGSHARP_LINKAGE CX_TemplateArgument clangsharp_TemplateArgumentLoc_getArgument(CX_TemplateArgumentLoc T);
@@ -760,6 +767,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_TemplateArgumentLoc_getSourceIntegralExpr
 CLANGSHARP_LINKAGE CXCursor clangsharp_TemplateArgumentLoc_getSourceNullPtrExpression(CX_TemplateArgumentLoc T);
 
 CLANGSHARP_LINKAGE CXSourceRange clangsharp_TemplateArgumentLoc_getSourceRange(CX_TemplateArgumentLoc T);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_TemplateName_getAsTemplateDecl(CX_TemplateName T);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_desugar(CXType CT);
 
@@ -822,6 +831,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getRowExpr(CXType CT);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getSizeExpr(CXType CT);
 
 CLANGSHARP_LINKAGE CX_TemplateArgument clangsharp_Type_getTemplateArgument(CXType C, unsigned i);
+
+CLANGSHARP_LINKAGE CX_TemplateName clangsharp_Type_getTemplateName(CXType C);
 
 CLANGSHARP_LINKAGE CX_TypeClass clangsharp_Type_getTypeClass(CXType CT);
 

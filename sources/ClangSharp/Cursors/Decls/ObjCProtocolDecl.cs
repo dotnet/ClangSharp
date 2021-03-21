@@ -40,5 +40,7 @@ namespace ClangSharp
         public IReadOnlyList<ObjCProtocolDecl> Protocols => _protocols.Value;
 
         public uint ProtocolSize => unchecked((uint)Handle.NumProtocols);
+
+        public IReadOnlyList<ObjCProtocolDecl> ReferencedProtocols => Protocols;
     }
 }

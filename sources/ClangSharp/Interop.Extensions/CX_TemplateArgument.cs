@@ -24,6 +24,12 @@ namespace ClangSharp.Interop
 
         public CXType NullPtrType => clangsharp.TemplateArgument_getNullPtrType(this);
 
+        public int NumPackElements => clangsharp.TemplateArgument_getNumPackElements(this);
+
+        public CX_TemplateArgument PackExpansionPattern => clangsharp.TemplateArgument_getPackExpansionPattern(this);
+
         public CXType ParamTypeForDecl => clangsharp.TemplateArgument_getParamTypeForDecl(this);
+
+        public CX_TemplateArgument GetPackElement(uint i) => clangsharp.TemplateArgument_getPackElement(this, i);
     }
 }

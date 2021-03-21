@@ -57,11 +57,21 @@ namespace ClangSharp
 
         public bool DoesNotEscape => Handle.DoesNotEscape;
 
+        public bool HasCaptures => NumCaptures != 0;
+
         public bool IsConversionFromLambda => Handle.IsConversionFromLambda;
 
         public bool IsVariadic => Handle.IsVariadic;
 
+        public uint NumCaptures => unchecked((uint)Handle.NumCaptures);
+
+        public uint NumParams => unchecked((uint)Handle.NumArguments);
+
         public IReadOnlyList<ParmVarDecl> Parameters => _parameters.Value;
+
+        public bool ParamEmpty => ParamSize == 0;
+
+        public nuint ParamSize => NumParams;
 
         public bool CapturesVariable(VarDecl var) => Handle.CapturesVariable(var.Handle);
     }

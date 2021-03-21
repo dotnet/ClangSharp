@@ -6,7 +6,7 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class TranslationUnit : IDisposable, IEquatable<TranslationUnit>
+    public sealed unsafe class TranslationUnit : IDisposable, IEquatable<TranslationUnit>
     {
         private static readonly Dictionary<CXTranslationUnit, WeakReference<TranslationUnit>> _createdTranslationUnits = new Dictionary<CXTranslationUnit, WeakReference<TranslationUnit>>();
         private static readonly object _createTranslationUnitLock = new object();
@@ -141,7 +141,7 @@ namespace ClangSharp
         {
             WeakReference<TemplateArgumentLoc> templateArgumentLocRef;
 
-            if (handle.xdata == 0)
+            if (handle.value == null)
             {
                 return null;
             }

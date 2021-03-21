@@ -47,6 +47,8 @@ namespace ClangSharp
 
         public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints.Value;
 
+        public bool HasAssociatedConstraints => Handle.NumAssociatedConstraints != 0;
+
         public Type InjectedSpecializationType => _injectedSpecializationType.Value;
 
         public ClassTemplatePartialSpecializationDecl InstantiatedFromMember => _instantiatedFromMember.Value;

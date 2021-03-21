@@ -135,6 +135,8 @@ namespace ClangSharp
 
         public bool IsUnavailable => Handle.IsUnavailable;
 
+        public bool IsUnconditionallyVisible => Handle.IsUnconditionallyVisible;
+
         public CX_DeclKind Kind => Handle.DeclKind;
 
         public IDeclContext LexicalDeclContext => _lexicalDeclContext.Value;

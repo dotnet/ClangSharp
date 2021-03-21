@@ -14,6 +14,8 @@ namespace ClangSharp
             _constraintExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.ConstraintExpr));
         }
 
+        public new ConceptDecl CanonicalDecl => (ConceptDecl)base.CanonicalDecl;
+
         public Expr ConstraintExpr => _constraintExpr.Value;
 
         public bool IsTypeConcept => Handle.IsTypeConcept;

@@ -115,6 +115,10 @@ namespace ClangSharp
 
         public string NameInfoName => Handle.Name.CString;
 
+        public uint NumParams => unchecked((uint)Handle.NumArguments);
+
+        public CX_OverloadedOperatorKind OverloadedOperator => Handle.OverloadedOperatorKind;
+
         public IReadOnlyList<ParmVarDecl> Parameters => _parameters.Value;
 
         public FunctionTemplateDecl PrimaryTemplate => _primaryTemplate.Value;

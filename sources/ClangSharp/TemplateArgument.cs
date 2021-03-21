@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class TemplateArgument
+    public sealed unsafe class TemplateArgument
     {
         private readonly Lazy<ValueDecl> _asDecl;
         private readonly Lazy<Expr> _asExpr;
@@ -16,6 +17,8 @@ namespace ClangSharp
         private readonly Lazy<Type> _integralType;
         private readonly Lazy<Type> _nonTypeTemplateArgumentType;
         private readonly Lazy<Type> _nullPtrType;
+        private readonly Lazy<IReadOnlyList<TemplateArgument>> _packElements;
+        private readonly Lazy<TemplateArgument> _packExpansionPattern;
         private readonly Lazy<Type> _paramTypeForDecl;
         private readonly Lazy<TranslationUnit> _translationUnit;
 
@@ -31,6 +34,21 @@ namespace ClangSharp
             _integralType = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.IntegralType));
             _nonTypeTemplateArgumentType = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.NonTypeTemplateArgumentType));
             _nullPtrType = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.NullPtrType));
+            _packExpansionPattern = new Lazy<TemplateArgument>(() => _translationUnit.Value.GetOrCreate(Handle.PackExpansionPattern));
+
+            _packElements = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
+                var numPackElements = Handle.NumPackElements;
+                var packElements = new List<TemplateArgument>(numPackElements);
+
+                for (var i = 0; i < numPackElements; i++)
+                {
+                    var packElement = _translationUnit.Value.GetOrCreate(Handle.GetPackElement(unchecked((uint)i)));
+                    packElements.Add(packElement);
+                }
+
+                return packElements;
+            });
+
             _paramTypeForDecl = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.ParamTypeForDecl));
             _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
         }
@@ -104,6 +122,12 @@ namespace ClangSharp
 
         public Type NullPtrType => _nullPtrType.Value;
 
+        public IReadOnlyList<TemplateArgument> PackElements => _packElements.Value;
+
+        public TemplateArgument PackExpansionPattern => _packExpansionPattern.Value;
+
         public Type ParamTypeForDecl => _paramTypeForDecl.Value;
+
+        public TranslationUnit TranslationUnit => _translationUnit.Value;
     }
 }

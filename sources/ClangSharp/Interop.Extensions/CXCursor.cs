@@ -17,6 +17,8 @@ namespace ClangSharp.Interop
 
         public CXCursor AsFunction => clangsharp.Cursor_getAsFunction(this);
 
+        public CX_AtomicOperatorKind AtomicOperatorKind => clangsharp.Cursor_getAtomicOpcode(this);
+
         public CX_AttrKind AttrKind => clangsharp.Cursor_getAttrKind(this);
 
         public string AttrKindSpelling
@@ -804,6 +806,8 @@ namespace ClangSharp.Interop
 
         public bool IsCanonical => Equals(CanonicalCursor);
 
+        public bool IsClassExtension => clangsharp.Cursor_getIsClassExtension(this) != 0;
+
         public bool IsCompleteDefinition => clangsharp.Cursor_getIsCompleteDefinition(this) != 0;
 
         public bool IsConditionTrue => clangsharp.Cursor_getIsConditionTrue(this) != 0;
@@ -929,6 +933,8 @@ namespace ClangSharp.Interop
         public bool IsTypeConcept => clangsharp.Cursor_getIsTypeConcept(this) != 0;
 
         public bool IsUnavailable => clangsharp.Cursor_getIsUnavailable(this) != 0;
+
+        public bool IsUnconditionallyVisible => clangsharp.Cursor_getIsUnconditionallyVisible(this) != 0;
 
         public bool IsUnexposed => clang.isUnexposed(Kind) != 0;
 
@@ -1587,7 +1593,7 @@ namespace ClangSharp.Interop
 
         public CXSourceRange GetSpellingNameRange(uint pieceIndex, uint options) => clang.Cursor_getSpellingNameRange(this, pieceIndex, options);
 
-        public CXCursor GetSubDecl(uint i) => clangsharp.Cursor_getSubExpr(this, i);
+        public CXCursor GetSubDecl(uint i) => clangsharp.Cursor_getSubDecl(this, i);
 
         public CX_TemplateArgument GetTemplateArgument(uint index) => clangsharp.Cursor_getTemplateArgument(this, index);
 

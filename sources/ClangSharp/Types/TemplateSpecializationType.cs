@@ -9,6 +9,7 @@ namespace ClangSharp
     public sealed class TemplateSpecializationType : Type
     {
         private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
+        private readonly Lazy<TemplateName> _templateName;
 
         internal TemplateSpecializationType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_TemplateSpecialization)
         {
@@ -24,6 +25,8 @@ namespace ClangSharp
 
                 return templateArgs;
             });
+
+            _templateName = new Lazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.TemplateName));
         }
 
         public Type AliasedType => IsTypeAlias ? Desugar : null;
@@ -31,5 +34,7 @@ namespace ClangSharp
         public IReadOnlyList<TemplateArgument> Args => _templateArgs.Value;
 
         public bool IsTypeAlias => Handle.IsTypeAlias;
+
+        public TemplateName TemplateName => _templateName.Value;
     }
 }

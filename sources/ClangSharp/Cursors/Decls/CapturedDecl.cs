@@ -34,6 +34,8 @@ namespace ClangSharp
 
         public bool IsNothrow => Handle.IsNothrow;
 
+        public uint NumParams => unchecked((uint)Handle.NumArguments);
+
         public IReadOnlyList<ImplicitParamDecl> Parameters => _parameters.Value;
     }
 }

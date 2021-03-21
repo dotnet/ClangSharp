@@ -5,7 +5,7 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class TemplateArgumentLoc
+    public sealed unsafe class TemplateArgumentLoc
     {
         private readonly Lazy<TemplateArgument> _argument;
         private readonly Lazy<Expr> _sourceDeclExpression;
@@ -41,5 +41,7 @@ namespace ClangSharp
         public Expr SourceNullPtrExpression => _sourceNullPtrExpression.Value;
 
         public CXSourceRange SourceRange => Handle.SourceRange;
+
+        public TranslationUnit TranslationUnit => _translationUnit.Value;
     }
 }

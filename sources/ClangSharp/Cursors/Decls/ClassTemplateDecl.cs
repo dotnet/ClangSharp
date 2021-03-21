@@ -8,10 +8,13 @@ namespace ClangSharp
 {
     public sealed class ClassTemplateDecl : RedeclarableTemplateDecl
     {
+        private readonly Lazy<Type> _injectedClassNameSpecialization;
         private readonly Lazy<IReadOnlyList<ClassTemplateSpecializationDecl>> _specializations;
 
         internal ClassTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ClassTemplate, CX_DeclKind.CX_DeclKind_ClassTemplate)
         {
+            _injectedClassNameSpecialization = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.InjectedSpecializationType));
+
             _specializations = new Lazy<IReadOnlyList<ClassTemplateSpecializationDecl>>(() => {
                 var numSpecializations = Handle.NumSpecializations;
                 var specializations = new List<ClassTemplateSpecializationDecl>(numSpecializations);
@@ -27,6 +30,8 @@ namespace ClangSharp
         }
 
         public new ClassTemplateDecl CanonicalDecl => (ClassTemplateDecl)base.CanonicalDecl;
+
+        public Type InjectedClassNameSpecialization => _injectedClassNameSpecialization.Value;
 
         public new ClassTemplateDecl InstantiatedFromMemberTemplate => (ClassTemplateDecl)base.InstantiatedFromMemberTemplate;
 

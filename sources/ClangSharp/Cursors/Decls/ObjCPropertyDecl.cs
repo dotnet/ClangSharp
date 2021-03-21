@@ -22,6 +22,12 @@ namespace ClangSharp
 
         public ObjCMethodDecl GetterMethodDecl => _getterMethodDecl.Value;
 
+        public bool IsClassProperty => (PropertyAttributes & CXObjCPropertyAttrKind.CXObjCPropertyAttr_class) != 0;
+
+        public bool IsInstanceProperty => !IsClassProperty;
+
+        CXObjCPropertyAttrKind PropertyAttributes => Handle.GetObjCPropertyAttributes(0);
+
         public ObjCIvarDecl PropertyIvarDecl => _propertyIvarDecl.Value;
 
         public ObjCMethodDecl SetterMethodDecl => _setterMethodDecl.Value;

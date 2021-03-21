@@ -30,6 +30,8 @@ namespace ClangSharp
 
         public bool HasExplicitTemplateArgs => Handle.HasExplicitTemplateArgs;
 
+        public uint NumTemplateArgs => unchecked((uint)Handle.NumTemplateArguments);
+
         public CXXMethodDecl Specialization => _specialization.Value;
 
         public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs.Value;

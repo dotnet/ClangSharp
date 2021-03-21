@@ -194,6 +194,20 @@ namespace ClangSharp
 
         public bool Equals(Type other) => this == other;
 
+        public T CastAs<T>()
+            where T : Type
+        {
+            Debug.Assert(typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with castAs!");
+
+            if (this is T ty)
+            {
+                return ty;
+            }
+
+            Debug.Assert(CanonicalType is T);
+            return (T)UnqualifiedDesugaredType;
+        }
+
         public T GetAs<T>()
             where T : Type
         {

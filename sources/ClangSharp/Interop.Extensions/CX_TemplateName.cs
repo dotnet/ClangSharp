@@ -3,14 +3,8 @@
 
 namespace ClangSharp.Interop
 {
-    public unsafe partial struct CX_TemplateArgument
+    public unsafe partial struct CX_TemplateName
     {
-        public CXTemplateArgumentKind kind;
-
-        [NativeTypeName("const clang::TemplateArgument *")]
-        public void* value;
-
-        [NativeTypeName("CXTranslationUnit")]
-        public CXTranslationUnitImpl* tu;
+        public CXCursor AsTemplateDecl => clangsharp.TemplateName_getAsTemplateDecl(this);
     }
 }
