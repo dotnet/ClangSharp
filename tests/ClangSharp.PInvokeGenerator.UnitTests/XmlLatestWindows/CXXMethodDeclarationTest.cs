@@ -518,7 +518,7 @@ int MyFunctionB(MyStruct* x)
           <type>int</type>
         </param>
         <body>
-          <code>return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">2</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""obj"">obj</param>);</code>
+          <code>return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""obj"">obj</param>);</code>
         </body>
       </function>
       <function name=""GetType"" access=""public"" unsafe=""true"">
@@ -536,7 +536,7 @@ int MyFunctionB(MyStruct* x)
           <type>int</type>
         </param>
         <body>
-          <code>return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType2</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""objA"">objA</param>, <param name=""objB"">objB</param>);</code>
+          <code>return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType2</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""objA"">objA</param>, <param name=""objB"">objB</param>);</code>
         </body>
       </function>
     </struct>

@@ -446,7 +446,7 @@ namespace ClangSharp.Test
 
         public int GetType(int obj)
         {{
-            return Marshal.GetDelegateForFunctionPointer<_GetType>((IntPtr)(lpVtbl[2]))((MyStruct*)Unsafe.AsPointer(ref this), obj);
+            return Marshal.GetDelegateForFunctionPointer<_GetType>((IntPtr)(lpVtbl[{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}]))((MyStruct*)Unsafe.AsPointer(ref this), obj);
         }}
 
         public new int GetType()
@@ -456,7 +456,7 @@ namespace ClangSharp.Test
 
         public int GetType(int objA, int objB)
         {{
-            return Marshal.GetDelegateForFunctionPointer<_GetType2>((IntPtr)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
+            return Marshal.GetDelegateForFunctionPointer<_GetType2>((IntPtr)(lpVtbl[{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}]))((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
         }}
     }}
 }}
