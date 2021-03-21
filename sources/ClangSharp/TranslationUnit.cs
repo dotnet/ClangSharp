@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using ClangSharp.Interop;
 
@@ -8,7 +9,7 @@ namespace ClangSharp
 {
     public sealed unsafe class TranslationUnit : IDisposable, IEquatable<TranslationUnit>
     {
-        private static readonly Dictionary<CXTranslationUnit, WeakReference<TranslationUnit>> _createdTranslationUnits = new Dictionary<CXTranslationUnit, WeakReference<TranslationUnit>>();
+        private static readonly ConcurrentDictionary<CXTranslationUnit, WeakReference<TranslationUnit>> _createdTranslationUnits = new ConcurrentDictionary<CXTranslationUnit, WeakReference<TranslationUnit>>();
         private static readonly object _createTranslationUnitLock = new object();
 
         private readonly Dictionary<CXCursor, WeakReference<Cursor>> _createdCursors;
@@ -48,23 +49,12 @@ namespace ClangSharp
 
         public static TranslationUnit GetOrCreate(CXTranslationUnit handle)
         {
-            WeakReference<TranslationUnit> translationUnitRef;
-
             if (handle == null)
             {
                 return null;
             }
-            else if (!_createdTranslationUnits.TryGetValue(handle, out translationUnitRef))
-            {
-                lock (_createTranslationUnitLock)
-                {
-                    if (!_createdTranslationUnits.TryGetValue(handle, out translationUnitRef))
-                    {
-                        translationUnitRef = new WeakReference<TranslationUnit>(null);
-                        _createdTranslationUnits.Add(handle, translationUnitRef);
-                    }
-                }
-            }
+
+            var translationUnitRef = _createdTranslationUnits.GetOrAdd(handle, (handle) => new WeakReference<TranslationUnit>(null));
 
             if (!translationUnitRef.TryGetTarget(out TranslationUnit translationUnit))
             {
@@ -217,10 +207,7 @@ namespace ClangSharp
                 Handle.Dispose();
             }
 
-            lock (_createTranslationUnitLock)
-            {
-                _createdTranslationUnits.Remove(Handle);
-            }
+            _createdTranslationUnits.TryRemove(Handle, out _);
         }
     }
 }
