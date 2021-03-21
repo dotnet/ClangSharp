@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClangSharp.UnitTests
 {
-    public sealed class XmlCompatibleWindows_FunctionDeclarationBodyImportTest : FunctionDeclarationBodyImportTest
+    public sealed class XmlCompatibleUnix_FunctionDeclarationBodyImportTest : FunctionDeclarationBodyImportTest
     {
         public override Task ArraySubscriptTest()
         {
@@ -35,7 +35,7 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task BasicTest()
@@ -58,7 +58,7 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task BinaryOperatorBasicTest(string opcode)
@@ -88,7 +88,7 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task BinaryOperatorCompareTest(string opcode)
@@ -118,7 +118,7 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task BinaryOperatorBooleanTest(string opcode)
@@ -148,7 +148,7 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task BreakTest()
@@ -185,7 +185,7 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CallFunctionTest()
@@ -217,7 +217,7 @@ void MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CallFunctionWithArgsTest()
@@ -255,7 +255,7 @@ void MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CaseTest()
@@ -310,7 +310,7 @@ void MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CaseNoCompoundTest()
@@ -361,7 +361,7 @@ void MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CompareMultipleEnumTest()
@@ -409,7 +409,7 @@ static inline int MyFunction(MyEnum x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ConditionalOperatorTest()
@@ -442,7 +442,7 @@ static inline int MyFunction(MyEnum x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ContinueTest()
@@ -479,7 +479,7 @@ static inline int MyFunction(MyEnum x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CStyleFunctionalCastTest()
@@ -506,7 +506,7 @@ static inline int MyFunction(MyEnum x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CxxFunctionalCastTest()
@@ -533,7 +533,7 @@ static inline int MyFunction(MyEnum x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CxxConstCastTest()
@@ -560,7 +560,7 @@ static inline int MyFunction(MyEnum x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CxxDynamicCastTest()
@@ -641,7 +641,7 @@ MyStructB* MyFunction(MyStructA* input)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CxxReinterpretCastTest()
@@ -668,7 +668,7 @@ MyStructB* MyFunction(MyStructA* input)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task CxxStaticCastTest()
@@ -695,7 +695,7 @@ MyStructB* MyFunction(MyStructA* input)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task DeclTest()
@@ -725,7 +725,7 @@ int MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task DoTest()
@@ -768,7 +768,7 @@ int MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task DoNonCompoundTest()
@@ -807,7 +807,7 @@ int MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ForTest()
@@ -957,7 +957,7 @@ int MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ForNonCompoundTest()
@@ -1083,7 +1083,7 @@ int MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task IfTest()
@@ -1126,7 +1126,7 @@ int MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task IfElseTest()
@@ -1173,7 +1173,7 @@ int MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task IfElseIfTest()
@@ -1230,7 +1230,7 @@ int MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task IfElseNonCompoundTest()
@@ -1273,7 +1273,7 @@ int MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task InitListForArrayTest()
@@ -1318,7 +1318,7 @@ void MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task InitListForRecordDeclTest()
@@ -1384,7 +1384,7 @@ MyStruct MyFunction2()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task MemberTest()
@@ -1433,7 +1433,7 @@ int MyFunction2(MyStruct* instance)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task RefToPtrTest()
@@ -1472,7 +1472,7 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ReturnCXXNullPtrTest()
@@ -1496,7 +1496,7 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ReturnCXXBooleanLiteralTest(string value)
@@ -1520,7 +1520,7 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ReturnFloatingLiteralDoubleTest(string value)
@@ -1544,7 +1544,7 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ReturnFloatingLiteralSingleTest(string value)
@@ -1568,7 +1568,7 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ReturnEmptyTest()
@@ -1592,7 +1592,7 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ReturnIntegerLiteralInt32Test()
@@ -1616,7 +1616,7 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task AccessUnionMemberTest()
@@ -1667,7 +1667,7 @@ void MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task ReturnStructTest()
@@ -1712,7 +1712,7 @@ MyStruct MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task SwitchTest()
@@ -1751,7 +1751,7 @@ MyStruct MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task SwitchNonCompoundTest()
@@ -1800,7 +1800,7 @@ MyStruct MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task UnaryOperatorAddrOfTest()
@@ -1827,7 +1827,7 @@ MyStruct MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task UnaryOperatorDerefTest()
@@ -1854,7 +1854,7 @@ MyStruct MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task UnaryOperatorLogicalNotTest()
@@ -1881,7 +1881,7 @@ MyStruct MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task UnaryOperatorPostfixTest(string opcode)
@@ -1908,7 +1908,7 @@ MyStruct MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task UnaryOperatorPrefixTest(string opcode)
@@ -1935,7 +1935,7 @@ MyStruct MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task WhileTest()
@@ -1976,7 +1976,7 @@ MyStruct MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
         public override Task WhileNonCompoundTest()
@@ -2015,7 +2015,7 @@ MyStruct MyFunction()
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
     }
 }
