@@ -203,6 +203,7 @@ enum CX_VariableCaptureKind {
 
 struct CX_TemplateArgument {
     CXTemplateArgumentKind kind;
+    int xdata;
     const clang::TemplateArgument* value;
     CXTranslationUnit tu;
 };
@@ -725,6 +726,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUsedContext(CXCursor C);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getVBase(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getVtblIdx(CXCursor C);
+
+CLANGSHARP_LINKAGE void clangsharp_TemplateArgument_dispose(CX_TemplateArgument T);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_TemplateArgument_getAsDecl(CX_TemplateArgument T);
 

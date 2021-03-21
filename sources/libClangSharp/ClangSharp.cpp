@@ -22,10 +22,10 @@ using namespace clang::cxstring;
 using namespace clang::cxtu;
 using namespace clang::cxtype;
 
-CX_TemplateArgument MakeCXTemplateArgument(const TemplateArgument* TA, CXTranslationUnit TU) {
+CX_TemplateArgument MakeCXTemplateArgument(const TemplateArgument* TA, CXTranslationUnit TU, bool needsDispose = false) {
     if (TA) {
         assert(TU && "Invalid arguments!");
-        return { static_cast<CXTemplateArgumentKind>(TA->getKind()), TA, TU };
+        return { static_cast<CXTemplateArgumentKind>(TA->getKind()), (needsDispose ? 1 : 0), TA, TU };
     }
 
     return { };
@@ -4200,8 +4200,8 @@ CX_TemplateArgument clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i
 
         if (const SubstNonTypeTemplateParmPackExpr* SNTTPPE = dyn_cast<SubstNonTypeTemplateParmPackExpr>(S)) {
             if (i == 0) {
-                const TemplateArgument* TA = &SNTTPPE->getArgumentPack();
-                return MakeCXTemplateArgument(TA, getCursorTU(C));
+                const TemplateArgument* TA = new TemplateArgument(SNTTPPE->getArgumentPack());
+                return MakeCXTemplateArgument(TA, getCursorTU(C), true);
             }
         }
     }
@@ -4740,6 +4740,12 @@ int64_t clangsharp_Cursor_getVtblIdx(CXCursor C) {
     return -1;
 }
 
+void clangsharp_TemplateArgument_dispose(CX_TemplateArgument T) {
+    if (T.xdata & 1) {
+        return delete T.value;
+    }
+}
+
 CXCursor clangsharp_TemplateArgument_getAsDecl(CX_TemplateArgument T) {
     if (T.kind == CXTemplateArgumentKind_Declaration) {
         return MakeCXCursor(T.value->getAsDecl(), T.tu);
@@ -4844,7 +4850,8 @@ CX_TemplateArgument clangsharp_TemplateArgument_getPackElement(CX_TemplateArgume
 
 CX_TemplateArgument clangsharp_TemplateArgument_getPackExpansionPattern(CX_TemplateArgument T) {
     if (T.value->isPackExpansion()) {
-        return MakeCXTemplateArgument(&T.value->getPackExpansionPattern(), T.tu);
+        const TemplateArgument* TA = new TemplateArgument(T.value->getPackExpansionPattern());
+        return MakeCXTemplateArgument(TA, T.tu, true);
     }
 
     return MakeCXTemplateArgument(nullptr, T.tu);
@@ -5378,7 +5385,8 @@ CX_TemplateArgument clangsharp_Type_getTemplateArgument(CXType CT, unsigned i) {
 
     if (const SubstTemplateTypeParmPackType* STTPPT = dyn_cast<SubstTemplateTypeParmPackType>(TP)) {
         if (i == 0) {
-            return MakeCXTemplateArgument(&STTPPT->getArgumentPack(), GetTypeTU(CT));
+            const TemplateArgument* TA = new TemplateArgument(STTPPT->getArgumentPack());
+            return MakeCXTemplateArgument(TA, GetTypeTU(CT), true);
         }
     }
 

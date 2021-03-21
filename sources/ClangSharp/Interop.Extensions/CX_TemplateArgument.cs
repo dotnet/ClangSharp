@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
+using System;
+
 namespace ClangSharp.Interop
 {
-    public unsafe partial struct CX_TemplateArgument
+    public unsafe partial struct CX_TemplateArgument : IDisposable
     {
         public CXCursor AsDecl => clangsharp.TemplateArgument_getAsDecl(this);
 
@@ -31,5 +33,7 @@ namespace ClangSharp.Interop
         public CXType ParamTypeForDecl => clangsharp.TemplateArgument_getParamTypeForDecl(this);
 
         public CX_TemplateArgument GetPackElement(uint i) => clangsharp.TemplateArgument_getPackElement(this, i);
+
+        public void Dispose() => clangsharp.TemplateArgument_dispose(this);
     }
 }

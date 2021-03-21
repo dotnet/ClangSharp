@@ -7,7 +7,7 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed unsafe class TemplateArgument
+    public sealed unsafe class TemplateArgument : IDisposable
     {
         private readonly Lazy<ValueDecl> _asDecl;
         private readonly Lazy<Expr> _asExpr;
@@ -52,6 +52,8 @@ namespace ClangSharp
             _paramTypeForDecl = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.ParamTypeForDecl));
             _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
         }
+
+        ~TemplateArgument() => Dispose(isDisposing: false);
 
         public ValueDecl AsDecl => _asDecl.Value;
 
@@ -129,5 +131,16 @@ namespace ClangSharp
         public Type ParamTypeForDecl => _paramTypeForDecl.Value;
 
         public TranslationUnit TranslationUnit => _translationUnit.Value;
+
+        public void Dispose()
+        {
+            Dispose(isDisposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool isDisposing)
+        {
+            Handle.Dispose();
+        }
     }
 }

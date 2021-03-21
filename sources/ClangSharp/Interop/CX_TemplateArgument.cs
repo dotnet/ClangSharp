@@ -7,6 +7,8 @@ namespace ClangSharp.Interop
     {
         public CXTemplateArgumentKind kind;
 
+        public int xdata;
+
         [NativeTypeName("const clang::TemplateArgument *")]
         public void* value;
 

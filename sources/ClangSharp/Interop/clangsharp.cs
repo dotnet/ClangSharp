@@ -877,6 +877,9 @@ namespace ClangSharp.Interop
         [return: NativeTypeName("int64_t")]
         public static extern long Cursor_getVtblIdx(CXCursor C);
 
+        [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgument_dispose", ExactSpelling = true)]
+        public static extern void TemplateArgument_dispose(CX_TemplateArgument T);
+
         [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgument_getAsDecl", ExactSpelling = true)]
         public static extern CXCursor TemplateArgument_getAsDecl(CX_TemplateArgument T);
 
