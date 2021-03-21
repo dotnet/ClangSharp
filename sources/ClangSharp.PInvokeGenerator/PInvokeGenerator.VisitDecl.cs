@@ -472,7 +472,7 @@ namespace ClangSharp
 
             var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
 
-            if (!(functionDecl is CXXConstructorDecl))
+            if ((functionDecl is not CXXConstructorDecl) || (_config.OutputMode == PInvokeGeneratorOutputMode.Xml))
             {
                 _outputBuilder.WriteReturnType(needsReturnFixup ? $"{returnTypeName}*" : returnTypeName);
             }

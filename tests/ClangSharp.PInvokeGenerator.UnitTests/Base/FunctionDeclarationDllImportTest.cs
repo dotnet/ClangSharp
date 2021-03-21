@@ -17,11 +17,11 @@ namespace ClangSharp.UnitTests
         public abstract Task FunctionPointerParameterTest();
 
         [Theory]
-        [InlineData("MyTemplate<int>", @"MyTemplate<int>", "")]
-        [InlineData("MyTemplate<bool>", @"[NativeTypeName(""MyTemplate<bool>"")] MyTemplate<byte>", "")]
-        [InlineData("MyTemplate<float*>", @"[NativeTypeName(""MyTemplate<float *>"")] MyTemplate<IntPtr>", "using System;\n")]
-        [InlineData("MyTemplate<void(*)(int)>", @"[NativeTypeName(""MyTemplate<void (*)(int)>"")] MyTemplate<IntPtr>", "using System;\n")]
-        public abstract Task TemplateParameterTest(string nativeParameter, string expectedManagedParameter, string expectedUsingStatement);
+        [InlineData("int", false, "int", "")]
+        [InlineData("bool", true, "byte", "")]
+        [InlineData("float *", true, "IntPtr", "using System;\n")]
+        [InlineData("void (*)(int)", true, "IntPtr", "using System;\n")]
+        public abstract Task TemplateParameterTest(string nativeType, bool expectedNativeTypeAttr, string expectedManagedType, string expectedUsingStatement);
 
         [Fact]
         public abstract Task TemplateMemberTest();
@@ -37,23 +37,23 @@ namespace ClangSharp.UnitTests
         public abstract Task WithLibraryPathStarTest();
 
         [Theory]
-        [InlineData("unsigned char value = 0", @"[NativeTypeName(""unsigned char"")] byte value = 0")]
-        [InlineData("double value = 1.0", @"double value = 1.0")]
-        [InlineData("short value = 2", @"short value = 2")]
-        [InlineData("int value = 3", @"int value = 3")]
-        [InlineData("long long value = 4", @"[NativeTypeName(""long long"")] long value = 4")]
-        [InlineData("signed char value = 5", @"[NativeTypeName(""signed char"")] sbyte value = 5")]
-        [InlineData("float value = 6.0f", @"float value = 6.0f")]
-        [InlineData("unsigned short value = 7", @"[NativeTypeName(""unsigned short"")] ushort value = 7")]
-        [InlineData("unsigned int value = 8", @"[NativeTypeName(""unsigned int"")] uint value = 8")]
-        [InlineData("unsigned long long value = 9", @"[NativeTypeName(""unsigned long long"")] ulong value = 9")]
-        [InlineData("unsigned short value = 'A'", @"[NativeTypeName(""unsigned short"")] ushort value = (byte)('A')")]
-        public abstract Task OptionalParameterTest(string nativeParameters, string expectedManagedParameters);
+        [InlineData("unsigned char", "0", true, "byte", "0")]
+        [InlineData("double", "1.0", false, "double", "1.0")]
+        [InlineData("short", "2", false, "short", "2")]
+        [InlineData("int", "3", false, "int", "3")]
+        [InlineData("long long", "4", true, "long", "4")]
+        [InlineData("signed char", "5", true, "sbyte", "5")]
+        [InlineData("float", "6.0f", false, "float", "6.0f")]
+        [InlineData("unsigned short", "7", true, "ushort", "7")]
+        [InlineData("unsigned int", "8", true, "uint", "8")]
+        [InlineData("unsigned long long", "9", true, "ulong", "9")]
+        [InlineData("unsigned short", "'A'", true, "ushort", "(byte)('A')")]
+        public abstract Task OptionalParameterTest(string nativeType, string nativeInit, bool expectedNativeTypeNameAttr, string expectedManagedType, string expectedManagedInit);
 
         [Theory]
-        [InlineData("void* value = nullptr", @"[NativeTypeName(""void *"")] void* value = null")]
-        [InlineData("void* value = 0", @"[NativeTypeName(""void *"")] void* value = null")]
-        public abstract Task OptionalParameterUnsafeTest(string nativeParameters, string expectedManagedParameters);
+        [InlineData("void *", "nullptr", "void*", "null")]
+        [InlineData("void *", "0", "void*", "null")]
+        public abstract Task OptionalParameterUnsafeTest(string nativeType, string nativeInit, string expectedManagedType, string expectedManagedInit);
 
         [Fact]
         public abstract Task WithCallConvTest();

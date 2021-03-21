@@ -113,6 +113,7 @@ namespace ClangSharp
 
                 var usingDirectives = Enumerable.Empty<string>();
                 var staticUsingDirectives = Enumerable.Empty<string>();
+                var hasAnyContents = false;
 
                 foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
                 {
@@ -120,6 +121,11 @@ namespace ClangSharp
                     {
                         usingDirectives = usingDirectives.Concat(csharpOutputBuilder.UsingDirectives);
                         staticUsingDirectives = staticUsingDirectives.Concat(csharpOutputBuilder.StaticUsingDirectives);
+                        hasAnyContents = csharpOutputBuilder.Contents.Any();
+                    }
+                    else if (outputBuilder is XmlOutputBuilder xmlOutputBuilder)
+                    {
+                        hasAnyContents = xmlOutputBuilder.Contents.Any();
                     }
                 }
 
@@ -131,15 +137,20 @@ namespace ClangSharp
 
                 usingDirectives = usingDirectives.Concat(staticUsingDirectives);
 
-                if (usingDirectives.Any())
+                if (hasAnyContents)
                 {
                     using var sw = new StreamWriter(stream, defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
-                    {
-                        sw.NewLine = "\n";
-                        if (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp)
-                        {
-                            sw.Write(_config.HeaderText);
+                    sw.NewLine = "\n";
 
+                    if (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp)
+                    {
+                        if (_config.HeaderText != string.Empty)
+                        {
+                            sw.WriteLine(_config.HeaderText);
+                        }
+
+                        if (usingDirectives.Any())
+                        {
                             foreach (var usingDirective in usingDirectives)
                             {
                                 sw.Write("using ");
@@ -149,18 +160,26 @@ namespace ClangSharp
 
                             sw.WriteLine();
                         }
-                        else if (_config.OutputMode == PInvokeGeneratorOutputMode.Xml)
+                    }
+                    else if (_config.OutputMode == PInvokeGeneratorOutputMode.Xml)
+                    {
+                        sw.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>");
+                        sw.WriteLine("<bindings>");
+
+                        if (_config.HeaderText != string.Empty)
                         {
-                            sw.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>");
-                            sw.WriteLine("<bindings>");
-                            sw.WriteLine("    <comment>");
-                            foreach (var ln in _config.HeaderText.Split('\n'))
+                            sw.WriteLine("  <comment>");
+
+                            if (_config.HeaderText != string.Empty)
                             {
-                                sw.Write("        ");
-                                sw.WriteLine(ln);
+                                foreach (var ln in _config.HeaderText.Split('\n'))
+                                {
+                                    sw.Write("    ");
+                                    sw.WriteLine(ln);
+                                }
                             }
 
-                            sw.WriteLine("    </comment>");
+                            sw.WriteLine("  </comment>");
                         }
                     }
                 }
@@ -198,7 +217,15 @@ namespace ClangSharp
                 using var sw = new StreamWriter(stream, defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
                 sw.NewLine = "\n";
 
-                sw.WriteLine('}');
+                if (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp)
+                {
+                    sw.WriteLine('}');
+                }
+                else if (_config.OutputMode == PInvokeGeneratorOutputMode.Xml)
+                {
+                    sw.WriteLine("  </namespace>");
+                    sw.WriteLine("</bindings>");
+                }
             }
 
             _context.Clear();
@@ -349,18 +376,23 @@ namespace ClangSharp
                         sw.WriteLine();
                     }
                 }
-                else if (outputBuilder is XmlOutputBuilder xmlOutputBuilder)
+                else if ((outputBuilder is XmlOutputBuilder xmlOutputBuilder) && xmlOutputBuilder.Contents.Any())
                 {
-                      sw.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>");
-                      sw.WriteLine("<bindings>");
-                      sw.WriteLine("    <comment>");
-                      foreach (var ln in _config.HeaderText.Split('\n'))
-                      {
-                          sw.Write("        ");
-                          sw.WriteLine(ln);
-                      }
+                    sw.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>");
+                    sw.WriteLine("<bindings>");
 
-                      sw.WriteLine("    </comment>");
+                    if (_config.HeaderText != string.Empty)
+                    {
+                        sw.WriteLine("  <comment>");
+
+                        foreach (var ln in _config.HeaderText.Split('\n'))
+                        {
+                            sw.Write("    ");
+                            sw.WriteLine(ln);
+                        }
+
+                        sw.WriteLine("  </comment>");
+                    }
                 }
             }
 
@@ -440,16 +472,18 @@ namespace ClangSharp
 
             void ForXml(XmlOutputBuilder xmlOutputBuilder)
             {
-                const string indent = "    ";
+                const string indent = "  ";
                 var indentationString = indent;
+
                 if (emitNamespaceDeclaration)
                 {
                     sw.Write(indentationString);
                     sw.Write("<namespace name=\"");
                     sw.Write(Config.Namespace);
                     sw.WriteLine("\">");
-                    indentationString += indent;
                 }
+
+                indentationString += indent;
 
                 if (isMethodClass)
                 {
@@ -457,6 +491,7 @@ namespace ClangSharp
                     sw.Write("<class name=\"");
                     sw.Write(Config.MethodClassName);
                     sw.Write("\" access=\"public\" static=\"true\"");
+
                     if (_isMethodClassUnsafe)
                     {
                         sw.Write(" unsafe=\"true\"");
@@ -491,9 +526,8 @@ namespace ClangSharp
                     indentationString = indentationString.Substring(0, indentationString.Length - indent.Length);
                     sw.Write(indentationString);
                     sw.WriteLine("</namespace>");
+                    sw.WriteLine("</bindings>");
                 }
-
-                sw.WriteLine("</bindings>");
             }
         }
 

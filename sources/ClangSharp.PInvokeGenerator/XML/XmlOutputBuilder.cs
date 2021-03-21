@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -25,7 +27,7 @@ namespace ClangSharp.XML
                 XmlWriter writer = XmlWriter.Create(sw, new()
                 {
                     Indent = true,
-                    IndentChars = "    ",
+                    IndentChars = "  ",
                     ConformanceLevel = ConformanceLevel.Fragment,
                     NewLineChars = "\n",
                 });
@@ -39,5 +41,7 @@ namespace ClangSharp.XML
                 return sw.ToString().Split('\n');
             }
         }
+
+        private string EscapeText(string value) => new XText(value).ToString();
     }
 }

@@ -65,11 +65,11 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task TemplateParameterTest(string nativeParameter, string expectedManagedParameter, string expectedUsingStatement)
+        public override Task TemplateParameterTest(string nativeType, bool expectedNativeTypeAttr, string expectedManagedType, string expectedUsingStatement)
         {
             var inputContents = @$"template <typename T> struct MyTemplate;
 
-void MyFunction({nativeParameter} myStruct);";
+void MyFunction(MyTemplate<{nativeType}> myStruct);";
 
             var expectedOutputContents = $@"{expectedUsingStatement}using System.Runtime.InteropServices;
 
@@ -78,7 +78,7 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void MyFunction({expectedManagedParameter} myStruct);
+        public static extern void MyFunction({(expectedNativeTypeAttr ? $@"[NativeTypeName(""MyTemplate<{nativeType}>"")] " : "")}MyTemplate<{expectedManagedType}> myStruct);
     }}
 }}
 ";
@@ -178,9 +178,9 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
         }
 
-        public override Task OptionalParameterTest(string nativeParameters, string expectedManagedParameters)
+        public override Task OptionalParameterTest(string nativeType, string nativeInit, bool expectedNativeTypeNameAttr, string expectedManagedType, string expectedManagedInit)
         {
-            var inputContents = $@"void MyFunction({nativeParameters});";
+            var inputContents = $@"void MyFunction({nativeType} value = {nativeInit});";
 
             var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
@@ -189,7 +189,7 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void MyFunction({expectedManagedParameters});
+        public static extern void MyFunction({(expectedNativeTypeNameAttr ? $@"[NativeTypeName(""{nativeType}"")] " : "")}{expectedManagedType} value = {expectedManagedInit});
     }}
 }}
 ";
@@ -197,9 +197,9 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task OptionalParameterUnsafeTest(string nativeParameters, string expectedManagedParameters)
+        public override Task OptionalParameterUnsafeTest(string nativeType, string nativeInit, string expectedManagedType, string expectedManagedInit)
         {
-            var inputContents = $@"void MyFunction({nativeParameters});";
+            var inputContents = $@"void MyFunction({nativeType} value = {nativeInit});";
 
             var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
@@ -208,7 +208,7 @@ namespace ClangSharp.Test
     public static unsafe partial class Methods
     {{
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void MyFunction({expectedManagedParameters});
+        public static extern void MyFunction([NativeTypeName(""{nativeType}"")] {expectedManagedType} value = {expectedManagedInit});
     }}
 }}
 ";

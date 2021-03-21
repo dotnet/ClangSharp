@@ -35,6 +35,8 @@ namespace ClangSharp.CSharp
 
         public IEnumerable<string> Contents => _contents;
 
+        public bool HasPendingLine => _currentLine.Length > 0;
+
         public string IndentationString => _indentationString;
 
         public bool IsTestOutput => _isTestOutput;
@@ -146,7 +148,7 @@ namespace ClangSharp.CSharp
 
         public void WritePendingLine()
         {
-            if (_currentLine.Length > 0)
+            if (HasPendingLine)
             {
                 WriteNewline();
             }
