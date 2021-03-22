@@ -483,10 +483,12 @@ namespace ClangSharp.Test
 };";
 
             var callConv = "Cdecl";
+            var nativeCallConv = "";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
                 callConv = "ThisCall";
+                nativeCallConv = " __attribute__((thiscall))";
             }
 
             var expectedOutputContents = $@"using System;
@@ -533,13 +535,13 @@ namespace ClangSharp.Test
 
         public partial struct Vtbl
         {{
-            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}"")]
+            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}{nativeCallConv}"")]
             public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "new ")}IntPtr GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")};
 
-            [NativeTypeName(""int ()"")]
+            [NativeTypeName(""int (){nativeCallConv}"")]
             public IntPtr GetType1;
 
-            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}"")]
+            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}{nativeCallConv}"")]
             public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "new " : "")}IntPtr GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")};
         }}
     }}

@@ -422,7 +422,7 @@ int MyFunctionB(MyStruct* x)
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
+                callConv = "Thiscall";
             }
 
             var expectedOutputContents = $@"using System.Runtime.CompilerServices;
@@ -464,10 +464,12 @@ namespace ClangSharp.Test
 };";
 
             var callConv = "Cdecl";
+            var nativeCallConv = "";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
+                callConv = "Thiscall";
+                nativeCallConv = " __attribute__((thiscall))";
             }
 
             var expectedOutputContents = $@"using System.Runtime.CompilerServices;
@@ -495,13 +497,13 @@ namespace ClangSharp.Test
 
         public partial struct Vtbl
         {{
-            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}"")]
+            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}{nativeCallConv}"")]
             public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "new ")}delegate* unmanaged[{callConv}]<MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", int" : "")}> GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")};
 
-            [NativeTypeName(""int ()"")]
+            [NativeTypeName(""int (){nativeCallConv}"")]
             public delegate* unmanaged[{callConv}]<MyStruct*, int> GetType1;
 
-            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}"")]
+            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}{nativeCallConv}"")]
             public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "new " : "")}delegate* unmanaged[{callConv}]<MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : ", int")}> GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")};
         }}
     }}
@@ -773,7 +775,7 @@ namespace ClangSharp.Test
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
+                callConv = "Thiscall";
             }
 
             var expectedOutputContents = $@"using System.Runtime.CompilerServices;
@@ -833,7 +835,7 @@ namespace ClangSharp.Test
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
+                callConv = "Thiscall";
             }
 
             var expectedOutputContents = $@"using System.Runtime.CompilerServices;
