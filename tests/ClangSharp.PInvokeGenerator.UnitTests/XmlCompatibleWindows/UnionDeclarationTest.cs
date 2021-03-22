@@ -449,7 +449,7 @@ union MyOtherUnion
             <type>int</type>
           </param>
           <get>
-            <code>fixed (MyUnion* pThis = &amp;e0)
+            <code>fixed (MyUnion* pThis = &amp;e0_0_0_0)
     {{
         return ref pThis[index];
     }}</code>

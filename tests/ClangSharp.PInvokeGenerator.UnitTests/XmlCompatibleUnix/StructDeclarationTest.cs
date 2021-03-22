@@ -441,7 +441,7 @@ struct MyOtherStruct
             <type>int</type>
           </param>
           <get>
-            <code>fixed (MyStruct* pThis = &amp;e0)
+            <code>fixed (MyStruct* pThis = &amp;e0_0_0_0)
     {{
         return ref pThis[index];
     }}</code>

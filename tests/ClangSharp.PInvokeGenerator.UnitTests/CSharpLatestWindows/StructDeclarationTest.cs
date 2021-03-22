@@ -436,7 +436,7 @@ namespace ClangSharp.Test
                 }}
             }}
 
-            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 24);
+            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0_0_0_0, 24);
         }}
     }}
 }}

@@ -2189,6 +2189,8 @@ namespace ClangSharp
                     elementType = subConstantArrayType.ElementType;
                 }
 
+                var firstFieldName = "";
+
                 for (long i = 0; i < totalSize; i++)
                 {
                     var dimension = sizePerDimension[0];
@@ -2214,6 +2216,11 @@ namespace ClangSharp
                         }
 
                         sizePerDimension[d] = dimension;
+                    }
+
+                    if (firstFieldName == "")
+                    {
+                        firstFieldName = fieldName;
                     }
 
                     var fieldDesc = new FieldDesc
@@ -2258,7 +2265,9 @@ namespace ClangSharp
 
                     code.WriteIndented("fixed (");
                     code.Write(typeName);
-                    code.WriteLine("* pThis = &e0)");
+                    code.Write("* pThis = &");
+                    code.Write(firstFieldName);
+                    code.WriteLine(')');
                     code.WriteBlockStart();
                     code.WriteIndented("return ref pThis[index]");
                     code.WriteSemicolon();
@@ -2341,7 +2350,9 @@ namespace ClangSharp
                     _outputBuilder.BeginBody(true);
                     code = _outputBuilder.BeginCSharpCode();
 
-                    code.Write("MemoryMarshal.CreateSpan(ref e0, ");
+                    code.Write("MemoryMarshal.CreateSpan(ref ");
+                    code.Write(firstFieldName);
+                    code.Write(", ");
 
                     if (type.Size == 1)
                     {

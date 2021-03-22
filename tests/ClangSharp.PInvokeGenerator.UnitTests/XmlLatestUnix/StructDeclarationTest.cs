@@ -447,7 +447,7 @@ struct MyOtherStruct
         </indexer>
         <function name=""AsSpan"" access=""public"">
           <type>Span&lt;MyStruct&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0, 24);</code>
+          <code>MemoryMarshal.CreateSpan(ref e0_0_0_0, 24);</code>
         </function>
       </struct>
     </struct>

@@ -427,7 +427,7 @@ struct MyOtherStruct
             {{
                 get
                 {{
-                    fixed (MyStruct* pThis = &e0)
+                    fixed (MyStruct* pThis = &e0_0_0_0)
                     {{
                         return ref pThis[index];
                     }}

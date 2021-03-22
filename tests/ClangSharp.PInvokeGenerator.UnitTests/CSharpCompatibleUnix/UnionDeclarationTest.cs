@@ -465,7 +465,7 @@ namespace ClangSharp.Test
             {{
                 get
                 {{
-                    fixed (MyUnion* pThis = &e0)
+                    fixed (MyUnion* pThis = &e0_0_0_0)
                     {{
                         return ref pThis[index];
                     }}
