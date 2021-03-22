@@ -937,7 +937,7 @@ namespace ClangSharp
                     Name = escapedName,
                     Type = typeName,
                     NativeTypeName = nativeTypeName,
-                    CppAttributes = _config.GenerateNativeInheritanceAttribute
+                    CppAttributes = _config.GenerateCppAttributes
                         ? parmVarDecl.Attrs.Select(x => EscapeString(x.Spelling))
                         : null,
                     CustomAttrGeneratorData = (name, this),
@@ -983,7 +983,7 @@ namespace ClangSharp
                     Name = escapedName,
                     Type = typeName,
                     NativeTypeName = nativeTypeName,
-                    CppAttributes = _config.GenerateNativeInheritanceAttribute
+                    CppAttributes = _config.GenerateCppAttributes
                         ? parmVarDecl.Attrs.Select(x => EscapeString(x.Spelling))
                         : null,
                     CustomAttrGeneratorData = (name, this),
