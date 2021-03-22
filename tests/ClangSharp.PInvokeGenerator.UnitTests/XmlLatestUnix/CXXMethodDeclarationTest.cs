@@ -475,7 +475,7 @@ int MyFunctionB(MyStruct* x)
             
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
+                callConv = "Thiscall";
             }
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
@@ -530,10 +530,12 @@ int MyFunctionB(MyStruct* x)
 };";
 
             var callConv = "Cdecl";
+            var nativeCallConv = "";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
+                callConv = "Thiscall";
+                nativeCallConv = " __attribute__((thiscall))";
             }
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
@@ -572,13 +574,13 @@ int MyFunctionB(MyStruct* x)
       </function>
       <vtbl>
         <field name=""GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")}"" access=""public"">
-          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", int" : "")}&gt;</type>
+          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}{nativeCallConv}"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", int" : "")}&gt;</type>
         </field>
         <field name=""GetType1"" access=""public"">
-          <type native=""int ()"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int&gt;</type>
+          <type native=""int (){nativeCallConv}"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int&gt;</type>
         </field>
         <field name=""GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")}"" access=""public"">
-          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : ", int")}&gt;</type>
+          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}{nativeCallConv}"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : ", int")}&gt;</type>
         </field>
       </vtbl>
     </struct>
@@ -885,7 +887,7 @@ void MyFunction();";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
+                callConv = "Thiscall";
             }
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
@@ -948,7 +950,7 @@ void MyFunction();";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
+                callConv = "Thiscall";
             }
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>

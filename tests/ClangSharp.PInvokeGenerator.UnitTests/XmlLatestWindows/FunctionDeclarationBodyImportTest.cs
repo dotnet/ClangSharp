@@ -582,7 +582,7 @@ MyStructB* MyFunction(MyStructA* input)
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
+                callConv = "Thiscall";
             }
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>

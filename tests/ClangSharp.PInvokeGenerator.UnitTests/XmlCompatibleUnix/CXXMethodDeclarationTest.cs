@@ -566,10 +566,12 @@ int MyFunctionB(MyStruct* x)
 };";
 
             var callConv = "Cdecl";
+            var nativeCallConv = "";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
                 callConv = "ThisCall";
+                nativeCallConv = " __attribute__((thiscall))";
             }
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
@@ -644,13 +646,13 @@ int MyFunctionB(MyStruct* x)
       </function>
       <vtbl>
         <field name=""GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")}"" access=""public"">
-          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}"">IntPtr</type>
+          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}{nativeCallConv}"">IntPtr</type>
         </field>
         <field name=""GetType1"" access=""public"">
-          <type native=""int ()"">IntPtr</type>
+          <type native=""int (){nativeCallConv}"">IntPtr</type>
         </field>
         <field name=""GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")}"" access=""public"">
-          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}"">IntPtr</type>
+          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}{nativeCallConv}"">IntPtr</type>
         </field>
       </vtbl>
     </struct>

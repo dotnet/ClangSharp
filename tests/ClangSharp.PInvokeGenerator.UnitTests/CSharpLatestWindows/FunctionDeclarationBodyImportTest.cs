@@ -500,7 +500,7 @@ MyStructB* MyFunction(MyStructA* input)
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
+                callConv = "Thiscall";
             }
 
             var expectedOutputContents = $@"using System.Runtime.CompilerServices;
