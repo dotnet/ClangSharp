@@ -278,5 +278,34 @@ namespace ClangSharp.Test
 
             return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
+
+        public override Task MultidimensionlArrayTest()
+        {
+            var inputContents = $@"const int MyArray[2][2] = {{ {{ 0, 1 }}, {{ 2, 3 }} }};";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const int [2][2]"")]
+        public static int[][] MyArray = new int[2][]
+        {{
+            new int[2]
+            {{
+                0,
+                1,
+            }},
+            new int[2]
+            {{
+                2,
+                3,
+            }},
+        }};
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
     }
 }

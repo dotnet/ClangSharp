@@ -369,5 +369,39 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
 
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
+
+        public override Task MultidimensionlArrayTest()
+        {
+            var inputContents = $@"const int MyArray[2][2] = {{ {{ 0, 1 }}, {{ 2, 3 }} }};";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""MyArray"" access=""public"">
+        <type primitive=""False"">int[][]</type>
+        <value>
+          <code>new int[2][]
+      {{
+          new int[2]
+          {{
+              0,
+              1,
+          }},
+          new int[2]
+          {{
+              2,
+              3,
+          }},
+      }}</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
     }
 }

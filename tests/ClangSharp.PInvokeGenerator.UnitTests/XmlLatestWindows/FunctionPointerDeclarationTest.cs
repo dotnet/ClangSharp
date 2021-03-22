@@ -10,15 +10,7 @@ namespace ClangSharp.UnitTests
         {
             var inputContents = @"typedef void (*Callback)();";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
-<bindings>
-  <namespace name=""ClangSharp.Test"">
-    <delegate name=""Callback"" access=""public"" convention=""Cdecl"" static=""true"">
-      <type>void</type>
-    </delegate>
-  </namespace>
-</bindings>
-";
+            var expectedOutputContents = "";
 
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }

@@ -56,10 +56,10 @@ namespace ClangSharp.UnitTests
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
-      <function name=""MyFunction"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""Cdecl"" static=""true"">
+      <function name=""MyFunction"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""Cdecl"" static=""true"" unsafe=""true"">
         <type>void</type>
         <param name=""callback"">
-          <type>IntPtr</type>
+          <type>delegate* unmanaged[Cdecl]&lt;void&gt;</type>
         </param>
       </function>
     </class>

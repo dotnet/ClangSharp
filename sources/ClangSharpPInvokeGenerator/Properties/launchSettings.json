@@ -15,7 +15,7 @@
     },
     "GenerateLocal": {
       "commandName": "Project",
-      "commandLineArgs": "-?"
+      "commandLineArgs": "-c help"
     }
   }
 }

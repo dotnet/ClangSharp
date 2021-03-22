@@ -427,7 +427,7 @@ struct MyOtherStruct
             {{
                 get
                 {{
-                    fixed (MyStruct* pThis = &e0)
+                    fixed (MyStruct* pThis = &e0_0_0_0)
                     {{
                         return ref pThis[index];
                     }}
@@ -749,6 +749,61 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 ";
 
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task InheritanceWithNativeInheritanceAttributeTest()
+        {
+            var inputContents = @"struct MyStruct1A
+{
+    int x;
+    int y;
+};
+
+struct MyStruct1B
+{
+    int x;
+    int y;
+};
+
+struct MyStruct2 : MyStruct1A, MyStruct1B
+{
+    int z;
+    int w;
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct1A
+    {
+        public int x;
+
+        public int y;
+    }
+
+    public partial struct MyStruct1B
+    {
+        public int x;
+
+        public int y;
+    }
+
+    [NativeTypeName(""struct MyStruct2 : MyStruct1A, MyStruct1B"")]
+    [NativeInheritance(""MyStruct1B"")]
+    public partial struct MyStruct2
+    {
+        public MyStruct1A __AnonymousBase_ClangUnsavedFile_L13_C20;
+
+        public MyStruct1B __AnonymousBase_ClangUnsavedFile_L13_C32;
+
+        public int z;
+
+        public int w;
+    }
+}
+";
+
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
         }
 
         public override Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column)

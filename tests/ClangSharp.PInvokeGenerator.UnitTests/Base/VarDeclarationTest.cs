@@ -71,5 +71,8 @@ namespace ClangSharp.UnitTests
 
         [Fact]
         public abstract Task UncheckedReinterpretCastMacroTest();
+
+        [Fact]
+        public abstract Task MultidimensionlArrayTest();
     }
 }

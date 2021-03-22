@@ -181,14 +181,12 @@ namespace ClangSharp.Test
             var inputContents = $@"#define MyMacro1 (long)0x80000000L
 #define MyMacro2 (int)0x80000000";
 
-            var expectedOutputContents = $@"using System;
-
-namespace ClangSharp.Test
+            var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
         [NativeTypeName(""#define MyMacro1 (long)0x80000000L"")]
-        public const IntPtr MyMacro1 = (IntPtr)(0x80000000);
+        public const nint MyMacro1 = unchecked((nint)(0x80000000));
 
         [NativeTypeName(""#define MyMacro2 (int)0x80000000"")]
         public const int MyMacro2 = unchecked((int)(0x80000000));
@@ -222,14 +220,12 @@ namespace ClangSharp.Test
 #define MyMacro2(n) MyMacro1(1, 2, n)
 #define MyMacro3 MyMacro2(3)";
 
-            var expectedOutputContents = $@"using System;
-
-namespace ClangSharp.Test
+            var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
         [NativeTypeName(""#define MyMacro3 MyMacro2(3)"")]
-        public const int MyMacro3 = unchecked((int)(((UIntPtr)(1) << 31) | ((UIntPtr)(2) << 16) | ((UIntPtr)(3))));
+        public const int MyMacro3 = unchecked((int)(((nuint)(1) << 31) | ((nuint)(2) << 16) | ((nuint)(3))));
     }}
 }}
 ";
@@ -265,6 +261,35 @@ namespace ClangSharp.Test
     {{
         [NativeTypeName(""#define Macro1 reinterpret_cast<int*>(-1)"")]
         public static readonly int* Macro1 = unchecked((int*)(-1));
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task MultidimensionlArrayTest()
+        {
+            var inputContents = $@"const int MyArray[2][2] = {{ {{ 0, 1 }}, {{ 2, 3 }} }};";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const int [2][2]"")]
+        public static int[][] MyArray = new int[2][]
+        {{
+            new int[2]
+            {{
+                0,
+                1,
+            }},
+            new int[2]
+            {{
+                2,
+                3,
+            }},
+        }};
     }}
 }}
 ";

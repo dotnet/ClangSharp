@@ -485,46 +485,19 @@ int MyFunctionB(MyStruct* x)
       <field name=""lpVtbl"" access=""public"">
         <type>void**</type>
       </field>
-      <delegate name=""_GetType"" access=""public"" convention=""{callConv}"">
-        <type>int</type>
-        <param name=""pThis"">
-          <type>MyStruct*</type>
-        </param>
-        <param name=""obj"">
-          <type>int</type>
-        </param>
-      </delegate>
-      <delegate name=""_GetType1"" access=""public"" convention=""{callConv}"">
-        <type>int</type>
-        <param name=""pThis"">
-          <type>MyStruct*</type>
-        </param>
-      </delegate>
-      <delegate name=""_GetType2"" access=""public"" convention=""{callConv}"">
-        <type>int</type>
-        <param name=""pThis"">
-          <type>MyStruct*</type>
-        </param>
-        <param name=""objA"">
-          <type>int</type>
-        </param>
-        <param name=""objB"">
-          <type>int</type>
-        </param>
-      </delegate>
       <function name=""GetType"" access=""public"" unsafe=""true"">
         <type>int</type>
         <param name=""obj"">
           <type>int</type>
         </param>
         <body>
-          <code>return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""obj"">obj</param>);</code>
+          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int&gt;)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""obj"">obj</param>);</code>
         </body>
       </function>
       <function name=""GetType"" access=""public"" unsafe=""true"">
         <type>int</type>
         <body>
-          <code>return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType1</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, int&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""GetType"" access=""public"" unsafe=""true"">
@@ -536,7 +509,7 @@ int MyFunctionB(MyStruct* x)
           <type>int</type>
         </param>
         <body>
-          <code>return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType2</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""objA"">objA</param>, <param name=""objB"">objB</param>);</code>
+          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int, int&gt;)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""objA"">objA</param>, <param name=""objB"">objB</param>);</code>
         </body>
       </function>
     </struct>
@@ -545,6 +518,75 @@ int MyFunctionB(MyStruct* x)
 ";
 
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task NewKeywordVirtualWithExplicitVtblTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    virtual int GetType(int obj) = 0;
+    virtual int GetType() = 0;
+    virtual int GetType(int objA, int objB) = 0;
+};";
+
+            var callConv = "Cdecl";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+            {
+                callConv = "ThisCall";
+            }
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
+      <field name=""lpVtbl"" access=""public"">
+        <type>Vtbl*</type>
+      </field>
+      <function name=""GetType"" access=""public"" unsafe=""true"">
+        <type>int</type>
+        <param name=""obj"">
+          <type>int</type>
+        </param>
+        <body>
+          <code>return lpVtbl-&gt;<vtbl explicit=""True"">GetType</vtbl>(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""obj"">obj</param>);</code>
+        </body>
+      </function>
+      <function name=""GetType"" access=""public"" unsafe=""true"">
+        <type>int</type>
+        <body>
+          <code>return lpVtbl-&gt;<vtbl explicit=""True"">GetType1</vtbl>(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name=""GetType"" access=""public"" unsafe=""true"">
+        <type>int</type>
+        <param name=""objA"">
+          <type>int</type>
+        </param>
+        <param name=""objB"">
+          <type>int</type>
+        </param>
+        <body>
+          <code>return lpVtbl-&gt;<vtbl explicit=""True"">GetType2</vtbl>(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""objA"">objA</param>, <param name=""objB"">objB</param>);</code>
+        </body>
+      </function>
+      <vtbl>
+        <field name=""GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")}"" access=""public"">
+          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", int" : "")}&gt;</type>
+        </field>
+        <field name=""GetType1"" access=""public"">
+          <type native=""int ()"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int&gt;</type>
+        </field>
+        <field name=""GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")}"" access=""public"">
+          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : ", int")}&gt;</type>
+        </field>
+      </vtbl>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
         }
 
         public override Task OperatorTest()
@@ -853,52 +895,28 @@ void MyFunction();";
       <field name=""lpVtbl"" access=""public"">
         <type>void**</type>
       </field>
-      <delegate name=""_MyVoidMethod"" access=""public"" convention=""{callConv}"">
-        <type>void</type>
-        <param name=""pThis"">
-          <type>MyStruct*</type>
-        </param>
-      </delegate>
-      <delegate name=""_MyInt8Method"" access=""public"" convention=""{callConv}"">
-        <type native=""char"">sbyte</type>
-        <param name=""pThis"">
-          <type>MyStruct*</type>
-        </param>
-      </delegate>
-      <delegate name=""_MyInt32Method"" access=""public"" convention=""{callConv}"">
-        <type>int</type>
-        <param name=""pThis"">
-          <type>MyStruct*</type>
-        </param>
-      </delegate>
-      <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""{callConv}"" unsafe=""true"">
-        <type native=""void *"">void*</type>
-        <param name=""pThis"">
-          <type>MyStruct*</type>
-        </param>
-      </delegate>
       <function name=""MyVoidMethod"" access=""public"" unsafe=""true"">
         <type>void</type>
         <body>
-          <code>Marshal.GetDelegateForFunctionPointer&lt;<delegate>_MyVoidMethod</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>((delegate* unmanaged[{callConv}]&lt;MyStruct*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""MyInt8Method"" access=""public"" unsafe=""true"">
         <type native=""char"">sbyte</type>
         <body>
-          <code>return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_MyInt8Method</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, sbyte&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""MyInt32Method"" access=""public"" unsafe=""true"">
         <type>int</type>
         <body>
-          <code>return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_MyInt32Method</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">2</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, int&gt;)(lpVtbl[<vtbl explicit=""False"">2</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
         <type native=""void *"">void*</type>
         <body>
-          <code>return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_MyVoidStarMethod</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">3</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, void*&gt;)(lpVtbl[<vtbl explicit=""False"">3</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
     </struct>
@@ -907,6 +925,69 @@ void MyFunction();";
 ";
 
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task VirtualWithVtblIndexAttributeTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    virtual void MyVoidMethod() = 0;
+
+    virtual char MyInt8Method()
+    {
+        return 0;
+    }
+
+    virtual int MyInt32Method();
+
+    virtual void* MyVoidStarMethod() = 0;
+};
+";
+
+            var callConv = "Cdecl";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+            {
+                callConv = "ThisCall";
+            }
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
+      <field name=""lpVtbl"" access=""public"">
+        <type>void**</type>
+      </field>
+      <function name=""MyVoidMethod"" access=""public"" unsafe=""true"" vtblindex=""0"">
+        <type>void</type>
+        <body>
+          <code>((delegate* unmanaged[{callConv}]&lt;MyStruct*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name=""MyInt8Method"" access=""public"" unsafe=""true"" vtblindex=""1"">
+        <type native=""char"">sbyte</type>
+        <body>
+          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, sbyte&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name=""MyInt32Method"" access=""public"" unsafe=""true"" vtblindex=""2"">
+        <type>int</type>
+        <body>
+          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, int&gt;)(lpVtbl[<vtbl explicit=""False"">2</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"" vtblindex=""3"">
+        <type native=""void *"">void*</type>
+        <body>
+          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, void*&gt;)(lpVtbl[<vtbl explicit=""False"">3</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
         }
     }
 }

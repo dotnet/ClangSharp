@@ -61,7 +61,7 @@ namespace ClangSharp
 
         public CXType Handle { get; }
 
-        public bool IsAnyPointerType => IsAnyPointerType || IsObjCObjectPointerType;
+        public bool IsAnyPointerType => IsPointerType || IsObjCObjectPointerType;
 
         public bool IsExtIntType => CanonicalType is ExtIntType;
 

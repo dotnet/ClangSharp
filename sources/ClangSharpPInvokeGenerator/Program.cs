@@ -46,7 +46,9 @@ namespace ClangSharp
             ("exclude-default-remappings", "Default remappings for well known types should not be added. This currently includes intptr_t, ptrdiff_t, size_t, and uintptr_t"),
             ("exclude-empty-records", "Bindings for records that contain no members should not be generated. These are commonly encountered for opaque handle like types such as HWND."),
             ("exclude-enum-operators", "Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default."),
+            ("exclude-fnptr-codegen", "Generated bindings for latest or preview codegen should not use function pointers."),
             ("exclude-funcs-with-body", "Bindings for functions with bodies should not be generated."),
+            ("preview-codegen-nint", "Generated bindings for latest or preview codegen should not use nint or nuint."),
             ("exclude-using-statics-for-enums", "Enum usages should be fully qualified and should not include a corresponding 'using static EnumName;'"),
 
             ("", ""),   // VTBL Options
@@ -62,20 +64,16 @@ namespace ClangSharp
             ("", ""),   // Generation Options
 
             ("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
-            ("generate-cpp-attributes", "A [CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
+            ("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
             ("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
-            ("generate-native-inheritance-attribute", "A [NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
+            ("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
+            ("generate-vtbl-index-attribute", "[VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method."),
 
             ("", ""),   // Logging Options
 
             ("log-exclusions", "A list of excluded declaration types should be generated. This will also log if the exclusion was due to an exact or partial match."),
             ("log-potential-typedef-remappings", "A list of potential typedef remappings should be generated. This can help identify missing remappings."),
             ("log-visited-files", "A list of the visited files should be generated. This can help identify traversal issues."),
-
-            ("", ""),   // Preview Options
-
-            ("preview-codegen-fnptr", "Generated bindings should use function pointers instead of IntPtr where possible."),
-            ("preview-codegen-nint", "Generated bindings should use nint and nuint instead of IntPtr and UIntPtr where possible."),
         };
 
         public static async Task<int> Main(params string[] args)
@@ -265,9 +263,21 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "exclude-fnptr-codegen":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeFnptrCodegen;
+                        break;
+                    }
+
                     case "exclude-funcs-with-body":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeFunctionsWithBody;
+                        break;
+                    }
+
+                    case "exclude-nint-codegen":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeNIntCodegen;
                         break;
                     }
 
@@ -350,6 +360,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "generate-vtbl-index-attribute":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute;
+                        break;
+                    }
+
                     // Logging Options
 
                     case "log-exclusions":
@@ -367,22 +383,6 @@ namespace ClangSharp
                     case "log-visited-files":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.LogVisitedFiles;
-                        break;
-                    }
-
-                    // Preview Options
-
-                    case "preview-codegen-fnptr":
-                    {
-                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCodeFnptr;
-                        break;
-                    }
-
-                    case "preview-codegen-nint":
-                    {
-                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCodeNint;
                         break;
                     }
 

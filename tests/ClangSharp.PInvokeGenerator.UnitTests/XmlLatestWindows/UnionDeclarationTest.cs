@@ -455,7 +455,7 @@ union MyOtherUnion
         </indexer>
         <function name=""AsSpan"" access=""public"">
           <type>Span&lt;MyUnion&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0, 24);</code>
+          <code>MemoryMarshal.CreateSpan(ref e0_0_0_0, 24);</code>
         </function>
       </struct>
     </struct>

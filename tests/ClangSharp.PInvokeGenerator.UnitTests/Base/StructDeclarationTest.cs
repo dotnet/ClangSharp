@@ -118,6 +118,9 @@ namespace ClangSharp.UnitTests
         [Fact]
         public abstract Task InheritanceTest();
 
+        [Fact]
+        public abstract Task InheritanceWithNativeInheritanceAttributeTest();
+
         [Theory]
         [InlineData("double", "double", 10, 5)]
         [InlineData("short", "short", 10, 5)]

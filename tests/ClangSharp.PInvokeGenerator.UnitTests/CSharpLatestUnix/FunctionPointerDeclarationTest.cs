@@ -10,14 +10,7 @@ namespace ClangSharp.UnitTests
         {
             var inputContents = @"typedef void (*Callback)();";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
-
-namespace ClangSharp.Test
-{
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void Callback();
-}
-";
+            var expectedOutputContents = "";
 
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }

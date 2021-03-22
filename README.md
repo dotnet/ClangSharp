@@ -4,10 +4,10 @@ ClangSharp provides Clang bindings written in C#. It is self-hosted and auto-gen
 
 | Job | Debug Status | Release Status |
 | --- | ------------ | -------------- |
-| Windows x86 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=master&jobName=windows_debug_x86)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=master) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=master&jobName=windows_release_x86)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=master) |
-| Windows x64 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=master&jobName=windows_debug_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=master) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=master&jobName=windows_release_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=master) |
-| Ubuntu 18.04 x64 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=master&jobName=ubuntu_debug_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=master) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=master&jobName=ubuntu_release_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=master) |
-| MacOS x64 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=master&jobName=macos_debug_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=master) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=master&jobName=macos_release_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=master) |
+| Windows x86 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=windows_debug_x86)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=windows_release_x86)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) |
+| Windows x64 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=windows_debug_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=windows_release_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) |
+| Ubuntu 18.04 x64 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=ubuntu_debug_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=ubuntu_release_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) |
+| MacOS x64 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=macos_debug_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=macos_release_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) |
 
 A nuget package for the project is provided here: https://www.nuget.org/packages/clangsharp.
 A .NET tool for the P/Invoke generator project is provided here: https://www.nuget.org/packages/ClangSharpPInvokeGenerator
@@ -93,7 +93,7 @@ dotnet tool install --global ClangSharpPInvokeGenerator --version 11.0.0-beta2
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 
-A response file allows you to specify and checkin the command line arguments in a text file, with one argument per line. For example: https://github.com/microsoft/ClangSharp/blob/master/sources/ClangSharpPInvokeGenerator/Properties/GenerateClang.rsp
+A response file allows you to specify and checkin the command line arguments in a text file, with one argument per line. For example: https://github.com/microsoft/ClangSharp/blob/main/sources/ClangSharpPInvokeGenerator/Properties/GenerateClang.rsp
 At a minimum, the command line expects one or more input files (`-f`), an output namespace (`-n`), and an output location (`-o`). A typical response file may also specify explicit files to traverse, configuration options, name remappings, and other fixups.
 
 The full set of available switches:
@@ -194,7 +194,11 @@ Options:
                                            are commonly encountered for opaque handle like types such as HWND.
   exclude-enum-operators                   Bindings for operators over enum types should not be generated. These are
                                            largely unnecessary in C# as the operators are available by default.
+  exclude-fnptr-codegen                    Generated bindings for latest or preview codegen should not use function
+                                           pointers.
   exclude-funcs-with-body                  Bindings for functions with bodies should not be generated.
+  preview-codegen-nint                     Generated bindings for latest or preview codegen should not use nint or
+                                           nuint.
   exclude-using-statics-for-enums          Enum usages should be fully qualified and should not include a
                                            corresponding 'using static EnumName;'
 
@@ -209,12 +213,14 @@ Options:
 
   generate-aggressive-inlining             [MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to
                                            generated helper functions.
-  generate-cpp-attributes                  A[CppAttributeList("")] should be generated to document the encountered C++
+  generate-cpp-attributes                  [CppAttributeList("")] should be generated to document the encountered C++
                                            attributes.
   generate-macro-bindings                  Bindings for macro-definitions should be generated. This currently only
                                            works with value like macros and not function-like ones.
-  generate-native-inheritance-attribute    A[NativeInheritance("")] attribute should be generated to document the
+  generate-native-inheritance-attribute    [NativeInheritance("")] attribute should be generated to document the
                                            encountered C++ base type.
+  generate-vtbl-index-attribute            [VtblIndex(#)] attribute should be generated to document the underlying
+                                           VTBL index for a helper method.
 
   log-exclusions                           Alist of excluded declaration types should be generated. This will also log
                                            if the exclusion was due to an exact or partial match.
@@ -222,11 +228,6 @@ Options:
                                            identify missing remappings.
   log-visited-files                        Alist of the visited files should be generated. This can help identify
                                            traversal issues.
-
-  preview-codegen-fnptr                    Generated bindings should use function pointers instead of IntPtr where
-                                           possible.
-  preview-codegen-nint                     Generated bindings should use nint and nuint instead of IntPtr and UIntPtr
-                                           where possible.
 ```
 
 ## Spotlight

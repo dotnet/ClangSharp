@@ -432,7 +432,7 @@ namespace ClangSharp.Test
                 }}
             }}
 
-            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 24);
+            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0_0_0_0, 24);
         }}
     }}
 }}
@@ -753,6 +753,61 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 ";
 
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task InheritanceWithNativeInheritanceAttributeTest()
+        {
+            var inputContents = @"struct MyStruct1A
+{
+    int x;
+    int y;
+};
+
+struct MyStruct1B
+{
+    int x;
+    int y;
+};
+
+struct MyStruct2 : MyStruct1A, MyStruct1B
+{
+    int z;
+    int w;
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct1A
+    {
+        public int x;
+
+        public int y;
+    }
+
+    public partial struct MyStruct1B
+    {
+        public int x;
+
+        public int y;
+    }
+
+    [NativeTypeName(""struct MyStruct2 : MyStruct1A, MyStruct1B"")]
+    [NativeInheritance(""MyStruct1B"")]
+    public partial struct MyStruct2
+    {
+        public MyStruct1A __AnonymousBase_ClangUnsavedFile_L13_C20;
+
+        public MyStruct1B __AnonymousBase_ClangUnsavedFile_L13_C32;
+
+        public int z;
+
+        public int w;
+    }
+}
+";
+
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
         }
 
         public override Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column)
