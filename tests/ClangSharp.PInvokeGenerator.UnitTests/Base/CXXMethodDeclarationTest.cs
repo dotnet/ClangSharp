@@ -35,6 +35,9 @@ namespace ClangSharp.UnitTests
         public abstract Task NewKeywordVirtualTest();
 
         [Fact]
+        public abstract Task NewKeywordVirtualWithExplicitVtblTest();
+
+        [Fact]
         public abstract Task OperatorTest();
 
         [Fact]
@@ -51,5 +54,8 @@ namespace ClangSharp.UnitTests
 
         [Fact]
         public abstract Task VirtualTest();
+
+        [Fact]
+        public abstract Task VirtualWithVtblIndexAttributeTest();
     }
 }

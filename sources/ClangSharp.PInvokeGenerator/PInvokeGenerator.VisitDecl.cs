@@ -653,7 +653,7 @@ namespace ClangSharp
             var body = functionDecl.Body;
 
             var isVirtual = (cxxMethodDecl != null) && cxxMethodDecl.IsVirtual;
-            var escapedName = isVirtual ? PrefixAndStripName(name) : EscapeAndStripName(name);
+            var escapedName = isVirtual ? PrefixAndStripName(name, cxxMethodDecl.OverloadIndex) : EscapeAndStripName(name);
 
             if (!(functionDecl.DeclContext is CXXRecordDecl cxxRecordDecl))
             {
@@ -1334,7 +1334,7 @@ namespace ClangSharp
 
                     if (hasVtbl)
                     {
-                        OutputDelegateSignatures(cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                        OutputDelegateSignatures(cxxRecordDecl, cxxRecordDecl);
                     }
                 }
 
@@ -1366,12 +1366,12 @@ namespace ClangSharp
                         _outputBuilder.EmitFnPtrSupport();
                     }
 
-                    OutputVtblHelperMethods(cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                    OutputVtblHelperMethods(cxxRecordDecl, cxxRecordDecl);
 
                     if (_config.GenerateExplicitVtbls)
                     {
                         _outputBuilder.BeginExplicitVtbl();
-                        OutputVtblEntries(cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
+                        OutputVtblEntries(cxxRecordDecl, cxxRecordDecl);
                         _outputBuilder.EndExplicitVtbl();
                     }
                 }
@@ -1386,24 +1386,15 @@ namespace ClangSharp
             }
             StopUsingOutputBuilder();
 
-            string FixupNameForMultipleHits(CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
+            string FixupNameForMultipleHits(CXXMethodDecl cxxMethodDecl)
             {
                 var remappedName = GetRemappedCursorName(cxxMethodDecl);
+                var overloadIndex = cxxMethodDecl.OverloadIndex;
 
-                if (hitsPerName.TryGetValue(remappedName, out int hits))
+                if (overloadIndex != 0)
                 {
-                    hitsPerName[remappedName] = (hits + 1);
-
-                    var name = GetCursorName(cxxMethodDecl);
-                    var remappedNames = (Dictionary<string, string>)_config.RemappedNames;
-
-                    remappedNames[name] = $"{remappedName}{hits}";
+                    remappedName = $"{remappedName}{overloadIndex}";
                 }
-                else
-                {
-                    hitsPerName.Add(remappedName, 1);
-                }
-
                 return remappedName;
             }
 
@@ -1439,12 +1430,12 @@ namespace ClangSharp
                 return false;
             }
 
-            void OutputDelegateSignatures(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
+            void OutputDelegateSignatures(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputDelegateSignatures(rootCxxRecordDecl, baseCxxRecordDecl, hitsPerName);
+                    OutputDelegateSignatures(rootCxxRecordDecl, baseCxxRecordDecl);
                 }
 
                 foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
@@ -1458,10 +1449,9 @@ namespace ClangSharp
                     {
                         _outputBuilder.WriteDivider();
 
-                        var remappedName = FixupNameForMultipleHits(cxxMethodDecl, hitsPerName);
+                        var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                         Debug.Assert(CurrentContext == rootCxxRecordDecl);
                         Visit(cxxMethodDecl);
-                        RestoreNameForMultipleHits(cxxMethodDecl, hitsPerName, remappedName);
                     }
                 }
             }
@@ -1488,12 +1478,12 @@ namespace ClangSharp
                 }
             }
 
-            void OutputVtblEntries(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
+            void OutputVtblEntries(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputVtblEntries(rootCxxRecordDecl, baseCxxRecordDecl, hitsPerName);
+                    OutputVtblEntries(rootCxxRecordDecl, baseCxxRecordDecl);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -1502,13 +1492,12 @@ namespace ClangSharp
                 {
                     foreach (var cxxMethodDecl in cxxMethodDecls.OrderBy((cxxmd) => cxxmd.VtblIndex))
                     {
-                        OutputVtblEntry(rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
-                        _outputBuilder.WriteDivider();
+                        OutputVtblEntry(rootCxxRecordDecl, cxxMethodDecl);
                     }
                 }
             }
 
-            void OutputVtblEntry(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
+            void OutputVtblEntry(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl)
             {
                 if (!cxxMethodDecl.IsVirtual || IsExcluded(cxxMethodDecl))
                 {
@@ -1519,10 +1508,8 @@ namespace ClangSharp
                     out var nativeTypeName);
 
                 var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
-                var remappedName = FixupNameForMultipleHits(cxxMethodDecl, hitsPerName);
-                var name = GetRemappedCursorName(cxxMethodDecl);
-                var escapedName = EscapeAndStripName(name);
-                RestoreNameForMultipleHits(cxxMethodDecl, hitsPerName, remappedName);
+                var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
+                var escapedName = EscapeAndStripName(remappedName);
 
                 var desc = new FieldDesc
                 {
@@ -1536,9 +1523,11 @@ namespace ClangSharp
                 _outputBuilder.BeginField(in desc);
                 _outputBuilder.WriteRegularField(cxxMethodDeclTypeName, escapedName);
                 _outputBuilder.EndField();
+
+                _outputBuilder.WriteDivider();
             }
 
-            void OutputVtblHelperMethod(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
+            void OutputVtblHelperMethod(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl)
             {
                 if (!cxxMethodDecl.IsVirtual)
                 {
@@ -1553,23 +1542,21 @@ namespace ClangSharp
                 var currentContext = _context.AddLast(cxxMethodDecl);
                 var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var returnType = cxxMethodDecl.ReturnType;
-                var returnTypeName =
-                    GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
+                var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
 
-                var remappedName = FixupNameForMultipleHits(cxxMethodDecl, hitsPerName);
+                var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                 var name = GetRemappedCursorName(cxxMethodDecl);
-                RestoreNameForMultipleHits(cxxMethodDecl, hitsPerName, remappedName);
 
                 var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
                 {
                     AccessSpecifier = accessSpecifier,
                     CustomAttrGeneratorData = (name, this),
                     IsAggressivelyInlined = _config.GenerateAggressiveInlining,
-                    EscapedName = EscapeAndStripName(remappedName),
+                    EscapedName = EscapeAndStripName(name),
                     WriteCustomAttrs = static _ => {},
                     IsMemberFunction = true,
                     NativeTypeName = nativeTypeName,
-                    NeedsNewKeyword = NeedsNewKeyword(remappedName, cxxMethodDecl.Parameters),
+                    NeedsNewKeyword = NeedsNewKeyword(name, cxxMethodDecl.Parameters),
                     HasFnPtrCodeGen = _config.GeneratePreviewCodeFnptr,
                     IsCtxCxxRecord = true,
                     IsCxxRecordCtxUnsafe = IsUnsafe(cxxRecordDecl),
@@ -1629,7 +1616,7 @@ namespace ClangSharp
                 {
                     body.Write("Marshal.GetDelegateForFunctionPointer<");
                     body.BeginMarker("delegate");
-                    body.Write(PrefixAndStripName(name));
+                    body.Write(PrefixAndStripName(name, cxxMethodDecl.OverloadIndex));
                     body.EndMarker("delegate");
                     body.Write(">(");
                 }
@@ -1638,7 +1625,7 @@ namespace ClangSharp
                 {
                     body.Write("lpVtbl->");
                     body.BeginMarker("vtbl", new KeyValuePair<string, object>("explicit", true));
-                    body.Write(EscapeAndStripName(name));
+                    body.Write(EscapeAndStripName(remappedName));
                     body.EndMarker("vtbl");
                 }
                 else
@@ -1734,12 +1721,12 @@ namespace ClangSharp
                 _context.RemoveLast();
             }
 
-            void OutputVtblHelperMethods(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
+            void OutputVtblHelperMethods(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
-                    OutputVtblHelperMethods(rootCxxRecordDecl, baseCxxRecordDecl, hitsPerName);
+                    OutputVtblHelperMethods(rootCxxRecordDecl, baseCxxRecordDecl);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -1748,25 +1735,7 @@ namespace ClangSharp
                 foreach (var cxxMethodDecl in cxxMethodDecls)
                 {
                     _outputBuilder.WriteDivider();
-                    OutputVtblHelperMethod(rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
-                }
-            }
-
-            void RestoreNameForMultipleHits(CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName, string remappedName)
-            {
-                if (hitsPerName[remappedName] != 1)
-                {
-                    var name = GetCursorName(cxxMethodDecl);
-                    var remappedNames = (Dictionary<string, string>)_config.RemappedNames;
-
-                    if (name.Equals(remappedName))
-                    {
-                        remappedNames.Remove(name);
-                    }
-                    else
-                    {
-                        remappedNames[name] = remappedName;
-                    }
+                    OutputVtblHelperMethod(rootCxxRecordDecl, cxxMethodDecl);
                 }
             }
 

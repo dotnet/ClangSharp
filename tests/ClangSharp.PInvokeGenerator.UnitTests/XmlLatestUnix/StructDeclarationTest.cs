@@ -798,6 +798,67 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task InheritanceWithNativeInheritanceAttributeTest()
+        {
+            var inputContents = @"struct MyStruct1A
+{
+    int x;
+    int y;
+};
+
+struct MyStruct1B
+{
+    int x;
+    int y;
+};
+
+struct MyStruct2 : MyStruct1A, MyStruct1B
+{
+    int z;
+    int w;
+};
+";
+
+            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct1A"" access=""public"">
+      <field name=""x"" access=""public"">
+        <type>int</type>
+      </field>
+      <field name=""y"" access=""public"">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name=""MyStruct1B"" access=""public"">
+      <field name=""x"" access=""public"">
+        <type>int</type>
+      </field>
+      <field name=""y"" access=""public"">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name=""MyStruct2"" access=""public"" native=""struct MyStruct2 : MyStruct1A, MyStruct1B"" parent=""MyStruct1B"">
+      <field name=""__AnonymousBase_ClangUnsavedFile_L13_C20"" access=""public"" inherited=""MyStruct1A"">
+        <type>MyStruct1A</type>
+      </field>
+      <field name=""__AnonymousBase_ClangUnsavedFile_L13_C32"" access=""public"" inherited=""MyStruct1B"">
+        <type>MyStruct1B</type>
+      </field>
+      <field name=""z"" access=""public"">
+        <type>int</type>
+      </field>
+      <field name=""w"" access=""public"">
+        <type>int</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
+        }
+
         public override Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column)
         {
             var inputContents = $@"typedef union {{

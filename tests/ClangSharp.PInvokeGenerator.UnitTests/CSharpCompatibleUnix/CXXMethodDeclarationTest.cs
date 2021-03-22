@@ -473,6 +473,82 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task NewKeywordVirtualWithExplicitVtblTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    virtual int GetType(int obj) = 0;
+    virtual int GetType() = 0;
+    virtual int GetType(int objA, int objB) = 0;
+};";
+
+            var callConv = "Cdecl";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+            {
+                callConv = "ThisCall";
+            }
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public unsafe partial struct MyStruct
+    {{
+        public Vtbl* lpVtbl;
+
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        public delegate int _GetType(MyStruct* pThis, int obj);
+
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        public delegate int _GetType1(MyStruct* pThis);
+
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        public delegate int _GetType2(MyStruct* pThis, int objA, int objB);
+
+        public int GetType(int obj)
+        {{
+            fixed (MyStruct* pThis = &this)
+            {{
+                return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)(pThis, obj);
+            }}
+        }}
+
+        public new int GetType()
+        {{
+            fixed (MyStruct* pThis = &this)
+            {{
+                return Marshal.GetDelegateForFunctionPointer<_GetType1>(lpVtbl->GetType1)(pThis);
+            }}
+        }}
+
+        public int GetType(int objA, int objB)
+        {{
+            fixed (MyStruct* pThis = &this)
+            {{
+                return Marshal.GetDelegateForFunctionPointer<_GetType2>(lpVtbl->GetType2)(pThis, objA, objB);
+            }}
+        }}
+
+        public partial struct Vtbl
+        {{
+            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}"")]
+            public IntPtr GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")};
+
+            [NativeTypeName(""int ()"")]
+            public IntPtr GetType1;
+
+            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}"")]
+            public new IntPtr GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")};
+        }}
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
+        }
+
         public override Task OperatorTest()
         {
             var inputContents = @"struct MyStruct
@@ -799,6 +875,97 @@ namespace ClangSharp.Test
 ";
 
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task VirtualWithVtblIndexAttributeTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    virtual void MyVoidMethod() = 0;
+
+    virtual char MyInt8Method()
+    {
+        return 0;
+    }
+
+    virtual int MyInt32Method();
+
+    virtual void* MyVoidStarMethod() = 0;
+};
+";
+
+            var callConv = "Cdecl";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+            {
+                callConv = "ThisCall";
+            }
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public unsafe partial struct MyStruct
+    {{
+        public void** lpVtbl;
+
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        public delegate void _MyVoidMethod(MyStruct* pThis);
+
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [return: NativeTypeName(""char"")]
+        public delegate sbyte _MyInt8Method(MyStruct* pThis);
+
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        public delegate int _MyInt32Method(MyStruct* pThis);
+
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [return: NativeTypeName(""void *"")]
+        public delegate void* _MyVoidStarMethod(MyStruct* pThis);
+
+        [VtblIndex(0)]
+        public void MyVoidMethod()
+        {{
+            fixed (MyStruct* pThis = &this)
+            {{
+                Marshal.GetDelegateForFunctionPointer<_MyVoidMethod>((IntPtr)(lpVtbl[0]))(pThis);
+            }}
+        }}
+
+        [VtblIndex(1)]
+        [return: NativeTypeName(""char"")]
+        public sbyte MyInt8Method()
+        {{
+            fixed (MyStruct* pThis = &this)
+            {{
+                return Marshal.GetDelegateForFunctionPointer<_MyInt8Method>((IntPtr)(lpVtbl[1]))(pThis);
+            }}
+        }}
+
+        [VtblIndex(2)]
+        public int MyInt32Method()
+        {{
+            fixed (MyStruct* pThis = &this)
+            {{
+                return Marshal.GetDelegateForFunctionPointer<_MyInt32Method>((IntPtr)(lpVtbl[2]))(pThis);
+            }}
+        }}
+
+        [VtblIndex(3)]
+        [return: NativeTypeName(""void *"")]
+        public void* MyVoidStarMethod()
+        {{
+            fixed (MyStruct* pThis = &this)
+            {{
+                return Marshal.GetDelegateForFunctionPointer<_MyVoidStarMethod>((IntPtr)(lpVtbl[3]))(pThis);
+            }}
+        }}
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
         }
     }
 }

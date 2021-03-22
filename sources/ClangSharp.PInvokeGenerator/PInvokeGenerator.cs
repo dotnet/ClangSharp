@@ -3241,14 +3241,14 @@ namespace ClangSharp
             }
         }
 
-        private string PrefixAndStripName(string name)
+        private string PrefixAndStripName(string name, uint overloadIndex)
         {
             if (name.StartsWith(_config.MethodPrefixToStrip))
             {
                 name = name.Substring(_config.MethodPrefixToStrip.Length);
             }
 
-            return '_' + name;
+            return $"_{name}{((overloadIndex != 0) ? overloadIndex.ToString() : "")}";
         }
 
         private void StartUsingOutputBuilder(string name, bool includeTestOutput = false)
