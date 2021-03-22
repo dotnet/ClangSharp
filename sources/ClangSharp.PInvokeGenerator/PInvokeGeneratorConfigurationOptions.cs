@@ -17,11 +17,9 @@ namespace ClangSharp
 
         GenerateCompatibleCode = 0x00000008,
 
-        GeneratePreviewCodeNint = 0x00000010,
+        ExcludeNIntCodegen = 0x00000010,
 
-        GeneratePreviewCodeFnptr = 0x00000020,
-
-        GeneratePreviewCode = GeneratePreviewCodeNint | GeneratePreviewCodeFnptr,
+        ExcludeFnptrCodegen = 0x00000020,
 
         LogExclusions = 0x00000040,
 
@@ -56,5 +54,7 @@ namespace ClangSharp
         DontUseUsingStaticsForEnums = 0x00200000,
 
         GenerateVtblIndexAttribute = 0x00400000,
+
+        GeneratePreviewCode = 0x00800000,
     }
 }

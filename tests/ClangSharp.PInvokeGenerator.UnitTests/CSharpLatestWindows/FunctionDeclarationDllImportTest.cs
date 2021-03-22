@@ -49,15 +49,14 @@ namespace ClangSharp.Test
         {
             var inputContents = @"void MyFunction(void (*callback)());";
 
-            var expectedOutputContents = @"using System;
-using System.Runtime.InteropServices;
+            var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
-    public static partial class Methods
+    public static unsafe partial class Methods
     {
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void MyFunction([NativeTypeName(""void (*)()"")] IntPtr callback);
+        public static extern void MyFunction([NativeTypeName(""void (*)()"")] delegate* unmanaged[Cdecl]<void> callback);
     }
 }
 ";

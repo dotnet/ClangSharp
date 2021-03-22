@@ -1306,7 +1306,7 @@ namespace ClangSharp
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            name = _config.GeneratePreviewCodeNint ? "nuint" : "UIntPtr";
+                            name = _config.ExcludeNIntCodegen ? "UIntPtr" : "nuint";
                         }
                         else
                         {
@@ -1356,7 +1356,7 @@ namespace ClangSharp
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            name = _config.GeneratePreviewCodeNint ? "nint" : "IntPtr";
+                            name = _config.ExcludeNIntCodegen ? "IntPtr" : "nint";
                         }
                         else
                         {
@@ -1437,7 +1437,7 @@ namespace ClangSharp
                         typeName = "byte";
                     }
 
-                    if (typeName.EndsWith("*"))
+                    if (typeName.EndsWith("*") || typeName.Contains("delegate*"))
                     {
                         // Pointers are not yet supported as generic arguments; remap to IntPtr
                         typeName = "IntPtr";
@@ -1517,7 +1517,7 @@ namespace ClangSharp
             }
             else if (pointeeType is FunctionType functionType)
             {
-                if (_config.GeneratePreviewCodeFnptr && (functionType is FunctionProtoType functionProtoType))
+                if (!_config.ExcludeFnptrCodegen && (functionType is FunctionProtoType functionProtoType))
                 {
                     var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
                     var callConv = GetCallingConvention(cursor, functionType.CallConv, remappedName);

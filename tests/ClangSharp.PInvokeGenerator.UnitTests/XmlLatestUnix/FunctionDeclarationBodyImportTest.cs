@@ -592,16 +592,10 @@ MyStructB* MyFunction(MyStructA* input)
       <field name=""lpVtbl"" access=""public"">
         <type>void**</type>
       </field>
-      <delegate name=""_MyMethod"" access=""public"" convention=""{callConv}"">
-        <type>void</type>
-        <param name=""pThis"">
-          <type>MyStructA*</type>
-        </param>
-      </delegate>
       <function name=""MyMethod"" access=""public"" unsafe=""true"">
         <type>void</type>
         <body>
-          <code>Marshal.GetDelegateForFunctionPointer&lt;<delegate>_MyMethod</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStructA*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>((delegate* unmanaged[{callConv}]&lt;MyStructA*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStructA*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
     </struct>
@@ -609,16 +603,10 @@ MyStructB* MyFunction(MyStructA* input)
       <field name=""lpVtbl"" access=""public"">
         <type>void**</type>
       </field>
-      <delegate name=""_MyMethod"" access=""public"" convention=""{callConv}"">
-        <type>void</type>
-        <param name=""pThis"">
-          <type>MyStructB*</type>
-        </param>
-      </delegate>
       <function name=""MyMethod"" access=""public"" unsafe=""true"">
         <type>void</type>
         <body>
-          <code>Marshal.GetDelegateForFunctionPointer&lt;<delegate>_MyMethod</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStructB*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>((delegate* unmanaged[{callConv}]&lt;MyStructB*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStructB*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
     </struct>

@@ -704,7 +704,7 @@ namespace ClangSharp
                 LibraryPath = isDllImport ? GetLibraryPath(name).Unquote() : null,
                 IsVirtual = isVirtual,
                 IsDllImport = isDllImport,
-                HasFnPtrCodeGen = _config.GeneratePreviewCodeFnptr,
+                HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
                 SetLastError = GetSetLastError(name),
                 IsCxx = cxxMethodDecl is not null,
                 IsStatic = isDllImport || (cxxMethodDecl?.IsStatic ?? true),
@@ -1361,7 +1361,7 @@ namespace ClangSharp
                         _outputBuilder.EmitCompatibleCodeSupport();
                     }
 
-                    if (!_config.GeneratePreviewCodeFnptr)
+                    if (_config.ExcludeFnptrCodegen)
                     {
                         _outputBuilder.EmitFnPtrSupport();
                     }
@@ -1445,7 +1445,7 @@ namespace ClangSharp
                         continue;
                     }
 
-                    if (!_config.GeneratePreviewCodeFnptr)
+                    if (_config.ExcludeFnptrCodegen)
                     {
                         _outputBuilder.WriteDivider();
 
@@ -1557,7 +1557,7 @@ namespace ClangSharp
                     IsMemberFunction = true,
                     NativeTypeName = nativeTypeName,
                     NeedsNewKeyword = NeedsNewKeyword(name, cxxMethodDecl.Parameters),
-                    HasFnPtrCodeGen = _config.GeneratePreviewCodeFnptr,
+                    HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
                     IsCtxCxxRecord = true,
                     IsCxxRecordCtxUnsafe = IsUnsafe(cxxRecordDecl),
                     IsUnsafe = true,
@@ -1612,7 +1612,7 @@ namespace ClangSharp
                     body.Write('*');
                 }
 
-                if (!_config.GeneratePreviewCodeFnptr)
+                if (_config.ExcludeFnptrCodegen)
                 {
                     body.Write("Marshal.GetDelegateForFunctionPointer<");
                     body.BeginMarker("delegate");
@@ -1633,7 +1633,7 @@ namespace ClangSharp
                     var cxxMethodDeclTypeName =
                         GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out var _);
 
-                    if (_config.GeneratePreviewCodeFnptr)
+                    if (!_config.ExcludeFnptrCodegen)
                     {
                         body.Write('(');
                     }
@@ -1646,13 +1646,13 @@ namespace ClangSharp
                     body.EndMarker("vtbl");
                     body.Write("])");
 
-                    if (_config.GeneratePreviewCodeFnptr)
+                    if (!_config.ExcludeFnptrCodegen)
                     {
                         body.Write(')');
                     }
                 }
 
-                if (!_config.GeneratePreviewCodeFnptr)
+                if (_config.ExcludeFnptrCodegen)
                 {
                     body.Write(')');
                 }
@@ -2375,7 +2375,7 @@ namespace ClangSharp
 
             void ForFunctionProtoType(TypedefDecl typedefDecl, FunctionProtoType functionProtoType, Type parentType)
             {
-                if (_config.GeneratePreviewCodeFnptr)
+                if (!_config.ExcludeFnptrCodegen)
                 {
                     return;
                 }

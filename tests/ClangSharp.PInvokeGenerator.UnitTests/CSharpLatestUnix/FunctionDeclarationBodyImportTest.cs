@@ -503,9 +503,7 @@ MyStructB* MyFunction(MyStructA* input)
                 callConv = "ThisCall";
             }
 
-            var expectedOutputContents = $@"using System;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+            var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -513,12 +511,9 @@ namespace ClangSharp.Test
     {{
         public void** lpVtbl;
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
-        public delegate void _MyMethod(MyStructA* pThis);
-
         public void MyMethod()
         {{
-            Marshal.GetDelegateForFunctionPointer<_MyMethod>((IntPtr)(lpVtbl[0]))((MyStructA*)Unsafe.AsPointer(ref this));
+            ((delegate* unmanaged[{callConv}]<MyStructA*, void>)(lpVtbl[0]))((MyStructA*)Unsafe.AsPointer(ref this));
         }}
     }}
 
@@ -527,12 +522,9 @@ namespace ClangSharp.Test
     {{
         public void** lpVtbl;
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
-        public delegate void _MyMethod(MyStructB* pThis);
-
         public void MyMethod()
         {{
-            Marshal.GetDelegateForFunctionPointer<_MyMethod>((IntPtr)(lpVtbl[0]))((MyStructB*)Unsafe.AsPointer(ref this));
+            ((delegate* unmanaged[{callConv}]<MyStructB*, void>)(lpVtbl[0]))((MyStructB*)Unsafe.AsPointer(ref this));
         }}
     }}
 

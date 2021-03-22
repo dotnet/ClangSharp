@@ -194,7 +194,11 @@ Options:
                                            are commonly encountered for opaque handle like types such as HWND.
   exclude-enum-operators                   Bindings for operators over enum types should not be generated. These are
                                            largely unnecessary in C# as the operators are available by default.
+  exclude-fnptr-codegen                    Generated bindings for latest or preview codegen should not use function
+                                           pointers.
   exclude-funcs-with-body                  Bindings for functions with bodies should not be generated.
+  preview-codegen-nint                     Generated bindings for latest or preview codegen should not use nint or
+                                           nuint.
   exclude-using-statics-for-enums          Enum usages should be fully qualified and should not include a
                                            corresponding 'using static EnumName;'
 
@@ -224,11 +228,6 @@ Options:
                                            identify missing remappings.
   log-visited-files                        Alist of the visited files should be generated. This can help identify
                                            traversal issues.
-
-  preview-codegen-fnptr                    Generated bindings should use function pointers instead of IntPtr where
-                                           possible.
-  preview-codegen-nint                     Generated bindings should use nint and nuint instead of IntPtr and UIntPtr
-                                           where possible.
 ```
 
 ## Spotlight

@@ -534,13 +534,13 @@ namespace ClangSharp.Test
         public partial struct Vtbl
         {{
             [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}"")]
-            public IntPtr GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")};
+            public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "new ")}IntPtr GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")};
 
             [NativeTypeName(""int ()"")]
             public IntPtr GetType1;
 
             [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}"")]
-            public new IntPtr GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")};
+            public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "new " : "")}IntPtr GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")};
         }}
     }}
 }}
