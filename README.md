@@ -209,12 +209,14 @@ Options:
 
   generate-aggressive-inlining             [MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to
                                            generated helper functions.
-  generate-cpp-attributes                  A[CppAttributeList("")] should be generated to document the encountered C++
+  generate-cpp-attributes                  [CppAttributeList("")] should be generated to document the encountered C++
                                            attributes.
   generate-macro-bindings                  Bindings for macro-definitions should be generated. This currently only
                                            works with value like macros and not function-like ones.
-  generate-native-inheritance-attribute    A[NativeInheritance("")] attribute should be generated to document the
+  generate-native-inheritance-attribute    [NativeInheritance("")] attribute should be generated to document the
                                            encountered C++ base type.
+  generate-vtbl-index-attribute            [VtblIndex(#)] attribute should be generated to document the underlying
+                                           VTBL index for a helper method.
 
   log-exclusions                           Alist of excluded declaration types should be generated. This will also log
                                            if the exclusion was due to an exact or partial match.

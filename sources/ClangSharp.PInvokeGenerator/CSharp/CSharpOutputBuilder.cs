@@ -256,10 +256,44 @@ namespace ClangSharp.CSharp
 
             Write("NativeInheritance");
             Write('(');
-
             Write('"');
             Write(PInvokeGenerator.EscapeString(inheritedFromName));
             Write('"');
+            Write(')');
+            Write(']');
+
+            if (postfix is null)
+            {
+                NeedsNewline = true;
+            }
+            else
+            {
+                Write(postfix);
+            }
+        }
+
+        private void AddVtblIndexAttribute(long vtblIndex, string prefix = null, string postfix = null, string attributePrefix = null)
+        {
+            if (prefix is null)
+            {
+                WriteIndentation();
+            }
+            else
+            {
+                WriteNewlineIfNeeded();
+                Write(prefix);
+            }
+
+            Write('[');
+
+            if (attributePrefix != null)
+            {
+                Write(attributePrefix);
+            }
+
+            Write("VtblIndex");
+            Write('(');
+            Write(vtblIndex);
             Write(')');
             Write(']');
 

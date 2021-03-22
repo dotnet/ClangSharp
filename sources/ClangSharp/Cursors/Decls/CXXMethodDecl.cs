@@ -60,6 +60,6 @@ namespace ClangSharp
 
         public Type ThisObjectType => _thisObjectType.Value;
 
-        public long VtblIndex => Handle.VtblIdx;
+        public long VtblIndex => IsVirtual ? Handle.VtblIdx : -1;
     }
 }

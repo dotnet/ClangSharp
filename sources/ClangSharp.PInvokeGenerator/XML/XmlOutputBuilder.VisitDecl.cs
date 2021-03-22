@@ -122,6 +122,13 @@ namespace ClangSharp.XML
                 _sb.Append(" unsafe=\"true\"");
             }
 
+            var vtblIndex = desc.VtblIndex ?? -1;
+
+            if (vtblIndex != -1)
+            {
+                _sb.Append($" vtblindex=\"{vtblIndex}\"");
+            }
+
             _sb.Append('>');
 
             desc.WriteCustomAttrs(desc.CustomAttrGeneratorData);

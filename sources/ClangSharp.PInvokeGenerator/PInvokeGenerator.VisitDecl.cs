@@ -1165,7 +1165,9 @@ namespace ClangSharp
                         Offset = null,
                         NeedsNewKeyword = false
                     };
+
                     _outputBuilder.BeginField(in fieldDesc);
+
                     if (_config.GenerateExplicitVtbls)
                     {
                         _outputBuilder.WriteRegularField("Vtbl*", "lpVtbl");
@@ -1188,8 +1190,7 @@ namespace ClangSharp
                         {
                             var parent = GetRemappedCursorName(baseCxxRecordDecl);
                             var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
-                            baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier,
-                                tryRemapOperatorName: true);
+                            baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true);
 
                             var fieldDesc = new FieldDesc
                             {
@@ -1208,8 +1209,7 @@ namespace ClangSharp
                     }
                 }
 
-                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion &&
-                    !(recordDecl.DeclContext is RecordDecl))
+                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
                 {
                     _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);
@@ -1245,8 +1245,7 @@ namespace ClangSharp
                     _testOutputBuilder.WriteLine("Test()");
                     _testOutputBuilder.WriteBlockStart();
 
-                    WithTestAssertTrue(
-                        $"typeof({escapedName}).Is{(recordDecl.IsUnion ? "ExplicitLayout" : "LayoutSequential")}");
+                    WithTestAssertTrue($"typeof({escapedName}).Is{(recordDecl.IsUnion ? "ExplicitLayout" : "LayoutSequential")}");
 
                     _testOutputBuilder.WriteBlockEnd();
                     _testOutputBuilder.NeedsNewline = true;
@@ -1335,8 +1334,7 @@ namespace ClangSharp
 
                     if (hasVtbl)
                     {
-                        OutputDelegateSignatures(cxxRecordDecl, cxxRecordDecl,
-                            hitsPerName: new Dictionary<string, int>());
+                        OutputDelegateSignatures(cxxRecordDecl, cxxRecordDecl, hitsPerName: new Dictionary<string, int>());
                     }
                 }
 
@@ -1441,8 +1439,7 @@ namespace ClangSharp
                 return false;
             }
 
-            void OutputDelegateSignatures(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl,
-                Dictionary<string, int> hitsPerName)
+            void OutputDelegateSignatures(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
@@ -1491,8 +1488,7 @@ namespace ClangSharp
                 }
             }
 
-            void OutputVtblEntries(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl,
-                Dictionary<string, int> hitsPerName)
+            void OutputVtblEntries(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, Dictionary<string, int> hitsPerName)
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
@@ -1504,7 +1500,7 @@ namespace ClangSharp
 
                 if (cxxMethodDecls.Count != 0)
                 {
-                    foreach (var cxxMethodDecl in cxxMethodDecls)
+                    foreach (var cxxMethodDecl in cxxMethodDecls.OrderBy((cxxmd) => cxxmd.VtblIndex))
                     {
                         OutputVtblEntry(rootCxxRecordDecl, cxxMethodDecl, hitsPerName);
                         _outputBuilder.WriteDivider();
@@ -1512,8 +1508,7 @@ namespace ClangSharp
                 }
             }
 
-            void OutputVtblEntry(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl,
-                Dictionary<string, int> hitsPerName)
+            void OutputVtblEntry(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName)
             {
                 if (!cxxMethodDecl.IsVirtual || IsExcluded(cxxMethodDecl))
                 {
@@ -1578,7 +1573,8 @@ namespace ClangSharp
                     HasFnPtrCodeGen = _config.GeneratePreviewCodeFnptr,
                     IsCtxCxxRecord = true,
                     IsCxxRecordCtxUnsafe = IsUnsafe(cxxRecordDecl),
-                    IsUnsafe = true
+                    IsUnsafe = true,
+                    VtblIndex = _config.GenerateVtblIndexAttribute ? cxxMethodDecl.VtblIndex : -1,
                 };
 
                 _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
@@ -1756,8 +1752,7 @@ namespace ClangSharp
                 }
             }
 
-            void RestoreNameForMultipleHits(CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName,
-                string remappedName)
+            void RestoreNameForMultipleHits(CXXMethodDecl cxxMethodDecl, Dictionary<string, int> hitsPerName, string remappedName)
             {
                 if (hitsPerName[remappedName] != 1)
                 {
@@ -1775,8 +1770,7 @@ namespace ClangSharp
                 }
             }
 
-            void VisitBitfieldDecl(FieldDecl fieldDecl, Type[] types, RecordDecl recordDecl, string contextName,
-                ref int index, ref long previousSize, ref long remainingBits)
+            void VisitBitfieldDecl(FieldDecl fieldDecl, Type[] types, RecordDecl recordDecl, string contextName, ref int index, ref long previousSize, ref long remainingBits)
             {
                 Debug.Assert(fieldDecl.IsBitField);
 

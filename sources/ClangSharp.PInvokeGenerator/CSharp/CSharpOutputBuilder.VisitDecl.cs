@@ -211,6 +211,13 @@ namespace ClangSharp.CSharp
                 WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
             }
 
+            var vtblIndex = desc.VtblIndex ?? -1;
+
+            if (vtblIndex != -1)
+            {
+                AddVtblIndexAttribute(vtblIndex);
+            }
+
             if (desc.NativeTypeName is not null)
             {
                 AddNativeTypeNameAttribute(desc.NativeTypeName, attributePrefix: "return: ");

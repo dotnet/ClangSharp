@@ -54,5 +54,7 @@ namespace ClangSharp
         GenerateNativeInheritanceAttribute = 0x00100000,
 
         DontUseUsingStaticsForEnums = 0x00200000,
+
+        GenerateVtblIndexAttribute = 0x00400000,
     }
 }
