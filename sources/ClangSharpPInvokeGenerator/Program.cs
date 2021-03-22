@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Help;
 using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -16,6 +17,66 @@ namespace ClangSharp
     public class Program
     {
         private static RootCommand s_rootCommand;
+        private static Option s_configOption;
+
+        private static readonly (string Name, string Description)[] s_configOptions = new (string Name, string Description)[]
+        {
+            ("?, h, help", "Show help and usage information for -c, --config"),
+
+            ("", ""),   // Codegen Options
+
+            ("compatible-codegen", "Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation."),
+            ("latest-codegen", "Bindings should be generated for the latest stable version of .NET/C#. This is currently .NET 5/C# 9."),
+            ("preview-codegen", "Bindings should be generated for the latest preview version of .NET/C#. This is currently .NET 6/C# 10."),
+
+            ("", ""),   // File Options
+
+            ("single-file", "Bindings should be generated to a single output file. This is the default."),
+            ("multi-file", "Bindings should be generated so there is approximately one type per file."),
+
+            ("", ""),   // Type Options
+
+            ("unix-types", "Bindings should be generated assuming Unix defaults. This is the default on Unix platforms."),
+            ("windows-types", "Bindings should be generated assuming Windows defaults. This is the default on Windows platforms."),
+
+            ("", ""),   // Exclusion Options
+
+            ("exclude-anonymous-field-helpers", "The helper ref properties generated for fields in nested anonymous structs and unions should not be generated."),
+            ("exclude-com-proxies", "Types recognized as COM proxies should not have bindings generated. Thes are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub."),
+            ("exclude-default-remappings", "Default remappings for well known types should not be added. This currently includes intptr_t, ptrdiff_t, size_t, and uintptr_t"),
+            ("exclude-empty-records", "Bindings for records that contain no members should not be generated. These are commonly encountered for opaque handle like types such as HWND."),
+            ("exclude-enum-operators", "Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default."),
+            ("exclude-funcs-with-body", "Bindings for functions with bodies should not be generated."),
+            ("exclude-using-statics-for-enums", "Enum usages should be fully qualified and should not include a corresponding 'using static EnumName;'"),
+
+            ("", ""),   // VTBL Options
+
+            ("explicit-vtbls", "VTBLs should have an explicit type generated with named fields per entry."),
+            ("implicit-vtbls", "VTBLs should be implicit to reduce metadata bloat. This is the current default"),
+
+            ("", ""),   // Test Options
+
+            ("generate-tests-nunit", "Basic tests validating size, blittability, and associated metadata should be generated for NUnit."),
+            ("generate-tests-xunit", "Basic tests validating size, blittability, and associated metadata should be generated for XUnit."),
+
+            ("", ""),   // Generation Options
+
+            ("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
+            ("generate-cpp-attributes", "A [CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
+            ("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
+            ("generate-native-inheritance-attribute", "A [NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
+
+            ("", ""),   // Logging Options
+
+            ("log-exclusions", "A list of excluded declaration types should be generated. This will also log if the exclusion was due to an exact or partial match."),
+            ("log-potential-typedef-remappings", "A list of potential typedef remappings should be generated. This can help identify missing remappings."),
+            ("log-visited-files", "A list of the visited files should be generated. This can help identify traversal issues."),
+
+            ("", ""),   // Preview Options
+
+            ("preview-codegen-fnptr", "Generated bindings should use function pointers instead of IntPtr where possible."),
+            ("preview-codegen-nint", "Generated bindings should use nint and nuint instead of IntPtr and UIntPtr where possible."),
+        };
 
         public static async Task<int> Main(params string[] args)
         {
@@ -106,11 +167,22 @@ namespace ClangSharp
             ParseKeyValuePairs(withUsingNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withUsings);
 
             var configOptions = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? PInvokeGeneratorConfigurationOptions.None : PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
+            var printConfigHelp = false;
 
             foreach (var configSwitch in configSwitches)
             {
                 switch (configSwitch)
                 {
+                    case "?":
+                    case "h":
+                    case "help":
+                    {
+                        printConfigHelp = true;
+                        break;
+                    }
+
+                    // Codegen Options
+
                     case "compatible-codegen":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
@@ -118,15 +190,66 @@ namespace ClangSharp
                         break;
                     }
 
-                    case "default-remappings":
+                    case "latest-codegen":
                     {
-                        configOptions &= ~PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
+                        break;
+                    }
+
+                    case "preview-codegen":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
+                        break;
+                    }
+
+                    // File Options
+
+                    case "single-file":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
+                        break;
+                    }
+
+                    case "multi-file":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
+                        break;
+                    }
+
+                    // Type Options
+
+                    case "unix-types":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
+                        break;
+                    }
+
+                    case "windows-types":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
+                        break;
+                    }
+
+                    // Exclusion Options
+
+                    case "exclude-anonymous-field-helpers":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeAnonymousFieldHelpers;
                         break;
                     }
 
                     case "exclude-com-proxies":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeComProxies;
+                        break;
+                    }
+
+                    case "exclude-default-remappings":
+                    case "no-default-remappings":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
                         break;
                     }
 
@@ -142,23 +265,34 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "exclude-funcs-with-body":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeFunctionsWithBody;
+                        break;
+                    }
+
+                    case "exclude-using-statics-for-enums":
+                    case "dont-use-using-statics-for-enums":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForEnums;
+                        break;
+                    }
+
+                    // VTBL Options
+
                     case "explicit-vtbls":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
                         break;
                     }
 
-                    case "generate-aggressive-inlining":
+                    case "implicit-vtbls":
                     {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateAggressiveInlining;
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
                         break;
                     }
 
-                    case "generate-macro-bindings":
-                    {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
-                        break;
-                    }
+                    // Test Options
 
                     case "generate-tests-nunit":
                     {
@@ -190,22 +324,43 @@ namespace ClangSharp
                         break;
                     }
 
-                    case "implicit-vtbls":
+                    // Generation Options
+
+                    case "generate-aggressive-inlining":
                     {
-                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateAggressiveInlining;
                         break;
                     }
 
-                    case "latest-codegen":
+                    case "generate-cpp-attributes":
                     {
-                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
-                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCppAttributes;
                         break;
                     }
+
+                    case "generate-macro-bindings":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
+                        break;
+                    }
+
+                    case "generate-native-inheritance-attribute":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute;
+                        break;
+                    }
+
+                    // Logging Options
 
                     case "log-exclusions":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.LogExclusions;
+                        break;
+                    }
+
+                    case "log-potential-typedef-remappings":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.LogPotentialTypedefRemappings;
                         break;
                     }
 
@@ -215,22 +370,12 @@ namespace ClangSharp
                         break;
                     }
 
-                    case "multi-file":
-                    {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
-                        break;
-                    }
+                    // Preview Options
 
-                    case "no-default-remappings":
-                    {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
-                        break;
-                    }
-
-                    case "preview-codegen":
+                    case "preview-codegen-fnptr":
                     {
                         configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCodeFnptr;
                         break;
                     }
 
@@ -241,64 +386,11 @@ namespace ClangSharp
                         break;
                     }
 
-                    case "preview-codegen-fnptr":
-                    {
-                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCodeFnptr;
-                        break;
-                    }
+                    // Legacy Options
 
-                    case "single-file":
+                    case "default-remappings":
                     {
-                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles;
-                        break;
-                    }
-
-                    case "unix-types":
-                    {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
-                        break;
-                    }
-
-                    case "windows-types":
-                    {
-                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
-                        break;
-                    }
-
-                    case "exclude-funcs-with-body":
-                    {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeFunctionsWithBody;
-                        break;
-                    }
-
-                    case "log-potential-typedef-remappings":
-                    {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.LogPotentialTypedefRemappings;
-                        break;
-                    }
-
-                    case "exclude-anonymous-field-helpers":
-                    {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeAnonymousFieldHelpers;
-                        break;
-                    }
-
-                    case "generate-cpp-attributes":
-                    {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCppAttributes;
-                        break;
-                    }
-
-                    case "generate-native-inheritance-attribute":
-                    {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute;
-                        break;
-                    }
-
-                    case "dont-use-using-statics-for-enums":
-                    {
-                        configOptions |= PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForEnums;
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.NoDefaultRemappings;
                         break;
                     }
 
@@ -313,6 +405,19 @@ namespace ClangSharp
             if (!string.IsNullOrWhiteSpace(testOutputLocation) && !configOptions.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) && !configOptions.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit))
             {
                 errorList.Add("Error: No test format provided. Use --config generate-tests-nunit or --config generate-tests-xunit");
+            }
+
+            if (printConfigHelp)
+            {
+                var helpBuilder = new CustomHelpBuilder(context.Console);
+                helpBuilder.Write(s_configOption);
+
+                context.Console.Out.WriteLine();
+                context.Console.Out.WriteLine();
+
+                helpBuilder.Write(s_configOptions);
+
+                return -1;
             }
 
             if (errorList.Any())
@@ -508,17 +613,19 @@ namespace ClangSharp
 
         private static void AddConfigOption(RootCommand rootCommand)
         {
-            var option = new Option(new string[] { "--config", "-c" }, "A configuration option that controls how the bindings are generated.")
+            if (s_configOption is null)
             {
-                Argument = new Argument("<arg>")
+                s_configOption = new Option(new string[] { "--config", "-c" }, "A configuration option that controls how the bindings are generated. Specify 'help' to see the available options.")
                 {
-                    ArgumentType = typeof(string),
-                    Arity = ArgumentArity.OneOrMore,
-                }
-            };
-            option.Argument.SetDefaultValue(Array.Empty<string>());
-
-            rootCommand.AddOption(option);
+                    Argument = new Argument("<arg>")
+                    {
+                        ArgumentType = typeof(string),
+                        Arity = ArgumentArity.OneOrMore,
+                    }
+                };
+                s_configOption.Argument.SetDefaultValue(Array.Empty<string>());
+            }
+            rootCommand.AddOption(s_configOption);
         }
 
         private static void AddDefineMacroOption(RootCommand rootCommand)
