@@ -1,12 +1,14 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public class CXXMethodDecl : FunctionDecl
     {
+        private readonly Lazy<IReadOnlyList<CXXMethodDecl>> _overriddenMethods;
         private readonly Lazy<Type> _thisType;
         private readonly Lazy<Type> _thisObjectType;
 
@@ -20,6 +22,19 @@ namespace ClangSharp
             {
                 throw new ArgumentException(nameof(handle));
             }
+
+            _overriddenMethods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => {
+                var numOverriddenMethods = Handle.NumMethods;
+                var overriddenMethods = new List<CXXMethodDecl>(numOverriddenMethods);
+
+                for (int i = 0; i < numOverriddenMethods; i++)
+                {
+                    var overriddenMethod = TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.GetMethod(unchecked((uint)i)));
+                    overriddenMethods.Add(overriddenMethod);
+                }
+
+                return overriddenMethods;
+            });
 
             _thisType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisType));
             _thisObjectType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisObjectType));
@@ -35,10 +50,16 @@ namespace ClangSharp
 
         public new CXXMethodDecl MostRecentDecl => (CXXMethodDecl)base.MostRecentDecl;
 
+        public IReadOnlyList<CXXMethodDecl> OverriddenMethods => _overriddenMethods.Value;
+
         public new CXXRecordDecl Parent => (CXXRecordDecl)base.Parent;
+
+        public uint SizeOverriddenMethods => unchecked((uint)Handle.NumMethods);
 
         public Type ThisType => _thisType.Value;
 
         public Type ThisObjectType => _thisObjectType.Value;
+
+        public long VtblIndex => Handle.VtblIdx;
     }
 }

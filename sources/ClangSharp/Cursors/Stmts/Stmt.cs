@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -19,7 +18,19 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
-            _children = new Lazy<IReadOnlyList<Stmt>>(() => CursorChildren.OfType<Stmt>().ToList());
+            _children = new Lazy<IReadOnlyList<Stmt>>(() => {
+                var numChildren = Handle.NumChildren;
+                var children = new List<Stmt>(numChildren);
+
+                for (int i = 0; i < numChildren; i++)
+                {
+                    var child = TranslationUnit.GetOrCreate<Stmt>(Handle.GetChild(unchecked((uint)i)));
+                    children.Add(child);
+                }
+
+                return children;
+            });
+
             _declContext = new Lazy<IDeclContext>(() => {
                 var semanticParent = TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent);
 
@@ -36,9 +47,71 @@ namespace ClangSharp
 
         public IDeclContext DeclContext => _declContext.Value;
 
+        public uint NumChildren => unchecked((uint)Handle.NumChildren);
+
         public CX_StmtClass StmtClass => Handle.StmtClass;
 
         public string StmtClassName => Handle.StmtClassSpelling;
+
+        public Stmt IgnoreContainers(bool IgnoreCaptured = false)
+        {
+            Stmt S = this;
+
+            if (IgnoreCaptured)
+            {
+                if (S is CapturedStmt CapS)
+                {
+                    S = CapS.CaptureStmt;
+                }
+            }
+
+            while (true)
+            {
+                if (S is AttributedStmt AS)
+                {
+                    S = AS.SubStmt;
+                }
+                else if (S is CompoundStmt CS)
+                {
+                    if (CS.Size != 1)
+                    {
+                        break;
+                    }
+
+                    S = CS.BodyBack;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return S;
+        }
+
+        public Stmt StripLabelLikeStatements()
+        {
+            Stmt S = this;
+
+            while (true)
+            {
+                if (S is LabelStmt LS)
+                {
+                    S = LS.SubStmt;
+                }
+                else if (S is SwitchCase SC)
+                {
+                    S = SC.SubStmt;
+                }
+                else if (S is AttributedStmt AS)
+                {
+                    S = AS.SubStmt;
+                }
+                else
+                {
+                    return S;
+                }
+            }
+        }
 
         internal static new Stmt Create(CXCursor handle) => handle.StmtClass switch
         {

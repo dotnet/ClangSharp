@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -9,9 +11,7 @@ namespace ClangSharp
     public class CallExpr : Expr
     {
         private readonly Lazy<IReadOnlyList<Expr>> _args;
-        private readonly Lazy<Expr> _callee;
         private readonly Lazy<Decl> _calleeDecl;
-        private readonly Lazy<FunctionDecl> _directCallee;
 
         internal CallExpr(CXCursor handle) : this(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_CallExpr)
         {
@@ -24,30 +24,21 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
-            _args = new Lazy<IReadOnlyList<Expr>>(() => {
-                var numArgs = Handle.NumArguments;
-                var args = new List<Expr>(numArgs);
+            Debug.Assert(NumChildren >= 1);
 
-                for (var index = 0; index < numArgs; index++)
-                {
-                    var arg = TranslationUnit.GetOrCreate<Expr>(Handle.GetArgument(unchecked((uint)index)));
-                    args.Add(arg);
-                }
-
-                return args;
-            });
-            _callee = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.CalleeExpr));
+            _args = new Lazy<IReadOnlyList<Expr>>(() => Children.Skip(1).Take((int)NumArgs).Cast<Expr>().ToList());
             _calleeDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.Referenced));
-            _directCallee = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.DirectCallee));
         }
 
         public IReadOnlyList<Expr> Args => _args.Value;
 
-        public Expr Callee => _callee.Value;
+        public Expr Callee => (Expr)Children[0];
 
         public Decl CalleeDecl => _calleeDecl.Value;
 
-        public FunctionDecl DirectCallee => _directCallee.Value;
+        public FunctionDecl DirectCallee => CalleeDecl as FunctionDecl;
+
+        public bool IsCallToStdMove => (NumArgs == 1) && (DirectCallee is FunctionDecl FD) && FD.IsInStdNamespace && (FD.Name == "move");
 
         public uint NumArgs => (uint)Handle.NumArguments;
     }

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -17,7 +16,19 @@ namespace ClangSharp
 
         internal EnumDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_EnumDecl, CX_DeclKind.CX_DeclKind_Enum)
         {
-            _enumerators = new Lazy<IReadOnlyList<EnumConstantDecl>>(() => CursorChildren.OfType<EnumConstantDecl>().ToList());
+            _enumerators = new Lazy<IReadOnlyList<EnumConstantDecl>>(() => {
+                var numEnumerators = Handle.NumEnumerators;
+                var enumerators = new List<EnumConstantDecl>(numEnumerators);
+
+                for (var i = 0; i < numEnumerators; i++)
+                {
+                    var enumerator = TranslationUnit.GetOrCreate<EnumConstantDecl>(Handle.GetEnumerator(unchecked((uint)i)));
+                    enumerators.Add(enumerator);
+                }
+
+                return enumerators;
+            });
+
             _instantiatedFromMemberEnum = new Lazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.InstantiatedFromMember));
             _integerType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EnumDecl_IntegerType));
             _promotionType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EnumDecl_PromotionType));
@@ -33,6 +44,8 @@ namespace ClangSharp
         public EnumDecl InstantiatedFromMemberEnum => _instantiatedFromMemberEnum.Value;
 
         public Type IntegerType => _integerType.Value;
+
+        public bool IsComplete => IsCompleteDefinition || (IntegerType is not null);
 
         public bool IsScoped => Handle.EnumDecl_IsScoped;
 

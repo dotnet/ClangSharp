@@ -163,29 +163,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.osx-x
 		packages\libClangSharp\libClangSharp.runtime.osx-x64\libClangSharp.runtime.osx-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.osx-x64\libClangSharp.runtime.osx-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.sles-x64", "libClangSharp.runtime.sles-x64", "{4899758D-1953-4BCF-99FD-B0EC2BF136E6}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.sles-x64\libClangSharp.runtime.sles-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.sles-x64\libClangSharp.runtime.sles-x64.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.ubuntu.14.04-x64", "libClangSharp.runtime.ubuntu.14.04-x64", "{634CC4D7-B517-45C4-8747-CEAA675D6FCF}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.ubuntu.14.04-x64\libClangSharp.runtime.ubuntu.14.04-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.ubuntu.14.04-x64\libClangSharp.runtime.ubuntu.14.04-x64.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.ubuntu.16.04-x64", "libClangSharp.runtime.ubuntu.16.04-x64", "{2CA7E536-E6BE-4BE7-B29D-20C212EE9832}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.ubuntu.16.04-x64\libClangSharp.runtime.ubuntu.16.04-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.ubuntu.16.04-x64\libClangSharp.runtime.ubuntu.16.04-x64.nuspec
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.ubuntu.18.04-x64", "libClangSharp.runtime.ubuntu.18.04-x64", "{A04F314B-2373-496E-879F-763B5C8EAF00}"
 	ProjectSection(SolutionItems) = preProject
 		packages\libClangSharp\libClangSharp.runtime.ubuntu.18.04-x64\libClangSharp.runtime.ubuntu.18.04-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.ubuntu.18.04-x64\libClangSharp.runtime.ubuntu.18.04-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.ubuntu.19.04-x64", "libClangSharp.runtime.ubuntu.19.04-x64", "{21997B0D-AE07-4F1E-8042-84EB399269D5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.ubuntu.20.04-x64", "libClangSharp.runtime.ubuntu.20.04-x64", "{21997B0D-AE07-4F1E-8042-84EB399269D5}"
 	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.ubuntu.19.04-x64\libClangSharp.runtime.ubuntu.19.04-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.ubuntu.19.04-x64\libClangSharp.runtime.ubuntu.19.04-x64.nuspec
+		packages\libClangSharp\libClangSharp.runtime.ubuntu.20.04-x64\libClangSharp.runtime.ubuntu.20.04-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.ubuntu.20.04-x64\libClangSharp.runtime.ubuntu.20.04-x64.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.win-x64", "libClangSharp.runtime.win-x64", "{C1218464-0B5A-480E-BA13-2C6EA370987E}"
@@ -276,9 +261,6 @@ Global
 		{B48A71F0-AF48-4010-941F-AF24FDB614F2} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{4F2F7171-202E-4E23-AABF-EB3501BDB0B2} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{C2BE41E6-95E9-431A-9C49-923BD50692AB} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
-		{4899758D-1953-4BCF-99FD-B0EC2BF136E6} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
-		{634CC4D7-B517-45C4-8747-CEAA675D6FCF} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
-		{2CA7E536-E6BE-4BE7-B29D-20C212EE9832} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{A04F314B-2373-496E-879F-763B5C8EAF00} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{21997B0D-AE07-4F1E-8042-84EB399269D5} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{C1218464-0B5A-480E-BA13-2C6EA370987E} = {EDEC2130-DA14-4415-91A3-225733FB61F8}

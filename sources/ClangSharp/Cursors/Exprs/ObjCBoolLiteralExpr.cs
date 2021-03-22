@@ -9,5 +9,7 @@ namespace ClangSharp
         internal ObjCBoolLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCBoolLiteralExpr, CX_StmtClass.CX_StmtClass_ObjCBoolLiteralExpr)
         {
         }
+
+        public bool Value => Handle.BoolLiteralValue;
     }
 }

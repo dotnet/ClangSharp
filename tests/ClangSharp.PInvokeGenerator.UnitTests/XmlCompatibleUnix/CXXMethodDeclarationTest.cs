@@ -520,7 +520,7 @@ int MyFunctionB(MyStruct* x)
         <body>
           <code>fixed (MyStruct* pThis = &amp;this)
     {{
-        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">pThis</param>, <param name=""obj"">obj</param>);
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}</vtbl>]))(<param special=""thisPtr"">pThis</param>, <param name=""obj"">obj</param>);
     }}</code>
         </body>
       </function>
@@ -544,7 +544,7 @@ int MyFunctionB(MyStruct* x)
         <body>
           <code>fixed (MyStruct* pThis = &amp;this)
     {{
-        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType2</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">2</vtbl>]))(<param special=""thisPtr"">pThis</param>, <param name=""objA"">objA</param>, <param name=""objB"">objB</param>);
+        return Marshal.GetDelegateForFunctionPointer&lt;<delegate>_GetType2</delegate>&gt;((IntPtr)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}</vtbl>]))(<param special=""thisPtr"">pThis</param>, <param name=""objA"">objA</param>, <param name=""objB"">objB</param>);
     }}</code>
         </body>
       </function>

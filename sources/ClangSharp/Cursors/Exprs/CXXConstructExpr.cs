@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -21,19 +23,9 @@ namespace ClangSharp
             {
                 throw new ArgumentException(nameof(handle));
             }
+            Debug.Assert(NumChildren == NumArgs);
 
-            _args = new Lazy<IReadOnlyList<Expr>>(() => {
-                var numArgs = NumArgs;
-                var args = new List<Expr>((int)numArgs);
-
-                for (var index = 0u; index < numArgs; index++)
-                {
-                    var arg = Handle.GetArgument(index);
-                    args.Add(TranslationUnit.GetOrCreate<Expr>(arg));
-                }
-
-                return args;
-            });
+            _args = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());
             _constructor = new Lazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.Referenced));
         }
 
@@ -41,6 +33,18 @@ namespace ClangSharp
 
         public CXXConstructorDecl Constructor => _constructor.Value;
 
+        public CX_ConstructionKind ConstructionKind => Handle.ConstructionKind;
+
+        public bool HadMultipleCandidates => Handle.HadMultipleCandidates;
+
+        public bool IsElidable => Handle.IsElidable;
+
+        public bool IsListInitialization => Handle.IsListInitialization;
+
+        public bool IsStdInitListInitialization => Handle.IsStdInitListInitialization;
+
         public uint NumArgs => (uint)Handle.NumArguments;
+
+        public bool RequiresZeroInitialization => Handle.RequiresZeroInitialization;
     }
 }

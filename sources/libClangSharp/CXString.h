@@ -6,8 +6,13 @@
 #ifndef LIBCLANGSHARP_CXSTRING_H
 #define LIBCLANGSHARP_CXSTRING_H
 
+#pragma warning(push)
+#pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+
 #include <clang-c/CXString.h>
 #include <llvm/ADT/StringRef.h>
+
+#pragma warning(pop)
 
 /// Describes the kind of underlying data in CXString.
 enum CXStringFlag {

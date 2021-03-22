@@ -316,6 +316,10 @@ namespace ClangSharp
             _ => new Attr(handle),
         };
 
+        public bool IsImplicit => Handle.IsImplicit;
+
+        public bool IsPackExpansion => Handle.IsPackExpansion;
+
         public CX_AttrKind Kind => Handle.AttrKind;
 
         public string KindSpelling => Handle.AttrKindSpelling;

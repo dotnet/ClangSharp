@@ -13,9 +13,9 @@ namespace ClangSharp
 
         internal BindingDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_Binding)
         {
-            _binding = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.Binding));
+            _binding = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.BindingExpr));
             _decomposedDecl = new Lazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.DecomposedDecl));
-            _holdingVar = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.HoldingVar));
+            _holdingVar = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.GetSubDecl(0)));
         }
 
         public Expr Binding => _binding.Value;

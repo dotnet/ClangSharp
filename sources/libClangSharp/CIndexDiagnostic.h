@@ -6,6 +6,9 @@
 #ifndef LIBCLANGSHARP_CINDEXDIAGNOSTIC_H
 #define LIBCLANGSHARP_CINDEXDIAGNOSTIC_H
 
+#pragma warning(push)
+#pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+
 #include <clang-c/CXString.h>
 #include <clang-c/Index.h>
 
@@ -13,6 +16,8 @@
 #include <memory>
 #include <utility>
 #include <vector>
+
+#pragma warning(pop)
 
 namespace clang {
     class CXDiagnosticImpl;

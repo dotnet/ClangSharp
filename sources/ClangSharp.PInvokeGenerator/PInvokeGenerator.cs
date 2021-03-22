@@ -843,6 +843,15 @@ namespace ClangSharp
                 {
                     name = GetAnonymousName(fieldDecl, fieldDecl.CursorKindSpelling);
                 }
+                else if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
+                {
+                    name = GetCursorName(cxxConstructorDecl.Parent);
+                }
+                else if (namedDecl is CXXDestructorDecl cxxDestructorDecl)
+                {
+                    name = "~";
+                    name += GetCursorName(cxxDestructorDecl.Parent);
+                }
                 else
                 {
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.Kind}'.", namedDecl);
@@ -1089,9 +1098,9 @@ namespace ClangSharp
             {
                 remappedName = "Anonymous";
 
-                if (fieldDecl.Parent.AnonymousDecls.Count > 1)
+                if (fieldDecl.Parent.AnonymousFields.Count > 1)
                 {
-                    var index = fieldDecl.Parent.AnonymousDecls.IndexOf(fieldDecl) + 1;
+                    var index = fieldDecl.Parent.AnonymousFields.IndexOf(fieldDecl) + 1;
                     remappedName += index.ToString();
                 }
             }
@@ -1108,9 +1117,9 @@ namespace ClangSharp
                         remappedName = "_";
                         remappedName += GetRemappedCursorName(matchingField);
                     }
-                    else if (parentRecordDecl.AnonymousDecls.Count > 1)
+                    else if (parentRecordDecl.AnonymousRecords.Count > 1)
                     {
-                        var index = parentRecordDecl.AnonymousDecls.IndexOf(recordDecl) + 1;
+                        var index = parentRecordDecl.AnonymousRecords.IndexOf(recordDecl) + 1;
                         remappedName += index.ToString();
                     }
 
@@ -1179,9 +1188,9 @@ namespace ClangSharp
                         name = "_";
                         name += GetRemappedCursorName(matchingField);
                     }
-                    else if (parentRecordDecl.AnonymousDecls.Count > 1)
+                    else if (parentRecordDecl.AnonymousRecords.Count > 1)
                     {
-                        var index = parentRecordDecl.AnonymousDecls.IndexOf(cursor) + 1;
+                        var index = parentRecordDecl.AnonymousRecords.IndexOf(cursor) + 1;
                         name += index.ToString();
                     }
                 }

@@ -6,8 +6,13 @@
 #ifndef LIBCLANGSHARP_CXTRANSLATIONUNIT_H
 #define LIBCLANGSHARP_CXTRANSLATIONUNIT_H
 
+#pragma warning(push)
+#pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+
 #include <clang/Frontend/ASTUnit.h>
 #include <clang-c/Index.h>
+
+#pragma warning(pop)
 
 namespace clang {
     class CIndexer;

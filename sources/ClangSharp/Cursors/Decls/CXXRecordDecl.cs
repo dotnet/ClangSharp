@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -20,7 +19,6 @@ namespace ClangSharp
         private readonly Lazy<Decl> _lambdaContextDecl;
         private readonly Lazy<CXXMethodDecl> _lambdaStaticInvoker;
         private readonly Lazy<IReadOnlyList<CXXMethodDecl>> _methods;
-        private readonly Lazy<CXXRecordDecl> _mostRecentNonInjectedDecl;
         private readonly Lazy<CXXRecordDecl> _templateInstantiationPattern;
         private readonly Lazy<IReadOnlyList<CXXBaseSpecifier>> _vbases;
 
@@ -35,20 +33,81 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
-            _bases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => CursorChildren.OfType<CXXBaseSpecifier>().ToList());
-            _ctors = new Lazy<IReadOnlyList<CXXConstructorDecl>>(() => Methods.OfType<CXXConstructorDecl>().ToList());
+            _bases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => {
+                var numBases = Handle.NumBases;
+                var bases = new List<CXXBaseSpecifier>(numBases);
+
+                for (var i = 0; i < numBases; i++)
+                {
+                    var @base = TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetBase(unchecked((uint)i)));
+                    bases.Add(@base);
+                }
+
+                return bases;
+            });
+
+            _ctors = new Lazy<IReadOnlyList<CXXConstructorDecl>>(() => {
+                var numCtors = Handle.NumCtors;
+                var ctors = new List<CXXConstructorDecl>(numCtors);
+
+                for (var i = 0; i < numCtors; i++)
+                {
+                    var ctor = TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.GetCtor(unchecked((uint)i)));
+                    ctors.Add(ctor);
+                }
+
+                return ctors;
+            });
+
             _dependentLambdaCallOperator = new Lazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.DependentLambdaCallOperator));
-            _describedClassTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.DescribedClassTemplate));
+            _describedClassTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.DescribedCursorTemplate));
             _destructor = new Lazy<CXXDestructorDecl>(() => TranslationUnit.GetOrCreate<CXXDestructorDecl>(Handle.Destructor));
-            _friends = new Lazy<IReadOnlyList<FriendDecl>>(() => Decls.OfType<FriendDecl>().ToList());
+
+            _friends = new Lazy<IReadOnlyList<FriendDecl>>(() => {
+                var numFriends = Handle.NumFriends;
+                var friends = new List<FriendDecl>(numFriends);
+
+                for (var i = 0; i < numFriends; i++)
+                {
+                    var friend = TranslationUnit.GetOrCreate<FriendDecl>(Handle.GetFriend(unchecked((uint)i)));
+                    friends.Add(friend);
+                }
+
+                return friends;
+            });
+
             _instantiatedFromMemberClass = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.InstantiatedFromMember));
             _lambdaCallOperator = new Lazy<CXXMethodDecl>(() => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.LambdaCallOperator));
             _lambdaContextDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.LambdaContextDecl));
             _lambdaStaticInvoker = new Lazy<CXXMethodDecl>(() => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.LambdaStaticInvoker));
-            _methods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => Decls.OfType<CXXMethodDecl>().ToList());
-            _mostRecentNonInjectedDecl = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.MostRecentNonInjectedDecl));
+
+            _methods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => {
+                var numMethods = Handle.NumMethods;
+                var methods = new List<CXXMethodDecl>(numMethods);
+
+                for (var i = 0; i < numMethods; i++)
+                {
+                    var method = TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.GetMethod(unchecked((uint)i)));
+                    methods.Add(method);
+                }
+
+                return methods;
+            });
+
             _templateInstantiationPattern = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.TemplateInstantiationPattern));
-            _vbases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => Bases.Where((@base) => @base.IsVirtual).ToList());
+
+            _vbases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => {
+                var numVBases = Handle.NumVBases;
+                var vbases = new List<CXXBaseSpecifier>(numVBases);
+
+                for (var i = 0; i < numVBases; i++)
+                {
+                    var vbase = TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetVBase(unchecked((uint)i)));
+                    vbases.Add(vbase);
+                }
+
+                return vbases;
+            });
         }
 
         public bool IsAbstract => Handle.CXXRecord_IsAbstract;
@@ -69,7 +128,23 @@ namespace ClangSharp
 
         public IReadOnlyList<FriendDecl> Friends => _friends.Value;
 
-        public bool HasUserDeclaredDestructor => Decls.OfType<CXXDestructorDecl>().Any();
+        public bool HasDefinition => Definition is not null;
+
+        public bool HasFriends => Handle.NumFriends != 0;
+
+        public bool HasUserDeclaredConstructor => Handle.HasUserDeclaredConstructor;
+
+        public bool HasUserDeclaredCopyAssignment => Handle.HasUserDeclaredCopyAssignment;
+
+        public bool HasUserDeclaredCopyConstructor => Handle.HasUserDeclaredCopyConstructor;
+
+        public bool HasUserDeclaredDestructor => Handle.HasUserDeclaredDestructor;
+
+        public bool HasUserDeclaredMoveAssignment => Handle.HasUserDeclaredMoveAssignment;
+
+        public bool HasUserDeclaredMoveConstructor => Handle.HasUserDeclaredMoveConstructor;
+
+        public bool HasUserDeclaredMoveOperation => Handle.HasUserDeclaredMoveOperation;
 
         public CXXRecordDecl InstantiatedFromMemberClass => _instantiatedFromMemberClass.Value;
 
@@ -83,7 +158,23 @@ namespace ClangSharp
 
         public new CXXRecordDecl MostRecentDecl => (CXXRecordDecl)base.MostRecentDecl;
 
-        public CXXRecordDecl MostRecentNonInjectedDecl => _mostRecentNonInjectedDecl.Value;
+        public CXXRecordDecl MostRecentNonInjectedDecl
+        {
+            get
+            {
+                CXXRecordDecl Recent = MostRecentDecl;
+
+                while ((Recent != null) && Recent.IsInjectedClassName)
+                {
+                    Recent = Recent.PreviousDecl;
+                }
+                return Recent;
+            }
+        }
+
+        public uint NumBases => unchecked((uint)Handle.NumBases);
+
+        public uint NumVBases => unchecked((uint)Handle.NumVBases);
 
         public new CXXRecordDecl PreviousDecl => (CXXRecordDecl)base.PreviousDecl;
 

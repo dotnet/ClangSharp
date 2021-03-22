@@ -2,15 +2,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
     {
-        private readonly Lazy<IReadOnlyList<Decl>> _decls;
         private readonly Lazy<TagDecl> _definition;
+        private readonly Lazy<IReadOnlyList<IReadOnlyList<NamedDecl>>> _templateParameterLists;
         private readonly Lazy<TypedefNameDecl> _typedefNameForAnonDecl;
 
         private protected TagDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
@@ -20,18 +19,39 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
             _definition = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition));
+
+            _templateParameterLists = new Lazy<IReadOnlyList<IReadOnlyList<NamedDecl>>>(() => {
+                var numTemplateParameterLists = Handle.NumTemplateParameterLists;
+                var templateParameterLists = new List<IReadOnlyList<NamedDecl>>(numTemplateParameterLists);
+
+                for (var listIndex = 0; listIndex < numTemplateParameterLists; listIndex++)
+                {
+                    var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
+                    var templateParameterList = new List<NamedDecl>(numTemplateParameters);
+
+                    for (var parameterIndex = 0; parameterIndex < numTemplateParameters; parameterIndex++)
+                    {
+                        var templateParameter = TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex)));
+                        templateParameterList.Add(templateParameter);
+                    }
+
+                    templateParameterLists.Add(templateParameterList);
+                }
+
+                return templateParameterLists;
+            });
+
             _typedefNameForAnonDecl = new Lazy<TypedefNameDecl>(() => TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.TypedefNameForAnonDecl));
         }
 
         public new TagDecl CanonicalDecl => (TagDecl)base.CanonicalDecl;
 
-        public IReadOnlyList<Decl> Decls => _decls.Value;
-
         public TagDecl Definition => _definition.Value;
 
         public bool IsClass => CursorKind == CXCursorKind.CXCursor_ClassDecl;
+
+        public bool IsCompleteDefinition => Handle.IsCompleteDefinition;
 
         public bool IsEnum => CursorKind == CXCursorKind.CXCursor_EnumDecl;
 
@@ -41,9 +61,9 @@ namespace ClangSharp
 
         public bool IsUnion => CursorKind == CXCursorKind.CXCursor_UnionDecl;
 
-        public IDeclContext LexicalParent => LexicalDeclContext;
+        public uint NumTemplateParameterLists => unchecked((uint)Handle.NumTemplateParameterLists);
 
-        public IDeclContext Parent => DeclContext;
+        public IReadOnlyList<IReadOnlyList<NamedDecl>> TemplateParameterLists => _templateParameterLists.Value;
 
         public TypedefNameDecl TypedefNameForAnonDecl => _typedefNameForAnonDecl.Value;
     }
