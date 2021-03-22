@@ -275,42 +275,50 @@ namespace ClangSharp
                 }
             }
 
-            if (_config.GenerateMacroBindings)
+            try
             {
-                var translationUnitHandle = translationUnit.Handle;
+                if (_config.GenerateMacroBindings)
+                {
+                    var translationUnitHandle = translationUnit.Handle;
 
-                var file = translationUnitHandle.GetFile(_filePath);
-                var fileContents = translationUnitHandle.GetFileContents(file, out var size);
+                    var file = translationUnitHandle.GetFile(_filePath);
+                    var fileContents = translationUnitHandle.GetFileContents(file, out var size);
 
 #if NETCOREAPP
-                _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents));
+                    _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents));
 #else
-                _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents.ToArray()));
+                    _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents.ToArray()));
 #endif
 
-                foreach (var cursor in translationUnit.TranslationUnitDecl.CursorChildren)
-                {
-                    if (cursor is PreprocessedEntity preprocessedEntity)
+                    foreach (var cursor in translationUnit.TranslationUnitDecl.CursorChildren)
                     {
-                        VisitPreprocessedEntity(preprocessedEntity);
+                        if (cursor is PreprocessedEntity preprocessedEntity)
+                        {
+                            VisitPreprocessedEntity(preprocessedEntity);
+                        }
                     }
+
+                    var unsavedFileContents = _fileContentsBuilder.ToString();
+                    _fileContentsBuilder.Clear();
+
+                    using var unsavedFile = CXUnsavedFile.Create(_filePath, unsavedFileContents);
+                    var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
+
+                    translationFlags = _translationFlags & ~CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
+                    var handle = CXTranslationUnit.Parse(IndexHandle, _filePath, _clangCommandLineArgs, unsavedFiles, translationFlags);
+
+                    using var nestedTranslationUnit = TranslationUnit.GetOrCreate(handle);
+                    Visit(nestedTranslationUnit.TranslationUnitDecl);
                 }
-
-                var unsavedFileContents = _fileContentsBuilder.ToString();
-                _fileContentsBuilder.Clear();
-
-                using var unsavedFile = CXUnsavedFile.Create(_filePath, unsavedFileContents);
-                var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
-
-                translationFlags = _translationFlags & ~CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
-                var handle = CXTranslationUnit.Parse(IndexHandle, _filePath, _clangCommandLineArgs, unsavedFiles, translationFlags);
-
-                using var nestedTranslationUnit = TranslationUnit.GetOrCreate(handle);
-                Visit(nestedTranslationUnit.TranslationUnitDecl);
+                else
+                {
+                    Visit(translationUnit.TranslationUnitDecl);
+                }
             }
-            else
+            catch (Exception e)
             {
-                Visit(translationUnit.TranslationUnitDecl);
+                var diagnostic = new Diagnostic(DiagnosticLevel.Error, e.ToString());
+                _diagnostics.Add(diagnostic);
             }
         }
 
