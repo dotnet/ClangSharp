@@ -2555,8 +2555,7 @@ namespace ClangSharp
             {
                 ForDeclStmt(varDecl, declStmt);
             }
-            else if (IsPrevContextDecl<TranslationUnitDecl>(out _) || IsPrevContextDecl<LinkageSpecDecl>(out _) ||
-                     IsPrevContextDecl<RecordDecl>(out _))
+            else if (IsPrevContextDecl<TranslationUnitDecl>(out _) || IsPrevContextDecl<LinkageSpecDecl>(out _) || IsPrevContextDecl<RecordDecl>(out _))
             {
                 if (!varDecl.HasInit)
                 {
@@ -2597,9 +2596,7 @@ namespace ClangSharp
                     StartUsingOutputBuilder(_config.MethodClassName);
                     openedOutputBuilder = true;
 
-                    if (IsUnsafe(varDecl, type) && (!varDecl.HasInit ||
-                                                    !IsStmtAsWritten<StringLiteral>(varDecl.Init, out _,
-                                                        removeParens: true)))
+                    if (IsUnsafe(varDecl, type) && (!varDecl.HasInit || !IsStmtAsWritten<StringLiteral>(varDecl.Init, out _, removeParens: true)))
                     {
                         _isMethodClassUnsafe = true;
                     }
@@ -2694,9 +2691,14 @@ namespace ClangSharp
                     }
                 }
 
-                if (!isStringLiteral && type is ArrayType)
+                if (!isStringLiteral && type is ArrayType arrayType)
                 {
-                    typeName += "[]";
+                    do
+                    {
+                        typeName += "[]";
+                        arrayType = arrayType.ElementType as ArrayType;
+                    }
+                    while (arrayType is not null);
                 }
 
                 var desc = new ConstantDesc

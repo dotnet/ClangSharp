@@ -765,25 +765,42 @@ namespace ClangSharp
                 var typeName = GetRemappedTypeName(initListExpr, context: null, type, out var nativeTypeName);
 
                 outputBuilder.Write(typeName);
-                outputBuilder.Write('[');
 
-                long size = -1;
+                long rootSize = -1;
 
-                if (arrayType is ConstantArrayType constantArrayType)
+                do
                 {
-                    size = constantArrayType.Size;
-                }
-                else
-                {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported array type kind: '{type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
-                }
+                    outputBuilder.Write('[');
+                    long size = -1;
 
-                if (size != -1)
-                {
-                    outputBuilder.Write(size);
-                }
+                    if (arrayType is ConstantArrayType constantArrayType)
+                    {
+                        size = constantArrayType.Size;
+                    }
+                    else
+                    {
+                        AddDiagnostic(DiagnosticLevel.Error, $"Unsupported array type kind: '{type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
+                    }
 
-                outputBuilder.WriteLine(']');
+                    if (rootSize == -1)
+                    {
+                        if (size != -1)
+                        {
+                            rootSize = size;
+                            outputBuilder.Write(size);
+                        }
+                        else
+                        {
+                            rootSize = 0;
+                        }
+                    }
+
+                    outputBuilder.Write(']');
+                    arrayType = arrayType.ElementType as ArrayType;
+                }
+                while (arrayType is not null);
+
+                outputBuilder.WriteNewline();
                 outputBuilder.WriteBlockStart();
 
                 for (int i = 0; i < initListExpr.Inits.Count; i++)
@@ -793,7 +810,7 @@ namespace ClangSharp
                     outputBuilder.WriteLine(',');
                 }
 
-                for (int i = initListExpr.Inits.Count; i < size; i++)
+                for (int i = initListExpr.Inits.Count; i < rootSize; i++)
                 {
                     outputBuilder.WriteIndentedLine("default,");
                 }
