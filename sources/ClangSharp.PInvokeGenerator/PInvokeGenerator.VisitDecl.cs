@@ -348,7 +348,7 @@ namespace ClangSharp
                 }
 
                 contextNameParts.Push(EscapeName(contextNamePart));
-                contextTypeParts.Push(GetRemappedTypeName(anonymousRecordDecl, context: null, anonymousRecordDecl.TypeForDecl, out string nativeTypeName));
+                contextTypeParts.Push(GetRemappedTypeName(rootRecordDecl, context: null, rootRecordDecl.TypeForDecl, out string nativeTypeName));
 
                 if (!rootRecordDecl.IsAnonymousStructOrUnion)
                 {

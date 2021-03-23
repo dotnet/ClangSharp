@@ -1196,11 +1196,34 @@ namespace ClangSharp
                         name = "_";
                         name += GetRemappedCursorName(matchingField);
                     }
-                    else if (parentRecordDecl.AnonymousRecords.Count > 1)
+                    else
                     {
-                        var index = parentRecordDecl.AnonymousRecords.IndexOf(cursor) + 1;
-                        name += index.ToString();
-                    }
+                        var index = 0;
+
+                        if (parentRecordDecl.AnonymousRecords.Count > 1)
+                        {
+                            index = parentRecordDecl.AnonymousRecords.IndexOf(cursor) + 1;
+                        }
+
+                        while ((parentRecordDecl.IsAnonymousStructOrUnion) && (parentRecordDecl.IsUnion == recordType.Decl.IsUnion))
+                        {
+                            index += 1;
+
+                            if (parentRecordDecl.Parent is RecordDecl parentRecordDeclParent)
+                            {
+                                if (parentRecordDeclParent.AnonymousRecords.Count > 0)
+                                {
+                                    index += parentRecordDeclParent.AnonymousRecords.Count - 1;
+                                }
+                                parentRecordDecl = parentRecordDeclParent;
+                            }
+                        }
+
+                        if (index != 0)
+                        {
+                            name += index.ToString();
+                        }
+                    } 
                 }
 
                 name += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
