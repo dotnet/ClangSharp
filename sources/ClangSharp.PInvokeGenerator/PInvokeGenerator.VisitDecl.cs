@@ -310,6 +310,11 @@ namespace ClangSharp
 
         private void VisitIndirectFieldDecl(IndirectFieldDecl indirectFieldDecl)
         {
+            if (_config.ExcludeAnonymousFieldHelpers)
+            {
+                return;
+            }
+
             if (IsPrevContextDecl<RecordDecl>(out var prevContext) && prevContext.IsAnonymousStructOrUnion)
             {
                 // We shouldn't process indirect fields where the prev context is an anonymous record decl

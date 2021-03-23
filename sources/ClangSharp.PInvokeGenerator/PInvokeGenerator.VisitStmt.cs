@@ -1624,6 +1624,21 @@ namespace ClangSharp
                         if (IsPrevContextStmt<CallExpr>(out var callExpr))
                         {
                             var index = callExpr.Args.IndexOf(unaryExprOrTypeTraitExpr);
+
+                            // If we didn't find the expression, try and find it under an implicit cast
+                            if (index == -1)
+                            {
+                                for (int i = 0; i < callExpr.Args.Count; i++)
+                                {
+                                    var arg = callExpr.Args[i];
+                                    if (arg is ImplicitCastExpr implicitCastExpr && implicitCastExpr.SubExprAsWritten == unaryExprOrTypeTraitExpr)
+                                    {
+                                        index = i;
+                                        break;
+                                    }
+                                }
+                            }
+
                             var calleeDecl = callExpr.CalleeDecl;
 
                             if (calleeDecl is FunctionDecl functionDecl)
