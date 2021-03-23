@@ -17,6 +17,8 @@ namespace ClangSharp.Interop
 
         public CXCursor AsFunction => clangsharp.Cursor_getAsFunction(this);
 
+        public CX_AtomicOperatorKind AtomicOperatorKind => clangsharp.Cursor_getAtomicOpcode(this);
+
         public CX_AttrKind AttrKind => clangsharp.Cursor_getAttrKind(this);
 
         public string AttrKindSpelling
@@ -351,13 +353,11 @@ namespace ClangSharp.Interop
 
         public CXAvailabilityKind Availability => clang.getCursorAvailability(this);
 
-        public CXCursor BaseExpr => clangsharp.Cursor_getBaseExpr(this);
-
         public CX_BinaryOperatorKind BinaryOperatorKind => clangsharp.Cursor_getBinaryOpcode(this);
 
         public CXString BinaryOperatorKindSpelling => clangsharp.Cursor_getBinaryOpcodeSpelling(BinaryOperatorKind);
 
-        public CXCursor Binding => clangsharp.Cursor_getBinding(this);
+        public CXCursor BindingExpr => clangsharp.Cursor_getBindingExpr(this);
 
         public CXCursor BitWidth => clangsharp.Cursor_getBitWidth(this);
 
@@ -371,13 +371,19 @@ namespace ClangSharp.Interop
 
         public CXString BriefCommentText => clang.Cursor_getBriefCommentText(this);
 
-        public CXCursor CalleeExpr => clangsharp.Cursor_getCalleeExpr(this);
-
         public CXType CallResultType => clangsharp.Cursor_getCallResultType(this);
 
         public bool CanAvoidCopyToHeap => clangsharp.Cursor_getCanAvoidCopyToHeap(this) != 0;
 
-        public CXCursor CanonicalCursor => clang.getCanonicalCursor(this);
+        public CXCursor CanonicalCursor => clangsharp.Cursor_getCanonical(this);
+
+        public CXCursor CapturedDecl => clangsharp.Cursor_getCapturedDecl(this);
+
+        public CXCursor CapturedRecordDecl => clangsharp.Cursor_getCapturedRecordDecl(this);
+
+        public CX_CapturedRegionKind CapturedRegionKind => clangsharp.Cursor_getCapturedRegionKind(this);
+
+        public CXCursor CapturedStmt => clangsharp.Cursor_getCapturedStmt(this);
 
         public bool CapturesCXXThis => clangsharp.Cursor_getCapturesCXXThis(this) != 0;
 
@@ -461,11 +467,7 @@ namespace ClangSharp.Interop
 
         public uint CharacterLiteralValue => clangsharp.Cursor_getCharacterLiteralValue(this);
 
-        public CXCursor ColumnIdxExpr => throw null; // clangsharp.Cursor_getColumnIdxExpr(this);
-
         public CXSourceRange CommentRange => clang.Cursor_getCommentRange(this);
-
-        public CXCursor CommonExpr => clangsharp.Cursor_getCommonExpr(this);
 
         public CXCompletionString CompletionString => (CXCompletionString)clang.getCursorCompletionString(this);
 
@@ -473,15 +475,13 @@ namespace ClangSharp.Interop
 
         public CXType ComputationResultType => clangsharp.Cursor_getComputationResultType(this);
 
-        public CXCursor CondExpr => clangsharp.Cursor_getCondExpr(this);
-
-        public CXCursor ConditionVariableDeclStmt => clangsharp.Cursor_getConditionVariableDeclStmt(this);
-
         public CXCursor ConstraintExpr => clangsharp.Cursor_getConstraintExpr(this);
 
         public CXCursor ConstructedBaseClass => clangsharp.Cursor_getConstructedBaseClass(this);
 
         public CXCursor ConstructedBaseClassShadowDecl => clangsharp.Cursor_getConstructedBaseClassShadowDecl(this);
+
+        public CX_ConstructionKind ConstructionKind => clangsharp.Cursor_getConstructionKind(this);
 
         public bool ConstructsVirtualBase => clangsharp.Cursor_getConstructsVirtualBase(this) != 0;
 
@@ -489,11 +489,9 @@ namespace ClangSharp.Interop
 
         public int ContextParamPosition => clangsharp.Cursor_getContextParamPosition(this);
 
-        public CXCursor ConversionFunction => clangsharp.Cursor_getConversionFunction(this);
-
         public CX_CXXAccessSpecifier CXXAccessSpecifier => clang.getCXXAccessSpecifier(this);
 
-        public bool CXXBoolLiteralExprValue => clangsharp.Cursor_getCXXBoolLiteralExprValue(this) != 0;
+        public bool BoolLiteralValue => clangsharp.Cursor_getBoolLiteralValue(this) != 0;
 
         public bool CXXConstructor_IsConvertingConstructor => clang.CXXConstructor_isConvertingConstructor(this) != 0;
 
@@ -664,21 +662,21 @@ namespace ClangSharp.Interop
 
         public CXType DefaultArgType => clangsharp.Cursor_getDefaultArgType(this);
 
-        public CXCursor Definition => clang.getCursorDefinition(this);
+        public CXCursor Definition => clangsharp.Cursor_getDefinition(this);
 
         public CXCursor DependentLambdaCallOperator => clangsharp.Cursor_getDependentLambdaCallOperator(this);
 
-        public CXCursor DescribedClassTemplate => clangsharp.Cursor_getDescribedClassTemplate(this);
+        public CXCursor DescribedCursorTemplate => clangsharp.Cursor_getDescribedCursorTemplate(this);
 
         public CXCursor DescribedTemplate => clangsharp.Cursor_getDescribedTemplate(this);
 
         public CXCursor Destructor => clangsharp.Cursor_getDestructor(this);
 
-        public CXCursor DirectCallee => clangsharp.Cursor_getDirectCallee(this);
-
         public CXString DisplayName => clang.getCursorDisplayName(this);
 
         public bool DoesNotEscape => clangsharp.Cursor_getDoesNotEscape(this) != 0;
+
+        public bool DoesUsualArrayDeleteWantSize => clangsharp.Cursor_getDoesUsualArrayDeleteWantSize(this) != 0;
 
         public ulong EnumConstantDeclUnsignedValue => clang.getEnumConstantDeclUnsignedValue(this);
 
@@ -694,9 +692,9 @@ namespace ClangSharp.Interop
 
         public int ExceptionSpecificationType => clang.getCursorExceptionSpecificationType(this);
 
-        public CXSourceRange Extent => clang.getCursorExtent(this);
+        public CX_ExprDependence ExprDependence => clangsharp.Cursor_getExprDependence(this);
 
-        public CXCursor FalseExpr => clangsharp.Cursor_getFalseExpr(this);
+        public CXSourceRange Extent => clang.getCursorExtent(this);
 
         public CX_FloatingSemantics FloatingLiteralSemantics => clangsharp.Cursor_getFloatingLiteralSemantics(this);
 
@@ -706,21 +704,25 @@ namespace ClangSharp.Interop
 
         public int FieldIndex => clangsharp.Cursor_getFieldIndex(this);
 
+        public CXCursor FoundDecl => clangsharp.Cursor_getFoundDecl(this);
+
         public CXCursor FriendDecl => clangsharp.Cursor_getFriendDecl(this);
 
         public int FunctionScopeDepth => clangsharp.Cursor_getFunctionScopeDepth(this);
 
         public int FunctionScopeIndex => clangsharp.Cursor_getFunctionScopeIndex(this);
 
-        public CXType FunctionType => clangsharp.Cursor_getFunctionType(this);
+        public Guid GuidValue => clangsharp.Cursor_getGuidValue(this);
 
-        public Guid GuidValue => throw null; // clangsharp.Cursor_getGuidValue(this);
+        public bool HadMultipleCandidates => clangsharp.Cursor_getHadMultipleCandidates(this) != 0;
 
         public bool HasAttrs => clang.Cursor_hasAttrs(this) != 0;
 
         public bool HasBody => clangsharp.Cursor_getHasBody(this) != 0;
 
         public bool HasDefaultArg => clangsharp.Cursor_getHasDefaultArg(this) != 0;
+
+        public bool HasElseStorage => clangsharp.Cursor_getHasElseStorage(this) != 0;
 
         public bool HasExplicitTemplateArgs => clangsharp.Cursor_getHasExplicitTemplateArgs(this) != 0;
 
@@ -734,29 +736,55 @@ namespace ClangSharp.Interop
 
         public bool HasInit => clangsharp.Cursor_getHasInit(this) != 0;
 
+        public bool HasInitStorage => clangsharp.Cursor_getHasInitStorage(this) != 0;
+
+        public bool HasLeadingEmptyMacro => clangsharp.Cursor_getHasLeadingEmptyMacro(this) != 0;
+
         public bool HasLocalStorage => clangsharp.Cursor_getHasLocalStorage(this) != 0;
 
         public bool HasPlaceholderTypeConstraint => clangsharp.Cursor_getHasPlaceholderTypeConstraint(this) != 0;
 
         public uint Hash => clang.hashCursor(this);
 
-        public CXCursor HoldingVar => clangsharp.Cursor_getHoldingVar(this);
+        public bool HasTemplateKeyword => clangsharp.Cursor_getHasTemplateKeyword(this) != 0;
+
+        public bool HasUserDeclaredConstructor => clangsharp.Cursor_getHasUserDeclaredConstructor(this) != 0;
+
+        public bool HasUserDeclaredCopyAssignment => clangsharp.Cursor_getHasUserDeclaredCopyAssignment(this) != 0;
+
+        public bool HasUserDeclaredCopyConstructor => clangsharp.Cursor_getHasUserDeclaredCopyConstructor(this) != 0;
+
+        public bool HasUserDeclaredDestructor => clangsharp.Cursor_getHasUserDeclaredDestructor(this) != 0;
+
+        public bool HasUserDeclaredMoveAssignment => clangsharp.Cursor_getHasUserDeclaredMoveAssignment(this) != 0;
+
+        public bool HasUserDeclaredMoveConstructor => clangsharp.Cursor_getHasUserDeclaredMoveConstructor(this) != 0;
+
+        public bool HasUserDeclaredMoveOperation => clangsharp.Cursor_getHasUserDeclaredMoveOperation(this) != 0;
+
+        public bool HasVarStorage => clangsharp.Cursor_getHasVarStorage(this) != 0;
 
         public CXType IBOutletCollectionType => clang.getIBOutletCollectionType(this);
 
-        public CXCursor IdxExpr => clangsharp.Cursor_getIdxExpr(this);
-
         public CXFile IncludedFile => (CXFile)clang.getIncludedFile(this);
-
-        public CXCursor IncExpr => clangsharp.Cursor_getIncExpr(this);
 
         public CXCursor InClassInitializer => clangsharp.Cursor_getInClassInitializer(this);
 
+        public CXCursor InheritedConstructor => clangsharp.Cursor_getInheritedConstructor(this);
+
+        public bool InheritedFromVBase => clangsharp.Cursor_getInheritedFromVBase(this) != 0;
+
         public CXCursor InitExpr => clangsharp.Cursor_getInitExpr(this);
+
+        public CXType InjectedSpecializationType => clangsharp.Cursor_getInjectedSpecializationType(this);
 
         public CXCursor InstantiatedFromMember => clangsharp.Cursor_getInstantiatedFromMember(this);
 
         public long IntegerLiteralValue => clangsharp.Cursor_getIntegerLiteralValue(this);
+
+        public bool IsAllEnumCasesCovered => clangsharp.Cursor_getIsAllEnumCasesCovered(this) != 0;
+
+        public bool IsAlwaysNull => clangsharp.Cursor_getIsAlwaysNull(this) != 0;
 
         public bool IsAnonymous => clang.Cursor_isAnonymous(this) != 0;
 
@@ -766,13 +794,31 @@ namespace ClangSharp.Interop
 
         public bool IsArgumentType => clangsharp.Cursor_getIsArgumentType(this) != 0;
 
+        public bool IsArrayForm => clangsharp.Cursor_getIsArrayForm(this) != 0;
+
+        public bool IsArrayFormAsWritten => clangsharp.Cursor_getIsArrayFormAsWritten(this) != 0;
+
+        public bool IsArrow => clangsharp.Cursor_getIsArrow(this) != 0;
+
         public bool IsAttribute => clang.isAttribute(Kind) != 0;
 
         public bool IsBitField => clang.Cursor_isBitField(this) != 0;
 
         public bool IsCanonical => Equals(CanonicalCursor);
 
+        public bool IsClassExtension => clangsharp.Cursor_getIsClassExtension(this) != 0;
+
+        public bool IsCompleteDefinition => clangsharp.Cursor_getIsCompleteDefinition(this) != 0;
+
+        public bool IsConditionTrue => clangsharp.Cursor_getIsConditionTrue(this) != 0;
+
+        public bool IsConstexpr => clangsharp.Cursor_getIsConstexpr(this) != 0;
+
         public bool IsConversionFromLambda => clangsharp.Cursor_getIsConversionFromLambda(this) != 0;
+
+        public bool IsCopyOrMoveConstructor => clangsharp.Cursor_getIsCopyOrMoveConstructor(this) != 0;
+
+        public bool IsCXXTry => clangsharp.Cursor_getIsCXXTry(this) != 0;
 
         public bool IsDeclaration => clang.isDeclaration(Kind) != 0;
 
@@ -780,9 +826,17 @@ namespace ClangSharp.Interop
 
         public bool IsDefinition => clang.isCursorDefinition(this) != 0;
 
+        public bool IsDelegatingConstructor => clangsharp.Cursor_getIsDelegatingConstructor(this) != 0;
+
+        public bool IsDeleted => clangsharp.Cursor_getIsDeleted(this) != 0;
+
         public bool IsDeprecated => clangsharp.Cursor_getIsDeprecated(this) != 0;
 
         public bool IsDynamicCall => clang.Cursor_isDynamicCall(this) != 0;
+
+        public bool IsElidable => clangsharp.Cursor_getIsElidable(this) != 0;
+
+        public bool IsExplicitlyDefaulted => clangsharp.Cursor_getIsExplicitlyDefaulted(this) != 0;
 
         public bool IsExpression => clang.isExpression(Kind) != 0;
 
@@ -790,19 +844,29 @@ namespace ClangSharp.Interop
 
         public bool IsExpandedParameterPack => clangsharp.Cursor_getIsExpandedParameterPack(this) != 0;
 
+        public bool IsFileScope => clangsharp.Cursor_getIsFileScope(this) != 0;
+
         public bool IsFunctionInlined => clang.Cursor_isFunctionInlined(this) != 0;
 
         public bool IsGlobal => clangsharp.Cursor_getIsGlobal(this) != 0;
 
-        public bool IsImplicitAccess => clangsharp.Cursor_getIsImplicitAccess(this) != 0;
+        public bool IsInjectedClassName => clangsharp.Cursor_getIsInjectedClassName(this) != 0;
 
         public bool IsInlineNamespace => clang.Cursor_isInlineNamespace(this) != 0;
 
-        public bool IsIncomplete => throw null; // clangsharp.Cursor_getIsIncomplete(this) != 0;
+        public bool IsIfExists => clangsharp.Cursor_getIsIfExists(this) != 0;
+
+        public bool IsImplicit => clangsharp.Cursor_getIsImplicit(this) != 0;
+
+        public bool IsIncomplete => clangsharp.Cursor_getIsIncomplete(this) != 0;
+
+        public bool IsInheritingConstructor => clangsharp.Cursor_getIsInheritingConstructor(this) != 0;
 
         public bool IsInvalid => clang.isInvalid(Kind) != 0;
 
         public bool IsInvalidDeclaration => clang.isInvalidDeclaration(this) != 0;
+
+        public bool IsListInitialization => clangsharp.Cursor_getIsListInitialization(this) != 0;
 
         public bool IsLocalVarDecl => clangsharp.Cursor_getIsLocalVarDecl(this) != 0;
 
@@ -832,11 +896,19 @@ namespace ClangSharp.Interop
 
         public bool IsParameterPack => clangsharp.Cursor_getIsParameterPack(this) != 0;
 
+        public bool IsPartiallySubstituted => clangsharp.Cursor_getIsPartiallySubstituted(this) != 0;
+
+        public bool IsPotentiallyEvaluated => clangsharp.Cursor_getIsPotentiallyEvaluated(this) != 0;
+
         public bool IsPreprocessing => clang.isPreprocessing(Kind) != 0;
 
         public bool IsPure => clangsharp.Cursor_getIsPure(this) != 0;
 
         public bool IsReference => clang.isReference(Kind) != 0;
+
+        public bool IsResultDependent => clangsharp.Cursor_getIsResultDependent(this) != 0;
+
+        public bool IsStdInitListInitialization => clangsharp.Cursor_getIsStdInitListInitialization(this) != 0;
 
         public bool IsSigned => clangsharp.Cursor_getIsSigned(this) != 0;
 
@@ -852,15 +924,17 @@ namespace ClangSharp.Interop
 
         public bool IsThisDeclarationADefinition => clangsharp.Cursor_getIsThisDeclarationADefinition(this) != 0;
 
+        public bool IsThrownVariableInScope => clangsharp.Cursor_getIsThrownVariableInScope(this) != 0;
+
         public bool IsTranslationUnit => clang.isTranslationUnit(Kind) != 0;
 
-        public bool IsTransparentTag => clangsharp.Cursor_getIsTransparentTag(this) != 0;
+        public bool IsTransparent => clangsharp.Cursor_getIsTransparent(this) != 0;
 
         public bool IsTypeConcept => clangsharp.Cursor_getIsTypeConcept(this) != 0;
 
-        public bool IsTypeOperand => clangsharp.Cursor_getIsTypeOperand(this) != 0;
-
         public bool IsUnavailable => clangsharp.Cursor_getIsUnavailable(this) != 0;
+
+        public bool IsUnconditionallyVisible => clangsharp.Cursor_getIsUnconditionallyVisible(this) != 0;
 
         public bool IsUnexposed => clang.isUnexposed(Kind) != 0;
 
@@ -869,6 +943,8 @@ namespace ClangSharp.Interop
         public bool IsUnsigned => clangsharp.Cursor_getIsUnsigned(this) != 0;
 
         public bool IsUnsupportedFriend => clangsharp.Cursor_getIsUnsupportedFriend(this) != 0;
+
+        public bool IsUserProvided => clangsharp.Cursor_getIsUserProvided(this) != 0;
 
         public bool IsVariadic => clangsharp.Cursor_getIsVariadic(this) != 0;
 
@@ -902,7 +978,7 @@ namespace ClangSharp.Interop
 
         public CXCursor MostRecentDecl => clangsharp.Cursor_getMostRecentDecl(this);
 
-        public CXCursor MostRecentNonInjectedDecl => clangsharp.Cursor_getMostRecentNonInjectedDecl(this);
+        public CXString Name => clangsharp.Cursor_getName(this);
 
         public CXCursor NextDeclInContext => clangsharp.Cursor_getNextDeclInContext(this);
 
@@ -918,15 +994,45 @@ namespace ClangSharp.Interop
 
         public int NumArguments => clangsharp.Cursor_getNumArguments(this);
 
+        public int NumAssocs => clangsharp.Cursor_getNumAssocs(this);
+
+        public int NumAttrs => clangsharp.Cursor_getNumAttrs(this);
+
+        public int NumBases => clangsharp.Cursor_getNumBases(this);
+
+        public int NumBindings => clangsharp.Cursor_getNumBindings(this);
+
         public int NumCaptures => clangsharp.Cursor_getNumCaptures(this);
+
+        public int NumChildren => clangsharp.Cursor_getNumChildren(this);
+
+        public int NumCtors => clangsharp.Cursor_getNumCtors(this);
+
+        public int NumDecls => clangsharp.Cursor_getNumDecls(this);
+
+        public int NumEnumerators => clangsharp.Cursor_getNumEnumerators(this);
+
+        public int NumExpansionTypes => clangsharp.Cursor_getNumExpansionTypes(this);
 
         public int NumExprs => clangsharp.Cursor_getNumExprs(this);
 
+        public int NumFields => clangsharp.Cursor_getNumFields(this);
+
+        public int NumFriends => clangsharp.Cursor_getNumFriends(this);
+
+        public int NumMethods => clangsharp.Cursor_getNumMethods(this);
+
         public uint NumOverloadedDecls => clang.getNumOverloadedDecls(this);
+
+        public int NumProtocols => clangsharp.Cursor_getNumProtocols(this);
 
         public int NumSpecializations => clangsharp.Cursor_getNumSpecializations(this);
 
         public int NumTemplateArguments => clangsharp.Cursor_getNumTemplateArguments(this);
+
+        public int NumTemplateParameterLists => clangsharp.Cursor_getNumTemplateParameterLists(this);
+
+        public int NumVBases => clangsharp.Cursor_getNumVBases(this);
 
         public CXObjCDeclQualifierKind ObjCDeclQualifiers => (CXObjCDeclQualifierKind)clang.Cursor_getObjCDeclQualifiers(this);
 
@@ -940,9 +1046,11 @@ namespace ClangSharp.Interop
 
         public long OffsetOfField => clang.Cursor_getOffsetOfField(this);
 
-        public CXCursor OpaqueValueExpr => clangsharp.Cursor_getOpaqueValueExpr(this);
+        public CXCursor OpaqueValue => clangsharp.Cursor_getOpaqueValue(this);
 
         public CXType OriginalType => clangsharp.Cursor_getOriginalType(this);
+
+        public CX_OverloadedOperatorKind OverloadedOperatorKind => clangsharp.Cursor_getOverloadedOperatorKind(this);
 
         public ReadOnlySpan<CXCursor> OverriddenCursors
         {
@@ -955,6 +1063,8 @@ namespace ClangSharp.Interop
                 return new ReadOnlySpan<CXCursor>(overridden, (int)numOverridden);
             }
         }
+
+        public int PackLength => clangsharp.Cursor_getPackLength(this);
 
         public CXCursor ParentFunctionOrMethod => clangsharp.Cursor_getParentFunctionOrMethod(this);
 
@@ -972,7 +1082,13 @@ namespace ClangSharp.Interop
 
         public CXType ReceiverType => !IsExpression ? default : clang.Cursor_getReceiverType(this);
 
+        public CXCursor RedeclContext => clangsharp.Cursor_getRedeclContext(this);
+
         public CXCursor Referenced => clangsharp.Cursor_getReferenced(this);
+
+        public bool RequiresZeroInitialization => clangsharp.Cursor_getRequiresZeroInitialization(this) != 0;
+
+        public int ResultIndex => clangsharp.Cursor_getResultIndex(this);
 
         public CXType ResultType => clang.getCursorResultType(this);
 
@@ -980,9 +1096,9 @@ namespace ClangSharp.Interop
 
         public CXCursor RhsExpr => clangsharp.Cursor_getRhsExpr(this);
 
-        public CXCursor RowIdxExpr => throw null; // clangsharp.Cursor_getRowIdxExpr(this);
-
         public CXCursor SemanticParent => clang.getCursorSemanticParent(this);
+
+        public bool ShouldCopy => clangsharp.Cursor_getShouldCopy(this) != 0;
 
         public CXSourceRange SourceRange => clangsharp.Cursor_getSourceRange(this);
 
@@ -1262,7 +1378,7 @@ namespace ClangSharp.Interop
 
         public CXCursor SubStmt => clangsharp.Cursor_getSubStmt(this);
 
-        public CXCursor TargetUnionField => (CastKind == CX_CastKind.CX_CK_ToUnion) ? clangsharp.Cursor_getTargetUnionField(this) : Null;
+        public CXCursor TargetUnionField => clangsharp.Cursor_getTargetUnionField(this);
 
         public CXCursorKind TemplateCursorKind => clang.getTemplateCursorKind(this);
 
@@ -1276,6 +1392,8 @@ namespace ClangSharp.Interop
 
         public int TemplateTypeParmIndex => clangsharp.Cursor_getTemplateTypeParmIndex(this);
 
+        public int TemplateTypeParmPosition => clangsharp.Cursor_getTemplateTypeParmPosition(this);
+
         public CXType ThisObjectType => clangsharp.Cursor_getThisObjectType(this);
 
         public CXType ThisType => clangsharp.Cursor_getThisType(this);
@@ -1283,8 +1401,6 @@ namespace ClangSharp.Interop
         public CXTLSKind TlsKind => clang.getCursorTLSKind(this);
 
         public CXCursor TrailingRequiresClause => clangsharp.Cursor_getTrailingRequiresClause(this);
-
-        public CXCursor TrueExpr => clangsharp.Cursor_getTrueExpr(this);
 
         public CXTranslationUnit TranslationUnit => clang.Cursor_getTranslationUnit(this);
 
@@ -1311,6 +1427,8 @@ namespace ClangSharp.Interop
         public CXString Usr => clang.getCursorUSR(this);
 
         public CXVisibilityKind Visibility => clang.getCursorVisibility(this);
+
+        public long VtblIdx => clangsharp.Cursor_getVtblIdx(this);
 
         internal string DebuggerDisplayString
         {
@@ -1374,7 +1492,19 @@ namespace ClangSharp.Interop
 
         public CXCursor GetArgument(uint index) => clangsharp.Cursor_getArgument(this, index);
 
+        public CXCursor GetAttr(uint index) => clangsharp.Cursor_getAttr(this, index);
+
+        public CXCursor GetBase(uint index) => clangsharp.Cursor_getBase(this, index);
+
+        public CXCursor GetBindingDecl(uint index) => clangsharp.Cursor_getBindingDecl(this, index);
+
+        public CXCursor GetCtor(uint index) => clangsharp.Cursor_getCtor(this, index);
+
         public CXCursor GetCaptureCopyExpr(uint index) => clangsharp.Cursor_getCaptureCopyExpr(this, index);
+
+        public CXCursor GetCapturedVar(uint index) => clangsharp.Cursor_getCapturedVar(this, index);
+
+        public CX_VariableCaptureKind GetCaptureKind(uint index) => clangsharp.Cursor_getCaptureKind(this, index);
 
         public bool GetCaptureHasCopyExpr(uint index) => clangsharp.Cursor_getCaptureHasCopyExpr(this, index) != 0;
 
@@ -1387,6 +1517,10 @@ namespace ClangSharp.Interop
         public bool GetCaptureIsNonEscapingByRef(uint index) => clangsharp.Cursor_getCaptureIsNonEscapingByRef(this, index) != 0;
 
         public CXCursor GetCaptureVariable(uint index) => clangsharp.Cursor_getCaptureVariable(this, index);
+
+        public CXCursor GetChild(uint index) => clangsharp.Cursor_getChild(this, index);
+
+        public CXCursor GetDecl(uint index) => clangsharp.Cursor_getDecl(this, index);
 
         public void GetDefinitionSpellingAndExtent(out string spelling, out uint startLine, out uint startColumn, out uint endLine, out uint endColumn)
         {
@@ -1402,7 +1536,15 @@ namespace ClangSharp.Interop
             }
         }
 
+        public CXCursor GetEnumerator(uint index) => clangsharp.Cursor_getEnumerator(this, index);
+
+        public CXType GetExpansionType(uint index) => clangsharp.Cursor_getExpansionType(this, index);
+
         public CXCursor GetExpr(uint index) => clangsharp.Cursor_getExpr(this, index);
+
+        public CXCursor GetField(uint index) => clangsharp.Cursor_getField(this, index);
+
+        public CXCursor GetFriend(uint index) => clangsharp.Cursor_getFriend(this, index);
 
         public override int GetHashCode() => (int)Hash;
 
@@ -1417,6 +1559,10 @@ namespace ClangSharp.Interop
                 return result != 0;
             }
         }
+
+        public CXCursor GetMethod(uint index) => clangsharp.Cursor_getMethod(this, index);
+
+        public int GetNumTemplateParameters(uint listIndex) => clangsharp.Cursor_getNumTemplateParameters(this, listIndex);
 
         public CXObjCPropertyAttrKind GetObjCPropertyAttributes(uint reserved) => (CXObjCPropertyAttrKind)clang.Cursor_getObjCPropertyAttributes(this, reserved);
 
@@ -1439,43 +1585,29 @@ namespace ClangSharp.Interop
 
         public CXString GetPrettyPrinted(CXPrintingPolicy policy) => clang.getCursorPrettyPrinted(this, policy);
 
+        public CXCursor GetProtocol(uint index) => clangsharp.Cursor_getProtocol(this, index);
+
         public CXSourceRange GetReferenceNameRange(CXNameRefFlags nameFlags, uint pieceIndex) => clang.getCursorReferenceNameRange(this, (uint)nameFlags, pieceIndex);
 
         public CXCursor GetSpecialization(uint index) => clangsharp.Cursor_getSpecialization(this, index);
 
         public CXSourceRange GetSpellingNameRange(uint pieceIndex, uint options) => clang.Cursor_getSpellingNameRange(this, pieceIndex, options);
 
-        public CXCursor GetTemplateArgument(uint index) => clangsharp.Cursor_getTemplateArgument(this, index);
+        public CXCursor GetSubDecl(uint i) => clangsharp.Cursor_getSubDecl(this, i);
 
-        public CXCursor GetTemplateArgumentAsDecl(uint i) => clangsharp.Cursor_getTemplateArgumentAsDecl(this, i);
+        public CX_TemplateArgument GetTemplateArgument(uint index) => clangsharp.Cursor_getTemplateArgument(this, index);
 
-        public CXCursor GetTemplateArgumentAsExpr(uint i) => clangsharp.Cursor_getTemplateArgumentAsExpr(this, i);
+        public CX_TemplateArgumentLoc GetTemplateArgumentLoc(uint index) => clangsharp.Cursor_getTemplateArgumentLoc(this, index);
 
-        public long GetTemplateArgumentAsIntegral(uint i) => clangsharp.Cursor_getTemplateArgumentAsIntegral(this, i);
-
-        public CXType GetTemplateArgumentAsType(uint i) => clangsharp.Cursor_getTemplateArgumentAsType(this, i);
-
-        public CXType GetTemplateArgumentIntegralType(uint i) => clangsharp.Cursor_getTemplateArgumentIntegralType(this, i);
-
-        public CXTemplateArgumentKind GetTemplateArgumentKind(uint i) => clangsharp.Cursor_getTemplateArgumentKind(this, i);
-
-        public CXSourceLocation GetTemplateArgumentLocLocation(uint i) => clangsharp.Cursor_getTemplateArgumentLocLocation(this, i);
-
-        public CXCursor GetTemplateArgumentLocSourceDeclExpression(uint i) => clangsharp.Cursor_getTemplateArgumentLocSourceDeclExpression(this, i);
-
-        public CXCursor GetTemplateArgumentLocSourceExpression(uint i) => clangsharp.Cursor_getTemplateArgumentLocSourceExpression(this, i);
-
-        public CXCursor GetTemplateArgumentLocSourceIntegralExpression(uint i) => clangsharp.Cursor_getTemplateArgumentLocSourceIntegralExpression(this, i);
-
-        public CXCursor GetTemplateArgumentLocSourceNullPtrExpression(uint i) => clangsharp.Cursor_getTemplateArgumentLocSourceNullPtrExpression(this, i);
-
-        public CXType GetTemplateArgumentNullPtrType(uint i) => clangsharp.Cursor_getTemplateArgumentNullPtrType(this, i);
+        public CXCursor GetTemplateParameter(uint listIndex, uint parameterIndex) => clangsharp.Cursor_getTemplateParameter(this, listIndex, parameterIndex);
 
         public CXType GetTemplateArgumentType(uint i) => clang.Cursor_getTemplateArgumentType(this, i);
 
         public ulong GetTemplateArgumentUnsignedValue(uint i) => clang.Cursor_getTemplateArgumentUnsignedValue(this, i);
 
         public long GetTemplateArgumentValue(uint i) => clang.Cursor_getTemplateArgumentValue(this, i);
+
+        public CXCursor GetVBase(uint index) => clangsharp.Cursor_getVBase(this, index);
 
         public override string ToString() => Spelling.ToString();
 

@@ -7,7 +7,6 @@ namespace ClangSharp
 {
     public class VectorType : Type
     {
-        private readonly Lazy<Type> _desugaredType;
         private readonly Lazy<Type> _elementType;
 
         internal VectorType(CXType handle) : base(handle, CXTypeKind.CXType_Vector, CX_TypeClass.CX_TypeClass_Vector)
@@ -16,16 +15,11 @@ namespace ClangSharp
 
         private protected VectorType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
         {
-            _desugaredType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar()));
             _elementType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
         }
 
         public Type ElementType => _elementType.Value;
 
-        public bool IsSugared => Handle.IsSugared;
-
         public long NumElements => Handle.NumElements;
-
-        public Type Desugar() => _desugaredType.Value;
     }
 }

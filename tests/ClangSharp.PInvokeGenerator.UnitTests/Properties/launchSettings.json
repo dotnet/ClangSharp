@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ClangSharp.PInvokeGenerator.UnitTests": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

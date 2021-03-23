@@ -2,14 +2,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
     {
-        private readonly Lazy<IReadOnlyList<Decl>> _decls;
+        private readonly Lazy<ObjCInterfaceDecl> _classInterface;
+        private readonly Lazy<ImplicitParamDecl> _cmdDecl;
+        private readonly Lazy<IReadOnlyList<ParmVarDecl>> _parameters;
+        private readonly Lazy<Type> _returnType;
+        private readonly Lazy<ImplicitParamDecl> _selfDecl;
+        private readonly Lazy<Type> _sendResultType;
 
         internal ObjCMethodDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ObjCMethod)
         {
@@ -18,17 +22,47 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
+            _classInterface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
+            _cmdDecl = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetSubDecl(1)));
+
+            _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => {
+                var parameterCount = Handle.NumArguments;
+                var parameters = new List<ParmVarDecl>(parameterCount);
+
+                for (int i = 0; i < parameterCount; i++)
+                {
+                    var parameter = TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i)));
+                    parameters.Add(parameter);
+                }
+
+                return parameters;
+            });
+
+            _selfDecl = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetSubDecl(2)));
+            _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
+            _sendResultType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
         }
 
-        public IReadOnlyList<Decl> Decls => _decls.Value;
+        public new ObjCMethodDecl CanonicalDecl => (ObjCMethodDecl)base.CanonicalDecl;
 
-        public bool IsClassMethod() => CursorKind == CXCursorKind.CXCursor_ObjCClassMethodDecl;
+        public ObjCInterfaceDecl ClassInterface => _classInterface.Value;
 
-        public bool IsInstanceMethod() => CursorKind == CXCursorKind.CXCursor_ObjCInstanceMethodDecl;
+        public ImplicitParamDecl CmdDecl => _cmdDecl.Value;
 
-        public IDeclContext LexicalParent => LexicalDeclContext;
+        public bool IsClassMethod => CursorKind == CXCursorKind.CXCursor_ObjCClassMethodDecl;
 
-        public IDeclContext Parent => DeclContext;
+        public bool IsInstanceMethod => CursorKind == CXCursorKind.CXCursor_ObjCInstanceMethodDecl;
+
+        public bool IsThisDeclarationADefinition => Handle.IsThisDeclarationADefinition;
+
+        public CXObjCDeclQualifierKind ObjCDeclQualifier => Handle.ObjCDeclQualifiers;
+
+        public IReadOnlyList<ParmVarDecl> Parameters => _parameters.Value;
+
+        public Type ReturnType => _returnType.Value;
+
+        public ImplicitParamDecl SelfDecl => _selfDecl.Value;
+
+        public Type SendResultType => _sendResultType.Value;
     }
 }

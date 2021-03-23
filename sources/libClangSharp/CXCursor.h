@@ -6,6 +6,9 @@
 #ifndef LIBCLANGSHARP_CXCURSOR_H
 #define LIBCLANGSHARP_CXCURSOR_H
 
+#pragma warning(push)
+#pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+
 #include <clang/AST/Attr.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclFriend.h>
@@ -19,6 +22,8 @@
 #include <clang-c/Index.h>
 
 #include <llvm/ADT/PointerUnion.h>
+
+#pragma warning(pop)
 
 namespace clang::cxcursor {
     typedef llvm::PointerUnion<const OverloadExpr*, const Decl*, OverloadedTemplateStorage* > OverloadedDeclRefStorage;
@@ -116,6 +121,7 @@ namespace clang::cxcursor {
     bool isFirstInDeclGroup(CXCursor C);
 
     CXCursor MakeCXCursor(const Attr* A, const Decl* Parent, CXTranslationUnit TU);
+    CXCursor MakeCXCursor(const CXXBaseSpecifier* B, CXTranslationUnit TU);
     CXCursor MakeCXCursor(const Decl* D, CXTranslationUnit TU, SourceRange RegionOfInterest = SourceRange(), bool FirstInDeclGroup = true);
     CXCursor MakeCXCursor(const Stmt* S, const Decl* Parent, CXTranslationUnit TU, SourceRange RegionOfInterest = SourceRange());
 }

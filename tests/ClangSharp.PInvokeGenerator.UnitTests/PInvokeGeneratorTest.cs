@@ -2,7 +2,9 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using ClangSharp.Interop;
 using Xunit;
 
@@ -26,7 +28,52 @@ namespace ClangSharp.UnitTests
             "-Wno-c++11-narrowing"
         };
 
-        protected async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions configOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[] commandlineArgs = null)
+        protected string EscapeXml(string value)
+        {
+            return new XText(value).ToString();
+        }
+
+        protected Task ValidateGeneratedCSharpLatestWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[] commandlineArgs = null)
+        {
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.None | additionalConfigOptions, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath, commandlineArgs);
+        }
+
+        protected Task ValidateGeneratedCSharpLatestUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[] commandlineArgs = null)
+        {
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath, commandlineArgs);
+        }
+
+        protected Task ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[] commandlineArgs = null)
+        {
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode | additionalConfigOptions, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath, commandlineArgs);
+        }
+
+        protected Task ValidateGeneratedCSharpCompatibleUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[] commandlineArgs = null)
+        {
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode | PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath, commandlineArgs);
+        }
+
+        protected Task ValidateGeneratedXmlLatestWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[] commandlineArgs = null, [CallerFilePath] string filePath = "")
+        {
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.None | additionalConfigOptions, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath, commandlineArgs, filePath);
+        }
+
+        protected Task ValidateGeneratedXmlLatestUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[] commandlineArgs = null)
+        {
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath, commandlineArgs);
+        }
+
+        protected Task ValidateGeneratedXmlCompatibleWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[] commandlineArgs = null)
+        {
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode | additionalConfigOptions, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath, commandlineArgs);
+        }
+
+        protected Task ValidateGeneratedXmlCompatibleUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null, IEnumerable<Diagnostic> expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[] commandlineArgs = null)
+        {
+            return ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode | PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings, expectedDiagnostics, libraryPath, commandlineArgs);
+        }
+
+        private async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions configOptions, string[] excludedNames, IReadOnlyDictionary<string, string> remappedNames, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes, IReadOnlyDictionary<string, string> withCallConvs, IReadOnlyDictionary<string, string> withLibraryPaths, string[] withSetLastErrors, IReadOnlyDictionary<string, string> withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings, IEnumerable<Diagnostic> expectedDiagnostics, string libraryPath, string[] commandlineArgs, [CallerFilePath] string filePath = "")
         {
             Assert.True(File.Exists(DefaultInputFileName));
 
@@ -38,7 +85,7 @@ namespace ClangSharp.UnitTests
             using var unsavedFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
 
             var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
-            var config = new PInvokeGeneratorConfiguration(libraryPath, DefaultNamespaceName, Path.GetRandomFileName(), testOutputLocation: null, configOptions, excludedNames, headerFile: null, methodClassName: null, methodPrefixToStrip: null, remappedNames, traversalNames: null, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, DefaultNamespaceName, Path.GetRandomFileName(), testOutputLocation: null, outputMode, configOptions, excludedNames, headerFile: null, methodClassName: null, methodPrefixToStrip: null, remappedNames, traversalNames: null, withAttributes, withCallConvs, withLibraryPaths, withSetLastErrors, withTypes, withUsings);
 
             using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))
             {

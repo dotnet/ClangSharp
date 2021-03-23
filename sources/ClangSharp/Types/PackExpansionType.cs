@@ -7,15 +7,13 @@ namespace ClangSharp
 {
     public sealed class PackExpansionType : Type
     {
-        private readonly Lazy<Type> _desugaredType;
+        private readonly Lazy<Type> _pattern;
 
         internal PackExpansionType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_PackExpansion)
         {
-            _desugaredType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar()));
+            _pattern = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
         }
 
-        public bool IsSugared => Handle.IsSugared;
-
-        public Type Desugar() => _desugaredType.Value;
+        public Type Pattern => _pattern.Value;
     }
 }

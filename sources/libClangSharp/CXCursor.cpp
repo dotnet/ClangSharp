@@ -908,4 +908,9 @@ namespace clang::cxcursor {
         CXCursor C = { K, 0, { Parent, S, TU } };
         return C;
     }
+
+    CXCursor MakeCXCursor(const CXXBaseSpecifier* B, CXTranslationUnit TU) {
+        CXCursor C = { CXCursor_CXXBaseSpecifier, 0, { B, nullptr, TU } };
+        return C;
+    }
 }

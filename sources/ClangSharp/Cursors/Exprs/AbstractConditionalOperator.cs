@@ -7,26 +7,48 @@ namespace ClangSharp
 {
     public class AbstractConditionalOperator : Expr
     {
-        private readonly Lazy<Expr> _cond;
-        private readonly Lazy<Expr> _falseExpr;
-        private readonly Lazy<Expr> _trueExpr;
-
         private protected AbstractConditionalOperator(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
             if ((CX_StmtClass.CX_StmtClass_LastAbstractConditionalOperator < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstAbstractConditionalOperator))
             {
                 throw new ArgumentException(nameof(handle));
             }
-
-            _cond = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.CondExpr));
-            _falseExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.FalseExpr));
-            _trueExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.TrueExpr));
         }
 
-        public Expr Cond => _cond.Value;
+        public Expr Cond
+        {
+            get
+            {
+                if (this is ConditionalOperator co)
+                {
+                    return co.Cond;
+                }
+                return ((BinaryConditionalOperator)this).Cond;
+            }
+        }
 
-        public Expr FalseExpr => _falseExpr.Value;
+        public Expr FalseExpr
+        {
+            get
+            {
+                if (this is ConditionalOperator co)
+                {
+                    return co.FalseExpr;
+                }
+                return ((BinaryConditionalOperator)this).FalseExpr;
+            }
+        }
 
-        public Expr TrueExpr => _trueExpr.Value;
+        public Expr TrueExpr
+        {
+            get
+            {
+                if (this is ConditionalOperator co)
+                {
+                    return co.TrueExpr;
+                }
+                return ((BinaryConditionalOperator)this).TrueExpr;
+            }
+        }
     }
 }

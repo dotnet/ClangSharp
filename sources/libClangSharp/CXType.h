@@ -6,8 +6,13 @@
 #ifndef LIBCLANGSHARP_CXTYPE_H
 #define LIBCLANGSHARP_CXTYPE_H
 
+#pragma warning(push)
+#pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+
 #include <clang-c/Index.h>
 #include <clang/AST/Type.h>
+
+#pragma warning(pop)
 
 clang::QualType GetQualType(CXType CT);
 CXTranslationUnit GetTypeTU(CXType CT);

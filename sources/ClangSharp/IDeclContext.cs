@@ -8,8 +8,16 @@ namespace ClangSharp
     {
         IReadOnlyList<Decl> Decls { get; }
 
+        bool IsNamespace { get; }
+
+        bool IsStdNamespace { get; }
+
+        bool IsTranslationUnit { get; }
+
         IDeclContext LexicalParent { get; }
 
         IDeclContext Parent { get; }
+
+        IDeclContext RedeclContext { get; }
     }
 }

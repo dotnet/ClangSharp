@@ -29,7 +29,7 @@ namespace ClangSharp
 
                 for (int i = 0; i < templateArgCount; i++)
                 {
-                    var templateArg = new TemplateArgument(this, unchecked((uint)i));
+                    var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
                     templateArgs.Add(templateArg);
                 }
 

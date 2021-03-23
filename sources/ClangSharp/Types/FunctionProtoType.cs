@@ -8,12 +8,10 @@ namespace ClangSharp
 {
     public sealed class FunctionProtoType : FunctionType
     {
-        private readonly Lazy<Type> _desugaredType;
         private readonly Lazy<IReadOnlyList<Type>> _paramTypes;
 
         internal FunctionProtoType(CXType handle) : base(handle, CXTypeKind.CXType_FunctionProto, CX_TypeClass.CX_TypeClass_FunctionProto)
         {
-            _desugaredType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar()));
             _paramTypes = new Lazy<IReadOnlyList<Type>>(() => {
                 var paramTypeCount = Handle.NumArgTypes;
                 var paramTypes = new List<Type>(paramTypeCount);
@@ -30,8 +28,6 @@ namespace ClangSharp
 
         public CXCursor_ExceptionSpecificationKind ExceptionSpecType => Handle.ExceptionSpecificationType;
 
-        public bool IsSugared => Handle.IsSugared;
-
         public bool IsVariadic => Handle.IsFunctionTypeVariadic;
 
         public uint NumParams => (uint)Handle.NumArgTypes;
@@ -39,7 +35,5 @@ namespace ClangSharp
         public IReadOnlyList<Type> ParamTypes => _paramTypes.Value;
 
         public CXRefQualifierKind RefQualifier => Handle.CXXRefQualifier;
-
-        public Type Desugar() => _desugaredType.Value;
     }
 }

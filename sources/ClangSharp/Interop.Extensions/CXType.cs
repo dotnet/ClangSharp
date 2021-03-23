@@ -29,7 +29,7 @@ namespace ClangSharp.Interop
 
         public CXType ClassType => clang.Type_getClassType(this);
 
-        public CXCursor ColumnExpr => throw null; // clangsharp.Type_getColumnExpr(this);
+        public CXCursor ColumnExpr => clangsharp.Type_getColumnExpr(this);
 
         public CXRefQualifierKind CXXRefQualifier => clang.Type_getCXXRefQualifier(this);
 
@@ -40,6 +40,8 @@ namespace ClangSharp.Interop
         public CXType DeducedType => clangsharp.Type_getDeducedType(this);
 
         public int Depth => clangsharp.Type_getDepth(this);
+
+        public CXType Desugar => clangsharp.Type_desugar(this);
 
         public CXType ElementType => clangsharp.Type_getElementType(this);
 
@@ -65,7 +67,7 @@ namespace ClangSharp.Interop
 
         public bool IsRestrictQualified => clang.isRestrictQualifiedType(this) != 0;
 
-        public bool IsSigned => throw null; // clangsharp.Type_getIsSigned(this) != 0;
+        public bool IsSigned => clangsharp.Type_getIsSigned(this) != 0;
 
         public bool IsSugared => clangsharp.Type_getIsSugared(this) != 0;
 
@@ -73,7 +75,7 @@ namespace ClangSharp.Interop
 
         public bool IsTypeAlias => clangsharp.Type_getIsTypeAlias(this) != 0;
 
-        public bool IsUnsigned => throw null; // clangsharp.Type_getIsUnsigned(this) != 0;
+        public bool IsUnsigned => clangsharp.Type_getIsUnsigned(this) != 0;
 
         public bool IsVolatileQualified => clang.isVolatileQualifiedType(this) != 0;
 
@@ -87,15 +89,15 @@ namespace ClangSharp.Interop
 
         public int NumArgTypes => clang.getNumArgTypes(this);
 
-        public int NumBits => throw null; // clangsharp.Type_getNumBits(this);
+        public int NumBits => clangsharp.Type_getNumBits(this);
 
-        public CXCursor NumBitsExpr => throw null; // clangsharp.Type_getNumBitsExpr(this);
+        public CXCursor NumBitsExpr => clangsharp.Type_getNumBitsExpr(this);
 
-        public int NumColumns => throw null; // clangsharp.Type_getNumColumns(this);
+        public int NumColumns => clangsharp.Type_getNumColumns(this);
 
-        public int NumElementsFlattened => throw null; // clangsharp.Type_getNumElementsFlattened(this);
+        public int NumElementsFlattened => clangsharp.Type_getNumElementsFlattened(this);
 
-        public int NumRows => throw null; // clangsharp.Type_getNumRows(this);
+        public int NumRows => clangsharp.Type_getNumRows(this);
 
         public long NumElements => clang.getNumElements(this);
 
@@ -115,13 +117,15 @@ namespace ClangSharp.Interop
 
         public CXType ResultType => clang.getResultType(this);
 
-        public CXCursor RowExpr => throw null; // clangsharp.Type_getRowExpr(this);
+        public CXCursor RowExpr => clangsharp.Type_getRowExpr(this);
 
         public CXCursor SizeExpr => clangsharp.Type_getSizeExpr(this);
 
         public long SizeOf => clang.Type_getSizeOf(this);
 
         public CXString Spelling => clang.getTypeSpelling(this);
+
+        public CX_TemplateName TemplateName => clangsharp.Type_getTemplateName(this);
 
         public CX_TypeClass TypeClass => clangsharp.Type_getTypeClass(this);
 
@@ -199,7 +203,7 @@ namespace ClangSharp.Interop
 
         public CXType UnderlyingType => clangsharp.Type_getUnderlyingType(this);
 
-        public CXType ValueType => throw null; // clang.Type_getValueType(this);
+        public CXType ValueType => clang.Type_getValueType(this);
 
         internal string DebuggerDisplayString
         {
@@ -212,8 +216,6 @@ namespace ClangSharp.Interop
         public static bool operator ==(CXType left, CXType right) => clang.equalTypes(left, right) != 0;
 
         public static bool operator !=(CXType left, CXType right) => clang.equalTypes(left, right) == 0;
-
-        public CXType Desugar() => clangsharp.Type_desugar(this);
 
         public override bool Equals(object obj) => (obj is CXType other) && Equals(other);
 
@@ -235,19 +237,7 @@ namespace ClangSharp.Interop
             return clang.Type_getOffsetOf(this, marshaledS);
         }
 
-        public CXCursor GetTemplateArgumentAsDecl(uint i) => clangsharp.Type_getTemplateArgumentAsDecl(this, i);
-
-        public CXCursor GetTemplateArgumentAsExpr(uint i) => clangsharp.Type_getTemplateArgumentAsExpr(this, i);
-
-        public long GetTemplateArgumentAsIntegral(uint i) => clangsharp.Type_getTemplateArgumentAsIntegral(this, i);
-
-        public CXType GetTemplateArgumentAsType(uint i) => clangsharp.Type_getTemplateArgumentAsType(this, i);
-
-        public CXType GetTemplateArgumentIntegralType(uint i) => clangsharp.Type_getTemplateArgumentIntegralType(this, i);
-
-        public CXTemplateArgumentKind GetTemplateArgumentKind(uint i) => clangsharp.Type_getTemplateArgumentKind(this, i);
-
-        public CXType GetTemplateArgumentNullPtrType(uint i) => clangsharp.Type_getTemplateArgumentNullPtrType(this, i);
+        public CX_TemplateArgument GetTemplateArgument(uint i) => clangsharp.Type_getTemplateArgument(this, i);
 
         public override string ToString() => Spelling.ToString();
 

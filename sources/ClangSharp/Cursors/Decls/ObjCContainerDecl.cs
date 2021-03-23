@@ -9,7 +9,12 @@ namespace ClangSharp
 {
     public class ObjCContainerDecl : NamedDecl, IDeclContext
     {
-        private readonly Lazy<IReadOnlyList<Decl>> _decls;
+        private readonly Lazy<IReadOnlyList<ObjCMethodDecl>> _classMethods;
+        private readonly Lazy<IReadOnlyList<ObjCPropertyDecl>> _classProperties;
+        private readonly Lazy<IReadOnlyList<ObjCMethodDecl>> _instanceMethods;
+        private readonly Lazy<IReadOnlyList<ObjCPropertyDecl>> _instanceProperties;
+        private readonly Lazy<IReadOnlyList<ObjCMethodDecl>> _methods;
+        private readonly Lazy<IReadOnlyList<ObjCPropertyDecl>> _properties;
 
         private protected ObjCContainerDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
@@ -18,13 +23,24 @@ namespace ClangSharp
                 throw new ArgumentException(nameof(handle));
             }
 
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
+            _classMethods = new Lazy<IReadOnlyList<ObjCMethodDecl>>(() => Methods.Where((method) => method.IsClassMethod).ToList());
+            _classProperties = new Lazy<IReadOnlyList<ObjCPropertyDecl>>(() => Properties.Where((property) => property.IsClassProperty).ToList());
+            _instanceMethods = new Lazy<IReadOnlyList<ObjCMethodDecl>>(() => Methods.Where((method) => method.IsInstanceMethod).ToList());
+            _instanceProperties = new Lazy<IReadOnlyList<ObjCPropertyDecl>>(() => Properties.Where((property) => property.IsInstanceProperty).ToList());
+            _methods = new Lazy<IReadOnlyList<ObjCMethodDecl>>(() => Decls.OfType<ObjCMethodDecl>().ToList());
+            _properties = new Lazy<IReadOnlyList<ObjCPropertyDecl>>(() => Decls.OfType<ObjCPropertyDecl>().ToList());
         }
 
-        public IReadOnlyList<Decl> Decls => _decls.Value;
+        public IReadOnlyList<ObjCMethodDecl> ClassMethods => _classMethods.Value;
 
-        public IDeclContext LexicalParent => LexicalDeclContext;
+        public IReadOnlyList<ObjCPropertyDecl> ClassProperties => _classProperties.Value;
 
-        public IDeclContext Parent => DeclContext;
+        public IReadOnlyList<ObjCMethodDecl> InstanceMethods => _instanceMethods.Value;
+
+        public IReadOnlyList<ObjCPropertyDecl> InstanceProperties => _instanceProperties.Value;
+
+        public IReadOnlyList<ObjCMethodDecl> Methods => _methods.Value;
+
+        public IReadOnlyList<ObjCPropertyDecl> Properties => _properties.Value;
     }
 }

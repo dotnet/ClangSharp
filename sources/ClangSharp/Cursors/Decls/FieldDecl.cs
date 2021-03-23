@@ -45,6 +45,6 @@ namespace ClangSharp
 
         public bool IsUnnamedBitfield => Handle.IsUnnamedBitfield;
 
-        public RecordDecl Parent => (RecordDecl)DeclContext;
+        public new RecordDecl Parent => (RecordDecl)DeclContext;
     }
 }

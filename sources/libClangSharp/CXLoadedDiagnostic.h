@@ -7,7 +7,13 @@
 #define LIBCLANGSHARP_CXLOADEDDIAGNOSTIC_H
 
 #include "CIndexDiagnostic.h"
+
+#pragma warning(push)
+#pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+
 #include <llvm/ADT/StringRef.h>
+
+#pragma warning(pop)
 
 namespace clang {
     class CXLoadedDiagnostic : public CXDiagnosticImpl {

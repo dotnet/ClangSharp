@@ -7,19 +7,13 @@ namespace ClangSharp
 {
     public sealed class ComplexType : Type
     {
-        private readonly Lazy<Type> _desugaredType;
         private readonly Lazy<Type> _elementType;
 
         internal ComplexType(CXType handle) : base(handle, CXTypeKind.CXType_Complex, CX_TypeClass.CX_TypeClass_Complex)
         {
-            _desugaredType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar()));
             _elementType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
         }
 
         public Type ElementType => _elementType.Value;
-
-        public bool IsSugared => Handle.IsSugared;
-
-        public Type Desugar() => _desugaredType.Value;
     }
 }

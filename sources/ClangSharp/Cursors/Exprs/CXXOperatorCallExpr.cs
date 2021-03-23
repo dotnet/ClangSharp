@@ -9,5 +9,7 @@ namespace ClangSharp
         internal CXXOperatorCallExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr)
         {
         }
+
+        public CX_OverloadedOperatorKind Operator => Handle.OverloadedOperatorKind;
     }
 }

@@ -8,34 +8,33 @@ namespace ClangSharp
 {
     public sealed class TemplateSpecializationType : Type
     {
-        private readonly Lazy<Type> _desugaredType;
         private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
+        private readonly Lazy<TemplateName> _templateName;
 
         internal TemplateSpecializationType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_TemplateSpecialization)
         {
-            _desugaredType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar()));
             _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
                 var templateArgCount = Handle.NumTemplateArguments;
                 var templateArgs = new List<TemplateArgument>(templateArgCount);
 
                 for (int i = 0; i < templateArgCount; i++)
                 {
-                    var templateArg = new TemplateArgument(this, unchecked((uint)i));
+                    var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
                     templateArgs.Add(templateArg);
                 }
 
                 return templateArgs;
             });
+
+            _templateName = new Lazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.TemplateName));
         }
 
-        public Type AliasedType => IsTypeAlias ? _desugaredType.Value : null;
+        public Type AliasedType => IsTypeAlias ? Desugar : null;
 
         public IReadOnlyList<TemplateArgument> Args => _templateArgs.Value;
 
-        public bool IsSugared => Handle.IsSugared;
-
         public bool IsTypeAlias => Handle.IsTypeAlias;
 
-        public Type Desugar() => _desugaredType.Value;
+        public TemplateName TemplateName => _templateName.Value;
     }
 }

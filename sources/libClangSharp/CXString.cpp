@@ -4,7 +4,13 @@
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 #include "CXString.h"
+
+#pragma warning(push)
+#pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+
 #include <llvm/Support/MemAlloc.h>
+
+#pragma warning(pop)
 
 namespace clang::cxstring {
     CXString createDup(llvm::StringRef String) {

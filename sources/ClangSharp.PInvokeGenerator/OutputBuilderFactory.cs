@@ -2,38 +2,62 @@
 
 using System;
 using System.Collections.Generic;
+using ClangSharp.Abstractions;
+using ClangSharp.CSharp;
+using ClangSharp.XML;
 
 namespace ClangSharp
 {
-    public sealed class OutputBuilderFactory
+    internal sealed class OutputBuilderFactory
     {
-        private readonly Dictionary<string, OutputBuilder> _outputBuilders;
+        private readonly PInvokeGeneratorOutputMode _mode;
+        private readonly Dictionary<string, IOutputBuilder> _outputBuilders;
 
-        public OutputBuilderFactory()
+        public OutputBuilderFactory(PInvokeGeneratorOutputMode mode)
         {
-            _outputBuilders = new Dictionary<string, OutputBuilder>();
+            _mode = mode;
+            _outputBuilders = new Dictionary<string, IOutputBuilder>();
         }
 
-        public IEnumerable<OutputBuilder> OutputBuilders => _outputBuilders.Values;
+        public IEnumerable<IOutputBuilder> OutputBuilders => _outputBuilders.Values;
 
         public void Clear()
         {
             _outputBuilders.Clear();
         }
 
-        public OutputBuilder Create(string name, bool isTestOutput = false)
+        public IOutputBuilder Create(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var outputBuilder = new OutputBuilder(name, isTestOutput: isTestOutput);
+            var outputBuilder = _mode switch
+            {
+                PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name),
+                PInvokeGeneratorOutputMode.Xml => new XmlOutputBuilder(name),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
             _outputBuilders.Add(name, outputBuilder);
             return outputBuilder;
         }
 
-        public OutputBuilder GetOutputBuilder(string name)
+        public CSharpOutputBuilder CreateTests(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            var outputBuilder = new CSharpOutputBuilder(name, isTestOutput: true);
+
+            _outputBuilders.Add(name, outputBuilder);
+            return outputBuilder;
+        }
+
+        public IOutputBuilder GetOutputBuilder(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -42,7 +66,22 @@ namespace ClangSharp
             return _outputBuilders[name];
         }
 
-        public bool TryGetOutputBuilder(string name, out OutputBuilder outputBuilder)
+        public CSharpOutputBuilder GetTestOutputBuilder(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (_outputBuilders[name] is CSharpOutputBuilder csharpOutputBuilder && csharpOutputBuilder.IsTestOutput)
+            {
+                return csharpOutputBuilder;
+            }
+
+            throw new ArgumentException("A test output builder was not found with the given name", nameof(name));
+        }
+
+        public bool TryGetOutputBuilder(string name, out IOutputBuilder outputBuilder)
         {
             if (string.IsNullOrWhiteSpace(name))
             {

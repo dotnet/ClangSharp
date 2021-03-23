@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -12,18 +13,7 @@ namespace ClangSharp
 
         internal RecoveryExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_RecoveryExpr)
         {
-            _subExpressions = new Lazy<IReadOnlyList<Expr>>(() => {
-                var numExprs = Handle.NumExprs;
-                var exprs = new List<Expr>(numExprs);
-
-                for (var index = 0; index < numExprs; index++)
-                {
-                    var expr = TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)index)));
-                    exprs.Add(expr);
-                }
-
-                return exprs;
-            });
+            _subExpressions = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());
         }
 
         public IReadOnlyList<Expr> SubExpressions => _subExpressions.Value;

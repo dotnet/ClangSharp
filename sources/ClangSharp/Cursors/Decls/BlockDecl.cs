@@ -3,15 +3,13 @@
 using ClangSharp.Interop;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ClangSharp
 {
-    public sealed class BlockDecl : Decl, IDeclContext
+    public sealed partial class BlockDecl : Decl, IDeclContext
     {
         private readonly Lazy<Decl> _blockManglingContextDecl;
         private readonly Lazy<IReadOnlyList<Capture>> _captures;
-        private readonly Lazy<IReadOnlyList<Decl>> _decls;
         private readonly Lazy<IReadOnlyList<ParmVarDecl>> _parameters;
 
         internal BlockDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_Block)
@@ -29,7 +27,6 @@ namespace ClangSharp
 
                 return captures;
             });
-            _decls = new Lazy<IReadOnlyList<Decl>>(() => CursorChildren.OfType<Decl>().ToList());
             _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => {
                 var parameterCount = Handle.NumArguments;
                 var parameters = new List<ParmVarDecl>(parameterCount);
@@ -58,19 +55,23 @@ namespace ClangSharp
 
         public CompoundStmt CompoundBody => (CompoundStmt)Body;
 
-        public IReadOnlyList<Decl> Decls => _decls.Value;
-
         public bool DoesNotEscape => Handle.DoesNotEscape;
+
+        public bool HasCaptures => NumCaptures != 0;
 
         public bool IsConversionFromLambda => Handle.IsConversionFromLambda;
 
         public bool IsVariadic => Handle.IsVariadic;
 
-        public IDeclContext LexicalParent => LexicalDeclContext;
+        public uint NumCaptures => unchecked((uint)Handle.NumCaptures);
+
+        public uint NumParams => unchecked((uint)Handle.NumArguments);
 
         public IReadOnlyList<ParmVarDecl> Parameters => _parameters.Value;
 
-        public IDeclContext Parent => DeclContext;
+        public bool ParamEmpty => ParamSize == 0;
+
+        public nuint ParamSize => NumParams;
 
         public bool CapturesVariable(VarDecl var) => Handle.CapturesVariable(var.Handle);
     }

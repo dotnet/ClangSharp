@@ -28,12 +28,12 @@ namespace ClangSharp
             });
             _instantiatedFromMember = new Lazy<VarTemplatePartialSpecializationDecl>(() => TranslationUnit.GetOrCreate<VarTemplatePartialSpecializationDecl>(Handle.InstantiatedFromMember));
             _templateParameters = new Lazy<IReadOnlyList<NamedDecl>>(() => {
-                var parameterCount = Handle.NumTemplateArguments;
+                var parameterCount = Handle.GetNumTemplateParameters(0);
                 var parameters = new List<NamedDecl>(parameterCount);
 
                 for (int i = 0; i < parameterCount; i++)
                 {
-                    var parameter = TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateArgument(unchecked((uint)i)));
+                    var parameter = TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i)));
                     parameters.Add(parameter);
                 }
 

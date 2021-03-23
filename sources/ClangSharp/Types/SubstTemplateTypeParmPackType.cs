@@ -7,14 +7,13 @@ namespace ClangSharp
 {
     public sealed class SubstTemplateTypeParmPackType : Type
     {
-        private readonly Lazy<Type> _desugaredType;
+        private readonly Lazy<TemplateArgument> _argumentPack;
+        private readonly Lazy<TemplateTypeParmType> _replacedParameter;
+
         internal SubstTemplateTypeParmPackType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_SubstTemplateTypeParmPack)
         {
-            _desugaredType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar()));
+            _argumentPack = new Lazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(0)));
+            _replacedParameter = new Lazy<TemplateTypeParmType>(() => TranslationUnit.GetOrCreate<TemplateTypeParmType>(Handle.OriginalType));
         }
-
-        public bool IsSugared => Handle.IsSugared;
-
-        public Type Desugar() => _desugaredType.Value;
     }
 }

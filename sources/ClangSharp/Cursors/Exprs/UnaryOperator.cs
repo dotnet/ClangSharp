@@ -1,18 +1,24 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-using System;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public sealed class UnaryOperator : Expr
     {
-        private readonly Lazy<Expr> _subExpr;
-
         internal UnaryOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryOperator, CX_StmtClass.CX_StmtClass_UnaryOperator)
         {
-            _subExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
+            Debug.Assert(NumChildren is 1);
         }
+
+        public bool IsArithmetic => (Opcode >= CX_UnaryOperatorKind.CX_UO_Plus) && (Opcode <= CX_UnaryOperatorKind.CX_UO_LNot);
+
+        public bool IsDecrementOp => (Opcode == CX_UnaryOperatorKind.CX_UO_PreDec) || (Opcode == CX_UnaryOperatorKind.CX_UO_PostDec);
+
+        public bool IsIncrementOp => (Opcode == CX_UnaryOperatorKind.CX_UO_PreInc) || (Opcode == CX_UnaryOperatorKind.CX_UO_PostInc);
+
+        public bool IsIncrementDecrementOp => (Opcode <= CX_UnaryOperatorKind.CX_UO_PreDec);
 
         public bool IsPrefix => (Opcode == CX_UnaryOperatorKind.CX_UO_PreInc) || (Opcode == CX_UnaryOperatorKind.CX_UO_PreDec);
 
@@ -22,6 +28,6 @@ namespace ClangSharp
 
         public string OpcodeStr => Handle.UnaryOperatorKindSpelling.ToString();
 
-        public Expr SubExpr => _subExpr.Value;
+        public Expr SubExpr => (Expr)Children[0];
     }
 }

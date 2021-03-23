@@ -9,5 +9,7 @@ namespace ClangSharp
         internal CXXDynamicCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXDynamicCastExpr, CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr)
         {
         }
+
+        public bool IsAlwaysNull => Handle.IsAlwaysNull;
     }
 }
