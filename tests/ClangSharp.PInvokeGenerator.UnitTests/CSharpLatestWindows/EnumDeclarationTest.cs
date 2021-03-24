@@ -122,26 +122,60 @@ namespace ClangSharp.UnitTests
 
         public override Task RemapTest()
         {
-            var inputContents = @"typedef enum _MyEnum : int
+            var inputContents = @"typedef enum _MyEnum1 : int
 {
-    MyEnum_Value1,
-    MyEnum_Value2,
-    MyEnum_Value3,
-} MyEnum;
+    MyEnum1_Value1,
+    MyEnum1_Value2,
+    MyEnum1_Value3,
+} MyEnum1;
+
+namespace Namespace1
+{
+    namespace Namespace2
+    {
+        typedef enum _MyEnum2 : int
+        {
+            MyEnum2_Value1,
+            MyEnum2_Value2,
+            MyEnum2_Value3,
+        } MyEnum2;
+
+        typedef enum _MyEnum3 : int
+        {
+            MyEnum3_Value1,
+            MyEnum3_Value2,
+            MyEnum3_Value3,
+        } MyEnum3;
+    }
+}
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
-{{
-    public enum MyEnum
-    {{
-        MyEnum_Value1,
-        MyEnum_Value2,
-        MyEnum_Value3,
-    }}
-}}
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public enum MyEnum1
+    {
+        MyEnum1_Value1,
+        MyEnum1_Value2,
+        MyEnum1_Value3,
+    }
+
+    public enum MyEnum2
+    {
+        MyEnum2_Value1,
+        MyEnum2_Value2,
+        MyEnum2_Value3,
+    }
+
+    public enum MyEnum3
+    {
+        MyEnum3_Value1,
+        MyEnum3_Value2,
+        MyEnum3_Value3,
+    }
+}
 ";
 
-            var remappedNames = new Dictionary<string, string> { ["_MyEnum"] = "MyEnum" };
+            var remappedNames = new Dictionary<string, string> { ["_MyEnum1"] = "MyEnum1", ["Namespace1.Namespace2._MyEnum2"] = "MyEnum2", ["_MyEnum3"] = "MyEnum3" };
             return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
