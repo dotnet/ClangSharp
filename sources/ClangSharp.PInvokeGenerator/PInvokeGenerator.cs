@@ -893,7 +893,7 @@ namespace ClangSharp
             while (parts.Count != 0)
             {
                 AppendNamedDecl(part, GetCursorName(part), qualifiedName);
-                qualifiedName.Append('.');
+                qualifiedName.Append("::");
                 part = parts.Pop();
             }
 
@@ -1086,7 +1086,23 @@ namespace ClangSharp
                 return remappedName;
             }
 
+            name = name.Replace("::", ".");
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+
+            if (remappedName != name)
+            {
+                return remappedName;
+            }
+
             name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+
+            if (remappedName != name)
+            {
+                return remappedName;
+            }
+
+            name = name.Replace("::", ".");
             remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
 
             if (remappedName != name)
@@ -2224,7 +2240,7 @@ namespace ClangSharp
                     }
                 }
 
-                if (_config.ExcludedNames.Contains(qualifiedName))
+                if (_config.ExcludedNames.Contains(qualifiedName) || _config.ExcludedNames.Contains(qualifiedName.Replace("::", ".")))
                 {
                     if (_config.LogExclusions)
                     {

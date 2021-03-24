@@ -146,6 +146,13 @@ namespace Namespace1
             MyEnum3_Value2,
             MyEnum3_Value3,
         } MyEnum3;
+
+        typedef enum _MyEnum4 : int
+        {
+            MyEnum4_Value1,
+            MyEnum4_Value2,
+            MyEnum4_Value3,
+        } MyEnum4;
     }
 }
 ";
@@ -172,10 +179,17 @@ namespace Namespace1
         MyEnum3_Value2,
         MyEnum3_Value3,
     }
+
+    public enum MyEnum4
+    {
+        MyEnum4_Value1,
+        MyEnum4_Value2,
+        MyEnum4_Value3,
+    }
 }
 ";
 
-            var remappedNames = new Dictionary<string, string> { ["_MyEnum1"] = "MyEnum1", ["Namespace1.Namespace2._MyEnum2"] = "MyEnum2", ["_MyEnum3"] = "MyEnum3" };
+            var remappedNames = new Dictionary<string, string> { ["_MyEnum1"] = "MyEnum1", ["Namespace1.Namespace2._MyEnum2"] = "MyEnum2", ["_MyEnum3"] = "MyEnum3", ["Namespace1::Namespace2::_MyEnum4"] = "MyEnum4" };
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
