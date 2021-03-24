@@ -830,6 +830,21 @@ struct MyStruct
             {nativeType} value;
         }} w;
 
+        struct
+        {{
+            {nativeType} value1;
+
+            struct
+            {{
+                {nativeType} value;
+            }};
+        }};
+
+        union
+        {{
+            {nativeType} value2;
+        }};
+
         MyUnion u;
         {nativeType} buffer1[4];
         MyUnion buffer2[4];
@@ -874,6 +889,30 @@ namespace ClangSharp.Test
             }}
         }}
 
+        public ref {expectedManagedType} value1
+        {{
+            get
+            {{
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous1.value1, 1));
+            }}
+        }}
+
+        public ref {expectedManagedType} value
+        {{
+            get
+            {{
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous1.Anonymous.value, 1));
+            }}
+        }}
+
+        public ref {expectedManagedType} value2
+        {{
+            get
+            {{
+                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous2.value2, 1));
+            }}
+        }}
+
         public ref MyUnion u
         {{
             get
@@ -905,6 +944,12 @@ namespace ClangSharp.Test
             [NativeTypeName(""struct (anonymous struct at ClangUnsavedFile.h:14:9)"")]
             public _w_e__Struct w;
 
+            [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:19:9)"")]
+            public _Anonymous1_e__Struct Anonymous1;
+
+            [NativeTypeName(""MyStruct::(anonymous union at ClangUnsavedFile.h:29:9)"")]
+            public _Anonymous2_e__Union Anonymous2;
+
             public MyUnion u;
 
             [NativeTypeName(""{nativeType} [4]"")]
@@ -916,6 +961,26 @@ namespace ClangSharp.Test
             public partial struct _w_e__Struct
             {{
                 public {expectedManagedType} value;
+            }}
+
+            public partial struct _Anonymous1_e__Struct
+            {{
+                public {expectedManagedType} value1;
+
+                [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:23:13)"")]
+                public _Anonymous_e__Struct Anonymous;
+
+                public partial struct _Anonymous_e__Struct
+                {{
+                    public {expectedManagedType} value;
+                }}
+            }}
+
+            [StructLayout(LayoutKind.Explicit)]
+            public partial struct _Anonymous2_e__Union
+            {{
+                [FieldOffset(0)]
+                public {expectedManagedType} value2;
             }}
 
             public partial struct _buffer2_e__FixedBuffer

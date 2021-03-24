@@ -275,42 +275,50 @@ namespace ClangSharp
                 }
             }
 
-            if (_config.GenerateMacroBindings)
+            try
             {
-                var translationUnitHandle = translationUnit.Handle;
+                if (_config.GenerateMacroBindings)
+                {
+                    var translationUnitHandle = translationUnit.Handle;
 
-                var file = translationUnitHandle.GetFile(_filePath);
-                var fileContents = translationUnitHandle.GetFileContents(file, out var size);
+                    var file = translationUnitHandle.GetFile(_filePath);
+                    var fileContents = translationUnitHandle.GetFileContents(file, out var size);
 
 #if NETCOREAPP
-                _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents));
+                    _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents));
 #else
-                _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents.ToArray()));
+                    _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents.ToArray()));
 #endif
 
-                foreach (var cursor in translationUnit.TranslationUnitDecl.CursorChildren)
-                {
-                    if (cursor is PreprocessedEntity preprocessedEntity)
+                    foreach (var cursor in translationUnit.TranslationUnitDecl.CursorChildren)
                     {
-                        VisitPreprocessedEntity(preprocessedEntity);
+                        if (cursor is PreprocessedEntity preprocessedEntity)
+                        {
+                            VisitPreprocessedEntity(preprocessedEntity);
+                        }
                     }
+
+                    var unsavedFileContents = _fileContentsBuilder.ToString();
+                    _fileContentsBuilder.Clear();
+
+                    using var unsavedFile = CXUnsavedFile.Create(_filePath, unsavedFileContents);
+                    var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
+
+                    translationFlags = _translationFlags & ~CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
+                    var handle = CXTranslationUnit.Parse(IndexHandle, _filePath, _clangCommandLineArgs, unsavedFiles, translationFlags);
+
+                    using var nestedTranslationUnit = TranslationUnit.GetOrCreate(handle);
+                    Visit(nestedTranslationUnit.TranslationUnitDecl);
                 }
-
-                var unsavedFileContents = _fileContentsBuilder.ToString();
-                _fileContentsBuilder.Clear();
-
-                using var unsavedFile = CXUnsavedFile.Create(_filePath, unsavedFileContents);
-                var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
-
-                translationFlags = _translationFlags & ~CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
-                var handle = CXTranslationUnit.Parse(IndexHandle, _filePath, _clangCommandLineArgs, unsavedFiles, translationFlags);
-
-                using var nestedTranslationUnit = TranslationUnit.GetOrCreate(handle);
-                Visit(nestedTranslationUnit.TranslationUnitDecl);
+                else
+                {
+                    Visit(translationUnit.TranslationUnitDecl);
+                }
             }
-            else
+            catch (Exception e)
             {
-                Visit(translationUnit.TranslationUnitDecl);
+                var diagnostic = new Diagnostic(DiagnosticLevel.Error, e.ToString());
+                _diagnostics.Add(diagnostic);
             }
         }
 
@@ -885,7 +893,7 @@ namespace ClangSharp
             while (parts.Count != 0)
             {
                 AppendNamedDecl(part, GetCursorName(part), qualifiedName);
-                qualifiedName.Append('.');
+                qualifiedName.Append("::");
                 part = parts.Pop();
             }
 
@@ -1078,7 +1086,23 @@ namespace ClangSharp
                 return remappedName;
             }
 
+            name = name.Replace("::", ".");
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+
+            if (remappedName != name)
+            {
+                return remappedName;
+            }
+
             name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+
+            if (remappedName != name)
+            {
+                return remappedName;
+            }
+
+            name = name.Replace("::", ".");
             remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
 
             if (remappedName != name)
@@ -1188,11 +1212,34 @@ namespace ClangSharp
                         name = "_";
                         name += GetRemappedCursorName(matchingField);
                     }
-                    else if (parentRecordDecl.AnonymousRecords.Count > 1)
+                    else
                     {
-                        var index = parentRecordDecl.AnonymousRecords.IndexOf(cursor) + 1;
-                        name += index.ToString();
-                    }
+                        var index = 0;
+
+                        if (parentRecordDecl.AnonymousRecords.Count > 1)
+                        {
+                            index = parentRecordDecl.AnonymousRecords.IndexOf(cursor) + 1;
+                        }
+
+                        while ((parentRecordDecl.IsAnonymousStructOrUnion) && (parentRecordDecl.IsUnion == recordType.Decl.IsUnion))
+                        {
+                            index += 1;
+
+                            if (parentRecordDecl.Parent is RecordDecl parentRecordDeclParent)
+                            {
+                                if (parentRecordDeclParent.AnonymousRecords.Count > 0)
+                                {
+                                    index += parentRecordDeclParent.AnonymousRecords.Count - 1;
+                                }
+                                parentRecordDecl = parentRecordDeclParent;
+                            }
+                        }
+
+                        if (index != 0)
+                        {
+                            name += index.ToString();
+                        }
+                    } 
                 }
 
                 name += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
@@ -2193,7 +2240,7 @@ namespace ClangSharp
                     }
                 }
 
-                if (_config.ExcludedNames.Contains(qualifiedName))
+                if (_config.ExcludedNames.Contains(qualifiedName) || _config.ExcludedNames.Contains(qualifiedName.Replace("::", ".")))
                 {
                     if (_config.LogExclusions)
                     {

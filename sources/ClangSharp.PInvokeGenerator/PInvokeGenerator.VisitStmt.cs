@@ -1007,6 +1007,11 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
+        private void VisitNullStmt(NullStmt nullStmt)
+        {
+            // null statements are empty by definition, so nothing to do
+        }
+
         private void VisitParenExpr(ParenExpr parenExpr)
         {
             var outputBuilder = StartCSharpCode();
@@ -1106,7 +1111,13 @@ namespace ClangSharp
 
                 // case CX_StmtClass.CX_StmtClass_IndirectGotoStmt:
                 // case CX_StmtClass.CX_StmtClass_MSDependentExistsStmt:
-                // case CX_StmtClass.CX_StmtClass_NullStmt:
+
+                case CX_StmtClass.CX_StmtClass_NullStmt:
+                {
+                    VisitNullStmt((NullStmt)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_OMPAtomicDirective:
                 // case CX_StmtClass.CX_StmtClass_OMPBarrierDirective:
                 // case CX_StmtClass.CX_StmtClass_OMPCancelDirective:
