@@ -575,6 +575,12 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
+        private void VisitExprWithCleanups(ExprWithCleanups exprWithCleanups)
+        {
+            Visit(exprWithCleanups.SubExpr);
+            Visit(exprWithCleanups.Objects);
+        }
+
         private void VisitFloatingLiteral(FloatingLiteral floatingLiteral)
         {
             var outputBuilder = StartCSharpCode();
@@ -1454,7 +1460,13 @@ namespace ClangSharp
                 }
 
                 // case CX_StmtClass.CX_StmtClass_ConstantExpr:
-                // case CX_StmtClass.CX_StmtClass_ExprWithCleanups:
+
+                case CX_StmtClass.CX_StmtClass_ExprWithCleanups:
+                {
+                    VisitExprWithCleanups((ExprWithCleanups)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_FunctionParmPackExpr:
                 // case CX_StmtClass.CX_StmtClass_GNUNullExpr:
                 // case CX_StmtClass.CX_StmtClass_GenericSelectionExpr:

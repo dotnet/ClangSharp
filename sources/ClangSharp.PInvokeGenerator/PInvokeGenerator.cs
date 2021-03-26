@@ -2879,7 +2879,13 @@ namespace ClangSharp
                 }
 
                 // case CX_StmtClass.CX_StmtClass_ConstantExpr:
-                // case CX_StmtClass.CX_StmtClass_ExprWithCleanups:
+
+                case CX_StmtClass.CX_StmtClass_ExprWithCleanups:
+                {
+                    var exprWithCleanups = (ExprWithCleanups)stmt;
+                    return IsUnchecked(targetTypeName, exprWithCleanups.SubExpr);
+                }
+
                 // case CX_StmtClass.CX_StmtClass_FunctionParmPackExpr:
                 // case CX_StmtClass.CX_StmtClass_GNUNullExpr:
                 // case CX_StmtClass.CX_StmtClass_GenericSelectionExpr:
