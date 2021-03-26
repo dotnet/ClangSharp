@@ -66,7 +66,11 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             var calleeDecl = callExpr.CalleeDecl;
 
-            if (calleeDecl is FunctionDecl functionDecl)
+            if (calleeDecl is null)
+            {
+                Visit(callExpr.Callee);
+            }
+            else if (calleeDecl is FunctionDecl functionDecl)
             {
                 switch (functionDecl.Name)
                 {
