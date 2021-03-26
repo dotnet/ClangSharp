@@ -99,6 +99,8 @@ namespace ClangSharp
 
         public bool IsInlined => Handle.IsFunctionInlined;
 
+        public bool IsInstance => !IsStatic;
+
         public bool IsNoReturn => Handle.IsNoReturn;
 
         public bool IsOverloadedOperator => Handle.IsOverloadedOperator;

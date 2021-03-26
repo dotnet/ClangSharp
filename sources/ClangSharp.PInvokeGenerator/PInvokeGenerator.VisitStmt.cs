@@ -341,14 +341,14 @@ namespace ClangSharp
 
             if (calleeDecl is FunctionDecl functionDecl)
             {
+                var functionDeclName = GetCursorName(functionDecl);
+                var args = cxxOperatorCallExpr.Args;
+
                 if (functionDecl.DeclContext is CXXRecordDecl)
                 {
                     Visit(cxxOperatorCallExpr.Args[0]);
                     outputBuilder.Write('.');
                 }
-
-                var functionDeclName = GetCursorName(functionDecl);
-                var args = cxxOperatorCallExpr.Args;
 
                 if (IsEnumOperator(functionDecl, functionDeclName))
                 {
@@ -389,10 +389,10 @@ namespace ClangSharp
                 outputBuilder.Write(name);
 
                 outputBuilder.Write('(');
+                var firstIndex = (functionDecl.DeclContext is CXXRecordDecl) ? 1 : 0;
 
-                if (args.Count != 0)
+                if (args.Count > firstIndex)
                 {
-                    var firstIndex = (functionDecl.DeclContext is CXXRecordDecl) ? 1 : 0;
                     Visit(args[firstIndex]);
 
                     for (int i = firstIndex + 1; i < args.Count; i++)

@@ -65,8 +65,6 @@ namespace ClangSharp
 
         public bool IsConst => Handle.CXXMethod_IsConst;
 
-        public bool IsInstance => !IsStatic;
-
         public bool IsVirtual => Handle.CXXMethod_IsVirtual;
 
         public new CXXMethodDecl MostRecentDecl => (CXXMethodDecl)base.MostRecentDecl;
