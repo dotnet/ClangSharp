@@ -1634,20 +1634,23 @@ namespace ClangSharp
 
                         if (IsPrevContextStmt<CallExpr>(out var callExpr))
                         {
-                            var index = callExpr.Args.IndexOf(unaryExprOrTypeTraitExpr);
+                            var args = callExpr.Args;
+                            var index = -1;
 
-                            // If we didn't find the expression, try and find it under an implicit cast
+                            for (int i = 0; i < args.Count; i++)
+                            {
+                                var arg = args[i];
+
+                                if (IsStmtAsWritten(arg, unaryExprOrTypeTraitExpr))
+                                {
+                                    index = i;
+                                    break;
+                                }
+                            }
+
                             if (index == -1)
                             {
-                                for (int i = 0; i < callExpr.Args.Count; i++)
-                                {
-                                    var arg = callExpr.Args[i];
-                                    if (arg is ImplicitCastExpr implicitCastExpr && implicitCastExpr.SubExprAsWritten == unaryExprOrTypeTraitExpr)
-                                    {
-                                        index = i;
-                                        break;
-                                    }
-                                }
+                                AddDiagnostic(DiagnosticLevel.Error, $"Failed to locate index of '{unaryExprOrTypeTraitExpr}' in call expression. Generated bindings may be incomplete.", callExpr);
                             }
 
                             var calleeDecl = callExpr.CalleeDecl;

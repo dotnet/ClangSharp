@@ -2615,6 +2615,22 @@ namespace ClangSharp
             }
         }
 
+        private bool IsStmtAsWritten(Stmt stmt, Stmt expectedStmt, bool removeParens = false)
+        {
+            if (stmt == expectedStmt)
+            {
+                return true;
+            }
+
+            if (stmt is not Expr expr)
+            {
+                return false;
+            }
+
+            expr = GetExprAsWritten(expr, removeParens);
+            return expr == expectedStmt;
+        }
+
         internal static bool IsSupportedFixedSizedBufferType(string typeName)
         {
             switch (typeName)
