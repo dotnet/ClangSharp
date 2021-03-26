@@ -859,6 +859,22 @@ namespace ClangSharp
                 outputBuilder.NeedsSemicolon = true;
             }
 
+            void ForBuiltinType(InitListExpr initListExpr, BuiltinType builtinType)
+            {
+                var inits = initListExpr.Inits;
+
+                if (inits.Count == 1)
+                {
+                    Visit(inits[0]);
+                }
+                else
+                {
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression count for builtin type: '{inits.Count}'. Generated bindings may be incomplete.", initListExpr);
+                }
+
+                outputBuilder.NeedsSemicolon = true;
+            }
+
             void ForRecordType(InitListExpr initListExpr, RecordType recordType)
             {
                 outputBuilder.Write("new ");
@@ -922,15 +938,39 @@ namespace ClangSharp
                 }
             }
 
+            void ForPointerType(InitListExpr initListExpr, PointerType pointerType)
+            {
+                var inits = initListExpr.Inits;
+
+                if (inits.Count == 1)
+                {
+                    Visit(inits[0]);
+                }
+                else
+                {
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression count for pointer type: '{inits.Count}'. Generated bindings may be incomplete.", initListExpr);
+                }
+
+                outputBuilder.NeedsSemicolon = true;
+            }
+
             void ForType(InitListExpr initListExpr, Type type)
             {
                 if (type is ArrayType arrayType)
                 {
                     ForArrayType(initListExpr, arrayType);
                 }
+                else if (type is BuiltinType builtinType)
+                {
+                    ForBuiltinType(initListExpr, builtinType);
+                }
                 else if (type is ElaboratedType elaboratedType)
                 {
                     ForType(initListExpr, elaboratedType.NamedType);
+                }
+                else if (type is PointerType pointerType)
+                {
+                    ForPointerType(initListExpr, pointerType);
                 }
                 else if (type is RecordType recordType)
                 {
