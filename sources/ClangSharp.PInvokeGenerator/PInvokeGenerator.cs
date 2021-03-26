@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Xml.Linq;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 using ClangSharp.Interop;
@@ -1436,9 +1437,15 @@ namespace ClangSharp
                         break;
                     }
 
+                    case CXTypeKind.CXType_NullPtr:
+                    {
+                        name = "null";
+                        break;
+                    }
+
                     default:
                     {
-                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported builtin type: '{type.TypeClass}'. Falling back '{name}'.", cursor);
+                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported builtin type: '{type.KindSpelling}'. Falling back '{name}'.", cursor);
                         break;
                     }
                 }
@@ -1854,7 +1861,7 @@ namespace ClangSharp
 
                     default:
                     {
-                        AddDiagnostic(DiagnosticLevel.Error, $"Unsupported builtin type: '{type.TypeClass}.", cursor);
+                        AddDiagnostic(DiagnosticLevel.Error, $"Unsupported builtin type: '{type.KindSpelling}.", cursor);
                         break;
                     }
                 }
@@ -2736,7 +2743,14 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:
                 // case CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr:
                 // case CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr:
-                // case CX_StmtClass.CX_StmtClass_ArraySubscriptExpr:
+
+                case CX_StmtClass.CX_StmtClass_ArraySubscriptExpr:
+                {
+                    var arraySubscriptExpr = (ArraySubscriptExpr)stmt;
+                    return IsUnchecked(targetTypeName, arraySubscriptExpr.LHS)
+                        || IsUnchecked(targetTypeName, arraySubscriptExpr.RHS);
+                }
+
                 // case CX_StmtClass.CX_StmtClass_ArrayTypeTraitExpr:
                 // case CX_StmtClass.CX_StmtClass_AsTypeExpr:
                 // case CX_StmtClass.CX_StmtClass_AtomicExpr:

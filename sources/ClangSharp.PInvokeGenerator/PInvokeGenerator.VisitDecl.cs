@@ -242,8 +242,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Error,
-                        $"Unsupported declaration: '{decl.Kind}'. Generated bindings may be incomplete.", decl);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declaration: '{decl.Kind}'. Generated bindings may be incomplete.", decl);
                     break;
                 }
             }
@@ -2856,7 +2855,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:
                 // case CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr:
                 // case CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr:
-                // case CX_StmtClass.CX_StmtClass_ArraySubscriptExpr:
+
+                case CX_StmtClass.CX_StmtClass_ArraySubscriptExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_ArrayTypeTraitExpr:
                 // case CX_StmtClass.CX_StmtClass_AsTypeExpr:
                 // case CX_StmtClass.CX_StmtClass_AtomicExpr:

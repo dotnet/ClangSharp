@@ -447,6 +447,11 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
+        private void VisitCXXTemporaryObjectExpr(CXXTemporaryObjectExpr cxxTemporaryObjectExpr)
+        {
+            VisitCXXConstructExpr(cxxTemporaryObjectExpr);
+        }
+
         private void VisitCXXThisExpr(CXXThisExpr cxxThisExpr)
         {
             StartCSharpCode().Write("this");
@@ -1056,6 +1061,11 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
+        private void VisitMaterializeTemporaryExpr(MaterializeTemporaryExpr materializeTemporaryExpr)
+        {
+            Visit(materializeTemporaryExpr.SubExpr);
+        }
+
         private void VisitMemberExpr(MemberExpr memberExpr)
         {
             var outputBuilder = StartCSharpCode();
@@ -1332,7 +1342,11 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
+                case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
+                {
+                    VisitCXXTemporaryObjectExpr((CXXTemporaryObjectExpr)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
                 {
@@ -1493,7 +1507,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_LambdaExpr:
                 // case CX_StmtClass.CX_StmtClass_MSPropertyRefExpr:
                 // case CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr:
-                // case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
+
+                case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
+                {
+                    VisitMaterializeTemporaryExpr((MaterializeTemporaryExpr)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_MemberExpr:
                 {
