@@ -1468,6 +1468,10 @@ namespace ClangSharp
             {
                 name = GetTypeNameForPointeeType(cursor, context, referenceType.PointeeType, out var nativePointeeTypeName);
             }
+            else if (type is SubstTemplateTypeParmType substTemplateTypeParmType)
+            {
+                name = GetTypeName(cursor, context, substTemplateTypeParmType.ReplacementType, out var nativeReplacementTypeName);
+            }
             else if (type is TemplateSpecializationType templateSpecializationType)
             {
                 var nameBuilder = new StringBuilder();
@@ -1487,7 +1491,35 @@ namespace ClangSharp
                         nameBuilder.Append(' ');
                     }
 
-                    var typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out _);
+                    var typeName = "";
+
+                    switch (arg.Kind)
+                    {
+                        case CXTemplateArgumentKind.CXTemplateArgumentKind_Type:
+                        {
+                            typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out var nativeAsTypeName);
+                            break;
+                        }
+
+                        case CXTemplateArgumentKind.CXTemplateArgumentKind_Expression:
+                        {
+                            var oldOutputBuilder = _outputBuilder;
+                            _outputBuilder = new CSharpOutputBuilder("ClangSharp_TemplateSpecializationType_AsExpr");
+
+                            Visit(arg.AsExpr);
+                            typeName = _outputBuilder.ToString();
+
+                            _outputBuilder = oldOutputBuilder;
+                            break;
+                        }
+
+                        default:
+                        {
+                            typeName = name;
+                            AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported template argument kind: '{arg.Kind}'. Falling back '{name}'.", cursor);
+                            break;
+                        }
+                    }
 
                     if (typeName == "bool")
                     {
@@ -1531,6 +1563,10 @@ namespace ClangSharp
                     name = name.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
                     name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
                 }
+            }
+            else if (type is TemplateTypeParmType templateTypeParmType)
+            {
+                // The default name should be correct
             }
             else if (type is TypedefType typedefType)
             {
@@ -2044,6 +2080,25 @@ namespace ClangSharp
                 else
                 {
                     GetTypeSize(cursor, typedefType.Decl.UnderlyingType, ref alignment32, ref alignment64, out size32, out size64);
+                }
+            }
+            else if (type is SubstTemplateTypeParmType substTemplateTypeParmType)
+            {
+                GetTypeSize(cursor, substTemplateTypeParmType.ReplacementType, ref alignment32, ref alignment64, out size32, out size64);
+            }
+            else if (type is TemplateSpecializationType templateSpecializationType)
+            {
+                if (templateSpecializationType.IsTypeAlias)
+                {
+                    GetTypeSize(cursor, templateSpecializationType.AliasedType, ref alignment32, ref alignment64, out size32, out size64);
+                }
+                else if (templateSpecializationType.IsSugared)
+                {
+                    GetTypeSize(cursor, templateSpecializationType.Desugar, ref alignment32, ref alignment64, out size32, out size64);
+                }
+                else
+                {
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported template specialization type: '{templateSpecializationType}'.", cursor);
                 }
             }
             else
