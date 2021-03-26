@@ -15,17 +15,12 @@ namespace ClangSharp
     {
         private void VisitClassTemplateDecl(ClassTemplateDecl classTemplateDecl)
         {
-            AddDiagnostic(DiagnosticLevel.Warning,
-                $"Class templates are not supported: '{GetCursorQualifiedName(classTemplateDecl)}'. Generated bindings may be incomplete.",
-                classTemplateDecl);
+            AddDiagnostic(DiagnosticLevel.Warning, $"Class templates are not supported: '{GetCursorQualifiedName(classTemplateDecl)}'. Generated bindings may be incomplete.", classTemplateDecl);
         }
 
-        private void VisitClassTemplateSpecializationDecl(
-            ClassTemplateSpecializationDecl classTemplateSpecializationDecl)
+        private void VisitClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl classTemplateSpecializationDecl)
         {
-            AddDiagnostic(DiagnosticLevel.Warning,
-                $"Class template specializations are not supported: '{GetCursorQualifiedName(classTemplateSpecializationDecl)}'. Generated bindings may be incomplete.",
-                classTemplateSpecializationDecl);
+            AddDiagnostic(DiagnosticLevel.Warning, $"Class template specializations are not supported: '{GetCursorQualifiedName(classTemplateSpecializationDecl)}'. Generated bindings may be incomplete.", classTemplateSpecializationDecl);
         }
 
         private void VisitDecl(Decl decl)
@@ -57,7 +52,13 @@ namespace ClangSharp
                 // case CX_DeclKind.CX_DeclKind_Export:
                 // case CX_DeclKind.CX_DeclKind_ExternCContext:
                 // case CX_DeclKind.CX_DeclKind_FileScopeAsm:
-                // case CX_DeclKind.CX_DeclKind_Friend:
+
+                case CX_DeclKind.CX_DeclKind_Friend:
+                {
+                    // Nothing to generate for friend declarations
+                    break;
+                }
+
                 // case CX_DeclKind.CX_DeclKind_FriendTemplate:
                 // case CX_DeclKind.CX_DeclKind_Import:
 
@@ -865,9 +866,7 @@ namespace ClangSharp
 
         private void VisitFunctionTemplateDecl(FunctionTemplateDecl functionTemplateDecl)
         {
-            AddDiagnostic(DiagnosticLevel.Warning,
-                $"Function templates are not supported: '{GetCursorQualifiedName(functionTemplateDecl)}'. Generated bindings may be incomplete.",
-                functionTemplateDecl);
+            AddDiagnostic(DiagnosticLevel.Warning, $"Function templates are not supported: '{GetCursorQualifiedName(functionTemplateDecl)}'. Generated bindings may be incomplete.", functionTemplateDecl);
         }
 
         private void VisitLinkageSpecDecl(LinkageSpecDecl linkageSpecDecl)
@@ -2451,9 +2450,7 @@ namespace ClangSharp
                 else if (!(pointeeType is ConstantArrayType) && !(pointeeType is BuiltinType) &&
                          !(pointeeType is TagType))
                 {
-                    AddDiagnostic(DiagnosticLevel.Error,
-                        $"Unsupported pointee type: '{pointeeType.TypeClass}'. Generating bindings may be incomplete.",
-                        typedefDecl);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.TypeClass}'. Generating bindings may be incomplete.", typedefDecl);
                 }
             }
 
@@ -2493,8 +2490,7 @@ namespace ClangSharp
                     if (_config.LogPotentialTypedefRemappings)
                     {
                         var typedefName = typedefDecl.UnderlyingDecl.Name;
-                        var possibleNamesToRemap =
-                            new string[] {"_" + typedefName, "_tag" + typedefName, "tag" + typedefName};
+                        var possibleNamesToRemap = new string[] {"_" + typedefName, "_tag" + typedefName, "tag" + typedefName};
                         var underlyingName = underlyingTagType.AsString;
 
                         foreach (var possibleNameToRemap in possibleNamesToRemap)
@@ -2503,12 +2499,15 @@ namespace ClangSharp
                             {
                                 if (possibleNameToRemap == underlyingName)
                                 {
-                                    AddDiagnostic(DiagnosticLevel.Info,
-                                        $"Potential remap: {possibleNameToRemap}={typedefName}");
+                                    AddDiagnostic(DiagnosticLevel.Info, $"Potential remap: {possibleNameToRemap}={typedefName}");
                                 }
                             }
                         }
                     }
+                }
+                else if (underlyingType is TemplateSpecializationType templateSpecializationType)
+                {
+                    // Nothing to do for built-in types
                 }
                 else if (underlyingType is TypedefType typedefType)
                 {
@@ -2516,9 +2515,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    AddDiagnostic(DiagnosticLevel.Error,
-                        $"Unsupported underlying type: '{underlyingType.TypeClass}'. Generating bindings may be incomplete.",
-                        typedefDecl);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.TypeClass}'. Generating bindings may be incomplete.", typedefDecl);
                 }
 
                 return;
