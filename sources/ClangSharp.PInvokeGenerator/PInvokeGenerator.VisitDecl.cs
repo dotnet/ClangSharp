@@ -1036,12 +1036,9 @@ namespace ClangSharp
                 }
 
                 var alignment = recordDecl.TypeForDecl.Handle.AlignOf;
-                var maxAlignm = recordDecl.Fields.Any()
-                    ? recordDecl.Fields.Max((fieldDecl) => fieldDecl.Type.Handle.AlignOf)
-                    : alignment;
+                var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => fieldDecl.Type.Handle.AlignOf) : alignment;
 
-                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion &&
-                    !(recordDecl.DeclContext is RecordDecl))
+                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
                 {
                     _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);
@@ -1331,7 +1328,7 @@ namespace ClangSharp
                         _outputBuilder.WriteDivider();
                     }
 
-                    if (cxxRecordDecl.HasUserDeclaredDestructor)
+                    if (cxxRecordDecl.HasUserDeclaredDestructor && !cxxRecordDecl.Destructor.IsVirtual)
                     {
                         Visit(cxxRecordDecl.Destructor);
                         _outputBuilder.WriteDivider();

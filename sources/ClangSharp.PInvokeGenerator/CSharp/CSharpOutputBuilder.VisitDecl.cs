@@ -150,11 +150,10 @@ namespace ClangSharp.CSharp
             }
         }
 
-        public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(
-            in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc,
-            ref bool isMethodClassUnsafe)
+        public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc, ref bool isMethodClassUnsafe)
         {
             desc.WriteCustomAttrs(desc.CustomAttrGeneratorData);
+
             if (desc.IsVirtual)
             {
                 Debug.Assert(!desc.HasFnPtrCodeGen);
