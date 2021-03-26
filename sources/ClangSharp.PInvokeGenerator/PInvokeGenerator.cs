@@ -829,7 +829,15 @@ namespace ClangSharp
         {
             var name = namedDecl.Name.Replace('\\', '/');
 
-            if (string.IsNullOrWhiteSpace(name))
+            if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
+            {
+                name = GetCursorName(cxxConstructorDecl.Parent);
+            }
+            else if (namedDecl is CXXDestructorDecl)
+            {
+                name = "Dispose";
+            }
+            else if (string.IsNullOrWhiteSpace(name))
             {
                 if (namedDecl is TypeDecl typeDecl)
                 {
@@ -851,23 +859,10 @@ namespace ClangSharp
                 {
                     name = GetAnonymousName(fieldDecl, fieldDecl.CursorKindSpelling);
                 }
-                else if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
-                {
-                    name = GetCursorName(cxxConstructorDecl.Parent);
-                }
-                else if (namedDecl is CXXDestructorDecl cxxDestructorDecl)
-                {
-                    name = "~";
-                    name += GetCursorName(cxxDestructorDecl.Parent);
-                }
                 else
                 {
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.Kind}'.", namedDecl);
                 }
-            }
-            else if (namedDecl is CXXDestructorDecl)
-            {
-                name = "Finalize";
             }
 
             Debug.Assert(!string.IsNullOrWhiteSpace(name));

@@ -1120,7 +1120,7 @@ namespace ClangSharp.Test
             var inputContents = @"union MyUnion
 {
     int Equals;
-    int Finalize;
+    int Dispose;
     int GetHashCode;
     int GetType;
     int MemberwiseClone;
@@ -1139,7 +1139,7 @@ namespace ClangSharp.Test
         public new int Equals;
 
         [FieldOffset(0)]
-        public int Finalize;
+        public int Dispose;
 
         [FieldOffset(0)]
         public new int GetHashCode;

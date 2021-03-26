@@ -1259,7 +1259,7 @@ namespace ClangSharp.Test
             var inputContents = @"struct MyStruct
 {
     int Equals;
-    int Finalize;
+    int Dispose;
     int GetHashCode;
     int GetType;
     int MemberwiseClone;
@@ -1273,7 +1273,7 @@ namespace ClangSharp.Test
     {{
         public new int Equals;
 
-        public int Finalize;
+        public int Dispose;
 
         public new int GetHashCode;
 

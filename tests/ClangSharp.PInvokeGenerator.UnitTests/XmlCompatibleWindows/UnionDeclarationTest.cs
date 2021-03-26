@@ -1056,7 +1056,7 @@ union MyUnion
             var inputContents = @"union MyUnion
 {
     int Equals;
-    int Finalize;
+    int Dispose;
     int GetHashCode;
     int GetType;
     int MemberwiseClone;
@@ -1071,7 +1071,7 @@ union MyUnion
       <field name=""Equals"" access=""public"" offset=""0"">
         <type>int</type>
       </field>
-      <field name=""Finalize"" access=""public"" offset=""0"">
+      <field name=""Dispose"" access=""public"" offset=""0"">
         <type>int</type>
       </field>
       <field name=""GetHashCode"" access=""public"" offset=""0"">

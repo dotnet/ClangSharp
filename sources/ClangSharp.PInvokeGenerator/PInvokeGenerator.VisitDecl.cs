@@ -660,7 +660,7 @@ namespace ClangSharp
             var isVirtual = (cxxMethodDecl != null) && cxxMethodDecl.IsVirtual;
             var escapedName = isVirtual ? PrefixAndStripName(name, cxxMethodDecl.OverloadIndex) : EscapeAndStripName(name);
 
-            if (!(functionDecl.DeclContext is CXXRecordDecl cxxRecordDecl))
+            if (functionDecl.DeclContext is not CXXRecordDecl cxxRecordDecl)
             {
                 cxxRecordDecl = null;
                 StartUsingOutputBuilder(_config.MethodClassName);
@@ -791,12 +791,8 @@ namespace ClangSharp
             }
             else
             {
-                int firstCtorInitializer = functionDecl.Parameters.Any()
-                    ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1)
-                    : 0;
-                int lastCtorInitializer = (functionDecl.Body != null)
-                    ? functionDecl.CursorChildren.IndexOf(functionDecl.Body)
-                    : functionDecl.CursorChildren.Count;
+                int firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
+                int lastCtorInitializer = (functionDecl.Body != null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
 
                 _outputBuilder.BeginBody();
 
@@ -1468,8 +1464,7 @@ namespace ClangSharp
 
                 foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
                 {
-                    if (cxxMethodDecl.IsVirtual || (cxxMethodDecl is CXXConstructorDecl) ||
-                        (cxxMethodDecl is CXXDestructorDecl))
+                    if (cxxMethodDecl.IsVirtual || (cxxMethodDecl is CXXConstructorDecl) || (cxxMethodDecl is CXXDestructorDecl))
                     {
                         continue;
                     }

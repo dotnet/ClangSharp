@@ -1210,7 +1210,7 @@ struct MyStruct
             var inputContents = @"struct MyStruct
 {
     int Equals;
-    int Finalize;
+    int Dispose;
     int GetHashCode;
     int GetType;
     int MemberwiseClone;
@@ -1225,7 +1225,7 @@ struct MyStruct
       <field name=""Equals"" access=""public"">
         <type>int</type>
       </field>
-      <field name=""Finalize"" access=""public"">
+      <field name=""Dispose"" access=""public"">
         <type>int</type>
       </field>
       <field name=""GetHashCode"" access=""public"">

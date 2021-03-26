@@ -137,7 +137,7 @@ namespace ClangSharp.UnitTests
 {
     public partial struct MyStruct
     {
-        public void Finalize()
+        public void Dispose()
         {
         }
     }
@@ -315,8 +315,8 @@ int MyFunctionB(MyStruct* x)
 {
     int Equals() { return 0; }
     int Equals(int obj) { return 0; }
-    int Finalize() { return 0; }
-    int Finalize(int obj) { return 0; }
+    int Dispose() { return 0; }
+    int Dispose(int obj) { return 0; }
     int GetHashCode() { return 0; }
     int GetHashCode(int obj) { return 0; }
     int GetType() { return 0; }
@@ -343,12 +343,12 @@ int MyFunctionB(MyStruct* x)
             return 0;
         }}
 
-        public int Finalize()
+        public int Dispose()
         {{
             return 0;
         }}
 
-        public int Finalize(int obj)
+        public int Dispose(int obj)
         {{
             return 0;
         }}
