@@ -197,7 +197,7 @@ namespace ClangSharp
         public T CastAs<T>()
             where T : Type
         {
-            Debug.Assert(typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with castAs!");
+            Debug.Assert(!typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with castAs!");
 
             if (this is T ty)
             {
@@ -211,7 +211,7 @@ namespace ClangSharp
         public T GetAs<T>()
             where T : Type
         {
-            Debug.Assert(typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with getAs!");
+            Debug.Assert(!typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with getAs!");
 
             if (this is T Ty)
             {
