@@ -877,14 +877,25 @@ namespace ClangSharp
         private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateFunctionParameters = false)
         {
             var parts = new Stack<NamedDecl>();
+            Decl decl = namedDecl;
 
-            for (Decl decl = namedDecl; decl.DeclContext != null; decl = (Decl)decl.DeclContext)
+            do
             {
-                if (decl is NamedDecl)
+                if (decl is NamedDecl parentNamedDecl)
                 {
-                    parts.Push((NamedDecl)decl);
+                    parts.Push(parentNamedDecl);
+                }
+
+                if ((decl.DeclContext is null) && (decl is CXXMethodDecl cxxMethodDecl))
+                {
+                    decl = cxxMethodDecl.ThisObjectType.AsCXXRecordDecl;
+                }
+                else
+                {
+                    decl = (Decl)decl.DeclContext;
                 }
             }
+            while (decl != null);
 
             var qualifiedName = new StringBuilder();
 
