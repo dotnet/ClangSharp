@@ -75,7 +75,7 @@ namespace ClangSharp
 
         public IReadOnlyList<CXXMethodDecl> OverriddenMethods => _overriddenMethods.Value;
 
-        public new CXXRecordDecl Parent => (CXXRecordDecl)base.Parent;
+        public new CXXRecordDecl Parent => (CXXRecordDecl)(base.Parent ?? ThisObjectType.AsCXXRecordDecl);
 
         public uint SizeOverriddenMethods => unchecked((uint)Handle.NumMethods);
 
