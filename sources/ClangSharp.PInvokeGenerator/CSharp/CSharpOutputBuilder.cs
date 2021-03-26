@@ -344,5 +344,19 @@ namespace ClangSharp.CSharp
                 Write(postfix);
             }
         }
+
+        public override string ToString()
+        {
+            var result = new StringBuilder();
+
+            foreach (var line in _contents)
+            {
+                result.Append(line);
+                result.Append('\n');
+            }
+
+            result.Append(_currentLine);
+            return result.ToString();
+        }
     }
 }
