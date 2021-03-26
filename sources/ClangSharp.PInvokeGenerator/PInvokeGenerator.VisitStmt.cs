@@ -327,6 +327,29 @@ namespace ClangSharp
             }
         }
 
+        private void VisitCXXNewExpr(CXXNewExpr cxxNewExpr)
+        {
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write("cxx_new<");
+
+            var allocatedTypeName = GetRemappedTypeName(cxxNewExpr, null, cxxNewExpr.AllocatedType, out var nativeAllocatedTypeName);
+            outputBuilder.Write(allocatedTypeName);
+
+            outputBuilder.Write(">(sizeof(");
+            outputBuilder.Write(allocatedTypeName);
+            outputBuilder.Write("))");
+
+            if (cxxNewExpr.ConstructExpr is not null)
+            {
+                outputBuilder.WriteSemicolon();
+                outputBuilder.WriteNewline();
+
+                outputBuilder.WriteIndented(" = ");
+                VisitCXXConstructExpr(cxxNewExpr.ConstructExpr);
+            }
+            StopCSharpCode();
+        }
+
         private void VisitCXXNullPtrLiteralExpr(CXXNullPtrLiteralExpr cxxNullPtrLiteralExpr)
         {
             var outputBuilder = StartCSharpCode();
@@ -1258,7 +1281,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXFoldExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXNewExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXNewExpr:
+                {
+                    VisitCXXNewExpr((CXXNewExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXNoexceptExpr:
 
                 case CX_StmtClass.CX_StmtClass_CXXNullPtrLiteralExpr:
