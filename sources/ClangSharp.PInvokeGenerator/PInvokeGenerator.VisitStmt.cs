@@ -1492,7 +1492,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
+                case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
+                {
+                    VisitSubstNonTypeTemplateParmExpr((SubstNonTypeTemplateParmExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
                 // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
                 // case CX_StmtClass.CX_StmtClass_TypoExpr:
@@ -1638,18 +1643,20 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
+        private void VisitSubstNonTypeTemplateParmExpr(SubstNonTypeTemplateParmExpr substNonTypeTemplateParmExpr)
+        {
+            Visit(substNonTypeTemplateParmExpr.Replacement);
+        }
+
         private void VisitSwitchStmt(SwitchStmt switchStmt)
         {
             var outputBuilder = StartCSharpCode();
 
             outputBuilder.Write("switch (");
-
             Visit(switchStmt.Cond);
-
             outputBuilder.WriteLine(')');
 
             VisitBody(switchStmt.Body);
-
             StopCSharpCode();
         }
 

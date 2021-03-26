@@ -2771,7 +2771,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXFoldExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXNewExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXNewExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXNoexceptExpr:
 
                 case CX_StmtClass.CX_StmtClass_CXXNullPtrLiteralExpr:
