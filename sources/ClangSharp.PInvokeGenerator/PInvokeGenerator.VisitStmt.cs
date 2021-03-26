@@ -113,15 +113,21 @@ namespace ClangSharp
                 outputBuilder.Write('(');
 
                 var args = callExpr.Args;
+                var needsComma = false;
 
-                if (args.Count != 0)
+                for (int i = 0; i < args.Count; i++)
                 {
-                    Visit(args[0]);
-
-                    for (int i = 1; i < args.Count; i++)
+                    if (needsComma)
                     {
                         outputBuilder.Write(", ");
-                        Visit(args[i]);
+                    }
+
+                    var arg = args[i];
+                    Visit(args);
+
+                    if (arg is not CXXDefaultArgExpr)
+                    {
+                        needsComma = true;
                     }
                 }
 
@@ -313,6 +319,12 @@ namespace ClangSharp
             }
 
             StopCSharpCode();
+        }
+
+        private void VisitCXXDefaultArgExpr(CXXDefaultArgExpr cxxDefaultArgExpr)
+        {
+            // Nothing to handle as these just represent optional parameters that
+            // aren't properly defined
         }
 
         private void VisitCXXFunctionalCastExpr(CXXFunctionalCastExpr cxxFunctionalCastExpr)
@@ -1275,7 +1287,13 @@ namespace ClangSharp
                 }
 
                 // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
+                {
+                    VisitCXXDefaultArgExpr((CXXDefaultArgExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
