@@ -307,5 +307,25 @@ namespace ClangSharp.Test
 
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
+
+        public override Task ConditionalDefineConstTest()
+        {
+            var inputContents = @"typedef int TESTRESULT;
+#define TESTRESULT_FROM_WIN32(x) ((TESTRESULT)(x) <= 0 ? ((TESTRESULT)(x)) : ((TESTRESULT) (((x) & 0x0000FFFF) | (7 << 16) | 0x80000000)))
+#define ADDRESS_IN_USE TESTRESULT_FROM_WIN32(10048)";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""#define ADDRESS_IN_USE TESTRESULT_FROM_WIN32(10048)"")]
+        public const int ADDRESS_IN_USE = unchecked((int)(10048) <= 0 ? ((int)(10048)) : ((int)(((10048) & 0x0000FFFF) | (7 << 16) | 0x80000000)));
+    }}
+}}
+";
+            var diagnostics = new Diagnostic[] { new Diagnostic(DiagnosticLevel.Warning, "Function like macro definition records are not supported: 'TESTRESULT_FROM_WIN32'. Generated bindings may be incomplete.", "Line 2, Column 9 in ClangUnsavedFile.h") };
+
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
+        }
     }
 }
