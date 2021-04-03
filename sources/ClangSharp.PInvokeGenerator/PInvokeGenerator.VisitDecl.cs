@@ -635,6 +635,7 @@ namespace ClangSharp
             }
 
             var fieldDecl = indirectFieldDecl.AnonField;
+            var tmpName = GetRemappedCursorName(fieldDecl);
             var anonymousRecordDecl = fieldDecl.Parent;
 
             var rootRecordDecl = anonymousRecordDecl;
@@ -642,7 +643,7 @@ namespace ClangSharp
             var contextNameParts = new Stack<string>();
             var contextTypeParts = new Stack<string>();
 
-            while (rootRecordDecl.Parent is RecordDecl parentRecordDecl)
+            while (rootRecordDecl.IsAnonymousStructOrUnion && (rootRecordDecl.Parent is RecordDecl parentRecordDecl))
             {
                 var contextNamePart = GetRemappedCursorName(rootRecordDecl);
 
@@ -668,11 +669,6 @@ namespace ClangSharp
                 contextNameParts.Push(EscapeName(contextNamePart));
 
                 contextTypeParts.Push(GetRemappedTypeName(rootRecordDecl, context: null, rootRecordDecl.TypeForDecl, out _));
-
-                if (!rootRecordDecl.IsAnonymousStructOrUnion)
-                {
-                    break;
-                }
 
                 rootRecordDecl = parentRecordDecl;
             }
