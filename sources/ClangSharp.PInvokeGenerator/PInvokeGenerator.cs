@@ -2219,15 +2219,16 @@ namespace ClangSharp
             isExcludedByConflictingDefinition = false;
 
             return !IsAlwaysIncluded(cursor)
-                && ((_config.ExcludeFunctionsWithBody
-                && cursor is FunctionDecl functionDecl
-                && cursor.CursorKind == CXCursorKind.CXCursor_FunctionDecl
-                && functionDecl.HasBody)
-                || IsExcludedByFile(cursor) || IsExcludedByName(cursor, out isExcludedByConflictingDefinition));
+                && (IsExcludedByConfig(cursor) || IsExcludedByFile(cursor) || IsExcludedByName(cursor, out isExcludedByConflictingDefinition));
 
             bool IsAlwaysIncluded(Cursor cursor)
             {
                 return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl) || ((cursor is VarDecl varDecl) && varDecl.Name.StartsWith("ClangSharpMacro_"));
+            }
+
+            bool IsExcludedByConfig(Cursor cursor)
+            {
+                return _config.ExcludeFunctionsWithBody && (cursor is FunctionDecl functionDecl) && functionDecl.HasBody;
             }
 
             bool IsExcludedByFile(Cursor cursor)
