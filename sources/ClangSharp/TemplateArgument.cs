@@ -138,9 +138,6 @@ namespace ClangSharp
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool isDisposing)
-        {
-            Handle.Dispose();
-        }
+        private void Dispose(bool isDisposing) => Handle.Dispose();
     }
 }

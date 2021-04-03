@@ -125,7 +125,15 @@ namespace ClangSharp.Interop
 
         public CXString Spelling => clang.getTypeSpelling(this);
 
-        public CX_TemplateName TemplateName => clangsharp.Type_getTemplateName(this);
+        public CX_TemplateName TemplateName
+        {
+            get
+            {
+                var TN = clangsharp.Type_getTemplateName(this);
+                TN.tu = (CXTranslationUnitImpl*)data[1];
+                return TN;
+            }
+        }
 
         public CX_TypeClass TypeClass => clangsharp.Type_getTypeClass(this);
 
@@ -192,7 +200,7 @@ namespace ClangSharp.Interop
                     CX_TypeClass.CX_TypeClass_UnresolvedUsing => "UnresolvedUsing",
                     CX_TypeClass.CX_TypeClass_Vector => "Vector",
                     CX_TypeClass.CX_TypeClass_ExtVector => "ExtVector",
-                    _ => TypeClass.ToString().Substring(13),
+                    _ => TypeClass.ToString()[13..],
                 };
             }
         }
@@ -205,13 +213,7 @@ namespace ClangSharp.Interop
 
         public CXType ValueType => clang.Type_getValueType(this);
 
-        internal string DebuggerDisplayString
-        {
-            get
-            {
-                return $"{TypeClassSpelling}: {this}";
-            }
-        }
+        internal string DebuggerDisplayString => $"{TypeClassSpelling}: {this}";
 
         public static bool operator ==(CXType left, CXType right) => clang.equalTypes(left, right) != 0;
 

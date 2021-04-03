@@ -19,15 +19,13 @@ namespace ClangSharp.UnitTests
                 + "  module * { export * }\n"
                 + "}\n";
 
-            using (var mmd = CXModuleMapDescriptor.Create(options: 0))
-            {
-                mmd.SetFrameworkModuleName("TestFrame");
-                mmd.SetUmbrellaHeader("TestFrame.h");
+            using var mmd = CXModuleMapDescriptor.Create(options: 0);
+            _ = mmd.SetFrameworkModuleName("TestFrame");
+            _ = mmd.SetUmbrellaHeader("TestFrame.h");
 
-                Span<byte> buffer = mmd.WriteToBuffer(options: 0, errorCode: out _);
-                Assert.Equal(contents, buffer.AsString());
-                buffer.ClangFree();
-            }
+            var buffer = mmd.WriteToBuffer(options: 0, errorCode: out _);
+            Assert.Equal(contents, buffer.AsString());
+            buffer.ClangFree();
         }
     }
 }

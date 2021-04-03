@@ -217,6 +217,8 @@ Options:
                                            attributes.
   generate-macro-bindings                  Bindings for macro-definitions should be generated. This currently only
                                            works with value like macros and not function-like ones.
+  generate-template-bindings               Bindings for template-definitions should be generated. This is currently
+                                           experimental.
   generate-native-inheritance-attribute    [NativeInheritance("")] attribute should be generated to document the
                                            encountered C++ base type.
   generate-vtbl-index-attribute            [VtblIndex(#)] attribute should be generated to document the underlying

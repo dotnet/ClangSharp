@@ -346,7 +346,7 @@ namespace ClangSharp.Interop
                     CX_AttrKind.CX_AttrKind_Overloadable => "Overloadable",
                     CX_AttrKind.CX_AttrKind_RenderScriptKernel => "RenderScriptKernel",
                     CX_AttrKind.CX_AttrKind_Thread => "Thread",
-                    _ => Kind.ToString().Substring(12),
+                    _ => Kind.ToString()[12..],
                 };
             }
         }
@@ -458,7 +458,7 @@ namespace ClangSharp.Interop
                     CX_CastKind.CX_CK_ZeroToOCLOpaqueType => "ZeroToOCLOpaqueType",
                     CX_CastKind.CX_CK_AddressSpaceConversion => "AddressSpaceConversion",
                     CX_CastKind.CX_CK_IntToOCLSampler => "IntToOCLSampler",
-                    _ => CastKind.ToString().Substring(6),
+                    _ => CastKind.ToString()[6..],
                 };
             }
         }
@@ -649,7 +649,7 @@ namespace ClangSharp.Interop
                     CX_DeclKind.CX_DeclKind_RequiresExprBody => "RequiresExprBody",
                     CX_DeclKind.CX_DeclKind_StaticAssert => "StaticAssert",
                     CX_DeclKind.CX_DeclKind_TranslationUnit => "TranslationUnit",
-                    _ => Kind.ToString().Substring(12),
+                    _ => Kind.ToString()[12..],
                 };
             }
         }
@@ -1363,7 +1363,7 @@ namespace ClangSharp.Interop
                     CX_StmtClass.CX_StmtClass_VAArgExpr => "VAArgExpr",
                     CX_StmtClass.CX_StmtClass_LabelStmt => "LabelStmt",
                     CX_StmtClass.CX_StmtClass_WhileStmt => "WhileStmt",
-                    _ => StmtClass.ToString().Substring(13),
+                    _ => StmtClass.ToString()[13..],
                 };
             }
         }
@@ -1448,18 +1448,18 @@ namespace ClangSharp.Interop
 
                     if (BinaryOperatorKind != CX_BinaryOperatorKind.CX_BO_Invalid)
                     {
-                        additionalInfo = $"({BinaryOperatorKindSpelling})";
+                        additionalInfo = $" ({BinaryOperatorKindSpelling})";
                     }
                     else if (CastKind != CX_CastKind.CX_CK_Invalid)
                     {
-                        additionalInfo = $"({CastKindSpelling})";
+                        additionalInfo = $" ({CastKindSpelling})";
                     }
                     else if (UnaryOperatorKind != CX_UnaryOperatorKind.CX_UO_Invalid)
                     {
-                        additionalInfo = $"({UnaryOperatorKindSpelling})";
+                        additionalInfo = $" ({UnaryOperatorKindSpelling})";
                     }
 
-                    return $"{StmtClassSpelling}: {this}";
+                    return $"{StmtClassSpelling}: {this}{additionalInfo}";
                 }
                 else
                 {
@@ -1474,7 +1474,7 @@ namespace ClangSharp.Interop
 
         public bool CapturesVariable(CXCursor var) => clangsharp.Cursor_getCapturesVariable(this, var) != 0;
 
-        public void DisposeOverriddenCursors(ReadOnlySpan<CXCursor> overridden)
+        public static void DisposeOverriddenCursors(ReadOnlySpan<CXCursor> overridden)
         {
             fixed (CXCursor* pOverridden = overridden)
             {

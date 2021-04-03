@@ -14,17 +14,17 @@ namespace ClangSharp.UnitTests
     //        on Windows, but clang doesn't seem to support this)
     public class CXVirtualFileOverlayTest
     {
-        class TestVFO : IDisposable
+        public class TestVFO : IDisposable
         {
             public CXVirtualFileOverlay VFO;
 
-            private string Contents;
-            private bool isDisposed = false;
+            private readonly string _contents;
+            private bool _isDisposed = false;
 
             public TestVFO(string contents)
             {
                 VFO = CXVirtualFileOverlay.Create(options: 0);
-                Contents = Fix(contents);
+                _contents = Fix(contents);
             }
 
             ~TestVFO()
@@ -50,7 +50,7 @@ namespace ClangSharp.UnitTests
                 Assert.Equal(expErr, err);
             }
 
-            private string Fix(string text)
+            private static string Fix(string text)
             {
                 if (text is null)
                 {
@@ -69,16 +69,16 @@ namespace ClangSharp.UnitTests
 
             protected virtual void Dispose(bool isDisposing)
             {
-                if (isDisposed)
+                if (_isDisposed)
                 {
                     return;
                 }
-                isDisposed = true;
+                _isDisposed = true;
 
-                if (Contents != null)
+                if (_contents != null)
                 {
-                    Span<byte> buffer = VFO.WriteToBuffer(options: 0, errorCode: out _);
-                    Assert.Equal(Contents, buffer.AsString());
+                    var buffer = VFO.WriteToBuffer(options: 0, errorCode: out _);
+                    Assert.Equal(_contents, buffer.AsString());
                     buffer.ClangFree();
                 }
 
@@ -107,10 +107,8 @@ namespace ClangSharp.UnitTests
                 + "  ]\n"
                 + "}\n";
 
-            using (TestVFO T = new TestVFO(contents))
-            {
-                T.Map(@"$ROOT$/path/virtual/foo.h", @"$ROOT$/real/foo.h");
-            }
+            using var t = new TestVFO(contents);
+            t.Map(@"$ROOT$/path/virtual/foo.h", @"$ROOT$/real/foo.h");
         }
 
         [Fact]
@@ -134,20 +132,16 @@ namespace ClangSharp.UnitTests
                 + "  ]\n"
                 + "}\n";
 
-            using (TestVFO T = new TestVFO(contents))
-            {
-                T.Map("$ROOT$/path/♫/☂.h", "$ROOT$/real/☂.h");
-            }
+            using var t = new TestVFO(contents);
+            t.Map("$ROOT$/path/♫/☂.h", "$ROOT$/real/☂.h");
         }
 
         [Fact]
         public void InvalidArgs()
         {
-            using (TestVFO T = new TestVFO(null))
-            {
-                T.MapError("$ROOT$/path/./virtual/../foo.h", "$ROOT$/real/foo.h",
-                           CXErrorCode.CXError_InvalidArguments);
-            }
+            using var t = new TestVFO(null);
+            t.MapError("$ROOT$/path/./virtual/../foo.h", "$ROOT$/real/foo.h",
+                       CXErrorCode.CXError_InvalidArguments);
         }
 
         [Fact]
@@ -198,13 +192,11 @@ namespace ClangSharp.UnitTests
                 + "  ]\n"
                 + "}\n";
 
-            using (TestVFO T = new TestVFO(contents))
-            {
-                T.Map("$ROOT$/path/virtual/dir/foo1.h", "$ROOT$/real/foo1.h");
-                T.Map("$ROOT$/another/dir/foo2.h", "$ROOT$/real/foo2.h");
-                T.Map("$ROOT$/path/virtual/dir/foo3.h", "$ROOT$/real/foo3.h");
-                T.Map("$ROOT$/path/virtual/dir/in/subdir/foo4.h", "$ROOT$/real/foo4.h");
-            }
+            using var t = new TestVFO(contents);
+            t.Map("$ROOT$/path/virtual/dir/foo1.h", "$ROOT$/real/foo1.h");
+            t.Map("$ROOT$/another/dir/foo2.h", "$ROOT$/real/foo2.h");
+            t.Map("$ROOT$/path/virtual/dir/foo3.h", "$ROOT$/real/foo3.h");
+            t.Map("$ROOT$/path/virtual/dir/in/subdir/foo4.h", "$ROOT$/real/foo4.h");
         }
 
         [Fact]
@@ -229,11 +221,9 @@ namespace ClangSharp.UnitTests
                 + "  ]\n"
                 + "}\n";
 
-            using (TestVFO T = new TestVFO(contents))
-            {
-                T.Map("$ROOT$/path/virtual/foo.h", "$ROOT$/real/foo.h");
-                T.VFO.SetCaseSensitivity(false);
-            }
+            using var t = new TestVFO(contents);
+            t.Map("$ROOT$/path/virtual/foo.h", "$ROOT$/real/foo.h");
+            _ = t.VFO.SetCaseSensitivity(false);
         }
 
         [Fact]
@@ -284,13 +274,11 @@ namespace ClangSharp.UnitTests
                 + "  ]\n"
                 + "}\n";
 
-            using (TestVFO T = new TestVFO(contents))
-            {
-                T.Map("$ROOT$/path/foo/bar.h", "$ROOT$/real/bar.h");
-                T.Map("$ROOT$/path/foo/bar", "$ROOT$/real/bar");
-                T.Map("$ROOT$/path/foobar/baz.h", "$ROOT$/real/baz.h");
-                T.Map("$ROOT$/path/foobarbaz.h", "$ROOT$/real/foobarbaz.h");
-            }
+            using var t = new TestVFO(contents);
+            t.Map("$ROOT$/path/foo/bar.h", "$ROOT$/real/bar.h");
+            t.Map("$ROOT$/path/foo/bar", "$ROOT$/real/bar");
+            t.Map("$ROOT$/path/foobar/baz.h", "$ROOT$/real/baz.h");
+            t.Map("$ROOT$/path/foobarbaz.h", "$ROOT$/real/foobarbaz.h");
         }
 
         [Fact]
@@ -336,12 +324,10 @@ namespace ClangSharp.UnitTests
                 + "  ]\n"
                 + "}\n";
 
-            using (TestVFO T = new TestVFO(contents))
-            {
-                T.Map("$ROOT$/path/dir1/foo.h", "$ROOT$/real/foo.h");
-                T.Map("$ROOT$/path/dir1/subdir/bar.h", "$ROOT$/real/bar.h");
-                T.Map("$ROOT$/path/dir2/baz.h", "$ROOT$/real/baz.h");
-            }
+            using var t = new TestVFO(contents);
+            t.Map("$ROOT$/path/dir1/foo.h", "$ROOT$/real/foo.h");
+            t.Map("$ROOT$/path/dir1/subdir/bar.h", "$ROOT$/real/bar.h");
+            t.Map("$ROOT$/path/dir2/baz.h", "$ROOT$/real/baz.h");
         }
 
         [Fact]
@@ -365,10 +351,8 @@ namespace ClangSharp.UnitTests
                 + "  ]\n"
                 + "}\n";
 
-            using (TestVFO T = new TestVFO(contents))
-            {
-                T.Map("$ROOT$/foo.h", "$ROOT$/real/foo.h");
-            }
+            using var t = new TestVFO(contents);
+            t.Map("$ROOT$/foo.h", "$ROOT$/real/foo.h");
         }
 
         [Fact]
@@ -381,9 +365,7 @@ namespace ClangSharp.UnitTests
                 + "  ]\n"
                 + "}\n";
 
-            using (TestVFO T = new TestVFO(contents))
-            {
-            }
+            using var t = new TestVFO(contents);
         }
     }
 }

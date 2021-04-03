@@ -8,8 +8,8 @@ namespace ClangSharp
 {
     public sealed class CXXDefaultInitExpr : Expr
     {
-        private Lazy<FieldDecl> _field;
-        private Lazy<IDeclContext> _usedContext;
+        private readonly Lazy<FieldDecl> _field;
+        private readonly Lazy<IDeclContext> _usedContext;
 
         internal CXXDefaultInitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr)
         {

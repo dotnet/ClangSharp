@@ -10,9 +10,9 @@ namespace ClangSharp
     {
         private protected ValueStmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastValueStmt < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstValueStmt))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastValueStmt or < CX_StmtClass.CX_StmtClass_FirstValueStmt)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
 
@@ -20,27 +20,28 @@ namespace ClangSharp
         {
             get
             {
-                Stmt S = this;
+                Stmt s = this;
+
                 do
                 {
-                    if (S is Expr E)
+                    if (s is Expr e)
                     {
-                        return E;
+                        return e;
                     }
 
-                    if (S is LabelStmt LS)
+                    if (s is LabelStmt ls)
                     {
-                        S = LS.SubStmt;
+                        s = ls.SubStmt;
                     }
-                    else if (S is AttributedStmt AS)
+                    else if (s is AttributedStmt @as)
                     {
-                        S = AS.SubStmt;
+                        s = @as.SubStmt;
                     }
                     else
                     {
                         Debug.Fail("unknown kind of ValueStmt");
                     }
-                } while (S is ValueStmt);
+                } while (s is ValueStmt);
 
                 return null;
             }

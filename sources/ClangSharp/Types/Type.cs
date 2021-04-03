@@ -18,12 +18,12 @@ namespace ClangSharp
         {
             if (handle.kind != expectedKind)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             if ((handle.TypeClass == CX_TypeClass.CX_TypeClass_Invalid) || (handle.TypeClass != expectedTypeClass))
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
             Handle = handle;
 
@@ -41,17 +41,9 @@ namespace ClangSharp
         {
             get
             {
-                if (GetAs<TagType>() is TagType TT)
-                {
-                    return TT.Decl;
-                }
-
-                if (GetAs<InjectedClassNameType>() is InjectedClassNameType Injected)
-                {
-                    return Injected.Decl;
-                }
-
-                return null;
+                return GetAs<TagType>() is TagType tt
+                    ? tt.Decl
+                    : (global::ClangSharp.TagDecl)(GetAs<InjectedClassNameType>() is InjectedClassNameType injected ? injected.Decl : null);
             }
         }
 
@@ -65,34 +57,15 @@ namespace ClangSharp
 
         public bool IsExtIntType => CanonicalType is ExtIntType;
 
-        public bool IsIntegerType
-        {
-            get
-            {
-                if (this is BuiltinType builtinType)
-                {
-                    return (CXTypeKind.CXType_Bool <= Kind) && (Kind <= CXTypeKind.CXType_Int128);
-                }
-
-                return false;
-            }
-        }
+        public bool IsIntegerType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind is >= CXTypeKind.CXType_Bool and <= CXTypeKind.CXType_Int128;
 
         public bool IsIntegralOrEnumerationType
         {
             get
             {
-                if (CanonicalType is BuiltinType BT)
-                {
-                    return (BT.Kind >= CXTypeKind.CXType_Bool) && (BT.Kind <= CXTypeKind.CXType_Int128);
-                }
-
-                if (CanonicalType is EnumType ET)
-                {
-                    return ET.Decl.IsComplete;
-                }
-
-                return IsExtIntType;
+                return CanonicalType is BuiltinType bt
+                    ? bt.Kind is >= CXTypeKind.CXType_Bool and <= CXTypeKind.CXType_Int128
+                    : CanonicalType is EnumType et ? et.Decl.IsComplete : IsExtIntType;
             }
         }
 
@@ -120,15 +93,15 @@ namespace ClangSharp
         {
             get
             {
-                Type Cur = this;
+                var cur = this;
 
                 while (true)
                 {
-                    if (!Cur.IsSugared)
+                    if (!cur.IsSugared)
                     {
-                        return Cur;
+                        return cur;
                     }
-                    Cur = Cur.Desugar;
+                    cur = cur.Desugar;
                 }
             }
         }
@@ -197,7 +170,7 @@ namespace ClangSharp
         public T CastAs<T>()
             where T : Type
         {
-            Debug.Assert(typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with castAs!");
+            Debug.Assert(!typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with castAs!");
 
             if (this is T ty)
             {
@@ -211,19 +184,9 @@ namespace ClangSharp
         public T GetAs<T>()
             where T : Type
         {
-            Debug.Assert(typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with getAs!");
+            Debug.Assert(!typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with getAs!");
 
-            if (this is T Ty)
-            {
-                return Ty;
-            }
-
-            if (CanonicalType is not T)
-            {
-                return null;
-            }
-
-            return (T)UnqualifiedDesugaredType;
+            return this is T ty ? ty : CanonicalType is not T ? null : (T)UnqualifiedDesugaredType;
         }
 
         public override int GetHashCode() => Handle.GetHashCode();

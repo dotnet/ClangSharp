@@ -14,9 +14,9 @@ namespace ClangSharp
 
         private protected TagDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastTag < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstTag))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastTag or < CX_DeclKind.CX_DeclKind_FirstTag)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _definition = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition));

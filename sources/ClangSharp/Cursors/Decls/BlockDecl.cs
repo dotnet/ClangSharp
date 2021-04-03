@@ -19,7 +19,7 @@ namespace ClangSharp
                 var captureCount = Handle.NumCaptures;
                 var captures = new List<Capture>(captureCount);
 
-                for (int i = 0; i < captureCount; i++)
+                for (var i = 0; i < captureCount; i++)
                 {
                     var capture = new Capture(this, unchecked((uint)i));
                     captures.Add(capture);
@@ -31,7 +31,7 @@ namespace ClangSharp
                 var parameterCount = Handle.NumArguments;
                 var parameters = new List<ParmVarDecl>(parameterCount);
 
-                for (int i = 0; i < parameterCount; i++)
+                for (var i = 0; i < parameterCount; i++)
                 {
                     var parameter = TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i)));
                     parameters.Add(parameter);

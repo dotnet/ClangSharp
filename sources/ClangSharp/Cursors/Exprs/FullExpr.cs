@@ -10,9 +10,9 @@ namespace ClangSharp
     {
         private protected FullExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastFullExpr < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstFullExpr))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastFullExpr or < CX_StmtClass.CX_StmtClass_FirstFullExpr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             Debug.Assert(NumChildren is 1);

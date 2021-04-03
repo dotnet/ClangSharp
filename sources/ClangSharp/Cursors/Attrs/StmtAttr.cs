@@ -9,9 +9,9 @@ namespace ClangSharp
     {
         internal StmtAttr(CXCursor handle) : base(handle)
         {
-            if ((CX_AttrKind.CX_AttrKind_LastStmtAttr < handle.AttrKind) || (handle.AttrKind < CX_AttrKind.CX_AttrKind_FirstStmtAttr))
+            if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastStmtAttr or < CX_AttrKind.CX_AttrKind_FirstStmtAttr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
     }

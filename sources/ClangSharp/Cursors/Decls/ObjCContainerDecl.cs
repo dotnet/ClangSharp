@@ -18,9 +18,9 @@ namespace ClangSharp
 
         private protected ObjCContainerDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastObjCContainer < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstObjCContainer))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastObjCContainer or < CX_DeclKind.CX_DeclKind_FirstObjCContainer)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _classMethods = new Lazy<IReadOnlyList<ObjCMethodDecl>>(() => Methods.Where((method) => method.IsClassMethod).ToList());

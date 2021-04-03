@@ -46,7 +46,7 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(namespaceName));
             }
 
-            if (outputMode != PInvokeGeneratorOutputMode.CSharp && outputMode != PInvokeGeneratorOutputMode.Xml)
+            if (outputMode is not PInvokeGeneratorOutputMode.CSharp and not PInvokeGeneratorOutputMode.Xml)
             {
                 throw new ArgumentOutOfRangeException(nameof(options));
             }
@@ -176,6 +176,8 @@ namespace ClangSharp
         public bool GenerateCppAttributes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCppAttributes);
 
         public bool GenerateNativeInheritanceAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
+
+        public bool GenerateTemplateBindings => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTemplateBindings);
 
         public bool GenerateVtblIndexAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
 

@@ -16,7 +16,7 @@ namespace ClangSharp
                 var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
                 Debug.Assert(tokens.Length == 1);
-                Debug.Assert(tokens[0].Kind == CXTokenKind.CXToken_Literal);
+                Debug.Assert(tokens[0].Kind is CXTokenKind.CXToken_Literal or CXTokenKind.CXToken_Identifier);
 
                 var spelling = tokens[0].GetSpelling(Handle.TranslationUnit).ToString();
                 spelling = spelling.Trim('\\', '\r', '\n');

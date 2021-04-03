@@ -17,55 +17,25 @@ namespace ClangSharp.Interop
 
         private static IntPtr OnDllImport(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
         {
-            IntPtr nativeLibrary;
 
-            if (TryResolveLibrary(libraryName, assembly, searchPath, out nativeLibrary))
-            {
-                return nativeLibrary;
-            }
-
-            if (libraryName.Equals("libclang") && TryResolveClang(assembly, searchPath, out nativeLibrary))
-            {
-                return nativeLibrary;
-            }
-
-            if (libraryName.Equals("libClangSharp") && TryResolveClangSharp(assembly, searchPath, out nativeLibrary))
-            {
-                return nativeLibrary;
-            }
-
-            return IntPtr.Zero;
+            return TryResolveLibrary(libraryName, assembly, searchPath, out var nativeLibrary)
+                ? nativeLibrary
+                : libraryName.Equals("libclang") && TryResolveClang(assembly, searchPath, out nativeLibrary)
+                ? nativeLibrary
+                : libraryName.Equals("libClangSharp") && TryResolveClangSharp(assembly, searchPath, out nativeLibrary)
+                ? nativeLibrary
+                : IntPtr.Zero;
         }
 
         private static bool TryResolveClang(Assembly assembly, DllImportSearchPath? searchPath, out IntPtr nativeLibrary)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang.so.10", assembly, searchPath, out nativeLibrary))
-            {
-                return true;
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang-10", assembly, searchPath, out nativeLibrary))
-            {
-                return true;
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang.so.1", assembly, searchPath, out nativeLibrary))
-            {
-                return true;
-            }
-
-            if (NativeLibrary.TryLoad("libclang", assembly, searchPath, out nativeLibrary))
-            {
-                return true;
-            }
-
-            return false;
+            return (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang.so.10", assembly, searchPath, out nativeLibrary))
+                || (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang-10", assembly, searchPath, out nativeLibrary))
+                || (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang.so.1", assembly, searchPath, out nativeLibrary))
+                || NativeLibrary.TryLoad("libclang", assembly, searchPath, out nativeLibrary);
         }
 
-        private static bool TryResolveClangSharp(Assembly assembly, DllImportSearchPath? searchPath, out IntPtr nativeLibrary)
-        {
-            return NativeLibrary.TryLoad("libClangSharp", assembly, searchPath, out nativeLibrary);
-        }
+        private static bool TryResolveClangSharp(Assembly assembly, DllImportSearchPath? searchPath, out IntPtr nativeLibrary) => NativeLibrary.TryLoad("libClangSharp", assembly, searchPath, out nativeLibrary);
 
         private static bool TryResolveLibrary(string libraryName, Assembly assembly, DllImportSearchPath? searchPath, out IntPtr nativeLibrary)
         {

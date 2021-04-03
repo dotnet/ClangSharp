@@ -20,7 +20,7 @@ namespace ClangSharp
 
         public new Stmt SubStmt => Children[SubStmtOffset];
 
-        private int LHSOffset => 0;
+        private static int LHSOffset => 0;
 
         private int RHSOffset => LHSOffset + (CaseStmtIsGNURange ? 1 : 0);
 

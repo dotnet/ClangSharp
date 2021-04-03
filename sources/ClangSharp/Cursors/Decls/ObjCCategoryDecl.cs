@@ -29,7 +29,7 @@ namespace ClangSharp
                 var numProtocols = Handle.NumProtocols;
                 var protocols = new List<ObjCProtocolDecl>(numProtocols);
 
-                for (int i = 0; i < numProtocols; i++)
+                for (var i = 0; i < numProtocols; i++)
                 {
                     var protocol = TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i)));
                     protocols.Add(protocol);
@@ -42,7 +42,7 @@ namespace ClangSharp
                 var numTypeParams = Handle.NumArguments;
                 var typeParams = new List<ObjCTypeParamDecl>(numTypeParams);
 
-                for (int i = 0; i < numTypeParams; i++)
+                for (var i = 0; i < numTypeParams; i++)
                 {
                     var typeParam = TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetArgument(unchecked((uint)i)));
                     typeParams.Add(typeParam);

@@ -15,5 +15,9 @@ namespace ClangSharp
             _argumentPack = new Lazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(0)));
             _replacedParameter = new Lazy<TemplateTypeParmType>(() => TranslationUnit.GetOrCreate<TemplateTypeParmType>(Handle.OriginalType));
         }
+
+        public TemplateArgument ArgumentPack => _argumentPack.Value;
+
+        public TemplateTypeParmType ReplacedParameter => _replacedParameter.Value;
     }
 }

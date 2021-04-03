@@ -19,9 +19,9 @@ namespace ClangSharp
 
         private protected CallExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastCallExpr < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstCallExpr))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastCallExpr or < CX_StmtClass.CX_StmtClass_FirstCallExpr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             Debug.Assert(NumChildren >= 1);
@@ -38,7 +38,7 @@ namespace ClangSharp
 
         public FunctionDecl DirectCallee => CalleeDecl as FunctionDecl;
 
-        public bool IsCallToStdMove => (NumArgs == 1) && (DirectCallee is FunctionDecl FD) && FD.IsInStdNamespace && (FD.Name == "move");
+        public bool IsCallToStdMove => (NumArgs == 1) && (DirectCallee is FunctionDecl fd) && fd.IsInStdNamespace && (fd.Name == "move");
 
         public uint NumArgs => (uint)Handle.NumArguments;
     }

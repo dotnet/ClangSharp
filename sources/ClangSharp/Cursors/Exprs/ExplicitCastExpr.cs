@@ -11,9 +11,9 @@ namespace ClangSharp
 
         private protected ExplicitCastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastExplicitCastExpr < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstExplicitCastExpr))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastExplicitCastExpr or < CX_StmtClass.CX_StmtClass_FirstExplicitCastExpr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _typeAsWritten = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));

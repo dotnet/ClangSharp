@@ -19,7 +19,7 @@ namespace ClangSharp
                 var associatedConstraintCount = Handle.NumAssociatedConstraints;
                 var associatedConstraints = new List<Expr>(associatedConstraintCount);
 
-                for (int i = 0; i < associatedConstraintCount; i++)
+                for (var i = 0; i < associatedConstraintCount; i++)
                 {
                     var parameter = TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i)));
                     associatedConstraints.Add(parameter);
@@ -34,7 +34,7 @@ namespace ClangSharp
                 var numExpansionTypes = Handle.NumExpansionTypes;
                 var expansionTypes = new List<Type>(numExpansionTypes);
 
-                for (int i = 0; i < numExpansionTypes; i++)
+                for (var i = 0; i < numExpansionTypes; i++)
                 {
                     var expansionType = TranslationUnit.GetOrCreate<Type>(Handle.GetExpansionType(unchecked((uint)i)));
                     expansionTypes.Add(expansionType);

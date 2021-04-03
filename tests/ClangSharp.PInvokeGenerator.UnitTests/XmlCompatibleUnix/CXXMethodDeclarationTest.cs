@@ -177,7 +177,7 @@ namespace ClangSharp.UnitTests
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
-      <function name=""Finalize"" access=""public"">
+      <function name=""Dispose"" access=""public"">
         <type>void</type>
         <code></code>
       </function>
@@ -234,7 +234,7 @@ namespace ClangSharp.UnitTests
         <code>return 0;</code>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <code>return null;</code>
       </function>
     </struct>
@@ -359,8 +359,8 @@ int MyFunctionB(MyStruct* x)
 {
     int Equals() { return 0; }
     int Equals(int obj) { return 0; }
-    int Finalize() { return 0; }
-    int Finalize(int obj) { return 0; }
+    int Dispose() { return 0; }
+    int Dispose(int obj) { return 0; }
     int GetHashCode() { return 0; }
     int GetHashCode(int obj) { return 0; }
     int GetType() { return 0; }
@@ -388,11 +388,11 @@ int MyFunctionB(MyStruct* x)
         </param>
         <code>return 0;</code>
       </function>
-      <function name=""Finalize"" access=""public"">
+      <function name=""Dispose"" access=""public"">
         <type>int</type>
         <code>return 0;</code>
       </function>
-      <function name=""Finalize"" access=""public"">
+      <function name=""Dispose"" access=""public"">
         <type>int</type>
         <param name=""obj"">
           <type>int</type>
@@ -862,7 +862,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
         <code>return 0;</code>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" static=""true"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <code>return null;</code>
       </function>
     </struct>
@@ -922,7 +922,7 @@ void MyFunction();";
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <code>return null;</code>
       </function>
     </struct>
@@ -988,7 +988,7 @@ void MyFunction();";
         </param>
       </delegate>
       <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""{callConv}"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
@@ -1021,7 +1021,7 @@ void MyFunction();";
         </body>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <body>
           <code>fixed (MyStruct* pThis = &amp;this)
     {{
@@ -1087,7 +1087,7 @@ void MyFunction();";
         </param>
       </delegate>
       <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""{callConv}"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
@@ -1120,7 +1120,7 @@ void MyFunction();";
         </body>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"" vtblindex=""3"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <body>
           <code>fixed (MyStruct* pThis = &amp;this)
     {{

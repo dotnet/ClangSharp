@@ -31,6 +31,27 @@ jobs:
       PathtoPublish: artifacts/pkg/${{parameters.configuration}}
       ArtifactName: packages
       publishLocation: Container
+  - task: CopyFiles@2
+    displayName: 'Stage win32metadata bin artifacts'
+    condition: eq(${{parameters.testwin32metadata}}, true)
+    inputs:
+      sourceFolder: artifacts/win32metadata
+      contents: '**/bin/**'
+      targetFolder: $(Build.ArtifactStagingDirectory)
+  - task: CopyFiles@2
+    displayName: 'Stage win32metadata obj artifacts'
+    condition: eq(${{parameters.testwin32metadata}}, true)
+    inputs:
+      sourceFolder: artifacts/win32metadata
+      contents: '**/obj/**'
+      targetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish win32metadata Artifacts'
+    condition: eq(${{parameters.testwin32metadata}}, true)
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: win32metadata
+      publishLocation: Container
   variables:
     EXCLUDE_BUILDNUMBER_FROM_PACKAGE: ${{parameters.EXCLUDE_BUILDNUMBER_FROM_PACKAGE}}
     OVERRIDE_RUNTIME_IDENTIFIER: ${{parameters.OVERRIDE_RUNTIME_IDENTIFIER}}

@@ -134,7 +134,7 @@ union MyUnion3
 };
 ";
 
-            string expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", Pack = 1" : "";
+            var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", Pack = 1" : "";
 
             var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
@@ -1126,7 +1126,7 @@ namespace ClangSharp.Test
             var inputContents = @"union MyUnion
 {
     int Equals;
-    int Finalize;
+    int Dispose;
     int GetHashCode;
     int GetType;
     int MemberwiseClone;
@@ -1145,7 +1145,7 @@ namespace ClangSharp.Test
         public new int Equals;
 
         [FieldOffset(0)]
-        public int Finalize;
+        public int Dispose;
 
         [FieldOffset(0)]
         public new int GetHashCode;
@@ -1200,11 +1200,9 @@ namespace ClangSharp.Test
     public unsafe partial struct example_s
     {{
         [FieldOffset(0)]
-        [NativeTypeName(""example_s *"")]
         public example_s* next;
 
         [FieldOffset(0)]
-        [NativeTypeName(""void *"")]
         public void* data;
     }}
 }}
@@ -1234,7 +1232,6 @@ namespace ClangSharp.Test
         public example_s* next;
 
         [FieldOffset(0)]
-        [NativeTypeName(""void *"")]
         public void* data;
     }}
 }}

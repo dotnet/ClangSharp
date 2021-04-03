@@ -62,14 +62,9 @@ namespace ClangSharp
                     return null;
                 }
 
-                Expr E = InitExprs.FirstOrDefault()?.IgnoreImplicit;
+                var e = InitExprs.FirstOrDefault()?.IgnoreImplicit;
 
-                if (E is CXXConstructExpr Construct)
-                {
-                    return Construct.Constructor;
-                }
-
-                return null;
+                return e is CXXConstructExpr construct ? construct.Constructor : null;
             }
         }
     }

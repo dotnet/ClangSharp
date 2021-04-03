@@ -26,7 +26,7 @@ namespace ClangSharp
 
         public bool IsInstanceProperty => !IsClassProperty;
 
-        CXObjCPropertyAttrKind PropertyAttributes => Handle.GetObjCPropertyAttributes(0);
+        public CXObjCPropertyAttrKind PropertyAttributes => Handle.GetObjCPropertyAttributes(0);
 
         public ObjCIvarDecl PropertyIvarDecl => _propertyIvarDecl.Value;
 

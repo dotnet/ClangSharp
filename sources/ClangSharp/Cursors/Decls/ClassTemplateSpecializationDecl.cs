@@ -19,7 +19,7 @@ namespace ClangSharp
                 var templateArgCount = Handle.NumTemplateArguments;
                 var templateArgs = new List<TemplateArgument>(templateArgCount);
 
-                for (int i = 0; i < templateArgCount; i++)
+                for (var i = 0; i < templateArgCount; i++)
                 {
                     var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
                     templateArgs.Add(templateArg);
@@ -31,9 +31,9 @@ namespace ClangSharp
 
         private protected ClassTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastClassTemplateSpecialization < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstClassTemplateSpecialization))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastClassTemplateSpecialization or < CX_DeclKind.CX_DeclKind_FirstClassTemplateSpecialization)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
@@ -41,7 +41,7 @@ namespace ClangSharp
                 var templateArgCount = Handle.NumTemplateArguments;
                 var templateArgs = new List<TemplateArgument>(templateArgCount);
 
-                for (int i = 0; i < templateArgCount; i++)
+                for (var i = 0; i < templateArgCount; i++)
                 {
                     var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
                     templateArgs.Add(templateArg);

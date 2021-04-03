@@ -10,7 +10,7 @@ namespace ClangSharp
         {
             var comparer = EqualityComparer<T>.Default;
 
-            for (int i = 0; i < self.Count; i++)
+            for (var i = 0; i < self.Count; i++)
             {
                 if (comparer.Equals(self[i], value))
                 {

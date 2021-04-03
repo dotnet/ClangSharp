@@ -128,7 +128,7 @@ union MyUnion3
 };
 ";
 
-            string expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @" pack=""1""" : "";
+            var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @" pack=""1""" : "";
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -1039,7 +1039,7 @@ union MyUnion
             var inputContents = @"union MyUnion
 {
     int Equals;
-    int Finalize;
+    int Dispose;
     int GetHashCode;
     int GetType;
     int MemberwiseClone;
@@ -1054,7 +1054,7 @@ union MyUnion
       <field name=""Equals"" access=""public"" offset=""0"">
         <type>int</type>
       </field>
-      <field name=""Finalize"" access=""public"" offset=""0"">
+      <field name=""Dispose"" access=""public"" offset=""0"">
         <type>int</type>
       </field>
       <field name=""GetHashCode"" access=""public"" offset=""0"">
@@ -1106,10 +1106,10 @@ union MyUnion
   <namespace name=""ClangSharp.Test"">
     <struct name=""example_s"" access=""public"" unsafe=""true"" layout=""Explicit"">
       <field name=""next"" access=""public"" offset=""0"">
-        <type native=""example_s *"">example_s*</type>
+        <type>example_s*</type>
       </field>
       <field name=""data"" access=""public"" offset=""0"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
       </field>
     </struct>
   </namespace>
@@ -1136,7 +1136,7 @@ union example_s {
         <type native=""example_t *"">example_s*</type>
       </field>
       <field name=""data"" access=""public"" offset=""0"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
       </field>
     </struct>
   </namespace>

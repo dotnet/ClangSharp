@@ -1235,7 +1235,7 @@ namespace ClangSharp.Test
             var inputContents = @"struct MyStruct
 {
     int Equals;
-    int Finalize;
+    int Dispose;
     int GetHashCode;
     int GetType;
     int MemberwiseClone;
@@ -1249,7 +1249,7 @@ namespace ClangSharp.Test
     {{
         public new int Equals;
 
-        public int Finalize;
+        public int Dispose;
 
         public new int GetHashCode;
 
@@ -1292,10 +1292,8 @@ namespace ClangSharp.Test
 {{
     public unsafe partial struct example_s
     {{
-        [NativeTypeName(""example_s *"")]
         public example_s* next;
 
-        [NativeTypeName(""void *"")]
         public void* data;
     }}
 }}
@@ -1320,7 +1318,6 @@ struct example_s {
         [NativeTypeName(""example_t *"")]
         public example_s* next;
 
-        [NativeTypeName(""void *"")]
         public void* data;
     }}
 }}

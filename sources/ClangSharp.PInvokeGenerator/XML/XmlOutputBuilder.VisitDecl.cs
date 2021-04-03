@@ -10,7 +10,7 @@ namespace ClangSharp.XML
 {
     internal partial class XmlOutputBuilder
     {
-        private StringBuilder _sb = new();
+        private readonly StringBuilder _sb = new();
         public void BeginInnerValue() => _sb.Append("<value>");
         public void EndInnerValue() => _sb.Append("</value>");
 
@@ -23,12 +23,12 @@ namespace ClangSharp.XML
 
         public void BeginConstant(in ConstantDesc desc)
         {
-            _sb.Append((desc.Kind & ConstantKind.Enumerator) == 0
+            _ = _sb.Append((desc.Kind & ConstantKind.Enumerator) == 0
                 ? $"<constant name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">"
                 : $"<enumerator name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
-            _sb.Append($"<type primitive=\"{(desc.Kind & ConstantKind.PrimitiveConstant) != 0}\">");
-            _sb.Append(EscapeText(desc.TypeName));
-            _sb.Append("</type>");
+            _ = _sb.Append($"<type primitive=\"{(desc.Kind & ConstantKind.PrimitiveConstant) != 0}\">");
+            _ = _sb.Append(EscapeText(desc.TypeName));
+            _ = _sb.Append("</type>");
         }
 
         public void BeginConstantValue(bool isGetOnlyProperty = false) => _sb.Append("<value>");
@@ -39,33 +39,33 @@ namespace ClangSharp.XML
 
         public void BeginEnum(AccessSpecifier accessSpecifier, string typeName, string escapedName, string nativeTypeName)
         {
-            _sb.Append($"<enumeration name=\"{escapedName}\" access=\"{accessSpecifier.AsString()}\">");
-            _sb.Append($"<type>{typeName}</type>");
+            _ = _sb.Append($"<enumeration name=\"{escapedName}\" access=\"{accessSpecifier.AsString()}\">");
+            _ = _sb.Append($"<type>{typeName}</type>");
         }
 
         public void EndEnum() => _sb.Append("</enumeration>");
 
         public void BeginField(in FieldDesc desc)
         {
-            _sb.Append($"<field name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
+            _ = _sb.Append($"<field name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
             if (desc.InheritedFrom is not null)
             {
-                _sb.Append($" inherited=\"{desc.InheritedFrom}\"");
+                _ = _sb.Append($" inherited=\"{desc.InheritedFrom}\"");
             }
 
             if (desc.Offset is not null)
             {
-                _sb.Append($" offset=\"{desc.Offset}\"");
+                _ = _sb.Append($" offset=\"{desc.Offset}\"");
             }
 
-            _sb.Append('>');
-            _sb.Append("<type");
+            _ = _sb.Append('>');
+            _ = _sb.Append("<type");
 
             if (!string.IsNullOrWhiteSpace(desc.NativeTypeName))
             {
-                _sb.Append(" native=\"");
-                _sb.Append(EscapeText(desc.NativeTypeName));
-                _sb.Append('"');
+                _ = _sb.Append(" native=\"");
+                _ = _sb.Append(EscapeText(desc.NativeTypeName));
+                _ = _sb.Append('"');
             }
         }
 
@@ -82,72 +82,72 @@ namespace ClangSharp.XML
             if (desc.IsVirtual)
             {
                 Debug.Assert(!desc.HasFnPtrCodeGen);
-                _sb.Append($"<delegate name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
+                _ = _sb.Append($"<delegate name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
                 if (desc.CallingConvention != CallingConvention.Winapi)
                 {
-                    _sb.Append($" convention=\"{desc.CallingConvention.AsString(false)}\"");
+                    _ = _sb.Append($" convention=\"{desc.CallingConvention.AsString(false)}\"");
                 }
             }
             else if (desc.IsDllImport)
             {
-                _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
-                _sb.Append($" lib=\"{desc.LibraryPath}\"");
+                _ = _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
+                _ = _sb.Append($" lib=\"{desc.LibraryPath}\"");
                 if (desc.CallingConvention != CallingConvention.Winapi)
                 {
-                    _sb.Append($" convention=\"{desc.CallingConvention.AsString(false)}\"");
+                    _ = _sb.Append($" convention=\"{desc.CallingConvention.AsString(false)}\"");
                 }
 
                 if (desc.EntryPoint != desc.EscapedName)
                 {
-                    _sb.Append($" entrypoint=\"{desc.EntryPoint}\"");
+                    _ = _sb.Append($" entrypoint=\"{desc.EntryPoint}\"");
                 }
 
                 if (desc.SetLastError)
                 {
-                    _sb.Append(" setlasterror=\"true\"");
+                    _ = _sb.Append(" setlasterror=\"true\"");
                 }
             }
             else
             {
-                _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
+                _ = _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
             }
 
             if (!desc.IsMemberFunction && (desc.IsStatic ?? (desc.IsDllImport || !desc.IsCxx)))
             {
-                _sb.Append(" static=\"true\"");
+                _ = _sb.Append(" static=\"true\"");
             }
 
             if (desc.IsUnsafe)
             {
-                _sb.Append(" unsafe=\"true\"");
+                _ = _sb.Append(" unsafe=\"true\"");
             }
 
             var vtblIndex = desc.VtblIndex ?? -1;
 
             if (vtblIndex != -1)
             {
-                _sb.Append($" vtblindex=\"{vtblIndex}\"");
+                _ = _sb.Append($" vtblindex=\"{vtblIndex}\"");
             }
 
-            _sb.Append('>');
+            _ = _sb.Append('>');
 
             desc.WriteCustomAttrs(desc.CustomAttrGeneratorData);
 
-            _sb.Append("<type");
+            _ = _sb.Append("<type");
             if (!string.IsNullOrWhiteSpace(desc.NativeTypeName))
             {
-                _sb.Append(" native=\"");
-                _sb.Append(EscapeText(desc.NativeTypeName));
-                _sb.Append('"');
+                _ = _sb.Append(" native=\"");
+                _ = _sb.Append(EscapeText(desc.NativeTypeName));
+                _ = _sb.Append('"');
             }
 
-            _sb.Append('>');
+            _ = _sb.Append('>');
         }
 
         public void WriteReturnType(string typeString)
         {
-            _sb.Append(EscapeText(typeString));
-            _sb.Append("</type>");
+            _ = _sb.Append(EscapeText(typeString));
+            _ = _sb.Append("</type>");
         }
 
         public void BeginFunctionInnerPrototype(string escapedName)
@@ -157,27 +157,18 @@ namespace ClangSharp.XML
 
         public void BeginParameter<TCustomAttrGeneratorData>(in ParameterDesc<TCustomAttrGeneratorData> info)
         {
-            _sb.Append($"<param name=\"{info.Name}\">");
+            _ = _sb.Append($"<param name=\"{info.Name}\">");
             info.WriteCustomAttrs(info.CustomAttrGeneratorData);
-            _sb.Append("<type>");
-            _sb.Append(EscapeText(info.Type));
-            _sb.Append("</type>");
+            _ = _sb.Append("<type>");
+            _ = _sb.Append(EscapeText(info.Type));
+            _ = _sb.Append("</type>");
         }
 
-        public void BeginParameterDefault()
-        {
-            _sb.Append("<init>");
-        }
+        public void BeginParameterDefault() => _ = _sb.Append("<init>");
 
-        public void EndParameterDefault()
-        {
-            _sb.Append("</init>");
-        }
+        public void EndParameterDefault() => _ = _sb.Append("</init>");
 
-        public void EndParameter()
-        {
-            _sb.Append("</param>");
-        }
+        public void EndParameter() => _ = _sb.Append("</param>");
 
         public void WriteParameterSeparator()
         {
@@ -199,12 +190,10 @@ namespace ClangSharp.XML
             // nop, method only exists for consistency and/or future use
         }
 
-        public void BeginConstructorInitializer(string memberRefName, string memberInitName)
-        {
+        public void BeginConstructorInitializer(string memberRefName, string memberInitName) =>
             // "hint" is the name we're initializing using, but should only be used as a "hint" rather than a definitive
             // value, which is contained within the init block.
-            _sb.Append($"<init field=\"{memberRefName}\" hint=\"{memberInitName}\">");
-        }
+            _ = _sb.Append($"<init field=\"{memberRefName}\" hint=\"{memberInitName}\">");
 
         public void EndConstructorInitializer() => _sb.Append("</init>");
 
@@ -213,15 +202,9 @@ namespace ClangSharp.XML
             // nop, method only exists for consistency and/or future use
         }
 
-        public void BeginInnerFunctionBody()
-        {
-            _sb.Append("<body>");
-        }
+        public void BeginInnerFunctionBody() => _ = _sb.Append("<body>");
 
-        public void EndInnerFunctionBody()
-        {
-            _sb.Append("</body>");
-        }
+        public void EndInnerFunctionBody() => _ = _sb.Append("</body>");
 
         public void EndBody(bool isExpressionBody = false)
         {
@@ -233,56 +216,56 @@ namespace ClangSharp.XML
 
         public void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info)
         {
-            _sb.Append("<struct name=\"");
-            _sb.Append(info.EscapedName);
-            _sb.Append("\" access=\"");
-            _sb.Append(info.AccessSpecifier.AsString());
-            _sb.Append('"');
+            _ = _sb.Append("<struct name=\"");
+            _ = _sb.Append(info.EscapedName);
+            _ = _sb.Append("\" access=\"");
+            _ = _sb.Append(info.AccessSpecifier.AsString());
+            _ = _sb.Append('"');
             if (info.NativeType is not null)
             {
-                _sb.Append(" native=\"");
-                _sb.Append(info.NativeType);
-                _sb.Append('"');
+                _ = _sb.Append(" native=\"");
+                _ = _sb.Append(info.NativeType);
+                _ = _sb.Append('"');
             }
 
             if (info.NativeInheritance is not null)
             {
-                _sb.Append(" parent=\"");
-                _sb.Append(info.NativeInheritance);
-                _sb.Append('"');
+                _ = _sb.Append(" parent=\"");
+                _ = _sb.Append(info.NativeInheritance);
+                _ = _sb.Append('"');
             }
 
             if (info.Uuid is not null)
             {
-                _sb.Append(" uuid=\"");
-                _sb.Append(info.Uuid.Value);
-                _sb.Append('"');
+                _ = _sb.Append(" uuid=\"");
+                _ = _sb.Append(info.Uuid.Value);
+                _ = _sb.Append('"');
             }
 
             if (info.HasVtbl)
             {
-                _sb.Append(" vtbl=\"true\"");
+                _ = _sb.Append(" vtbl=\"true\"");
             }
 
             if (info.IsUnsafe)
             {
-                _sb.Append(" unsafe=\"true\"");
+                _ = _sb.Append(" unsafe=\"true\"");
             }
 
             if (info.Layout is not null)
             {
-                _sb.Append(" layout=\"");
-                _sb.Append(info.Layout.Value);
-                _sb.Append('"');
+                _ = _sb.Append(" layout=\"");
+                _ = _sb.Append(info.Layout.Value);
+                _ = _sb.Append('"');
                 if (info.Layout.Pack != default)
                 {
-                    _sb.Append(" pack=\"");
-                    _sb.Append(info.Layout.Pack);
-                    _sb.Append('"');
+                    _ = _sb.Append(" pack=\"");
+                    _ = _sb.Append(info.Layout.Pack);
+                    _ = _sb.Append('"');
                 }
             }
 
-            _sb.Append('>');
+            _ = _sb.Append('>');
             info.WriteCustomAttrs(info.CustomAttrGeneratorData);
         }
 
@@ -308,7 +291,7 @@ namespace ClangSharp.XML
 
         public CSharpOutputBuilder BeginCSharpCode()
         {
-            _sb.Append("<code>");
+            _ = _sb.Append("<code>");
             return new CSharpOutputBuilder("__Internal", markerMode: MarkerMode.Xml);
         }
 
@@ -322,62 +305,56 @@ namespace ClangSharp.XML
             {
                 if (needsNewline)
                 {
-                    _sb.Append('\n');
+                    _ = _sb.Append('\n');
                 }
 
-                _sb.Append(EscapeText(s).Replace("/*M*/&lt;", "<")
+                _ = _sb.Append(EscapeText(s).Replace("/*M*/&lt;", "<")
                                         .Replace("/*M*/&gt;", ">"));
 
                 needsNewline = true;
             }
 
-            _sb.Append("</code>");
+            _ = _sb.Append("</code>");
         }
 
         public void BeginGetter(bool aggressivelyInlined)
         {
-            _sb.Append("<get");
+            _ = _sb.Append("<get");
             if (aggressivelyInlined)
             {
-                _sb.Append(" inlining=\"aggressive\"");
+                _ = _sb.Append(" inlining=\"aggressive\"");
             }
 
-            _sb.Append('>');
+            _ = _sb.Append('>');
         }
 
-        public void EndGetter()
-        {
-            _sb.Append("</get>");
-        }
+        public void EndGetter() => _ = _sb.Append("</get>");
 
         public void BeginSetter(bool aggressivelyInlined)
         {
-            _sb.Append("<set");
+            _ = _sb.Append("<set");
             if (aggressivelyInlined)
             {
-                _sb.Append(" inlining=\"aggressive\"");
+                _ = _sb.Append(" inlining=\"aggressive\"");
             }
 
-            _sb.Append('>');
+            _ = _sb.Append('>');
         }
 
-        public void EndSetter()
-        {
-            _sb.Append("</set>");
-        }
+        public void EndSetter() => _ = _sb.Append("</set>");
 
         public void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe)
         {
-            _sb.Append("<indexer access=\"");
-            _sb.Append(accessSpecifier.AsString());
-            _sb.Append(isUnsafe ? "\" unsafe=\"true\">" : "\">");
+            _ = _sb.Append("<indexer access=\"");
+            _ = _sb.Append(accessSpecifier.AsString());
+            _ = _sb.Append(isUnsafe ? "\" unsafe=\"true\">" : "\">");
         }
 
         public void WriteIndexer(string typeName)
         {
-            _sb.Append("<type>");
-            _sb.Append(EscapeText(typeName));
-            _sb.Append("</type>");
+            _ = _sb.Append("<type>");
+            _ = _sb.Append(EscapeText(typeName));
+            _ = _sb.Append("</type>");
         }
 
         public void BeginIndexerParameters()

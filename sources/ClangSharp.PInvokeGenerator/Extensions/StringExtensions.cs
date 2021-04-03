@@ -10,7 +10,7 @@ namespace ClangSharp
     {
         public static string Unquote(this string str)
             => str.StartsWith("\"") && str.EndsWith("\"") && !str.EndsWith("\\\"")
-                ? str.Substring(1, str.Length - 2)
+                ? str[1..^1]
                 : str;
 
         public static string AsString(this AccessSpecifier value) => value switch

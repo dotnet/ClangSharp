@@ -31,6 +31,6 @@ namespace ClangSharp.Interop
         CXCompletionContext_MacroName = 1 << 20,
         CXCompletionContext_NaturalLanguage = 1 << 21,
         CXCompletionContext_IncludedFile = 1 << 22,
-        CXCompletionContext_Unknown = ((1 << 23) - 1),
+        CXCompletionContext_Unknown = (1 << 23) - 1,
     }
 }

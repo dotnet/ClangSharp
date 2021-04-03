@@ -67,6 +67,7 @@ namespace ClangSharp
             ("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
             ("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
             ("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
+            ("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),
             ("generate-vtbl-index-attribute", "[VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method."),
 
             ("", ""),   // Logging Options
@@ -76,6 +77,7 @@ namespace ClangSharp
             ("log-visited-files", "A list of the visited files should be generated. This can help identify traversal issues."),
         };
 
+#pragma warning disable IDE1006
         public static async Task<int> Main(params string[] args)
         {
             s_rootCommand = new RootCommand("ClangSharp P/Invoke Binding Generator")
@@ -111,6 +113,7 @@ namespace ClangSharp
 
             return await s_rootCommand.InvokeAsync(args);
         }
+#pragma warning restore IDE1006
 
         public static int Run(InvocationContext context)
         {
@@ -360,6 +363,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "generate-template-bindings":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateTemplateBindings;
+                        break;
+                    }
+
                     case "generate-vtbl-index-attribute":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute;
@@ -456,7 +465,7 @@ namespace ClangSharp
                 translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
             }
 
-            int exitCode = 0;
+            var exitCode = 0;
 
             using (var pinvokeGenerator = new PInvokeGenerator(config))
             {
@@ -464,7 +473,7 @@ namespace ClangSharp
                 {
                     var filePath = Path.Combine(fileDirectory, file);
 
-                    var translationUnitError = CXTranslationUnit.TryParse(pinvokeGenerator.IndexHandle, filePath, clangCommandLineArgs, Array.Empty<CXUnsavedFile>(), translationFlags, out CXTranslationUnit handle);
+                    var translationUnitError = CXTranslationUnit.TryParse(pinvokeGenerator.IndexHandle, filePath, clangCommandLineArgs, Array.Empty<CXUnsavedFile>(), translationFlags, out var handle);
                     var skipProcessing = false;
 
                     if (translationUnitError != CXErrorCode.CXError_Success)
@@ -483,8 +492,8 @@ namespace ClangSharp
                             Console.Write("    ");
                             Console.WriteLine(diagnostic.Format(CXDiagnostic.DefaultDisplayOptions).ToString());
 
-                            skipProcessing |= (diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Error);
-                            skipProcessing |= (diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Fatal);
+                            skipProcessing |= diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Error;
+                            skipProcessing |= diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Fatal;
                         }
                     }
 

@@ -549,7 +549,7 @@ static inline int MyFunction(MyEnum x)
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <function name=""MyFunction"" access=""public"" static=""true"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <param name=""input"">
           <type>void*</type>
         </param>
@@ -630,7 +630,7 @@ MyStructB* MyFunction(MyStructA* input)
     </struct>
     <class name=""Methods"" access=""public"" static=""true"">
       <function name=""MyFunction"" access=""public"" static=""true"" unsafe=""true"">
-        <type native=""MyStructB *"">MyStructB*</type>
+        <type>MyStructB*</type>
         <param name=""input"">
           <type>MyStructA*</type>
         </param>
@@ -657,7 +657,7 @@ MyStructB* MyFunction(MyStructA* input)
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <function name=""MyFunction"" access=""public"" static=""true"" unsafe=""true"">
-        <type native=""int *"">int*</type>
+        <type>int*</type>
         <param name=""input"">
           <type>void*</type>
         </param>
@@ -684,7 +684,7 @@ MyStructB* MyFunction(MyStructA* input)
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <function name=""MyFunction"" access=""public"" static=""true"" unsafe=""true"">
-        <type native=""int *"">int*</type>
+        <type>int*</type>
         <param name=""input"">
           <type>void*</type>
         </param>
@@ -1488,7 +1488,7 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <function name=""MyFunction"" access=""public"" static=""true"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <code>return null;</code>
       </function>
     </class>
@@ -1816,7 +1816,7 @@ MyStruct MyFunction()
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <function name=""MyFunction"" access=""public"" static=""true"" unsafe=""true"">
-        <type native=""int *"">int*</type>
+        <type>int*</type>
         <param name=""value"">
           <type>int</type>
         </param>

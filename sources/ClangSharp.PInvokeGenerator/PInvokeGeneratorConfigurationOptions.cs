@@ -56,5 +56,7 @@ namespace ClangSharp
         GenerateVtblIndexAttribute = 0x00400000,
 
         GeneratePreviewCode = 0x00800000,
+
+        GenerateTemplateBindings = 0x01000000,
     }
 }

@@ -1353,7 +1353,7 @@ namespace ClangSharp.Interop
         public const int CINDEX_VERSION_MINOR = 60;
 
         [NativeTypeName("#define CINDEX_VERSION CINDEX_VERSION_ENCODE(CINDEX_VERSION_MAJOR, CINDEX_VERSION_MINOR)")]
-        public const int CINDEX_VERSION = (((0) * 10000) + ((60) * 1));
+        public const int CINDEX_VERSION = (0 * 10000) + (60 * 1);
 
         [NativeTypeName("#define CINDEX_VERSION_STRING CINDEX_VERSION_STRINGIZE(CINDEX_VERSION_MAJOR, CINDEX_VERSION_MINOR)")]
         public static ReadOnlySpan<byte> CINDEX_VERSION_STRING => new byte[] { 0x30, 0x2E, 0x36, 0x30, 0x00 };

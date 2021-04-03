@@ -16,7 +16,7 @@ namespace ClangSharp
                 var paramTypeCount = Handle.NumArgTypes;
                 var paramTypes = new List<Type>(paramTypeCount);
 
-                for (int i = 0; i < paramTypeCount; i++)
+                for (var i = 0; i < paramTypeCount; i++)
                 {
                     var paramType = TranslationUnit.GetOrCreate<Type>(Handle.GetArgType(unchecked((uint)i)));
                     paramTypes.Add(paramType);

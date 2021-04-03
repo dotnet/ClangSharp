@@ -19,7 +19,7 @@ namespace ClangSharp.CSharp
         private readonly bool _isTestOutput;
 
         private int _indentationLevel;
-        private MarkerMode _markerMode;
+        private readonly MarkerMode _markerMode;
 
         public CSharpOutputBuilder(string name, string indentationString = DefaultIndentationString, bool isTestOutput = false, MarkerMode markerMode = MarkerMode.None)
         {
@@ -53,17 +53,7 @@ namespace ClangSharp.CSharp
 
         public IEnumerable<string> UsingDirectives => _usingDirectives;
 
-        public void AddUsingDirective(string namespaceName)
-        {
-            if (namespaceName.StartsWith("static "))
-            {
-                _staticUsingDirectives.Add(namespaceName);
-            }
-            else
-            {
-                _usingDirectives.Add(namespaceName);
-            }
-        }
+        public void AddUsingDirective(string namespaceName) => _ = namespaceName.StartsWith("static ") ? _staticUsingDirectives.Add(namespaceName) : _usingDirectives.Add(namespaceName);
 
         public void DecreaseIndentation()
         {
@@ -75,10 +65,7 @@ namespace ClangSharp.CSharp
             _indentationLevel--;
         }
 
-        public void IncreaseIndentation()
-        {
-            _indentationLevel++;
-        }
+        public void IncreaseIndentation() => _indentationLevel++;
 
         public void WriteBlockStart()
         {
@@ -98,10 +85,7 @@ namespace ClangSharp.CSharp
             WriteIndentedLine('}');
         }
 
-        public void Write<T>(T value)
-        {
-            _currentLine.Append(value);
-        }
+        public void Write<T>(T value) => _ = _currentLine.Append(value);
 
         public void WriteIndentation()
         {
@@ -109,7 +93,7 @@ namespace ClangSharp.CSharp
 
             for (var i = 0; i < _indentationLevel; i++)
             {
-                _currentLine.Append(_indentationString);
+                _ = _currentLine.Append(_indentationString);
             }
         }
 
@@ -134,7 +118,7 @@ namespace ClangSharp.CSharp
         public void WriteNewline()
         {
             _contents.Add(_currentLine.ToString());
-            _currentLine.Clear();
+            _ = _currentLine.Clear();
             NeedsNewline = false;
         }
 
@@ -343,6 +327,20 @@ namespace ClangSharp.CSharp
             {
                 Write(postfix);
             }
+        }
+
+        public override string ToString()
+        {
+            var result = new StringBuilder();
+
+            foreach (var line in _contents)
+            {
+                _ = result.Append(line);
+                _ = result.Append('\n');
+            }
+
+            _ = result.Append(_currentLine);
+            return result.ToString();
         }
     }
 }

@@ -137,7 +137,7 @@ namespace ClangSharp.UnitTests
 {
     public partial struct MyStruct
     {
-        public void Finalize()
+        public void Dispose()
         {
         }
     }
@@ -194,7 +194,6 @@ namespace ClangSharp.Test
             return 0;
         }}
 
-        [return: NativeTypeName(""void *"")]
         public unsafe void* MyVoidStarMethod()
         {{
             return null;
@@ -268,7 +267,7 @@ int MyFunctionB(MyStruct* x)
             return x.MyFunction1();
         }
 
-        public static int MyFunctionB([NativeTypeName(""MyStruct *"")] MyStruct* x)
+        public static int MyFunctionB(MyStruct* x)
         {
             return x->MyFunction2();
         }
@@ -315,8 +314,8 @@ int MyFunctionB(MyStruct* x)
 {
     int Equals() { return 0; }
     int Equals(int obj) { return 0; }
-    int Finalize() { return 0; }
-    int Finalize(int obj) { return 0; }
+    int Dispose() { return 0; }
+    int Dispose(int obj) { return 0; }
     int GetHashCode() { return 0; }
     int GetHashCode(int obj) { return 0; }
     int GetType() { return 0; }
@@ -343,12 +342,12 @@ int MyFunctionB(MyStruct* x)
             return 0;
         }}
 
-        public int Finalize()
+        public int Dispose()
         {{
             return 0;
         }}
 
-        public int Finalize(int obj)
+        public int Dispose(int obj)
         {{
             return 0;
         }}
@@ -676,7 +675,6 @@ namespace ClangSharp.Test
             return 0;
         }}
 
-        [return: NativeTypeName(""void *"")]
         public static unsafe void* MyVoidStarMethod()
         {{
             return null;
@@ -736,7 +734,6 @@ namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
-        [return: NativeTypeName(""void *"")]
         public unsafe void* MyVoidStarMethod()
         {
             return null;
@@ -802,7 +799,6 @@ namespace ClangSharp.Test
             return ((delegate* unmanaged[{callConv}]<MyStruct*, int>)(lpVtbl[2]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
-        [return: NativeTypeName(""void *"")]
         public void* MyVoidStarMethod()
         {{
             return ((delegate* unmanaged[{callConv}]<MyStruct*, void*>)(lpVtbl[3]))((MyStruct*)Unsafe.AsPointer(ref this));
@@ -866,7 +862,6 @@ namespace ClangSharp.Test
         }}
 
         [VtblIndex(3)]
-        [return: NativeTypeName(""void *"")]
         public void* MyVoidStarMethod()
         {{
             return ((delegate* unmanaged[{callConv}]<MyStruct*, void*>)(lpVtbl[3]))((MyStruct*)Unsafe.AsPointer(ref this));

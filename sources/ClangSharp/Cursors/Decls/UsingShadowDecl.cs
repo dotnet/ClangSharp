@@ -13,9 +13,9 @@ namespace ClangSharp
 
         private protected UsingShadowDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastUsingShadow < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstUsingShadow))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastUsingShadow or < CX_DeclKind.CX_DeclKind_FirstUsingShadow)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
     }

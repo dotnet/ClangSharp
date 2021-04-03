@@ -22,14 +22,14 @@ namespace ClangSharp
 
         private protected RecordDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastRecord < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstRecord))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastRecord or < CX_DeclKind.CX_DeclKind_FirstRecord)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
-            if ((handle.Kind != CXCursorKind.CXCursor_StructDecl) && (handle.Kind != CXCursorKind.CXCursor_UnionDecl) && (handle.Kind != CXCursorKind.CXCursor_ClassDecl) && (handle.Kind != CXCursorKind.CXCursor_ClassTemplatePartialSpecialization))
+            if (handle.Kind is not CXCursorKind.CXCursor_StructDecl and not CXCursorKind.CXCursor_UnionDecl and not CXCursorKind.CXCursor_ClassDecl and not CXCursorKind.CXCursor_ClassTemplatePartialSpecialization)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _fields = new Lazy<IReadOnlyList<FieldDecl>>(() => {

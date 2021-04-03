@@ -11,7 +11,7 @@ namespace ClangSharp
         {
             if (handle.AttrKind == CX_AttrKind.CX_AttrKind_Invalid)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
 

@@ -9,9 +9,9 @@ namespace ClangSharp
     {
         internal ParameterABIAttr(CXCursor handle) : base(handle)
         {
-            if ((CX_AttrKind.CX_AttrKind_LastParameterABIAttr < handle.AttrKind) || (handle.AttrKind < CX_AttrKind.CX_AttrKind_FirstParameterABIAttr))
+            if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastParameterABIAttr or < CX_AttrKind.CX_AttrKind_FirstParameterABIAttr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
     }

@@ -14,16 +14,16 @@ namespace ClangSharp
 
         private protected OverloadExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastOverloadExpr < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstOverloadExpr))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastOverloadExpr or < CX_StmtClass.CX_StmtClass_FirstOverloadExpr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _decls = new Lazy<IReadOnlyList<Decl>>(() => {
                 var numDecls = Handle.NumDecls;
                 var decls = new List<Decl>(numDecls);
 
-                for (int i = 0; i < numDecls; i++)
+                for (var i = 0; i < numDecls; i++)
                 {
                     var decl = TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i)));
                     decls.Add(decl);
@@ -38,7 +38,7 @@ namespace ClangSharp
                 var templateArgCount = Handle.NumTemplateArguments;
                 var templateArgs = new List<TemplateArgumentLoc>(templateArgCount);
 
-                for (int i = 0; i < templateArgCount; i++)
+                for (var i = 0; i < templateArgCount; i++)
                 {
                     var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
                     templateArgs.Add(templateArg);

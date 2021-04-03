@@ -26,6 +26,6 @@ namespace ClangSharp
 
         private int CondOffset => VarOffset + (HasVarStorage ? 1 : 0);
 
-        private int VarOffset => 0;
+        private static int VarOffset => 0;
     }
 }

@@ -11,20 +11,22 @@ namespace ClangSharp
     public unsafe class Cursor : IEquatable<Cursor>
     {
         private readonly Lazy<IReadOnlyList<Cursor>> _cursorChildren;
+        private readonly Lazy<Cursor> _lexicalParentCursor;
+        private readonly Lazy<Cursor> _semanticParentCursor;
         private readonly Lazy<TranslationUnit> _translationUnit;
 
         private protected Cursor(CXCursor handle, CXCursorKind expectedCursorKind)
         {
             if (handle.kind != expectedCursorKind)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
             Handle = handle;
 
             _cursorChildren = new Lazy<IReadOnlyList<Cursor>>(() => {
                 var cursors = new List<Cursor>();
 
-                Handle.VisitChildren((cursor, parent, clientData) => {
+                _ = Handle.VisitChildren((cursor, parent, clientData) => {
                     var cursorChild = TranslationUnit.GetOrCreate<Cursor>(cursor);
                     cursors.Add(cursorChild);
                     return CXChildVisitResult.CXChildVisit_Continue;
@@ -33,6 +35,8 @@ namespace ClangSharp
                 return cursors;
             });
 
+            _lexicalParentCursor = new Lazy<Cursor>(() => TranslationUnit.GetOrCreate<Cursor>(Handle.LexicalParent));
+            _semanticParentCursor = new Lazy<Cursor>(() => TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent));
             _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
         }
 
@@ -46,7 +50,11 @@ namespace ClangSharp
 
         public CXCursor Handle { get; }
 
+        public Cursor LexicalParentCursor => _lexicalParentCursor.Value;
+
         public CXSourceLocation Location => Handle.Location;
+
+        public Cursor SemanticParentCursor => _semanticParentCursor.Value;
 
         public string Spelling => Handle.Spelling.ToString();
 

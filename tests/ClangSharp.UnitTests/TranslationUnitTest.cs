@@ -21,7 +21,7 @@ namespace ClangSharp.UnitTests
             "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
         };
 
-        protected TranslationUnit CreateTranslationUnit(string inputContents)
+        protected static TranslationUnit CreateTranslationUnit(string inputContents)
         {
             Assert.True(File.Exists(DefaultInputFileName));
 
@@ -34,18 +34,18 @@ namespace ClangSharp.UnitTests
             if (translationUnit.NumDiagnostics != 0)
             {
                 var errorDiagnostics = new StringBuilder();
-                errorDiagnostics.AppendLine($"The provided {nameof(CXTranslationUnit)} has the following diagnostics which prevent its use:");
+                _ = errorDiagnostics.AppendLine($"The provided {nameof(CXTranslationUnit)} has the following diagnostics which prevent its use:");
                 var invalidTranslationUnitHandle = false;
 
                 for (uint i = 0; i < translationUnit.NumDiagnostics; ++i)
                 {
                     using var diagnostic = translationUnit.GetDiagnostic(i);
 
-                    if ((diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Error) || (diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Fatal))
+                    if (diagnostic.Severity is CXDiagnosticSeverity.CXDiagnostic_Error or CXDiagnosticSeverity.CXDiagnostic_Fatal)
                     {
                         invalidTranslationUnitHandle = true;
-                        errorDiagnostics.Append(' ', 4);
-                        errorDiagnostics.AppendLine(diagnostic.Format(CXDiagnosticDisplayOptions.CXDiagnostic_DisplayOption).ToString());
+                        _ = errorDiagnostics.Append(' ', 4);
+                        _ = errorDiagnostics.AppendLine(diagnostic.Format(CXDiagnosticDisplayOptions.CXDiagnostic_DisplayOption).ToString());
                     }
                 }
 

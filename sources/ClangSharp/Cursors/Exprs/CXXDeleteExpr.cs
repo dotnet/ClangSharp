@@ -8,8 +8,8 @@ namespace ClangSharp
 {
     public sealed class CXXDeleteExpr : Expr
     {
-        private Lazy<Type> _destroyedType;
-        private Lazy<FunctionDecl> _operatorDelete;
+        private readonly Lazy<Type> _destroyedType;
+        private readonly Lazy<FunctionDecl> _operatorDelete;
 
         internal CXXDeleteExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXDeleteExpr, CX_StmtClass.CX_StmtClass_CXXDeleteExpr)
         {

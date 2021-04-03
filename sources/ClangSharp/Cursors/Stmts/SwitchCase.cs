@@ -12,9 +12,9 @@ namespace ClangSharp
 
         private protected SwitchCase(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastSwitchCase < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstSwitchCase))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastSwitchCase or < CX_StmtClass.CX_StmtClass_FirstSwitchCase)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _nextSwitchCase = new Lazy<SwitchCase>(() => TranslationUnit.GetOrCreate<SwitchCase>(Handle.NextSwitchCase));
@@ -26,13 +26,13 @@ namespace ClangSharp
         {
             get
             {
-                if (this is CaseStmt CS)
+                if (this is CaseStmt cs)
                 {
-                    return CS.SubStmt;
+                    return cs.SubStmt;
                 }
-                else if (this is DefaultStmt DS)
+                else if (this is DefaultStmt ds)
                 {
-                    return DS.SubStmt;
+                    return ds.SubStmt;
                 }
 
                 Debug.Fail("SwitchCase is neither a CaseStmt nor a DefaultStmt!");

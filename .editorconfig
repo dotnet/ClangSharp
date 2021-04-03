@@ -27,7 +27,7 @@ trim_trailing_whitespace = true
 # Set file behavior to:
 #   2 space indentation
 ###############################################################################
-[*.{cmd,config,csproj,json,props,ps1,resx,sh,targets}]
+[*.{cmd,config,csproj,json,props,ps1,resx,sh,targets,yml}]
 indent_size = 2
 
 ###############################################################################
@@ -40,57 +40,66 @@ end_of_line = crlf
 indent_style = tab
 
 ###############################################################################
-# Set dotnet naming rules to:
-#    suggest async members be pascal case suffixed with Async
-#    suggest const declarations be pascal case
-#    suggest interfaces be pascal case prefixed with I
-#    suggest parameters be camel case
-#    suggest private and internal static fields be camel case
-#    suggest private and internal fields be camel case
-#    suggest public and protected declarations be pascal case
-#    suggest static readonly declarations be pascal case
-#    suggest type parameters be prefixed with T
+# Set file header template to the specified text
 ###############################################################################
 [*.cs]
-dotnet_naming_rule.async_members_should_be_pascal_case_suffixed_with_async.severity = suggestion
-dotnet_naming_rule.async_members_should_be_pascal_case_suffixed_with_async.style = pascal_case_suffixed_with_async
-dotnet_naming_rule.async_members_should_be_pascal_case_suffixed_with_async.symbols = async_members
+file_header_template = Copyright © Tanner Gooding and Contributors. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-dotnet_naming_rule.const_declarations_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.const_declarations_should_be_pascal_case.style = pascal_case
-dotnet_naming_rule.const_declarations_should_be_pascal_case.symbols = const_declarations
+###############################################################################
+# Set dotnet naming rules to:
+#    require async methods be pascal case suffixed with Async
+#    require const fields and locals be pascal case
+#    require interfaces be pascal case prefixed with I
+#    require locals be camel case
+#    require parameters be camel case
+#    require private and internal static fields be camel case and prefixed with s and underscore
+#    require private and internal fields be camel case and prefixed with underscore
+#    require public and protected declarations be pascal case
+#    require static readonly declarations be pascal case
+#    require type parameters be prefixed with T
+###############################################################################
+[*.cs]
+dotnet_naming_rule.async_methods_should_be_pascal_case_suffixed_with_async.severity = error
+dotnet_naming_rule.async_methods_should_be_pascal_case_suffixed_with_async.style = pascal_case_suffixed_with_async
+dotnet_naming_rule.async_methods_should_be_pascal_case_suffixed_with_async.symbols = async_methods
 
-dotnet_naming_rule.interfaces_should_be_pascal_case_prefixed_with_i.severity = suggestion
+dotnet_naming_rule.const_fields_and_locals_should_be_pascal_case.severity = error
+dotnet_naming_rule.const_fields_and_locals_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.const_fields_and_locals_should_be_pascal_case.symbols = const_fields_and_locals
+
+dotnet_naming_rule.interfaces_should_be_pascal_case_prefixed_with_i.severity = error
 dotnet_naming_rule.interfaces_should_be_pascal_case_prefixed_with_i.style = pascal_case_prefixed_with_i
 dotnet_naming_rule.interfaces_should_be_pascal_case_prefixed_with_i.symbols = interfaces
 
-dotnet_naming_rule.parameters_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.locals_should_be_camel_case.severity = error
+dotnet_naming_rule.locals_should_be_camel_case.style = camel_case
+dotnet_naming_rule.locals_should_be_camel_case.symbols = locals
+
+dotnet_naming_rule.parameters_should_be_camel_case.severity = error
 dotnet_naming_rule.parameters_should_be_camel_case.style = camel_case
 dotnet_naming_rule.parameters_should_be_camel_case.symbols = parameters
 
-dotnet_naming_rule.private_and_internal_static_fields_should_be_camel_case.severity = suggestion
-dotnet_naming_rule.private_and_internal_static_fields_should_be_camel_case.style = camel_case
-dotnet_naming_rule.private_and_internal_static_fields_should_be_camel_case.symbols = private_and_internal_static_fields
+dotnet_naming_rule.private_and_internal_static_fields_should_be_camel_case_prefixed_with_s_and_underscore.severity = error
+dotnet_naming_rule.private_and_internal_static_fields_should_be_camel_case_prefixed_with_s_and_underscore.style = camel_case_prefixed_with_s_and_underscore
+dotnet_naming_rule.private_and_internal_static_fields_should_be_camel_case_prefixed_with_s_and_underscore.symbols = private_and_internal_static_fields
 
-dotnet_naming_rule.private_and_internal_fields_should_be_camel_case.severity = suggestion
-dotnet_naming_rule.private_and_internal_fields_should_be_camel_case.style = camel_case
-dotnet_naming_rule.private_and_internal_fields_should_be_camel_case.symbols = private_and_internal_fields
+dotnet_naming_rule.private_and_internal_fields_should_be_camel_case_prefixed_with_underscore.severity = error
+dotnet_naming_rule.private_and_internal_fields_should_be_camel_case_prefixed_with_underscore.style = camel_case_prefixed_with_underscore
+dotnet_naming_rule.private_and_internal_fields_should_be_camel_case_prefixed_with_underscore.symbols = private_and_internal_fields
 
-dotnet_naming_rule.public_and_protected_declarations_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.public_and_protected_declarations_should_be_pascal_case.severity = error
 dotnet_naming_rule.public_and_protected_declarations_should_be_pascal_case.style = pascal_case
 dotnet_naming_rule.public_and_protected_declarations_should_be_pascal_case.symbols = public_and_protected_declarations
 
-dotnet_naming_rule.static_readonly_declarations_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.static_readonly_declarations_should_be_pascal_case.style = pascal_case
-dotnet_naming_rule.static_readonly_declarations_should_be_pascal_case.symbols = static_readonly_declarations
-
-dotnet_naming_rule.type_parameters_should_be_pascal_case_prefixed_with_t.severity = suggestion
+dotnet_naming_rule.type_parameters_should_be_pascal_case_prefixed_with_t.severity = error
 dotnet_naming_rule.type_parameters_should_be_pascal_case_prefixed_with_t.style = pascal_case_prefixed_with_t
 dotnet_naming_rule.type_parameters_should_be_pascal_case_prefixed_with_t.symbols = type_parameters
 
 ###############################################################################
 # Set dotnet naming styles to define:
 #   camel case
+#   camel case prefixed with _
+#   camel case prefixed with s_
 #   pascal case
 #   pascal case suffixed with Async
 #   pascal case prefixed with I
@@ -98,6 +107,12 @@ dotnet_naming_rule.type_parameters_should_be_pascal_case_prefixed_with_t.symbols
 ###############################################################################
 [*.cs]
 dotnet_naming_style.camel_case.capitalization = camel_case
+
+dotnet_naming_style.camel_case_prefixed_with_s_and_underscore.capitalization = camel_case
+dotnet_naming_style.camel_case_prefixed_with_s_and_underscore.required_prefix = s_
+
+dotnet_naming_style.camel_case_prefixed_with_underscore.capitalization = camel_case
+dotnet_naming_style.camel_case_prefixed_with_underscore.required_prefix = _
 
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 
@@ -112,9 +127,10 @@ dotnet_naming_style.pascal_case_prefixed_with_t.required_prefix = T
 
 ###############################################################################
 # Set dotnet naming symbols to:
-#   async members
-#   const declarations
+#   async methods
+#   const fields and locals
 #   interfaces
+#   locals
 #   private and internal fields
 #   private and internal static fields
 #   public and protected declarations
@@ -122,11 +138,15 @@ dotnet_naming_style.pascal_case_prefixed_with_t.required_prefix = T
 #   type parameters
 ###############################################################################
 [*.cs]
-dotnet_naming_symbols.async_members.required_modifiers = async
+dotnet_naming_symbols.async_methods.applicable_kinds = method
+dotnet_naming_symbols.async_methods.required_modifiers = async
 
-dotnet_naming_symbols.const_declarations.required_modifiers = const
+dotnet_naming_symbols.const_fields_and_locals.applicable_kinds = field, local
+dotnet_naming_symbols.const_fields_and_locals.required_modifiers = const
 
 dotnet_naming_symbols.interfaces.applicable_kinds = interface
+
+dotnet_naming_symbols.locals.applicable_kinds = local
 
 dotnet_naming_symbols.parameters.applicable_kinds = parameter
 
@@ -138,8 +158,7 @@ dotnet_naming_symbols.private_and_internal_static_fields.applicable_kinds = fiel
 dotnet_naming_symbols.private_and_internal_static_fields.required_modifiers = static
 
 dotnet_naming_symbols.public_and_protected_declarations.applicable_accessibilities = public, protected
-
-dotnet_naming_symbols.static_readonly_declarations.required_modifiers = static, readonly
+dotnet_naming_symbols.public_and_protected_declarations.applicable_kinds = namespace, class, struct, enum, property, method, field, event, delegate, local_function
 
 dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
 
@@ -154,68 +173,81 @@ dotnet_sort_system_directives_first = true
 
 ###############################################################################
 # Set dotnet style options to:
-#   suggest null-coalescing expressions,
-#   suggest collection-initializers,
-#   suggest explicit tuple names,
-#   suggest null-propogation
-#   suggest object-initializers,
-#   generate parentheses in arithmetic binary operators for clarity,
-#   generate parentheses in other binary operators for clarity,
-#   don't generate parentheses in other operators if unnecessary,
-#   generate parentheses in relational binary operators for clarity,
-#   warn when not using predefined-types for locals, parameters, and members,
-#   generate predefined-types of type names for member access,
-#   generate auto properties,
-#   suggest compound assignment,
-#   generate conditional expression over assignment,
-#   generate conditional expression over return,
-#   suggest inferred anonymous types,
-#   suggest inferred tuple names,
-#   suggest 'is null' checks over '== null',
-#   don't generate 'this.' and 'Me.' for events,
-#   warn when not using 'this.' and 'Me.' for fields,
-#   warn when not using 'this.' and 'Me.' for methods,
-#   warn when not using 'this.' and 'Me.' for properties,
-#   suggest readonly fields, and
-#   generate accessibility modifiers for non interface members
+#   require null-coalescing expressions,
+#   require collection-initializers,
+#   require explicit tuple names,
+#   require null-propogation
+#   require object-initializers,
+#
+#   require parentheses in arithmetic binary operators for clarity,
+#   require parentheses in other binary operators for clarity,
+#   error on parentheses in other operators if unnecessary,
+#   require parentheses in relational binary operators for clarity,
+#
+#   require predefined-types for locals, parameters, and members,
+#   require predefined-types of type names for member access,
+#
+#   place operators at the beginning of the line when wrapping,
+#   error on suggest auto properties,
+#   require compound assignment,
+#   suggest conditional expression over assignment,
+#   suggest conditional expression over return,
+#   require inferred anonymous types,
+#   require inferred tuple names,
+#   require 'is null' checks over '== null',
+#   require simplified boolean expressions,
+#   require simplified interpolation,
+#
+#   error on 'this.' and 'Me.' for events,
+#   error on 'this.' and 'Me.' for fields,
+#   error on 'this.' and 'Me.' for methods,
+#   error on 'this.' and 'Me.' for properties,
+#
+#   require readonly fields, and
+#   require specifying accessibility modifiers
 ###############################################################################
 [*.cs]
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_object_initializer = true:suggestion
+dotnet_style_coalesce_expression = true:error
+dotnet_style_collection_initializer = true:error
+dotnet_style_explicit_tuple_names = true:error
+dotnet_style_null_propagation = true:error
+dotnet_style_object_initializer = true:error
 
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:error
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:error
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:error
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:error
 
-dotnet_style_predefined_type_for_locals_parameters_members = true:silent
-dotnet_style_predefined_type_for_member_access = true:silent
+dotnet_style_predefined_type_for_locals_parameters_members = true:error
+dotnet_style_predefined_type_for_member_access = true:error
 
-dotnet_style_prefer_auto_properties = true:silent
-dotnet_style_prefer_compound_assignment = true:suggestion
-dotnet_style_prefer_conditional_expression_over_assignment = true:silent
-dotnet_style_prefer_conditional_expression_over_return = true:silent
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+dotnet_style_prefer_auto_properties = false:error
+dotnet_style_prefer_compound_assignment = true:error
+dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
+dotnet_style_prefer_conditional_expression_over_return = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
+dotnet_style_prefer_inferred_tuple_names = true:error
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:error
+dotnet_style_prefer_simplified_boolean_expressions = true:error
+dotnet_style_prefer_simplified_interpolation = true:error
 
-dotnet_style_qualification_for_event = false:silent
-dotnet_style_qualification_for_field = false:silent
-dotnet_style_qualification_for_method = false:silent
-dotnet_style_qualification_for_property = false:silent
+dotnet_style_qualification_for_event = false:error
+dotnet_style_qualification_for_field = false:error
+dotnet_style_qualification_for_method = false:error
+dotnet_style_qualification_for_property = false:error
 
-dotnet_style_readonly_field = true:suggestion
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
+dotnet_style_readonly_field = true:error
+dotnet_style_require_accessibility_modifiers = always:error
 
 ###############################################################################
 # Set dotnet style options to:
-#   suggest removing all unused parameters
+#   suggest removing all unused parameters, and
+#   remove unnecessary supression exclusions
 ###############################################################################
 [*.cs]
 dotnet_code_quality_unused_parameters = all:suggestion
+dotnet_remove_unnecessary_suppression_exclusions = none
 
 ###############################################################################
 # Set csharp indent options to:
@@ -240,27 +272,42 @@ csharp_indent_switch_labels = true
 #   insert a new-line before "else",
 #   insert a new-line before "finally",
 #   insert a new-line before members in anonymous-types,
-#   insert a new-line before members in object-initializers, and
-#   insert a new-line before all open braces
+#   insert a new-line before members in object-initializers,
+#   insert a new-line before all open braces except anonymous methods, anonymous types, lambdas, and object collections and
+#   insert a new-line within query expression clauses
 ###############################################################################
 [*.cs]
 csharp_new_line_before_catch = true
 csharp_new_line_before_else = true
 csharp_new_line_before_finally = true
-
 csharp_new_line_before_members_in_anonymous_types = true
 csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_open_brace = accessors, control_blocks, events, indexers, local_functions, methods, properties, types
+csharp_new_line_within_query_expression_clauses = true
 
-csharp_new_line_before_open_brace = all
+###############################################################################
+# Set csharp preferences to:
+#   require braces,
+#   require simple default expressions,
+#   require simple using statements,
+#   require static local functions,
+#   require a preferred modifier order,
+###############################################################################
+[*.cs]
+csharp_prefer_braces = true:error
+csharp_prefer_simple_default_expression = true:error
+csharp_prefer_simple_using_statement = true:error
+csharp_prefer_static_local_function = true:error
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:error
 
 ###############################################################################
 # Set csharp preserve options to:
 #   preserve single-line blocks, and
-#   preserve single-line statements
+#   not preserve single-line statements
 ###############################################################################
 [*.cs]
 csharp_preserve_single_line_blocks = true
-csharp_preserve_single_line_statements = true
+csharp_preserve_single_line_statements = false
 
 ###############################################################################
 # Set csharp space options to:
@@ -294,16 +341,13 @@ csharp_space_after_comma = true
 csharp_space_after_dot = false
 csharp_space_after_keywords_in_control_flow_statements = true
 csharp_space_after_semicolon_in_for_statement = true
-
 csharp_space_around_binary_operators = before_and_after
-csharp_space_around_declaration_statements = do_not_ignore
-
+csharp_space_around_declaration_statements = false
 csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_before_comma = false
 csharp_space_before_dot = false
 csharp_space_before_open_square_brackets = false
 csharp_space_before_semicolon_in_for_statement = false
-
 csharp_space_between_empty_square_brackets = false
 csharp_space_between_method_call_empty_parameter_list_parentheses = false
 csharp_space_between_method_call_name_and_opening_parenthesis = false
@@ -316,56 +360,87 @@ csharp_space_between_square_brackets = false
 
 ###############################################################################
 # Set csharp style options to:
-#   generate braces,
-#   suggest simple default expressions,
-#   generate a preferred modifier order,
-#   suggest conditional delegate calls,
-#   suggest deconstructed variable declarations,
-#   generate expression-bodied accessors,
-#   don't generate expression-bodied constructors,
-#   generate expression-bodied indexers,
-#   generate expression-bodied lambdas,
-#   don't generate expression-bodied methods,
-#   don't generate expression-bodied operators,
-#   generate expression-bodied properties,
-#   suggest inlined variable declarations,
-#   suggest local over anonymous functions,
-#   suggest pattern-matching over "as" with "null" check,
-#   suggest pattern-matching over "is" with "cast" check,
-#   suggest throw expressions,
-#   generate a discard variable for unused value expression statements,
-#   suggest a discard variable for unused assignments,
-#   warn when using var for built-in types,
-#   warn when using var when the type is not apparent, and
-#   warn when not using var when the type is apparent
+#   require conditional delegate calls,
+#   require deconstructed variable declarations,
+#
+#   error on expression-bodied accessors,
+#   error on expression-bodied constructors,
+#   require expression-bodied indexers when on a single line,
+#   require expression-bodied lambdas,
+#   error on expression-bodied local functions,
+#   suggest expression-bodied methods when on a single line,
+#   require expression-bodied operators when on a single line,
+#   require expression-bodied properties when on a single line,
+#
+#   error on simplified new expression,
+#
+#   require inlined variable declarations,
+#
+#   require local over anonymous functions,
+#   require pattern-matching over "as" with "null" check,
+#   require pattern-matching over "is" with "cast" check,
+#
+#   require index operators where possible,
+#   require range operators where possible,
+#   require the "not" pattern where possible,
+#   require pattern-matching where possible,
+#   require switch expressions where possible,
+#
+#   require throw expressions,
+#
+#   require a discard variable for unused assignments,
+#   require a discard variable for unused value expression statements,
+#
+#   require var when the type is not apparent,
+#   require var for built-in types, and
+#   require var when the type is apparent
 ###############################################################################
 [*.cs]
-csharp_prefer_braces = true:silent
-csharp_prefer_simple_default_expression = true:suggestion
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:silent
+csharp_style_conditional_delegate_call = true:error
+csharp_style_deconstructed_variable_declaration = true:error
 
-csharp_style_conditional_delegate_call = true:suggestion
-csharp_style_deconstructed_variable_declaration = true:suggestion
+csharp_style_expression_bodied_accessors = false:error
+csharp_style_expression_bodied_constructors = false:error
+csharp_style_expression_bodied_indexers = when_on_single_line:error
+csharp_style_expression_bodied_lambdas = true:error
+csharp_style_expression_bodied_local_functions = false:error
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_operators = when_on_single_line:error
+csharp_style_expression_bodied_properties = when_on_single_line:error
 
-csharp_style_expression_bodied_accessors = true:silent
-csharp_style_expression_bodied_constructors = false:silent
-csharp_style_expression_bodied_indexers = true:silent
-csharp_style_expression_bodied_lambdas = true:silent
-csharp_style_expression_bodied_methods = false:silent
-csharp_style_expression_bodied_operators = false:silent
-csharp_style_expression_bodied_properties = true:silent
+csharp_style_implicit_object_creation_when_type_is_apparent = false:error
 
-csharp_style_inlined_variable_declaration = true:suggestion
+csharp_style_inlined_variable_declaration = true:error
 
-csharp_style_pattern_local_over_anonymous_function = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+csharp_style_pattern_local_over_anonymous_function = true:error
+csharp_style_pattern_matching_over_as_with_null_check = true:error
+csharp_style_pattern_matching_over_is_with_cast_check = true:error
 
-csharp_style_throw_expression = true:suggestion
+csharp_style_prefer_index_operator = true:error
+csharp_style_prefer_range_operator = true:error
+csharp_style_prefer_not_pattern = true:error
+csharp_style_prefer_pattern_matching = true:error
+csharp_style_prefer_switch_expression = true:error
 
-csharp_style_unused_value_expression_statement_preference = discard_variable:silent
-csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+csharp_style_throw_expression = true:error
 
-csharp_style_var_for_built_in_types = false:silent
-csharp_style_var_elsewhere = false:silent
-csharp_style_var_when_type_is_apparent = false:silent
+csharp_style_unused_value_assignment_preference = discard_variable:error
+csharp_style_unused_value_expression_statement_preference = discard_variable:error
+
+csharp_style_var_elsewhere = true:error
+csharp_style_var_for_built_in_types = true:error
+csharp_style_var_when_type_is_apparent = true:error
+
+###############################################################################
+# Set csharp using options to:
+#   require using directives outside the namespace
+###############################################################################
+[*.cs]
+csharp_using_directive_placement = outside_namespace:error
+
+###############################################################################
+# Supress diagnostics that don't apply to ClangSharp
+###############################################################################
+dotnet_diagnostic.CA1069.severity = none
+dotnet_diagnostic.CA1826.severity = none
+dotnet_diagnostic.IDE0060.severity = none

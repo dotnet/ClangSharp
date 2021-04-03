@@ -9,9 +9,9 @@ namespace ClangSharp
     {
         internal InheritableParamAttr(CXCursor handle) : base(handle)
         {
-            if ((CX_AttrKind.CX_AttrKind_LastInheritableParamAttr < handle.AttrKind) || (handle.AttrKind < CX_AttrKind.CX_AttrKind_FirstInheritableParamAttr))
+            if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastInheritableParamAttr or < CX_AttrKind.CX_AttrKind_FirstInheritableParamAttr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
     }

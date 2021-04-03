@@ -13,9 +13,7 @@ namespace ClangSharp
         private readonly Lazy<Stmt> _body;
         private readonly Lazy<Decl> _canonicalDecl;
         private readonly Lazy<IReadOnlyList<Decl>> _decls;
-        private readonly Lazy<IDeclContext> _declContext;
         private readonly Lazy<TemplateDecl> _describedTemplate;
-        private readonly Lazy<IDeclContext> _lexicalDeclContext;
         private readonly Lazy<Decl> _mostRecentDecl;
         private readonly Lazy<Decl> _nextDeclInContext;
         private readonly Lazy<Decl> _nonClosureContext;
@@ -28,7 +26,7 @@ namespace ClangSharp
         {
             if ((handle.DeclKind == CX_DeclKind.CX_DeclKind_Invalid) || (handle.DeclKind != expectedDeclKind))
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _asFunction = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.AsFunction));
@@ -37,7 +35,7 @@ namespace ClangSharp
                 var attrCount = Handle.NumAttrs;
                 var attrs = new List<Attr>(attrCount);
 
-                for (int i = 0; i < attrCount; i++)
+                for (var i = 0; i < attrCount; i++)
                 {
                     var attr = TranslationUnit.GetOrCreate<Attr>(Handle.GetAttr(unchecked((uint)i)));
                     attrs.Add(attr);
@@ -53,7 +51,7 @@ namespace ClangSharp
                 var declCount = Handle.NumDecls;
                 var decls = new List<Decl>(declCount);
 
-                for (int i = 0; i < declCount; i++)
+                for (var i = 0; i < declCount; i++)
                 {
                     var decl = TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i)));
                     decls.Add(decl);
@@ -61,10 +59,8 @@ namespace ClangSharp
 
                 return decls;
             });
-
-            _declContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.SemanticParent) as IDeclContext);
+;
             _describedTemplate = new Lazy<TemplateDecl>(() => TranslationUnit.GetOrCreate<TemplateDecl>(Handle.DescribedTemplate));
-            _lexicalDeclContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.LexicalParent) as IDeclContext);
             _mostRecentDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.MostRecentDecl));
             _nextDeclInContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NextDeclInContext));
             _nonClosureContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NonClosureContext));
@@ -86,7 +82,7 @@ namespace ClangSharp
 
         public Decl CanonicalDecl => _canonicalDecl.Value;
 
-        public IDeclContext DeclContext => _declContext.Value;
+        public IDeclContext DeclContext => SemanticParentCursor as IDeclContext;
 
         public string DeclKindName => Handle.DeclKindSpelling;
 
@@ -110,22 +106,8 @@ namespace ClangSharp
         {
             get
             {
-                if (this is not NamespaceDecl ND)
-                {
-                    return false;
-                }
-
-                if (ND.IsInline)
-                {
-                    return ND.Parent.IsStdNamespace;
-                }
-
-                if (!ND.Parent.RedeclContext.IsTranslationUnit)
-                {
-                    return false;
-                }
-
-                return ND.Name == "std";
+                return this is NamespaceDecl nd
+                    && (nd.IsInline ? nd.Parent.IsStdNamespace : nd.Parent.RedeclContext.IsTranslationUnit && nd.Name == "std");
             }
         }
 
@@ -139,7 +121,7 @@ namespace ClangSharp
 
         public CX_DeclKind Kind => Handle.DeclKind;
 
-        public IDeclContext LexicalDeclContext => _lexicalDeclContext.Value;
+        public IDeclContext LexicalDeclContext => LexicalParentCursor as IDeclContext;
 
         public IDeclContext LexicalParent => (this is IDeclContext) ? LexicalDeclContext : null;
 
