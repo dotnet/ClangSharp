@@ -57,7 +57,7 @@ namespace ClangSharp
 
         public bool IsExtIntType => CanonicalType is ExtIntType;
 
-        public bool IsIntegerType => this is BuiltinType && Kind is >= CXTypeKind.CXType_Bool and <= CXTypeKind.CXType_Int128;
+        public bool IsIntegerType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind is >= CXTypeKind.CXType_Bool and <= CXTypeKind.CXType_Int128;
 
         public bool IsIntegralOrEnumerationType
         {
