@@ -15,9 +15,9 @@ namespace ClangSharp
 
         internal DeclRefExpr(CXCursor handle) : base(handle, handle.Kind, CX_StmtClass.CX_StmtClass_DeclRefExpr)
         {
-            if ((handle.Kind != CXCursorKind.CXCursor_DeclRefExpr) && (handle.Kind != CXCursorKind.CXCursor_ObjCSelfExpr))
+            if (handle.Kind is not CXCursorKind.CXCursor_DeclRefExpr and not CXCursorKind.CXCursor_ObjCSelfExpr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             Debug.Assert(NumChildren is 0);
@@ -29,7 +29,7 @@ namespace ClangSharp
                 var templateArgCount = Handle.NumTemplateArguments;
                 var templateArgs = new List<TemplateArgumentLoc>(templateArgCount);
 
-                for (int i = 0; i < templateArgCount; i++)
+                for (var i = 0; i < templateArgCount; i++)
                 {
                     var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
                     templateArgs.Add(templateArg);

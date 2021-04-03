@@ -18,7 +18,7 @@ namespace ClangSharp
                 var parameterCount = Handle.NumArguments;
                 var parameters = new List<ImplicitParamDecl>(parameterCount);
 
-                for (int i = 0; i < parameterCount; i++)
+                for (var i = 0; i < parameterCount; i++)
                 {
                     var parameter = TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetArgument(unchecked((uint)i)));
                     parameters.Add(parameter);

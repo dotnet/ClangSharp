@@ -13,9 +13,9 @@ namespace ClangSharp
 
         private protected DeclaratorDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastDeclarator < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstDeclarator))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastDeclarator or < CX_DeclKind.CX_DeclKind_FirstDeclarator)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _templateParameterLists = new Lazy<IReadOnlyList<IReadOnlyList<NamedDecl>>>(() => {

@@ -31,12 +31,7 @@ namespace ClangSharp
             _finallyStmt = new Lazy<ObjCAtFinallyStmt>(() => {
                 var children = Children;
 
-                if (children.Last() is ObjCAtFinallyStmt finallyStmt)
-                {
-                    return finallyStmt;
-                }
-
-                return null;
+                return children.Last() is ObjCAtFinallyStmt finallyStmt ? finallyStmt : null;
             });
         }
 

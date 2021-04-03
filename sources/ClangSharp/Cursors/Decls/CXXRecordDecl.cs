@@ -28,9 +28,9 @@ namespace ClangSharp
 
         private protected CXXRecordDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastCXXRecord < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstCXXRecord))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastCXXRecord or < CX_DeclKind.CX_DeclKind_FirstCXXRecord)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _bases = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => {
@@ -162,13 +162,13 @@ namespace ClangSharp
         {
             get
             {
-                CXXRecordDecl Recent = MostRecentDecl;
+                var recent = MostRecentDecl;
 
-                while ((Recent != null) && Recent.IsInjectedClassName)
+                while ((recent != null) && recent.IsInjectedClassName)
                 {
-                    Recent = Recent.PreviousDecl;
+                    recent = recent.PreviousDecl;
                 }
-                return Recent;
+                return recent;
             }
         }
 

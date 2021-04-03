@@ -41,10 +41,7 @@ namespace ClangSharp
             AppendBlankLine();
         }
 
-        private void AppendBlankLine()
-        {
-            Console.Out.WriteLine();
-        }
+        private void AppendBlankLine() => Console.Out.WriteLine();
 
         private void AppendHeading(string heading)
         {
@@ -70,33 +67,33 @@ namespace ClangSharp
 
         private void AppendPadding(int? offset = null)
         {
-            string padding = GetPadding(offset ?? CurrentIndentation);
+            var padding = GetPadding(offset ?? CurrentIndentation);
             Console.Out.Write(padding);
         }
 
         private void AppendRow(IEnumerable<string> row, IReadOnlyList<int> columnWidths)
         {
             var array = row.Select((string element, int index) => SplitText(element, columnWidths[index])).ToArray();
-            int num = array.Max((IReadOnlyList<string> lines) => lines.Count);
+            var num = array.Max((IReadOnlyList<string> lines) => lines.Count);
 
-            for (int i = 0; i < num; i++)
+            for (var i = 0; i < num; i++)
             {
-                int num2 = 0;
-                int num3 = 0;
+                var num2 = 0;
+                var num3 = 0;
 
                 AppendPadding(CurrentIndentation);
 
-                for (int j = 0; j < array.Length; j++)
+                for (var j = 0; j < array.Length; j++)
                 {
                     var readOnlyList = array[j];
 
                     if (i < readOnlyList.Count)
                     {
-                        string text = readOnlyList[i];
+                        var text = readOnlyList[i];
 
                         if (!string.IsNullOrEmpty(text))
                         {
-                            int num4 = num2 - num3;
+                            var num4 = num2 - num3;
                             AppendText(text, num4);
                             num3 += num4 + text.Length;
                         }
@@ -112,7 +109,7 @@ namespace ClangSharp
 
         private void AppendTable(IEnumerable<IEnumerable<string>> table, IReadOnlyList<int> columnWidths)
         {
-            foreach (IEnumerable<string> item in table)
+            foreach (var item in table)
             {
                 AppendRow(item, columnWidths);
             }
@@ -131,40 +128,40 @@ namespace ClangSharp
                 return Array.Empty<int>();
             }
 
-            int count = table.First().Count;
-            int num = -1;
-            int[] array = new int[count];
-            for (int j = 0; j < count; j++)
+            var count = table.First().Count;
+            var num = -1;
+            var array = new int[count];
+            for (var j = 0; j < count; j++)
             {
                 array[j] = num;
             }
 
-            int[] array2 = new int[count];
+            var array2 = new int[count];
             int i;
             for (i = 0; i < count; i++)
             {
                 array2[i] = table.Max((IReadOnlyList<string> row) => row[i].Length);
             }
 
-            int num2 = array2.Count((int width) => width > 0);
-            int num3 = GetAvailableWidth() - ColumnGutter * (num2 - 1);
+            var num2 = array2.Count((int width) => width > 0);
+            var num3 = GetAvailableWidth() - (ColumnGutter * (num2 - 1));
             if (num3 - num2 < 0 || num2 == 0)
             {
                 return array2;
             }
 
-            int num4 = num2;
-            int num5 = 0;
-            int num6 = 5;
+            var num4 = num2;
+            var num5 = 0;
+            var num6 = 5;
             while (num4 > 0)
             {
-                int num7 = (num3 - array.Where((int width) => width > 0).Sum()) / num4;
-                bool flag = num4 == num5 || num6 <= 1;
-                for (int k = 0; k < count; k++)
+                var num7 = (num3 - array.Where((int width) => width > 0).Sum()) / num4;
+                var flag = num4 == num5 || num6 <= 1;
+                for (var k = 0; k < count; k++)
                 {
                     if (array[k] == num)
                     {
-                        int num8 = array2[k];
+                        var num8 = array2[k];
                         if (flag)
                         {
                             num8 = Math.Min(num8, num7);

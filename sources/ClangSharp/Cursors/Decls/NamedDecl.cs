@@ -11,9 +11,9 @@ namespace ClangSharp
 
         private protected NamedDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastNamed < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstNamed))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastNamed or < CX_DeclKind.CX_DeclKind_FirstNamed)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _underlyingDecl = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.UnderlyingDecl));

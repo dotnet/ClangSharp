@@ -24,7 +24,7 @@ namespace ClangSharp.XML
             get
             {
                 StringWriter sw = new();
-                XmlWriter writer = XmlWriter.Create(sw, new()
+                var writer = XmlWriter.Create(sw, new()
                 {
                     Indent = true,
                     IndentChars = "  ",
@@ -42,6 +42,6 @@ namespace ClangSharp.XML
             }
         }
 
-        private string EscapeText(string value) => new XText(value).ToString();
+        private static string EscapeText(string value) => new XText(value).ToString();
     }
 }

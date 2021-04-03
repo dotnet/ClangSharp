@@ -8,11 +8,11 @@ namespace ClangSharp.XML
             => _sb.Append($"<attribute>{attribute}</attribute>\n");
         public void WriteIid(string iidName, string iidValue)
         {
-            _sb.Append("<iid name=\"");
-            _sb.Append(iidName);
-            _sb.Append("\" value=\"");
-            _sb.Append(iidValue);
-            _sb.Append("\" />");
+            _ = _sb.Append("<iid name=\"");
+            _ = _sb.Append(iidName);
+            _ = _sb.Append("\" value=\"");
+            _ = _sb.Append(iidValue);
+            _ = _sb.Append("\" />");
         }
 
         public void WriteDivider(bool force = false)

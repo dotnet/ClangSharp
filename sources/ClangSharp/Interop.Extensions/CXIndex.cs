@@ -13,8 +13,15 @@ namespace ClangSharp.Interop
 
         public CXGlobalOptFlags GlobalOptions
         {
-            get => (CXGlobalOptFlags)clang.CXIndex_getGlobalOptions(this);
-            set => clang.CXIndex_setGlobalOptions(this, (uint)value);
+            get
+            {
+                return (CXGlobalOptFlags)clang.CXIndex_getGlobalOptions(this);
+            }
+
+            set
+            {
+                clang.CXIndex_setGlobalOptions(this, (uint)value);
+            }
         }
 
         public IntPtr Handle { get; set; }

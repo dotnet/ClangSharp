@@ -21,10 +21,7 @@ namespace ClangSharp
 
         public IEnumerable<IOutputBuilder> OutputBuilders => _outputBuilders.Values;
 
-        public void Clear()
-        {
-            _outputBuilders.Clear();
-        }
+        public void Clear() => _outputBuilders.Clear();
 
         public IOutputBuilder Create(string name)
         {
@@ -37,7 +34,7 @@ namespace ClangSharp
             {
                 PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name),
                 PInvokeGeneratorOutputMode.Xml => new XmlOutputBuilder(name),
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new InvalidOperationException()
             };
 
             _outputBuilders.Add(name, outputBuilder);
@@ -57,37 +54,22 @@ namespace ClangSharp
             return outputBuilder;
         }
 
-        public IOutputBuilder GetOutputBuilder(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-            return _outputBuilders[name];
-        }
+        public IOutputBuilder GetOutputBuilder(string name) => string.IsNullOrWhiteSpace(name) ? throw new ArgumentNullException(nameof(name)) : _outputBuilders[name];
 
         public CSharpOutputBuilder GetTestOutputBuilder(string name)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (_outputBuilders[name] is CSharpOutputBuilder csharpOutputBuilder && csharpOutputBuilder.IsTestOutput)
-            {
-                return csharpOutputBuilder;
-            }
-
-            throw new ArgumentException("A test output builder was not found with the given name", nameof(name));
+            return string.IsNullOrWhiteSpace(name)
+                ? throw new ArgumentNullException(nameof(name))
+                : _outputBuilders[name] is CSharpOutputBuilder csharpOutputBuilder && csharpOutputBuilder.IsTestOutput
+                ? csharpOutputBuilder
+                : throw new ArgumentException("A test output builder was not found with the given name", nameof(name));
         }
 
         public bool TryGetOutputBuilder(string name, out IOutputBuilder outputBuilder)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-            return _outputBuilders.TryGetValue(name, out outputBuilder);
+            return string.IsNullOrWhiteSpace(name)
+                ? throw new ArgumentNullException(nameof(name))
+                : _outputBuilders.TryGetValue(name, out outputBuilder);
         }
     }
 }

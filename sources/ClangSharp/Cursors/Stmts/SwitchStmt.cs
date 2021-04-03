@@ -38,7 +38,7 @@ namespace ClangSharp
 
         private int CondOffset => VarOffset + (HasVarStorage ? 1 : 0);
 
-        private int InitOffset => 0;
+        private static int InitOffset => 0;
 
         private int VarOffset => InitOffset + (HasInitStorage ? 1 : 0);
 

@@ -25,9 +25,9 @@ namespace ClangSharp
 
         private protected FunctionDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastFunction < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstFunction))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastFunction or < CX_DeclKind.CX_DeclKind_FirstFunction)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _callResultType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CallResultType));
@@ -40,7 +40,7 @@ namespace ClangSharp
                 var parameterCount = Handle.NumArguments;
                 var parameters = new List<ParmVarDecl>(parameterCount);
 
-                for (int i = 0; i < parameterCount; i++)
+                for (var i = 0; i < parameterCount; i++)
                 {
                     var parameter = TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i)));
                     parameters.Add(parameter);
@@ -57,7 +57,7 @@ namespace ClangSharp
                 var templateArgCount = Handle.NumTemplateArguments;
                 var templateArgs = new List<TemplateArgument>(templateArgCount);
 
-                for (int i = 0; i < templateArgCount; i++)
+                for (var i = 0; i < templateArgCount; i++)
                 {
                     var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
                     templateArgs.Add(templateArg);

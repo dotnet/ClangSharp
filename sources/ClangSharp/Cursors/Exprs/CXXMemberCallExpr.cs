@@ -14,18 +14,18 @@ namespace ClangSharp
         {
             get
             {
-                Expr callee = Callee.IgnoreParens;
+                var callee = Callee.IgnoreParens;
 
-                if (callee is MemberExpr MemExpr)
+                if (callee is MemberExpr memExpr)
                 {
-                    return MemExpr.Base;
+                    return memExpr.Base;
                 }
 
-                if (callee is BinaryOperator BO)
+                if (callee is BinaryOperator bo)
                 {
-                    if (BO.IsPtrMemOp)
+                    if (bo.IsPtrMemOp)
                     {
-                        return BO.LHS;
+                        return bo.LHS;
                     }
                 }
 
@@ -33,30 +33,19 @@ namespace ClangSharp
             }
         }
 
-        public CXXMethodDecl MethodDecl
-        {
-            get
-            {
-                if (Callee.IgnoreParens is MemberExpr MemExpr)
-                {
-                    return (CXXMethodDecl)MemExpr.MemberDecl;
-                }
-
-                return null;
-            }
-        }
+        public CXXMethodDecl MethodDecl => Callee.IgnoreParens is MemberExpr memExpr ? (CXXMethodDecl)memExpr.MemberDecl : null;
 
         public Type ObjectType
         {
             get
             {
-                Type Ty = ImplicitObjectArgument.Type;
+                var ty = ImplicitObjectArgument.Type;
 
-                if (Ty.IsPointerType)
+                if (ty.IsPointerType)
                 {
-                    Ty = Ty.PointeeType;
+                    ty = ty.PointeeType;
                 }
-                return Ty;
+                return ty;
             }
         }
 
@@ -64,19 +53,11 @@ namespace ClangSharp
         {
             get
             {
-                Expr ThisArg = ImplicitObjectArgument;
+                var thisArg = ImplicitObjectArgument;
 
-                if (ThisArg is null)
-                {
-                    return null;
-                }
-
-                if (ThisArg.Type.IsAnyPointerType)
-                {
-                    return ThisArg.Type.PointeeType.AsCXXRecordDecl;
-                }
-
-                return ThisArg.Type.AsCXXRecordDecl;
+                return thisArg is null
+                    ? null
+                    : thisArg.Type.IsAnyPointerType ? thisArg.Type.PointeeType.AsCXXRecordDecl : thisArg.Type.AsCXXRecordDecl;
             }
         }
     }

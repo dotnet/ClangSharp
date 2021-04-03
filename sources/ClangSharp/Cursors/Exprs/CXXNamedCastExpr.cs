@@ -9,9 +9,9 @@ namespace ClangSharp
     {
         private protected CXXNamedCastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastCXXNamedCastExpr < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstCXXNamedCastExpr))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastCXXNamedCastExpr or < CX_StmtClass.CX_StmtClass_FirstCXXNamedCastExpr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
 

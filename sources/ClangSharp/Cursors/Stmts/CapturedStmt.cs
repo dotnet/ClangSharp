@@ -41,7 +41,7 @@ namespace ClangSharp
 
         public RecordDecl CapturedRecordDecl => _capturedRecordDecl.Value;
 
-        CX_CapturedRegionKind CapturedRegionKind => Handle.CapturedRegionKind;
+        public CX_CapturedRegionKind CapturedRegionKind => Handle.CapturedRegionKind;
 
         public Stmt CaptureStmt => _captureStmt.Value;
 
@@ -53,14 +53,14 @@ namespace ClangSharp
 
         public bool CapturesVariable(VarDecl var)
         {
-            foreach (var I in Captures)
+            foreach (var i in Captures)
             {
-                if (!I.CapturesVariable && !I.CapturesVariableByCopy)
+                if (!i.CapturesVariable && !i.CapturesVariableByCopy)
                 {
                     continue;
                 }
 
-                if (I.CapturedVar.CanonicalDecl == var.CanonicalDecl)
+                if (i.CapturedVar.CanonicalDecl == var.CanonicalDecl)
                 {
                     return true;
                 }

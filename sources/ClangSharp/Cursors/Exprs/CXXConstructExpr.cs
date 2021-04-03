@@ -19,9 +19,9 @@ namespace ClangSharp
 
         private protected CXXConstructExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastCXXConstructExpr < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstCXXConstructExpr))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastCXXConstructExpr or < CX_StmtClass.CX_StmtClass_FirstCXXConstructExpr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
             Debug.Assert(NumChildren == NumArgs);
 

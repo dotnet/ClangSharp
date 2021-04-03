@@ -37,10 +37,7 @@ namespace ClangSharp
 
         public string Message => _message;
 
-        public override bool Equals(object obj)
-        {
-            return (obj is Diagnostic other) && Equals(other);
-        }
+        public override bool Equals(object obj) => (obj is Diagnostic other) && Equals(other);
 
         public bool Equals(Diagnostic other)
         {
@@ -49,13 +46,6 @@ namespace ClangSharp
                 && (_message == other.Message);
         }
 
-        public override string ToString()
-        {
-            if (string.IsNullOrWhiteSpace(_location))
-            {
-                return $"{_level}: {_message}";
-            }
-            return $"{_level} ({_location}): {_message}";
-        }
+        public override string ToString() => string.IsNullOrWhiteSpace(_location) ? $"{_level}: {_message}" : $"{_level} ({_location}): {_message}";
     }
 }

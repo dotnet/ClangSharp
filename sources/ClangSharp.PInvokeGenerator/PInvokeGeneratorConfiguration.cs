@@ -46,7 +46,7 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(namespaceName));
             }
 
-            if (outputMode != PInvokeGeneratorOutputMode.CSharp && outputMode != PInvokeGeneratorOutputMode.Xml)
+            if (outputMode is not PInvokeGeneratorOutputMode.CSharp and not PInvokeGeneratorOutputMode.Xml)
             {
                 throw new ArgumentOutOfRangeException(nameof(options));
             }

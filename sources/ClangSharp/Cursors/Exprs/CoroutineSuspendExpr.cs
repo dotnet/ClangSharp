@@ -9,9 +9,9 @@ namespace ClangSharp
     {
         private protected CoroutineSuspendExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastCoroutineSuspendExpr < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstCoroutineSuspendExpr))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastCoroutineSuspendExpr or < CX_StmtClass.CX_StmtClass_FirstCoroutineSuspendExpr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
     }

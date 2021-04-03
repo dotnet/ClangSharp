@@ -44,7 +44,7 @@ namespace ClangSharp
 
         public IReadOnlyList<Expr> PlacementArgs => _placementArgs.Value;
 
-        private int ArraySizeOffset => 0;
+        private static int ArraySizeOffset => 0;
 
         private int InitExprOffset => ArraySizeOffset + (IsArray ? 1 : 0);
 

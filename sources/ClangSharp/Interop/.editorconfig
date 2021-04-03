@@ -1,0 +1,28 @@
+###############################################################################
+# EditorConfig is awesome: http://EditorConfig.org
+###############################################################################
+
+###############################################################################
+# Not top-most EditorConfig file
+###############################################################################
+root = false
+
+###############################################################################
+# Set dotnet naming rules to:
+#    disable any parent naming rules since they are not applicable to interop
+###############################################################################
+[*.cs]
+dotnet_naming_rule.async_methods_should_be_pascal_case_suffixed_with_async.severity = none
+dotnet_naming_rule.const_fields_and_locals_should_be_pascal_case.severity = none
+dotnet_naming_rule.interfaces_should_be_pascal_case_prefixed_with_i.severity = none
+dotnet_naming_rule.locals_should_be_camel_case.severity = none
+dotnet_naming_rule.parameters_should_be_camel_case.severity = none
+dotnet_naming_rule.private_and_internal_static_fields_should_be_camel_case_prefixed_with_s_and_underscore.severity = none
+dotnet_naming_rule.private_and_internal_fields_should_be_camel_case_prefixed_with_underscore.severity = none
+dotnet_naming_rule.public_and_protected_declarations_should_be_pascal_case.severity = none
+dotnet_naming_rule.type_parameters_should_be_pascal_case_prefixed_with_t.severity = none
+
+###############################################################################
+# Supress diagnostics that don't apply to ClangSharp P/Invokes
+###############################################################################
+dotnet_diagnostic.CA1401.severity = none

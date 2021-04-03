@@ -16,9 +16,9 @@ namespace ClangSharp
 
         internal ObjCPropertyImplDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ObjCPropertyImpl)
         {
-            if ((handle.Kind != CXCursorKind.CXCursor_ObjCSynthesizeDecl) && (handle.Kind != CXCursorKind.CXCursor_ObjCDynamicDecl))
+            if (handle.Kind is not CXCursorKind.CXCursor_ObjCSynthesizeDecl and not CXCursorKind.CXCursor_ObjCDynamicDecl)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _getterCXXConstructor = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));

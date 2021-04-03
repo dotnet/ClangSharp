@@ -28,7 +28,7 @@ namespace ClangSharp
         {
             if ((handle.DeclKind == CX_DeclKind.CX_DeclKind_Invalid) || (handle.DeclKind != expectedDeclKind))
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _asFunction = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.AsFunction));
@@ -37,7 +37,7 @@ namespace ClangSharp
                 var attrCount = Handle.NumAttrs;
                 var attrs = new List<Attr>(attrCount);
 
-                for (int i = 0; i < attrCount; i++)
+                for (var i = 0; i < attrCount; i++)
                 {
                     var attr = TranslationUnit.GetOrCreate<Attr>(Handle.GetAttr(unchecked((uint)i)));
                     attrs.Add(attr);
@@ -53,7 +53,7 @@ namespace ClangSharp
                 var declCount = Handle.NumDecls;
                 var decls = new List<Decl>(declCount);
 
-                for (int i = 0; i < declCount; i++)
+                for (var i = 0; i < declCount; i++)
                 {
                     var decl = TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i)));
                     decls.Add(decl);
@@ -110,22 +110,8 @@ namespace ClangSharp
         {
             get
             {
-                if (this is not NamespaceDecl ND)
-                {
-                    return false;
-                }
-
-                if (ND.IsInline)
-                {
-                    return ND.Parent.IsStdNamespace;
-                }
-
-                if (!ND.Parent.RedeclContext.IsTranslationUnit)
-                {
-                    return false;
-                }
-
-                return ND.Name == "std";
+                return this is NamespaceDecl nd
+                    && (nd.IsInline ? nd.Parent.IsStdNamespace : nd.Parent.RedeclContext.IsTranslationUnit && nd.Name == "std");
             }
         }
 

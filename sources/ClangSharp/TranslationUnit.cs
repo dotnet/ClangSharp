@@ -9,8 +9,8 @@ namespace ClangSharp
 {
     public sealed unsafe class TranslationUnit : IDisposable, IEquatable<TranslationUnit>
     {
-        private static readonly ConcurrentDictionary<CXTranslationUnit, WeakReference<TranslationUnit>> _createdTranslationUnits = new ConcurrentDictionary<CXTranslationUnit, WeakReference<TranslationUnit>>();
-        private static readonly object _createTranslationUnitLock = new object();
+        private static readonly ConcurrentDictionary<CXTranslationUnit, WeakReference<TranslationUnit>> s_createdTranslationUnits = new ConcurrentDictionary<CXTranslationUnit, WeakReference<TranslationUnit>>();
+        private static readonly object s_createTranslationUnitLock = new object();
 
         private readonly Dictionary<CXCursor, WeakReference<Cursor>> _createdCursors;
         private readonly Dictionary<CX_TemplateArgument, WeakReference<TemplateArgument>> _createdTemplateArguments;
@@ -54,11 +54,11 @@ namespace ClangSharp
                 return null;
             }
 
-            var translationUnitRef = _createdTranslationUnits.GetOrAdd(handle, (handle) => new WeakReference<TranslationUnit>(null));
+            var translationUnitRef = s_createdTranslationUnits.GetOrAdd(handle, (handle) => new WeakReference<TranslationUnit>(null));
 
-            if (!translationUnitRef.TryGetTarget(out TranslationUnit translationUnit))
+            if (!translationUnitRef.TryGetTarget(out var translationUnit))
             {
-                lock (_createTranslationUnitLock)
+                lock (s_createTranslationUnitLock)
                 {
                     if (!translationUnitRef.TryGetTarget(out translationUnit))
                     {
@@ -97,7 +97,7 @@ namespace ClangSharp
                 _createdCursors.Add(handle, cursorRef);
             }
 
-            if (!cursorRef.TryGetTarget(out Cursor cursor))
+            if (!cursorRef.TryGetTarget(out var cursor))
             {
                 cursor = Cursor.Create(handle);
                 cursorRef.SetTarget(cursor);
@@ -119,7 +119,7 @@ namespace ClangSharp
                 _createdTemplateArguments.Add(handle, templateArgumentRef);
             }
 
-            if (!templateArgumentRef.TryGetTarget(out TemplateArgument templateArgument))
+            if (!templateArgumentRef.TryGetTarget(out var templateArgument))
             {
                 templateArgument = new TemplateArgument(handle);
                 templateArgumentRef.SetTarget(templateArgument);
@@ -141,7 +141,7 @@ namespace ClangSharp
                 _createdTemplateArgumentLocs.Add(handle, templateArgumentLocRef);
             }
 
-            if (!templateArgumentLocRef.TryGetTarget(out TemplateArgumentLoc templateArgumentLoc))
+            if (!templateArgumentLocRef.TryGetTarget(out var templateArgumentLoc))
             {
                 templateArgumentLoc = new TemplateArgumentLoc(handle);
                 templateArgumentLocRef.SetTarget(templateArgumentLoc);
@@ -163,7 +163,7 @@ namespace ClangSharp
                 _createdTemplateNames.Add(handle, templateNameRef);
             }
 
-            if (!templateNameRef.TryGetTarget(out TemplateName templateName))
+            if (!templateNameRef.TryGetTarget(out var templateName))
             {
                 templateName = new TemplateName(handle);
                 templateNameRef.SetTarget(templateName);
@@ -186,7 +186,7 @@ namespace ClangSharp
                 _createdTypes.Add(handle, typeRef);
             }
 
-            if (!typeRef.TryGetTarget(out Type type))
+            if (!typeRef.TryGetTarget(out var type))
             {
                 type = Type.Create(handle);
                 typeRef.SetTarget(type);
@@ -207,7 +207,7 @@ namespace ClangSharp
                 Handle.Dispose();
             }
 
-            _createdTranslationUnits.TryRemove(Handle, out _);
+            _ = s_createdTranslationUnits.TryRemove(Handle, out _);
         }
     }
 }

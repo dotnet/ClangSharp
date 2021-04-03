@@ -134,7 +134,7 @@ union MyUnion3
 };
 ";
 
-            string expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", Pack = 1" : "";
+            var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", Pack = 1" : "";
 
             var expectedOutputContents = $@"using System.Runtime.InteropServices;
 

@@ -17,14 +17,14 @@ namespace ClangSharp
         {
             if (handle.kind != expectedCursorKind)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
             Handle = handle;
 
             _cursorChildren = new Lazy<IReadOnlyList<Cursor>>(() => {
                 var cursors = new List<Cursor>();
 
-                Handle.VisitChildren((cursor, parent, clientData) => {
+                _ = Handle.VisitChildren((cursor, parent, clientData) => {
                     var cursorChild = TranslationUnit.GetOrCreate<Cursor>(cursor);
                     cursors.Add(cursorChild);
                     return CXChildVisitResult.CXChildVisit_Continue;

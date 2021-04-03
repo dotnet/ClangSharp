@@ -19,7 +19,7 @@ namespace ClangSharp
                 var associatedConstraintCount = Handle.NumAssociatedConstraints;
                 var associatedConstraints = new List<Expr>(associatedConstraintCount);
 
-                for (int i = 0; i < associatedConstraintCount; i++)
+                for (var i = 0; i < associatedConstraintCount; i++)
                 {
                     var parameter = TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i)));
                     associatedConstraints.Add(parameter);
@@ -35,7 +35,7 @@ namespace ClangSharp
                 var parameterCount = Handle.GetNumTemplateParameters(0);
                 var parameters = new List<NamedDecl>(parameterCount);
 
-                for (int i = 0; i < parameterCount; i++)
+                for (var i = 0; i < parameterCount; i++)
                 {
                     var parameter = TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i)));
                     parameters.Add(parameter);

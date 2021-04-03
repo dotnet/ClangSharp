@@ -133,7 +133,7 @@ union MyUnion3
     unsigned int o0_b1_1 : 1;
 };
 ";
-            string expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", Pack = 1" : "";
+            var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", Pack = 1" : "";
 
             var expectedOutputContents = $@"using System.Runtime.InteropServices;
 

@@ -128,7 +128,7 @@ union MyUnion3
 };
 ";
 
-            string expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @" pack=""1""" : "";
+            var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @" pack=""1""" : "";
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>

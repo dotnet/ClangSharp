@@ -54,10 +54,7 @@ namespace ClangSharp.CSharp
             Write(desc.EscapedName);
         }
 
-        public void BeginConstantValue(bool isGetOnlyProperty = false)
-        {
-            Write(isGetOnlyProperty ? " => " : " = ");
-        }
+        public void BeginConstantValue(bool isGetOnlyProperty = false) => Write(isGetOnlyProperty ? " => " : " = ");
 
         public void WriteConstantValue(long value) => Write(value);
         public void WriteConstantValue(ulong value) => Write(value);
@@ -303,10 +300,7 @@ namespace ClangSharp.CSharp
             Write(info.Name);
         }
 
-        public void BeginParameterDefault()
-        {
-            Write(" = ");
-        }
+        public void BeginParameterDefault() => Write(" = ");
 
         public void EndParameterDefault()
         {
@@ -324,10 +318,7 @@ namespace ClangSharp.CSharp
             Write(' ');
         }
 
-        public void EndFunctionInnerPrototype()
-        {
-            Write(')');
-        }
+        public void EndFunctionInnerPrototype() => Write(')');
 
         public void BeginConstructorInitializer(string memberRefName, string memberInitName)
         {
@@ -373,10 +364,7 @@ namespace ClangSharp.CSharp
             // nop, method only exists for consistency and/or future use
         }
 
-        public void BeginInnerFunctionBody()
-        {
-            WriteIndentation();
-        }
+        public void BeginInnerFunctionBody() => WriteIndentation();
 
         public void EndInnerFunctionBody()
         {
@@ -460,10 +448,7 @@ namespace ClangSharp.CSharp
             WriteBlockStart();
         }
 
-        public void EmitCompatibleCodeSupport()
-        {
-            AddUsingDirective("System.Runtime.CompilerServices");
-        }
+        public void EmitCompatibleCodeSupport() => AddUsingDirective("System.Runtime.CompilerServices");
 
         public void EmitFnPtrSupport()
         {
@@ -471,26 +456,15 @@ namespace ClangSharp.CSharp
             AddUsingDirective("System.Runtime.InteropServices");
         }
 
-        public void EmitSystemSupport()
-        {
-            AddUsingDirective("System");
-        }
+        public void EmitSystemSupport() => AddUsingDirective("System");
 
-        public void EndStruct()
-        {
-            WriteBlockEnd();
-        }
+        public void EndStruct() => WriteBlockEnd();
 
-        public void EndExplicitVtbl()
-        {
-            WriteBlockEnd();
-        }
+        public void EndExplicitVtbl() => WriteBlockEnd();
 
-        public CSharpOutputBuilder BeginCSharpCode()
-        {
+        public CSharpOutputBuilder BeginCSharpCode() =>
             // just write directly to this buffer
-            return this;
-        }
+            this;
 
         public void EndCSharpCode(CSharpOutputBuilder output)
         {
@@ -509,10 +483,7 @@ namespace ClangSharp.CSharp
             WriteBlockStart();
         }
 
-        public void EndGetter()
-        {
-            WriteBlockEnd();
-        }
+        public void EndGetter() => WriteBlockEnd();
 
         public void BeginSetter(bool aggressivelyInlined)
         {
@@ -550,25 +521,13 @@ namespace ClangSharp.CSharp
             Write(" this");
         }
 
-        public void BeginIndexerParameters()
-        {
-            Write('[');
-        }
+        public void BeginIndexerParameters() => Write('[');
 
-        public void EndIndexerParameters()
-        {
-            Write(']');
-        }
+        public void EndIndexerParameters() => Write(']');
 
-        public void EndIndexer()
-        {
-            NeedsNewline = true;
-        }
+        public void EndIndexer() => NeedsNewline = true;
 
-        public void BeginDereference()
-        {
-            Write('&');
-        }
+        public void BeginDereference() => Write('&');
 
         public void EndDereference()
         {

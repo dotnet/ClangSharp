@@ -9,9 +9,9 @@ namespace ClangSharp
     {
         private protected AsmStmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastAsmStmt < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstAsmStmt))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastAsmStmt or < CX_StmtClass.CX_StmtClass_FirstAsmStmt)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
     }

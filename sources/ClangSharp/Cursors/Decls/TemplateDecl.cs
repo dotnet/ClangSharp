@@ -14,16 +14,16 @@ namespace ClangSharp
 
         private protected TemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastTemplate < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstTemplate))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastTemplate or < CX_DeclKind.CX_DeclKind_FirstTemplate)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _associatedConstraints = new Lazy<IReadOnlyList<Expr>>(() => {
                 var associatedConstraintCount = Handle.NumAssociatedConstraints;
                 var associatedConstraints = new List<Expr>(associatedConstraintCount);
 
-                for (int i = 0; i < associatedConstraintCount; i++)
+                for (var i = 0; i < associatedConstraintCount; i++)
                 {
                     var parameter = TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i)));
                     associatedConstraints.Add(parameter);
@@ -36,7 +36,7 @@ namespace ClangSharp
                 var parameterCount = Handle.GetNumTemplateParameters(0);
                 var parameters = new List<NamedDecl>(parameterCount);
 
-                for (int i = 0; i < parameterCount; i++)
+                for (var i = 0; i < parameterCount; i++)
                 {
                     var parameter = TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i)));
                     parameters.Add(parameter);

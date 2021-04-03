@@ -24,11 +24,11 @@ namespace ClangSharp
         {
             get
             {
-                foreach (var B in Body.Reverse())
+                foreach (var b in Body.Reverse())
                 {
-                    if (B is not NullStmt)
+                    if (b is not NullStmt)
                     {
-                        return B;
+                        return b;
                     }
                 }
                 return BodyBack;

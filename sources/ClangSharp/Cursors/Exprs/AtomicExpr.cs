@@ -28,7 +28,7 @@ namespace ClangSharp
 
         public Expr Ptr => SubExprs[0];
 
-        public Expr Scope => (Op >= CX_AtomicOperatorKind.CX_AO__opencl_atomic_load && Op <= CX_AtomicOperatorKind.CX_AO__opencl_atomic_fetch_max) ? SubExprs[(int)(NumSubExprs - 1)] : null;
+        public Expr Scope => (Op is >= CX_AtomicOperatorKind.CX_AO__opencl_atomic_load and <= CX_AtomicOperatorKind.CX_AO__opencl_atomic_fetch_max) ? SubExprs[(int)(NumSubExprs - 1)] : null;
 
         public IReadOnlyList<Expr> SubExprs => _subExprs.Value;
 
@@ -36,25 +36,13 @@ namespace ClangSharp
         {
             get
             {
-                if (Op == CX_AtomicOperatorKind.CX_AO__c11_atomic_init || Op == CX_AtomicOperatorKind.CX_AO__opencl_atomic_init)
-                {
-                    return Order;
-                }
-                return (NumSubExprs > 2) ? SubExprs[2] : null;
+                return Op is CX_AtomicOperatorKind.CX_AO__c11_atomic_init or CX_AtomicOperatorKind.CX_AO__opencl_atomic_init
+                    ? Order
+                    : (NumSubExprs > 2) ? SubExprs[2] : null;
             }
         }
 
-        public Expr Val
-        {
-            get
-            {
-                if (Op == CX_AtomicOperatorKind.CX_AO__atomic_exchange)
-                {
-                    return OrderFail;
-                }
-                return (NumSubExprs > 4) ? SubExprs[4] : null;
-            }
-        }
+        public Expr Val => Op == CX_AtomicOperatorKind.CX_AO__atomic_exchange ? OrderFail : (NumSubExprs > 4) ? SubExprs[4] : null;
 
         public Type ValueType => _valueType.Value;
 

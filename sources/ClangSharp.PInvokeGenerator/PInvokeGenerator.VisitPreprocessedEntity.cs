@@ -32,19 +32,19 @@ namespace ClangSharp
 
                 var macroName = $"ClangSharpMacro_{macroDefinitionRecord.Spelling}";
 
-                _fileContentsBuilder.Append('\n');
-                _fileContentsBuilder.Append($"const auto {macroName} = ");
+                _ = _fileContentsBuilder.Append('\n');
+                _ = _fileContentsBuilder.Append($"const auto {macroName} = ");
 
-                var sourceRangeEnd = tokens[tokens.Length - 1].GetExtent(translationUnitHandle).End;
+                var sourceRangeEnd = tokens[^1].GetExtent(translationUnitHandle).End;
                 var sourceRangeStart = tokens[1].GetLocation(translationUnitHandle);
 
                 var sourceRange = CXSourceRange.Create(sourceRangeStart, sourceRangeEnd);
 
                 var macroValue = GetSourceRangeContents(translationUnitHandle, sourceRange);
-                _fileContentsBuilder.Append(macroValue);
+                _ = _fileContentsBuilder.Append(macroValue);
 
-                _fileContentsBuilder.Append(';');
-                _fileContentsBuilder.Append('\n');
+                _ = _fileContentsBuilder.Append(';');
+                _ = _fileContentsBuilder.Append('\n');
             }
             else
             {

@@ -17,7 +17,7 @@ namespace ClangSharp
                 var templateArgCount = Handle.NumTemplateArguments;
                 var templateArgs = new List<TemplateArgument>(templateArgCount);
 
-                for (int i = 0; i < templateArgCount; i++)
+                for (var i = 0; i < templateArgCount; i++)
                 {
                     var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
                     templateArgs.Add(templateArg);

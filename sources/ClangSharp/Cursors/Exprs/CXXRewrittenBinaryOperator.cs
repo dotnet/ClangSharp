@@ -21,9 +21,9 @@ namespace ClangSharp
 
         public Expr LHS => _lhs.Value;
 
-        public bool IsAssignmentOp => false;
+        public static bool IsAssignmentOp => false;
 
-        public bool IsComparisonOp => true;
+        public static bool IsComparisonOp => true;
 
         public CX_BinaryOperatorKind Opcode => Operator;
 

@@ -17,9 +17,9 @@ namespace ClangSharp
 
         internal ObjCMethodDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ObjCMethod)
         {
-            if ((handle.Kind != CXCursorKind.CXCursor_ObjCInstanceMethodDecl) && (handle.Kind != CXCursorKind.CXCursor_ObjCClassMethodDecl))
+            if (handle.Kind is not CXCursorKind.CXCursor_ObjCInstanceMethodDecl and not CXCursorKind.CXCursor_ObjCClassMethodDecl)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _classInterface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
@@ -29,7 +29,7 @@ namespace ClangSharp
                 var parameterCount = Handle.NumArguments;
                 var parameters = new List<ParmVarDecl>(parameterCount);
 
-                for (int i = 0; i < parameterCount; i++)
+                for (var i = 0; i < parameterCount; i++)
                 {
                     var parameter = TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i)));
                     parameters.Add(parameter);

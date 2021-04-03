@@ -17,14 +17,28 @@ namespace ClangSharp.Abstractions
 
         public bool IsUnsafe
         {
-            get => (Flags & StructFlags.IsUnsafe) != 0;
-            set => Flags = value ? Flags | StructFlags.IsUnsafe : Flags & ~StructFlags.IsUnsafe;
+            get
+            {
+                return (Flags & StructFlags.IsUnsafe) != 0;
+            }
+
+            set
+            {
+                Flags = value ? Flags | StructFlags.IsUnsafe : Flags & ~StructFlags.IsUnsafe;
+            }
         }
 
         public bool HasVtbl
         {
-            get => (Flags & StructFlags.HasVtbl) != 0;
-            set => Flags = value ? Flags | StructFlags.HasVtbl : Flags & ~StructFlags.HasVtbl;
+            get
+            {
+                return (Flags & StructFlags.HasVtbl) != 0;
+            }
+
+            set
+            {
+                Flags = value ? Flags | StructFlags.HasVtbl : Flags & ~StructFlags.HasVtbl;
+            }
         }
 
         public Action<TCustomAttrGeneratorData> WriteCustomAttrs { get; set; }

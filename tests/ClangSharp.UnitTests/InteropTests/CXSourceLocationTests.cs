@@ -14,17 +14,11 @@ namespace ClangSharp.Interop.UnitTests
     {
         /// <summary>Validates that the <see cref="CXSourceLocation" /> struct is blittable.</summary>
         [Fact]
-        public static void IsBlittableTest()
-        {
-            Assert.Equal(sizeof(CXSourceLocation), Marshal.SizeOf<CXSourceLocation>());
-        }
+        public static void IsBlittableTest() => Assert.Equal(sizeof(CXSourceLocation), Marshal.SizeOf<CXSourceLocation>());
 
         /// <summary>Validates that the <see cref="CXSourceLocation" /> struct has the right <see cref="LayoutKind" />.</summary>
         [Fact]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.True(typeof(CXSourceLocation).IsLayoutSequential);
-        }
+        public static void IsLayoutSequentialTest() => Assert.True(typeof(CXSourceLocation).IsLayoutSequential);
 
         /// <summary>Validates that the <see cref="CXSourceLocation" /> struct has the correct size.</summary>
         [Fact]

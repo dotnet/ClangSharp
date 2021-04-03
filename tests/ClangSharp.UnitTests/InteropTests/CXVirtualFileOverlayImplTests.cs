@@ -13,23 +13,14 @@ namespace ClangSharp.Interop.UnitTests
     {
         /// <summary>Validates that the <see cref="CXVirtualFileOverlayImpl" /> struct is blittable.</summary>
         [Fact]
-        public static void IsBlittableTest()
-        {
-            Assert.Equal(sizeof(CXVirtualFileOverlayImpl), Marshal.SizeOf<CXVirtualFileOverlayImpl>());
-        }
+        public static void IsBlittableTest() => Assert.Equal(sizeof(CXVirtualFileOverlayImpl), Marshal.SizeOf<CXVirtualFileOverlayImpl>());
 
         /// <summary>Validates that the <see cref="CXVirtualFileOverlayImpl" /> struct has the right <see cref="LayoutKind" />.</summary>
         [Fact]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.True(typeof(CXVirtualFileOverlayImpl).IsLayoutSequential);
-        }
+        public static void IsLayoutSequentialTest() => Assert.True(typeof(CXVirtualFileOverlayImpl).IsLayoutSequential);
 
         /// <summary>Validates that the <see cref="CXVirtualFileOverlayImpl" /> struct has the correct size.</summary>
         [Fact]
-        public static void SizeOfTest()
-        {
-            Assert.Equal(1, sizeof(CXVirtualFileOverlayImpl));
-        }
+        public static void SizeOfTest() => Assert.Equal(1, sizeof(CXVirtualFileOverlayImpl));
     }
 }

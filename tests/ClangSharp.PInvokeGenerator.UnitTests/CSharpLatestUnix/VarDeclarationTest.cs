@@ -151,11 +151,9 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task WideStringLiteralConstTest()
-{
+        public override Task WideStringLiteralConstTest() =>
             // Unsupported string literal kind: 'CX_CLK_Wide'
-            return Task.CompletedTask;
-        }
+            Task.CompletedTask;
 
         public override Task StringLiteralConstTest()
         {

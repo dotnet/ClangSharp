@@ -18,7 +18,7 @@ namespace ClangSharp.Interop
             {
                 _values = new MarshaledString[inputs.Length];
 
-                for (int i = 0; i < inputs.Length; i++)
+                for (var i = 0; i < inputs.Length; i++)
                 {
                     _values[i] = new MarshaledString(inputs[i]);
                 }
@@ -31,7 +31,7 @@ namespace ClangSharp.Interop
         {
             if (_values != null)
             {
-                for (int i = 0; i < _values.Length; i++)
+                for (var i = 0; i < _values.Length; i++)
                 {
                     _values[i].Dispose();
                 }
@@ -44,7 +44,7 @@ namespace ClangSharp.Interop
         {
             if (_values != null)
             {
-                for (int i = 0; i < _values.Length; i++)
+                for (var i = 0; i < _values.Length; i++)
                 {
                     pDestination[i] = Values[i];
                 }

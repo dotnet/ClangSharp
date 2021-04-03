@@ -9,46 +9,16 @@ namespace ClangSharp
     {
         private protected AbstractConditionalOperator(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastAbstractConditionalOperator < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstAbstractConditionalOperator))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastAbstractConditionalOperator or < CX_StmtClass.CX_StmtClass_FirstAbstractConditionalOperator)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
 
-        public Expr Cond
-        {
-            get
-            {
-                if (this is ConditionalOperator co)
-                {
-                    return co.Cond;
-                }
-                return ((BinaryConditionalOperator)this).Cond;
-            }
-        }
+        public Expr Cond => this is ConditionalOperator co ? co.Cond : ((BinaryConditionalOperator)this).Cond;
 
-        public Expr FalseExpr
-        {
-            get
-            {
-                if (this is ConditionalOperator co)
-                {
-                    return co.FalseExpr;
-                }
-                return ((BinaryConditionalOperator)this).FalseExpr;
-            }
-        }
+        public Expr FalseExpr => this is ConditionalOperator co ? co.FalseExpr : ((BinaryConditionalOperator)this).FalseExpr;
 
-        public Expr TrueExpr
-        {
-            get
-            {
-                if (this is ConditionalOperator co)
-                {
-                    return co.TrueExpr;
-                }
-                return ((BinaryConditionalOperator)this).TrueExpr;
-            }
-        }
+        public Expr TrueExpr => this is ConditionalOperator co ? co.TrueExpr : ((BinaryConditionalOperator)this).TrueExpr;
     }
 }

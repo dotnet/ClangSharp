@@ -38,7 +38,7 @@ namespace ClangSharp
 
         private int ElseOffset => CondOffset + 2;
 
-        private int InitOffset => 0;
+        private static int InitOffset => 0;
 
         private int ThenOffset => CondOffset + 1;
 

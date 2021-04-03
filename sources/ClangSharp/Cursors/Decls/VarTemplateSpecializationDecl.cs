@@ -17,9 +17,9 @@ namespace ClangSharp
 
         private protected VarTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastVarTemplateSpecialization < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstVarTemplateSpecialization))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastVarTemplateSpecialization or < CX_DeclKind.CX_DeclKind_FirstVarTemplateSpecialization)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _specializedTemplate = new Lazy<VarTemplateDecl>(() => TranslationUnit.GetOrCreate<VarTemplateDecl>(Handle.SpecializedCursorTemplate));
@@ -27,7 +27,7 @@ namespace ClangSharp
                 var templateArgCount = Handle.NumTemplateArguments;
                 var templateArgs = new List<TemplateArgument>(templateArgCount);
 
-                for (int i = 0; i < templateArgCount; i++)
+                for (var i = 0; i < templateArgCount; i++)
                 {
                     var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
                     templateArgs.Add(templateArg);

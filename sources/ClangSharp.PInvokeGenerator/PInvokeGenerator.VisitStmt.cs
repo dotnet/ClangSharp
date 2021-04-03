@@ -115,7 +115,7 @@ namespace ClangSharp
                 var args = callExpr.Args;
                 var needsComma = false;
 
-                for (int i = 0; i < args.Count; i++)
+                for (var i = 0; i < args.Count; i++)
                 {
                     if (needsComma)
                     {
@@ -277,13 +277,11 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
-        private void VisitCXXConstCastExpr(CXXConstCastExpr cxxConstCastExpr)
-        {
+        private void VisitCXXConstCastExpr(CXXConstCastExpr cxxConstCastExpr) =>
             // C# doesn't have a concept of const pointers so
             // ignore rather than adding a cast from T* to T*
 
             Visit(cxxConstCastExpr.SubExprAsWritten);
-        }
 
         private void VisitCXXConstructExpr(CXXConstructExpr cxxConstructExpr)
         {
@@ -306,7 +304,7 @@ namespace ClangSharp
             {
                 Visit(args[0]);
 
-                for (int i = 1; i < args.Count; i++)
+                for (var i = 1; i < args.Count; i++)
                 {
                     outputBuilder.Write(", ");
                     Visit(args[i]);
@@ -321,7 +319,7 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
-        private void VisitCXXDefaultArgExpr(CXXDefaultArgExpr cxxDefaultArgExpr)
+        private static void VisitCXXDefaultArgExpr(CXXDefaultArgExpr cxxDefaultArgExpr)
         {
             // Nothing to handle as these just represent optional parameters that
             // aren't properly defined
@@ -344,7 +342,8 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             outputBuilder.Write("cxx_new<");
 
-            var allocatedTypeName = GetRemappedTypeName(cxxNewExpr, null, cxxNewExpr.AllocatedType, out var nativeAllocatedTypeName);
+
+            var allocatedTypeName = GetRemappedTypeName(cxxNewExpr, null, cxxNewExpr.AllocatedType, out _);
             outputBuilder.Write(allocatedTypeName);
 
             outputBuilder.Write(">(sizeof(");
@@ -398,7 +397,7 @@ namespace ClangSharp
                         {
                             Visit(args[0]);
                             outputBuilder.Write(' ');
-                            outputBuilder.Write(functionDeclName.Substring(8));
+                            outputBuilder.Write(functionDeclName[8..]);
                             outputBuilder.Write(' ');
                             Visit(args[1]);
                             StopCSharpCode();
@@ -407,7 +406,7 @@ namespace ClangSharp
 
                         case "operator~":
                         {
-                            outputBuilder.Write(functionDeclName.Substring(8));
+                            outputBuilder.Write(functionDeclName[8..]);
                             Visit(args[0]);
                             StopCSharpCode();
                             return;
@@ -430,7 +429,7 @@ namespace ClangSharp
                 {
                     Visit(args[firstIndex]);
 
-                    for (int i = firstIndex + 1; i < args.Count; i++)
+                    for (var i = firstIndex + 1; i < args.Count; i++)
                     {
                         outputBuilder.Write(", ");
                         Visit(args[i]);
@@ -447,10 +446,7 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
-        private void VisitCXXTemporaryObjectExpr(CXXTemporaryObjectExpr cxxTemporaryObjectExpr)
-        {
-            VisitCXXConstructExpr(cxxTemporaryObjectExpr);
-        }
+        private void VisitCXXTemporaryObjectExpr(CXXTemporaryObjectExpr cxxTemporaryObjectExpr) => VisitCXXConstructExpr(cxxTemporaryObjectExpr);
 
         private void VisitCXXThisExpr(CXXThisExpr cxxThisExpr)
         {
@@ -559,7 +555,7 @@ namespace ClangSharp
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
         {
             var outputBuilder = StartCSharpCode();
-            if (IsPrevContextDecl<EnumConstantDecl>(out var _) && explicitCastExpr.Type is EnumType enumType)
+            if (IsPrevContextDecl<EnumConstantDecl>(out _) && explicitCastExpr.Type is EnumType enumType)
             {
                 outputBuilder.Write('(');
                 var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _);
@@ -569,7 +565,8 @@ namespace ClangSharp
 
             var type = explicitCastExpr.Type;
 
-            var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out var nativeTypeName);
+
+            var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out _);
 
             outputBuilder.Write('(');
             outputBuilder.Write(typeName);
@@ -591,7 +588,7 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             if (floatingLiteral.ValueString.EndsWith(".f"))
             {
-                outputBuilder.Write(floatingLiteral.ValueString.Substring(0, floatingLiteral.ValueString.Length - 1));
+                outputBuilder.Write(floatingLiteral.ValueString[0..^1]);
                 outputBuilder.Write("0f");
             }
             else
@@ -783,7 +780,8 @@ namespace ClangSharp
                 else
                 {
                     var type = implicitCastExpr.Type;
-                    var typeName = GetRemappedTypeName(implicitCastExpr, context: null, type, out var nativeTypeName);
+
+                    var typeName = GetRemappedTypeName(implicitCastExpr, context: null, type, out _);
 
                     outputBuilder.Write('(');
                     outputBuilder.Write(typeName);
@@ -812,7 +810,7 @@ namespace ClangSharp
                 outputBuilder.Write("new ");
 
                 var type = initListExpr.Type;
-                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out var nativeTypeName);
+                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
 
                 outputBuilder.Write(typeName);
 
@@ -853,14 +851,14 @@ namespace ClangSharp
                 outputBuilder.WriteNewline();
                 outputBuilder.WriteBlockStart();
 
-                for (int i = 0; i < initListExpr.Inits.Count; i++)
+                for (var i = 0; i < initListExpr.Inits.Count; i++)
                 {
                     outputBuilder.WriteIndentation();
                     Visit(initListExpr.Inits[i]);
                     outputBuilder.WriteLine(',');
                 }
 
-                for (int i = initListExpr.Inits.Count; i < rootSize; i++)
+                for (var i = initListExpr.Inits.Count; i < rootSize; i++)
                 {
                     outputBuilder.WriteIndentedLine("default,");
                 }
@@ -891,7 +889,7 @@ namespace ClangSharp
                 outputBuilder.Write("new ");
 
                 var type = initListExpr.Type;
-                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out var nativeTypeName);
+                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
 
                 outputBuilder.Write(typeName);
 
@@ -910,7 +908,7 @@ namespace ClangSharp
                     Visit(initListExpr.Inits[2]);
                     initListExpr = (InitListExpr)initListExpr.Inits[3];
 
-                    for (int i = 0; i < initListExpr.Inits.Count; i++)
+                    for (var i = 0; i < initListExpr.Inits.Count; i++)
                     {
                         outputBuilder.Write(", ");
 
@@ -926,7 +924,7 @@ namespace ClangSharp
 
                     var decl = recordType.Decl;
 
-                    for (int i = 0; i < initListExpr.Inits.Count; i++)
+                    for (var i = 0; i < initListExpr.Inits.Count; i++)
                     {
                         var init = initListExpr.Inits[i];
 
@@ -1006,44 +1004,44 @@ namespace ClangSharp
 
             if (valueString.EndsWith("l", StringComparison.OrdinalIgnoreCase))
             {
-                valueString = valueString.Substring(0, valueString.Length - 1);
+                valueString = valueString[0..^1];
             }
             else if (valueString.EndsWith("ui8", StringComparison.OrdinalIgnoreCase))
             {
-                valueString = valueString.Substring(0, valueString.Length - 3);
+                valueString = valueString[0..^3];
             }
             else if (valueString.EndsWith("i8", StringComparison.OrdinalIgnoreCase))
             {
-                valueString = valueString.Substring(0, valueString.Length - 2);
+                valueString = valueString[0..^2];
             }
             else if (valueString.EndsWith("ui16", StringComparison.OrdinalIgnoreCase))
             {
-                valueString = valueString.Substring(0, valueString.Length - 4);
+                valueString = valueString[0..^4];
             }
             else if (valueString.EndsWith("i16", StringComparison.OrdinalIgnoreCase))
             {
-                valueString = valueString.Substring(0, valueString.Length - 3);
+                valueString = valueString[0..^3];
             }
             else if (valueString.EndsWith("i32", StringComparison.OrdinalIgnoreCase))
             {
-                valueString = valueString.Substring(0, valueString.Length - 3);
+                valueString = valueString[0..^3];
             }
             else if (valueString.EndsWith("i64", StringComparison.OrdinalIgnoreCase))
             {
-                valueString = valueString.Substring(0, valueString.Length - 3) + "L";
+                valueString = valueString[0..^3] + "L";
             }
 
             if (valueString.EndsWith("ul", StringComparison.OrdinalIgnoreCase))
             {
-                valueString = valueString.Substring(0, valueString.Length - 2) + "UL";
+                valueString = valueString[0..^2] + "UL";
             }
             else if (valueString.EndsWith("l", StringComparison.OrdinalIgnoreCase))
             {
-                valueString = valueString.Substring(0, valueString.Length - 1) + "L";
+                valueString = valueString[0..^1] + "L";
             }
             else if (valueString.EndsWith("u", StringComparison.OrdinalIgnoreCase))
             {
-                valueString = valueString.Substring(0, valueString.Length - 1) + "U";
+                valueString = valueString[0..^1] + "U";
             }
 
             StartCSharpCode().Write(valueString);
@@ -1061,10 +1059,7 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
-        private void VisitMaterializeTemporaryExpr(MaterializeTemporaryExpr materializeTemporaryExpr)
-        {
-            Visit(materializeTemporaryExpr.SubExpr);
-        }
+        private void VisitMaterializeTemporaryExpr(MaterializeTemporaryExpr materializeTemporaryExpr) => Visit(materializeTemporaryExpr.SubExpr);
 
         private void VisitMemberExpr(MemberExpr memberExpr)
         {
@@ -1073,22 +1068,11 @@ namespace ClangSharp
             {
                 Visit(memberExpr.Base);
 
-                Type type;
+                var type = memberExpr.Base is CXXThisExpr
+                         ? null
+                         : memberExpr.Base is DeclRefExpr declRefExpr ? declRefExpr.Decl.Type.CanonicalType : memberExpr.Base.Type.CanonicalType;
 
-                if (memberExpr.Base is CXXThisExpr)
-                {
-                    type = null;
-                }
-                else if (memberExpr.Base is DeclRefExpr declRefExpr)
-                {
-                    type = declRefExpr.Decl.Type.CanonicalType;
-                }
-                else
-                {
-                    type = memberExpr.Base.Type.CanonicalType;
-                }
-
-                if ((type != null) && ((type is PointerType) || (type is ReferenceType)))
+                if (type is not null and (PointerType or ReferenceType))
                 {
                     outputBuilder.Write("->");
                 }
@@ -1102,7 +1086,7 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
-        private void VisitNullStmt(NullStmt nullStmt)
+        private static void VisitNullStmt(NullStmt nullStmt)
         {
             // null statements are empty by definition, so nothing to do
         }
@@ -1620,7 +1604,7 @@ namespace ClangSharp
             var lastIndex = stmts.Count - 1;
             var previousStmt = null as Stmt;
 
-            for (int i = 0; i < lastIndex; i++)
+            for (var i = 0; i < lastIndex; i++)
             {
                 var stmt = stmts[i];
 
@@ -1714,10 +1698,7 @@ namespace ClangSharp
             StopCSharpCode();
         }
 
-        private void VisitSubstNonTypeTemplateParmExpr(SubstNonTypeTemplateParmExpr substNonTypeTemplateParmExpr)
-        {
-            Visit(substNonTypeTemplateParmExpr.Replacement);
-        }
+        private void VisitSubstNonTypeTemplateParmExpr(SubstNonTypeTemplateParmExpr substNonTypeTemplateParmExpr) => Visit(substNonTypeTemplateParmExpr.Replacement);
 
         private void VisitSwitchStmt(SwitchStmt switchStmt)
         {
@@ -1736,13 +1717,11 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
 
-            long size32;
-            long size64;
 
             long alignment32 = -1;
             long alignment64 = -1;
 
-            GetTypeSize(unaryExprOrTypeTraitExpr, argumentType, ref alignment32, ref alignment64, out size32, out size64);
+            GetTypeSize(unaryExprOrTypeTraitExpr, argumentType, ref alignment32, ref alignment64, out var size32, out var size64);
 
             switch (unaryExprOrTypeTraitExpr.Kind)
             {
@@ -1766,7 +1745,7 @@ namespace ClangSharp
                             var args = callExpr.Args;
                             var index = -1;
 
-                            for (int i = 0; i < args.Count; i++)
+                            for (var i = 0; i < args.Count; i++)
                             {
                                 var arg = args[i];
 
@@ -1808,10 +1787,10 @@ namespace ClangSharp
 
                         if (parentType != null)
                         {
-                            needsCast = (parentType.Kind == CXTypeKind.CXType_UInt);
-                            needsCast |= (parentType.Kind == CXTypeKind.CXType_ULong);
+                            needsCast = parentType.Kind == CXTypeKind.CXType_UInt;
+                            needsCast |= parentType.Kind == CXTypeKind.CXType_ULong;
                             needsCast &= !IsSupportedFixedSizedBufferType(typeName);
-                            needsCast &= (argumentType.CanonicalType.Kind != CXTypeKind.CXType_Enum);
+                            needsCast &= argumentType.CanonicalType.Kind != CXTypeKind.CXType_Enum;
                         }
 
                         if (needsCast)
@@ -1894,7 +1873,7 @@ namespace ClangSharp
                         Visit(subExpr);
                         outputBuilder.Write(" == 0");
                     }
-                    else if ((canonicalType is PointerType) || (canonicalType is ReferenceType))
+                    else if (canonicalType is PointerType or ReferenceType)
                     {
                         Visit(subExpr);
                         outputBuilder.Write(" == null");

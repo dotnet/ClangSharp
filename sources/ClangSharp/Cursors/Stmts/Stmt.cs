@@ -15,14 +15,14 @@ namespace ClangSharp
         {
             if ((handle.StmtClass == CX_StmtClass.CX_StmtClass_Invalid) || (handle.StmtClass != expectedStmtClass))
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _children = new Lazy<IReadOnlyList<Stmt>>(() => {
                 var numChildren = Handle.NumChildren;
                 var children = new List<Stmt>(numChildren);
 
-                for (int i = 0; i < numChildren; i++)
+                for (var i = 0; i < numChildren; i++)
                 {
                     var child = TranslationUnit.GetOrCreate<Stmt>(Handle.GetChild(unchecked((uint)i)));
                     children.Add(child);
@@ -34,7 +34,7 @@ namespace ClangSharp
             _declContext = new Lazy<IDeclContext>(() => {
                 var semanticParent = TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent);
 
-                while (!(semanticParent is IDeclContext) && (semanticParent != null))
+                while (semanticParent is not IDeclContext and not null)
                 {
                     semanticParent = TranslationUnit.GetOrCreate<Cursor>(semanticParent.Handle.SemanticParent);
                 }
@@ -53,62 +53,62 @@ namespace ClangSharp
 
         public string StmtClassName => Handle.StmtClassSpelling;
 
-        public Stmt IgnoreContainers(bool IgnoreCaptured = false)
+        public Stmt IgnoreContainers(bool ignoreCaptured = false)
         {
-            Stmt S = this;
+            var s = this;
 
-            if (IgnoreCaptured)
+            if (ignoreCaptured)
             {
-                if (S is CapturedStmt CapS)
+                if (s is CapturedStmt capS)
                 {
-                    S = CapS.CaptureStmt;
+                    s = capS.CaptureStmt;
                 }
             }
 
             while (true)
             {
-                if (S is AttributedStmt AS)
+                if (s is AttributedStmt @as)
                 {
-                    S = AS.SubStmt;
+                    s = @as.SubStmt;
                 }
-                else if (S is CompoundStmt CS)
+                else if (s is CompoundStmt cs)
                 {
-                    if (CS.Size != 1)
+                    if (cs.Size != 1)
                     {
                         break;
                     }
 
-                    S = CS.BodyBack;
+                    s = cs.BodyBack;
                 }
                 else
                 {
                     break;
                 }
             }
-            return S;
+            return s;
         }
 
         public Stmt StripLabelLikeStatements()
         {
-            Stmt S = this;
+            var s = this;
 
             while (true)
             {
-                if (S is LabelStmt LS)
+                if (s is LabelStmt ls)
                 {
-                    S = LS.SubStmt;
+                    s = ls.SubStmt;
                 }
-                else if (S is SwitchCase SC)
+                else if (s is SwitchCase sc)
                 {
-                    S = SC.SubStmt;
+                    s = sc.SubStmt;
                 }
-                else if (S is AttributedStmt AS)
+                else if (s is AttributedStmt @as)
                 {
-                    S = AS.SubStmt;
+                    s = @as.SubStmt;
                 }
                 else
                 {
-                    return S;
+                    return s;
                 }
             }
         }

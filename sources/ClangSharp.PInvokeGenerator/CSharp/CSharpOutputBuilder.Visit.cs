@@ -47,10 +47,7 @@ namespace ClangSharp.CSharp
             }
         }
 
-        public void SuppressDivider()
-        {
-            NeedsNewline = false;
-        }
+        public void SuppressDivider() => NeedsNewline = false;
 
         public void WriteIid(string iidName, string iidValue)
         {

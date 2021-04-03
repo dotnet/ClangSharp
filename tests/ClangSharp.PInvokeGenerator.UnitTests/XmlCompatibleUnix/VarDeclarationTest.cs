@@ -186,11 +186,9 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
             return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task WideStringLiteralConstTest()
-        {
+        public override Task WideStringLiteralConstTest() =>
             // Unsupported string literal kind: 'CX_CLK_Wide'
-            return Task.CompletedTask;
-        }
+            Task.CompletedTask;
 
         public override Task StringLiteralConstTest()
         {

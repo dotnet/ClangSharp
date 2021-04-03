@@ -11,9 +11,9 @@ namespace ClangSharp
 
         private protected TypeDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
         {
-            if ((CX_DeclKind.CX_DeclKind_LastType < handle.DeclKind) || (handle.DeclKind < CX_DeclKind.CX_DeclKind_FirstType))
+            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastType or < CX_DeclKind.CX_DeclKind_FirstType)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _typeForDecl = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));

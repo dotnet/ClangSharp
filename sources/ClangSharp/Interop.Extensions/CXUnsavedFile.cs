@@ -15,7 +15,6 @@ namespace ClangSharp.Interop
 
             if ((filename is null) || (filename.Length == 0))
             {
-                filenameLength = 0;
                 pFilename = IntPtr.Zero;
             }
             else

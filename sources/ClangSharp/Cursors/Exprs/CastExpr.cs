@@ -14,9 +14,9 @@ namespace ClangSharp
 
         private protected CastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastCastExpr < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstCastExpr))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastCastExpr or < CX_StmtClass.CX_StmtClass_FirstCastExpr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             Debug.Assert(NumChildren is 1);
@@ -25,7 +25,7 @@ namespace ClangSharp
                 var pathSize = Handle.NumArguments;
                 var path = new List<CXXBaseSpecifier>(pathSize);
 
-                for (int i = 0; i < pathSize; i++)
+                for (var i = 0; i < pathSize; i++)
                 {
                     var item = TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetArgument(unchecked((uint)i)));
                     path.Add(item);
@@ -44,22 +44,22 @@ namespace ClangSharp
         {
             get
             {
-                Expr SubExpr;
+                Expr subExpr;
 
-                for (CastExpr E = this; E is not null; E = SubExpr as ImplicitCastExpr)
+                for (var e = this; e is not null; e = subExpr as ImplicitCastExpr)
                 {
-                    SubExpr = SkipImplicitTemporary(E.SubExpr);
+                    subExpr = SkipImplicitTemporary(e.SubExpr);
 
-                    if (E.CastKind == CX_CastKind.CX_CK_ConstructorConversion)
+                    if (e.CastKind == CX_CastKind.CX_CK_ConstructorConversion)
                     {
-                        return ((CXXConstructExpr)SubExpr).Constructor;
+                        return ((CXXConstructExpr)subExpr).Constructor;
                     }
 
-                    if (E.CastKind == CX_CastKind.CX_CK_UserDefinedConversion)
+                    if (e.CastKind == CX_CastKind.CX_CK_UserDefinedConversion)
                     {
-                        if (SubExpr is CXXMemberCallExpr MCE)
+                        if (subExpr is CXXMemberCallExpr mce)
                         {
-                            return MCE.MethodDecl;
+                            return mce.MethodDecl;
                         }
                     }
                 }
@@ -80,33 +80,33 @@ namespace ClangSharp
         {
             get
             {
-                Expr SubExpr;
-                CastExpr E = this;
+                Expr subExpr;
+                var e = this;
 
                 do
                 {
-                    SubExpr = SkipImplicitTemporary(E.SubExpr);
+                    subExpr = SkipImplicitTemporary(e.SubExpr);
 
                     // Conversions by constructor and conversion functions have a subexpression describing the call; strip it off.
-                    if (E.CastKind == CX_CastKind.CX_CK_ConstructorConversion)
+                    if (e.CastKind == CX_CastKind.CX_CK_ConstructorConversion)
                     {
-                        SubExpr = SkipImplicitTemporary(((CXXConstructExpr)SubExpr).Args[0]);
+                        subExpr = SkipImplicitTemporary(((CXXConstructExpr)subExpr).Args[0]);
                     }
-                    else if (E.CastKind == CX_CastKind.CX_CK_UserDefinedConversion)
+                    else if (e.CastKind == CX_CastKind.CX_CK_UserDefinedConversion)
                     {
-                        Debug.Assert((SubExpr is CXXMemberCallExpr) || (SubExpr is BlockExpr), "Unexpected SubExpr for CK_UserDefinedConversion.");
+                        Debug.Assert(subExpr is CXXMemberCallExpr or BlockExpr, "Unexpected SubExpr for CK_UserDefinedConversion.");
 
-                        if (SubExpr is CXXMemberCallExpr MCE)
+                        if (subExpr is CXXMemberCallExpr mce)
                         {
-                            SubExpr = MCE.ImplicitObjectArgument;
+                            subExpr = mce.ImplicitObjectArgument;
                         }
                     }
 
                     // If the subexpression we're left with is an implicit cast, look
                     // through that, too.
-                } while ((E = SubExpr as ImplicitCastExpr) is not null);
+                } while ((e = subExpr as ImplicitCastExpr) is not null);
 
-                return SubExpr;
+                return subExpr;
             }
         }
 

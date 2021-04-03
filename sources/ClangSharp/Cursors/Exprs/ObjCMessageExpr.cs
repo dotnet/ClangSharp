@@ -21,7 +21,7 @@ namespace ClangSharp
                 var numArgs = Handle.NumArguments;
                 var args = new List<Expr>(numArgs);
 
-                for (int i = 0; i < numArgs; i++)
+                for (var i = 0; i < numArgs; i++)
                 {
                     var arg = TranslationUnit.GetOrCreate<Expr>(Handle.GetArgument(unchecked((uint)i)));
                     args.Add(arg);

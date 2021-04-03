@@ -9,9 +9,9 @@ namespace ClangSharp
     {
         private protected OMPLoopDirective(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastOMPLoopDirective < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstOMPLoopDirective))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastOMPLoopDirective or < CX_StmtClass.CX_StmtClass_FirstOMPLoopDirective)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
         }
     }

@@ -7,82 +7,54 @@ namespace ClangSharp
 {
     public class Expr : ValueStmt
     {
-        private static readonly Func<Expr, Expr> IgnoreImplicitCastsSingleStep = (E) =>
+        private static readonly Func<Expr, Expr> s_ignoreImplicitCastsSingleStep = (e) => e is ImplicitCastExpr ice ? ice.SubExpr : e is FullExpr fe ? fe.SubExpr : e;
+
+        private static readonly Func<Expr, Expr> s_ignoreImplicitSingleStep = (e) =>
         {
-            if (E is ImplicitCastExpr ICE)
-            {
-                return ICE.SubExpr;
-            }
+            var subE = s_ignoreImplicitCastsSingleStep(e);
 
-            if (E is FullExpr FE)
-            {
-                return FE.SubExpr;
-            }
-
-            return E;
+            return subE != e ? subE : e is MaterializeTemporaryExpr mte ? mte.SubExpr : e is CXXBindTemporaryExpr bte ? bte.SubExpr : e;
         };
 
-        private static readonly Func<Expr, Expr> IgnoreImplicitSingleStep = (E) =>
+        private static readonly Func<Expr, Expr> s_ignoreParensSingleStep = (e) =>
         {
-            Expr SubE = IgnoreImplicitCastsSingleStep(E);
-
-            if (SubE != E)
+            if (e is ParenExpr pe)
             {
-                return SubE;
+                return pe.SubExpr;
             }
 
-            if (E is MaterializeTemporaryExpr MTE)
+            if (e is UnaryOperator uo)
             {
-                return MTE.SubExpr;
-            }
-
-            if (E is CXXBindTemporaryExpr BTE)
-            {
-                return BTE.SubExpr;
-            }
-
-            return E;
-        };
-
-        private static readonly Func<Expr, Expr> IgnoreParensSingleStep = (E) =>
-        {
-            if (E is ParenExpr PE)
-            {
-                return PE.SubExpr;
-            }
-
-            if (E is UnaryOperator UO)
-            {
-                if (UO.Opcode == CX_UnaryOperatorKind.CX_UO_Extension)
+                if (uo.Opcode == CX_UnaryOperatorKind.CX_UO_Extension)
                 {
-                    return UO.SubExpr;
+                    return uo.SubExpr;
                 }
             }
-            else if (E is GenericSelectionExpr GSE)
+            else if (e is GenericSelectionExpr gse)
             {
-                if (!GSE.IsResultDependent)
+                if (!gse.IsResultDependent)
                 {
-                    return GSE.ResultExpr;
+                    return gse.ResultExpr;
                 }
             }
-            else if (E is ChooseExpr CE)
+            else if (e is ChooseExpr ce)
             {
-                if (!CE.IsConditionDependent)
+                if (!ce.IsConditionDependent)
                 {
-                    return CE.ChosenSubExpr;
+                    return ce.ChosenSubExpr;
                 }
             }
 
-            return E;
+            return e;
         };
 
         private readonly Lazy<Type> _type;
 
         private protected Expr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
         {
-            if ((CX_StmtClass.CX_StmtClass_LastExpr < handle.StmtClass) || (handle.StmtClass < CX_StmtClass.CX_StmtClass_FirstExpr))
+            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastExpr or < CX_StmtClass.CX_StmtClass_FirstExpr)
             {
-                throw new ArgumentException(nameof(handle));
+                throw new ArgumentOutOfRangeException(nameof(handle));
             }
 
             _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
@@ -94,57 +66,52 @@ namespace ClangSharp
 
         public CX_ExprDependence Dependence => Handle.ExprDependence;
 
-        public Expr IgnoreImplicit => IgnoreExprNodes(this, IgnoreImplicitSingleStep);
+        public Expr IgnoreImplicit => IgnoreExprNodes(this, s_ignoreImplicitSingleStep);
 
-        public Expr IgnoreParens => IgnoreExprNodes(this, IgnoreParensSingleStep);
+        public Expr IgnoreParens => IgnoreExprNodes(this, s_ignoreParensSingleStep);
 
         public bool IsImplicitCXXThis
         {
             get
             {
-                Expr E = this;
+                var e = this;
 
                 while (true)
                 {
-                    if (E is ParenExpr Paren)
+                    if (e is ParenExpr paren)
                     {
-                        E = Paren.SubExpr;
+                        e = paren.SubExpr;
                         continue;
                     }
 
-                    if (E is ImplicitCastExpr ICE)
+                    if (e is ImplicitCastExpr ice)
                     {
-                        if ((ICE.CastKind == CX_CastKind.CX_CK_NoOp) || (ICE.CastKind == CX_CastKind.CX_CK_LValueToRValue) || (ICE.CastKind == CX_CastKind.CX_CK_DerivedToBase) || (ICE.CastKind == CX_CastKind.CX_CK_UncheckedDerivedToBase))
+                        if (ice.CastKind is CX_CastKind.CX_CK_NoOp or CX_CastKind.CX_CK_LValueToRValue or CX_CastKind.CX_CK_DerivedToBase or CX_CastKind.CX_CK_UncheckedDerivedToBase)
                         {
-                            E = ICE.SubExpr;
+                            e = ice.SubExpr;
                             continue;
                         }
                     }
 
-                    if (E is UnaryOperator UnOp)
+                    if (e is UnaryOperator unOp)
                     {
-                        if (UnOp.Opcode == CX_UnaryOperatorKind.CX_UO_Extension)
+                        if (unOp.Opcode == CX_UnaryOperatorKind.CX_UO_Extension)
                         {
-                            E = UnOp.SubExpr;
+                            e = unOp.SubExpr;
                             continue;
                         }
                     }
 
-                    if (E is MaterializeTemporaryExpr M)
+                    if (e is MaterializeTemporaryExpr m)
                     {
-                        E = M.SubExpr;
+                        e = m.SubExpr;
                         continue;
                     }
 
                     break;
                 }
 
-                if (E is CXXThisExpr This)
-                {
-                    return This.IsImplicit;
-                }
-
-                return false;
+                return e is CXXThisExpr self && self.IsImplicit;
             }
         }
 
@@ -156,34 +123,34 @@ namespace ClangSharp
 
         public Type Type => _type.Value;
 
-        private static Expr IgnoreExprNodes(Expr E, Func<Expr, Expr> Fn)
+        private static Expr IgnoreExprNodes(Expr e, Func<Expr, Expr> fn)
         {
-            Expr LastE = null;
+            Expr lastE = null;
 
-            while (E != LastE)
+            while (e != lastE)
             {
-                LastE = E;
-                E = Fn(E);
+                lastE = e;
+                e = fn(e);
             }
 
-            return E;
+            return e;
         }
 
-        protected static Expr SkipImplicitTemporary(Expr E)
+        protected static Expr SkipImplicitTemporary(Expr e)
         {
             // Skip through reference binding to temporary.
-            if (E is MaterializeTemporaryExpr Materialize)
+            if (e is MaterializeTemporaryExpr materialize)
             {
-                E = Materialize.SubExpr;
+                e = materialize.SubExpr;
             }
 
             // Skip any temporary bindings; they're implicit.
-            if (E is CXXBindTemporaryExpr Binder)
+            if (e is CXXBindTemporaryExpr binder)
             {
-                E = Binder.SubExpr;
+                e = binder.SubExpr;
             }
 
-            return E;
+            return e;
         }
     }
 }
