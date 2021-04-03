@@ -1260,7 +1260,7 @@ namespace ClangSharp
                 WithType(enumDeclName, ref name, ref nativeTypeName);
             }
 
-            if (nativeTypeName.Equals(name))
+            if (nativeTypeName.Equals(name) || nativeTypeName.Replace(" ", "").Equals(name))
             {
                 nativeTypeName = string.Empty;
             }
@@ -1596,9 +1596,8 @@ namespace ClangSharp
                 // can be treated correctly. Otherwise, they will resolve to a particular
                 // platform size, based on whatever parameters were passed into clang.
 
-                var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out _);
-
-                name = remappedName.Equals(name) ? GetTypeName(cursor, context, typedefType.Decl.UnderlyingType, out _) : remappedName;
+                var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
+                name = wasRemapped ? remappedName : GetTypeName(cursor, context, typedefType.Decl.UnderlyingType, out _);
             }
             else
             {

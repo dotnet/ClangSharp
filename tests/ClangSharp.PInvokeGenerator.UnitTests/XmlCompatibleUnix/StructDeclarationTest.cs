@@ -1293,10 +1293,10 @@ struct MyStruct
   <namespace name=""ClangSharp.Test"">
     <struct name=""example_s"" access=""public"" unsafe=""true"">
       <field name=""next"" access=""public"">
-        <type native=""example_s *"">example_s*</type>
+        <type>example_s*</type>
       </field>
       <field name=""data"" access=""public"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
       </field>
     </struct>
   </namespace>
@@ -1323,7 +1323,7 @@ struct example_s {
         <type native=""example_t *"">example_s*</type>
       </field>
       <field name=""data"" access=""public"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
       </field>
     </struct>
   </namespace>

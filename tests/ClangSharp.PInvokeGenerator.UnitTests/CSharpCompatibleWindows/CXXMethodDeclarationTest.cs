@@ -194,7 +194,6 @@ namespace ClangSharp.Test
             return 0;
         }}
 
-        [return: NativeTypeName(""void *"")]
         public unsafe void* MyVoidStarMethod()
         {{
             return null;
@@ -268,7 +267,7 @@ int MyFunctionB(MyStruct* x)
             return x.MyFunction1();
         }
 
-        public static int MyFunctionB([NativeTypeName(""MyStruct *"")] MyStruct* x)
+        public static int MyFunctionB(MyStruct* x)
         {
             return x->MyFunction2();
         }
@@ -714,7 +713,6 @@ namespace ClangSharp.Test
             return 0;
         }}
 
-        [return: NativeTypeName(""void *"")]
         public static unsafe void* MyVoidStarMethod()
         {{
             return null;
@@ -774,7 +772,6 @@ namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
-        [return: NativeTypeName(""void *"")]
         public unsafe void* MyVoidStarMethod()
         {
             return null;
@@ -836,7 +833,6 @@ namespace ClangSharp.Test
         public delegate int _MyInt32Method(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
-        [return: NativeTypeName(""void *"")]
         public delegate void* _MyVoidStarMethod(MyStruct* pThis);
 
         public void MyVoidMethod()
@@ -864,7 +860,6 @@ namespace ClangSharp.Test
             }}
         }}
 
-        [return: NativeTypeName(""void *"")]
         public void* MyVoidStarMethod()
         {{
             fixed (MyStruct* pThis = &this)
@@ -923,7 +918,6 @@ namespace ClangSharp.Test
         public delegate int _MyInt32Method(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.{callConv})]
-        [return: NativeTypeName(""void *"")]
         public delegate void* _MyVoidStarMethod(MyStruct* pThis);
 
         [VtblIndex(0)]
@@ -955,7 +949,6 @@ namespace ClangSharp.Test
         }}
 
         [VtblIndex(3)]
-        [return: NativeTypeName(""void *"")]
         public void* MyVoidStarMethod()
         {{
             fixed (MyStruct* pThis = &this)

@@ -318,9 +318,7 @@ namespace ClangSharp
             {
                 if (!isAnonymousEnum)
                 {
-                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType,
-                        out var nativeTypeName);
-
+                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
                     _outputBuilder.BeginEnum(accessSpecifier, typeName, escapedName, nativeTypeName);
                 }
 

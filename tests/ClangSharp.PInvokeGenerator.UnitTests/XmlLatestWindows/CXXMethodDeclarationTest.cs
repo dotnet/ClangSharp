@@ -234,7 +234,7 @@ namespace ClangSharp.UnitTests
         <code>return 0;</code>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <code>return null;</code>
       </function>
     </struct>
@@ -790,7 +790,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
         <code>return 0;</code>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" static=""true"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <code>return null;</code>
       </function>
     </struct>
@@ -850,7 +850,7 @@ void MyFunction();";
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <code>return null;</code>
       </function>
     </struct>
@@ -916,7 +916,7 @@ void MyFunction();";
         </body>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <body>
           <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, void*&gt;)(lpVtbl[<vtbl explicit=""False"">3</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
@@ -979,7 +979,7 @@ void MyFunction();";
         </body>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"" vtblindex=""3"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <body>
           <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, void*&gt;)(lpVtbl[<vtbl explicit=""False"">3</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>

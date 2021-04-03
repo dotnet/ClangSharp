@@ -20,7 +20,7 @@ namespace ClangSharp.UnitTests
 {
     public static unsafe partial class Methods
     {
-        public static int MyFunction([NativeTypeName(""int *"")] int* pData, int index)
+        public static int MyFunction(int* pData, int index)
         {
             return pData[index];
         }
@@ -469,7 +469,6 @@ namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
-        [return: NativeTypeName(""void *"")]
         public static void* MyFunction([NativeTypeName(""const void *"")] void* input)
         {
             return input;
@@ -543,8 +542,7 @@ namespace ClangSharp.Test
 
     public static unsafe partial class Methods
     {{
-        [return: NativeTypeName(""MyStructB *"")]
-        public static MyStructB* MyFunction([NativeTypeName(""MyStructA *"")] MyStructA* input)
+        public static MyStructB* MyFunction(MyStructA* input)
         {{
             return (MyStructB*)(input);
         }}
@@ -567,8 +565,7 @@ namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
-        [return: NativeTypeName(""int *"")]
-        public static int* MyFunction([NativeTypeName(""void *"")] void* input)
+        public static int* MyFunction(void* input)
         {
             return (int*)(input);
         }
@@ -591,8 +588,7 @@ namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
-        [return: NativeTypeName(""int *"")]
-        public static int* MyFunction([NativeTypeName(""void *"")] void* input)
+        public static int* MyFunction(void* input)
         {
             return (int*)(input);
         }
@@ -1257,7 +1253,7 @@ int MyFunction2(MyStruct* instance)
             return instance.value;
         }
 
-        public static int MyFunction2([NativeTypeName(""MyStruct *"")] MyStruct* instance)
+        public static int MyFunction2(MyStruct* instance)
         {
             return instance->value;
         }
@@ -1312,7 +1308,6 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 {
     public static unsafe partial class Methods
     {
-        [return: NativeTypeName(""void *"")]
         public static void* MyFunction()
         {
             return null;
@@ -1630,7 +1625,6 @@ MyStruct MyFunction()
 {
     public static unsafe partial class Methods
     {
-        [return: NativeTypeName(""int *"")]
         public static int* MyFunction(int value)
         {
             return &value;
@@ -1654,7 +1648,7 @@ MyStruct MyFunction()
 {
     public static unsafe partial class Methods
     {
-        public static int MyFunction([NativeTypeName(""int *"")] int* value)
+        public static int MyFunction(int* value)
         {
             return *value;
         }

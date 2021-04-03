@@ -1200,11 +1200,9 @@ namespace ClangSharp.Test
     public unsafe partial struct example_s
     {{
         [FieldOffset(0)]
-        [NativeTypeName(""example_s *"")]
         public example_s* next;
 
         [FieldOffset(0)]
-        [NativeTypeName(""void *"")]
         public void* data;
     }}
 }}
@@ -1234,7 +1232,6 @@ namespace ClangSharp.Test
         public example_s* next;
 
         [FieldOffset(0)]
-        [NativeTypeName(""void *"")]
         public void* data;
     }}
 }}

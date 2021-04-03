@@ -234,7 +234,7 @@ namespace ClangSharp.UnitTests
         <code>return 0;</code>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <code>return null;</code>
       </function>
     </struct>
@@ -862,7 +862,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
         <code>return 0;</code>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" static=""true"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <code>return null;</code>
       </function>
     </struct>
@@ -922,7 +922,7 @@ void MyFunction();";
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <code>return null;</code>
       </function>
     </struct>
@@ -988,7 +988,7 @@ void MyFunction();";
         </param>
       </delegate>
       <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""{callConv}"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
@@ -1021,7 +1021,7 @@ void MyFunction();";
         </body>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <body>
           <code>fixed (MyStruct* pThis = &amp;this)
     {{
@@ -1087,7 +1087,7 @@ void MyFunction();";
         </param>
       </delegate>
       <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""{callConv}"" unsafe=""true"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
@@ -1120,7 +1120,7 @@ void MyFunction();";
         </body>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"" vtblindex=""3"">
-        <type native=""void *"">void*</type>
+        <type>void*</type>
         <body>
           <code>fixed (MyStruct* pThis = &amp;this)
     {{
