@@ -1190,79 +1190,77 @@ namespace ClangSharp
             var name = GetTypeName(cursor, context, type, out nativeTypeName);
             var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
 
-            if (wasRemapped)
+            if (!wasRemapped)
             {
-                return remappedName;
-            }
+                var canonicalType = type.CanonicalType;
 
-            var canonicalType = type.CanonicalType;
-
-            if ((canonicalType is ConstantArrayType constantArrayType) && (constantArrayType.ElementType is RecordType))
-            {
-                canonicalType = constantArrayType.ElementType;
-            }
-
-            if ((canonicalType is RecordType recordType) && remappedName.StartsWith("__AnonymousRecord_"))
-            {
-                var recordDecl = recordType.Decl;
-                remappedName = "_Anonymous";
-
-                if (recordDecl.Parent is RecordDecl parentRecordDecl)
+                if ((canonicalType is ConstantArrayType constantArrayType) && (constantArrayType.ElementType is RecordType))
                 {
-                    var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordType).FirstOrDefault();
+                    canonicalType = constantArrayType.ElementType;
+                }
 
-                    if (matchingField != null)
-                    {
-                        remappedName = "_";
-                        remappedName += GetRemappedCursorName(matchingField);
-                    }
-                    else
-                    {
-                        var index = 0;
+                if ((canonicalType is RecordType recordType) && remappedName.StartsWith("__AnonymousRecord_"))
+                {
+                    var recordDecl = recordType.Decl;
+                    remappedName = "_Anonymous";
 
-                        if (parentRecordDecl.AnonymousRecords.Count > 1)
+                    if (recordDecl.Parent is RecordDecl parentRecordDecl)
+                    {
+                        var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordType).FirstOrDefault();
+
+                        if (matchingField != null)
                         {
-                            index = parentRecordDecl.AnonymousRecords.IndexOf(cursor) + 1;
+                            remappedName = "_";
+                            remappedName += GetRemappedCursorName(matchingField);
                         }
-
-                        while (parentRecordDecl.IsAnonymousStructOrUnion && (parentRecordDecl.IsUnion == recordType.Decl.IsUnion))
+                        else
                         {
-                            index += 1;
+                            var index = 0;
 
-                            if (parentRecordDecl.Parent is RecordDecl parentRecordDeclParent)
+                            if (parentRecordDecl.AnonymousRecords.Count > 1)
                             {
-                                if (parentRecordDeclParent.AnonymousRecords.Count > 0)
+                                index = parentRecordDecl.AnonymousRecords.IndexOf(cursor) + 1;
+                            }
+
+                            while (parentRecordDecl.IsAnonymousStructOrUnion && (parentRecordDecl.IsUnion == recordType.Decl.IsUnion))
+                            {
+                                index += 1;
+
+                                if (parentRecordDecl.Parent is RecordDecl parentRecordDeclParent)
                                 {
-                                    index += parentRecordDeclParent.AnonymousRecords.Count - 1;
+                                    if (parentRecordDeclParent.AnonymousRecords.Count > 0)
+                                    {
+                                        index += parentRecordDeclParent.AnonymousRecords.Count - 1;
+                                    }
+                                    parentRecordDecl = parentRecordDeclParent;
                                 }
-                                parentRecordDecl = parentRecordDeclParent;
+                            }
+
+                            if (index != 0)
+                            {
+                                remappedName += index.ToString();
                             }
                         }
+                    }
 
-                        if (index != 0)
-                        {
-                            remappedName += index.ToString();
-                        }
-                    } 
+                    remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
                 }
-
-                remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
-            }
-            else if ((canonicalType is EnumType enumType) && remappedName.StartsWith("__AnonymousEnum_"))
-            {
-                remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _);
-            }
-            else if (cursor is EnumDecl enumDecl)
-            {
-                var enumDeclName = GetRemappedCursorName(enumDecl);
-
-                if (enumDecl.Enumerators.Any((enumConstantDecl) => IsForceDwordOrForceUInt(enumDeclName, enumConstantDecl)))
+                else if ((canonicalType is EnumType enumType) && remappedName.StartsWith("__AnonymousEnum_"))
                 {
-                    remappedName = "uint";
+                    remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _);
                 }
+                else if (cursor is EnumDecl enumDecl)
+                {
+                    var enumDeclName = GetRemappedCursorName(enumDecl);
 
-                WithType("*", ref remappedName, ref nativeTypeName);
-                WithType(enumDeclName, ref remappedName, ref nativeTypeName);
+                    if (enumDecl.Enumerators.Any((enumConstantDecl) => IsForceDwordOrForceUInt(enumDeclName, enumConstantDecl)))
+                    {
+                        remappedName = "uint";
+                    }
+
+                    WithType("*", ref remappedName, ref nativeTypeName);
+                    WithType(enumDeclName, ref remappedName, ref nativeTypeName);
+                }
             }
 
             if (nativeTypeName.Equals(remappedName) || nativeTypeName.Replace(" ", "").Equals(remappedName))

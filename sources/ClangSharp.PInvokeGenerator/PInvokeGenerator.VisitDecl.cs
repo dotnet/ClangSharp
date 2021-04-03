@@ -635,7 +635,6 @@ namespace ClangSharp
             }
 
             var fieldDecl = indirectFieldDecl.AnonField;
-            var tmpName = GetRemappedCursorName(fieldDecl);
             var anonymousRecordDecl = fieldDecl.Parent;
 
             var rootRecordDecl = anonymousRecordDecl;
@@ -861,7 +860,7 @@ namespace ClangSharp
             _outputBuilder.WriteDivider();
         }
 
-        private void VisitLabelDecl(LabelDecl labelDecl)
+        private static void VisitLabelDecl(LabelDecl labelDecl)
         {
             // This should have already been handled as a statement
         }
