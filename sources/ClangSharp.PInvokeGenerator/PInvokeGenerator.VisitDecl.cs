@@ -1242,8 +1242,7 @@ namespace ClangSharp
                     long alignment32 = -1;
                     long alignment64 = -1;
 
-                    GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32,
-                        out var size64);
+                    GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32, out var size64);
 
                     if (((size32 == 0) || (size64 == 0)) && !TryGetUuid(recordDecl, out _))
                     {

@@ -2008,10 +2008,6 @@ namespace ClangSharp
                             }
                         }
                     }
-                    else if ((declaration is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion)
-                    {
-                        GetTypeSize(nestedRecordDecl, nestedRecordDecl.TypeForDecl, ref fieldAlignment32, ref fieldAlignment64, out fieldSize32, out fieldSize64);
-                    }
                     else
                     {
                         continue;
