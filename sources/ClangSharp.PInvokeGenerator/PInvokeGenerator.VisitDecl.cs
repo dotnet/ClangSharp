@@ -1026,8 +1026,8 @@ namespace ClangSharp
                     hasVtbl = HasVtbl(cxxRecordDecl);
                 }
 
-                var alignment = recordDecl.TypeForDecl.Handle.AlignOf;
-                var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => fieldDecl.Type.Handle.AlignOf) : alignment;
+                var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
+                var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
                 if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
                 {
@@ -2137,8 +2137,8 @@ namespace ClangSharp
 
                 _outputBuilder.WriteDivider();
 
-                var alignment = recordDecl.TypeForDecl.Handle.AlignOf;
-                var maxAlignm = recordDecl.Fields.Max((fieldDecl) => fieldDecl.Type.Handle.AlignOf);
+                var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
+                var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
                 StructLayoutAttribute layout = null;
                 if (alignment < maxAlignm)

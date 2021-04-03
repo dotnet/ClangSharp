@@ -1894,6 +1894,11 @@ namespace ClangSharp
                 size32 = 4;
                 size64 = 8;
 
+                if (alignment32 == -1)
+                {
+                    alignment32 = 4;
+                }
+
                 if (alignment64 == -1)
                 {
                     alignment64 = 8;
@@ -1901,17 +1906,17 @@ namespace ClangSharp
             }
             else if (type is InjectedClassNameType)
             {
-                if (alignment64 == -1)
-                {
-                    alignment64 = 8;
-                }
+                Debug.Assert(size32 == 0);
+                Debug.Assert(size64 == 0);
             }
             else if (type is RecordType recordType)
             {
+                var recordTypeAlignOf = recordType.Handle.AlignOf;
+
                 if (alignment32 == -1)
                 {
-                    alignment32 = recordType.Handle.AlignOf;
-                    alignment64 = recordType.Handle.AlignOf;
+                    alignment32 = recordTypeAlignOf;
+                    alignment64 = recordTypeAlignOf;
                 }
 
                 long maxFieldAlignment32 = -1;
@@ -1942,7 +1947,6 @@ namespace ClangSharp
                     {
                         foreach (var baseCXXRecordDecl in cxxRecordDecl.Bases)
                         {
-
                             long fieldAlignment32 = -1;
                             long fieldAlignment64 = -1;
 
@@ -1950,12 +1954,12 @@ namespace ClangSharp
 
                             if ((fieldAlignment32 == -1) || (alignment32 < 4))
                             {
-                                fieldAlignment32 = Math.Min(alignment32, fieldSize32);
+                                fieldAlignment32 = Math.Max(Math.Min(alignment32, fieldSize32), 1);
                             }
 
                             if ((fieldAlignment64 == -1) || (alignment64 < 4))
                             {
-                                fieldAlignment64 = Math.Min(alignment64, fieldSize64);
+                                fieldAlignment64 = Math.Max(Math.Min(alignment64, fieldSize64), 1);
                             }
 
                             if ((size32 % fieldAlignment32) != 0)
@@ -2018,12 +2022,12 @@ namespace ClangSharp
 
                     if ((fieldAlignment32 == -1) || (alignment32 < 4))
                     {
-                        fieldAlignment32 = Math.Min(alignment32, fieldSize32);
+                        fieldAlignment32 = Math.Max(Math.Min(alignment32, fieldSize32), 1);
                     }
 
                     if ((fieldAlignment64 == -1) || (alignment64 < 4))
                     {
-                        fieldAlignment64 = Math.Min(alignment64, fieldSize64);
+                        fieldAlignment64 = Math.Max(Math.Min(alignment64, fieldSize64), 1);
                     }
 
                     if ((size32 % fieldAlignment32) != 0)
@@ -2090,6 +2094,11 @@ namespace ClangSharp
                     size32 = 4;
                     size64 = 8;
 
+                    if (alignment32 == -1)
+                    {
+                        alignment32 = 4;
+                    }
+
                     if (alignment64 == -1)
                     {
                         alignment64 = 8;
@@ -2132,15 +2141,8 @@ namespace ClangSharp
             }
             else if (type is TemplateTypeParmType)
             {
-                if (alignment32 == -1)
-                {
-                    alignment32 = 4;
-                }
-
-                if (alignment64 == -1)
-                {
-                    alignment64 = 8;
-                }
+                Debug.Assert(size32 == 0);
+                Debug.Assert(size64 == 0);
             }
             else
             {
