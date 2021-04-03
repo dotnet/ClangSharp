@@ -1188,7 +1188,12 @@ namespace ClangSharp
         private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
             var name = GetTypeName(cursor, context, type, out nativeTypeName);
-            name = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
+            var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
+
+            if (wasRemapped)
+            {
+                return remappedName;
+            }
 
             var canonicalType = type.CanonicalType;
 
@@ -1197,10 +1202,10 @@ namespace ClangSharp
                 canonicalType = constantArrayType.ElementType;
             }
 
-            if ((canonicalType is RecordType recordType) && name.StartsWith("__AnonymousRecord_"))
+            if ((canonicalType is RecordType recordType) && remappedName.StartsWith("__AnonymousRecord_"))
             {
                 var recordDecl = recordType.Decl;
-                name = "_Anonymous";
+                remappedName = "_Anonymous";
 
                 if (recordDecl.Parent is RecordDecl parentRecordDecl)
                 {
@@ -1208,8 +1213,8 @@ namespace ClangSharp
 
                     if (matchingField != null)
                     {
-                        name = "_";
-                        name += GetRemappedCursorName(matchingField);
+                        remappedName = "_";
+                        remappedName += GetRemappedCursorName(matchingField);
                     }
                     else
                     {
@@ -1236,16 +1241,16 @@ namespace ClangSharp
 
                         if (index != 0)
                         {
-                            name += index.ToString();
+                            remappedName += index.ToString();
                         }
                     } 
                 }
 
-                name += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
+                remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
             }
-            else if ((canonicalType is EnumType enumType) && name.StartsWith("__AnonymousEnum_"))
+            else if ((canonicalType is EnumType enumType) && remappedName.StartsWith("__AnonymousEnum_"))
             {
-                name = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _);
+                remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _);
             }
             else if (cursor is EnumDecl enumDecl)
             {
@@ -1253,18 +1258,18 @@ namespace ClangSharp
 
                 if (enumDecl.Enumerators.Any((enumConstantDecl) => IsForceDwordOrForceUInt(enumDeclName, enumConstantDecl)))
                 {
-                    name = "uint";
+                    remappedName = "uint";
                 }
 
-                WithType("*", ref name, ref nativeTypeName);
-                WithType(enumDeclName, ref name, ref nativeTypeName);
+                WithType("*", ref remappedName, ref nativeTypeName);
+                WithType(enumDeclName, ref remappedName, ref nativeTypeName);
             }
 
-            if (nativeTypeName.Equals(name) || nativeTypeName.Replace(" ", "").Equals(name))
+            if (nativeTypeName.Equals(remappedName) || nativeTypeName.Replace(" ", "").Equals(remappedName))
             {
                 nativeTypeName = string.Empty;
             }
-            return name;
+            return remappedName;
 
             bool IsForceDwordOrForceUInt(string enumDeclName, EnumConstantDecl enumConstantDecl)
             {
