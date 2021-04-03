@@ -1125,6 +1125,7 @@ namespace ClangSharp
         private void VisitLabelStmt(LabelStmt labelStmt)
         {
             var outputBuilder = StartCSharpCode();
+
             outputBuilder.Write(labelStmt.Decl.Name);
             outputBuilder.WriteLine(':');
 

@@ -62,7 +62,11 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_DeclKind.CX_DeclKind_Label:
+                case CX_DeclKind.CX_DeclKind_Label:
+                {
+                    VisitLabelDecl((LabelDecl)decl);
+                    break;
+                }
 
                 case CX_DeclKind.CX_DeclKind_Namespace:
                 {
@@ -859,6 +863,11 @@ namespace ClangSharp
             _outputBuilder.EndBody();
             _outputBuilder.EndField(false);
             _outputBuilder.WriteDivider();
+        }
+
+        private void VisitLabelDecl(LabelDecl labelDecl)
+        {
+            // This should have already been handled as a statement
         }
 
         private void VisitLinkageSpecDecl(LinkageSpecDecl linkageSpecDecl)
