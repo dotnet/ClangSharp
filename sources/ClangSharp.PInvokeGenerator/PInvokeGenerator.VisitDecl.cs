@@ -13,7 +13,7 @@ namespace ClangSharp
 {
     public partial class PInvokeGenerator
     {
-        private void VisitClassTemplateDecl(ClassTemplateDecl classTemplateDecl) => AddDiagnostic(DiagnosticLevel.Warning, $"Class templates are not supported: '{GetCursorQualifiedName(classTemplateDecl)}'. Generated bindings may be incomplete.", classTemplateDecl);
+        private void VisitClassTemplateDecl(ClassTemplateDecl classTemplateDecl) => Visit(classTemplateDecl.TemplatedDecl);
 
         private void VisitClassTemplateSpecializationDecl(ClassTemplateSpecializationDecl classTemplateSpecializationDecl) => AddDiagnostic(DiagnosticLevel.Warning, $"Class template specializations are not supported: '{GetCursorQualifiedName(classTemplateSpecializationDecl)}'. Generated bindings may be incomplete.", classTemplateSpecializationDecl);
 
@@ -236,7 +236,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declaration: '{decl.Kind}'. Generated bindings may be incomplete.", decl);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported declaration: '{decl.DeclKindName}'. Generated bindings may be incomplete.", decl);
                     break;
                 }
             }
@@ -300,6 +300,324 @@ namespace ClangSharp
 
             _outputBuilder.EndConstant(isAnonymousEnum);
         }
+
+        private void VisitEnumDecl(EnumDecl enumDecl)
+        {
+            var accessSpecifier = GetAccessSpecifier(enumDecl);
+            var name = GetRemappedCursorName(enumDecl);
+            var escapedName = EscapeName(name);
+            var isAnonymousEnum = false;
+
+            if (name.StartsWith("__AnonymousEnum_"))
+            {
+                isAnonymousEnum = true;
+                name = _config.MethodClassName;
+            }
+
+            StartUsingOutputBuilder(name);
+            {
+                if (!isAnonymousEnum)
+                {
+                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType,
+                        out var nativeTypeName);
+
+                    _outputBuilder.BeginEnum(accessSpecifier, typeName, escapedName, nativeTypeName);
+                }
+
+                Visit(enumDecl.Enumerators);
+                Visit(enumDecl.Decls, excludedCursors: enumDecl.Enumerators);
+
+                if (!isAnonymousEnum)
+                {
+                    _outputBuilder.EndEnum();
+                }
+            }
+            StopUsingOutputBuilder();
+        }
+
+        private void VisitFieldDecl(FieldDecl fieldDecl)
+        {
+            if (fieldDecl.IsBitField)
+            {
+                return;
+            }
+
+            var accessSpecifier = GetAccessSpecifier(fieldDecl);
+            var name = GetRemappedCursorName(fieldDecl);
+            var escapedName = EscapeName(name);
+
+            var type = fieldDecl.Type;
+            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
+
+            int? offset = null;
+            if (fieldDecl.Parent.IsUnion)
+            {
+                offset = 0;
+            }
+
+            var desc = new FieldDesc
+            {
+                AccessSpecifier = accessSpecifier,
+                NativeTypeName = nativeTypeName,
+                EscapedName = escapedName,
+                Offset = offset,
+                NeedsNewKeyword = NeedsNewKeyword(name)
+            };
+
+            _outputBuilder.BeginField(in desc);
+
+            if (type.CanonicalType is ConstantArrayType constantArrayType)
+            {
+                var count = Math.Max(constantArrayType.Size, 1).ToString();
+                var elementType = constantArrayType.ElementType;
+                while (elementType.CanonicalType is ConstantArrayType subConstantArrayType)
+                {
+                    count += " * ";
+                    count += Math.Max(subConstantArrayType.Size, 1).ToString();
+                    elementType = subConstantArrayType.ElementType;
+                }
+
+                _outputBuilder.WriteFixedCountField(typeName, escapedName, GetArtificialFixedSizedBufferName(fieldDecl),
+                    count);
+            }
+            else
+            {
+                _outputBuilder.WriteRegularField(typeName, escapedName);
+            }
+
+            _outputBuilder.EndField();
+        }
+
+        private void VisitFunctionDecl(FunctionDecl functionDecl)
+        {
+            if (!functionDecl.IsUserProvided)
+            {
+                // We shouldn't process injected functions
+                return;
+            }
+
+            if (IsExcluded(functionDecl))
+            {
+                return;
+            }
+
+            if (functionDecl.DeclContext is not CXXRecordDecl cxxRecordDecl)
+            {
+                cxxRecordDecl = null;
+                StartUsingOutputBuilder(_config.MethodClassName);
+            }
+            else if ((Cursor)functionDecl.LexicalDeclContext != cxxRecordDecl)
+            {
+                // We shouldn't reprocess C++ functions outside the declaration
+                return;
+            }
+
+            var accessSppecifier = GetAccessSpecifier(functionDecl);
+            var name = GetRemappedCursorName(functionDecl);
+
+            var cxxMethodDecl = functionDecl as CXXMethodDecl;
+            var body = functionDecl.Body;
+
+            var isVirtual = (cxxMethodDecl != null) && cxxMethodDecl.IsVirtual;
+            var escapedName = isVirtual ? PrefixAndStripName(name, cxxMethodDecl.OverloadIndex) : EscapeAndStripName(name);
+
+            var returnType = functionDecl.ReturnType;
+            var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
+
+            if ((isVirtual || (body is null)) && (returnTypeName == "bool"))
+            {
+                // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                returnTypeName = "byte";
+                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
+            }
+
+            var type = functionDecl.Type;
+            var callConv = CXCallingConv.CXCallingConv_Invalid;
+
+            if (type is AttributedType attributedType)
+            {
+                type = attributedType.ModifiedType;
+                callConv = attributedType.Handle.FunctionTypeCallingConv;
+            }
+
+            if (type is FunctionType functionType)
+            {
+                if (callConv == CXCallingConv.CXCallingConv_Invalid)
+                {
+                    callConv = functionType.CallConv;
+                }
+            }
+
+            var callingConventionName = GetCallingConvention(functionDecl, callConv, name);
+            var entryPoint = !isVirtual && body is null
+                ? (cxxMethodDecl is null) ? GetCursorName(functionDecl) : cxxMethodDecl.Handle.Mangling.CString
+                : null;
+            var isDllImport = body is null && !isVirtual;
+
+            var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
+            {
+                AccessSpecifier = accessSppecifier,
+                NativeTypeName = nativeTypeName,
+                EscapedName = escapedName,
+                EntryPoint = entryPoint,
+                CallingConvention = callingConventionName,
+                LibraryPath = isDllImport ? GetLibraryPath(name).Unquote() : null,
+                IsVirtual = isVirtual,
+                IsDllImport = isDllImport,
+                HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
+                SetLastError = GetSetLastError(name),
+                IsCxx = cxxMethodDecl is not null,
+                IsStatic = isDllImport || (cxxMethodDecl?.IsStatic ?? true),
+                NeedsNewKeyword = NeedsNewKeyword(escapedName, functionDecl.Parameters),
+                IsUnsafe = IsUnsafe(functionDecl),
+                IsCtxCxxRecord = cxxRecordDecl is not null,
+                IsCxxRecordCtxUnsafe = cxxRecordDecl is not null && IsUnsafe(cxxRecordDecl),
+                WriteCustomAttrs = static x =>
+                {
+                    x.This.WithAttributes("*");
+                    x.This.WithAttributes(x.Name);
+
+                    x.This.WithUsings("*");
+                    x.This.WithUsings(x.Name);
+                },
+                CustomAttrGeneratorData = (name, this)
+            };
+
+            _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
+
+            var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
+
+            if ((functionDecl is not CXXConstructorDecl) || (_config.OutputMode == PInvokeGeneratorOutputMode.Xml))
+            {
+                _outputBuilder.WriteReturnType(needsReturnFixup ? $"{returnTypeName}*" : returnTypeName);
+            }
+
+            _outputBuilder.BeginFunctionInnerPrototype(escapedName);
+
+            if (isVirtual)
+            {
+                Debug.Assert(cxxRecordDecl != null);
+
+                if (!IsPrevContextDecl<CXXRecordDecl>(out var thisCursor))
+                {
+                    thisCursor = cxxRecordDecl;
+                }
+
+                var cxxRecordDeclName = GetRemappedCursorName(thisCursor);
+                var cxxRecordEscapedName = EscapeName(cxxRecordDeclName);
+                ParameterDesc<(string Name, PInvokeGenerator This)> parameterDesc = new()
+                {
+                    Name = "pThis",
+                    Type = $"{cxxRecordEscapedName}*",
+                    WriteCustomAttrs = static x => { },
+                    CustomAttrGeneratorData = default
+                };
+
+                _outputBuilder.BeginParameter(in parameterDesc);
+                _outputBuilder.EndParameter();
+
+                if (needsReturnFixup)
+                {
+                    _outputBuilder.WriteParameterSeparator();
+                    parameterDesc = new()
+                    {
+                        Name = "_result",
+                        Type = $"{returnTypeName}*",
+                        WriteCustomAttrs = static x => { },
+                        CustomAttrGeneratorData = default
+                    };
+                    _outputBuilder.BeginParameter(in parameterDesc);
+                    _outputBuilder.EndParameter();
+                }
+
+                if (functionDecl.Parameters.Any())
+                {
+                    _outputBuilder.WriteParameterSeparator();
+                }
+            }
+
+            Visit(functionDecl.Parameters);
+
+            _outputBuilder.EndFunctionInnerPrototype();
+
+            if ((body is null) || isVirtual)
+            {
+                _outputBuilder.EndFunctionOrDelegate(isVirtual, true);
+            }
+            else
+            {
+                var firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
+                var lastCtorInitializer = (functionDecl.Body != null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
+
+                _outputBuilder.BeginBody();
+
+                if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
+                {
+                    VisitCtorInitializers(cxxConstructorDecl, firstCtorInitializer, lastCtorInitializer);
+                }
+
+                if (body is CompoundStmt compoundStmt)
+                {
+                    _outputBuilder.BeginConstructorInitializers();
+                    VisitStmts(compoundStmt.Body);
+                    _outputBuilder.EndConstructorInitializers();
+                }
+                else
+                {
+                    _outputBuilder.BeginInnerFunctionBody();
+                    Visit(body);
+                    _outputBuilder.EndInnerFunctionBody();
+                }
+
+                _outputBuilder.EndBody();
+                _outputBuilder.EndFunctionOrDelegate(isVirtual, false);
+            }
+
+            Visit(functionDecl.Decls, excludedCursors: functionDecl.Parameters);
+
+            if (cxxRecordDecl is null)
+            {
+                StopUsingOutputBuilder();
+            }
+
+            void VisitCtorInitializers(CXXConstructorDecl cxxConstructorDecl, int firstCtorInitializer, int lastCtorInitializer)
+            {
+                for (var i = firstCtorInitializer; i < lastCtorInitializer; i++)
+                {
+                    if (cxxConstructorDecl.CursorChildren[i] is Attr)
+                    {
+                        continue;
+                    }
+
+                    var memberRef = (Ref)cxxConstructorDecl.CursorChildren[i];
+                    var memberInit = (Stmt)cxxConstructorDecl.CursorChildren[++i];
+
+                    if (memberInit is ImplicitValueInitExpr)
+                    {
+                        continue;
+                    }
+
+                    var memberRefName = GetRemappedCursorName(memberRef.Referenced);
+                    var memberInitName = memberInit.Spelling;
+
+                    if (memberInit is CastExpr {SubExprAsWritten: DeclRefExpr declRefExpr})
+                    {
+                        memberInitName = GetRemappedCursorName(declRefExpr.Decl);
+                    }
+
+                    _outputBuilder.BeginConstructorInitializer(memberRefName, memberInitName);
+
+                    var memberRefTypeName = GetRemappedTypeName(memberRef, context: null, memberRef.Type,
+                        out var memberRefNativeTypeName);
+
+                    UncheckStmt(memberRefTypeName, memberInit);
+
+                    _outputBuilder.EndConstructorInitializer();
+                }
+            }
+        }
+
+        private void VisitFunctionTemplateDecl(FunctionTemplateDecl functionTemplateDecl) => Visit(functionTemplateDecl.TemplatedDecl);
 
         private void VisitIndirectFieldDecl(IndirectFieldDecl indirectFieldDecl)
         {
@@ -380,8 +698,7 @@ namespace ClangSharp
             var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
 
-            var desc = new FieldDesc
-            {
+            var desc = new FieldDesc {
                 AccessSpecifier = accessSpecifier,
                 NativeTypeName = null,
                 EscapedName = escapedName,
@@ -545,320 +862,6 @@ namespace ClangSharp
             _outputBuilder.EndField(false);
             _outputBuilder.WriteDivider();
         }
-
-        private void VisitEnumDecl(EnumDecl enumDecl)
-        {
-            var accessSpecifier = GetAccessSpecifier(enumDecl);
-            var name = GetRemappedCursorName(enumDecl);
-            var escapedName = EscapeName(name);
-            var isAnonymousEnum = false;
-
-            if (name.StartsWith("__AnonymousEnum_"))
-            {
-                isAnonymousEnum = true;
-                name = _config.MethodClassName;
-            }
-
-            StartUsingOutputBuilder(name);
-            {
-                if (!isAnonymousEnum)
-                {
-                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType,
-                        out var nativeTypeName);
-
-                    _outputBuilder.BeginEnum(accessSpecifier, typeName, escapedName, nativeTypeName);
-                }
-
-                Visit(enumDecl.Enumerators);
-                Visit(enumDecl.Decls, excludedCursors: enumDecl.Enumerators);
-
-                if (!isAnonymousEnum)
-                {
-                    _outputBuilder.EndEnum();
-                }
-            }
-            StopUsingOutputBuilder();
-        }
-
-        private void VisitFieldDecl(FieldDecl fieldDecl)
-        {
-            if (fieldDecl.IsBitField)
-            {
-                return;
-            }
-
-            var accessSpecifier = GetAccessSpecifier(fieldDecl);
-            var name = GetRemappedCursorName(fieldDecl);
-            var escapedName = EscapeName(name);
-
-            var type = fieldDecl.Type;
-            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
-
-            int? offset = null;
-            if (fieldDecl.Parent.IsUnion)
-            {
-                offset = 0;
-            }
-
-            var desc = new FieldDesc
-            {
-                AccessSpecifier = accessSpecifier,
-                NativeTypeName = nativeTypeName,
-                EscapedName = escapedName,
-                Offset = offset,
-                NeedsNewKeyword = NeedsNewKeyword(name)
-            };
-
-            _outputBuilder.BeginField(in desc);
-
-            if (type.CanonicalType is ConstantArrayType constantArrayType)
-            {
-                var count = Math.Max(constantArrayType.Size, 1).ToString();
-                var elementType = constantArrayType.ElementType;
-                while (elementType.CanonicalType is ConstantArrayType subConstantArrayType)
-                {
-                    count += " * ";
-                    count += Math.Max(subConstantArrayType.Size, 1).ToString();
-                    elementType = subConstantArrayType.ElementType;
-                }
-
-                _outputBuilder.WriteFixedCountField(typeName, escapedName, GetArtificialFixedSizedBufferName(fieldDecl),
-                    count);
-            }
-            else
-            {
-                _outputBuilder.WriteRegularField(typeName, escapedName);
-            }
-
-            _outputBuilder.EndField();
-        }
-
-        private void VisitFunctionDecl(FunctionDecl functionDecl)
-        {
-            if (!functionDecl.IsUserProvided)
-            {
-                // We shouldn't process injected functions
-                return;
-            }
-
-            if (IsExcluded(functionDecl))
-            {
-                return;
-            }
-
-            var accessSppecifier = GetAccessSpecifier(functionDecl);
-            var name = GetRemappedCursorName(functionDecl);
-
-            var cxxMethodDecl = functionDecl as CXXMethodDecl;
-            var body = functionDecl.Body;
-
-            var isVirtual = (cxxMethodDecl != null) && cxxMethodDecl.IsVirtual;
-            var escapedName = isVirtual ? PrefixAndStripName(name, cxxMethodDecl.OverloadIndex) : EscapeAndStripName(name);
-
-            if (functionDecl.DeclContext is not CXXRecordDecl cxxRecordDecl)
-            {
-                cxxRecordDecl = null;
-                StartUsingOutputBuilder(_config.MethodClassName);
-            }
-
-            var returnType = functionDecl.ReturnType;
-            var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
-
-            if ((isVirtual || (body is null)) && (returnTypeName == "bool"))
-            {
-                // bool is not blittable, so we shouldn't use it for P/Invoke signatures
-                returnTypeName = "byte";
-                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
-            }
-
-            var type = functionDecl.Type;
-            var callConv = CXCallingConv.CXCallingConv_Invalid;
-
-            if (type is AttributedType attributedType)
-            {
-                type = attributedType.ModifiedType;
-                callConv = attributedType.Handle.FunctionTypeCallingConv;
-            }
-
-            if (type is FunctionType functionType)
-            {
-                if (callConv == CXCallingConv.CXCallingConv_Invalid)
-                {
-                    callConv = functionType.CallConv;
-                }
-            }
-
-            var callingConventionName = GetCallingConvention(functionDecl, callConv, name);
-            var entryPoint = !isVirtual && body is null
-                ? (cxxMethodDecl is null) ? GetCursorName(functionDecl) : cxxMethodDecl.Handle.Mangling.CString
-                : null;
-            var isDllImport = body is null && !isVirtual;
-
-            var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
-            {
-                AccessSpecifier = accessSppecifier,
-                NativeTypeName = nativeTypeName,
-                EscapedName = escapedName,
-                EntryPoint = entryPoint,
-                CallingConvention = callingConventionName,
-                LibraryPath = isDllImport ? GetLibraryPath(name).Unquote() : null,
-                IsVirtual = isVirtual,
-                IsDllImport = isDllImport,
-                HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
-                SetLastError = GetSetLastError(name),
-                IsCxx = cxxMethodDecl is not null,
-                IsStatic = isDllImport || (cxxMethodDecl?.IsStatic ?? true),
-                NeedsNewKeyword = NeedsNewKeyword(escapedName, functionDecl.Parameters),
-                IsUnsafe = IsUnsafe(functionDecl),
-                IsCtxCxxRecord = cxxRecordDecl is not null,
-                IsCxxRecordCtxUnsafe = cxxRecordDecl is not null && IsUnsafe(cxxRecordDecl),
-                WriteCustomAttrs = static x =>
-                {
-                    x.This.WithAttributes("*");
-                    x.This.WithAttributes(x.Name);
-
-                    x.This.WithUsings("*");
-                    x.This.WithUsings(x.Name);
-                },
-                CustomAttrGeneratorData = (name, this)
-            };
-
-            _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
-
-            var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
-
-            if ((functionDecl is not CXXConstructorDecl) || (_config.OutputMode == PInvokeGeneratorOutputMode.Xml))
-            {
-                _outputBuilder.WriteReturnType(needsReturnFixup ? $"{returnTypeName}*" : returnTypeName);
-            }
-
-            _outputBuilder.BeginFunctionInnerPrototype(escapedName);
-
-            if (isVirtual)
-            {
-                Debug.Assert(cxxRecordDecl != null);
-
-                if (!IsPrevContextDecl<CXXRecordDecl>(out var thisCursor))
-                {
-                    thisCursor = cxxRecordDecl;
-                }
-
-                var cxxRecordDeclName = GetRemappedCursorName(thisCursor);
-                var cxxRecordEscapedName = EscapeName(cxxRecordDeclName);
-                ParameterDesc<(string Name, PInvokeGenerator This)> parameterDesc = new()
-                {
-                    Name = "pThis",
-                    Type = $"{cxxRecordEscapedName}*",
-                    WriteCustomAttrs = static x => { },
-                    CustomAttrGeneratorData = default
-                };
-
-                _outputBuilder.BeginParameter(in parameterDesc);
-                _outputBuilder.EndParameter();
-
-                if (needsReturnFixup)
-                {
-                    _outputBuilder.WriteParameterSeparator();
-                    parameterDesc = new()
-                    {
-                        Name = "_result",
-                        Type = $"{returnTypeName}*",
-                        WriteCustomAttrs = static x => { },
-                        CustomAttrGeneratorData = default
-                    };
-                    _outputBuilder.BeginParameter(in parameterDesc);
-                    _outputBuilder.EndParameter();
-                }
-
-                if (functionDecl.Parameters.Any())
-                {
-                    _outputBuilder.WriteParameterSeparator();
-                }
-            }
-
-            Visit(functionDecl.Parameters);
-
-            _outputBuilder.EndFunctionInnerPrototype();
-
-            if ((body is null) || isVirtual)
-            {
-                _outputBuilder.EndFunctionOrDelegate(isVirtual, true);
-            }
-            else
-            {
-                var firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
-                var lastCtorInitializer = (functionDecl.Body != null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
-
-                _outputBuilder.BeginBody();
-
-                if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
-                {
-                    VisitCtorInitializers(cxxConstructorDecl, firstCtorInitializer, lastCtorInitializer);
-                }
-
-                if (body is CompoundStmt compoundStmt)
-                {
-                    _outputBuilder.BeginConstructorInitializers();
-                    VisitStmts(compoundStmt.Body);
-                    _outputBuilder.EndConstructorInitializers();
-                }
-                else
-                {
-                    _outputBuilder.BeginInnerFunctionBody();
-                    Visit(body);
-                    _outputBuilder.EndInnerFunctionBody();
-                }
-
-                _outputBuilder.EndBody();
-                _outputBuilder.EndFunctionOrDelegate(isVirtual, false);
-            }
-
-            Visit(functionDecl.Decls, excludedCursors: functionDecl.Parameters);
-
-            if (cxxRecordDecl is null)
-            {
-                StopUsingOutputBuilder();
-            }
-
-            void VisitCtorInitializers(CXXConstructorDecl cxxConstructorDecl, int firstCtorInitializer,
-                int lastCtorInitializer)
-            {
-                for (var i = firstCtorInitializer; i < lastCtorInitializer; i++)
-                {
-                    if (cxxConstructorDecl.CursorChildren[i] is Attr)
-                    {
-                        continue;
-                    }
-
-                    var memberRef = (Ref)cxxConstructorDecl.CursorChildren[i];
-                    var memberInit = (Stmt)cxxConstructorDecl.CursorChildren[++i];
-
-                    if (memberInit is ImplicitValueInitExpr)
-                    {
-                        continue;
-                    }
-
-                    var memberRefName = GetRemappedCursorName(memberRef.Referenced);
-                    var memberInitName = memberInit.Spelling;
-
-                    if (memberInit is CastExpr {SubExprAsWritten: DeclRefExpr declRefExpr})
-                    {
-                        memberInitName = GetRemappedCursorName(declRefExpr.Decl);
-                    }
-
-                    _outputBuilder.BeginConstructorInitializer(memberRefName, memberInitName);
-
-                    var memberRefTypeName = GetRemappedTypeName(memberRef, context: null, memberRef.Type,
-                        out var memberRefNativeTypeName);
-
-                    UncheckStmt(memberRefTypeName, memberInit);
-
-                    _outputBuilder.EndConstructorInitializer();
-                }
-            }
-        }
-
-        private void VisitFunctionTemplateDecl(FunctionTemplateDecl functionTemplateDecl) => AddDiagnostic(DiagnosticLevel.Warning, $"Function templates are not supported: '{GetCursorQualifiedName(functionTemplateDecl)}'. Generated bindings may be incomplete.", functionTemplateDecl);
 
         private void VisitLinkageSpecDecl(LinkageSpecDecl linkageSpecDecl)
         {
@@ -1854,7 +1857,7 @@ namespace ClangSharp
                     default:
                     {
                         AddDiagnostic(DiagnosticLevel.Warning,
-                            $"Unsupported bitfield type: '{canonicalTypeBacking.TypeClass}'. Generated bindings may be incomplete.",
+                            $"Unsupported bitfield type: '{canonicalTypeBacking.TypeClassSpelling}'. Generated bindings may be incomplete.",
                             fieldDecl);
                         break;
                     }
@@ -1923,7 +1926,7 @@ namespace ClangSharp
                     default:
                     {
                         AddDiagnostic(DiagnosticLevel.Warning,
-                            $"Unsupported bitfield type: '{canonicalType.TypeClass}'. Generated bindings may be incomplete.",
+                            $"Unsupported bitfield type: '{canonicalType.TypeClassSpelling}'. Generated bindings may be incomplete.",
                             fieldDecl);
                         break;
                     }
@@ -2439,10 +2442,9 @@ namespace ClangSharp
                 {
                     ForPointeeType(typedefDecl, typedefType, typedefType.Decl.UnderlyingType);
                 }
-                else if (pointeeType is not ConstantArrayType and not BuiltinType and
-                         not TagType)
+                else if (pointeeType is not ConstantArrayType and not BuiltinType and not TagType and not TemplateTypeParmType)
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.TypeClass}'. Generating bindings may be incomplete.", typedefDecl);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.TypeClassSpelling}'. Generating bindings may be incomplete.", typedefDecl);
                 }
             }
 
@@ -2459,6 +2461,10 @@ namespace ClangSharp
                 else if (underlyingType is BuiltinType builtinType)
                 {
                     // Nothing to do for builtin types
+                }
+                else if (underlyingType is DependentNameType dependentNameType)
+                {
+                    // Nothing to do for dependent name types
                 }
                 else if (underlyingType is ElaboratedType elaboratedType)
                 {
@@ -2499,7 +2505,18 @@ namespace ClangSharp
                 }
                 else if (underlyingType is TemplateSpecializationType templateSpecializationType)
                 {
-                    // Nothing to do for built-in types
+                    if (templateSpecializationType.IsTypeAlias)
+                    {
+                        ForUnderlyingType(typedefDecl, templateSpecializationType.AliasedType);
+                    }
+                    else
+                    {
+                        // Nothing to do for non-aliased template specialization types
+                    }
+                }
+                else if (underlyingType is TemplateTypeParmType templateTypeParmType)
+                {
+                    // Nothing to do for template type parameter types
                 }
                 else if (underlyingType is TypedefType typedefType)
                 {
@@ -2507,7 +2524,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.TypeClass}'. Generating bindings may be incomplete.", typedefDecl);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.TypeClassSpelling}'. Generating bindings may be incomplete.", typedefDecl);
                 }
 
                 return;
@@ -2866,7 +2883,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXFoldExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr:
 
@@ -3030,7 +3052,21 @@ namespace ClangSharp
                     return IsConstant(parenExpr.SubExpr);
                 }
 
-                // case CX_StmtClass.CX_StmtClass_ParenListExpr:
+                case CX_StmtClass.CX_StmtClass_ParenListExpr:
+                {
+                    var parenListExpr = (ParenListExpr)initExpr;
+
+                    foreach (var expr in parenListExpr.Exprs)
+                    {
+                        if (IsConstant(expr))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_PredefinedExpr:
                 // case CX_StmtClass.CX_StmtClass_PseudoObjectExpr:
                 // case CX_StmtClass.CX_StmtClass_RequiresExpr:
@@ -3091,9 +3127,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Warning,
-                        $"Unsupported statement class: '{initExpr.StmtClassName}'. Generated bindings may not be constant.",
-                        initExpr);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported statement class: '{initExpr.StmtClassName}'. Generated bindings may not be constant.", initExpr);
                     return false;
                 }
             }

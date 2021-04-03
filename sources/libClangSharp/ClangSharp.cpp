@@ -5405,20 +5405,20 @@ CX_TemplateName clangsharp_Type_getTemplateName(CXType CT) {
 
     if (const DeducedTemplateSpecializationType* DTST = dyn_cast<DeducedTemplateSpecializationType>(TP)) {
         TemplateName TN = DTST->getTemplateName();
-        return { static_cast<CX_TemplateNameKind>(TN.getKind() + 1), TN.getAsVoidPointer() };
+        return MakeCXTemplateName(TN, GetTypeTU(CT));
     }
 
     if (const InjectedClassNameType* ICNT = dyn_cast<InjectedClassNameType>(TP)) {
         TemplateName TN = ICNT->getTemplateName();
-        return { static_cast<CX_TemplateNameKind>(TN.getKind() + 1), TN.getAsVoidPointer() };
+        return MakeCXTemplateName(TN, GetTypeTU(CT));
     }
 
     if (const TemplateSpecializationType* TST = dyn_cast<TemplateSpecializationType>(TP)) {
         TemplateName TN = TST->getTemplateName();
-        return { static_cast<CX_TemplateNameKind>(TN.getKind() + 1), TN.getAsVoidPointer() };
+        return MakeCXTemplateName(TN, GetTypeTU(CT));
     }
 
-    return { };
+    return MakeCXTemplateName(TemplateName::getFromVoidPointer(nullptr), GetTypeTU(CT));
 }
 
 CX_TypeClass clangsharp_Type_getTypeClass(CXType CT) {

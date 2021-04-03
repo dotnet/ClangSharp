@@ -855,7 +855,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.Kind}'.", namedDecl);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported anonymous named declaration: '{namedDecl.DeclKindName}'.", namedDecl);
                 }
             }
 
@@ -1298,7 +1298,6 @@ namespace ClangSharp
             var name = type.AsString.Replace('\\', '/');
             nativeTypeName = name;
 
-
             if (type is ArrayType arrayType)
             {
                 name = GetTypeName(cursor, context, arrayType.ElementType, out _);
@@ -1447,6 +1446,17 @@ namespace ClangSharp
             {
                 name = GetTypeName(cursor, context, deducedType.CanonicalType, out _);
             }
+            else if (type is DependentNameType dependentNameType)
+            {
+                if (dependentNameType.IsSugared)
+                {
+                    name = GetTypeName(cursor, context, dependentNameType.Desugar, out _);
+                }
+                else
+                {
+                    // The default name should be correct
+                }
+            }
             else if (type is ElaboratedType elaboratedType)
             {
                 name = GetTypeName(cursor, context, elaboratedType.NamedType, out _);
@@ -1454,6 +1464,14 @@ namespace ClangSharp
             else if (type is FunctionType functionType)
             {
                 name = GetTypeNameForPointeeType(cursor, context, functionType, out _);
+            }
+            else if (type is InjectedClassNameType injectedClassNameType)
+            {
+                name = GetTypeName(cursor, context, injectedClassNameType.InjectedTST, out _);
+            }
+            else if (type is PackExpansionType packExpansionType)
+            {
+                name = GetTypeName(cursor, context, packExpansionType.Pattern, out _);
             }
             else if (type is PointerType pointerType)
             {
@@ -1467,14 +1485,36 @@ namespace ClangSharp
             {
                 name = GetTypeName(cursor, context, substTemplateTypeParmType.ReplacementType, out _);
             }
+            else if (type is TagType tagType)
+            {
+                if (tagType.Decl.Handle.IsAnonymous)
+                {
+                    name = GetAnonymousName(tagType.Decl, tagType.KindSpelling);
+                }
+                else if (tagType.Handle.IsConstQualified)
+                {
+                    name = GetTypeName(cursor, context, tagType.Decl.TypeForDecl, out _);
+                }
+                else
+                {
+                    // The default name should be correct
+                }
+
+                if (name.Contains("::"))
+                {
+                    name = name.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                    name = GetRemappedName(name, cursor, tryRemapOperatorName: false, out _);
+                }
+            }
             else if (type is TemplateSpecializationType templateSpecializationType)
             {
                 var nameBuilder = new StringBuilder();
 
-                var templateTypeDecl = ((RecordType)templateSpecializationType.CanonicalType).Decl;
+                var templateTypeDecl = templateSpecializationType.CanonicalType is RecordType recordType
+                                     ? recordType.Decl
+                                     : (NamedDecl)templateSpecializationType.TemplateName.AsTemplateDecl;
 
                 _ = nameBuilder.Append(GetRemappedName(templateTypeDecl.Name, templateTypeDecl, tryRemapOperatorName: false, out _));
-
                 _ = nameBuilder.Append('<');
 
                 var shouldWritePrecedingComma = false;
@@ -1539,31 +1579,16 @@ namespace ClangSharp
 
                 name = nameBuilder.ToString();
             }
-            else if (type is TagType tagType)
+            else if (type is TemplateTypeParmType templateTypeParmType)
             {
-                if (tagType.Decl.Handle.IsAnonymous)
+                if (templateTypeParmType.IsSugared)
                 {
-                    name = GetAnonymousName(tagType.Decl, tagType.KindSpelling);
-                }
-                else if (tagType.Handle.IsConstQualified)
-                {
-                    name = GetTypeName(cursor, context, tagType.Decl.TypeForDecl, out _);
+                    name = GetTypeName(cursor, context, templateTypeParmType.Desugar, out _);
                 }
                 else
                 {
                     // The default name should be correct
                 }
-
-                if (name.Contains("::"))
-                {
-                    name = name.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
-
-                    name = GetRemappedName(name, cursor, tryRemapOperatorName: false, out _);
-                }
-            }
-            else if (type is TemplateTypeParmType)
-            {
-                // The default name should be correct
             }
             else if (type is TypedefType typedefType)
             {
@@ -1712,7 +1737,6 @@ namespace ClangSharp
         {
             size32 = 0;
             size64 = 0;
-
 
             if (type is ArrayType arrayType)
             {
@@ -1868,6 +1892,13 @@ namespace ClangSharp
                 size32 = 4;
                 size64 = 8;
 
+                if (alignment64 == -1)
+                {
+                    alignment64 = 8;
+                }
+            }
+            else if (type is InjectedClassNameType)
+            {
                 if (alignment64 == -1)
                 {
                     alignment64 = 8;
@@ -2085,9 +2116,32 @@ namespace ClangSharp
                 {
                     GetTypeSize(cursor, templateSpecializationType.Desugar, ref alignment32, ref alignment64, out size32, out size64);
                 }
+                else if (templateSpecializationType.TemplateName.AsTemplateDecl is TemplateDecl templateDecl)
+                {
+                    if (templateDecl.TemplatedDecl is TypeDecl typeDecl)
+                    {
+                        GetTypeSize(cursor, typeDecl.TypeForDecl, ref alignment32, ref alignment64, out size32, out size64);
+                    }
+                    else
+                    {
+                        AddDiagnostic(DiagnosticLevel.Error, $"Unsupported template specialization declaration kind: '{templateDecl.TemplatedDecl.DeclKindName}'.", cursor);
+                    }
+                }
                 else
                 {
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported template specialization type: '{templateSpecializationType}'.", cursor);
+                }
+            }
+            else if (type is TemplateTypeParmType)
+            {
+                if (alignment32 == -1)
+                {
+                    alignment32 = 4;
+                }
+
+                if (alignment64 == -1)
+                {
+                    alignment64 = 8;
                 }
             }
             else
@@ -2756,7 +2810,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXFoldExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr:
 
@@ -2932,7 +2991,21 @@ namespace ClangSharp
                         || IsUnchecked(targetTypeName, parenExpr.Handle.Evaluate);
                 }
 
-                // case CX_StmtClass.CX_StmtClass_ParenListExpr:
+                case CX_StmtClass.CX_StmtClass_ParenListExpr:
+                {
+                    var parenListExpr = (ParenListExpr)stmt;
+
+                    foreach (var expr in parenListExpr.Exprs)
+                    {
+                        if (IsUnchecked(targetTypeName, expr) || IsUnchecked(targetTypeName, expr.Handle.Evaluate))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_PredefinedExpr:
                 // case CX_StmtClass.CX_StmtClass_PseudoObjectExpr:
                 // case CX_StmtClass.CX_StmtClass_RequiresExpr:
@@ -3095,8 +3168,7 @@ namespace ClangSharp
                 case "UInt32":
                 case "nuint":
                 {
-                    var unsignedValue = unchecked((ulong)signedValue);
-                    return unsignedValue is < uint.MinValue or > uint.MaxValue;
+                    return false;
                 }
 
                 case "ulong":

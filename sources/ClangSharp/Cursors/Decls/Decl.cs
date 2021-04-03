@@ -13,9 +13,7 @@ namespace ClangSharp
         private readonly Lazy<Stmt> _body;
         private readonly Lazy<Decl> _canonicalDecl;
         private readonly Lazy<IReadOnlyList<Decl>> _decls;
-        private readonly Lazy<IDeclContext> _declContext;
         private readonly Lazy<TemplateDecl> _describedTemplate;
-        private readonly Lazy<IDeclContext> _lexicalDeclContext;
         private readonly Lazy<Decl> _mostRecentDecl;
         private readonly Lazy<Decl> _nextDeclInContext;
         private readonly Lazy<Decl> _nonClosureContext;
@@ -61,10 +59,8 @@ namespace ClangSharp
 
                 return decls;
             });
-
-            _declContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.SemanticParent) as IDeclContext);
+;
             _describedTemplate = new Lazy<TemplateDecl>(() => TranslationUnit.GetOrCreate<TemplateDecl>(Handle.DescribedTemplate));
-            _lexicalDeclContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.LexicalParent) as IDeclContext);
             _mostRecentDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.MostRecentDecl));
             _nextDeclInContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NextDeclInContext));
             _nonClosureContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NonClosureContext));
@@ -86,7 +82,7 @@ namespace ClangSharp
 
         public Decl CanonicalDecl => _canonicalDecl.Value;
 
-        public IDeclContext DeclContext => _declContext.Value;
+        public IDeclContext DeclContext => SemanticParentCursor as IDeclContext;
 
         public string DeclKindName => Handle.DeclKindSpelling;
 
@@ -125,7 +121,7 @@ namespace ClangSharp
 
         public CX_DeclKind Kind => Handle.DeclKind;
 
-        public IDeclContext LexicalDeclContext => _lexicalDeclContext.Value;
+        public IDeclContext LexicalDeclContext => LexicalParentCursor as IDeclContext;
 
         public IDeclContext LexicalParent => (this is IDeclContext) ? LexicalDeclContext : null;
 

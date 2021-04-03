@@ -69,6 +69,12 @@ namespace ClangSharp
             if (calleeDecl is null)
             {
                 Visit(callExpr.Callee);
+                VisitArgs(callExpr);
+            }
+            else if (calleeDecl is FieldDecl)
+            {
+                Visit(callExpr.Callee);
+                VisitArgs(callExpr);
             }
             else if (calleeDecl is FunctionDecl functionDecl)
             {
@@ -98,14 +104,14 @@ namespace ClangSharp
                     }
                 }
             }
-            else if (calleeDecl is FieldDecl)
+            else if (calleeDecl is ParmVarDecl)
             {
                 Visit(callExpr.Callee);
                 VisitArgs(callExpr);
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.Kind}'. Generated bindings may be incomplete.", calleeDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.DeclKindName}'. Generated bindings may be incomplete.", calleeDecl);
             }
 
             void VisitArgs(CallExpr callExpr)
@@ -123,7 +129,7 @@ namespace ClangSharp
                     }
 
                     var arg = args[i];
-                    Visit(args);
+                    Visit(arg);
 
                     if (arg is not CXXDefaultArgExpr)
                     {
@@ -325,6 +331,33 @@ namespace ClangSharp
             // aren't properly defined
         }
 
+        private void VisitCXXDependentScopeMemberExpr(CXXDependentScopeMemberExpr cxxDependentScopeMemberExpr)
+        {
+            var outputBuilder = StartCSharpCode();
+            if (!cxxDependentScopeMemberExpr.IsImplicitAccess)
+            {
+                Visit(cxxDependentScopeMemberExpr.Base);
+
+                var type = cxxDependentScopeMemberExpr.Base is CXXThisExpr
+                         ? null
+                         : cxxDependentScopeMemberExpr.Base is DeclRefExpr declRefExpr
+                             ? declRefExpr.Decl.Type.CanonicalType
+                             : cxxDependentScopeMemberExpr.Base.Type.CanonicalType;
+
+                if (type is not null and (PointerType or ReferenceType))
+                {
+                    outputBuilder.Write("->");
+                }
+                else
+                {
+                    outputBuilder.Write('.');
+                }
+            }
+
+            outputBuilder.Write(GetRemappedName(cxxDependentScopeMemberExpr.MemberName, cxxDependentScopeMemberExpr, tryRemapOperatorName: false, out _));
+            StopCSharpCode();
+        }
+
         private void VisitCXXFunctionalCastExpr(CXXFunctionalCastExpr cxxFunctionalCastExpr)
         {
             if (cxxFunctionalCastExpr.SubExpr is CXXConstructExpr cxxConstructExpr)
@@ -440,10 +473,15 @@ namespace ClangSharp
             }
             else
             {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.Kind}'. Generated bindings may be incomplete.", calleeDecl);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.DeclKindName}'. Generated bindings may be incomplete.", calleeDecl);
             }
 
             StopCSharpCode();
+        }
+
+        private static void VisitCXXPseudoDestructorExpr(CXXPseudoDestructorExpr cxxPseudoDestructorExpr)
+        {
+            // Nothing to generate for pseudo destructors
         }
 
         private void VisitCXXTemporaryObjectExpr(CXXTemporaryObjectExpr cxxTemporaryObjectExpr) => VisitCXXConstructExpr(cxxTemporaryObjectExpr);
@@ -451,6 +489,32 @@ namespace ClangSharp
         private void VisitCXXThisExpr(CXXThisExpr cxxThisExpr)
         {
             StartCSharpCode().Write("this");
+            StopCSharpCode();
+        }
+
+        private void VisitCXXUnresolvedConstructExpr(CXXUnresolvedConstructExpr cxxUnresolvedConstructExpr)
+        {
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write("new ");
+
+            var constructorName = GetRemappedTypeName(cxxUnresolvedConstructExpr, null, cxxUnresolvedConstructExpr.TypeAsWritten, out _);
+            outputBuilder.Write(constructorName);
+
+            outputBuilder.Write('(');
+            var args = cxxUnresolvedConstructExpr.Args;
+
+            if (args.Count != 0)
+            {
+                Visit(args[0]);
+
+                for (var i = 1; i < args.Count; i++)
+                {
+                    outputBuilder.Write(", ");
+                    Visit(args[i]);
+                }
+            }
+
+            outputBuilder.Write(')');
             StopCSharpCode();
         }
 
@@ -528,6 +592,16 @@ namespace ClangSharp
             {
                 VisitBody(defaultStmt.SubStmt);
             }
+
+            StopCSharpCode();
+        }
+
+        private void VisitDependentScopeDeclRefExpr(DependentScopeDeclRefExpr dependentScopeDeclRefExpr)
+        {
+            var outputBuilder = StartCSharpCode();
+
+            var name = GetRemappedName(dependentScopeDeclRefExpr.DeclName, dependentScopeDeclRefExpr, tryRemapOperatorName: true, out _);
+            outputBuilder.Write(EscapeName(name));
 
             StopCSharpCode();
         }
@@ -1091,11 +1165,35 @@ namespace ClangSharp
             // null statements are empty by definition, so nothing to do
         }
 
+        private void VisitPackExpansionExpr(PackExpansionExpr packExpansionExpr) => Visit(packExpansionExpr.Pattern);
+
         private void VisitParenExpr(ParenExpr parenExpr)
         {
             var outputBuilder = StartCSharpCode();
             outputBuilder.Write('(');
             Visit(parenExpr.SubExpr);
+            outputBuilder.Write(')');
+            StopCSharpCode();
+        }
+
+        private void VisitParenListExpr(ParenListExpr parenListExpr)
+        {
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write('(');
+
+            var needsComma = false;
+
+            foreach (var expr in parenListExpr.Exprs)
+            {
+                if (needsComma)
+                {
+                    outputBuilder.Write(", ");
+                }
+
+                Visit(expr);
+                needsComma = true;
+            }
+
             outputBuilder.Write(')');
             StopCSharpCode();
         }
@@ -1340,7 +1438,13 @@ namespace ClangSharp
 
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
+                {
+                    VisitCXXDependentScopeMemberExpr((CXXDependentScopeMemberExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXFoldExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr:
 
@@ -1358,7 +1462,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXPseudoDestructorExpr:
+                case CX_StmtClass.CX_StmtClass_CXXPseudoDestructorExpr:
+                {
+                    VisitCXXPseudoDestructorExpr((CXXPseudoDestructorExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXScalarValueInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr:
 
@@ -1370,7 +1479,12 @@ namespace ClangSharp
 
                 // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:
+                {
+                    VisitCXXUnresolvedConstructExpr((CXXUnresolvedConstructExpr)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
                 {
@@ -1444,7 +1558,13 @@ namespace ClangSharp
                 }
 
                 // case CX_StmtClass.CX_StmtClass_DependentCoawaitExpr:
-                // case CX_StmtClass.CX_StmtClass_DependentScopeDeclRefExpr:
+
+                case CX_StmtClass.CX_StmtClass_DependentScopeDeclRefExpr:
+                {
+                    VisitDependentScopeDeclRefExpr((DependentScopeDeclRefExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_DesignatedInitExpr:
                 // case CX_StmtClass.CX_StmtClass_DesignatedInitUpdateExpr:
                 // case CX_StmtClass.CX_StmtClass_ExpressionTraitExpr:
@@ -1523,9 +1643,24 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_ObjCSubscriptRefExpr:
                 // case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
                 // case CX_StmtClass.CX_StmtClass_OpaqueValueExpr:
-                // case CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr:
-                // case CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr:
-                // case CX_StmtClass.CX_StmtClass_PackExpansionExpr:
+
+                case CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr:
+                {
+                    VisitUnresolvedLookupExpr((UnresolvedLookupExpr)stmt);
+                    break;
+                }
+
+                case CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr:
+                {
+                    VisitUnresolvedMemberExpr((UnresolvedMemberExpr)stmt);
+                    break;
+                }
+
+                case CX_StmtClass.CX_StmtClass_PackExpansionExpr:
+                {
+                    VisitPackExpansionExpr((PackExpansionExpr)stmt);
+                    break;
+                }
 
                 case CX_StmtClass.CX_StmtClass_ParenExpr:
                 {
@@ -1533,7 +1668,12 @@ namespace ClangSharp
                     break;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_ParenListExpr:
+                case CX_StmtClass.CX_StmtClass_ParenListExpr:
+                {
+                    VisitParenListExpr((ParenListExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_PredefinedExpr:
                 // case CX_StmtClass.CX_StmtClass_PseudoObjectExpr:
                 // case CX_StmtClass.CX_StmtClass_ShuffleVectorExpr:
@@ -1592,7 +1732,7 @@ namespace ClangSharp
                         context = $" in {GetCursorQualifiedName(namedDecl)}";
                     }
 
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.StmtClass}'{context}. Generated bindings may be incomplete.", stmt);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported statement: '{stmt.StmtClassName}'{context}. Generated bindings may be incomplete.", stmt);
                     break;
                 }
             }
@@ -1763,13 +1903,17 @@ namespace ClangSharp
 
                             var calleeDecl = callExpr.CalleeDecl;
 
-                            if (calleeDecl is FunctionDecl functionDecl)
+                            if (calleeDecl is null)
+                            {
+                                parentType = callExpr.Callee.Type.CanonicalType;
+                            }
+                            else if (calleeDecl is FunctionDecl functionDecl)
                             {
                                 parentType = functionDecl.Parameters[index].Type.CanonicalType;
                             }
                             else
                             {
-                                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.Kind}'. Generated bindings may be incomplete.", calleeDecl);
+                                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.DeclKindName}'. Generated bindings may be incomplete.", calleeDecl);
                             }
 
                         }
@@ -1830,7 +1974,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary or type trait expression: '{unaryExprOrTypeTraitExpr.Kind}'. Generated bindings may be incomplete.", unaryExprOrTypeTraitExpr);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported unary or type trait expression: '{unaryExprOrTypeTraitExpr.StmtClassName}'. Generated bindings may be incomplete.", unaryExprOrTypeTraitExpr);
                     break;
                 }
             }
@@ -1907,6 +2051,38 @@ namespace ClangSharp
                 }
             }
 
+            StopCSharpCode();
+        }
+
+        private void VisitUnresolvedLookupExpr(UnresolvedLookupExpr unresolvedLookupExpr)
+        {
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write(GetRemappedName(unresolvedLookupExpr.Name, unresolvedLookupExpr, tryRemapOperatorName: false, out _));
+            StopCSharpCode();
+        }
+
+        private void VisitUnresolvedMemberExpr(UnresolvedMemberExpr unresolvedMemberExpr)
+        {
+            var outputBuilder = StartCSharpCode();
+            if (!unresolvedMemberExpr.IsImplicitAccess)
+            {
+                Visit(unresolvedMemberExpr.Base);
+
+                var type = unresolvedMemberExpr.Base is CXXThisExpr
+                         ? null
+                         : unresolvedMemberExpr.Base is DeclRefExpr declRefExpr ? declRefExpr.Decl.Type.CanonicalType : unresolvedMemberExpr.Base.Type.CanonicalType;
+
+                if (type is not null and (PointerType or ReferenceType))
+                {
+                    outputBuilder.Write("->");
+                }
+                else
+                {
+                    outputBuilder.Write('.');
+                }
+            }
+
+            outputBuilder.Write(GetRemappedName(unresolvedMemberExpr.MemberName, unresolvedMemberExpr, tryRemapOperatorName: true, out _));
             StopCSharpCode();
         }
 

@@ -31,7 +31,7 @@ namespace ClangSharp
 
                 return associatedConstraints;
             });
-            _templatedDecl = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.TemplatedDecl));
+            _templatedDecl = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.TemplatedDecl));
             _templateParameters = new Lazy<IReadOnlyList<NamedDecl>>(() => {
                 var parameterCount = Handle.GetNumTemplateParameters(0);
                 var parameters = new List<NamedDecl>(parameterCount);

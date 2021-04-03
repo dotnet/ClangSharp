@@ -125,7 +125,15 @@ namespace ClangSharp.Interop
 
         public CXString Spelling => clang.getTypeSpelling(this);
 
-        public CX_TemplateName TemplateName => clangsharp.Type_getTemplateName(this);
+        public CX_TemplateName TemplateName
+        {
+            get
+            {
+                var TN = clangsharp.Type_getTemplateName(this);
+                TN.tu = (CXTranslationUnitImpl*)data[1];
+                return TN;
+            }
+        }
 
         public CX_TypeClass TypeClass => clangsharp.Type_getTypeClass(this);
 
