@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Xml.Linq;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 using ClangSharp.Interop;
@@ -1086,41 +1085,41 @@ namespace ClangSharp
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
             var name = GetCursorQualifiedName(namedDecl);
-            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped);
 
-            if (remappedName != name)
+            if (wasRemapped)
             {
                 return remappedName;
             }
 
             name = name.Replace("::", ".");
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
-            if (remappedName != name)
+            if (wasRemapped)
             {
                 return remappedName;
             }
 
             name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
-            if (remappedName != name)
+            if (wasRemapped)
             {
                 return remappedName;
             }
 
             name = name.Replace("::", ".");
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
-            if (remappedName != name)
+            if (wasRemapped)
             {
                 return remappedName;
             }
 
             name = GetCursorName(namedDecl);
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
-            if (remappedName != name)
+            if (wasRemapped)
             {
                 return remappedName;
             }
@@ -1161,15 +1160,17 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName)
+        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped)
         {
             if (_config.RemappedNames.TryGetValue(name, out string remappedName))
             {
+                wasRemapped = true;
                 return AddUsingDirectiveIfNeeded(remappedName);
             }
 
             if (name.StartsWith("const ") && _config.RemappedNames.TryGetValue(name.Substring(6), out remappedName))
             {
+                wasRemapped = true;
                 return AddUsingDirectiveIfNeeded(remappedName);
             }
 
@@ -1177,9 +1178,11 @@ namespace ClangSharp
 
             if ((cursor is FunctionDecl functionDecl) && tryRemapOperatorName && TryRemapOperatorName(ref remappedName, functionDecl))
             {
+                wasRemapped = true;
                 return AddUsingDirectiveIfNeeded(remappedName);
             }
 
+            wasRemapped = false;
             return AddUsingDirectiveIfNeeded(remappedName);
 
             string AddUsingDirectiveIfNeeded(string remappedName)
@@ -1196,7 +1199,7 @@ namespace ClangSharp
         private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
             var name = GetTypeName(cursor, context, type, out nativeTypeName);
-            name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
+            name = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
 
             var canonicalType = type.CanonicalType;
 
@@ -1312,7 +1315,7 @@ namespace ClangSharp
 
                 if ((cursor is FunctionDecl) || (cursor is ParmVarDecl))
                 {
-                    name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
+                    name = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
                     name += '*';
                 }
             }
@@ -1479,7 +1482,7 @@ namespace ClangSharp
                 var nameBuilder = new StringBuilder();
 
                 var templateTypeDecl = ((RecordType)templateSpecializationType.CanonicalType).Decl;
-                nameBuilder.Append(GetRemappedName(templateTypeDecl.Name, templateTypeDecl, tryRemapOperatorName: false));
+                nameBuilder.Append(GetRemappedName(templateTypeDecl.Name, templateTypeDecl, tryRemapOperatorName: false, out var wasRemapped));
 
                 nameBuilder.Append('<');
 
@@ -1563,7 +1566,7 @@ namespace ClangSharp
                 if (name.Contains("::"))
                 {
                     name = name.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
-                    name = GetRemappedName(name, cursor, tryRemapOperatorName: false);
+                    name = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
                 }
             }
             else if (type is TemplateTypeParmType templateTypeParmType)
@@ -1576,7 +1579,7 @@ namespace ClangSharp
                 // can be treated correctly. Otherwise, they will resolve to a particular
                 // platform size, based on whatever parameters were passed into clang.
 
-                var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
+                var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
 
                 if (remappedName.Equals(name))
                 {
@@ -1615,7 +1618,7 @@ namespace ClangSharp
             {
                 if (!_config.ExcludeFnptrCodegen && (functionType is FunctionProtoType functionProtoType))
                 {
-                    var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false);
+                    var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
                     var callConv = GetCallingConvention(cursor, functionType.CallConv, remappedName);
 
                     var needsReturnFixup = false;

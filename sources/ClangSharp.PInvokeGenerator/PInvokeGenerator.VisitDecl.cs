@@ -1061,7 +1061,7 @@ namespace ClangSharp
                 if (TryGetUuid(recordDecl, out Guid uuid))
                 {
                     nullableUuid = uuid;
-                    var iidName = GetRemappedName($"IID_{nativeName}", recordDecl, tryRemapOperatorName: false);
+                    var iidName = GetRemappedName($"IID_{nativeName}", recordDecl, tryRemapOperatorName: false, out var wasRemapped);
 
                     _uuidsToGenerate.Add(iidName, uuid);
 
@@ -1186,7 +1186,7 @@ namespace ClangSharp
                         {
                             var parent = GetRemappedCursorName(baseCxxRecordDecl);
                             var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
-                            baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true);
+                            baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped);
 
                             var fieldDesc = new FieldDesc
                             {
@@ -2568,7 +2568,7 @@ namespace ClangSharp
                 }
 
                 var accessSpecifier = GetAccessSpecifier(varDecl);
-                var name = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false);
+                var name = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false, out var wasRemapped);
                 var escapedName = EscapeName(name);
 
                 if (isMacroDefinitionRecord)
