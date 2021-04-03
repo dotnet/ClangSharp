@@ -67,6 +67,7 @@ namespace ClangSharp
             ("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
             ("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
             ("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
+            ("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),
             ("generate-vtbl-index-attribute", "[VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method."),
 
             ("", ""),   // Logging Options
@@ -359,6 +360,12 @@ namespace ClangSharp
                     case "generate-native-inheritance-attribute":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute;
+                        break;
+                    }
+
+                    case "generate-template-bindings":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateTemplateBindings;
                         break;
                     }
 
