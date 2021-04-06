@@ -276,7 +276,8 @@ namespace ClangSharp
                 TypeName = typeName,
                 EscapedName = escapedName,
                 NativeTypeName = null,
-                Kind = isAnonymousEnum ? ConstantKind.PrimitiveConstant : ConstantKind.Enumerator
+                Kind = isAnonymousEnum ? ConstantKind.PrimitiveConstant : ConstantKind.Enumerator,
+                Location = enumConstantDecl.Location
             };
 
             _outputBuilder.BeginConstant(in desc);
@@ -322,8 +323,19 @@ namespace ClangSharp
             {
                 if (!isAnonymousEnum)
                 {
-                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
-                    _outputBuilder.BeginEnum(accessSpecifier, typeName, escapedName, nativeTypeName);
+                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType,
+                        out var nativeTypeName);
+
+                    EnumDesc desc = new()
+                    {
+                        AccessSpecifier = accessSpecifier,
+                        TypeName = typeName,
+                        EscapedName = escapedName,
+                        NativeType = nativeTypeName,
+                        Location = enumDecl.Location
+                    };
+
+                    _outputBuilder.BeginEnum(in desc);
                 }
 
                 Visit(enumDecl.Enumerators);
@@ -363,7 +375,8 @@ namespace ClangSharp
                 NativeTypeName = nativeTypeName,
                 EscapedName = escapedName,
                 Offset = offset,
-                NeedsNewKeyword = NeedsNewKeyword(name)
+                NeedsNewKeyword = NeedsNewKeyword(name),
+                Location = fieldDecl.Location
             };
 
             _outputBuilder.BeginField(in desc);
@@ -482,7 +495,8 @@ namespace ClangSharp
                     x.This.WithUsings("*");
                     x.This.WithUsings(x.Name);
                 },
-                CustomAttrGeneratorData = (name, this)
+                CustomAttrGeneratorData = (name, this),
+                Location = functionDecl.Location
             };
 
             _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
@@ -700,7 +714,8 @@ namespace ClangSharp
                 NativeTypeName = null,
                 EscapedName = escapedName,
                 Offset = null,
-                NeedsNewKeyword = false
+                NeedsNewKeyword = false,
+                Location = fieldDecl.Location
             };
 
             _outputBuilder.WriteDivider(true);
@@ -937,7 +952,8 @@ namespace ClangSharp
                         ? parmVarDecl.Attrs.Select(x => EscapeString(x.Spelling))
                         : null,
                     CustomAttrGeneratorData = (name, this),
-                    WriteCustomAttrs = static _ => { }
+                    WriteCustomAttrs = static _ => { },
+                    Location = parmVarDecl.Location
                 };
 
                 _outputBuilder.BeginParameter(in desc);
@@ -983,7 +999,8 @@ namespace ClangSharp
                         ? parmVarDecl.Attrs.Select(x => EscapeString(x.Spelling))
                         : null,
                     CustomAttrGeneratorData = (name, this),
-                    WriteCustomAttrs = static _ => { }
+                    WriteCustomAttrs = static _ => { },
+                    Location = parmVarDecl.Location
                 };
 
                 _outputBuilder.BeginParameter(in desc);
@@ -1144,7 +1161,8 @@ namespace ClangSharp
                     CustomAttrGeneratorData = (name, this),
                     WriteCustomAttrs = static _ => { },
                     NativeType = nativeNameWithExtras,
-                    NativeInheritance = _config.GenerateNativeInheritanceAttribute ? nativeInheritance : null
+                    NativeInheritance = _config.GenerateNativeInheritanceAttribute ? nativeInheritance : null,
+                    Location = recordDecl.Location
                 };
                 _outputBuilder.BeginStruct(in desc);
 
@@ -1192,7 +1210,8 @@ namespace ClangSharp
                                 EscapedName = baseFieldName,
                                 Offset = null,
                                 NeedsNewKeyword = false,
-                                InheritedFrom = parent
+                                InheritedFrom = parent,
+                                Location = cxxBaseSpecifier.Location
                             };
 
                             _outputBuilder.BeginField(in fieldDesc);
@@ -1508,7 +1527,8 @@ namespace ClangSharp
                     NativeTypeName = nativeTypeName,
                     EscapedName = escapedName,
                     Offset = null,
-                    NeedsNewKeyword = NeedsNewKeyword(remappedName)
+                    NeedsNewKeyword = NeedsNewKeyword(remappedName),
+                    Location = cxxMethodDecl.Location
                 };
 
                 _outputBuilder.BeginField(in desc);
@@ -1553,6 +1573,7 @@ namespace ClangSharp
                     IsCxxRecordCtxUnsafe = IsUnsafe(cxxRecordDecl),
                     IsUnsafe = true,
                     VtblIndex = _config.GenerateVtblIndexAttribute ? cxxMethodDecl.VtblIndex : -1,
+                    Location = cxxMethodDecl.Location
                 };
 
                 _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
@@ -1774,7 +1795,8 @@ namespace ClangSharp
                             NativeTypeName = null,
                             EscapedName = bitfieldName,
                             Offset = fieldDecl.Parent.IsUnion ? 0 : null,
-                            NeedsNewKeyword = false
+                            NeedsNewKeyword = false,
+                            Location = fieldDecl.Location
                         };
                         _outputBuilder.BeginField(in fieldDesc);
                         _outputBuilder.WriteRegularField(typeNameBacking, bitfieldName);
@@ -1945,7 +1967,8 @@ namespace ClangSharp
                     NativeTypeName = nativeTypeName,
                     EscapedName = escapedName,
                     Offset = null,
-                    NeedsNewKeyword = false
+                    NeedsNewKeyword = false,
+                    Location = fieldDecl.Location
                 };
 
                 _outputBuilder.WriteDivider();
@@ -2164,7 +2187,8 @@ namespace ClangSharp
                     EscapedName = escapedName,
                     IsUnsafe = isUnsafeElementType,
                     Layout = layout,
-                    WriteCustomAttrs = static _ => {}
+                    WriteCustomAttrs = static _ => {},
+                    Location = constantArray.Location
                 };
 
                 _outputBuilder.BeginStruct(in desc);
@@ -2221,7 +2245,8 @@ namespace ClangSharp
                         NativeTypeName = null,
                         EscapedName = fieldName,
                         Offset = null,
-                        NeedsNewKeyword = false
+                        NeedsNewKeyword = false,
+                        Location = constantArray.Location
                     };
 
                     _outputBuilder.BeginField(in fieldDesc);
@@ -2317,7 +2342,8 @@ namespace ClangSharp
                         CustomAttrGeneratorData = (name, this),
                         WriteCustomAttrs = static _ => {},
                         IsStatic = false,
-                        IsMemberFunction = true
+                        IsMemberFunction = true,
+                        Location = constantArray.Location
                     };
 
                     _outputBuilder.BeginFunctionOrDelegate(in function, ref _isMethodClassUnsafe);
@@ -2406,7 +2432,8 @@ namespace ClangSharp
                         IsVirtual = true, // such that it outputs as a delegate
                         IsUnsafe = IsUnsafe(typedefDecl, functionProtoType),
                         NativeTypeName = nativeTypeName,
-                        WriteCustomAttrs = static _ => {}
+                        WriteCustomAttrs = static _ => {},
+                        Location = typedefDecl.Location
                     };
 
                     _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
@@ -2702,7 +2729,8 @@ namespace ClangSharp
                     TypeName = typeName,
                     EscapedName = escapedName,
                     NativeTypeName = nativeTypeName,
-                    Kind = kind
+                    Kind = kind,
+                    Location = varDecl.Location
                 };
 
                 _outputBuilder.BeginConstant(in desc);

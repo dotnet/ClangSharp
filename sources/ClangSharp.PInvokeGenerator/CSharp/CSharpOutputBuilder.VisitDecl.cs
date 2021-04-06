@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using ClangSharp.Abstractions;
+using ClangSharp.Interop;
 
 namespace ClangSharp.CSharp
 {
@@ -28,6 +29,9 @@ namespace ClangSharp.CSharp
             {
                 AddNativeTypeNameAttribute(desc.NativeTypeName);
             }
+
+            if (desc.Location is {} location)
+                WriteSourceLocation(location, false);
 
             WriteIndentation();
 
@@ -66,21 +70,24 @@ namespace ClangSharp.CSharp
 
         public void EndConstant(bool isConstant) => WriteLine(isConstant ? ';' : ',');
 
-        public void BeginEnum(AccessSpecifier accessSpecifier, string typeName, string escapedName, string nativeTypeName)
+        public void BeginEnum(in EnumDesc desc)
         {
-            if (nativeTypeName is not null)
+            if (desc.NativeType is not null)
             {
-                AddNativeTypeNameAttribute(nativeTypeName);
+                AddNativeTypeNameAttribute(desc.NativeType);
             }
 
-            WriteIndented(accessSpecifier.AsString());
-            Write(" enum ");
-            Write(escapedName);
+            if (desc.Location is {} location)
+                WriteSourceLocation(location, false);
 
-            if (!typeName.Equals("int"))
+            WriteIndented(desc.AccessSpecifier.AsString());
+            Write(" enum ");
+            Write(desc.EscapedName);
+
+            if (!desc.TypeName.Equals("int"))
             {
                 Write(" : ");
-                Write(typeName);
+                Write(desc.TypeName);
             }
 
             NeedsNewline = true;
@@ -100,6 +107,9 @@ namespace ClangSharp.CSharp
             {
                 AddNativeTypeNameAttribute(desc.NativeTypeName);
             }
+
+            if (desc.Location is {} location)
+                WriteSourceLocation(location, false);
 
             WriteIndented(desc.AccessSpecifier.AsString());
             Write(' ');
@@ -201,6 +211,9 @@ namespace ClangSharp.CSharp
                 WriteLine(")]");
             }
 
+            if (desc.Location is {} location)
+                WriteSourceLocation(location, false);
+
             if (desc.IsAggressivelyInlined)
             {
                 AddUsingDirective("System.Runtime.CompilerServices");
@@ -268,6 +281,27 @@ namespace ClangSharp.CSharp
             }
         }
 
+        private void WriteSourceLocation(CXSourceLocation location, bool inline)
+        {
+            if (!_writeSourceLocation)
+                return;
+
+            if (!inline)
+                WriteIndentation();
+
+            Write("[SourceLocation(\"");
+            location.GetFileLocation(out var file, out var line, out var column, out _);
+            Write(PInvokeGenerator.EscapeString(file.Name.ToString()));
+            Write("\", ");
+            Write(line);
+            Write(", ");
+            Write(column);
+            Write(")]");
+
+            if (!inline)
+                WriteNewline();
+        }
+
         public void WriteReturnType(string typeString)
         {
             Write(typeString);
@@ -291,6 +325,9 @@ namespace ClangSharp.CSharp
             {
                 AddCppAttributes(info.CppAttributes, prefix: "", postfix: " ");
             }
+
+            if (info.Location is {} location)
+                WriteSourceLocation(location, true);
 
             _customAttrIsForParameter = true;
             info.WriteCustomAttrs(info.CustomAttrGeneratorData);
@@ -426,6 +463,9 @@ namespace ClangSharp.CSharp
             {
                 AddNativeInheritanceAttribute(info.NativeInheritance);
             }
+
+            if (info.Location is {} location)
+                WriteSourceLocation(location, false);
 
             WriteIndented(info.AccessSpecifier.AsString());
             Write(' ');

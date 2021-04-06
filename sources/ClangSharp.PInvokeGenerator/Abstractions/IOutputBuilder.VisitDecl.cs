@@ -21,7 +21,7 @@ namespace ClangSharp.Abstractions
         void EndConstantValue();
         void EndConstant(bool isConstant);
 
-        void BeginEnum(AccessSpecifier accessSpecifier, string typeName, string escapedName, string nativeTypeName);
+        void BeginEnum(in EnumDesc desc);
         void EndEnum();
 
         void BeginField(in FieldDesc desc);

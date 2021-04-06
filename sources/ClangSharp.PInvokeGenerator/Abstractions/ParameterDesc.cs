@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using ClangSharp.Interop;
 
 namespace ClangSharp.Abstractions
 {
@@ -13,5 +14,6 @@ namespace ClangSharp.Abstractions
         public IEnumerable<string> CppAttributes { get; set; }
         public Action<TCustomAttrGeneratorData> WriteCustomAttrs { get; set; }
         public TCustomAttrGeneratorData CustomAttrGeneratorData { get; set; }
+        public CXSourceLocation? Location { get; set; }
     }
 }
