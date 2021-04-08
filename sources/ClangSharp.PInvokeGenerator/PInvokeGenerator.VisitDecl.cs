@@ -2848,7 +2848,8 @@ namespace ClangSharp
 
                 case CX_StmtClass.CX_StmtClass_ConditionalOperator:
                 {
-                    return false;
+                    var conditionalOperator = (ConditionalOperator)initExpr;
+                    return IsConstant(conditionalOperator.Cond) && IsConstant(conditionalOperator.LHS) && IsConstant(conditionalOperator.RHS);
                 }
 
                 // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:

@@ -381,5 +381,32 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
 
             return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
+
+        public override Task ConditionalDefineConstTest()
+        {
+            var inputContents = @"typedef int TESTRESULT;
+#define TESTRESULT_FROM_WIN32(x) ((TESTRESULT)(x) <= 0 ? ((TESTRESULT)(x)) : ((TESTRESULT) (((x) & 0x0000FFFF) | (7 << 16) | 0x80000000)))
+#define ADDRESS_IN_USE TESTRESULT_FROM_WIN32(10048)";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""ADDRESS_IN_USE"" access=""public"">
+        <type primitive=""True"">int</type>
+        <value>
+          <unchecked>
+            <code>((int)(10048) &lt;= 0 ? ((int)(10048)) : ((int)(((10048) &amp; 0x0000FFFF) | (7 &lt;&lt; 16) | 0x80000000)))</code>
+          </unchecked>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+            var diagnostics = new Diagnostic[] { new Diagnostic(DiagnosticLevel.Warning, "Function like macro definition records are not supported: 'TESTRESULT_FROM_WIN32'. Generated bindings may be incomplete.", "Line 2, Column 9 in ClangUnsavedFile.h") };
+
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
+        }
     }
 }

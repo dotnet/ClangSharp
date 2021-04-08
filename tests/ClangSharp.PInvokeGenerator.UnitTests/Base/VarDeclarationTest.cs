@@ -74,5 +74,8 @@ namespace ClangSharp.UnitTests
 
         [Fact]
         public abstract Task MultidimensionlArrayTest();
+
+        [Fact]
+        public abstract Task ConditionalDefineConstTest();
     }
 }
