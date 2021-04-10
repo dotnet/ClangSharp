@@ -300,6 +300,8 @@ namespace ClangSharp.CSharp
 
             if (!inline)
                 WriteNewline();
+            else
+                Write(' ');
         }
 
         public void WriteReturnType(string typeString)

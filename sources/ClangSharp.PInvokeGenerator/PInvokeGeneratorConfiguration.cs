@@ -181,6 +181,8 @@ namespace ClangSharp
 
         public bool GenerateVtblIndexAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
 
+        public bool GenerateSourceLocationAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
+
         public string MethodClassName { get; }
 
         public string MethodPrefixToStrip { get;}

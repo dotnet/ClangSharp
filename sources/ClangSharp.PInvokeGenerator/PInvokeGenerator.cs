@@ -50,7 +50,7 @@ namespace ClangSharp
             }
 
             _index = CXIndex.Create();
-            _outputBuilderFactory = new OutputBuilderFactory(config.OutputMode);
+            _outputBuilderFactory = new OutputBuilderFactory(config);
             _outputStreamFactory = outputStreamFactory ?? ((path) => {
                 var directoryPath = Path.GetDirectoryName(path);
                 _ = Directory.CreateDirectory(directoryPath);

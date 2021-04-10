@@ -58,5 +58,7 @@ namespace ClangSharp
         GeneratePreviewCode = 0x00800000,
 
         GenerateTemplateBindings = 0x01000000,
+
+        GenerateSourceLocationAttribute = 1 << 25,
     }
 }
