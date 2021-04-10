@@ -7,57 +7,57 @@ namespace ClangSharp
     [Flags]
     public enum PInvokeGeneratorConfigurationOptions
     {
-        None = 0x00000000,
+        None = 0,
 
-        GenerateMultipleFiles = 0x00000001,
+        GenerateMultipleFiles = 1 << 0,
 
-        GenerateUnixTypes = 0x00000002,
+        GenerateUnixTypes = 1 << 1,
 
-        NoDefaultRemappings = 0x00000004,
+        NoDefaultRemappings = 1 << 2,
 
-        GenerateCompatibleCode = 0x00000008,
+        GenerateCompatibleCode = 1 << 3,
 
-        ExcludeNIntCodegen = 0x00000010,
+        ExcludeNIntCodegen = 1 << 4,
 
-        ExcludeFnptrCodegen = 0x00000020,
+        ExcludeFnptrCodegen = 1 << 5,
 
-        LogExclusions = 0x00000040,
+        LogExclusions = 1 << 6,
 
-        LogVisitedFiles = 0x00000080,
+        LogVisitedFiles = 1 << 7,
 
-        GenerateExplicitVtbls = 0x00000100,
+        GenerateExplicitVtbls = 1 << 8,
 
-        GenerateTestsNUnit = 0x00000200,
+        GenerateTestsNUnit = 1 << 9,
 
-        GenerateTestsXUnit = 0x00000400,
+        GenerateTestsXUnit = 1 << 10,
 
-        GenerateMacroBindings = 0x00000800,
+        GenerateMacroBindings = 1 << 11,
 
-        ExcludeComProxies = 0x00001000,
+        ExcludeComProxies = 1 << 12,
 
-        ExcludeEmptyRecords = 0x00002000,
+        ExcludeEmptyRecords = 1 << 13,
 
-        ExcludeEnumOperators = 0x00004000,
+        ExcludeEnumOperators = 1 << 14,
 
-        GenerateAggressiveInlining = 0x00008000,
+        GenerateAggressiveInlining = 1 << 15,
 
-        ExcludeFunctionsWithBody = 0x00010000,
+        ExcludeFunctionsWithBody = 1 << 16,
 
-        ExcludeAnonymousFieldHelpers = 0x00020000,
+        ExcludeAnonymousFieldHelpers = 1 << 17,
 
-        LogPotentialTypedefRemappings = 0x00040000,
+        LogPotentialTypedefRemappings = 1 << 18,
 
-        GenerateCppAttributes = 0x00080000,
+        GenerateCppAttributes = 1 << 19,
 
-        GenerateNativeInheritanceAttribute = 0x00100000,
+        GenerateNativeInheritanceAttribute = 1 << 20,
 
-        DontUseUsingStaticsForEnums = 0x00200000,
+        DontUseUsingStaticsForEnums = 1 << 21,
 
-        GenerateVtblIndexAttribute = 0x00400000,
+        GenerateVtblIndexAttribute = 1 << 22,
 
-        GeneratePreviewCode = 0x00800000,
+        GeneratePreviewCode = 1 << 23,
 
-        GenerateTemplateBindings = 0x01000000,
+        GenerateTemplateBindings = 1 << 24,
 
         GenerateSourceLocationAttribute = 1 << 25,
     }
