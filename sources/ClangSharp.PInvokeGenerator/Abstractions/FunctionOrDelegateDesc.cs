@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using ClangSharp.Interop;
 
 namespace ClangSharp.Abstractions
 {
@@ -15,6 +16,7 @@ namespace ClangSharp.Abstractions
         public CallingConvention CallingConvention { get; set; }
         public FunctionOrDelegateFlags Flags { get; set; }
         public long? VtblIndex { get; set; }
+        public CXSourceLocation? Location { get; set; }
 
         public bool IsVirtual
         {

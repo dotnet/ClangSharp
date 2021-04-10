@@ -1555,5 +1555,36 @@ struct MyStruct1B : MyStruct1A
 
             return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
+
+        public override Task SourceLocationAttributeTest()
+        {
+            const string InputContents = @"struct MyStruct
+{
+    int r;
+    int g;
+    int b;
+};
+";
+
+            const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"">
+      <field name=""r"" access=""public"">
+        <type>int</type>
+      </field>
+      <field name=""g"" access=""public"">
+        <type>int</type>
+      </field>
+      <field name=""b"" access=""public"">
+        <type>int</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
+        }
     }
 }

@@ -37,10 +37,10 @@ namespace ClangSharp.XML
         public void EndConstantValue() => _sb.Append("</value>");
         public void EndConstant(bool isConstant) => _sb.Append(isConstant ? "</constant>" : "</enumerator>");
 
-        public void BeginEnum(AccessSpecifier accessSpecifier, string typeName, string escapedName, string nativeTypeName)
+        public void BeginEnum(in EnumDesc desc)
         {
-            _ = _sb.Append($"<enumeration name=\"{escapedName}\" access=\"{accessSpecifier.AsString()}\">");
-            _ = _sb.Append($"<type>{typeName}</type>");
+            _ = _sb.Append($"<enumeration name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
+            _ = _sb.Append($"<type>{desc.TypeName}</type>");
         }
 
         public void EndEnum() => _sb.Append("</enumeration>");

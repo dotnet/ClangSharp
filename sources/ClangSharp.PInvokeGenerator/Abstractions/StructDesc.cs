@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using ClangSharp.Interop;
 
 namespace ClangSharp.Abstractions
 {
@@ -14,6 +15,7 @@ namespace ClangSharp.Abstractions
         public StructLayoutAttribute Layout { get; set; }
         public Guid? Uuid { get; set; }
         public StructFlags Flags { get; set; }
+        public CXSourceLocation? Location { get; set; }
 
         public bool IsUnsafe
         {

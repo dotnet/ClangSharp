@@ -395,5 +395,27 @@ struct MyStruct
             };
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
         }
+
+        public override Task SourceLocationTest()
+        {
+            const string InputContents = @"void MyFunction(float value);";
+
+            const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <function name=""MyFunction"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""Cdecl"" static=""true"">
+        <type>void</type>
+        <param name=""value"">
+          <type>float</type>
+        </param>
+      </function>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
+        }
     }
 }

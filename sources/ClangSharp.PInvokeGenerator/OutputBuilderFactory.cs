@@ -11,11 +11,13 @@ namespace ClangSharp
     internal sealed class OutputBuilderFactory
     {
         private readonly PInvokeGeneratorOutputMode _mode;
+        private readonly bool _writeSourceLocation;
         private readonly Dictionary<string, IOutputBuilder> _outputBuilders;
 
-        public OutputBuilderFactory(PInvokeGeneratorOutputMode mode)
+        public OutputBuilderFactory(PInvokeGeneratorConfiguration mode)
         {
-            _mode = mode;
+            _mode = mode.OutputMode;
+            _writeSourceLocation = mode.GenerateSourceLocationAttribute;
             _outputBuilders = new Dictionary<string, IOutputBuilder>();
         }
 
@@ -32,7 +34,7 @@ namespace ClangSharp
 
             var outputBuilder = _mode switch
             {
-                PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name),
+                PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name, writeSourceLocation: _writeSourceLocation),
                 PInvokeGeneratorOutputMode.Xml => new XmlOutputBuilder(name),
                 _ => throw new InvalidOperationException()
             };
@@ -48,7 +50,7 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var outputBuilder = new CSharpOutputBuilder(name, isTestOutput: true);
+            var outputBuilder = new CSharpOutputBuilder(name, isTestOutput: true, writeSourceLocation: _writeSourceLocation);
 
             _outputBuilders.Add(name, outputBuilder);
             return outputBuilder;

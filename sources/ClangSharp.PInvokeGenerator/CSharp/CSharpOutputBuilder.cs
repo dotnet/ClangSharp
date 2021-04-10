@@ -20,8 +20,11 @@ namespace ClangSharp.CSharp
 
         private int _indentationLevel;
         private readonly MarkerMode _markerMode;
+        private readonly bool _writeSourceLocation;
 
-        public CSharpOutputBuilder(string name, string indentationString = DefaultIndentationString, bool isTestOutput = false, MarkerMode markerMode = MarkerMode.None)
+        public CSharpOutputBuilder(string name, string indentationString = DefaultIndentationString,
+                                   bool isTestOutput = false, MarkerMode markerMode = MarkerMode.None,
+                                   bool writeSourceLocation = false)
         {
             _name = name;
             _contents = new List<string>();
@@ -31,6 +34,7 @@ namespace ClangSharp.CSharp
             _indentationString = indentationString;
             _isTestOutput = isTestOutput;
             _markerMode = markerMode;
+            _writeSourceLocation = writeSourceLocation;
         }
 
         public IEnumerable<string> Contents => _contents;

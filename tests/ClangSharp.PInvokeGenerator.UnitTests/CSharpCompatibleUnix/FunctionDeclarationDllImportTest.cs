@@ -345,5 +345,25 @@ namespace ClangSharp.Test
             };
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
         }
+
+        public override Task SourceLocationTest()
+        {
+            const string InputContents = @"void MyFunction(float value);";
+
+            const string ExpectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [SourceLocation(""ClangUnsavedFile.h"", 1, 6)]
+        public static extern void MyFunction([SourceLocation(""ClangUnsavedFile.h"", 1, 23)] float value);
+    }
+}
+";
+
+            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
+        }
     }
 }

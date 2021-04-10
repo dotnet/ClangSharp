@@ -69,5 +69,8 @@ namespace ClangSharp.UnitTests
 
         [Fact]
         public abstract Task WithSetLastErrorStarTest();
+
+        [Fact]
+        public abstract Task SourceLocationTest();
     }
 }
