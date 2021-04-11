@@ -31,7 +31,6 @@ namespace ClangSharp.Abstractions
 
         void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> info,
             ref bool isMethodClassUnsafe);
-        void WriteReturnType(string typeString);
         void BeginFunctionInnerPrototype(string escapedName);
         void BeginParameter<TCustomAttrGeneratorData>(in ParameterDesc<TCustomAttrGeneratorData> info);
         void BeginParameterDefault();
