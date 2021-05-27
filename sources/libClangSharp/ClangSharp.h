@@ -108,6 +108,7 @@ enum CX_ExprDependence {
     CX_ED_TypeInstantiation = clang::ExprDependenceScope::TypeInstantiation,
     CX_ED_ValueInstantiation = clang::ExprDependenceScope::ValueInstantiation,
     CX_ED_TypeValueInstantiation = clang::ExprDependenceScope::TypeValueInstantiation,
+    CX_ED_ErrorDependent = clang::ExprDependenceScope::ErrorDependent,
 };
 
 enum CX_FloatingSemantics {
@@ -386,10 +387,6 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasDefaultArg(CXCursor C);
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasElseStorage(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasExplicitTemplateArgs(CXCursor C);
-
-CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasExternalStorage(CXCursor C);
-
-CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasGlobalStorage(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasImplicitReturnZero(CXCursor C);
 

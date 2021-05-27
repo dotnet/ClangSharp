@@ -20,5 +20,6 @@ namespace ClangSharp.Interop
         CX_ED_TypeInstantiation = CX_ED_Type | CX_ED_Instantiation,
         CX_ED_ValueInstantiation = CX_ED_Value | CX_ED_Instantiation,
         CX_ED_TypeValueInstantiation = CX_ED_Type | CX_ED_Value | CX_ED_Instantiation,
+        CX_ED_ErrorDependent = CX_ED_Error | CX_ED_ValueInstantiation,
     }
 }

@@ -110,6 +110,7 @@ namespace ClangSharp.Interop
         CX_DeclKind_MSGuid,
         CX_DeclKind_OMPDeclareMapper,
         CX_DeclKind_OMPDeclareReduction,
+        CX_DeclKind_TemplateParamObject,
         CX_DeclKind_UnresolvedUsingValue,
         CX_DeclKind_FirstValue = CX_DeclKind_Binding,
         CX_DeclKind_LastValue = CX_DeclKind_UnresolvedUsingValue,

@@ -101,7 +101,7 @@ CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i) {
         }
 
         if (const CXXUnresolvedConstructExpr* CXXUCE = dyn_cast<CXXUnresolvedConstructExpr>(S)) {
-            if (i < CXXUCE->arg_size()) {
+            if (i < CXXUCE->getNumArgs()) {
                 return MakeCXCursor(CXXUCE->getArg(i), getCursorDecl(C), getCursorTU(C));
             }
         }
@@ -1484,30 +1484,6 @@ unsigned clangsharp_Cursor_getHasExplicitTemplateArgs(CXCursor C) {
 
         if (const OverloadExpr* OE = dyn_cast<OverloadExpr>(S)) {
             return OE->hasExplicitTemplateArgs();
-        }
-    }
-
-    return 0;
-}
-
-unsigned clangsharp_Cursor_getHasExternalStorage(CXCursor C) {
-    if (isDeclOrTU(C.kind)) {
-        const Decl* D = getCursorDecl(C);
-
-        if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
-            return VD->hasExternalStorage();
-        }
-    }
-
-    return 0;
-}
-
-unsigned clangsharp_Cursor_getHasGlobalStorage(CXCursor C) {
-    if (isDeclOrTU(C.kind)) {
-        const Decl* D = getCursorDecl(C);
-
-        if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
-            return VD->hasGlobalStorage();
         }
     }
 
@@ -3016,7 +2992,7 @@ int clangsharp_Cursor_getNumArguments(CXCursor C) {
         }
 
         if (const CXXUnresolvedConstructExpr* CXXUCE = dyn_cast<CXXUnresolvedConstructExpr>(S)) {
-            return CXXUCE->arg_size();
+            return CXXUCE->getNumArgs();
         }
 
         if (const ExprWithCleanups* EWC = dyn_cast<ExprWithCleanups>(S)) {

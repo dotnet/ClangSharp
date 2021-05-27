@@ -281,14 +281,6 @@ namespace ClangSharp.Interop
         [return: NativeTypeName("unsigned int")]
         public static extern uint Cursor_getHasExplicitTemplateArgs(CXCursor C);
 
-        [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasExternalStorage", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint Cursor_getHasExternalStorage(CXCursor C);
-
-        [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasGlobalStorage", ExactSpelling = true)]
-        [return: NativeTypeName("unsigned int")]
-        public static extern uint Cursor_getHasGlobalStorage(CXCursor C);
-
         [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasImplicitReturnZero", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
         public static extern uint Cursor_getHasImplicitReturnZero(CXCursor C);

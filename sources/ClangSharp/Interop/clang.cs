@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-11.0.0/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-12.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 using System;
@@ -31,7 +31,7 @@ namespace ClangSharp.Interop
         public static extern CXErrorCode VirtualFileOverlay_writeToBuffer([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0, [NativeTypeName("unsigned int")] uint options, [NativeTypeName("char **")] sbyte** out_buffer_ptr, [NativeTypeName("unsigned int *")] uint* out_buffer_size);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_free", ExactSpelling = true)]
-        public static extern void free([NativeTypeName("void *")] void* buffer);
+        public static extern void free(void* buffer);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_VirtualFileOverlay_dispose", ExactSpelling = true)]
         public static extern void VirtualFileOverlay_dispose([NativeTypeName("CXVirtualFileOverlay")] CXVirtualFileOverlayImpl* param0);
@@ -57,7 +57,7 @@ namespace ClangSharp.Interop
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_fromDirectory", ExactSpelling = true)]
         [return: NativeTypeName("CXCompilationDatabase")]
-        public static extern void* CompilationDatabase_fromDirectory([NativeTypeName("const char *")] sbyte* BuildDir, [NativeTypeName("CXCompilationDatabase_Error *")] CXCompilationDatabase_Error* ErrorCode);
+        public static extern void* CompilationDatabase_fromDirectory([NativeTypeName("const char *")] sbyte* BuildDir, CXCompilationDatabase_Error* ErrorCode);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CompilationDatabase_dispose", ExactSpelling = true)]
         public static extern void CompilationDatabase_dispose([NativeTypeName("CXCompilationDatabase")] void* param0);
@@ -112,7 +112,7 @@ namespace ClangSharp.Interop
         public static extern void disposeString(CXString @string);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeStringSet", ExactSpelling = true)]
-        public static extern void disposeStringSet([NativeTypeName("CXStringSet *")] CXStringSet* set);
+        public static extern void disposeStringSet(CXStringSet* set);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getParsedComment", ExactSpelling = true)]
         public static extern CXComment Cursor_getParsedComment(CXCursor C);
@@ -263,7 +263,7 @@ namespace ClangSharp.Interop
         public static extern long getFileTime([NativeTypeName("CXFile")] void* SFile);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getFileUniqueID", ExactSpelling = true)]
-        public static extern int getFileUniqueID([NativeTypeName("CXFile")] void* file, [NativeTypeName("CXFileUniqueID *")] CXFileUniqueID* outID);
+        public static extern int getFileUniqueID([NativeTypeName("CXFile")] void* file, CXFileUniqueID* outID);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_isFileMultipleIncludeGuarded", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
@@ -319,7 +319,7 @@ namespace ClangSharp.Interop
         public static extern void getExpansionLocation(CXSourceLocation location, [NativeTypeName("CXFile *")] void** file, [NativeTypeName("unsigned int *")] uint* line, [NativeTypeName("unsigned int *")] uint* column, [NativeTypeName("unsigned int *")] uint* offset);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getPresumedLocation", ExactSpelling = true)]
-        public static extern void getPresumedLocation(CXSourceLocation location, [NativeTypeName("CXString *")] CXString* filename, [NativeTypeName("unsigned int *")] uint* line, [NativeTypeName("unsigned int *")] uint* column);
+        public static extern void getPresumedLocation(CXSourceLocation location, CXString* filename, [NativeTypeName("unsigned int *")] uint* line, [NativeTypeName("unsigned int *")] uint* column);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getInstantiationLocation", ExactSpelling = true)]
         public static extern void getInstantiationLocation(CXSourceLocation location, [NativeTypeName("CXFile *")] void** file, [NativeTypeName("unsigned int *")] uint* line, [NativeTypeName("unsigned int *")] uint* column, [NativeTypeName("unsigned int *")] uint* offset);
@@ -337,15 +337,13 @@ namespace ClangSharp.Interop
         public static extern CXSourceLocation getRangeEnd(CXSourceRange range);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getSkippedRanges", ExactSpelling = true)]
-        [return: NativeTypeName("CXSourceRangeList *")]
         public static extern CXSourceRangeList* getSkippedRanges([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* tu, [NativeTypeName("CXFile")] void* file);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getAllSkippedRanges", ExactSpelling = true)]
-        [return: NativeTypeName("CXSourceRangeList *")]
         public static extern CXSourceRangeList* getAllSkippedRanges([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* tu);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeSourceRangeList", ExactSpelling = true)]
-        public static extern void disposeSourceRangeList([NativeTypeName("CXSourceRangeList *")] CXSourceRangeList* ranges);
+        public static extern void disposeSourceRangeList(CXSourceRangeList* ranges);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getNumDiagnosticsInSet", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
@@ -357,7 +355,7 @@ namespace ClangSharp.Interop
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_loadDiagnostics", ExactSpelling = true)]
         [return: NativeTypeName("CXDiagnosticSet")]
-        public static extern void* loadDiagnostics([NativeTypeName("const char *")] sbyte* file, [NativeTypeName("enum CXLoadDiag_Error *")] CXLoadDiag_Error* error, [NativeTypeName("CXString *")] CXString* errorString);
+        public static extern void* loadDiagnostics([NativeTypeName("const char *")] sbyte* file, [NativeTypeName("enum CXLoadDiag_Error *")] CXLoadDiag_Error* error, CXString* errorString);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeDiagnosticSet", ExactSpelling = true)]
         public static extern void disposeDiagnosticSet([NativeTypeName("CXDiagnosticSet")] void* Diags);
@@ -399,7 +397,7 @@ namespace ClangSharp.Interop
         public static extern CXString getDiagnosticSpelling([NativeTypeName("CXDiagnostic")] void* param0);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getDiagnosticOption", ExactSpelling = true)]
-        public static extern CXString getDiagnosticOption([NativeTypeName("CXDiagnostic")] void* Diag, [NativeTypeName("CXString *")] CXString* Disable);
+        public static extern CXString getDiagnosticOption([NativeTypeName("CXDiagnostic")] void* Diag, CXString* Disable);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getDiagnosticCategory", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
@@ -423,7 +421,7 @@ namespace ClangSharp.Interop
         public static extern uint getDiagnosticNumFixIts([NativeTypeName("CXDiagnostic")] void* Diagnostic);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getDiagnosticFixIt", ExactSpelling = true)]
-        public static extern CXString getDiagnosticFixIt([NativeTypeName("CXDiagnostic")] void* Diagnostic, [NativeTypeName("unsigned int")] uint FixIt, [NativeTypeName("CXSourceRange *")] CXSourceRange* ReplacementRange);
+        public static extern CXString getDiagnosticFixIt([NativeTypeName("CXDiagnostic")] void* Diagnostic, [NativeTypeName("unsigned int")] uint FixIt, CXSourceRange* ReplacementRange);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getTranslationUnitSpelling", ExactSpelling = true)]
         public static extern CXString getTranslationUnitSpelling([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* CTUnit);
@@ -578,10 +576,19 @@ namespace ClangSharp.Interop
         public static extern CXAvailabilityKind getCursorAvailability(CXCursor cursor);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCursorPlatformAvailability", ExactSpelling = true)]
-        public static extern int getCursorPlatformAvailability(CXCursor cursor, [NativeTypeName("int *")] int* always_deprecated, [NativeTypeName("CXString *")] CXString* deprecated_message, [NativeTypeName("int *")] int* always_unavailable, [NativeTypeName("CXString *")] CXString* unavailable_message, [NativeTypeName("CXPlatformAvailability *")] CXPlatformAvailability* availability, int availability_size);
+        public static extern int getCursorPlatformAvailability(CXCursor cursor, int* always_deprecated, CXString* deprecated_message, int* always_unavailable, CXString* unavailable_message, CXPlatformAvailability* availability, int availability_size);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeCXPlatformAvailability", ExactSpelling = true)]
-        public static extern void disposeCXPlatformAvailability([NativeTypeName("CXPlatformAvailability *")] CXPlatformAvailability* availability);
+        public static extern void disposeCXPlatformAvailability(CXPlatformAvailability* availability);
+
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getVarDeclInitializer", ExactSpelling = true)]
+        public static extern CXCursor Cursor_getVarDeclInitializer(CXCursor cursor);
+
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_hasVarDeclGlobalStorage", ExactSpelling = true)]
+        public static extern int Cursor_hasVarDeclGlobalStorage(CXCursor cursor);
+
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_hasVarDeclExternalStorage", ExactSpelling = true)]
+        public static extern int Cursor_hasVarDeclExternalStorage(CXCursor cursor);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCursorLanguage", ExactSpelling = true)]
         [return: NativeTypeName("enum CXLanguageKind")]
@@ -617,10 +624,10 @@ namespace ClangSharp.Interop
         public static extern CXCursor getCursorLexicalParent(CXCursor cursor);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getOverriddenCursors", ExactSpelling = true)]
-        public static extern void getOverriddenCursors(CXCursor cursor, [NativeTypeName("CXCursor **")] CXCursor** overridden, [NativeTypeName("unsigned int *")] uint* num_overridden);
+        public static extern void getOverriddenCursors(CXCursor cursor, CXCursor** overridden, [NativeTypeName("unsigned int *")] uint* num_overridden);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeOverriddenCursors", ExactSpelling = true)]
-        public static extern void disposeOverriddenCursors([NativeTypeName("CXCursor *")] CXCursor* overridden);
+        public static extern void disposeOverriddenCursors(CXCursor* overridden);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getIncludedFile", ExactSpelling = true)]
         [return: NativeTypeName("CXFile")]
@@ -977,7 +984,7 @@ namespace ClangSharp.Interop
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_isExternalSymbol", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
-        public static extern uint Cursor_isExternalSymbol(CXCursor C, [NativeTypeName("CXString *")] CXString* language, [NativeTypeName("CXString *")] CXString* definedIn, [NativeTypeName("unsigned int *")] uint* isGenerated);
+        public static extern uint Cursor_isExternalSymbol(CXCursor C, CXString* language, CXString* definedIn, [NativeTypeName("unsigned int *")] uint* isGenerated);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getCommentRange", ExactSpelling = true)]
         public static extern CXSourceRange Cursor_getCommentRange(CXCursor C);
@@ -992,11 +999,9 @@ namespace ClangSharp.Interop
         public static extern CXString Cursor_getMangling(CXCursor param0);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getCXXManglings", ExactSpelling = true)]
-        [return: NativeTypeName("CXStringSet *")]
         public static extern CXStringSet* Cursor_getCXXManglings(CXCursor param0);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getObjCManglings", ExactSpelling = true)]
-        [return: NativeTypeName("CXStringSet *")]
         public static extern CXStringSet* Cursor_getObjCManglings(CXCursor param0);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getModule", ExactSpelling = true)]
@@ -1091,7 +1096,6 @@ namespace ClangSharp.Interop
         public static extern CXSourceRange getCursorReferenceNameRange(CXCursor C, [NativeTypeName("unsigned int")] uint NameFlags, [NativeTypeName("unsigned int")] uint PieceIndex);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getToken", ExactSpelling = true)]
-        [return: NativeTypeName("CXToken *")]
         public static extern CXToken* getToken([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, CXSourceLocation Location);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getTokenKind", ExactSpelling = true)]
@@ -1107,13 +1111,13 @@ namespace ClangSharp.Interop
         public static extern CXSourceRange getTokenExtent([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0, CXToken param1);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_tokenize", ExactSpelling = true)]
-        public static extern void tokenize([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, CXSourceRange Range, [NativeTypeName("CXToken **")] CXToken** Tokens, [NativeTypeName("unsigned int *")] uint* NumTokens);
+        public static extern void tokenize([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, CXSourceRange Range, CXToken** Tokens, [NativeTypeName("unsigned int *")] uint* NumTokens);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_annotateTokens", ExactSpelling = true)]
-        public static extern void annotateTokens([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, [NativeTypeName("CXToken *")] CXToken* Tokens, [NativeTypeName("unsigned int")] uint NumTokens, [NativeTypeName("CXCursor *")] CXCursor* Cursors);
+        public static extern void annotateTokens([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, CXToken* Tokens, [NativeTypeName("unsigned int")] uint NumTokens, CXCursor* Cursors);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeTokens", ExactSpelling = true)]
-        public static extern void disposeTokens([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, [NativeTypeName("CXToken *")] CXToken* Tokens, [NativeTypeName("unsigned int")] uint NumTokens);
+        public static extern void disposeTokens([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, CXToken* Tokens, [NativeTypeName("unsigned int")] uint NumTokens);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCursorKindSpelling", ExactSpelling = true)]
         public static extern CXString getCursorKindSpelling([NativeTypeName("enum CXCursorKind")] CXCursorKind Kind);
@@ -1125,7 +1129,7 @@ namespace ClangSharp.Interop
         public static extern void enableStackTraces();
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_executeOnThread", ExactSpelling = true)]
-        public static extern void executeOnThread([NativeTypeName("void (*)(void *)")] IntPtr fn, [NativeTypeName("void *")] void* user_data, [NativeTypeName("unsigned int")] uint stack_size);
+        public static extern void executeOnThread([NativeTypeName("void (*)(void *)")] IntPtr fn, void* user_data, [NativeTypeName("unsigned int")] uint stack_size);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCompletionChunkKind", ExactSpelling = true)]
         [return: NativeTypeName("enum CXCompletionChunkKind")]
@@ -1169,46 +1173,45 @@ namespace ClangSharp.Interop
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCompletionNumFixIts", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
-        public static extern uint getCompletionNumFixIts([NativeTypeName("CXCodeCompleteResults *")] CXCodeCompleteResults* results, [NativeTypeName("unsigned int")] uint completion_index);
+        public static extern uint getCompletionNumFixIts(CXCodeCompleteResults* results, [NativeTypeName("unsigned int")] uint completion_index);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCompletionFixIt", ExactSpelling = true)]
-        public static extern CXString getCompletionFixIt([NativeTypeName("CXCodeCompleteResults *")] CXCodeCompleteResults* results, [NativeTypeName("unsigned int")] uint completion_index, [NativeTypeName("unsigned int")] uint fixit_index, [NativeTypeName("CXSourceRange *")] CXSourceRange* replacement_range);
+        public static extern CXString getCompletionFixIt(CXCodeCompleteResults* results, [NativeTypeName("unsigned int")] uint completion_index, [NativeTypeName("unsigned int")] uint fixit_index, CXSourceRange* replacement_range);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_defaultCodeCompleteOptions", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
         public static extern uint defaultCodeCompleteOptions();
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_codeCompleteAt", ExactSpelling = true)]
-        [return: NativeTypeName("CXCodeCompleteResults *")]
         public static extern CXCodeCompleteResults* codeCompleteAt([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, [NativeTypeName("const char *")] sbyte* complete_filename, [NativeTypeName("unsigned int")] uint complete_line, [NativeTypeName("unsigned int")] uint complete_column, [NativeTypeName("struct CXUnsavedFile *")] CXUnsavedFile* unsaved_files, [NativeTypeName("unsigned int")] uint num_unsaved_files, [NativeTypeName("unsigned int")] uint options);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_sortCodeCompletionResults", ExactSpelling = true)]
-        public static extern void sortCodeCompletionResults([NativeTypeName("CXCompletionResult *")] CXCompletionResult* Results, [NativeTypeName("unsigned int")] uint NumResults);
+        public static extern void sortCodeCompletionResults(CXCompletionResult* Results, [NativeTypeName("unsigned int")] uint NumResults);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeCodeCompleteResults", ExactSpelling = true)]
-        public static extern void disposeCodeCompleteResults([NativeTypeName("CXCodeCompleteResults *")] CXCodeCompleteResults* Results);
+        public static extern void disposeCodeCompleteResults(CXCodeCompleteResults* Results);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_codeCompleteGetNumDiagnostics", ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
-        public static extern uint codeCompleteGetNumDiagnostics([NativeTypeName("CXCodeCompleteResults *")] CXCodeCompleteResults* Results);
+        public static extern uint codeCompleteGetNumDiagnostics(CXCodeCompleteResults* Results);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_codeCompleteGetDiagnostic", ExactSpelling = true)]
         [return: NativeTypeName("CXDiagnostic")]
-        public static extern void* codeCompleteGetDiagnostic([NativeTypeName("CXCodeCompleteResults *")] CXCodeCompleteResults* Results, [NativeTypeName("unsigned int")] uint Index);
+        public static extern void* codeCompleteGetDiagnostic(CXCodeCompleteResults* Results, [NativeTypeName("unsigned int")] uint Index);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_codeCompleteGetContexts", ExactSpelling = true)]
         [return: NativeTypeName("unsigned long long")]
-        public static extern ulong codeCompleteGetContexts([NativeTypeName("CXCodeCompleteResults *")] CXCodeCompleteResults* Results);
+        public static extern ulong codeCompleteGetContexts(CXCodeCompleteResults* Results);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_codeCompleteGetContainerKind", ExactSpelling = true)]
         [return: NativeTypeName("enum CXCursorKind")]
-        public static extern CXCursorKind codeCompleteGetContainerKind([NativeTypeName("CXCodeCompleteResults *")] CXCodeCompleteResults* Results, [NativeTypeName("unsigned int *")] uint* IsIncomplete);
+        public static extern CXCursorKind codeCompleteGetContainerKind(CXCodeCompleteResults* Results, [NativeTypeName("unsigned int *")] uint* IsIncomplete);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_codeCompleteGetContainerUSR", ExactSpelling = true)]
-        public static extern CXString codeCompleteGetContainerUSR([NativeTypeName("CXCodeCompleteResults *")] CXCodeCompleteResults* Results);
+        public static extern CXString codeCompleteGetContainerUSR(CXCodeCompleteResults* Results);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_codeCompleteGetObjCSelector", ExactSpelling = true)]
-        public static extern CXString codeCompleteGetObjCSelector([NativeTypeName("CXCodeCompleteResults *")] CXCodeCompleteResults* Results);
+        public static extern CXString codeCompleteGetObjCSelector(CXCodeCompleteResults* Results);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getClangVersion", ExactSpelling = true)]
         public static extern CXString getClangVersion();
@@ -1264,7 +1267,7 @@ namespace ClangSharp.Interop
         public static extern uint remap_getNumFiles([NativeTypeName("CXRemapping")] void* param0);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_remap_getFilenames", ExactSpelling = true)]
-        public static extern void remap_getFilenames([NativeTypeName("CXRemapping")] void* param0, [NativeTypeName("unsigned int")] uint index, [NativeTypeName("CXString *")] CXString* original, [NativeTypeName("CXString *")] CXString* transformed);
+        public static extern void remap_getFilenames([NativeTypeName("CXRemapping")] void* param0, [NativeTypeName("unsigned int")] uint index, CXString* original, CXString* transformed);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_remap_dispose", ExactSpelling = true)]
         public static extern void remap_dispose([NativeTypeName("CXRemapping")] void* param0);
@@ -1328,13 +1331,13 @@ namespace ClangSharp.Interop
         public static extern void IndexAction_dispose([NativeTypeName("CXIndexAction")] void* param0);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_indexSourceFile", ExactSpelling = true)]
-        public static extern int indexSourceFile([NativeTypeName("CXIndexAction")] void* param0, [NativeTypeName("CXClientData")] void* client_data, [NativeTypeName("IndexerCallbacks *")] IndexerCallbacks* index_callbacks, [NativeTypeName("unsigned int")] uint index_callbacks_size, [NativeTypeName("unsigned int")] uint index_options, [NativeTypeName("const char *")] sbyte* source_filename, [NativeTypeName("const char *const *")] sbyte** command_line_args, int num_command_line_args, [NativeTypeName("struct CXUnsavedFile *")] CXUnsavedFile* unsaved_files, [NativeTypeName("unsigned int")] uint num_unsaved_files, [NativeTypeName("CXTranslationUnit *")] CXTranslationUnitImpl** out_TU, [NativeTypeName("unsigned int")] uint TU_options);
+        public static extern int indexSourceFile([NativeTypeName("CXIndexAction")] void* param0, [NativeTypeName("CXClientData")] void* client_data, IndexerCallbacks* index_callbacks, [NativeTypeName("unsigned int")] uint index_callbacks_size, [NativeTypeName("unsigned int")] uint index_options, [NativeTypeName("const char *")] sbyte* source_filename, [NativeTypeName("const char *const *")] sbyte** command_line_args, int num_command_line_args, [NativeTypeName("struct CXUnsavedFile *")] CXUnsavedFile* unsaved_files, [NativeTypeName("unsigned int")] uint num_unsaved_files, [NativeTypeName("CXTranslationUnit *")] CXTranslationUnitImpl** out_TU, [NativeTypeName("unsigned int")] uint TU_options);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_indexSourceFileFullArgv", ExactSpelling = true)]
-        public static extern int indexSourceFileFullArgv([NativeTypeName("CXIndexAction")] void* param0, [NativeTypeName("CXClientData")] void* client_data, [NativeTypeName("IndexerCallbacks *")] IndexerCallbacks* index_callbacks, [NativeTypeName("unsigned int")] uint index_callbacks_size, [NativeTypeName("unsigned int")] uint index_options, [NativeTypeName("const char *")] sbyte* source_filename, [NativeTypeName("const char *const *")] sbyte** command_line_args, int num_command_line_args, [NativeTypeName("struct CXUnsavedFile *")] CXUnsavedFile* unsaved_files, [NativeTypeName("unsigned int")] uint num_unsaved_files, [NativeTypeName("CXTranslationUnit *")] CXTranslationUnitImpl** out_TU, [NativeTypeName("unsigned int")] uint TU_options);
+        public static extern int indexSourceFileFullArgv([NativeTypeName("CXIndexAction")] void* param0, [NativeTypeName("CXClientData")] void* client_data, IndexerCallbacks* index_callbacks, [NativeTypeName("unsigned int")] uint index_callbacks_size, [NativeTypeName("unsigned int")] uint index_options, [NativeTypeName("const char *")] sbyte* source_filename, [NativeTypeName("const char *const *")] sbyte** command_line_args, int num_command_line_args, [NativeTypeName("struct CXUnsavedFile *")] CXUnsavedFile* unsaved_files, [NativeTypeName("unsigned int")] uint num_unsaved_files, [NativeTypeName("CXTranslationUnit *")] CXTranslationUnitImpl** out_TU, [NativeTypeName("unsigned int")] uint TU_options);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_indexTranslationUnit", ExactSpelling = true)]
-        public static extern int indexTranslationUnit([NativeTypeName("CXIndexAction")] void* param0, [NativeTypeName("CXClientData")] void* client_data, [NativeTypeName("IndexerCallbacks *")] IndexerCallbacks* index_callbacks, [NativeTypeName("unsigned int")] uint index_callbacks_size, [NativeTypeName("unsigned int")] uint index_options, [NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param5);
+        public static extern int indexTranslationUnit([NativeTypeName("CXIndexAction")] void* param0, [NativeTypeName("CXClientData")] void* client_data, IndexerCallbacks* index_callbacks, [NativeTypeName("unsigned int")] uint index_callbacks_size, [NativeTypeName("unsigned int")] uint index_options, [NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param5);
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_indexLoc_getFileLocation", ExactSpelling = true)]
         public static extern void indexLoc_getFileLocation(CXIdxLoc loc, [NativeTypeName("CXIdxClientFile *")] void** indexFile, [NativeTypeName("CXFile *")] void** file, [NativeTypeName("unsigned int *")] uint* line, [NativeTypeName("unsigned int *")] uint* column, [NativeTypeName("unsigned int *")] uint* offset);
@@ -1349,13 +1352,35 @@ namespace ClangSharp.Interop
         [NativeTypeName("#define CINDEX_VERSION_MAJOR 0")]
         public const int CINDEX_VERSION_MAJOR = 0;
 
-        [NativeTypeName("#define CINDEX_VERSION_MINOR 60")]
-        public const int CINDEX_VERSION_MINOR = 60;
+        [NativeTypeName("#define CINDEX_VERSION_MINOR 61")]
+        public const int CINDEX_VERSION_MINOR = 61;
 
         [NativeTypeName("#define CINDEX_VERSION CINDEX_VERSION_ENCODE(CINDEX_VERSION_MAJOR, CINDEX_VERSION_MINOR)")]
-        public const int CINDEX_VERSION = (0 * 10000) + (60 * 1);
+        public const int CINDEX_VERSION = (((0) * 10000) + ((61) * 1));
 
         [NativeTypeName("#define CINDEX_VERSION_STRING CINDEX_VERSION_STRINGIZE(CINDEX_VERSION_MAJOR, CINDEX_VERSION_MINOR)")]
-        public static ReadOnlySpan<byte> CINDEX_VERSION_STRING => new byte[] { 0x30, 0x2E, 0x36, 0x30, 0x00 };
+        public static ReadOnlySpan<byte> CINDEX_VERSION_STRING => new byte[] { 0x30, 0x2E, 0x36, 0x31, 0x00 };
+
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXRewriter_create", ExactSpelling = true)]
+        [return: NativeTypeName("CXRewriter")]
+        public static extern void* CXRewriter_create([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU);
+
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXRewriter_insertTextBefore", ExactSpelling = true)]
+        public static extern void CXRewriter_insertTextBefore([NativeTypeName("CXRewriter")] void* Rew, CXSourceLocation Loc, [NativeTypeName("const char *")] sbyte* Insert);
+
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXRewriter_replaceText", ExactSpelling = true)]
+        public static extern void CXRewriter_replaceText([NativeTypeName("CXRewriter")] void* Rew, CXSourceRange ToBeReplaced, [NativeTypeName("const char *")] sbyte* Replacement);
+
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXRewriter_removeText", ExactSpelling = true)]
+        public static extern void CXRewriter_removeText([NativeTypeName("CXRewriter")] void* Rew, CXSourceRange ToBeRemoved);
+
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXRewriter_overwriteChangedFiles", ExactSpelling = true)]
+        public static extern int CXRewriter_overwriteChangedFiles([NativeTypeName("CXRewriter")] void* Rew);
+
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXRewriter_writeMainFileToStdOut", ExactSpelling = true)]
+        public static extern void CXRewriter_writeMainFileToStdOut([NativeTypeName("CXRewriter")] void* Rew);
+
+        [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXRewriter_dispose", ExactSpelling = true)]
+        public static extern void CXRewriter_dispose([NativeTypeName("CXRewriter")] void* Rew);
     }
 }

@@ -35,6 +35,8 @@ namespace ClangSharp.Interop
         CX_CK_IntegralCast,
         CX_CK_IntegralToBoolean,
         CX_CK_IntegralToFloating,
+        CX_CK_FloatingToFixedPoint,
+        CX_CK_FixedPointToFloating,
         CX_CK_FixedPointCast,
         CX_CK_FixedPointToIntegral,
         CX_CK_IntegralToFixedPoint,

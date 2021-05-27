@@ -726,10 +726,6 @@ namespace ClangSharp.Interop
 
         public bool HasExplicitTemplateArgs => clangsharp.Cursor_getHasExplicitTemplateArgs(this) != 0;
 
-        public bool HasExternalStorage => clangsharp.Cursor_getHasExternalStorage(this) != 0;
-
-        public bool HasGlobalStorage => clangsharp.Cursor_getHasGlobalStorage(this) != 0;
-
         public bool HasImplicitReturnZero => clangsharp.Cursor_getHasImplicitReturnZero(this) != 0;
 
         public bool HasInheritedDefaultArg => clangsharp.Cursor_getHasInheritedDefaultArg(this) != 0;
@@ -761,6 +757,10 @@ namespace ClangSharp.Interop
         public bool HasUserDeclaredMoveConstructor => clangsharp.Cursor_getHasUserDeclaredMoveConstructor(this) != 0;
 
         public bool HasUserDeclaredMoveOperation => clangsharp.Cursor_getHasUserDeclaredMoveOperation(this) != 0;
+
+        public bool HasVarDeclExternalStorage => clang.Cursor_hasVarDeclExternalStorage(this) != 0;
+
+        public bool HasVarDeclGlobalStorage => clang.Cursor_hasVarDeclGlobalStorage(this) != 0;
 
         public bool HasVarStorage => clangsharp.Cursor_getHasVarStorage(this) != 0;
 

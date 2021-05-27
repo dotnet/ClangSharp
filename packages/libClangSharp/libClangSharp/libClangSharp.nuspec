@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata minClientVersion="2.12">
     <id>libClangSharp</id>
-    <version>11.0.0-beta3</version>
+    <version>12.0.0-beta1</version>
     <authors>Microsoft and Contributors</authors>
     <owners>Microsoft and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>

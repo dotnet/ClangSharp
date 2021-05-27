@@ -93,29 +93,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.osx-x64", 
 		packages\libclang\libclang.runtime.osx-x64\libclang.runtime.osx-x64.nuspec = packages\libclang\libclang.runtime.osx-x64\libclang.runtime.osx-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.sles-x64", "libclang.runtime.sles-x64", "{C0D4BF1E-CFDA-4E9D-9A15-2A1FDA7D56C2}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.sles-x64\libclang.runtime.sles-x64.nuspec = packages\libclang\libclang.runtime.sles-x64\libclang.runtime.sles-x64.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.14.04-x64", "libclang.runtime.ubuntu.14.04-x64", "{9F9CD2A9-475B-4D9A-AFB6-958B71AC0111}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.ubuntu.14.04-x64\libclang.runtime.ubuntu.14.04-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.14.04-x64\libclang.runtime.ubuntu.14.04-x64.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.16.04-x64", "libclang.runtime.ubuntu.16.04-x64", "{6185B159-5F40-4D96-AD52-EB2D37241E25}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.ubuntu.16.04-x64\libclang.runtime.ubuntu.16.04-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.16.04-x64\libclang.runtime.ubuntu.16.04-x64.nuspec
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.18.04-x64", "libclang.runtime.ubuntu.18.04-x64", "{8756B75F-F244-43AD-9C79-1610059BDF36}"
 	ProjectSection(SolutionItems) = preProject
 		packages\libclang\libclang.runtime.ubuntu.18.04-x64\libclang.runtime.ubuntu.18.04-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.18.04-x64\libclang.runtime.ubuntu.18.04-x64.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.19.04-x64", "libclang.runtime.ubuntu.19.04-x64", "{47FA436A-8E82-4002-AB49-751F1953450C}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.ubuntu.19.04-x64\libclang.runtime.ubuntu.19.04-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.19.04-x64\libclang.runtime.ubuntu.19.04-x64.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.win-x64", "libclang.runtime.win-x64", "{4A298C7E-BF4D-418D-B70D-FE6D6F8097FD}"
@@ -204,6 +184,31 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp", "libClangSh
 		sources\libClangSharp\CXType.h = sources\libClangSharp\CXType.h
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.20.04-x64", "libclang.runtime.ubuntu.20.04-x64", "{DD1C0393-4144-4A08-AD27-C98DC1A85023}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libclang\libclang.runtime.ubuntu.20.04-x64\libclang.runtime.ubuntu.20.04-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.20.04-x64\libclang.runtime.ubuntu.20.04-x64.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.21.04-x64", "libclang.runtime.ubuntu.21.04-x64", "{F3254760-351E-4886-A243-FF3778837C40}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libclang\libclang.runtime.ubuntu.21.04-x64\libclang.runtime.ubuntu.21.04-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.21.04-x64\libclang.runtime.ubuntu.21.04-x64.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.win-arm64", "libclang.runtime.win-arm64", "{B3F3A831-DA09-40A2-A25C-DE47A58BB93B}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libclang\libclang.runtime.win-arm64\libclang.runtime.win-arm64.nuspec = packages\libclang\libclang.runtime.win-arm64\libclang.runtime.win-arm64.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.ubuntu.21.04-x64", "libClangSharp.runtime.ubuntu.21.04-x64", "{D90C3C52-DA8D-44BB-B8B0-3E4EF4CBF4DC}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libClangSharp\libClangSharp.runtime.ubuntu.21.04-x64\libClangSharp.runtime.ubuntu.21.04-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.ubuntu.21.04-x64\libClangSharp.runtime.ubuntu.21.04-x64.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.win-arm64", "libClangSharp.runtime.win-arm64", "{69B805C6-230D-49A2-A569-3CAC2EC9F293}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libClangSharp\libClangSharp.runtime.win-arm64\libClangSharp.runtime.win-arm64.nuspec = packages\libClangSharp\libClangSharp.runtime.win-arm64\libClangSharp.runtime.win-arm64.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -247,11 +252,7 @@ Global
 		{F9915660-2229-418C-B269-83FE74C1943E} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{7D89072F-8E3E-4009-BCCD-5D3C69F88042} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{8006B5D7-5E0E-4A0A-884F-62C5216144EE} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
-		{C0D4BF1E-CFDA-4E9D-9A15-2A1FDA7D56C2} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
-		{9F9CD2A9-475B-4D9A-AFB6-958B71AC0111} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
-		{6185B159-5F40-4D96-AD52-EB2D37241E25} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{8756B75F-F244-43AD-9C79-1610059BDF36} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
-		{47FA436A-8E82-4002-AB49-751F1953450C} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{4A298C7E-BF4D-418D-B70D-FE6D6F8097FD} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{98BDA79D-8D81-4381-B794-65BAF82349D4} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{EDEC2130-DA14-4415-91A3-225733FB61F8} = {AE6CF12F-5CC3-463B-A74B-6CCAE26EE4EF}
@@ -266,6 +267,11 @@ Global
 		{C1218464-0B5A-480E-BA13-2C6EA370987E} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{6DF42BA2-F962-4BFC-9444-D0FD53D022B0} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{520C1055-34A1-4C72-AC24-023F84EF461D} = {732BA761-B58E-4C34-9C96-097382A55A7A}
+		{DD1C0393-4144-4A08-AD27-C98DC1A85023} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
+		{F3254760-351E-4886-A243-FF3778837C40} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
+		{B3F3A831-DA09-40A2-A25C-DE47A58BB93B} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
+		{D90C3C52-DA8D-44BB-B8B0-3E4EF4CBF4DC} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
+		{69B805C6-230D-49A2-A569-3CAC2EC9F293} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9D18E0B-5409-457D-B5F3-0E217136BB01}
