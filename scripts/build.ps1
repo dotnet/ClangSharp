@@ -86,6 +86,7 @@ function Test-Win32Metadata {
   $win32MetadataDir = Join-Path -Path $ArtifactsDir -ChildPath "win32metadata"
 
   if (!(Test-Path -Path "$win32MetadataDir")) {
+    & git config --system core.longpaths true
     & git clone "https://github.com/microsoft/win32metadata" "$win32MetadataDir"
   }
   pushd "$win32MetadataDir"
