@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ClangSharp.Interop
 {
-    internal unsafe struct MarshaledString : IDisposable
+    public unsafe struct MarshaledString : IDisposable
     {
         public MarshaledString(string input)
         {

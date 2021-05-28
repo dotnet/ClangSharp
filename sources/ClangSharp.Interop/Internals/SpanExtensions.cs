@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ClangSharp.Interop
 {
-    internal static unsafe class SpanExtensions
+    public static unsafe class SpanExtensions
     {
         public static string AsString(this Span<byte> self) => AsString((ReadOnlySpan<byte>)self);
 

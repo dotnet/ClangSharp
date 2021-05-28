@@ -4,7 +4,7 @@ using System;
 
 namespace ClangSharp.Interop
 {
-    internal unsafe ref struct MarshaledStringArray
+    public unsafe ref struct MarshaledStringArray
     {
         private MarshaledString[] _values;
 

@@ -209,6 +209,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.win-a
 		packages\libClangSharp\libClangSharp.runtime.win-arm64\libClangSharp.runtime.win-arm64.nuspec = packages\libClangSharp\libClangSharp.runtime.win-arm64\libClangSharp.runtime.win-arm64.nuspec
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.Interop", "sources\ClangSharp.Interop\ClangSharp.Interop.csproj", "{AADBAAC3-45F0-484F-BCB2-9809EDF1CA82}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -235,6 +237,10 @@ Global
 		{9D29BA0E-79C6-484E-B630-86A9510F1B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D29BA0E-79C6-484E-B630-86A9510F1B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D29BA0E-79C6-484E-B630-86A9510F1B74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AADBAAC3-45F0-484F-BCB2-9809EDF1CA82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AADBAAC3-45F0-484F-BCB2-9809EDF1CA82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AADBAAC3-45F0-484F-BCB2-9809EDF1CA82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AADBAAC3-45F0-484F-BCB2-9809EDF1CA82}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -272,6 +278,7 @@ Global
 		{B3F3A831-DA09-40A2-A25C-DE47A58BB93B} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{D90C3C52-DA8D-44BB-B8B0-3E4EF4CBF4DC} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{69B805C6-230D-49A2-A569-3CAC2EC9F293} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
+		{AADBAAC3-45F0-484F-BCB2-9809EDF1CA82} = {732BA761-B58E-4C34-9C96-097382A55A7A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9D18E0B-5409-457D-B5F3-0E217136BB01}
