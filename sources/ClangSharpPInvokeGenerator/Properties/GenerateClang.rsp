@@ -18,6 +18,7 @@ clang-c/ExternC.h
 clang-c/FatalErrorHandler.h
 clang-c/Index.h
 clang-c/Platform.h
+clang-c/Rewrite.h
 --headerFile
 ./Properties/GenerateClang-LICENSE.txt
 --methodClassName

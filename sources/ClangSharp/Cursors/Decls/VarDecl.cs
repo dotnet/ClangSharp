@@ -31,9 +31,9 @@ namespace ClangSharp
 
         public VarDecl Definition => _definition.Value;
 
-        public bool HasExternalStorage => Handle.HasExternalStorage;
+        public bool HasExternalStorage => Handle.HasVarDeclExternalStorage;
 
-        public bool HasGlobalStorage => Handle.HasGlobalStorage;
+        public bool HasGlobalStorage => Handle.HasVarDeclGlobalStorage;
 
         public bool HasInit => Handle.HasInit;
 
