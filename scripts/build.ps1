@@ -99,10 +99,9 @@ function Test-Win32Metadata {
     & git submodule update --init --recursive
 
     $win32MetadataToolsDir = Join-Path -Path $win32MetadataDir -ChildPath "tools"
-    $clangSharpPInvokeGeneratorOutputDir = Join-Path -Path $ArtifactsDir -ChildPath "bin\sources\ClangSharpPInvokeGenerator\$configuration\netcoreapp3.1"
 
-    $clangSharpPInvokeGeneratorBinaries = (Get-ChildItem -Path "$clangSharpPInvokeGeneratorOutputDir" -File).FullName
-    Copy-Item -Path $clangSharpPInvokeGeneratorBinaries -Destination "$win32MetadataToolsDir"
+    $clangSharpPInvokeGeneratorOutputDir = Join-Path -Path $ArtifactsDir -ChildPath "bin\sources\ClangSharpPInvokeGenerator\$configuration\netcoreapp3.1"
+    $env:PATH="$clangSharpPInvokeGeneratorOutputDir;$env:PATH"
 
     $generateMetadataSourcePs1 = Join-Path -Path $win32MetadataDir -ChildPath "scripts\GenerateMetadataSource.ps1"
     & "$generateMetadataSourcePs1"
