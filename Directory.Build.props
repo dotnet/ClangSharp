@@ -43,7 +43,7 @@
     <PackageOutputPath>$(BaseArtifactsPath)pkg/$(Configuration)/</PackageOutputPath>
     <Product>ClangSharp</Product>
     <VersionPrefix>12.0.0</VersionPrefix>
-    <VersionSuffix>beta1</VersionSuffix>
+    <VersionSuffix>beta2</VersionSuffix>
     <VersionSuffix Condition="'$(BUILD_REASON)' == 'PullRequest'">pr</VersionSuffix>
   </PropertyGroup>
 
