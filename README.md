@@ -65,7 +65,7 @@ Building this requires [CMake 3.13 or later](https://cmake.org/download/) as wel
 
 To succesfully build `libClangSharp` you must first build Clang (https://clang.llvm.org/get_started.html). The process done on Windows is roughly:
 ```cmd
-git clone https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-12.0.0 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir artifacts/bin
 cd artifacts/bin
