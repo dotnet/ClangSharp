@@ -18,12 +18,6 @@ set(SOURCES
   CXType.h
 )
 
-set(LIBS
-  clangAST
-  clangFrontend
-  libclang
-)
-
 set(LLVM_SEARCH_PATHS
   ${PATH_TO_LLVM}
   ${PATH_TO_LLVM}/lib/cmake
@@ -37,12 +31,25 @@ find_package(Clang REQUIRED CONFIG
              PATHS ${LLVM_SEARCH_PATHS}
              NO_DEFAULT_PATH)
 
-if(WIN32)
-  add_library(libClangSharp SHARED ${SOURCES})
-  target_include_directories(libClangSharp PUBLIC ${LLVM_INCLUDE_DIRS})
-  target_link_libraries(libClangSharp ${LIBS})
+add_library(ClangSharp SHARED ${SOURCES})
+
+if (TARGET clang-cpp) # Linux packages install libclang and clang-cpp
+    target_link_libraries(ClangSharp PRIVATE clang-cpp libclang)
 else()
-  add_library(ClangSharp SHARED ${SOURCES})
-  target_include_directories(ClangSharp PUBLIC ${LLVM_INCLUDE_DIRS})
-  target_link_libraries(ClangSharp ${LIBS})
+    target_link_libraries(ClangSharp PRIVATE clangAST clangFrontend libclang)
 endif()
+
+target_include_directories(ClangSharp PRIVATE ${CLANG_INCLUDE_DIRS})
+set_target_properties(ClangSharp PROPERTIES
+    PREFIX lib
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION}
+)
+
+include(GNUInstallDirs)
+
+install(TARGETS ClangSharp
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT runtime
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT development
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
+)
