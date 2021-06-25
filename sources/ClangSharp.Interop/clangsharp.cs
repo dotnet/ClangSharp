@@ -865,6 +865,10 @@ namespace ClangSharp.Interop
         [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getVBase", ExactSpelling = true)]
         public static extern CXCursor Cursor_getVBase(CXCursor C, [NativeTypeName("unsigned int")] uint i);
 
+        [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDtorVtblIdx", ExactSpelling = true)]
+        [return: NativeTypeName("int64_t")]
+        public static extern long Cursor_getDtorVtblIdx(CXCursor C, CX_DestructorType dtor);
+
         [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getVtblIdx", ExactSpelling = true)]
         [return: NativeTypeName("int64_t")]
         public static extern long Cursor_getVtblIdx(CXCursor C);
