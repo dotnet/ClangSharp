@@ -83,6 +83,24 @@ cmake -DPATH_TO_LLVM=../../../../llvm-project/artifacts/install/ -G "Visual Stud
 
 You can then open `libClangSharp.sln` in Visual Studio, change the configuration to `Release` and build the `ALL_BUILD` project.
 
+If you building on Linux
+```
+git clone https://github.com/microsoft/clangsharp
+mkdir artifacts/bin/native
+cd artifacts/bin/native
+cmake -DPATH_TO_LLVM=/usr/lib/llvm/12/ ../../..
+make
+```
+
+or if you prefer Ninja
+```
+git clone https://github.com/microsoft/clangsharp
+mkdir artifacts/bin/native
+cd artifacts/bin/native
+cmake -DPATH_TO_LLVM=/usr/lib/llvm/12/ -G Ninja ../../..
+ninja
+```
+
 ## Generating Bindings
 
 This program will take a given set of C or C++ header files and generate C# bindings from them. It is still a work-in-progress and not every declaration can have bindings generated today (contributions are welcome).
@@ -230,6 +248,21 @@ Options:
                                            identify missing remappings.
   log-visited-files                        Alist of the visited files should be generated. This can help identify
                                            traversal issues.
+```
+
+## Using locally built version
+
+After you build local version, you can use executable from build location.
+
+```
+artifacts/bin/sources/ClangSharpPInvokeGenerator/Debug/net5.0/ClangSharpPInvokeGenerator
+```
+
+If you are on Linux
+
+```
+LD_LIBRARY_PATH=$(pwd)/artifacts/bin/native/lib/
+artifacts/bin/sources/ClangSharpPInvokeGenerator/Debug/net5.0/ClangSharpPInvokeGenerator
 ```
 
 ## Spotlight
