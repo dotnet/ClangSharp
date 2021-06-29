@@ -17,24 +17,12 @@
 #include <clang/AST/StmtObjC.h>
 #include <clang/AST/VTableBuilder.h>
 #include <clang/Basic/Specifiers.h>
+#include <clang-c/ExternC.h>
 #include <clang-c/Index.h>
 
 #pragma warning(pop)
 
-#ifdef __cplusplus
-#define EXTERN_C extern "C"
-#else
-#define EXTERN_C
-#endif
-
-#ifdef _MSC_VER
-// We always export functions on Windows as this library
-// isn't meant to be consumed by other native code
-#define CLANGSHARP_LINKAGE EXTERN_C __declspec(dllexport)
-#else
-// Not necessary outside MSVC
-#define CLANGSHARP_LINKAGE EXTERN_C
-#endif
+#include "ClangSharp_export.h"
 
 enum CX_AtomicOperatorKind {
     CX_AO_Invalid,
@@ -220,6 +208,7 @@ struct CX_TemplateName {
     CXTranslationUnit tu;
 };
 
+LLVM_CLANG_C_EXTERN_C_BEGIN
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getArgumentType(CXCursor C);
@@ -839,5 +828,6 @@ CLANGSHARP_LINKAGE CX_TypeClass clangsharp_Type_getTypeClass(CXType CT);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getUnderlyingExpr(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getUnderlyingType(CXType CT);
+LLVM_CLANG_C_EXTERN_C_END
 
 #endif
