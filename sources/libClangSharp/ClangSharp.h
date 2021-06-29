@@ -3,8 +3,10 @@
 #ifndef LIBCLANGSHARP_CLANGSHARP_H
 #define LIBCLANGSHARP_CLANGSHARP_H
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+#endif
 
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclCXX.h>
@@ -19,7 +21,9 @@
 #include <clang/Basic/Specifiers.h>
 #include <clang-c/Index.h>
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 #ifdef __cplusplus
 #define EXTERN_C extern "C"
@@ -200,6 +204,13 @@ enum CX_VariableCaptureKind {
     CX_VCK_ByRef = clang::CapturedStmt::VCK_ByRef + 1,
     CX_VCK_ByCopy = clang::CapturedStmt::VCK_ByCopy + 1,
     CX_VCK_VLAType = clang::CapturedStmt::VCK_VLAType + 1
+};
+
+enum CX_DestructorType {
+    Deleting = clang::Dtor_Deleting,
+    Complete = clang::Dtor_Complete,
+    Base = clang::Dtor_Base,
+    Comdat = clang::Dtor_Comdat
 };
 
 struct CX_TemplateArgument {
@@ -721,6 +732,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUninstantiatedDefaultArg(CXCurs
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUsedContext(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getVBase(CXCursor C, unsigned i);
+
+CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getDtorVtblIdx(CXCursor C, CX_DestructorType dtor);
 
 CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getVtblIdx(CXCursor C);
 

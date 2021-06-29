@@ -8,12 +8,16 @@
 #include "CXTranslationUnit.h"
 #include "CXType.h"
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+#endif
 
 #include <clang/Basic/SourceManager.h>
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 using namespace clang;
 using namespace clang::cxcursor;
@@ -59,6 +63,25 @@ bool isDeclOrTU(CXCursorKind kind) {
 
 bool isStmtOrExpr(CXCursorKind kind) {
     return clang_isStatement(kind) || clang_isExpression(kind);
+}
+
+int64_t getVtblIdx(const GlobalDecl& d)
+{
+    const CXXMethodDecl* CMD = static_cast<const CXXMethodDecl*>(d.getDecl());
+    if (VTableContextBase::hasVtableSlot(CMD)) {
+        VTableContextBase* VTC = CMD->getASTContext().getVTableContext();
+
+        if (MicrosoftVTableContext* MSVTC = dyn_cast<MicrosoftVTableContext>(VTC)) {
+            MethodVFTableLocation ML = MSVTC->getMethodVFTableLocation(d);
+            return ML.Index;
+        }
+
+        if (ItaniumVTableContext* IVTC = dyn_cast<ItaniumVTableContext>(VTC)) {
+            return IVTC->getMethodVTableIndex(d);
+        }
+    }
+
+    return -1;
 }
 
 CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i) {
@@ -4693,23 +4716,30 @@ CXCursor clangsharp_Cursor_getVBase(CXCursor C, unsigned i) {
     return clang_getNullCursor();
 }
 
+int64_t clangsharp_Cursor_getDtorVtblIdx(CXCursor C, CX_DestructorType dtor)
+{
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXDestructorDecl* CMD = dyn_cast<CXXDestructorDecl>(D)) {
+            return getVtblIdx(GlobalDecl(CMD, static_cast<CXXDtorType>(dtor)));
+        }
+    }
+    return -1;
+}
+
 int64_t clangsharp_Cursor_getVtblIdx(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXMethodDecl* CMD = dyn_cast<CXXMethodDecl>(D)) {
-            if (VTableContextBase::hasVtableSlot(CMD)) {
-                VTableContextBase* VTC = getASTUnit(getCursorTU(C))->getASTContext().getVTableContext();
-
-                if (MicrosoftVTableContext* MSVTC = dyn_cast<MicrosoftVTableContext>(VTC)) {
-                    MethodVFTableLocation ML = MSVTC->getMethodVFTableLocation(CMD);
-                    return ML.Index;
-                }
-
-                if (ItaniumVTableContext* IVTC = dyn_cast<ItaniumVTableContext>(VTC)) {
-                    return IVTC->getMethodVTableIndex(CMD);
-                }
+            int64_t dtorIdx = clangsharp_Cursor_getDtorVtblIdx(C, Deleting); // will test if CMD is a dtor
+            if (dtorIdx != -1) { // yes, it is a dtor
+                return dtorIdx;
             }
+
+            // no, it is a regular method
+            return getVtblIdx(CMD);
         }
     }
 
