@@ -320,6 +320,8 @@ namespace ClangSharp
                 var diagnostic = new Diagnostic(DiagnosticLevel.Error, e.ToString());
                 _diagnostics.Add(diagnostic);
             }
+
+            GC.KeepAlive(translationUnit);
         }
 
         private void AddDiagnostic(DiagnosticLevel level, string message)
