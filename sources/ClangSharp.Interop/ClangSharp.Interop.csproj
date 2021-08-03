@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net5.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Remove="Extensions/clang.ResolveLibrary.cs" />
+    <InternalsVisibleTo Include="ClangSharp" Key="$(AssemblyOriginatorPublicKey)" />
+    <InternalsVisibleTo Include="ClangSharp.PInvokeGenerator" Key="$(AssemblyOriginatorPublicKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="libClang" />
+    <PackageReference Include="libClangSharp" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.HashCode" />
+    <PackageReference Include="System.Memory" />
+  </ItemGroup>
+
+</Project>

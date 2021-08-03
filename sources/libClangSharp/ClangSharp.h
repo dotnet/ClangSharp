@@ -3,8 +3,10 @@
 #ifndef LIBCLANGSHARP_CLANGSHARP_H
 #define LIBCLANGSHARP_CLANGSHARP_H
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4146 4244 4267 4291 4624 4996)
+#endif
 
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclCXX.h>
@@ -17,24 +19,14 @@
 #include <clang/AST/StmtObjC.h>
 #include <clang/AST/VTableBuilder.h>
 #include <clang/Basic/Specifiers.h>
+#include <clang-c/ExternC.h>
 #include <clang-c/Index.h>
 
-#pragma warning(pop)
-
-#ifdef __cplusplus
-#define EXTERN_C extern "C"
-#else
-#define EXTERN_C
-#endif
-
 #ifdef _MSC_VER
-// We always export functions on Windows as this library
-// isn't meant to be consumed by other native code
-#define CLANGSHARP_LINKAGE EXTERN_C __declspec(dllexport)
-#else
-// Not necessary outside MSVC
-#define CLANGSHARP_LINKAGE EXTERN_C
+#pragma warning(pop)
 #endif
+
+#include "ClangSharp_export.h"
 
 enum CX_AtomicOperatorKind {
     CX_AO_Invalid,
@@ -108,6 +100,7 @@ enum CX_ExprDependence {
     CX_ED_TypeInstantiation = clang::ExprDependenceScope::TypeInstantiation,
     CX_ED_ValueInstantiation = clang::ExprDependenceScope::ValueInstantiation,
     CX_ED_TypeValueInstantiation = clang::ExprDependenceScope::TypeValueInstantiation,
+    CX_ED_ErrorDependent = clang::ExprDependenceScope::ErrorDependent,
 };
 
 enum CX_FloatingSemantics {
@@ -201,6 +194,13 @@ enum CX_VariableCaptureKind {
     CX_VCK_VLAType = clang::CapturedStmt::VCK_VLAType + 1
 };
 
+enum CX_DestructorType {
+    Deleting = clang::Dtor_Deleting,
+    Complete = clang::Dtor_Complete,
+    Base = clang::Dtor_Base,
+    Comdat = clang::Dtor_Comdat
+};
+
 struct CX_TemplateArgument {
     CXTemplateArgumentKind kind;
     int xdata;
@@ -219,6 +219,7 @@ struct CX_TemplateName {
     CXTranslationUnit tu;
 };
 
+LLVM_CLANG_C_EXTERN_C_BEGIN
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getArgumentType(CXCursor C);
@@ -386,10 +387,6 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasDefaultArg(CXCursor C);
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasElseStorage(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasExplicitTemplateArgs(CXCursor C);
-
-CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasExternalStorage(CXCursor C);
-
-CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasGlobalStorage(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getHasImplicitReturnZero(CXCursor C);
 
@@ -725,6 +722,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUsedContext(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getVBase(CXCursor C, unsigned i);
 
+CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getDtorVtblIdx(CXCursor C, CX_DestructorType dtor);
+
 CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getVtblIdx(CXCursor C);
 
 CLANGSHARP_LINKAGE void clangsharp_TemplateArgument_dispose(CX_TemplateArgument T);
@@ -842,5 +841,6 @@ CLANGSHARP_LINKAGE CX_TypeClass clangsharp_Type_getTypeClass(CXType CT);
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getUnderlyingExpr(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getUnderlyingType(CXType CT);
+LLVM_CLANG_C_EXTERN_C_END
 
 #endif

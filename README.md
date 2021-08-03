@@ -65,7 +65,7 @@ Building this requires [CMake 3.13 or later](https://cmake.org/download/) as wel
 
 To succesfully build `libClangSharp` you must first build Clang (https://clang.llvm.org/get_started.html). The process done on Windows is roughly:
 ```cmd
-git clone https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-12.0.0 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir artifacts/bin
 cd artifacts/bin
@@ -83,13 +83,31 @@ cmake -DPATH_TO_LLVM=../../../../llvm-project/artifacts/install/ -G "Visual Stud
 
 You can then open `libClangSharp.sln` in Visual Studio, change the configuration to `Release` and build the `ALL_BUILD` project.
 
+If you building on Linux
+```
+git clone https://github.com/microsoft/clangsharp
+mkdir artifacts/bin/native
+cd artifacts/bin/native
+cmake -DPATH_TO_LLVM=/usr/lib/llvm/12/ ../../..
+make
+```
+
+or if you prefer Ninja
+```
+git clone https://github.com/microsoft/clangsharp
+mkdir artifacts/bin/native
+cd artifacts/bin/native
+cmake -DPATH_TO_LLVM=/usr/lib/llvm/12/ -G Ninja ../../..
+ninja
+```
+
 ## Generating Bindings
 
 This program will take a given set of C or C++ header files and generate C# bindings from them. It is still a work-in-progress and not every declaration can have bindings generated today (contributions are welcome).
 
 The simplest and recommended setup is to install the generator as a .NET tool and then use response files:
 ```
-dotnet tool install --global ClangSharpPInvokeGenerator --version 11.0.0-beta2
+dotnet tool install --global ClangSharpPInvokeGenerator --version 12.0.0-beta1
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 
@@ -230,6 +248,21 @@ Options:
                                            identify missing remappings.
   log-visited-files                        Alist of the visited files should be generated. This can help identify
                                            traversal issues.
+```
+
+## Using locally built version
+
+After you build local version, you can use executable from build location.
+
+```
+artifacts/bin/sources/ClangSharpPInvokeGenerator/Debug/net5.0/ClangSharpPInvokeGenerator
+```
+
+If you are on Linux
+
+```
+LD_LIBRARY_PATH=$(pwd)/artifacts/bin/native/lib/
+artifacts/bin/sources/ClangSharpPInvokeGenerator/Debug/net5.0/ClangSharpPInvokeGenerator
 ```
 
 ## Spotlight

@@ -23,11 +23,11 @@ llvm-c/ExternC.h
 llvm-c/Initialization.h
 llvm-c/IRReader.h
 llvm-c/Linker.h
-llvm-c/LinkTimeOptimizer.h
+llvm-c/LLJIT.h
 llvm-c/lto.h
 llvm-c/Object.h
 llvm-c/Orc.h
-llvm-c/OrcBindings.h
+llvm-c/OrcEE.h
 llvm-c/Remarks.h
 llvm-c/Support.h
 llvm-c/Target.h
@@ -56,3 +56,10 @@ LLVM
 --remap
 __AnonymousEnum_Core_L445_C1=LLVMAttributeIndex
 __AnonymousEnum_DebugInfo_L131_C1=LLVMMetadataKind
+--with-attribute
+LLVMDIFlags=Flags
+LLVMJITSymbolGenericFlags=Flags
+LLVMOrcJITDylibLookupFlags=Flags
+LLVMOrcSymbolLookupFlags=Flags
+--with-type
+LLVMJITSymbolGenericFlags=uint
