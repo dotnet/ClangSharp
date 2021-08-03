@@ -3014,7 +3014,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_ObjCSelectorExpr:
                 // case CX_StmtClass.CX_StmtClass_ObjCStringLiteral:
                 // case CX_StmtClass.CX_StmtClass_ObjCSubscriptRefExpr:
-                // case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+
+                case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_OpaqueValueExpr:
                 // case CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr:
                 // case CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr:
