@@ -469,6 +469,8 @@ namespace ClangSharp
                 : null;
             var isDllImport = body is null && !isVirtual;
 
+            var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
+
             var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
             {
                 AccessSpecifier = accessSppecifier,
@@ -496,17 +498,13 @@ namespace ClangSharp
                     x.This.WithUsings(x.Name);
                 },
                 CustomAttrGeneratorData = (name, this),
+                NeedsReturnFixup = needsReturnFixup,
+                ReturnType = needsReturnFixup ? $"{returnTypeName}*" : returnTypeName,
+                IsCxxConstructor = functionDecl is CXXConstructorDecl,
                 Location = functionDecl.Location
             };
 
             _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
-
-            var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
-
-            if ((functionDecl is not CXXConstructorDecl) || (_config.OutputMode == PInvokeGeneratorOutputMode.Xml))
-            {
-                _outputBuilder.WriteReturnType(needsReturnFixup ? $"{returnTypeName}*" : returnTypeName);
-            }
 
             _outputBuilder.BeginFunctionInnerPrototype(escapedName);
 
@@ -1046,7 +1044,9 @@ namespace ClangSharp
                 var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
                 var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
-                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                var generateTestsClass = _testOutputBuilder != null && !recordDecl.IsAnonymousStructOrUnion && recordDecl.DeclContext is not RecordDecl;
+
+                if (generateTestsClass)
                 {
                     _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);
@@ -1055,20 +1055,6 @@ namespace ClangSharp
                     _testOutputBuilder.Write(escapedName);
                     _testOutputBuilder.WriteLine("Tests");
                     _testOutputBuilder.WriteBlockStart();
-                }
-
-                StructLayoutAttribute layout = null;
-                if (recordDecl.IsUnion)
-                {
-                    layout = new(LayoutKind.Explicit);
-                    if (alignment < maxAlignm)
-                    {
-                        layout.Pack = (int)alignment;
-                    }
-                }
-                else if (alignment < maxAlignm)
-                {
-                    layout = new(LayoutKind.Sequential) {Pack = (int)alignment};
                 }
 
                 Guid? nullableUuid = null;
@@ -1127,6 +1113,16 @@ namespace ClangSharp
                     }
                 }
 
+                var layoutKind = recordDecl.IsUnion
+                    ? LayoutKind.Explicit
+                    : LayoutKind.Sequential;
+
+                long alignment32 = -1;
+                long alignment64 = -1;
+
+                GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32,
+                    out var size64);
+
                 string nativeNameWithExtras = null, nativeInheritance = null;
                 if ((cxxRecordDecl != null) && cxxRecordDecl.Bases.Any())
                 {
@@ -1156,7 +1152,16 @@ namespace ClangSharp
                     EscapedName = escapedName,
                     IsUnsafe = IsUnsafe(recordDecl),
                     HasVtbl = hasVtbl,
-                    Layout = layout,
+                    IsUnion = recordDecl.IsUnion,
+                    Layout = new() {
+                        Alignment32 = alignment32,
+                        Alignment64 = alignment64,
+                        Size32 = size32,
+                        Size64 = size64,
+                        Pack = alignment,
+                        MaxFieldAlignment = maxAlignm,
+                        Kind = layoutKind
+                    },
                     Uuid = nullableUuid,
                     CustomAttrGeneratorData = (name, this),
                     WriteCustomAttrs = static _ => { },
@@ -1221,7 +1226,7 @@ namespace ClangSharp
                     }
                 }
 
-                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion && !(recordDecl.DeclContext is RecordDecl))
+                if (generateTestsClass)
                 {
                     _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);
@@ -1262,14 +1267,9 @@ namespace ClangSharp
                     _testOutputBuilder.WriteBlockEnd();
                     _testOutputBuilder.NeedsNewline = true;
 
-                    long alignment32 = -1;
-                    long alignment64 = -1;
-
-                    GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32, out var size64);
-
-                    if (((size32 == 0) || (size64 == 0)) && !TryGetUuid(recordDecl, out _))
+                    if ((size32 == 0 || size64 == 0) && !TryGetUuid(recordDecl, out _))
                     {
-                        AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} has a size of 0");
+                        AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} has a size of 0", recordDecl);
                     }
 
                     _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"");
@@ -1389,8 +1389,7 @@ namespace ClangSharp
 
                 _outputBuilder.EndStruct();
 
-                if ((_testOutputBuilder != null) && !recordDecl.IsAnonymousStructOrUnion &&
-                    !(recordDecl.DeclContext is RecordDecl))
+                if (generateTestsClass)
                 {
                     _testOutputBuilder.WriteBlockEnd();
                 }
@@ -1557,6 +1556,12 @@ namespace ClangSharp
 
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                 var name = GetRemappedCursorName(cxxMethodDecl);
+                var needsReturnFixup = false;
+
+                if (returnType.Kind != CXTypeKind.CXType_Void)
+                {
+                    needsReturnFixup = NeedsReturnFixup(cxxMethodDecl);
+                }
 
                 var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
                 {
@@ -1572,12 +1577,13 @@ namespace ClangSharp
                     IsCtxCxxRecord = true,
                     IsCxxRecordCtxUnsafe = IsUnsafe(cxxRecordDecl),
                     IsUnsafe = true,
+                    NeedsReturnFixup = needsReturnFixup,
+                    ReturnType = returnTypeName,
                     VtblIndex = _config.GenerateVtblIndexAttribute ? cxxMethodDecl.VtblIndex : -1,
                     Location = cxxMethodDecl.Location
                 };
 
                 _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
-                _outputBuilder.WriteReturnType(returnTypeName);
                 _outputBuilder.BeginFunctionInnerPrototype(desc.EscapedName);
 
                 Visit(cxxMethodDecl.Parameters);
@@ -1585,7 +1591,6 @@ namespace ClangSharp
                 _outputBuilder.EndFunctionInnerPrototype();
                 _outputBuilder.BeginBody();
 
-                var needsReturnFixup = false;
                 var cxxRecordDeclName = GetRemappedCursorName(cxxRecordDecl);
                 var escapedCXXRecordDeclName = EscapeName(cxxRecordDeclName);
 
@@ -1601,21 +1606,19 @@ namespace ClangSharp
                     body.WriteIndentation();
                 }
 
+                if (needsReturnFixup)
+                {
+                    body.BeginMarker("fixup", new KeyValuePair<string, object>("type", "*result"));
+                    body.Write(returnTypeName);
+                    body.EndMarker("fixup");
+                    body.Write(" result");
+                    body.WriteSemicolon();
+                    body.WriteNewline();
+                    body.WriteIndentation();
+                }
+
                 if (returnType.Kind != CXTypeKind.CXType_Void)
                 {
-                    needsReturnFixup = NeedsReturnFixup(cxxMethodDecl);
-
-                    if (needsReturnFixup)
-                    {
-                        body.BeginMarker("fixup", new KeyValuePair<string, object>("type", "*result"));
-                        body.Write(returnTypeName);
-                        body.EndMarker("fixup");
-                        body.Write(" result");
-                        body.WriteSemicolon();
-                        body.WriteNewline();
-                        body.WriteIndentation();
-                    }
-
                     body.Write("return ");
                 }
 
@@ -2163,14 +2166,6 @@ namespace ClangSharp
                 var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
                 var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
-                StructLayoutAttribute layout = null;
-                if (alignment < maxAlignm)
-                {
-                    layout = new StructLayoutAttribute(LayoutKind.Sequential) {
-                        Pack = (int)alignment
-                    };
-                }
-
                 var accessSpecifier = GetAccessSpecifier(constantArray);
                 var canonicalElementType = type.ElementType.CanonicalType;
                 var isUnsafeElementType =
@@ -2179,19 +2174,6 @@ namespace ClangSharp
 
                 var name = GetArtificialFixedSizedBufferName(constantArray);
                 var escapedName = EscapeName(name);
-
-                var desc = new StructDesc<(string Name, PInvokeGenerator This)>
-                {
-                    AccessSpecifier = accessSpecifier,
-                    CustomAttrGeneratorData = (name, this),
-                    EscapedName = escapedName,
-                    IsUnsafe = isUnsafeElementType,
-                    Layout = layout,
-                    WriteCustomAttrs = static _ => {},
-                    Location = constantArray.Location
-                };
-
-                _outputBuilder.BeginStruct(in desc);
 
                 var totalSize = Math.Max(type.Size, 1);
                 var sizePerDimension = new List<(long index, long size)>() {(0, type.Size)};
@@ -2204,6 +2186,37 @@ namespace ClangSharp
                     sizePerDimension.Add((0, Math.Max(subConstantArrayType.Size, 1)));
                     elementType = subConstantArrayType.ElementType;
                 }
+
+                long alignment32 = -1;
+                long alignment64 = -1;
+
+                GetTypeSize(constantArray, constantArray.Type, ref alignment32, ref alignment64, out var size32,
+                    out var size64);
+
+                if ((size32 == 0 || size64 == 0) && _testOutputBuilder != null)
+                {
+                    AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} (constant array field) has a size of 0", constantArray);
+                }
+
+                var desc = new StructDesc<(string Name, PInvokeGenerator This)> {
+                    AccessSpecifier = accessSpecifier,
+                    CustomAttrGeneratorData = (name, this),
+                    EscapedName = escapedName,
+                    IsUnsafe = isUnsafeElementType,
+                    Layout = new() {
+                        Alignment32 = alignment32,
+                        Alignment64 = alignment64,
+                        Size32 = size32,
+                        Size64 = size64,
+                        Pack = alignment,
+                        MaxFieldAlignment = maxAlignm,
+                        Kind = LayoutKind.Sequential
+                    },
+                    WriteCustomAttrs = static _ => { },
+                    Location = constantArray.Location
+                };
+
+                _outputBuilder.BeginStruct(in desc);
 
                 var firstFieldName = "";
 
@@ -2343,11 +2356,11 @@ namespace ClangSharp
                         WriteCustomAttrs = static _ => {},
                         IsStatic = false,
                         IsMemberFunction = true,
+                        ReturnType = $"Span<{typeName}>",
                         Location = constantArray.Location
                     };
 
                     _outputBuilder.BeginFunctionOrDelegate(in function, ref _isMethodClassUnsafe);
-                    _outputBuilder.WriteReturnType($"Span<{typeName}>");
                     _outputBuilder.BeginFunctionInnerPrototype("AsSpan");
 
                     if (type.Size == 1)
@@ -2433,11 +2446,11 @@ namespace ClangSharp
                         IsUnsafe = IsUnsafe(typedefDecl, functionProtoType),
                         NativeTypeName = nativeTypeName,
                         WriteCustomAttrs = static _ => {},
+                        ReturnType = returnTypeName,
                         Location = typedefDecl.Location
                     };
 
                     _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
-                    _outputBuilder.WriteReturnType(returnTypeName);
                     _outputBuilder.BeginFunctionInnerPrototype(escapedName);
 
                     Visit(typedefDecl.CursorChildren.OfType<ParmVarDecl>());

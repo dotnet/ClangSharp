@@ -279,6 +279,12 @@ namespace ClangSharp.CSharp
                     }
                 }
             }
+
+            if (!desc.IsCxxConstructor)
+            {
+                Write(desc.ReturnType);
+                Write(' ');
+            }
         }
 
         private void WriteSourceLocation(CXSourceLocation location, bool inline)
@@ -302,12 +308,6 @@ namespace ClangSharp.CSharp
                 WriteNewline();
             else
                 Write(' ');
-        }
-
-        public void WriteReturnType(string typeString)
-        {
-            Write(typeString);
-            Write(' ');
         }
 
         public void BeginFunctionInnerPrototype(string escapedName)
@@ -433,15 +433,15 @@ namespace ClangSharp.CSharp
 
         public void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info)
         {
-            if (info.Layout is not null)
+            if (info.LayoutAttribute is { } attribute)
             {
                 AddUsingDirective("System.Runtime.InteropServices");
                 WriteIndented("[StructLayout(LayoutKind.");
-                Write(info.Layout.Value);
-                if (info.Layout.Pack != default)
+                Write(attribute.Value);
+                if (attribute.Pack != default)
                 {
                     Write(", Pack = ");
-                    Write(info.Layout.Pack);
+                    Write(attribute.Pack);
                 }
 
                 WriteLine(")]");

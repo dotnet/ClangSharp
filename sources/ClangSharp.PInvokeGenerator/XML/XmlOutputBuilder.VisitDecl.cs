@@ -142,11 +142,7 @@ namespace ClangSharp.XML
             }
 
             _ = _sb.Append('>');
-        }
-
-        public void WriteReturnType(string typeString)
-        {
-            _ = _sb.Append(EscapeText(typeString));
+            _ = _sb.Append(EscapeText(desc.ReturnType));
             _ = _sb.Append("</type>");
         }
 
@@ -252,15 +248,15 @@ namespace ClangSharp.XML
                 _ = _sb.Append(" unsafe=\"true\"");
             }
 
-            if (info.Layout is not null)
+            if (info.LayoutAttribute is { } attribute)
             {
                 _ = _sb.Append(" layout=\"");
-                _ = _sb.Append(info.Layout.Value);
+                _ = _sb.Append(attribute.Value);
                 _ = _sb.Append('"');
-                if (info.Layout.Pack != default)
+                if (attribute.Pack != default)
                 {
                     _ = _sb.Append(" pack=\"");
-                    _ = _sb.Append(info.Layout.Pack);
+                    _ = _sb.Append(attribute.Pack);
                     _ = _sb.Append('"');
                 }
             }

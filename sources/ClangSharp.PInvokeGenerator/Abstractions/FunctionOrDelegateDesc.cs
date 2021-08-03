@@ -13,6 +13,7 @@ namespace ClangSharp.Abstractions
         public string EscapedName { get; set; }
         public string EntryPoint { get; set; }
         public string LibraryPath { get; set; }
+        public string ReturnType { get; set; }
         public CallingConvention CallingConvention { get; set; }
         public FunctionOrDelegateFlags Flags { get; set; }
         public long? VtblIndex { get; set; }
@@ -195,6 +196,22 @@ namespace ClangSharp.Abstractions
                     null => Flags & ~FunctionOrDelegateFlags.IsStatic & ~FunctionOrDelegateFlags.IsNotStatic
                 };
             }
+        }
+
+        public bool NeedsReturnFixup
+        {
+            get => (Flags & FunctionOrDelegateFlags.NeedsReturnFixup) != 0;
+            set => Flags = value
+                ? Flags | FunctionOrDelegateFlags.NeedsReturnFixup
+                : Flags & ~FunctionOrDelegateFlags.NeedsReturnFixup;
+        }
+
+        public bool IsCxxConstructor
+        {
+            get => (Flags & FunctionOrDelegateFlags.IsCxxConstructor) != 0;
+            set => Flags = value
+                ? Flags | FunctionOrDelegateFlags.IsCxxConstructor
+                : Flags & ~FunctionOrDelegateFlags.IsCxxConstructor;
         }
 
         public Action<TCustomAttrGeneratorData> WriteCustomAttrs { get; set; }

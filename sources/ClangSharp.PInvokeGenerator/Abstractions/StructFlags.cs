@@ -8,6 +8,7 @@ namespace ClangSharp.Abstractions
     public enum StructFlags
     {
         IsUnsafe = 1 << 0,
-        HasVtbl = 1 << 1
+        HasVtbl = 1 << 1,
+        IsUnion = 1 << 2,
     }
 }

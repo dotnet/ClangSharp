@@ -17,6 +17,8 @@ namespace ClangSharp
         IsCxxRecordCtxUnsafe = 1 << 9,
         IsMemberFunction = 1 << 10,
         IsStatic = 1 << 11,
-        IsNotStatic = 1 << 12
+        IsNotStatic = 1 << 12,
+        NeedsReturnFixup = 1 << 13,
+        IsCxxConstructor = 1 << 14,
     }
 }
