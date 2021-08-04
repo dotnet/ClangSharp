@@ -1503,7 +1503,16 @@ namespace ClangSharp
                 }
                 else
                 {
-                    // The default name should be correct
+                    // The default name should be correct for C++, but C may have a prefix we need to strip
+
+                    if (name.StartsWith("enum "))
+                    {
+                        name = name.Substring(5);
+                    }
+                    else if (name.StartsWith("struct "))
+                    {
+                        name = name.Substring(7);
+                    }
                 }
 
                 if (name.Contains("::"))

@@ -20,7 +20,13 @@ namespace ClangSharp.UnitTests
                                                                             | CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes         // Implicit attributes should be visited
                                                                             | CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
 
-        protected static readonly string[] DefaultClangCommandLineArgs = new string[]
+        protected static readonly string[] DefaultCClangCommandLineArgs = new string[]
+        {
+            "-std=c17",                             // The input files should be compiled for C 17
+            "-xc",                                  // The input files are C
+        };
+
+        protected static readonly string[] DefaultCppClangCommandLineArgs = new string[]
         {
             "-std=c++17",                           // The input files should be compiled for C++ 17
             "-xc++",                                // The input files are C++
@@ -50,7 +56,7 @@ namespace ClangSharp.UnitTests
         {
             Assert.True(File.Exists(DefaultInputFileName));
 
-            commandlineArgs ??= DefaultClangCommandLineArgs;
+            commandlineArgs ??= DefaultCppClangCommandLineArgs;
 
             configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
 
