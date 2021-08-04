@@ -877,6 +877,10 @@ namespace ClangSharp
                 {
                     case CXCallingConv.CXCallingConv_C:
                     {
+                        if ((cursor is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsInstance)
+                        {
+                            return CallingConvention.ThisCall;
+                        }
                         return CallingConvention.Cdecl;
                     }
 

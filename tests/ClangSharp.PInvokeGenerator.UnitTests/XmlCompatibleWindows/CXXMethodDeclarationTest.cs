@@ -206,14 +206,12 @@ namespace ClangSharp.UnitTests
     }
 };
 ";
-            var callConv = "Cdecl";
             var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN8MyStruct12MyVoidMethodEv" : "_ZN8MyStruct12MyVoidMethodEv";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (!Environment.Is64BitProcess)
                 {
-                    callConv = "ThisCall";
                     entryPoint = "?MyVoidMethod@MyStruct@@QAEXXZ";
                 }
                 else
@@ -226,7 +224,7 @@ namespace ClangSharp.UnitTests
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
-      <function name=""MyVoidMethod"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""{callConv}"" entrypoint=""{entryPoint}"" static=""true"">
+      <function name=""MyVoidMethod"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint}"" static=""true"">
         <type>void</type>
       </function>
       <function name=""MyInt32Method"" access=""public"">
@@ -471,13 +469,6 @@ int MyFunctionB(MyStruct* x)
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "ThisCall";
-            }
-
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
@@ -485,7 +476,7 @@ int MyFunctionB(MyStruct* x)
       <field name=""lpVtbl"" access=""public"">
         <type>void**</type>
       </field>
-      <delegate name=""_GetType"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_GetType"" access=""public"" convention=""ThisCall"">
         <type>int</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
@@ -494,13 +485,13 @@ int MyFunctionB(MyStruct* x)
           <type>int</type>
         </param>
       </delegate>
-      <delegate name=""_GetType1"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_GetType1"" access=""public"" convention=""ThisCall"">
         <type>int</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
       </delegate>
-      <delegate name=""_GetType2"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_GetType2"" access=""public"" convention=""ThisCall"">
         <type>int</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
@@ -565,12 +556,10 @@ int MyFunctionB(MyStruct* x)
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var callConv = "Cdecl";
             var nativeCallConv = "";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
                 nativeCallConv = " __attribute__((thiscall))";
             }
 
@@ -581,7 +570,7 @@ int MyFunctionB(MyStruct* x)
       <field name=""lpVtbl"" access=""public"">
         <type>Vtbl*</type>
       </field>
-      <delegate name=""_GetType"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_GetType"" access=""public"" convention=""ThisCall"">
         <type>int</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
@@ -590,13 +579,13 @@ int MyFunctionB(MyStruct* x)
           <type>int</type>
         </param>
       </delegate>
-      <delegate name=""_GetType1"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_GetType1"" access=""public"" convention=""ThisCall"">
         <type>int</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
       </delegate>
-      <delegate name=""_GetType2"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_GetType2"" access=""public"" convention=""ThisCall"">
         <type>int</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
@@ -955,13 +944,6 @@ extern ""C"" void MyFunction();";
 };
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "ThisCall";
-            }
-
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
@@ -969,25 +951,25 @@ extern ""C"" void MyFunction();";
       <field name=""lpVtbl"" access=""public"">
         <type>void**</type>
       </field>
-      <delegate name=""_MyVoidMethod"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_MyVoidMethod"" access=""public"" convention=""ThisCall"">
         <type>void</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
       </delegate>
-      <delegate name=""_MyInt8Method"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_MyInt8Method"" access=""public"" convention=""ThisCall"">
         <type native=""char"">sbyte</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
       </delegate>
-      <delegate name=""_MyInt32Method"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_MyInt32Method"" access=""public"" convention=""ThisCall"">
         <type>int</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
       </delegate>
-      <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""{callConv}"" unsafe=""true"">
+      <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""ThisCall"" unsafe=""true"">
         <type>void*</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
@@ -1054,13 +1036,6 @@ extern ""C"" void MyFunction();";
 };
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "ThisCall";
-            }
-
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
@@ -1068,25 +1043,25 @@ extern ""C"" void MyFunction();";
       <field name=""lpVtbl"" access=""public"">
         <type>void**</type>
       </field>
-      <delegate name=""_MyVoidMethod"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_MyVoidMethod"" access=""public"" convention=""ThisCall"">
         <type>void</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
       </delegate>
-      <delegate name=""_MyInt8Method"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_MyInt8Method"" access=""public"" convention=""ThisCall"">
         <type native=""char"">sbyte</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
       </delegate>
-      <delegate name=""_MyInt32Method"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_MyInt32Method"" access=""public"" convention=""ThisCall"">
         <type>int</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
       </delegate>
-      <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""{callConv}"" unsafe=""true"">
+      <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""ThisCall"" unsafe=""true"">
         <type>void*</type>
         <param name=""pThis"">
           <type>MyStruct*</type>

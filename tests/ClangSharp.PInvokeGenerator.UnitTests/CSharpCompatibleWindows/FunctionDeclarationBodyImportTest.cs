@@ -495,13 +495,6 @@ MyStructB* MyFunction(MyStructA* input)
 }
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "ThisCall";
-            }
-
             var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
@@ -511,7 +504,7 @@ namespace ClangSharp.Test
     {{
         public void** lpVtbl;
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate void _MyMethod(MyStructA* pThis);
 
         public void MyMethod()
@@ -528,7 +521,7 @@ namespace ClangSharp.Test
     {{
         public void** lpVtbl;
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate void _MyMethod(MyStructB* pThis);
 
         public void MyMethod()

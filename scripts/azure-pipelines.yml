@@ -61,17 +61,3 @@ jobs:
     configuration: Release
     architecture: x64
     OVERRIDE_RUNTIME_IDENTIFIER: ubuntu.18.04-x64
-
-- template: azure-unix.yml
-  parameters:
-    name: macos_debug_x64
-    pool: macOS-latest
-    configuration: Debug
-    architecture: x64
-
-- template: azure-unix.yml
-  parameters:
-    name: macos_release_x64
-    pool: macOS-latest
-    configuration: Release
-    architecture: x64

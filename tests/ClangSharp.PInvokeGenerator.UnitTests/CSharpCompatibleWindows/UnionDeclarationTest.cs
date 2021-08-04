@@ -134,13 +134,11 @@ union MyUnion3
 };
 ";
 
-            var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", Pack = 1" : "";
-
             var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
-    [StructLayout(LayoutKind.Explicit{expectedPack})]
+    [StructLayout(LayoutKind.Explicit)]
     public partial struct MyUnion1
     {{
         [FieldOffset(0)]
@@ -295,7 +293,7 @@ namespace ClangSharp.Test
         }}
     }}
 
-    [StructLayout(LayoutKind.Explicit{expectedPack})]
+    [StructLayout(LayoutKind.Explicit)]
     public partial struct MyUnion3
     {{
         [FieldOffset(0)]

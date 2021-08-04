@@ -578,13 +578,6 @@ MyStructB* MyFunction(MyStructA* input)
 }
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "Thiscall";
-            }
-
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
@@ -595,7 +588,7 @@ MyStructB* MyFunction(MyStructA* input)
       <function name=""MyMethod"" access=""public"" unsafe=""true"">
         <type>void</type>
         <body>
-          <code>((delegate* unmanaged[{callConv}]&lt;MyStructA*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStructA*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>((delegate* unmanaged[Thiscall]&lt;MyStructA*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStructA*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
     </struct>
@@ -606,7 +599,7 @@ MyStructB* MyFunction(MyStructA* input)
       <function name=""MyMethod"" access=""public"" unsafe=""true"">
         <type>void</type>
         <body>
-          <code>((delegate* unmanaged[{callConv}]&lt;MyStructB*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStructB*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>((delegate* unmanaged[Thiscall]&lt;MyStructB*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStructB*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
     </struct>

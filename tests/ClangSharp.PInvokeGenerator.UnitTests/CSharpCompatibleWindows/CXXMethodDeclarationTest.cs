@@ -164,14 +164,12 @@ namespace ClangSharp.UnitTests
     }
 };
 ";
-            var callConv = "Cdecl";
             var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN8MyStruct12MyVoidMethodEv" : "_ZN8MyStruct12MyVoidMethodEv";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (!Environment.Is64BitProcess)
                 {
-                    callConv = "ThisCall";
                     entryPoint = "?MyVoidMethod@MyStruct@@QAEXXZ";
                 }
                 else
@@ -186,7 +184,7 @@ namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
-        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.{callConv}, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
         public static extern void MyVoidMethod();
 
         public int MyInt32Method()
@@ -417,13 +415,6 @@ int MyFunctionB(MyStruct* x)
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "ThisCall";
-            }
-
             var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
@@ -433,13 +424,13 @@ namespace ClangSharp.Test
     {{
         public void** lpVtbl;
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType(MyStruct* pThis, int obj);
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType1(MyStruct* pThis);
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType2(MyStruct* pThis, int objA, int objB);
 
         public int GetType(int obj)
@@ -481,12 +472,10 @@ namespace ClangSharp.Test
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var callConv = "Cdecl";
             var nativeCallConv = "";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "ThisCall";
                 nativeCallConv = " __attribute__((thiscall))";
             }
 
@@ -499,13 +488,13 @@ namespace ClangSharp.Test
     {{
         public Vtbl* lpVtbl;
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType(MyStruct* pThis, int obj);
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType1(MyStruct* pThis);
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType2(MyStruct* pThis, int objA, int objB);
 
         public int GetType(int obj)
@@ -806,13 +795,6 @@ namespace ClangSharp.Test
 };
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "ThisCall";
-            }
-
             var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
@@ -822,17 +804,17 @@ namespace ClangSharp.Test
     {{
         public void** lpVtbl;
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate void _MyVoidMethod(MyStruct* pThis);
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         [return: NativeTypeName(""char"")]
         public delegate sbyte _MyInt8Method(MyStruct* pThis);
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _MyInt32Method(MyStruct* pThis);
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate void* _MyVoidStarMethod(MyStruct* pThis);
 
         public void MyVoidMethod()
@@ -891,13 +873,6 @@ namespace ClangSharp.Test
 };
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "ThisCall";
-            }
-
             var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
@@ -907,17 +882,17 @@ namespace ClangSharp.Test
     {{
         public void** lpVtbl;
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate void _MyVoidMethod(MyStruct* pThis);
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         [return: NativeTypeName(""char"")]
         public delegate sbyte _MyInt8Method(MyStruct* pThis);
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _MyInt32Method(MyStruct* pThis);
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate void* _MyVoidStarMethod(MyStruct* pThis);
 
         [VtblIndex(0)]

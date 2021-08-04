@@ -206,14 +206,12 @@ namespace ClangSharp.UnitTests
     }
 };
 ";
-            var callConv = "Cdecl";
             var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN8MyStruct12MyVoidMethodEv" : "_ZN8MyStruct12MyVoidMethodEv";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (!Environment.Is64BitProcess)
                 {
-                    callConv = "ThisCall";
                     entryPoint = "?MyVoidMethod@MyStruct@@QAEXXZ";
                 }
                 else
@@ -226,7 +224,7 @@ namespace ClangSharp.UnitTests
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
-      <function name=""MyVoidMethod"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""{callConv}"" entrypoint=""{entryPoint}"" static=""true"">
+      <function name=""MyVoidMethod"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint}"" static=""true"">
         <type>void</type>
       </function>
       <function name=""MyInt32Method"" access=""public"">
@@ -471,13 +469,6 @@ int MyFunctionB(MyStruct* x)
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "Thiscall";
-            }
-
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
@@ -491,13 +482,13 @@ int MyFunctionB(MyStruct* x)
           <type>int</type>
         </param>
         <body>
-          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int&gt;)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""obj"">obj</param>);</code>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, int, int&gt;)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""obj"">obj</param>);</code>
         </body>
       </function>
       <function name=""GetType"" access=""public"" unsafe=""true"">
         <type>int</type>
         <body>
-          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, int&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, int&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""GetType"" access=""public"" unsafe=""true"">
@@ -509,7 +500,7 @@ int MyFunctionB(MyStruct* x)
           <type>int</type>
         </param>
         <body>
-          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int, int&gt;)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""objA"">objA</param>, <param name=""objB"">objB</param>);</code>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, int, int, int&gt;)(lpVtbl[<vtbl explicit=""False"">{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""objA"">objA</param>, <param name=""objB"">objB</param>);</code>
         </body>
       </function>
     </struct>
@@ -529,12 +520,10 @@ int MyFunctionB(MyStruct* x)
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var callConv = "Cdecl";
             var nativeCallConv = "";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "Thiscall";
                 nativeCallConv = " __attribute__((thiscall))";
             }
 
@@ -574,13 +563,13 @@ int MyFunctionB(MyStruct* x)
       </function>
       <vtbl>
         <field name=""GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")}"" access=""public"">
-          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}{nativeCallConv}"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", int" : "")}&gt;</type>
+          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}{nativeCallConv}"">delegate* unmanaged[Thiscall]&lt;MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", int" : "")}&gt;</type>
         </field>
         <field name=""GetType1"" access=""public"">
-          <type native=""int (){nativeCallConv}"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int&gt;</type>
+          <type native=""int (){nativeCallConv}"">delegate* unmanaged[Thiscall]&lt;MyStruct*, int&gt;</type>
         </field>
         <field name=""GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")}"" access=""public"">
-          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}{nativeCallConv}"">delegate* unmanaged[{callConv}]&lt;MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : ", int")}&gt;</type>
+          <type native=""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}{nativeCallConv}"">delegate* unmanaged[Thiscall]&lt;MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : ", int")}&gt;</type>
         </field>
       </vtbl>
     </struct>
@@ -883,13 +872,6 @@ extern ""C"" void MyFunction();";
 };
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "Thiscall";
-            }
-
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
@@ -900,25 +882,25 @@ extern ""C"" void MyFunction();";
       <function name=""MyVoidMethod"" access=""public"" unsafe=""true"">
         <type>void</type>
         <body>
-          <code>((delegate* unmanaged[{callConv}]&lt;MyStruct*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>((delegate* unmanaged[Thiscall]&lt;MyStruct*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""MyInt8Method"" access=""public"" unsafe=""true"">
         <type native=""char"">sbyte</type>
         <body>
-          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, sbyte&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, sbyte&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""MyInt32Method"" access=""public"" unsafe=""true"">
         <type>int</type>
         <body>
-          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, int&gt;)(lpVtbl[<vtbl explicit=""False"">2</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, int&gt;)(lpVtbl[<vtbl explicit=""False"">2</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
         <type>void*</type>
         <body>
-          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, void*&gt;)(lpVtbl[<vtbl explicit=""False"">3</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, void*&gt;)(lpVtbl[<vtbl explicit=""False"">3</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
     </struct>
@@ -946,13 +928,6 @@ extern ""C"" void MyFunction();";
 };
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "Thiscall";
-            }
-
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
@@ -963,25 +938,25 @@ extern ""C"" void MyFunction();";
       <function name=""MyVoidMethod"" access=""public"" unsafe=""true"" vtblindex=""0"">
         <type>void</type>
         <body>
-          <code>((delegate* unmanaged[{callConv}]&lt;MyStruct*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>((delegate* unmanaged[Thiscall]&lt;MyStruct*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""MyInt8Method"" access=""public"" unsafe=""true"" vtblindex=""1"">
         <type native=""char"">sbyte</type>
         <body>
-          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, sbyte&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, sbyte&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""MyInt32Method"" access=""public"" unsafe=""true"" vtblindex=""2"">
         <type>int</type>
         <body>
-          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, int&gt;)(lpVtbl[<vtbl explicit=""False"">2</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, int&gt;)(lpVtbl[<vtbl explicit=""False"">2</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"" vtblindex=""3"">
         <type>void*</type>
         <body>
-          <code>return ((delegate* unmanaged[{callConv}]&lt;MyStruct*, void*&gt;)(lpVtbl[<vtbl explicit=""False"">3</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, void*&gt;)(lpVtbl[<vtbl explicit=""False"">3</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
     </struct>

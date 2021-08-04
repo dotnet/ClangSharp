@@ -1270,6 +1270,58 @@ struct MyStruct
 ";
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
+        public override Task PackTest()
+        {
+            const string InputContents = @"struct MyStruct1 {
+    unsigned Field1;
+
+    void* Field2;
+
+    unsigned Field3;
+};
+
+#pragma pack(4)
+
+struct MyStruct2 {
+    unsigned Field1;
+
+    void* Field2;
+
+    unsigned Field3;
+};
+";
+
+            const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct1"" access=""public"" unsafe=""true"">
+      <field name=""Field1"" access=""public"">
+        <type native=""unsigned int"">uint</type>
+      </field>
+      <field name=""Field2"" access=""public"">
+        <type>void*</type>
+      </field>
+      <field name=""Field3"" access=""public"">
+        <type native=""unsigned int"">uint</type>
+      </field>
+    </struct>
+    <struct name=""MyStruct2"" access=""public"" unsafe=""true"" layout=""Sequential"" pack=""4"">
+      <field name=""Field1"" access=""public"">
+        <type native=""unsigned int"">uint</type>
+      </field>
+      <field name=""Field2"" access=""public"">
+        <type>void*</type>
+      </field>
+      <field name=""Field3"" access=""public"">
+        <type native=""unsigned int"">uint</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestWindowsBindingsAsync(InputContents, ExpectedOutputContents);
+        }
 
         public override Task PointerToSelfTest()
         {

@@ -433,15 +433,16 @@ namespace ClangSharp.CSharp
 
         public void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info)
         {
-            if (info.LayoutAttribute is { } attribute)
+            if (info.LayoutAttribute is not null)
             {
                 AddUsingDirective("System.Runtime.InteropServices");
                 WriteIndented("[StructLayout(LayoutKind.");
-                Write(attribute.Value);
-                if (attribute.Pack != default)
+                Write(info.LayoutAttribute.Value);
+
+                if (info.LayoutAttribute.Pack != 0)
                 {
                     Write(", Pack = ");
-                    Write(attribute.Pack);
+                    Write(info.LayoutAttribute.Pack);
                 }
 
                 WriteLine(")]");

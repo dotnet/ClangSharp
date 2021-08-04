@@ -154,6 +154,9 @@ namespace ClangSharp.UnitTests
         public abstract Task NoDefinitionTest();
 
         [Fact]
+        public abstract Task PackTest();
+
+        [Fact]
         public abstract Task PointerToSelfTest();
 
         [Fact]
