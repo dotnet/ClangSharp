@@ -34,6 +34,34 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task CallconvTest()
+        {
+            var inputContents = @"typedef void (*Callback)() __attribute__((stdcall));
+
+struct MyStruct {
+    Callback _callback;
+};
+";
+
+            var expectedOutputContents = @"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    public delegate void Callback();
+
+    public partial struct MyStruct
+    {
+        [NativeTypeName(""Callback"")]
+        public IntPtr _callback;
+    }
+}
+";
+
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         public override Task PointerlessTypedefTest()
         {
             var inputContents = @"typedef void (Callback)();

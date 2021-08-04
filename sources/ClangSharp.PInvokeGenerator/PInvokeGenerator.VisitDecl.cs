@@ -452,23 +452,7 @@ namespace ClangSharp
             }
 
             var type = functionDecl.Type;
-            var callConv = CXCallingConv.CXCallingConv_Invalid;
-
-            if (type is AttributedType attributedType)
-            {
-                type = attributedType.ModifiedType;
-                callConv = attributedType.Handle.FunctionTypeCallingConv;
-            }
-
-            if (type is FunctionType functionType)
-            {
-                if (callConv == CXCallingConv.CXCallingConv_Invalid)
-                {
-                    callConv = functionType.CallConv;
-                }
-            }
-
-            var callingConventionName = GetCallingConvention(functionDecl, callConv, name);
+            var callingConventionName = GetCallingConvention(functionDecl, cxxRecordDecl, type);
             var entryPoint = !isVirtual && body is null
                 ? (cxxMethodDecl is null) ? GetCursorName(functionDecl) : cxxMethodDecl.Handle.Mangling.CString
                 : null;
@@ -2435,14 +2419,10 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(typedefDecl);
                 var escapedName = EscapeName(name);
 
-                    var callingConventionName = GetCallingConvention(typedefDecl,
-                        (parentType is AttributedType)
-                            ? parentType.Handle.FunctionTypeCallingConv
-                            : functionProtoType.CallConv, name);
+                var callingConventionName = GetCallingConvention(typedefDecl, context: null, typedefDecl.TypeForDecl);
 
-                    var returnType = functionProtoType.ReturnType;
-                    var returnTypeName =
-                        GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
+                var returnType = functionProtoType.ReturnType;
+                var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
 
                 StartUsingOutputBuilder(name);
                 {
