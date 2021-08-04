@@ -3921,7 +3921,7 @@ CXString clangsharp_Cursor_getStringLiteralValue(CXCursor C) {
         const Stmt* S = getCursorStmt(C);
 
         if (const StringLiteral* SL = dyn_cast<StringLiteral>(S)) {
-            return createDup(SL->getString());
+            return createDup(SL->getBytes());
         }
     }
 
