@@ -453,10 +453,9 @@ namespace ClangSharp
 
             var type = functionDecl.Type;
             var callingConventionName = GetCallingConvention(functionDecl, cxxRecordDecl, type);
-            var entryPoint = !isVirtual && body is null
-                ? (cxxMethodDecl is null) ? GetCursorName(functionDecl) : cxxMethodDecl.Handle.Mangling.CString
-                : null;
+
             var isDllImport = body is null && !isVirtual;
+            var entryPoint = isDllImport ? functionDecl.Handle.Mangling.CString : null;
 
             var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
 

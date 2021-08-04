@@ -843,7 +843,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
     }
 };
 
-void MyFunction();";
+extern ""C"" void MyFunction();";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>

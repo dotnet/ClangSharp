@@ -16,6 +16,9 @@ namespace ClangSharp.UnitTests
         [Fact]
         public abstract Task FunctionPointerParameterTest();
 
+        [Fact]
+        public abstract Task NamespaceTest();
+
         [Theory]
         [InlineData("int", false, "int", "")]
         [InlineData("bool", true, "byte", "")]

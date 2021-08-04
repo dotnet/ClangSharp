@@ -726,7 +726,7 @@ namespace ClangSharp.Test
     }
 };
 
-void MyFunction();";
+extern ""C"" void MyFunction();";
 
             var expectedOutputContents = @"using System.Runtime.InteropServices;
 
