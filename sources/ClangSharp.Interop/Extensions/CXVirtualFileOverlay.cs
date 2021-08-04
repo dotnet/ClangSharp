@@ -51,7 +51,19 @@ namespace ClangSharp.Interop
         {
             sbyte* pBuffer; uint size;
             errorCode = clang.VirtualFileOverlay_writeToBuffer(this, options, &pBuffer, &size);
+
+#if NETSTANDARD
+            var result = new byte[checked((int)size)];
+
+            fixed (byte* pResult = result)
+            {
+                Buffer.MemoryCopy(pBuffer, pResult, size, size);
+            }
+
+            return result;
+#else
             return new Span<byte>(pBuffer, (int)size);
+#endif
         }
     }
 }

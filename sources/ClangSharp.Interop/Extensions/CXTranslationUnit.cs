@@ -222,7 +222,20 @@ namespace ClangSharp.Interop
         {
             CXToken* pTokens; uint numTokens;
             clang.tokenize(this, sourceRange, &pTokens, &numTokens);
+
+#if NETSTANDARD
+            var result = new CXToken[checked((int)numTokens)];
+
+            fixed (CXToken* pResult = result)
+            {
+                var size = sizeof(CXToken) * numTokens;
+                Buffer.MemoryCopy(pTokens, pResult, size, size);
+            }
+
+            return result;
+#else
             return new Span<CXToken>(pTokens, (int)numTokens);
+#endif
         }
 
         public override string ToString() => Spelling.ToString();
