@@ -167,7 +167,7 @@ namespace ClangSharp
             CX_DeclKind.CX_DeclKind_ObjCCategoryImpl => new ObjCCategoryImplDecl(handle),
             CX_DeclKind.CX_DeclKind_ObjCImplementation => new ObjCImplementationDecl(handle),
             CX_DeclKind.CX_DeclKind_ObjCInterface => new ObjCInterfaceDecl(handle),
-            CX_DeclKind.CX_DeclKind_ObjCProtocol => new ObjCPropertyDecl(handle),
+            CX_DeclKind.CX_DeclKind_ObjCProtocol => new ObjCProtocolDecl(handle),
             CX_DeclKind.CX_DeclKind_ObjCMethod => new ObjCMethodDecl(handle),
             CX_DeclKind.CX_DeclKind_ObjCProperty => new ObjCPropertyDecl(handle),
             CX_DeclKind.CX_DeclKind_BuiltinTemplate => new BuiltinTemplateDecl(handle),
