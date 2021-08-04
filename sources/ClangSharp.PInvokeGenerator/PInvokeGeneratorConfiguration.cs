@@ -17,7 +17,8 @@ namespace ClangSharp
         private readonly Dictionary<string, string> _withLibraryPaths;
         private readonly Dictionary<string, string> _withTypes;
         private readonly Dictionary<string, IReadOnlyList<string>> _withUsings;
-        private readonly PInvokeGeneratorConfigurationOptions _options;
+
+        private PInvokeGeneratorConfigurationOptions _options;
 
         public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorOutputMode outputMode = PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
         {
@@ -147,7 +148,25 @@ namespace ClangSharp
 
         public bool GenerateMacroBindings => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMacroBindings);
 
-        public bool ExcludeFnptrCodegen => GenerateCompatibleCode || _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeFnptrCodegen);
+        public bool ExcludeFnptrCodegen
+        {
+            get
+            {
+                return GenerateCompatibleCode || _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeFnptrCodegen);
+            }
+
+            set
+            {
+                if (value)
+                {
+                    _options |= PInvokeGeneratorConfigurationOptions.ExcludeFnptrCodegen;
+                }
+                else
+                {
+                    _options &= ~PInvokeGeneratorConfigurationOptions.ExcludeFnptrCodegen;
+                }
+            }
+        }
 
         public bool ExcludeNIntCodegen => GenerateCompatibleCode || _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeNIntCodegen);
 

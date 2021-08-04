@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Abstractions;
@@ -780,51 +781,145 @@ namespace ClangSharp
             return types.ToArray();
         }
 
-        private CallingConvention GetCallingConvention(Cursor cursor, CXCallingConv callingConvention, string remappedName)
+        private CallingConvention GetCallingConvention(Cursor cursor, Cursor context, Type type)
         {
+            if (cursor is NamedDecl namedDecl)
+            {
+                var remappedName = GetRemappedCursorName(namedDecl);
+
+                if (_config.WithCallConvs.TryGetValue(remappedName, out var callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
+                {
+                    if (Enum.TryParse<CallingConvention>(callConv, true, out var remappedCallingConvention))
+                    {
+                        return remappedCallingConvention;
+                    }
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported manually-specified calling convention: '{callConv}'. Determining convention from cursor.", cursor);
+                }
+            }
+
+            var wasRemapped = false;
+            return GetCallingConvention(cursor, context, type, ref wasRemapped);
+        }
+
+        private CallingConvention GetCallingConvention(Cursor cursor, Cursor context, Type type, ref bool wasRemapped)
+        {
+            var remappedName = GetRemappedTypeName(cursor, context, type, out _, skipUsing: true);
+
             if (_config.WithCallConvs.TryGetValue(remappedName, out var callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
             {
-                if (Enum.TryParse(callConv, true, out CallingConvention callConvEnum))
+                if (Enum.TryParse<CallingConvention>(callConv, true, out var remappedCallingConvention))
                 {
-                    return callConvEnum;
+                    wasRemapped = true;
+                    return remappedCallingConvention;
                 }
-
                 AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported manually-specified calling convention: '{callConv}'. Determining convention from cursor.", cursor);
             }
 
-            switch (callingConvention)
+            if (type is AttributedType attributedType)
             {
-                case CXCallingConv.CXCallingConv_C:
+                var callingConvention = GetCallingConvention(cursor, context, attributedType.ModifiedType, ref wasRemapped);
+
+                if (wasRemapped)
                 {
-                    return CallingConvention.Cdecl;
+                    return callingConvention;
                 }
 
-                case CXCallingConv.CXCallingConv_X86StdCall:
+                switch (attributedType.AttrKind)
                 {
-                    return CallingConvention.StdCall;
-                }
+                    case CX_AttrKind.CX_AttrKind_MSABI:
+                    case CX_AttrKind.CX_AttrKind_SysVABI:
+                    {
+                        return CallingConvention.Winapi;
+                    }
 
-                case CXCallingConv.CXCallingConv_X86FastCall:
-                {
-                    return CallingConvention.FastCall;
-                }
+                    case CX_AttrKind.CX_AttrKind_CDecl:
+                    {
+                        return CallingConvention.Cdecl;
+                    }
 
-                case CXCallingConv.CXCallingConv_X86ThisCall:
-                {
-                    return CallingConvention.ThisCall;
-                }
+                    case CX_AttrKind.CX_AttrKind_FastCall:
+                    {
+                        return CallingConvention.FastCall;
+                    }
 
-                case CXCallingConv.CXCallingConv_Win64:
-                {
-                    return CallingConvention.Winapi;
-                }
+                    case CX_AttrKind.CX_AttrKind_StdCall:
+                    {
+                        return CallingConvention.StdCall;
+                    }
 
-                default:
-                {
-                    const CallingConvention Name = CallingConvention.Winapi;
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported calling convention: '{callingConvention}'. Falling back to '{Name}'.", cursor);
-                    return Name;
+                    case CX_AttrKind.CX_AttrKind_ThisCall:
+                    {
+                        return CallingConvention.ThisCall;
+                    }
+
+                    case CX_AttrKind.CX_AttrKind_AArch64VectorPcs:
+                    case CX_AttrKind.CX_AttrKind_Pcs:
+                    case CX_AttrKind.CX_AttrKind_PreserveAll:
+                    case CX_AttrKind.CX_AttrKind_PreserveMost:
+                    case CX_AttrKind.CX_AttrKind_RegCall:
+                    case CX_AttrKind.CX_AttrKind_VectorCall:
+                    {
+                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported calling convention: '{attributedType.AttrKind}'.", cursor);
+                        return callingConvention;
+                    }
+
+                    default:
+                    {
+                        return callingConvention;
+                    }
                 }
+            }
+            else if (type is FunctionType functionType)
+            {
+                var callingConv = functionType.CallConv;
+
+                switch (callingConv)
+                {
+                    case CXCallingConv.CXCallingConv_C:
+                    {
+                        return CallingConvention.Cdecl;
+                    }
+
+                    case CXCallingConv.CXCallingConv_X86StdCall:
+                    {
+                        return CallingConvention.StdCall;
+                    }
+
+                    case CXCallingConv.CXCallingConv_X86FastCall:
+                    {
+                        return CallingConvention.FastCall;
+                    }
+
+                    case CXCallingConv.CXCallingConv_X86ThisCall:
+                    {
+                        return CallingConvention.ThisCall;
+                    }
+
+                    case CXCallingConv.CXCallingConv_Win64:
+                    {
+                        return CallingConvention.Winapi;
+                    }
+
+                    default:
+                    {
+                        const CallingConvention Name = CallingConvention.Winapi;
+                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported calling convention: '{callingConv}'. Falling back to '{Name}'.", cursor);
+                        return Name;
+                    }
+                }
+            }
+            else if (type is PointerType pointerType)
+            {
+                return GetCallingConvention(cursor, context, pointerType.PointeeType, ref wasRemapped);
+            }
+            else if (type is TypedefType typedefType)
+            {
+                return GetCallingConvention(cursor, context, typedefType.Decl.UnderlyingType, ref wasRemapped);
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Falling back to canonical type.", cursor);
+                return GetCallingConvention(cursor, context, type.CanonicalType, ref wasRemapped);
             }
         }
 
@@ -1152,18 +1247,18 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped)
+        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
         {
             if (_config.RemappedNames.TryGetValue(name, out var remappedName))
             {
                 wasRemapped = true;
-                return AddUsingDirectiveIfNeeded(remappedName);
+                return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
 
             if (name.StartsWith("const ") && _config.RemappedNames.TryGetValue(name[6..], out remappedName))
             {
                 wasRemapped = true;
-                return AddUsingDirectiveIfNeeded(remappedName);
+                return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
 
             remappedName = name;
@@ -1171,27 +1266,27 @@ namespace ClangSharp
             if ((cursor is FunctionDecl functionDecl) && tryRemapOperatorName && TryRemapOperatorName(ref remappedName, functionDecl))
             {
                 wasRemapped = true;
-                return AddUsingDirectiveIfNeeded(remappedName);
+                return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
 
             wasRemapped = false;
-            return AddUsingDirectiveIfNeeded(remappedName);
+            return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
 
-            string AddUsingDirectiveIfNeeded(string remappedName)
+            static string AddUsingDirectiveIfNeeded(IOutputBuilder outputBuilder, string remappedName, bool skipUsing)
             {
-                if (remappedName.Equals("Guid") || remappedName.Equals("IntPtr") || remappedName.Equals("UIntPtr"))
+                if (!skipUsing && (remappedName.Equals("Guid") || remappedName.Equals("IntPtr") || remappedName.Equals("UIntPtr")))
                 {
-                    _outputBuilder?.EmitSystemSupport();
+                    outputBuilder?.EmitSystemSupport();
                 }
 
                 return remappedName;
             }
         }
 
-        private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
+        private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName, bool skipUsing = false)
         {
             var name = GetTypeName(cursor, context, type, out nativeTypeName);
-            var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
+            var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing);
 
             if (!wasRemapped)
             {
@@ -1301,12 +1396,17 @@ namespace ClangSharp
 
         private string GetTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
+            return GetTypeName(cursor, context, type, type, out nativeTypeName);
+        }
+
+        private string GetTypeName(Cursor cursor, Cursor context, Type rootType, Type type, out string nativeTypeName)
+        {
             var name = type.AsString.Replace('\\', '/');
             nativeTypeName = name;
 
             if (type is ArrayType arrayType)
             {
-                name = GetTypeName(cursor, context, arrayType.ElementType, out _);
+                name = GetTypeName(cursor, context, rootType, arrayType.ElementType, out _);
 
                 if (cursor is FunctionDecl or ParmVarDecl)
                 {
@@ -1316,7 +1416,7 @@ namespace ClangSharp
             }
             else if (type is AttributedType attributedType)
             {
-                name = GetTypeName(cursor, context, attributedType.ModifiedType, out _);
+                name = GetTypeName(cursor, context, rootType, attributedType.ModifiedType, out _);
             }
             else if (type is BuiltinType)
             {
@@ -1450,13 +1550,13 @@ namespace ClangSharp
             }
             else if (type is DeducedType deducedType)
             {
-                name = GetTypeName(cursor, context, deducedType.CanonicalType, out _);
+                name = GetTypeName(cursor, context, rootType, deducedType.CanonicalType, out _);
             }
             else if (type is DependentNameType dependentNameType)
             {
                 if (dependentNameType.IsSugared)
                 {
-                    name = GetTypeName(cursor, context, dependentNameType.Desugar, out _);
+                    name = GetTypeName(cursor, context, rootType, dependentNameType.Desugar, out _);
                 }
                 else
                 {
@@ -1465,31 +1565,31 @@ namespace ClangSharp
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                name = GetTypeName(cursor, context, elaboratedType.NamedType, out _);
+                name = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, out _);
             }
             else if (type is FunctionType functionType)
             {
-                name = GetTypeNameForPointeeType(cursor, context, functionType, out _);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, functionType, out _);
             }
             else if (type is InjectedClassNameType injectedClassNameType)
             {
-                name = GetTypeName(cursor, context, injectedClassNameType.InjectedTST, out _);
+                name = GetTypeName(cursor, context, rootType, injectedClassNameType.InjectedTST, out _);
             }
             else if (type is PackExpansionType packExpansionType)
             {
-                name = GetTypeName(cursor, context, packExpansionType.Pattern, out _);
+                name = GetTypeName(cursor, context, rootType, packExpansionType.Pattern, out _);
             }
             else if (type is PointerType pointerType)
             {
-                name = GetTypeNameForPointeeType(cursor, context, pointerType.PointeeType, out _);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, pointerType.PointeeType, out _);
             }
             else if (type is ReferenceType referenceType)
             {
-                name = GetTypeNameForPointeeType(cursor, context, referenceType.PointeeType, out _);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, referenceType.PointeeType, out _);
             }
             else if (type is SubstTemplateTypeParmType substTemplateTypeParmType)
             {
-                name = GetTypeName(cursor, context, substTemplateTypeParmType.ReplacementType, out _);
+                name = GetTypeName(cursor, context, rootType, substTemplateTypeParmType.ReplacementType, out _);
             }
             else if (type is TagType tagType)
             {
@@ -1499,7 +1599,7 @@ namespace ClangSharp
                 }
                 else if (tagType.Handle.IsConstQualified)
                 {
-                    name = GetTypeName(cursor, context, tagType.Decl.TypeForDecl, out _);
+                    name = GetTypeName(cursor, context, rootType, tagType.Decl.TypeForDecl, out _);
                 }
                 else
                 {
@@ -1598,7 +1698,7 @@ namespace ClangSharp
             {
                 if (templateTypeParmType.IsSugared)
                 {
-                    name = GetTypeName(cursor, context, templateTypeParmType.Desugar, out _);
+                    name = GetTypeName(cursor, context, rootType, templateTypeParmType.Desugar, out _);
                 }
                 else
                 {
@@ -1612,7 +1712,7 @@ namespace ClangSharp
                 // platform size, based on whatever parameters were passed into clang.
 
                 var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
-                name = wasRemapped ? remappedName : GetTypeName(cursor, context, typedefType.Decl.UnderlyingType, out _);
+                name = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, out _);
             }
             else
             {
@@ -1629,25 +1729,26 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetTypeNameForPointeeType(Cursor cursor, Cursor context, Type pointeeType, out string nativePointeeTypeName)
+        private string GetTypeNameForPointeeType(Cursor cursor, Cursor context, Type rootType, Type pointeeType, out string nativePointeeTypeName)
         {
             var name = pointeeType.AsString;
             nativePointeeTypeName = name;
 
             if (pointeeType is AttributedType attributedType)
             {
-                name = GetTypeNameForPointeeType(cursor, context, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, out var nativeModifiedTypeName);
             }
             else if (pointeeType is ElaboratedType elaboratedType)
             {
-                name = GetTypeNameForPointeeType(cursor, context, elaboratedType.NamedType, out var nativeNamedTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, out var nativeNamedTypeName);
             }
             else if (pointeeType is FunctionType functionType)
             {
                 if (!_config.ExcludeFnptrCodegen && (functionType is FunctionProtoType functionProtoType))
                 {
-                    var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
-                    var callConv = GetCallingConvention(cursor, functionType.CallConv, remappedName);
+                    _config.ExcludeFnptrCodegen = true;
+                    var callConv = GetCallingConvention(cursor, context, rootType);
+                    _config.ExcludeFnptrCodegen = false;
 
                     var needsReturnFixup = false;
                     var returnTypeName = GetRemappedTypeName(cursor, context: null, functionType.ReturnType, out _);
@@ -1756,7 +1857,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    name = GetTypeNameForPointeeType(cursor, context, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
+                    name = GetTypeNameForPointeeType(cursor, context, rootType, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
                 }
             }
             else

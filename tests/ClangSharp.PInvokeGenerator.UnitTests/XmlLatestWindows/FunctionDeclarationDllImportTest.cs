@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace ClangSharp.UnitTests
@@ -9,7 +10,7 @@ namespace ClangSharp.UnitTests
     {
         public override Task BasicTest()
         {
-            var inputContents = @"void MyFunction();";
+            var inputContents = @"extern ""C"" void MyFunction();";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -28,7 +29,7 @@ namespace ClangSharp.UnitTests
 
         public override Task ArrayParameterTest()
         {
-            var inputContents = @"void MyFunction(const float color[4]);";
+            var inputContents = @"extern ""C"" void MyFunction(const float color[4]);";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -50,7 +51,7 @@ namespace ClangSharp.UnitTests
 
         public override Task FunctionPointerParameterTest()
         {
-            var inputContents = @"void MyFunction(void (*callback)());";
+            var inputContents = @"extern ""C"" void MyFunction(void (*callback)());";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -70,11 +71,40 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task NamespaceTest()
+        {
+            var inputContents = @"namespace MyNamespace
+{
+    void MyFunction();
+}";
+
+            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN11MyNamespace10MyFunctionEv" : "_ZN11MyNamespace10MyFunctionEv";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                entryPoint = "?MyFunction@MyNamespace@@YAXXZ";
+            }
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <function name=""MyFunction"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""Cdecl"" entrypoint=""{entryPoint}"" static=""true"">
+        <type>void</type>
+      </function>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         public override Task TemplateParameterTest(string nativeType, bool expectedNativeTypeAttr, string expectedManagedType, string expectedUsingStatement)
         {
             var inputContents = @$"template <typename T> struct MyTemplate;
 
-void MyFunction(MyTemplate<{nativeType}> myStruct);";
+extern ""C"" void MyFunction(MyTemplate<{nativeType}> myStruct);";
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -123,7 +153,7 @@ struct MyStruct
 
         public override Task NoLibraryPathTest()
         {
-            var inputContents = @"void MyFunction();";
+            var inputContents = @"extern ""C"" void MyFunction();";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -142,7 +172,7 @@ struct MyStruct
 
         public override Task WithLibraryPathTest()
         {
-            var inputContents = @"void MyFunction();";
+            var inputContents = @"extern ""C"" void MyFunction();";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -165,7 +195,7 @@ struct MyStruct
 
         public override Task WithLibraryPathStarTest()
         {
-            var inputContents = @"void MyFunction();";
+            var inputContents = @"extern ""C"" void MyFunction();";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -188,7 +218,7 @@ struct MyStruct
 
         public override Task OptionalParameterTest(string nativeType, string nativeInit, bool expectedNativeTypeNameAttr, string expectedManagedType, string expectedManagedInit)
         {
-            var inputContents = $@"void MyFunction({nativeType} value = {nativeInit});";
+            var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -213,7 +243,7 @@ struct MyStruct
 
         public override Task OptionalParameterUnsafeTest(string nativeType, string nativeInit, string expectedManagedType, string expectedManagedInit)
         {
-            var inputContents = $@"void MyFunction({nativeType} value = {nativeInit});";
+            var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -238,7 +268,7 @@ struct MyStruct
 
         public override Task WithCallConvTest()
         {
-            var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
+            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -269,7 +299,7 @@ struct MyStruct
 
         public override Task WithCallConvStarTest()
         {
-            var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
+            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -301,7 +331,7 @@ struct MyStruct
 
         public override Task WithCallConvStarOverrideTest()
         {
-            var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
+            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -334,7 +364,7 @@ struct MyStruct
 
         public override Task WithSetLastErrorTest()
         {
-            var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
+            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -366,7 +396,7 @@ struct MyStruct
 
         public override Task WithSetLastErrorStarTest()
         {
-            var inputContents = @"void MyFunction1(int value); void MyFunction2(int value);";
+            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -398,7 +428,7 @@ struct MyStruct
 
         public override Task SourceLocationTest()
         {
-            const string InputContents = @"void MyFunction(float value);";
+            const string InputContents = @"extern ""C"" void MyFunction(float value);";
 
             const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>

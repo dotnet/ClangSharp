@@ -30,6 +30,30 @@ struct MyStruct {
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task CallconvTest()
+        {
+            var inputContents = @"typedef void (*Callback)() __attribute__((stdcall));
+
+struct MyStruct {
+    Callback _callback;
+};
+";
+
+            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+      <field name=""_callback"" access=""public"">
+        <type native=""Callback"">delegate* unmanaged[Stdcall]&lt;void&gt;</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         public override Task PointerlessTypedefTest()
         {
             var inputContents = @"typedef void (Callback)();

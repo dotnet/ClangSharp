@@ -11,6 +11,9 @@ namespace ClangSharp.UnitTests
         public abstract Task BasicTest();
 
         [Fact]
+        public abstract Task CallconvTest();
+
+        [Fact]
         public abstract Task PointerlessTypedefTest();
     }
 }

@@ -452,27 +452,15 @@ namespace ClangSharp
             }
 
             var type = functionDecl.Type;
-            var callConv = CXCallingConv.CXCallingConv_Invalid;
+            var callingConventionName = GetCallingConvention(functionDecl, cxxRecordDecl, type);
 
-            if (type is AttributedType attributedType)
-            {
-                type = attributedType.ModifiedType;
-                callConv = attributedType.Handle.FunctionTypeCallingConv;
-            }
-
-            if (type is FunctionType functionType)
-            {
-                if (callConv == CXCallingConv.CXCallingConv_Invalid)
-                {
-                    callConv = functionType.CallConv;
-                }
-            }
-
-            var callingConventionName = GetCallingConvention(functionDecl, callConv, name);
-            var entryPoint = !isVirtual && body is null
-                ? (cxxMethodDecl is null) ? GetCursorName(functionDecl) : cxxMethodDecl.Handle.Mangling.CString
-                : null;
             var isDllImport = body is null && !isVirtual;
+            var entryPoint = isDllImport ? functionDecl.Handle.Mangling.CString : null;
+
+            if (entryPoint == $"_{functionDecl.Name}")
+            {
+                entryPoint = functionDecl.Name;
+            }
 
             var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
 
@@ -2435,14 +2423,10 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(typedefDecl);
                 var escapedName = EscapeName(name);
 
-                    var callingConventionName = GetCallingConvention(typedefDecl,
-                        (parentType is AttributedType)
-                            ? parentType.Handle.FunctionTypeCallingConv
-                            : functionProtoType.CallConv, name);
+                var callingConventionName = GetCallingConvention(typedefDecl, context: null, typedefDecl.TypeForDecl);
 
-                    var returnType = functionProtoType.ReturnType;
-                    var returnTypeName =
-                        GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
+                var returnType = functionProtoType.ReturnType;
+                var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
 
                 StartUsingOutputBuilder(name);
                 {
