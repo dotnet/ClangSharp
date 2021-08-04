@@ -248,15 +248,16 @@ namespace ClangSharp.XML
                 _ = _sb.Append(" unsafe=\"true\"");
             }
 
-            if (info.LayoutAttribute is { } attribute)
+            if (info.LayoutAttribute is not null)
             {
                 _ = _sb.Append(" layout=\"");
-                _ = _sb.Append(attribute.Value);
+                _ = _sb.Append(info.LayoutAttribute.Value);
                 _ = _sb.Append('"');
-                if (attribute.Pack != default)
+
+                if (info.LayoutAttribute.Pack != 0)
                 {
                     _ = _sb.Append(" pack=\"");
-                    _ = _sb.Append(attribute.Pack);
+                    _ = _sb.Append(info.LayoutAttribute.Pack);
                     _ = _sb.Append('"');
                 }
             }

@@ -455,11 +455,11 @@ namespace ClangSharp
             var callingConventionName = GetCallingConvention(functionDecl, cxxRecordDecl, type);
 
             var isDllImport = body is null && !isVirtual;
-            var entryPoint = isDllImport ? functionDecl.Handle.Mangling.CString : null;
+            var entryPoint = "";
 
-            if (entryPoint == $"_{functionDecl.Name}")
+            if (isDllImport)
             {
-                entryPoint = functionDecl.Name;
+                entryPoint = functionDecl.IsExternC ? GetCursorName(functionDecl) : functionDecl.Handle.Mangling.CString;
             }
 
             var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
@@ -1151,7 +1151,7 @@ namespace ClangSharp
                         Alignment64 = alignment64,
                         Size32 = size32,
                         Size64 = size64,
-                        Pack = alignment,
+                        Pack = recordDecl.HasAttrs && recordDecl.Attrs.Any((attr) => attr.Kind == CX_AttrKind.CX_AttrKind_MaxFieldAlignment) && ((alignment != alignment32) || (alignment != alignment64)) ? alignment : 0,
                         MaxFieldAlignment = maxAlignm,
                         Kind = layoutKind
                     },
@@ -2201,7 +2201,7 @@ namespace ClangSharp
                         Alignment64 = alignment64,
                         Size32 = size32,
                         Size64 = size64,
-                        Pack = alignment,
+                        Pack = recordDecl.HasAttrs && recordDecl.Attrs.Any((attr) => attr.Kind == CX_AttrKind.CX_AttrKind_MaxFieldAlignment) && ((alignment != alignment32) || (alignment != alignment64)) ? alignment : 0,
                         MaxFieldAlignment = maxAlignm,
                         Kind = LayoutKind.Sequential
                     },

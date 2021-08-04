@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace ClangSharp.UnitTests
 {
@@ -1303,6 +1304,59 @@ namespace ClangSharp.Test
 }}
 ";
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task PackTest()
+        {
+            const string InputContents = @"struct MyStruct1 {
+    unsigned Field1;
+
+    void* Field2;
+
+    unsigned Field3;
+};
+
+#pragma pack(4)
+
+struct MyStruct2 {
+    unsigned Field1;
+
+    void* Field2;
+
+    unsigned Field3;
+};
+";
+
+            const string ExpectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public unsafe partial struct MyStruct1
+    {
+        [NativeTypeName(""unsigned int"")]
+        public uint Field1;
+
+        public void* Field2;
+
+        [NativeTypeName(""unsigned int"")]
+        public uint Field3;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public unsafe partial struct MyStruct2
+    {
+        [NativeTypeName(""unsigned int"")]
+        public uint Field1;
+
+        public void* Field2;
+
+        [NativeTypeName(""unsigned int"")]
+        public uint Field3;
+    }
+}
+";
+
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents);
         }
 
         public override Task PointerToSelfTest()

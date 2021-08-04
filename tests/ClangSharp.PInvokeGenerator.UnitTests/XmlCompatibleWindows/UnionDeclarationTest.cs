@@ -128,12 +128,10 @@ union MyUnion3
 };
 ";
 
-            var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @" pack=""1""" : "";
-
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyUnion1"" access=""public"" layout=""Explicit""{expectedPack}>
+    <struct name=""MyUnion1"" access=""public"" layout=""Explicit"">
       <field name=""_bitfield1"" access=""public"" offset=""0"">
         <type>uint</type>
       </field>
@@ -248,7 +246,7 @@ union MyUnion3
         </set>
       </field>
     </struct>
-    <struct name=""MyUnion3"" access=""public"" layout=""Explicit""{expectedPack}>
+    <struct name=""MyUnion3"" access=""public"" layout=""Explicit"">
       <field name=""_bitfield"" access=""public"" offset=""0"">
         <type>uint</type>
       </field>

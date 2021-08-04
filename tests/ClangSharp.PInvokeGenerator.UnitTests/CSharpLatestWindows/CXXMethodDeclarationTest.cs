@@ -164,14 +164,12 @@ namespace ClangSharp.UnitTests
     }
 };
 ";
-            var callConv = "Cdecl";
             var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN8MyStruct12MyVoidMethodEv" : "_ZN8MyStruct12MyVoidMethodEv";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (!Environment.Is64BitProcess)
                 {
-                    callConv = "ThisCall";
                     entryPoint = "?MyVoidMethod@MyStruct@@QAEXXZ";
                 }
                 else
@@ -186,7 +184,7 @@ namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
-        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.{callConv}, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
         public static extern void MyVoidMethod();
 
         public int MyInt32Method()
@@ -417,13 +415,6 @@ int MyFunctionB(MyStruct* x)
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "Thiscall";
-            }
-
             var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
@@ -434,17 +425,17 @@ namespace ClangSharp.Test
 
         public int GetType(int obj)
         {{
-            return ((delegate* unmanaged[{callConv}]<MyStruct*, int, int>)(lpVtbl[{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}]))((MyStruct*)Unsafe.AsPointer(ref this), obj);
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, int, int>)(lpVtbl[{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}]))((MyStruct*)Unsafe.AsPointer(ref this), obj);
         }}
 
         public new int GetType()
         {{
-            return ((delegate* unmanaged[{callConv}]<MyStruct*, int>)(lpVtbl[1]))((MyStruct*)Unsafe.AsPointer(ref this));
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, int>)(lpVtbl[1]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
         public int GetType(int objA, int objB)
         {{
-            return ((delegate* unmanaged[{callConv}]<MyStruct*, int, int, int>)(lpVtbl[{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}]))((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, int, int, int>)(lpVtbl[{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}]))((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
         }}
     }}
 }}
@@ -462,12 +453,10 @@ namespace ClangSharp.Test
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var callConv = "Cdecl";
             var nativeCallConv = "";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
             {
-                callConv = "Thiscall";
                 nativeCallConv = " __attribute__((thiscall))";
             }
 
@@ -497,13 +486,13 @@ namespace ClangSharp.Test
         public partial struct Vtbl
         {{
             [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}{nativeCallConv}"")]
-            public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "new ")}delegate* unmanaged[{callConv}]<MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", int" : "")}> GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")};
+            public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "new ")}delegate* unmanaged[Thiscall]<MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", int" : "")}> GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")};
 
             [NativeTypeName(""int (){nativeCallConv}"")]
-            public delegate* unmanaged[{callConv}]<MyStruct*, int> GetType1;
+            public delegate* unmanaged[Thiscall]<MyStruct*, int> GetType1;
 
             [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}{nativeCallConv}"")]
-            public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "new " : "")}delegate* unmanaged[{callConv}]<MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : ", int")}> GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")};
+            public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "new " : "")}delegate* unmanaged[Thiscall]<MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : ", int")}> GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")};
         }}
     }}
 }}
@@ -768,13 +757,6 @@ namespace ClangSharp.Test
 };
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "Thiscall";
-            }
-
             var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
@@ -785,23 +767,23 @@ namespace ClangSharp.Test
 
         public void MyVoidMethod()
         {{
-            ((delegate* unmanaged[{callConv}]<MyStruct*, void>)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this));
+            ((delegate* unmanaged[Thiscall]<MyStruct*, void>)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
         [return: NativeTypeName(""char"")]
         public sbyte MyInt8Method()
         {{
-            return ((delegate* unmanaged[{callConv}]<MyStruct*, sbyte>)(lpVtbl[1]))((MyStruct*)Unsafe.AsPointer(ref this));
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, sbyte>)(lpVtbl[1]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
         public int MyInt32Method()
         {{
-            return ((delegate* unmanaged[{callConv}]<MyStruct*, int>)(lpVtbl[2]))((MyStruct*)Unsafe.AsPointer(ref this));
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, int>)(lpVtbl[2]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
         public void* MyVoidStarMethod()
         {{
-            return ((delegate* unmanaged[{callConv}]<MyStruct*, void*>)(lpVtbl[3]))((MyStruct*)Unsafe.AsPointer(ref this));
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, void*>)(lpVtbl[3]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
     }}
 }}
@@ -827,13 +809,6 @@ namespace ClangSharp.Test
 };
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "Thiscall";
-            }
-
             var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
@@ -845,26 +820,26 @@ namespace ClangSharp.Test
         [VtblIndex(0)]
         public void MyVoidMethod()
         {{
-            ((delegate* unmanaged[{callConv}]<MyStruct*, void>)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this));
+            ((delegate* unmanaged[Thiscall]<MyStruct*, void>)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
         [VtblIndex(1)]
         [return: NativeTypeName(""char"")]
         public sbyte MyInt8Method()
         {{
-            return ((delegate* unmanaged[{callConv}]<MyStruct*, sbyte>)(lpVtbl[1]))((MyStruct*)Unsafe.AsPointer(ref this));
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, sbyte>)(lpVtbl[1]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
         [VtblIndex(2)]
         public int MyInt32Method()
         {{
-            return ((delegate* unmanaged[{callConv}]<MyStruct*, int>)(lpVtbl[2]))((MyStruct*)Unsafe.AsPointer(ref this));
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, int>)(lpVtbl[2]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
         [VtblIndex(3)]
         public void* MyVoidStarMethod()
         {{
-            return ((delegate* unmanaged[{callConv}]<MyStruct*, void*>)(lpVtbl[3]))((MyStruct*)Unsafe.AsPointer(ref this));
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, void*>)(lpVtbl[3]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
     }}
 }}

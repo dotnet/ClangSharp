@@ -578,13 +578,6 @@ MyStructB* MyFunction(MyStructA* input)
 }
 ";
 
-            var callConv = "Cdecl";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                callConv = "ThisCall";
-            }
-
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
@@ -592,7 +585,7 @@ MyStructB* MyFunction(MyStructA* input)
       <field name=""lpVtbl"" access=""public"">
         <type>void**</type>
       </field>
-      <delegate name=""_MyMethod"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_MyMethod"" access=""public"" convention=""ThisCall"">
         <type>void</type>
         <param name=""pThis"">
           <type>MyStructA*</type>
@@ -612,7 +605,7 @@ MyStructB* MyFunction(MyStructA* input)
       <field name=""lpVtbl"" access=""public"">
         <type>void**</type>
       </field>
-      <delegate name=""_MyMethod"" access=""public"" convention=""{callConv}"">
+      <delegate name=""_MyMethod"" access=""public"" convention=""ThisCall"">
         <type>void</type>
         <param name=""pThis"">
           <type>MyStructB*</type>

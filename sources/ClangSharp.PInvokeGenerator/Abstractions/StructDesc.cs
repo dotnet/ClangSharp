@@ -63,9 +63,9 @@ namespace ClangSharp.Abstractions
                 {
                     Debug.Assert(layout.Kind == LayoutKind.Explicit);
 
-                    StructLayoutAttribute attribute = new(layout.Kind);
+                    var attribute = new StructLayoutAttribute(layout.Kind);
 
-                    if (layout.Pack < layout.MaxFieldAlignment)
+                    if (layout.Pack != 0)
                     {
                         attribute.Pack = (int)layout.Pack;
                     }
@@ -73,9 +73,11 @@ namespace ClangSharp.Abstractions
                     return attribute;
                 }
 
-                if (layout.Pack < layout.MaxFieldAlignment)
+                if (layout.Pack != 0)
                 {
-                    return new StructLayoutAttribute(layout.Kind) {Pack = (int)layout.Pack};
+                    return new StructLayoutAttribute(layout.Kind) {
+                        Pack = (int)layout.Pack
+                    };
                 }
 
                 return null;
