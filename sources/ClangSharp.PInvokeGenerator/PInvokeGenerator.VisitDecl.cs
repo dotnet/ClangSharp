@@ -457,6 +457,11 @@ namespace ClangSharp
             var isDllImport = body is null && !isVirtual;
             var entryPoint = isDllImport ? functionDecl.Handle.Mangling.CString : null;
 
+            if (entryPoint == $"_{functionDecl.Name}")
+            {
+                entryPoint = functionDecl.Name;
+            }
+
             var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
 
             var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
