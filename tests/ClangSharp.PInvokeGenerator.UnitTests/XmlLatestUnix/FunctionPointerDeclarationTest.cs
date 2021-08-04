@@ -8,9 +8,48 @@ namespace ClangSharp.UnitTests
     {
         public override Task BasicTest()
         {
-            var inputContents = @"typedef void (*Callback)();";
+            var inputContents = @"typedef void (*Callback)();
 
-            var expectedOutputContents = "";
+struct MyStruct {
+    Callback _callback;
+};
+";
+
+            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+      <field name=""_callback"" access=""public"">
+        <type native=""Callback"">delegate* unmanaged[Cdecl]&lt;void&gt;</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task PointerlessTypedefTest()
+        {
+            var inputContents = @"typedef void (Callback)();
+
+struct MyStruct {
+    Callback* _callback;
+};
+";
+
+            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+      <field name=""_callback"" access=""public"">
+        <type native=""Callback *"">delegate* unmanaged[Cdecl]&lt;void&gt;</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>
+";
 
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }

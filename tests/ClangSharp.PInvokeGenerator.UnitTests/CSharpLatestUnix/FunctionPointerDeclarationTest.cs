@@ -8,9 +8,44 @@ namespace ClangSharp.UnitTests
     {
         public override Task BasicTest()
         {
-            var inputContents = @"typedef void (*Callback)();";
+            var inputContents = @"typedef void (*Callback)();
 
-            var expectedOutputContents = "";
+struct MyStruct {
+    Callback _callback;
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public unsafe partial struct MyStruct
+    {
+        [NativeTypeName(""Callback"")]
+        public delegate* unmanaged[Cdecl]<void> _callback;
+    }
+}
+";
+
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task PointerlessTypedefTest()
+        {
+            var inputContents = @"typedef void (Callback)();
+
+struct MyStruct {
+    Callback* _callback;
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public unsafe partial struct MyStruct
+    {
+        [NativeTypeName(""Callback *"")]
+        public delegate* unmanaged[Cdecl]<void> _callback;
+    }
+}
+";
 
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
