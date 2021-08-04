@@ -440,12 +440,23 @@ namespace ClangSharp
                 return -1;
             }
 
-            var clangCommandLineArgs = new string[]
+            string[] clangCommandLineArgs;
+
+            if (string.IsNullOrWhiteSpace(std))
             {
-                $"--language={language}",               // Treat subsequent input files as having type <language>
-                $"--std={std}",                         // Language standard to compile for
-                "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
-            };
+                clangCommandLineArgs = new string[] {
+                    $"--language={language}",               // Treat subsequent input files as having type <language>
+                    "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
+                };
+            }
+            else
+            {
+                clangCommandLineArgs = new string[] {
+                    $"--language={language}",               // Treat subsequent input files as having type <language>
+                    $"--std={std}",                         // Language standard to compile for
+                    "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
+                };
+            }
 
             clangCommandLineArgs = clangCommandLineArgs.Concat(includeDirectories.Select(x => "--include-directory=" + x)).ToArray();
             clangCommandLineArgs = clangCommandLineArgs.Concat(defineMacros.Select(x => "--define-macro=" + x)).ToArray();
@@ -806,7 +817,7 @@ namespace ClangSharp
                 aliases: new string[] { "--std", "-std" },
                 description: "Language standard to compile for.",
                 argumentType: typeof(string),
-                getDefaultValue: () => "c++17",
+                getDefaultValue: () => "",
                 arity: ArgumentArity.ExactlyOne
             );
 

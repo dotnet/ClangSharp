@@ -8,14 +8,54 @@ namespace ClangSharp.UnitTests
     {
         public override Task BasicTest()
         {
-            var inputContents = @"typedef void (*Callback)();";
+            var inputContents = @"typedef void (*Callback)();
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+struct MyStruct {
+    Callback _callback;
+};
+";
+
+            var expectedOutputContents = @"using System;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void Callback();
+
+    public partial struct MyStruct
+    {
+        [NativeTypeName(""Callback"")]
+        public IntPtr _callback;
+    }
+}
+";
+
+            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        public override Task PointerlessTypedefTest()
+        {
+            var inputContents = @"typedef void (Callback)();
+
+struct MyStruct {
+    Callback* _callback;
+};
+";
+
+            var expectedOutputContents = @"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void Callback();
+
+    public partial struct MyStruct
+    {
+        [NativeTypeName(""Callback *"")]
+        public IntPtr _callback;
+    }
 }
 ";
 

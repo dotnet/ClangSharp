@@ -9,5 +9,8 @@ namespace ClangSharp.UnitTests
     {
         [Fact]
         public abstract Task BasicTest();
+
+        [Fact]
+        public abstract Task PointerlessTypedefTest();
     }
 }

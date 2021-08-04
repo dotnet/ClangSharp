@@ -1503,7 +1503,16 @@ namespace ClangSharp
                 }
                 else
                 {
-                    // The default name should be correct
+                    // The default name should be correct for C++, but C may have a prefix we need to strip
+
+                    if (name.StartsWith("enum "))
+                    {
+                        name = name.Substring(5);
+                    }
+                    else if (name.StartsWith("struct "))
+                    {
+                        name = name.Substring(7);
+                    }
                 }
 
                 if (name.Contains("::"))
@@ -1629,6 +1638,10 @@ namespace ClangSharp
             {
                 name = GetTypeNameForPointeeType(cursor, context, attributedType.ModifiedType, out var nativeModifiedTypeName);
             }
+            else if (pointeeType is ElaboratedType elaboratedType)
+            {
+                name = GetTypeNameForPointeeType(cursor, context, elaboratedType.NamedType, out var nativeNamedTypeName);
+            }
             else if (pointeeType is FunctionType functionType)
             {
                 if (!_config.ExcludeFnptrCodegen && (functionType is FunctionProtoType functionProtoType))
@@ -1726,6 +1739,24 @@ namespace ClangSharp
                 else
                 {
                     name = "IntPtr";
+                }
+            }
+            else if (pointeeType is TypedefType typedefType)
+            {
+                // We check remapped names here so that types that have variable sizes
+                // can be treated correctly. Otherwise, they will resolve to a particular
+                // platform size, based on whatever parameters were passed into clang.
+
+                var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
+
+                if (wasRemapped)
+                {
+                    name = remappedName;
+                    name += '*';
+                }
+                else
+                {
+                    name = GetTypeNameForPointeeType(cursor, context, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
                 }
             }
             else
@@ -2983,7 +3014,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_ObjCSelectorExpr:
                 // case CX_StmtClass.CX_StmtClass_ObjCStringLiteral:
                 // case CX_StmtClass.CX_StmtClass_ObjCSubscriptRefExpr:
-                // case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+
+                case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_OpaqueValueExpr:
                 // case CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr:
                 // case CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr:

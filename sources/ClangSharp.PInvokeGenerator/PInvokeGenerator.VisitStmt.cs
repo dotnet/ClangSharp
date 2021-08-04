@@ -109,6 +109,11 @@ namespace ClangSharp
                 Visit(callExpr.Callee);
                 VisitArgs(callExpr);
             }
+            else if (calleeDecl is VarDecl)
+            {
+                Visit(callExpr.Callee);
+                VisitArgs(callExpr);
+            }
             else
             {
                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.DeclKindName}'. Generated bindings may be incomplete.", calleeDecl);
@@ -1642,7 +1647,13 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_ObjCSelectorExpr:
                 // case CX_StmtClass.CX_StmtClass_ObjCStringLiteral:
                 // case CX_StmtClass.CX_StmtClass_ObjCSubscriptRefExpr:
-                // case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+
+                case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+                {
+                    VisitOffsetOfExpr((OffsetOfExpr)stmt);
+                    break;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_OpaqueValueExpr:
 
                 case CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr:
@@ -2051,6 +2062,20 @@ namespace ClangSharp
                     break;
                 }
             }
+
+            StopCSharpCode();
+        }
+
+        private void VisitOffsetOfExpr(OffsetOfExpr offsetOfExpr)
+        {
+            var outputBuilder = StartCSharpCode();
+
+            outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+            outputBuilder.Write("Marshal.OffsetOf<");
+            outputBuilder.Write(GetRemappedTypeName(offsetOfExpr, context: null, offsetOfExpr.TypeSourceInfoType, out var _));
+            outputBuilder.Write(">(\"");
+            Visit(offsetOfExpr.Referenced);
+            outputBuilder.Write("\")");
 
             StopCSharpCode();
         }

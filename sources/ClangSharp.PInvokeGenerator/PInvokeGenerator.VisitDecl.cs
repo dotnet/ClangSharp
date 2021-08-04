@@ -124,7 +124,12 @@ namespace ClangSharp
                 // case CX_DeclKind.CX_DeclKind_ClassTemplatePartialSpecialization:
                 // case CX_DeclKind.CX_DeclKind_TemplateTypeParm:
                 // case CX_DeclKind.CX_DeclKind_ObjCTypeParam:
-                // case CX_DeclKind.CX_DeclKind_TypeAlias:
+
+                case CX_DeclKind.CX_DeclKind_TypeAlias:
+                {
+                    VisitTypeAliasDecl((TypeAliasDecl)decl);
+                    break;
+                }
 
                 case CX_DeclKind.CX_DeclKind_Typedef:
                 {
@@ -2411,6 +2416,11 @@ namespace ClangSharp
             Visit(translationUnitDecl.CursorChildren, translationUnitDecl.Decls);
         }
 
+        private void VisitTypeAliasDecl(TypeAliasDecl typeAliasDecl)
+        {
+            // Nothing to generate for type alias declarations
+        }
+
         private void VisitTypedefDecl(TypedefDecl typedefDecl)
         {
             ForUnderlyingType(typedefDecl, typedefDecl.UnderlyingType);
@@ -3083,7 +3093,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_ObjCSelectorExpr:
                 // case CX_StmtClass.CX_StmtClass_ObjCStringLiteral:
                 // case CX_StmtClass.CX_StmtClass_ObjCSubscriptRefExpr:
-                // case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+
+                case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_OpaqueValueExpr:
                 // case CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr:
                 // case CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr:
