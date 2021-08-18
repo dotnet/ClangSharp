@@ -15,7 +15,8 @@
     },
     "GenerateLocal": {
       "commandName": "Project",
-      "commandLineArgs": "-c help"
+      "commandLineArgs": "@generate.rsp",
+      "workingDirectory": "C:\\Users\\tagoo\\Source\\repos\\terrafx.interop.windows\\generation\\um\\dwmapi"
     }
   }
 }

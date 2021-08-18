@@ -1113,8 +1113,7 @@ namespace ClangSharp
                 long alignment32 = -1;
                 long alignment64 = -1;
 
-                GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32,
-                    out var size64);
+                GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32, out var size64);
 
                 string nativeNameWithExtras = null, nativeInheritance = null;
                 if ((cxxRecordDecl != null) && cxxRecordDecl.Bases.Any())
@@ -1151,7 +1150,7 @@ namespace ClangSharp
                         Alignment64 = alignment64,
                         Size32 = size32,
                         Size64 = size64,
-                        Pack = recordDecl.HasAttrs && recordDecl.Attrs.Any((attr) => attr.Kind == CX_AttrKind.CX_AttrKind_MaxFieldAlignment) && ((alignment != alignment32) || (alignment != alignment64)) ? alignment : 0,
+                        Pack = alignment < maxAlignm ? alignment : 0,
                         MaxFieldAlignment = maxAlignm,
                         Kind = layoutKind
                     },
@@ -2183,8 +2182,7 @@ namespace ClangSharp
                 long alignment32 = -1;
                 long alignment64 = -1;
 
-                GetTypeSize(constantArray, constantArray.Type, ref alignment32, ref alignment64, out var size32,
-                    out var size64);
+                GetTypeSize(constantArray, constantArray.Type, ref alignment32, ref alignment64, out var size32, out var size64);
 
                 if ((size32 == 0 || size64 == 0) && _testOutputBuilder != null)
                 {
@@ -2201,7 +2199,7 @@ namespace ClangSharp
                         Alignment64 = alignment64,
                         Size32 = size32,
                         Size64 = size64,
-                        Pack = recordDecl.HasAttrs && recordDecl.Attrs.Any((attr) => attr.Kind == CX_AttrKind.CX_AttrKind_MaxFieldAlignment) && ((alignment != alignment32) || (alignment != alignment64)) ? alignment : 0,
+                        Pack = alignment < maxAlignm ? alignment : 0,
                         MaxFieldAlignment = maxAlignm,
                         Kind = LayoutKind.Sequential
                     },
@@ -3136,8 +3134,7 @@ namespace ClangSharp
                     long alignment32 = -1;
                     long alignment64 = -1;
 
-                    GetTypeSize(unaryExprOrTypeTraitExpr, argumentType, ref alignment32, ref alignment64, out var size32,
-                        out var size64);
+                    GetTypeSize(unaryExprOrTypeTraitExpr, argumentType, ref alignment32, ref alignment64, out var size32, out var size64);
 
                     switch (unaryExprOrTypeTraitExpr.Kind)
                     {
