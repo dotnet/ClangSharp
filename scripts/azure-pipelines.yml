@@ -31,6 +31,14 @@ jobs:
 
 - template: azure-windows.yml
   parameters:
+    name: windows_release_x64
+    pool: windows-latest
+    configuration: Release
+    architecture: x64
+    testwin32metadata: false
+
+- template: azure-windows.yml
+  parameters:
     name: test_win32metadata
     pool: windows-latest
     configuration: Release
