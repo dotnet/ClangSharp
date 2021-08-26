@@ -1285,7 +1285,9 @@ struct MyStruct2 {
 };
 ";
 
-            const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+            var packing = Environment.Is64BitProcess ? " layout=\"Sequential\" pack=\"4\"" : string.Empty;
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct1"" access=""public"" unsafe=""true"">
@@ -1299,7 +1301,7 @@ struct MyStruct2 {
         <type native=""unsigned int"">uint</type>
       </field>
     </struct>
-    <struct name=""MyStruct2"" access=""public"" unsafe=""true"" layout=""Sequential"" pack=""4"">
+    <struct name=""MyStruct2"" access=""public"" unsafe=""true""{packing}>
       <field name=""Field1"" access=""public"">
         <type native=""unsigned int"">uint</type>
       </field>
@@ -1314,7 +1316,7 @@ struct MyStruct2 {
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, ExpectedOutputContents);
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, expectedOutputContents);
         }
 
         public override Task PointerToSelfTest()

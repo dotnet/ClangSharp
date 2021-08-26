@@ -1323,12 +1323,19 @@ struct MyStruct2 {
 };
 ";
 
-            const string ExpectedOutputContents = @"using System.Runtime.InteropServices;
+            var usingStatement = "using System.Runtime.InteropServices;\n\n";
+            var packing = "    [StructLayout(LayoutKind.Sequential, Pack = 4)]\n";
 
-namespace ClangSharp.Test
-{
+            if (!Environment.Is64BitProcess)
+            {
+                usingStatement = string.Empty;
+                packing = string.Empty;
+            }
+
+            var expectedOutputContents = $@"{usingStatement}namespace ClangSharp.Test
+{{
     public unsafe partial struct MyStruct1
-    {
+    {{
         [NativeTypeName(""unsigned int"")]
         public uint Field1;
 
@@ -1336,11 +1343,10 @@ namespace ClangSharp.Test
 
         [NativeTypeName(""unsigned int"")]
         public uint Field3;
-    }
+    }}
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public unsafe partial struct MyStruct2
-    {
+{packing}    public unsafe partial struct MyStruct2
+    {{
         [NativeTypeName(""unsigned int"")]
         public uint Field1;
 
@@ -1348,11 +1354,11 @@ namespace ClangSharp.Test
 
         [NativeTypeName(""unsigned int"")]
         public uint Field3;
-    }
-}
+    }}
+}}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(InputContents, ExpectedOutputContents);
+            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(InputContents, expectedOutputContents);
         }
 
         public override Task PointerToSelfTest()
