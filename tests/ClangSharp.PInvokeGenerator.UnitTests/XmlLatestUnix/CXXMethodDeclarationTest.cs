@@ -140,8 +140,12 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var entryPoint1 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "??0MyStruct@@QEAA@XZ" : "_ZN8MyStructC2Ev";
-            var entryPoint2 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "??0MyStruct@@QEAA@H@Z" : "_ZN8MyStructC2Ei";
+            var entryPoint1 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? (Environment.Is64BitProcess ? "??0MyStruct@@QEAA@XZ" : "??0MyStruct@@QAE@XZ")
+                : "_ZN8MyStructC1Ev";
+            var entryPoint2 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? (Environment.Is64BitProcess ? "??0MyStruct@@QEAA@H@Z" : "??0MyStruct@@QAE@H@Z")
+                : "_ZN8MyStructC1Ei";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
