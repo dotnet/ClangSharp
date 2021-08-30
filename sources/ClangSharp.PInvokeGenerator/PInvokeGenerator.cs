@@ -1273,6 +1273,12 @@ namespace ClangSharp
                 return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
 
+            if (cursor is CXXConstructorDecl constructorDecl && !constructorDecl.HasBody)
+            {
+                wasRemapped = true;
+                return AddUsingDirectiveIfNeeded(_outputBuilder, "Constructor", skipUsing);
+            }
+
             wasRemapped = false;
             return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
 

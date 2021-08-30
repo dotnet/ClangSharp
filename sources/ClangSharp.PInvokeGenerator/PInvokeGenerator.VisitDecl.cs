@@ -463,6 +463,7 @@ namespace ClangSharp
             }
 
             var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
+            var needsThisParameter = isVirtual || (isDllImport && functionDecl is CXXConstructorDecl);
 
             var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
             {
@@ -494,6 +495,7 @@ namespace ClangSharp
                 NeedsReturnFixup = needsReturnFixup,
                 ReturnType = needsReturnFixup ? $"{returnTypeName}*" : returnTypeName,
                 IsCxxConstructor = functionDecl is CXXConstructorDecl,
+                NeedsThisParameter = needsThisParameter,
                 Location = functionDecl.Location
             };
 
@@ -501,7 +503,7 @@ namespace ClangSharp
 
             _outputBuilder.BeginFunctionInnerPrototype(escapedName);
 
-            if (isVirtual)
+            if (needsThisParameter)
             {
                 Debug.Assert(cxxRecordDecl != null);
 
@@ -512,8 +514,7 @@ namespace ClangSharp
 
                 var cxxRecordDeclName = GetRemappedCursorName(thisCursor);
                 var cxxRecordEscapedName = EscapeName(cxxRecordDeclName);
-                ParameterDesc<(string Name, PInvokeGenerator This)> parameterDesc = new()
-                {
+                ParameterDesc<(string Name, PInvokeGenerator This)> parameterDesc = new() {
                     Name = "pThis",
                     Type = $"{cxxRecordEscapedName}*",
                     WriteCustomAttrs = static x => { },
@@ -522,11 +523,14 @@ namespace ClangSharp
 
                 _outputBuilder.BeginParameter(in parameterDesc);
                 _outputBuilder.EndParameter();
+            }
 
+            if (isVirtual)
+            {
                 if (needsReturnFixup)
                 {
                     _outputBuilder.WriteParameterSeparator();
-                    parameterDesc = new()
+                    ParameterDesc<(string Name, PInvokeGenerator This)> parameterDesc = new()
                     {
                         Name = "_result",
                         Type = $"{returnTypeName}*",

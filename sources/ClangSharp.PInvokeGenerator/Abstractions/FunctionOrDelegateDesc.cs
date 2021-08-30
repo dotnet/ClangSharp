@@ -214,6 +214,14 @@ namespace ClangSharp.Abstractions
                 : Flags & ~FunctionOrDelegateFlags.IsCxxConstructor;
         }
 
+        public bool NeedsThisParameter
+        {
+            get => (Flags & FunctionOrDelegateFlags.NeedsThisParameter) != 0;
+            set => Flags = value
+                ? Flags | FunctionOrDelegateFlags.NeedsThisParameter
+                : Flags & ~FunctionOrDelegateFlags.NeedsThisParameter;
+        }
+
         public Action<TCustomAttrGeneratorData> WriteCustomAttrs { get; set; }
         public TCustomAttrGeneratorData CustomAttrGeneratorData { get; set; }
     }

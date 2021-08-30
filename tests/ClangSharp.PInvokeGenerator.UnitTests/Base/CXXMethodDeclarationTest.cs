@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -12,6 +13,9 @@ namespace ClangSharp.UnitTests
 
         [Fact]
         public abstract Task ConstructorWithInitializeTest();
+
+        [Fact]
+        public abstract Task ConstructorImportTest();
 
         [Fact]
         public abstract Task ConversionTest();

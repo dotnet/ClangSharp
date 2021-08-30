@@ -131,6 +131,39 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task ConstructorImportTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    MyStruct();
+};
+";
+
+            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "??0MyStruct@@QEAA@XZ" : "_ZN8MyStructC2Ev";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                entryPoint = $"_{entryPoint}";
+            }
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"">
+      <function name=""Constructor"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint}"" static=""true"">
+        <type>Constructor</type>
+        <param name=""pThis"">
+          <type>MyStruct*</type>
+        </param>
+      </function>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         public override Task ConversionTest()
         {
             var inputContents = @"struct MyStruct

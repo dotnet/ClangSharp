@@ -93,6 +93,36 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task ConstructorImportTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    MyStruct();
+};
+";
+
+            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "??0MyStruct@@QEAA@XZ" : "_ZN8MyStructC2Ev";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                entryPoint = $"_{entryPoint}";
+            }
+
+            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
+        public static extern void Constructor(MyStruct* pThis);
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         public override Task ConversionTest()
         {
             var inputContents = @"struct MyStruct

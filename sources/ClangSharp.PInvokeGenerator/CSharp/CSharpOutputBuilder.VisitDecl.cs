@@ -285,6 +285,10 @@ namespace ClangSharp.CSharp
                 Write(desc.ReturnType);
                 Write(' ');
             }
+            else if (desc.IsDllImport)
+            {
+                Write("void ");
+            }
         }
 
         private void WriteSourceLocation(CXSourceLocation location, bool inline)
