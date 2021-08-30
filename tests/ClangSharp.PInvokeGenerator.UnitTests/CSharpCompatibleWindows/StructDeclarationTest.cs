@@ -1666,6 +1666,12 @@ struct MyStruct1B : MyStruct1A
 };
 ";
 
+            var nativeCallConv = "";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+            {
+                nativeCallConv = " __attribute__((thiscall))";
+            }
+
             var expectedOutputContents = @"using System;
 using System.Runtime.InteropServices;
 
@@ -1706,7 +1712,7 @@ namespace ClangSharp.Test
 
         public partial struct Vtbl
         {
-            [NativeTypeName(""void ()"")]
+            [NativeTypeName(""void ()" + nativeCallConv + @""")]
             public IntPtr Dispose;
         }
     }

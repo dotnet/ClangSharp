@@ -1640,6 +1640,8 @@ struct MyStruct1B : MyStruct1A
 };
 ";
 
+            var vtblIndex = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 1;
+
             var expectedOutputContents = @"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
@@ -1668,7 +1670,7 @@ namespace ClangSharp.Test
 
         public void Dispose()
         {
-            ((delegate* unmanaged[Thiscall]<MyStruct*, void>)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this));
+            ((delegate* unmanaged[Thiscall]<MyStruct*, void>)(lpVtbl[" + vtblIndex + @"]))((MyStruct*)Unsafe.AsPointer(ref this));
         }
     }
 }

@@ -1657,6 +1657,12 @@ struct MyStruct1B : MyStruct1A
 };
 ";
 
+            var nativeCallConv = "";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+            {
+                nativeCallConv = " __attribute__((thiscall))";
+            }
+
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
@@ -1702,7 +1708,7 @@ struct MyStruct1B : MyStruct1A
       </function>
       <vtbl>
         <field name=""Dispose"" access=""public"">
-          <type native=""void ()"">IntPtr</type>
+          <type native=""void ()" + nativeCallConv + @""">IntPtr</type>
         </field>
       </vtbl>
     </struct>

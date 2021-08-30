@@ -1643,7 +1643,9 @@ struct MyStruct1B : MyStruct1A
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+            var vtblIndex = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 1;
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
@@ -1674,7 +1676,7 @@ struct MyStruct1B : MyStruct1A
       <function name=""Dispose"" access=""public"" unsafe=""true"">
         <type>void</type>
         <body>
-          <code>((delegate* unmanaged[Thiscall]&lt;MyStruct*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+          <code>((delegate* unmanaged[Thiscall]&lt;MyStruct*, void&gt;)(lpVtbl[<vtbl explicit=""False"">{vtblIndex}</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
       </function>
     </struct>
