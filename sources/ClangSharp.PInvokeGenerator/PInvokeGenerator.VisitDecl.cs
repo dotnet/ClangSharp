@@ -540,11 +540,11 @@ namespace ClangSharp
                     _outputBuilder.BeginParameter(in parameterDesc);
                     _outputBuilder.EndParameter();
                 }
+            }
 
-                if (functionDecl.Parameters.Any())
-                {
-                    _outputBuilder.WriteParameterSeparator();
-                }
+            if (functionDecl.Parameters.Any() && (needsThisParameter || isVirtual))
+            {
+                _outputBuilder.WriteParameterSeparator();
             }
 
             Visit(functionDecl.Parameters);

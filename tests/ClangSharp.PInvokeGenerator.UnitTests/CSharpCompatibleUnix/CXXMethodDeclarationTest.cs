@@ -98,14 +98,17 @@ namespace ClangSharp.UnitTests
             var inputContents = @"struct MyStruct
 {
     MyStruct();
+    MyStruct(int a);
 };
 ";
 
-            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "??0MyStruct@@QEAA@XZ" : "_ZN8MyStructC2Ev";
+            var entryPoint1 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "??0MyStruct@@QEAA@XZ" : "_ZN8MyStructC2Ev";
+            var entryPoint2 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "??0MyStruct@@QEAA@H@Z" : "_ZN8MyStructC2Ei";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                entryPoint = $"_{entryPoint}";
+                entryPoint1 = $"_{entryPoint1}";
+                entryPoint2 = $"_{entryPoint2}";
             }
 
             var expectedOutputContents = $@"using System.Runtime.InteropServices;
@@ -114,8 +117,11 @@ namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
-        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint1}"", ExactSpelling = true)]
         public static extern void Constructor(MyStruct* pThis);
+
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint2}"", ExactSpelling = true)]
+        public static extern void Constructor(MyStruct* pThis, int a);
     }}
 }}
 ";

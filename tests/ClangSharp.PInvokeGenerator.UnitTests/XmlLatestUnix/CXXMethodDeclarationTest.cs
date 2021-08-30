@@ -136,24 +136,36 @@ namespace ClangSharp.UnitTests
             var inputContents = @"struct MyStruct
 {
     MyStruct();
+    MyStruct(int a);
 };
 ";
 
-            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "??0MyStruct@@QEAA@XZ" : "_ZN8MyStructC2Ev";
+            var entryPoint1 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "??0MyStruct@@QEAA@XZ" : "_ZN8MyStructC2Ev";
+            var entryPoint2 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "??0MyStruct@@QEAA@H@Z" : "_ZN8MyStructC2Ei";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                entryPoint = $"_{entryPoint}";
+                entryPoint1 = $"_{entryPoint1}";
+                entryPoint2 = $"_{entryPoint2}";
             }
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
-      <function name=""Constructor"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint}"" static=""true"">
+      <function name=""Constructor"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint1}"" static=""true"">
         <type>Constructor</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
+        </param>
+      </function>
+      <function name=""Constructor"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint2}"" static=""true"">
+        <type>Constructor</type>
+        <param name=""pThis"">
+          <type>MyStruct*</type>
+        </param>
+        <param name=""a"">
+          <type>int</type>
         </param>
       </function>
     </struct>
