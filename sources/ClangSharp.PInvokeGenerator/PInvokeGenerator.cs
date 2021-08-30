@@ -3808,6 +3808,15 @@ namespace ClangSharp
                     return true;
                 }
 
+                case "operator=":
+                {
+                    var sourceParameterIndex = functionDecl.IsInstance ? 0 : 1;
+                    name = numArgs > 1 && functionDecl.Parameters[sourceParameterIndex].Type.TypeClass == CX_TypeClass.CX_TypeClass_RValueReference
+                           ? "MoveFrom"
+                           : "CopyFrom";
+                    return true;
+                }
+
                 default:
                 {
                     return false;

@@ -41,6 +41,9 @@ namespace ClangSharp.UnitTests
         public abstract Task OperatorTest();
 
         [Fact]
+        public abstract Task CopyAndMoveOperatorTest();
+
+        [Fact]
         public abstract Task OperatorCallTest();
 
         [Fact]

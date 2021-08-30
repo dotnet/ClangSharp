@@ -553,6 +553,65 @@ MyStruct operator-(MyStruct lhs, MyStruct rhs)
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task CopyAndMoveOperatorTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    MyStruct(int value) : value(value)
+    {
+    }
+
+    MyStruct operator+(MyStruct rhs)
+    {
+        return MyStruct(value + rhs.value);
+    }
+
+    void operator=(const MyStruct& other)
+    {
+        value = other.value;
+    }
+
+    void operator=(MyStruct&& other)
+    {
+        value = other.value;
+    }
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        public int value;
+
+        public MyStruct(int value)
+        {
+            this.value = value;
+        }
+
+        public MyStruct Add(MyStruct rhs)
+        {
+            return new MyStruct(value + rhs.value);
+        }
+
+        public unsafe void CopyFrom([NativeTypeName(""const MyStruct &"")] MyStruct* other)
+        {
+            value = other->value;
+        }
+
+        public unsafe void MoveFrom([NativeTypeName(""MyStruct &&"")] MyStruct* other)
+        {
+            value = other->value;
+        }
+    }
+}
+";
+
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         public override Task OperatorCallTest()
         {
             var inputContents = @"struct MyStruct

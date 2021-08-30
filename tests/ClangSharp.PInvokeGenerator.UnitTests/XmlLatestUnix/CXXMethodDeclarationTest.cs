@@ -646,6 +646,79 @@ MyStruct operator-(MyStruct lhs, MyStruct rhs)
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task CopyAndMoveOperatorTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    int value;
+
+    MyStruct(int value) : value(value)
+    {
+    }
+
+    MyStruct operator+(MyStruct rhs)
+    {
+        return MyStruct(value + rhs.value);
+    }
+
+    void operator=(const MyStruct& other)
+    {
+        value = other.value;
+    }
+
+    void operator=(MyStruct&& other)
+    {
+        value = other.value;
+    }
+};
+";
+
+            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"">
+      <field name=""value"" access=""public"">
+        <type>int</type>
+      </field>
+      <function name=""MyStruct"" access=""public"">
+        <type>void</type>
+        <param name=""value"">
+          <type>int</type>
+        </param>
+        <init field=""value"" hint=""value"">
+          <code>value</code>
+        </init>
+        <code></code>
+      </function>
+      <function name=""Add"" access=""public"">
+        <type>MyStruct</type>
+        <param name=""rhs"">
+          <type>MyStruct</type>
+        </param>
+        <code>return new MyStruct(value + rhs.value);</code>
+      </function>
+      <function name=""CopyFrom"" access=""public"" unsafe=""true"">
+        <type>void</type>
+        <param name=""other"">
+          <type>MyStruct*</type>
+        </param>
+        <code>value = other-&gt;value;</code>
+      </function>
+      <function name=""MoveFrom"" access=""public"" unsafe=""true"">
+        <type>void</type>
+        <param name=""other"">
+          <type>MyStruct*</type>
+        </param>
+        <code>value = other-&gt;value;</code>
+      </function>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         public override Task OperatorCallTest()
         {
             var inputContents = @"struct MyStruct
