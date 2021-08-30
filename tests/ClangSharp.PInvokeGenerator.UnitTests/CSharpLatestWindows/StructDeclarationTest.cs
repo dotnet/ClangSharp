@@ -1628,5 +1628,57 @@ struct MyStruct1B : MyStruct1A
 
             return ValidateGeneratedCSharpLatestWindowsBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
         }
+
+        public override Task AccessModifierTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    protected: virtual ~MyStruct() = default;
+    public: void PublicMethod() {}
+    protected: void ProtectedMethod() {}
+    private: void PrivateMethod() {}
+
+    public: int publicField;
+    protected: int protectedField;
+    private: int privateField;
+};
+";
+
+            var expectedOutputContents = @"using System.Runtime.CompilerServices;
+
+namespace ClangSharp.Test
+{
+    public unsafe partial struct MyStruct
+    {
+        public void** lpVtbl;
+
+        public int publicField;
+
+        public int protectedField;
+
+        private int privateField;
+
+        public void PublicMethod()
+        {
+        }
+
+        public void ProtectedMethod()
+        {
+        }
+
+        private void PrivateMethod()
+        {
+        }
+
+        public void Dispose()
+        {
+            ((delegate* unmanaged[Thiscall]<MyStruct*, void>)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this));
+        }
+    }
+}
+";
+
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
     }
 }

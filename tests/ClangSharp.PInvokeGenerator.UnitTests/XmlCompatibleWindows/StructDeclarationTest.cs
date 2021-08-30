@@ -1646,5 +1646,76 @@ struct MyStruct1B : MyStruct1A
 
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
         }
+
+        public override Task AccessModifierTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    protected: virtual ~MyStruct() = default;
+    public: void PublicMethod() {}
+    protected: void ProtectedMethod() {}
+    private: void PrivateMethod() {}
+
+    public: int publicField;
+    protected: int protectedField;
+    private: int privateField;
+};
+";
+
+            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
+      <field name=""lpVtbl"" access=""public"">
+        <type>Vtbl*</type>
+      </field>
+      <field name=""publicField"" access=""public"">
+        <type>int</type>
+      </field>
+      <field name=""protectedField"" access=""public"">
+        <type>int</type>
+      </field>
+      <field name=""privateField"" access=""private"">
+        <type>int</type>
+      </field>
+      <delegate name=""_Dispose"" access=""public"" convention=""ThisCall"">
+        <type>void</type>
+        <param name=""pThis"">
+          <type>MyStruct*</type>
+        </param>
+      </delegate>
+      <function name=""PublicMethod"" access=""public"">
+        <type>void</type>
+        <code></code>
+      </function>
+      <function name=""ProtectedMethod"" access=""public"">
+        <type>void</type>
+        <code></code>
+      </function>
+      <function name=""PrivateMethod"" access=""private"">
+        <type>void</type>
+        <code></code>
+      </function>
+      <function name=""Dispose"" access=""public"" unsafe=""true"">
+        <type>void</type>
+        <body>
+          <code>fixed (MyStruct* pThis = &amp;this)
+    {
+        Marshal.GetDelegateForFunctionPointer&lt;<delegate>_Dispose</delegate>&gt;(lpVtbl-&gt;<vtbl explicit=""True"">Dispose</vtbl>)(<param special=""thisPtr"">pThis</param>);
+    }</code>
+        </body>
+      </function>
+      <vtbl>
+        <field name=""Dispose"" access=""public"">
+          <type native=""void ()"">IntPtr</type>
+        </field>
+      </vtbl>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
+        }
     }
 }

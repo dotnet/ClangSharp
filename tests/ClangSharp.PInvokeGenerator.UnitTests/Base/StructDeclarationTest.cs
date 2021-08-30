@@ -205,5 +205,8 @@ namespace ClangSharp.UnitTests
 
         [Fact]
         public abstract Task SourceLocationAttributeTest();
+
+        [Fact]
+        public abstract Task AccessModifierTest();
     }
 }

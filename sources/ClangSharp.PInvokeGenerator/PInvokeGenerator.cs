@@ -692,7 +692,8 @@ namespace ClangSharp
 
                 case CX_CXXAccessSpecifier.CX_CXXProtected:
                 {
-                    name = AccessSpecifier.Protected;
+                    // neither in C# structs nor in namespaces are protected entries allowed
+                    name = AccessSpecifier.Public;
                     break;
                 }
 

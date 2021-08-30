@@ -1650,5 +1650,70 @@ struct MyStruct1B : MyStruct1A
 
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
         }
+
+        public override Task AccessModifierTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    protected: virtual ~MyStruct() = default;
+    public: void PublicMethod() {}
+    protected: void ProtectedMethod() {}
+    private: void PrivateMethod() {}
+
+    public: int publicField;
+    protected: int protectedField;
+    private: int privateField;
+};
+";
+
+            var expectedOutputContents = @"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public unsafe partial struct MyStruct
+    {
+        public Vtbl* lpVtbl;
+
+        public int publicField;
+
+        public int protectedField;
+
+        private int privateField;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate void _Dispose(MyStruct* pThis);
+
+        public void PublicMethod()
+        {
+        }
+
+        public void ProtectedMethod()
+        {
+        }
+
+        private void PrivateMethod()
+        {
+        }
+
+        public void Dispose()
+        {
+            fixed (MyStruct* pThis = &this)
+            {
+                Marshal.GetDelegateForFunctionPointer<_Dispose>(lpVtbl->Dispose)(pThis);
+            }
+        }
+
+        public partial struct Vtbl
+        {
+            [NativeTypeName(""void ()"")]
+            public IntPtr Dispose;
+        }
+    }
+}
+";
+
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
+        }
     }
 }

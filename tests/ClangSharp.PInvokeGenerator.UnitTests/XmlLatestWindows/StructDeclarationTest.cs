@@ -1627,5 +1627,62 @@ struct MyStruct1B : MyStruct1A
 
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
         }
+
+        public override Task AccessModifierTest()
+        {
+            var inputContents = @"struct MyStruct
+{
+    protected: virtual ~MyStruct() = default;
+    public: void PublicMethod() {}
+    protected: void ProtectedMethod() {}
+    private: void PrivateMethod() {}
+
+    public: int publicField;
+    protected: int protectedField;
+    private: int privateField;
+};
+";
+
+            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
+      <field name=""lpVtbl"" access=""public"">
+        <type>void**</type>
+      </field>
+      <field name=""publicField"" access=""public"">
+        <type>int</type>
+      </field>
+      <field name=""protectedField"" access=""public"">
+        <type>int</type>
+      </field>
+      <field name=""privateField"" access=""private"">
+        <type>int</type>
+      </field>
+      <function name=""PublicMethod"" access=""public"">
+        <type>void</type>
+        <code></code>
+      </function>
+      <function name=""ProtectedMethod"" access=""public"">
+        <type>void</type>
+        <code></code>
+      </function>
+      <function name=""PrivateMethod"" access=""private"">
+        <type>void</type>
+        <code></code>
+      </function>
+      <function name=""Dispose"" access=""public"" unsafe=""true"">
+        <type>void</type>
+        <body>
+          <code>((delegate* unmanaged[Thiscall]&lt;MyStruct*, void&gt;)(lpVtbl[<vtbl explicit=""False"">0</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
     }
 }

@@ -410,9 +410,12 @@ namespace ClangSharp
 
         private void VisitFunctionDecl(FunctionDecl functionDecl)
         {
-            if (!functionDecl.IsUserProvided)
+            var cxxMethodDecl = functionDecl as CXXMethodDecl;
+            var isVirtual = (cxxMethodDecl != null) && cxxMethodDecl.IsVirtual;
+
+            if (!functionDecl.IsUserProvided && !isVirtual)
             {
-                // We shouldn't process injected functions
+                // We shouldn't process injected functions (as long as we do not need a delegate for them)
                 return;
             }
 
@@ -435,10 +438,8 @@ namespace ClangSharp
             var accessSppecifier = GetAccessSpecifier(functionDecl);
             var name = GetRemappedCursorName(functionDecl);
 
-            var cxxMethodDecl = functionDecl as CXXMethodDecl;
             var body = functionDecl.Body;
 
-            var isVirtual = (cxxMethodDecl != null) && cxxMethodDecl.IsVirtual;
             var escapedName = isVirtual ? PrefixAndStripName(name, cxxMethodDecl.OverloadIndex) : EscapeAndStripName(name);
 
             var returnType = functionDecl.ReturnType;
@@ -1508,13 +1509,12 @@ namespace ClangSharp
                 var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type,
                     out var nativeTypeName);
 
-                var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                 var escapedName = EscapeAndStripName(remappedName);
 
                 var desc = new FieldDesc
                 {
-                    AccessSpecifier = accessSpecifier,
+                    AccessSpecifier = AccessSpecifier.Public,
                     NativeTypeName = nativeTypeName,
                     EscapedName = escapedName,
                     Offset = null,
