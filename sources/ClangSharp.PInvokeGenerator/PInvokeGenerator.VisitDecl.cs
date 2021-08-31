@@ -463,7 +463,7 @@ namespace ClangSharp
             }
 
             var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
-            var needsThisParameter = isVirtual || (isDllImport && functionDecl is CXXConstructorDecl);
+            var needsThisParameter = isVirtual || (isDllImport && cxxMethodDecl != null && cxxMethodDecl.IsInstance);
 
             var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
             {

@@ -275,6 +275,9 @@ namespace ClangSharp.UnitTests
     <struct name=""MyStruct"" access=""public"">
       <function name=""MyVoidMethod"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint}"" static=""true"">
         <type>void</type>
+        <param name=""pThis"">
+          <type>MyStruct*</type>
+        </param>
       </function>
       <function name=""MyInt32Method"" access=""public"">
         <type>int</type>

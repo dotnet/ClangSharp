@@ -225,7 +225,7 @@ namespace ClangSharp.Test
     public partial struct MyStruct
     {{
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
-        public static extern void MyVoidMethod();
+        public static extern void MyVoidMethod(MyStruct* pThis);
 
         public int MyInt32Method()
         {{
