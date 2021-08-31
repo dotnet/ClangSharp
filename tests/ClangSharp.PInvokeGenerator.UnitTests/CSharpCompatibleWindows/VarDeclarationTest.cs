@@ -327,5 +327,25 @@ namespace ClangSharp.Test
 
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
         }
+
+        public override Task NullptrTest()
+        {
+            var inputContents = @"#include <cstddef>
+std::nullptr_t v = nullptr;";
+
+            var expectedOutputContents = @"using System;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""std::nullptr_t"")]
+        public static IntPtr v = null;
+    }
+}
+";
+
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
     }
 }

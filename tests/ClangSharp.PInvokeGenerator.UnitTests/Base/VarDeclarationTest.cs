@@ -77,5 +77,8 @@ namespace ClangSharp.UnitTests
 
         [Fact]
         public abstract Task ConditionalDefineConstTest();
+
+        [Fact]
+        public abstract Task NullptrTest();
     }
 }

@@ -430,5 +430,28 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
 
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
         }
+
+        public override Task NullptrTest()
+        {
+            var inputContents = @"#include <cstddef>
+std::nullptr_t v = nullptr;";
+
+            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""v"" access=""public"">
+        <type primitive=""False"">IntPtr</type>
+        <value>
+          <code>null</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
     }
 }
