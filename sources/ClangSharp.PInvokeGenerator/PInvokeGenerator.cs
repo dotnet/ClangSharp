@@ -1541,7 +1541,7 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_NullPtr:
                     {
-                        name = "null";
+                        name = "IntPtr";
                         break;
                     }
 
@@ -1594,6 +1594,10 @@ namespace ClangSharp
             else if (type is SubstTemplateTypeParmType substTemplateTypeParmType)
             {
                 name = GetTypeName(cursor, context, rootType, substTemplateTypeParmType.ReplacementType, out _);
+            }
+            else if (type is DecltypeType decltypeType)
+            {
+                name = GetTypeName(cursor, context, rootType, decltypeType.UnderlyingType, out _);
             }
             else if (type is TagType tagType)
             {
