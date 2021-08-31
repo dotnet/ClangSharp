@@ -3407,7 +3407,13 @@ namespace ClangSharp
 
         private bool IsUnsafe(FunctionDecl functionDecl)
         {
-            if (IsUnsafe(functionDecl, functionDecl.ReturnType))
+            if (functionDecl.DeclContext is RecordDecl recordDecl && IsUnsafe(recordDecl))
+            {
+                return false; // no need to mark methods when the record is already unsafe
+            }
+
+            if (IsUnsafe(functionDecl, functionDecl.ReturnType) ||
+                (functionDecl is CXXMethodDecl methodDecl && NeedsThisParameter(methodDecl)))
             {
                 return true;
             }
@@ -3549,6 +3555,13 @@ namespace ClangSharp
             }
 
             return needsReturnFixup;
+        }
+
+        private bool NeedsThisParameter(CXXMethodDecl cxxMethodDecl)
+        {
+            Debug.Assert(cxxMethodDecl != null);
+            return cxxMethodDecl.IsVirtual ||
+                (!cxxMethodDecl.HasBody && cxxMethodDecl.IsInstance);
         }
 
         private static bool NeedsNewKeyword(string name)

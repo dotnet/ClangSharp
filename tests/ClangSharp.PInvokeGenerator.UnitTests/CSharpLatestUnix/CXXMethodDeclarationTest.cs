@@ -122,10 +122,10 @@ namespace ClangSharp.Test
     public partial struct MyStruct
     {{
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint1}"", ExactSpelling = true)]
-        public static extern void Constructor(MyStruct* pThis);
+        public static extern unsafe void Constructor(MyStruct* pThis);
 
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint2}"", ExactSpelling = true)]
-        public static extern void Constructor(MyStruct* pThis, int a);
+        public static extern unsafe void Constructor(MyStruct* pThis, int a);
     }}
 }}
 ";
@@ -265,7 +265,7 @@ namespace ClangSharp.Test
     public partial struct MyStruct
     {{
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
-        public static extern void MyVoidMethod(MyStruct* pThis);
+        public static extern unsafe void MyVoidMethod(MyStruct* pThis);
 
         public int MyInt32Method()
         {{

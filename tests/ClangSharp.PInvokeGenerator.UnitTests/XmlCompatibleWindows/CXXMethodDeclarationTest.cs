@@ -157,13 +157,13 @@ namespace ClangSharp.UnitTests
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
-      <function name=""Constructor"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint1}"" static=""true"">
+      <function name=""Constructor"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint1}"" static=""true"" unsafe=""true"">
         <type>Constructor</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
         </param>
       </function>
-      <function name=""Constructor"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint2}"" static=""true"">
+      <function name=""Constructor"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint2}"" static=""true"" unsafe=""true"">
         <type>Constructor</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
@@ -325,7 +325,7 @@ namespace ClangSharp.UnitTests
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
-      <function name=""MyVoidMethod"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint}"" static=""true"">
+      <function name=""MyVoidMethod"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint}"" static=""true"" unsafe=""true"">
         <type>void</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
@@ -1073,7 +1073,7 @@ extern ""C"" void MyFunction();";
           <type>MyStruct*</type>
         </param>
       </delegate>
-      <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""ThisCall"" unsafe=""true"">
+      <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""ThisCall"">
         <type>void*</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
@@ -1165,7 +1165,7 @@ extern ""C"" void MyFunction();";
           <type>MyStruct*</type>
         </param>
       </delegate>
-      <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""ThisCall"" unsafe=""true"">
+      <delegate name=""_MyVoidStarMethod"" access=""public"" convention=""ThisCall"">
         <type>void*</type>
         <param name=""pThis"">
           <type>MyStruct*</type>
