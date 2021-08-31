@@ -180,6 +180,58 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task CopyAndMoveConstructor()
+        {
+            var inputContents = @"struct MyStruct
+{
+    MyStruct(const MyStruct& other);
+    MyStruct(MyStruct&& other);
+};
+";
+
+            var entryPoint1 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? (Environment.Is64BitProcess ? "??0MyStruct@@QEAA@AEBU0@@Z" : "??0MyStruct@@QAE@ABU0@@Z")
+                : "_ZN8MyStructC2ERKS_";
+            var entryPoint2 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? (Environment.Is64BitProcess ? "??0MyStruct@@QEAA@$$QEAU0@@Z" : "??0MyStruct@@QAE@$$QAU0@@Z")
+                : "_ZN8MyStructC2EOS_";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                entryPoint1 = $"_{entryPoint1}";
+                entryPoint2 = $"_{entryPoint2}";
+            }
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"">
+      <function name=""CopyConstructor"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint1}"" static=""true"" unsafe=""true"">
+        <type>CopyConstructor</type>
+        <param name=""pThis"">
+          <type>MyStruct*</type>
+        </param>
+        <param name=""other"">
+          <type>MyStruct*</type>
+        </param>
+      </function>
+      <function name=""MoveConstructor"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint2}"" static=""true"" unsafe=""true"">
+        <type>MoveConstructor</type>
+        <param name=""pThis"">
+          <type>MyStruct*</type>
+        </param>
+        <param name=""other"">
+          <type>MyStruct*</type>
+        </param>
+      </function>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         public override Task ConversionTest()
         {
             var inputContents = @"struct MyStruct

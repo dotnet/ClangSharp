@@ -1276,7 +1276,8 @@ namespace ClangSharp
             if (cursor is CXXConstructorDecl constructorDecl && !constructorDecl.HasBody)
             {
                 wasRemapped = true;
-                return AddUsingDirectiveIfNeeded(_outputBuilder, "Constructor", skipUsing);
+                remappedName = GetRemappedConstructorName(constructorDecl);
+                return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
 
             wasRemapped = false;
@@ -1381,6 +1382,30 @@ namespace ClangSharp
             {
                 var enumConstantDeclName = GetRemappedCursorName(enumConstantDecl);
                 return (enumConstantDeclName == $"{enumDeclName}_FORCE_DWORD") || (enumConstantDeclName == $"{enumDeclName}_FORCE_UINT");
+            }
+        }
+
+        private string GetRemappedConstructorName(CXXConstructorDecl constructorDecl)
+        {
+            // Copy- and move-constructors are remapped differently as they would remapped to the same signature
+            const string BaseName = "Constructor";
+
+            var parameterType = constructorDecl.Parameters.FirstOrDefault()?.Type;
+            if (constructorDecl.Parameters.Count != 1 || parameterType.PointeeType?.Desugar != constructorDecl.Parent.TypeForDecl)
+            {
+                return BaseName;
+            }
+            else if (parameterType.TypeClass == CX_TypeClass.CX_TypeClass_LValueReference)
+            {
+                return "Copy" + BaseName;
+            }
+            else if (parameterType.TypeClass == CX_TypeClass.CX_TypeClass_RValueReference)
+            {
+                return "Move" + BaseName;
+            }
+            else
+            {
+                return BaseName;
             }
         }
 

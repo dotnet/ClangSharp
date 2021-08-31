@@ -18,6 +18,9 @@ namespace ClangSharp.UnitTests
         public abstract Task ConstructorImportTest();
 
         [Fact]
+        public abstract Task CopyAndMoveConstructor();
+
+        [Fact]
         public abstract Task ConversionTest();
 
         [Fact]
