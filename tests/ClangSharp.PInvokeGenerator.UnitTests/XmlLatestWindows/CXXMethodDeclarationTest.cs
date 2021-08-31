@@ -190,10 +190,10 @@ namespace ClangSharp.UnitTests
 
             var entryPoint1 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? (Environment.Is64BitProcess ? "??0MyStruct@@QEAA@AEBU0@@Z" : "??0MyStruct@@QAE@ABU0@@Z")
-                : "_ZN8MyStructC2ERKS_";
+                : "_ZN8MyStructC1ERKS_";
             var entryPoint2 = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? (Environment.Is64BitProcess ? "??0MyStruct@@QEAA@$$QEAU0@@Z" : "??0MyStruct@@QAE@$$QAU0@@Z")
-                : "_ZN8MyStructC2EOS_";
+                : "_ZN8MyStructC1EOS_";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
