@@ -1901,7 +1901,7 @@ namespace ClangSharp
                             {
                                 var arg = args[i];
 
-                                if (IsStmtAsWritten(arg, unaryExprOrTypeTraitExpr))
+                                if (IsStmtAsWritten(arg, unaryExprOrTypeTraitExpr, removeParens: true))
                                 {
                                     index = i;
                                     break;
