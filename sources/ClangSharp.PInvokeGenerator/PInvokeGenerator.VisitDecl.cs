@@ -952,7 +952,22 @@ namespace ClangSharp
                 if (parmVarDecl.HasDefaultArg)
                 {
                     _outputBuilder.BeginParameterDefault();
-                    UncheckStmt(typeName, parmVarDecl.DefaultArg);
+
+                    var defaultArg = parmVarDecl.DefaultArg;
+
+                    if (parmVarDecl.Type.CanonicalType.IsPointerType && (defaultArg.Handle.Evaluate.Kind == CXEvalResultKind.CXEval_UnExposed))
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Unsupported default parameter: '{name}'. Generated bindings may be incomplete.", defaultArg);
+
+                        var outputBuilder = StartCSharpCode();
+                        outputBuilder.Write("null");
+                        StopCSharpCode();
+                    }
+                    else
+                    {
+                        UncheckStmt(typeName, parmVarDecl.DefaultArg);
+                    }
+
                     _outputBuilder.EndParameterDefault();
                 }
 
