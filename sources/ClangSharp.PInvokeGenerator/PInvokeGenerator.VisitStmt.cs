@@ -832,7 +832,7 @@ namespace ClangSharp
 
                 default:
                 {
-                    if ((subExpr is DeclRefExpr declRefExpr) && (declRefExpr.Decl is EnumConstantDecl enumConstantDecl))
+                    if (IsStmtAsWritten<DeclRefExpr>(subExpr, out var declRefExpr, removeParens: true) && (declRefExpr.Decl is EnumConstantDecl enumConstantDecl))
                     {
                         ForEnumConstantDecl(implicitCastExpr, enumConstantDecl);
                     }
