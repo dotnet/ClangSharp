@@ -3236,9 +3236,38 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_UnaryOperator:
                 {
                     var unaryOperator = (UnaryOperator)stmt;
-                    return IsUnchecked(targetTypeName, unaryOperator.SubExpr)
-                        || IsUnchecked(targetTypeName, unaryOperator.Handle.Evaluate)
-                        || ((unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_Minus) && IsUnsigned(targetTypeName));
+
+                    if (IsUnchecked(targetTypeName, unaryOperator.SubExpr))
+                    {
+                        return true;
+                    }
+
+                    var evaluation = unaryOperator.Handle.Evaluate;
+
+                    if (IsUnchecked(targetTypeName, evaluation))
+                    {
+                        return true;
+                    }
+
+                    var sourceTypeName = GetTypeName(stmt, context: null, unaryOperator.SubExpr.Type, out _);
+
+                    switch (unaryOperator.Opcode)
+                    {
+                        case CX_UnaryOperatorKind.CX_UO_Minus:
+                        {
+                            return IsUnsigned(targetTypeName);
+                        }
+
+                        case CX_UnaryOperatorKind.CX_UO_Not:
+                        {
+                            return IsUnsigned(targetTypeName) != IsUnsigned(sourceTypeName);
+                        }
+
+                        default:
+                        {
+                            return false;
+                        }
+                    }
                 }
 
                 // case CX_StmtClass.CX_StmtClass_VAArgExpr:
