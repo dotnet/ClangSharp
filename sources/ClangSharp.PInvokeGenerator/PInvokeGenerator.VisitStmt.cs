@@ -192,7 +192,7 @@ namespace ClangSharp
 
                         if (!isPreviousExplicitCast)
                         {
-                            outputBuilder.Write("(byte)(");
+                            outputBuilder.Write("(sbyte)(");
                         }
 
                         outputBuilder.Write('\'');
