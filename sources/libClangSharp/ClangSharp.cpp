@@ -1032,29 +1032,26 @@ CXType clangsharp_Cursor_getDefaultArgType(CXCursor C) {
 CXCursor clangsharp_Cursor_getDefinition(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
+        const Decl* DD = nullptr;
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
-            return MakeCXCursor(FD->getDefinition(), getCursorTU(C));
+            DD = FD->getDefinition();
+        } else if (const ObjCInterfaceDecl* OCID = dyn_cast<ObjCInterfaceDecl>(D)) {
+            DD = OCID->getDefinition();
+        } else if (const ObjCProtocolDecl* OCPD = dyn_cast<ObjCProtocolDecl>(D)) {
+            DD = OCPD->getDefinition();
+        } else if (const TagDecl* TD = dyn_cast<TagDecl>(D)) {
+            DD = TD->getDefinition();
+        } else if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
+            DD = VD->getDefinition();
+        } else {
+            return clang_getCursorDefinition(C);
         }
 
-        if (const ObjCInterfaceDecl* OCID = dyn_cast<ObjCInterfaceDecl>(D)) {
-            return MakeCXCursor(OCID->getDefinition(), getCursorTU(C));
-        }
-
-        if (const ObjCProtocolDecl* OCPD = dyn_cast<ObjCProtocolDecl>(D)) {
-            return MakeCXCursor(OCPD->getDefinition(), getCursorTU(C));
-        }
-
-        if (const TagDecl* TD = dyn_cast<TagDecl>(D)) {
-            return MakeCXCursor(TD->getDefinition(), getCursorTU(C));
-        }
-
-        if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
-            return MakeCXCursor(VD->getDefinition(), getCursorTU(C));
-        }
+        return DD ? MakeCXCursor(DD, getCursorTU(C)) : clang_getNullCursor();
+    } else {
+        return clang_getCursorDefinition(C);
     }
-
-    return clang_getCursorDefinition(C);
 }
 
 CXCursor clangsharp_Cursor_getDependentLambdaCallOperator(CXCursor C) {
