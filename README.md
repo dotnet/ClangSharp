@@ -76,6 +76,7 @@ You can then open `LLVM.sln` in Visual Studio, change the configuration to `Rele
 Afterwards, you can then build `libClangSharp` where the process followed is roughly:
 ```cmd
 git clone https://github.com/microsoft/clangsharp
+cd clangsharp
 mkdir artifacts/bin/native
 cd artifacts/bin/native
 cmake -DPATH_TO_LLVM=../../../../llvm-project/artifacts/install/ -G "Visual Studio 16 2019" -A x64 -Thost=x64 ../../..
@@ -86,6 +87,7 @@ You can then open `libClangSharp.sln` in Visual Studio, change the configuration
 If you building on Linux
 ```
 git clone https://github.com/microsoft/clangsharp
+cd clangsharp
 mkdir artifacts/bin/native
 cd artifacts/bin/native
 cmake -DPATH_TO_LLVM=/usr/lib/llvm/12/ ../../..
@@ -95,6 +97,7 @@ make
 or if you prefer Ninja
 ```
 git clone https://github.com/microsoft/clangsharp
+cd clangsharp
 mkdir artifacts/bin/native
 cd artifacts/bin/native
 cmake -DPATH_TO_LLVM=/usr/lib/llvm/12/ -G Ninja ../../..
