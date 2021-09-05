@@ -2521,12 +2521,12 @@ namespace ClangSharp
                     if (_config.LogPotentialTypedefRemappings)
                     {
                         var typedefName = typedefDecl.UnderlyingDecl.Name;
-                        var possibleNamesToRemap = new string[] {"_" + typedefName, "_tag" + typedefName, "tag" + typedefName};
+                        var possibleNamesToRemap = new string[] {"_" + typedefName, "_tag" + typedefName, "tag" + typedefName, typedefName + "_tag" };
                         var underlyingName = underlyingTagType.AsString;
 
                         foreach (var possibleNameToRemap in possibleNamesToRemap)
                         {
-                            if (!_config.RemappedNames.ContainsKey(possibleNameToRemap))
+                            if (!_config.RemappedNames.ContainsKey(possibleNameToRemap) && !_config.RemappedNames.ContainsKey(possibleNameToRemap + "*"))
                             {
                                 if (possibleNameToRemap == underlyingName)
                                 {

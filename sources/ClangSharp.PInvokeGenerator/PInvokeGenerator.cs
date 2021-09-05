@@ -662,14 +662,20 @@ namespace ClangSharp
             return EscapeName(name);
         }
 
-        internal static string EscapeCharacter(char value) => EscapeString(value.ToString());
+        internal static string EscapeCharacter(char value) => value switch {
+            '\\' => "\\\\",
+            '\r' => "\\r",
+            '\n' => "\\n",
+            '\t' => "\\t",
+            '\'' => "\\'",
+            _ => value.ToString(),
+        };
 
         internal static string EscapeString(string value) => value.Replace("\\", "\\\\")
                                                                   .Replace("\r", "\\r")
                                                                   .Replace("\n", "\\n")
                                                                   .Replace("\t", "\\t")
-                                                                  .Replace("\"", "\\\"")
-                                                                  .Replace("\'", "\\'");
+                                                                  .Replace("\"", "\\\"");
 
         private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl)
         {
