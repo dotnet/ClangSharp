@@ -634,6 +634,7 @@ namespace ClangSharp
         private void VisitExplicitCastExpr(ExplicitCastExpr explicitCastExpr)
         {
             var outputBuilder = StartCSharpCode();
+
             if (IsPrevContextDecl<EnumConstantDecl>(out _) && explicitCastExpr.Type is EnumType enumType)
             {
                 outputBuilder.Write('(');
@@ -643,9 +644,16 @@ namespace ClangSharp
             }
 
             var type = explicitCastExpr.Type;
-
-
             var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out _);
+
+            if (typeName == "IntPtr")
+            {
+                typeName = "nint";
+            }
+            else if (typeName == "UIntPtr")
+            {
+                typeName = "nuint";
+            }
 
             outputBuilder.Write('(');
             outputBuilder.Write(typeName);
