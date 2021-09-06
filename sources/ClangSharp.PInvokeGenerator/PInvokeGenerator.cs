@@ -3284,9 +3284,42 @@ namespace ClangSharp
                 var lhs = binaryOperator.LHS;
                 var rhs = binaryOperator.RHS;
 
-                if (!IsStmtAsWritten<IntegerLiteral>(lhs, out var lhsIntegerLiteral, removeParens: true) || !IsStmtAsWritten<IntegerLiteral>(rhs, out var rhsIntegerLiteral, removeParens: true))
+                long lhsValue, rhsValue;
+
+                if (IsStmtAsWritten<IntegerLiteral>(lhs, out var lhsIntegerLiteral, removeParens: true))
                 {
-                    return false;
+                    lhsValue = lhsIntegerLiteral.Value;
+                }
+                else
+                {
+                    var lhsEvaluation = lhs.Handle.Evaluate;
+
+                    if (lhsEvaluation.Kind == CXEvalResultKind.CXEval_Int)
+                    {
+                        lhsValue = lhsEvaluation.AsInt;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                if (IsStmtAsWritten<IntegerLiteral>(rhs, out var rhsIntegerLiteral, removeParens: true))
+                {
+                    rhsValue = rhsIntegerLiteral.Value;
+                }
+                else
+                {
+                    var rhsEvaluation = rhs.Handle.Evaluate;
+
+                    if (rhsEvaluation.Kind == CXEvalResultKind.CXEval_Int)
+                    {
+                        rhsValue = rhsEvaluation.AsInt;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
 
                 var targetTypeName = GetRemappedTypeName(binaryOperator, context: null, binaryOperator.Type, out _);
@@ -3297,15 +3330,15 @@ namespace ClangSharp
                     case CX_BinaryOperatorKind.CX_BO_Add:
                     {
                         return isUnsigned
-                            ? (ulong)lhsIntegerLiteral.Value + (ulong)rhsIntegerLiteral.Value < (ulong)lhsIntegerLiteral.Value
-                            : lhsIntegerLiteral.Value + rhsIntegerLiteral.Value < lhsIntegerLiteral.Value;
+                            ? (ulong)lhsValue + (ulong)rhsValue < (ulong)lhsValue
+                            : lhsValue + rhsValue < lhsValue;
                     }
 
                     case CX_BinaryOperatorKind.CX_BO_Sub:
                     {
                         return isUnsigned
-                            ? (ulong)lhsIntegerLiteral.Value - (ulong)rhsIntegerLiteral.Value > (ulong)lhsIntegerLiteral.Value
-                            : lhsIntegerLiteral.Value - rhsIntegerLiteral.Value > lhsIntegerLiteral.Value;
+                            ? (ulong)lhsValue - (ulong)rhsValue > (ulong)lhsValue
+                            : lhsValue - rhsValue > lhsValue;
                     }
 
                     default:
