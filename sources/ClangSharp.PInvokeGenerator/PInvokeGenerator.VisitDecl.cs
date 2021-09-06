@@ -957,7 +957,12 @@ namespace ClangSharp
 
                     if (parmVarDecl.Type.CanonicalType.IsPointerType && (defaultArg.Handle.Evaluate.Kind == CXEvalResultKind.CXEval_UnExposed))
                     {
-                        AddDiagnostic(DiagnosticLevel.Info, $"Unsupported default parameter: '{name}'. Generated bindings may be incomplete.", defaultArg);
+                        if (!IsStmtAsWritten<CXXNullPtrLiteralExpr>(defaultArg, out _, removeParens: true) &&
+                           (!IsStmtAsWritten<CastExpr>(defaultArg, out var castExpr, removeParens: true) || (castExpr.CastKind != CX_CastKind.CX_CK_NullToPointer)) &&
+                           (!IsStmtAsWritten<IntegerLiteral>(defaultArg, out var integerLiteral, removeParens: true) || (integerLiteral.Value != 0)))
+                        {
+                            AddDiagnostic(DiagnosticLevel.Info, $"Unsupported default parameter: '{name}'. Generated bindings may be incomplete.", defaultArg);
+                        }
 
                         var outputBuilder = StartCSharpCode();
                         outputBuilder.Write("null");
