@@ -2724,7 +2724,7 @@ namespace ClangSharp
                         }
                     }
                 }
-                else if ((type.IsLocalConstQualified || isMacroDefinitionRecord) && CanBeConstant(type, varDecl.Init))
+                else if ((type.IsLocalConstQualified || isMacroDefinitionRecord) && CanBeConstant(type, typeName, varDecl.Init))
                 {
                     kind |= ConstantKind.PrimitiveConstant;
                 }
@@ -2840,15 +2840,15 @@ namespace ClangSharp
                 StopCSharpCode();
             }
 
-            bool CanBeConstant(Type type, Expr initExpr)
+            bool CanBeConstant(Type type, string targetTypeName, Expr initExpr)
             {
                 if (type is AttributedType attributedType)
                 {
-                    return CanBeConstant(attributedType.ModifiedType, initExpr);
+                    return CanBeConstant(attributedType.ModifiedType, targetTypeName, initExpr);
                 }
                 else if (type is AutoType autoType)
                 {
-                    return CanBeConstant(autoType.CanonicalType, initExpr);
+                    return CanBeConstant(autoType.CanonicalType, targetTypeName, initExpr);
                 }
                 else if (type is BuiltinType builtinType)
                 {
@@ -2872,28 +2872,28 @@ namespace ClangSharp
                         case CXTypeKind.CXType_Float:
                         case CXTypeKind.CXType_Double:
                         {
-                            return IsConstant(initExpr);
+                            return IsConstant(targetTypeName, initExpr);
                         }
                     }
                 }
                 else if (type is ElaboratedType elaboratedType)
                 {
-                    return CanBeConstant(elaboratedType.NamedType, initExpr);
+                    return CanBeConstant(elaboratedType.NamedType, targetTypeName, initExpr);
                 }
                 else if (type is EnumType enumType)
                 {
-                    return CanBeConstant(enumType.Decl.IntegerType, initExpr);
+                    return CanBeConstant(enumType.Decl.IntegerType, targetTypeName, initExpr);
                 }
                 else if (type is TypedefType typedefType)
                 {
-                    return CanBeConstant(typedefType.Decl.UnderlyingType, initExpr);
+                    return CanBeConstant(typedefType.Decl.UnderlyingType, targetTypeName, initExpr);
                 }
 
                 return false;
             }
         }
 
-        private bool IsConstant(Expr initExpr)
+        private bool IsConstant(string targetTypeName, Expr initExpr)
         {
             switch (initExpr.StmtClass)
             {
@@ -2902,7 +2902,7 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_ConditionalOperator:
                 {
                     var conditionalOperator = (ConditionalOperator)initExpr;
-                    return IsConstant(conditionalOperator.Cond) && IsConstant(conditionalOperator.LHS) && IsConstant(conditionalOperator.RHS);
+                    return IsConstant(targetTypeName, conditionalOperator.Cond) && IsConstant(targetTypeName, conditionalOperator.LHS) && IsConstant(targetTypeName, conditionalOperator.RHS);
                 }
 
                 // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:
@@ -2921,7 +2921,7 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_BinaryOperator:
                 {
                     var binaryOperator = (BinaryOperator)initExpr;
-                    return IsConstant(binaryOperator.LHS) && IsConstant(binaryOperator.RHS);
+                    return IsConstant(targetTypeName, binaryOperator.LHS) && IsConstant(targetTypeName, binaryOperator.RHS);
                 }
 
                 // case CX_StmtClass.CX_StmtClass_CompoundAssignOperator:
@@ -3002,7 +3002,7 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 {
                     var cxxFunctionalCastExpr = (ExplicitCastExpr)initExpr;
-                    return IsConstant(cxxFunctionalCastExpr.SubExprAsWritten);
+                    return IsConstant(targetTypeName, cxxFunctionalCastExpr.SubExprAsWritten);
                 }
 
                 // case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
@@ -3013,7 +3013,7 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_ImplicitCastExpr:
                 {
                     var implicitCastExpr = (ImplicitCastExpr)initExpr;
-                    return IsConstant(implicitCastExpr.SubExprAsWritten);
+                    return IsConstant(targetTypeName, implicitCastExpr.SubExprAsWritten);
                 }
 
                 case CX_StmtClass.CX_StmtClass_CharacterLiteral:
@@ -3032,7 +3032,7 @@ namespace ClangSharp
                 {
                     var declRefExpr = (DeclRefExpr)initExpr;
                     return (declRefExpr.Decl is EnumConstantDecl) ||
-                           ((declRefExpr.Decl is VarDecl varDecl) && varDecl.HasInit && IsConstant(varDecl.Init));
+                           ((declRefExpr.Decl is VarDecl varDecl) && varDecl.HasInit && IsConstant(targetTypeName, varDecl.Init));
                 }
 
                 // case CX_StmtClass.CX_StmtClass_DependentCoawaitExpr:
@@ -3053,7 +3053,7 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_ExprWithCleanups:
                 {
                     var exprWithCleanups = (ExprWithCleanups)initExpr;
-                    return IsConstant(exprWithCleanups.SubExpr);
+                    return IsConstant(targetTypeName, exprWithCleanups.SubExpr);
                 }
 
                 // case CX_StmtClass.CX_StmtClass_FunctionParmPackExpr:
@@ -3109,7 +3109,7 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_ParenExpr:
                 {
                     var parenExpr = (ParenExpr)initExpr;
-                    return IsConstant(parenExpr.SubExpr);
+                    return IsConstant(targetTypeName, parenExpr.SubExpr);
                 }
 
                 case CX_StmtClass.CX_StmtClass_ParenListExpr:
@@ -3118,7 +3118,7 @@ namespace ClangSharp
 
                     foreach (var expr in parenListExpr.Exprs)
                     {
-                        if (IsConstant(expr))
+                        if (IsConstant(targetTypeName, expr))
                         {
                             return true;
                         }
@@ -3179,7 +3179,18 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_UnaryOperator:
                 {
                     var unaryOperator = (UnaryOperator)initExpr;
-                    return IsConstant(unaryOperator.SubExpr);
+
+                    if (!IsConstant(targetTypeName, unaryOperator.SubExpr))
+                    {
+                        return false;
+                    }
+
+                    if (unaryOperator.Opcode != CX_UnaryOperatorKind.CX_UO_Minus)
+                    {
+                        return true;
+                    }
+
+                    return targetTypeName is not "IntPtr" and not "nint" and not "nuint" and not "UIntPtr";
                 }
 
                 // case CX_StmtClass.CX_StmtClass_VAArgExpr:
