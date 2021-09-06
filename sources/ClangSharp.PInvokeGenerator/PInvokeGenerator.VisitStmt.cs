@@ -2026,7 +2026,18 @@ namespace ClangSharp
 
                     if (canonicalType.IsIntegerType && (canonicalType.Kind != CXTypeKind.CXType_Bool))
                     {
+                        var needsParens = IsStmtAsWritten<BinaryOperator>(subExpr, out _);
+
+                        if (needsParens)
+                        {
+                            outputBuilder.Write('(');
+                        }
                         Visit(subExpr);
+
+                        if (needsParens)
+                        {
+                            outputBuilder.Write(')');
+                        }
                         outputBuilder.Write(" == 0");
                     }
                     else if (canonicalType is PointerType or ReferenceType)
