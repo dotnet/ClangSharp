@@ -3348,6 +3348,7 @@ namespace ClangSharp
                 case "uint":
                 case "UInt32":
                 case "nuint":
+                case "UIntPtr":
                 {
                     return false;
                 }
@@ -3373,6 +3374,7 @@ namespace ClangSharp
                 case "int":
                 case "Int32":
                 case "nint":
+                case "IntPtr":
                 {
                     return (signedValue < int.MinValue) || (int.MaxValue < signedValue) || (isNegative && isHex);
                 }
