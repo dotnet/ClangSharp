@@ -186,7 +186,7 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [NativeTypeName(""#define MyMacro1 (long)0x80000000L"")]
-        public const IntPtr MyMacro1 = (IntPtr)(0x80000000);
+        public const IntPtr MyMacro1 = unchecked((nint)(0x80000000));
 
         [NativeTypeName(""#define MyMacro2 (int)0x80000000"")]
         public const int MyMacro2 = unchecked((int)(0x80000000));
@@ -227,7 +227,7 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [NativeTypeName(""#define MyMacro3 MyMacro2(3)"")]
-        public const int MyMacro3 = unchecked((int)(((UIntPtr)(1) << 31) | ((UIntPtr)(2) << 16) | ((UIntPtr)(3))));
+        public const int MyMacro3 = unchecked((int)(((nuint)(1) << 31) | ((nuint)(2) << 16) | ((nuint)(3))));
     }}
 }}
 ";

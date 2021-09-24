@@ -662,14 +662,20 @@ namespace ClangSharp
             return EscapeName(name);
         }
 
-        internal static string EscapeCharacter(char value) => EscapeString(value.ToString());
+        internal static string EscapeCharacter(char value) => value switch {
+            '\\' => "\\\\",
+            '\r' => "\\r",
+            '\n' => "\\n",
+            '\t' => "\\t",
+            '\'' => "\\'",
+            _ => value.ToString(),
+        };
 
         internal static string EscapeString(string value) => value.Replace("\\", "\\\\")
                                                                   .Replace("\r", "\\r")
                                                                   .Replace("\n", "\\n")
                                                                   .Replace("\t", "\\t")
-                                                                  .Replace("\"", "\\\"")
-                                                                  .Replace("\'", "\\'");
+                                                                  .Replace("\"", "\\\"");
 
         private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl)
         {
@@ -1488,7 +1494,7 @@ namespace ClangSharp
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            goto case CXTypeKind.CXType_Int;
+                            goto case CXTypeKind.CXType_UInt;
                         }
                         else
                         {
@@ -3230,9 +3236,38 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_UnaryOperator:
                 {
                     var unaryOperator = (UnaryOperator)stmt;
-                    return IsUnchecked(targetTypeName, unaryOperator.SubExpr)
-                        || IsUnchecked(targetTypeName, unaryOperator.Handle.Evaluate)
-                        || ((unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_Minus) && IsUnsigned(targetTypeName));
+
+                    if (IsUnchecked(targetTypeName, unaryOperator.SubExpr))
+                    {
+                        return true;
+                    }
+
+                    var evaluation = unaryOperator.Handle.Evaluate;
+
+                    if (IsUnchecked(targetTypeName, evaluation))
+                    {
+                        return true;
+                    }
+
+                    var sourceTypeName = GetTypeName(stmt, context: null, unaryOperator.SubExpr.Type, out _);
+
+                    switch (unaryOperator.Opcode)
+                    {
+                        case CX_UnaryOperatorKind.CX_UO_Minus:
+                        {
+                            return IsUnsigned(targetTypeName);
+                        }
+
+                        case CX_UnaryOperatorKind.CX_UO_Not:
+                        {
+                            return IsUnsigned(targetTypeName) != IsUnsigned(sourceTypeName);
+                        }
+
+                        default:
+                        {
+                            return false;
+                        }
+                    }
                 }
 
                 // case CX_StmtClass.CX_StmtClass_VAArgExpr:
@@ -3249,9 +3284,42 @@ namespace ClangSharp
                 var lhs = binaryOperator.LHS;
                 var rhs = binaryOperator.RHS;
 
-                if (!IsStmtAsWritten<IntegerLiteral>(lhs, out var lhsIntegerLiteral, removeParens: true) || !IsStmtAsWritten<IntegerLiteral>(rhs, out var rhsIntegerLiteral, removeParens: true))
+                long lhsValue, rhsValue;
+
+                if (IsStmtAsWritten<IntegerLiteral>(lhs, out var lhsIntegerLiteral, removeParens: true))
                 {
-                    return false;
+                    lhsValue = lhsIntegerLiteral.Value;
+                }
+                else
+                {
+                    var lhsEvaluation = lhs.Handle.Evaluate;
+
+                    if (lhsEvaluation.Kind == CXEvalResultKind.CXEval_Int)
+                    {
+                        lhsValue = lhsEvaluation.AsInt;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                if (IsStmtAsWritten<IntegerLiteral>(rhs, out var rhsIntegerLiteral, removeParens: true))
+                {
+                    rhsValue = rhsIntegerLiteral.Value;
+                }
+                else
+                {
+                    var rhsEvaluation = rhs.Handle.Evaluate;
+
+                    if (rhsEvaluation.Kind == CXEvalResultKind.CXEval_Int)
+                    {
+                        rhsValue = rhsEvaluation.AsInt;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
 
                 var targetTypeName = GetRemappedTypeName(binaryOperator, context: null, binaryOperator.Type, out _);
@@ -3262,15 +3330,15 @@ namespace ClangSharp
                     case CX_BinaryOperatorKind.CX_BO_Add:
                     {
                         return isUnsigned
-                            ? (ulong)lhsIntegerLiteral.Value + (ulong)rhsIntegerLiteral.Value < (ulong)lhsIntegerLiteral.Value
-                            : lhsIntegerLiteral.Value + rhsIntegerLiteral.Value < lhsIntegerLiteral.Value;
+                            ? (ulong)lhsValue + (ulong)rhsValue < (ulong)lhsValue
+                            : lhsValue + rhsValue < lhsValue;
                     }
 
                     case CX_BinaryOperatorKind.CX_BO_Sub:
                     {
                         return isUnsigned
-                            ? (ulong)lhsIntegerLiteral.Value - (ulong)rhsIntegerLiteral.Value > (ulong)lhsIntegerLiteral.Value
-                            : lhsIntegerLiteral.Value - rhsIntegerLiteral.Value > lhsIntegerLiteral.Value;
+                            ? (ulong)lhsValue - (ulong)rhsValue > (ulong)lhsValue
+                            : lhsValue - rhsValue > lhsValue;
                     }
 
                     default:
@@ -3313,6 +3381,7 @@ namespace ClangSharp
                 case "uint":
                 case "UInt32":
                 case "nuint":
+                case "UIntPtr":
                 {
                     return false;
                 }
@@ -3338,6 +3407,7 @@ namespace ClangSharp
                 case "int":
                 case "Int32":
                 case "nint":
+                case "IntPtr":
                 {
                     return (signedValue < int.MinValue) || (int.MaxValue < signedValue) || (isNegative && isHex);
                 }
