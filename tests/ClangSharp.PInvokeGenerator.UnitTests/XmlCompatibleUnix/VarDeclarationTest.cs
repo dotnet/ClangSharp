@@ -224,7 +224,11 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
       <constant name=""MyMacro1"" access=""public"">
         <type primitive=""True"">IntPtr</type>
         <value>
-          <code>(IntPtr)(<value>0x80000000</value>)</code>
+          <unchecked>
+            <value>
+              <code>(nint)(<value>0x80000000</value>)</code>
+            </value>
+          </unchecked>
         </value>
       </constant>
       <constant name=""MyMacro2"" access=""public"">
@@ -285,7 +289,7 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
         <type primitive=""True"">int</type>
         <value>
           <unchecked>
-            <code>((int)(((UIntPtr)(1) &lt;&lt; 31) | ((UIntPtr)(2) &lt;&lt; 16) | ((UIntPtr)(3))))</code>
+            <code>((int)(((nuint)(1) &lt;&lt; 31) | ((nuint)(2) &lt;&lt; 16) | ((nuint)(3))))</code>
           </unchecked>
         </value>
       </constant>

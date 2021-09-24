@@ -1494,7 +1494,7 @@ namespace ClangSharp
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            goto case CXTypeKind.CXType_Int;
+                            goto case CXTypeKind.CXType_UInt;
                         }
                         else
                         {

@@ -188,9 +188,29 @@ namespace ClangSharp
                     }
                     else
                     {
-                        var isPreviousExplicitCast = IsPrevContextStmt<ExplicitCastExpr>(out _);
+                        var castType = "";
 
-                        if (!isPreviousExplicitCast)
+                        if (IsPrevContextStmt<ImplicitCastExpr>(out var implicitCastExpr))
+                        {
+                            // C# characters are effectively `ushort` while C defaults to "char" which is 
+                            // most typically `sbyte`. Due to this we need to insert a correct implicit
+                            // cast to ensure things are correctly handled here.
+
+                            var castExprTypeName = GetRemappedTypeName(implicitCastExpr, context: null, implicitCastExpr.Type, out _, skipUsing: true);
+
+                            if (!IsUnsigned(castExprTypeName))
+                            {
+                                castType = "sbyte";
+                            }
+                            else if (implicitCastExpr.Type.Handle.NumBits < 16)
+                            {
+                                // Cast to byte if the target type is less 
+
+                                castType = "byte";
+                            }
+                        }
+
+                        if (castType != "")
                         {
                             outputBuilder.Write("(sbyte)(");
                         }
@@ -199,7 +219,7 @@ namespace ClangSharp
                         outputBuilder.Write(EscapeCharacter((char)characterLiteral.Value));
                         outputBuilder.Write('\'');
 
-                        if (!isPreviousExplicitCast)
+                        if (castType != "")
                         {
                             outputBuilder.Write(')');
                         }

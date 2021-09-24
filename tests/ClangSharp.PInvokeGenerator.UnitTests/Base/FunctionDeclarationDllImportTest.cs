@@ -50,7 +50,7 @@ namespace ClangSharp.UnitTests
         [InlineData("unsigned short", "7", true, "ushort", "7")]
         [InlineData("unsigned int", "8", true, "uint", "8")]
         [InlineData("unsigned long long", "9", true, "ulong", "9")]
-        [InlineData("unsigned short", "'A'", true, "ushort", "(byte)('A')")]
+        [InlineData("unsigned short", "'A'", true, "ushort", "'A'")]
         public abstract Task OptionalParameterTest(string nativeType, string nativeInit, bool expectedNativeTypeNameAttr, string expectedManagedType, string expectedManagedInit);
 
         [Theory]
