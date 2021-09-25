@@ -16,7 +16,7 @@ namespace ClangSharp.UnitTests
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <constant name=""MyVariable"" access=""public"">
-        <type primitive=""False"">{expectedManagedType}</type>
+        <type primitive=""True"">{expectedManagedType}</type>
         <value>
           <code>0</code>
         </value>
@@ -38,7 +38,7 @@ namespace ClangSharp.UnitTests
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <constant name=""MyVariable"" access=""public"">
-        <type primitive=""False"">{expectedManagedType}</type>
+        <type primitive=""True"">{expectedManagedType}</type>
         <value>
           <code>0</code>
         </value>

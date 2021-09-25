@@ -14,12 +14,10 @@ namespace ClangSharp.Abstractions
         void BeginUnchecked();
         void EndUnchecked();
 
-        void BeginConstant(in ConstantDesc desc);
-        void BeginConstantValue(bool isGetOnlyProperty = false);
+        void BeginValue(in ValueDesc desc);
         void WriteConstantValue(long value);
         void WriteConstantValue(ulong value);
-        void EndConstantValue();
-        void EndConstant(bool isConstant);
+        void EndValue(in ValueDesc desc);
 
         void BeginEnum(in EnumDesc desc);
         void EndEnum();
@@ -29,8 +27,7 @@ namespace ClangSharp.Abstractions
         void WriteRegularField(string typeName, string escapedName);
         void EndField(bool isBodyless = true);
 
-        void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> info,
-            ref bool isMethodClassUnsafe);
+        void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> info, ref bool isMethodClassUnsafe);
         void BeginFunctionInnerPrototype(string escapedName);
         void BeginParameter<TCustomAttrGeneratorData>(in ParameterDesc<TCustomAttrGeneratorData> info);
         void BeginParameterDefault();

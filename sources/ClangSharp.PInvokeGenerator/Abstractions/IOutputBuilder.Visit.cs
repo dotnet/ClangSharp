@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
+using System;
+
 namespace ClangSharp.Abstractions
 {
     internal partial interface IOutputBuilder
@@ -8,7 +10,7 @@ namespace ClangSharp.Abstractions
         void SuppressDivider();
 
         void WriteCustomAttribute(string attribute);
-        void WriteIid(string iidName, string iidValue);
+        void WriteIid(string name, Guid value);
         void EmitUsingDirective(string directive);
     }
 }

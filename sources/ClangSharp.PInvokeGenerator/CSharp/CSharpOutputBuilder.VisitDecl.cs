@@ -23,52 +23,158 @@ namespace ClangSharp.CSharp
             // nop, used only by XML
         }
 
-        public void BeginConstant(in ConstantDesc desc)
+        public void BeginValue(in ValueDesc desc)
         {
             if (desc.NativeTypeName is not null)
             {
                 AddNativeTypeNameAttribute(desc.NativeTypeName);
             }
 
-            if (desc.Location is {} location)
+            if (desc.Location is { } location)
+            {
                 WriteSourceLocation(location, false);
+            }
 
             WriteIndentation();
 
-            if ((desc.Kind & ConstantKind.PrimitiveConstant) != 0)
+            if (desc.Kind == ValueKind.Primitive)
             {
                 Write(desc.AccessSpecifier.AsString());
-                Write(" const ");
-                Write(desc.TypeName);
-                Write(' ');
-            }
-            else if ((desc.Kind & ConstantKind.NonPrimitiveConstant) != 0)
-            {
-                Write(desc.AccessSpecifier.AsString());
-                Write(" static ");
-                if ((desc.Kind & ConstantKind.ReadOnly) != 0)
+
+                if (desc.IsConstant)
                 {
-                    Write("readonly ");
+                    Write(" const ");
+                }
+                else
+                {
+                    Write(" static ");
                 }
 
                 Write(desc.TypeName);
                 Write(' ');
             }
+            else if (desc.Kind == ValueKind.Unmanaged)
+            {
+                Write(desc.AccessSpecifier.AsString());
+                Write(" static ");
+
+                if (_config.GenerateUnmanagedConstants)
+                {
+                    if (desc.IsConstant)
+                    {
+                        if (desc.IsArray)
+                        {
+                            Write("ReadOnlySpan<");
+                        }
+                        else
+                        {
+                            Write("ref readonly ");
+                        }
+
+                        Write(desc.TypeName);
+
+                        if (desc.IsArray)
+                        {
+                            Write('>');
+                        }
+                    }
+                }
+                else
+                {
+                    Write("readonly ");
+                    Write(desc.TypeName);
+                }
+
+                Write(' ');
+            }
+            else if (desc.Kind == ValueKind.String)
+            {
+                Write(desc.AccessSpecifier.AsString());
+                Write(" static ");
+                Write(desc.TypeName);
+                Write(' ');
+            }
 
             Write(desc.EscapedName);
-        }
 
-        public void BeginConstantValue(bool isGetOnlyProperty = false) => Write(isGetOnlyProperty ? " => " : " = ");
+            if (desc.HasInitializer)
+            {
+                if (desc.Kind == ValueKind.String)
+                {
+                    Write(" => ");
+                }
+                else if (desc.IsConstant)
+                {
+                    if (_config.GenerateUnmanagedConstants && (desc.Kind == ValueKind.Unmanaged))
+                    {
+                        if (desc.IsCopy)
+                        {
+                            Write(" => ");
+                        }
+                        else
+                        {
+                            WriteNewline();
+                            WriteBlockStart();
+
+                            WriteIndentedLine("get");
+                            WriteBlockStart();
+                        }
+                    }
+                    else
+                    {
+                        Write(" = ");
+                    }
+                }
+                else
+                {
+                    Write(" => ");
+                }
+            }
+        }
 
         public void WriteConstantValue(long value) => Write(value);
         public void WriteConstantValue(ulong value) => Write(value);
 
-        public void EndConstantValue()
+        public void EndValue(in ValueDesc desc)
         {
-            // nop, used only by the XML backend
-        }
+            switch (desc.Kind)
+            {
+                case ValueKind.Primitive:
+                {
+                    WriteLine(';');
+                    break;
+                }
 
-        public void EndConstant(bool isConstant) => WriteLine(isConstant ? ';' : ',');
+                case ValueKind.Enumerator:
+                {
+                    WriteLine(',');
+                    break;
+                }
+
+                case ValueKind.Unmanaged:
+                {
+                    if (desc.IsConstant)
+                    {
+                        if (_config.GenerateUnmanagedConstants && !desc.IsCopy)
+                        {
+                            WriteBlockEnd();
+                            WriteBlockEnd();
+                        }
+                        else
+                        {
+                            WriteLine(';');
+                        }
+                    }
+                    break;
+                }
+
+                case ValueKind.String:
+                {
+                    WriteLine(';');
+                    break;
+                }
+            }
+        }
 
         public void BeginEnum(in EnumDesc desc)
         {

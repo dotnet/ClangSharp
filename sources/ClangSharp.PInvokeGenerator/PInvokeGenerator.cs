@@ -26,7 +26,7 @@ namespace ClangSharp
         private readonly StringBuilder _fileContentsBuilder;
         private readonly HashSet<string> _visitedFiles;
         private readonly List<Diagnostic> _diagnostics;
-        private readonly LinkedList<Cursor> _context;
+        private readonly LinkedList<(Cursor Cursor, object UserData)> _context;
         private readonly Dictionary<string, Guid> _uuidsToGenerate;
         private readonly HashSet<string> _generatedUuids;
         private readonly PInvokeGeneratorConfiguration _config;
@@ -60,7 +60,7 @@ namespace ClangSharp
             _fileContentsBuilder = new StringBuilder();
             _visitedFiles = new HashSet<string>();
             _diagnostics = new List<Diagnostic>();
-            _context = new LinkedList<Cursor>();
+            _context = new LinkedList<(Cursor, object)>();
             _config = config;
             _uuidsToGenerate = new Dictionary<string, Guid>();
             _generatedUuids = new HashSet<string>();
@@ -73,13 +73,13 @@ namespace ClangSharp
 
         public PInvokeGeneratorConfiguration Config => _config;
 
-        public Cursor CurrentContext => _context.Last.Value;
+        public (Cursor Cursor, object UserData) CurrentContext => _context.Last.Value;
 
         public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
 
         public CXIndex IndexHandle => _index;
 
-        public Cursor PreviousContext => _context.Last.Previous.Value;
+        public (Cursor Cursor, object UserData) PreviousContext => _context.Last.Previous.Value;
 
         public void Close()
         {
@@ -97,12 +97,8 @@ namespace ClangSharp
                     continue;
                 }
 
-                var iidValue = foundUuid.Value.ToString("X").ToUpperInvariant().Replace("{", "").Replace("}", "").Replace('X', 'x').Replace(",", ", ");
-
                 StartUsingOutputBuilder(_config.MethodClassName);
-
-                _outputBuilder.WriteIid(iidName, iidValue);
-
+                _outputBuilder.WriteIid(iidName, foundUuid.Value);
                 StopUsingOutputBuilder();
             }
 
@@ -1665,7 +1661,7 @@ namespace ClangSharp
                         case CXTemplateArgumentKind.CXTemplateArgumentKind_Expression:
                         {
                             var oldOutputBuilder = _outputBuilder;
-                            _outputBuilder = new CSharpOutputBuilder("ClangSharp_TemplateSpecializationType_AsExpr");
+                            _outputBuilder = new CSharpOutputBuilder("ClangSharp_TemplateSpecializationType_AsExpr", _config);
 
                             Visit(arg.AsExpr);
                             typeName = _outputBuilder.ToString();
@@ -2794,46 +2790,54 @@ namespace ClangSharp
             }
         }
 
-        private bool IsPrevContextDecl<T>(out T value)
+        private bool IsPrevContextDecl<T>(out T cursor, out object userData)
             where T : Decl
         {
             var previousContext = _context.Last.Previous;
 
-            while (previousContext.Value is not Decl)
+            while (previousContext.Value.Cursor is not Decl)
             {
                 previousContext = previousContext.Previous;
             }
 
-            if (previousContext.Value is T t)
+            var value = previousContext.Value;
+
+            if (value.Cursor is T t)
             {
-                value = t;
+                cursor = t;
+                userData = value.UserData;
                 return true;
             }
             else
             {
-                value = null;
+                cursor = null;
+                userData = null;
                 return false;
             }
         }
 
-        private bool IsPrevContextStmt<T>(out T value)
+        private bool IsPrevContextStmt<T>(out T cursor, out object userData, bool preserveParen = false, bool preserveImplicitCast = false)
             where T : Stmt
         {
             var previousContext = _context.Last.Previous;
 
-            while (previousContext.Value is ParenExpr or ImplicitCastExpr)
+            while ((!preserveParen && (previousContext.Value.Cursor is ParenExpr)) || (!preserveImplicitCast && (previousContext.Value.Cursor is ImplicitCastExpr)))
             {
                 previousContext = previousContext.Previous;
             }
 
-            if (previousContext.Value is T t)
+            var value = previousContext.Value;
+
+            if (value.Cursor is T t)
             {
-                value = t;
+                cursor = t;
+                userData = value.UserData;
                 return true;
             }
             else
             {
-                value = null;
+                cursor = null;
+                userData = null;
                 return false;
             }
         }
@@ -3205,7 +3209,7 @@ namespace ClangSharp
                                 case "short":
                                 case "Int16":
                                 {
-                                    return (size32 != size64) || !IsPrevContextDecl<VarDecl>(out _);
+                                    return (size32 != size64) || !IsPrevContextDecl<VarDecl>(out _, out _);
                                 }
 
                                 case "ulong":
@@ -3893,7 +3897,7 @@ namespace ClangSharp
 
                 var needsCast = IsStmtAsWritten<IntegerLiteral>(stmt, out _, removeParens: true) && (stmt.DeclContext is EnumDecl);
 
-                if (IsStmtAsWritten<UnaryExprOrTypeTraitExpr>(stmt, out var unaryExprOrTypeTraitExpr, removeParens: true) && ((CurrentContext is VarDecl) || IsPrevContextDecl<VarDecl>(out _)))
+                if (IsStmtAsWritten<UnaryExprOrTypeTraitExpr>(stmt, out var unaryExprOrTypeTraitExpr, removeParens: true) && ((CurrentContext.Cursor is VarDecl) || IsPrevContextDecl<VarDecl>(out _, out _)))
                 {
                     var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
 
@@ -3950,7 +3954,7 @@ namespace ClangSharp
 
         private void Visit(Cursor cursor)
         {
-            var currentContext = _context.AddLast(cursor);
+            var currentContext = _context.AddLast((cursor, null));
             var currentStmtUsers = _stmtOutputBuilder is not null ? (int?)_stmtOutputBuilderUsers : null;
 
             if (cursor is Attr attr)

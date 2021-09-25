@@ -11,6 +11,7 @@ namespace ClangSharp.CSharp
         public const string DefaultIndentationString = "    ";
 
         private readonly string _name;
+        private readonly PInvokeGeneratorConfiguration _config;
         private readonly List<string> _contents;
         private readonly StringBuilder _currentLine;
         private readonly SortedSet<string> _usingDirectives;
@@ -22,11 +23,12 @@ namespace ClangSharp.CSharp
         private readonly MarkerMode _markerMode;
         private readonly bool _writeSourceLocation;
 
-        public CSharpOutputBuilder(string name, string indentationString = DefaultIndentationString,
+        public CSharpOutputBuilder(string name, PInvokeGeneratorConfiguration config, string indentationString = DefaultIndentationString,
                                    bool isTestOutput = false, MarkerMode markerMode = MarkerMode.None,
                                    bool writeSourceLocation = false)
         {
             _name = name;
+            _config = config;
             _contents = new List<string>();
             _currentLine = new StringBuilder();
             _usingDirectives = new SortedSet<string>();
@@ -154,6 +156,21 @@ namespace ClangSharp.CSharp
             if (NeedsSemicolon)
             {
                 WriteSemicolon();
+            }
+        }
+
+        public void WriteValueAsBytes(ulong value, int sizeInChars)
+        {
+            Write("0x");
+            Write(((byte)value).ToString("X2"));
+
+            for (var i = 1; i < sizeInChars; i++)
+            {
+                Write(", ");
+                value >>= 8;
+
+                Write("0x");
+                Write(((byte)value).ToString("X2"));
             }
         }
 

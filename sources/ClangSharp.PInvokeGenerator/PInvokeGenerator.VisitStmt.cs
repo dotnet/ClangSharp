@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using ClangSharp.Abstractions;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -190,7 +192,7 @@ namespace ClangSharp
                     {
                         var castType = "";
 
-                        if (IsPrevContextStmt<ImplicitCastExpr>(out var implicitCastExpr))
+                        if (IsPrevContextStmt<ImplicitCastExpr>(out var implicitCastExpr, out _))
                         {
                             // C# characters are effectively `ushort` while C defaults to "char" which is 
                             // most typically `sbyte`. Due to this we need to insert a correct implicit
@@ -318,6 +320,12 @@ namespace ClangSharp
         {
             var outputBuilder = StartCSharpCode();
             var isCopyOrMoveConstructor = cxxConstructExpr.Constructor is { IsCopyConstructor: true } or { IsMoveConstructor: true };
+            var isUnmanagedConstant = false;
+
+            if (IsPrevContextDecl<VarDecl>(out _, out var userData))
+            {
+                isUnmanagedConstant = (userData is ValueDesc valueDesc) && (valueDesc.Kind == ValueKind.Unmanaged) && valueDesc.IsConstant && valueDesc.IsCopy;
+            }
 
             if (!isCopyOrMoveConstructor)
             {
@@ -333,6 +341,10 @@ namespace ClangSharp
 
             if (args.Count != 0)
             {
+                if (isUnmanagedConstant)
+                {
+                    outputBuilder.Write("ref ");
+                }
                 Visit(args[0]);
 
                 for (var i = 1; i < args.Count; i++)
@@ -655,7 +667,7 @@ namespace ClangSharp
         {
             var outputBuilder = StartCSharpCode();
 
-            if (IsPrevContextDecl<EnumConstantDecl>(out _) && explicitCastExpr.Type is EnumType enumType)
+            if (IsPrevContextDecl<EnumConstantDecl>(out _, out _) && explicitCastExpr.Type is EnumType enumType)
             {
                 outputBuilder.Write('(');
                 var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _);
@@ -876,11 +888,11 @@ namespace ClangSharp
             {
                 var subExpr = implicitCastExpr.SubExprAsWritten;
 
-                if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator) && ((binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_EQ) || (binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_NE)))
+                if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator, out _) && ((binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_EQ) || (binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_NE)))
                 {
                     Visit(subExpr);
                 }
-                else if (IsPrevContextDecl<EnumConstantDecl>(out _))
+                else if (IsPrevContextDecl<EnumConstantDecl>(out _, out _))
                 {
                     Visit(subExpr);
                 }
@@ -911,21 +923,18 @@ namespace ClangSharp
         {
             var outputBuilder = StartCSharpCode();
             ForType(initListExpr, initListExpr.Type);
+            StopCSharpCode();
 
-            void ForArrayType(InitListExpr initListExpr, ArrayType arrayType)
+            long CalculateRootSize(InitListExpr initListExpr, ArrayType arrayType, bool isUnmanagedConstant)
             {
-                outputBuilder.Write("new ");
-
-                var type = initListExpr.Type;
-                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
-
-                outputBuilder.Write(typeName);
-
                 long rootSize = -1;
 
                 do
                 {
-                    outputBuilder.Write('[');
+                    if (!isUnmanagedConstant)
+                    {
+                        outputBuilder.Write('[');
+                    }
                     long size = -1;
 
                     if (arrayType is ConstantArrayType constantArrayType)
@@ -934,7 +943,7 @@ namespace ClangSharp
                     }
                     else
                     {
-                        AddDiagnostic(DiagnosticLevel.Error, $"Unsupported array type kind: '{type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
+                        AddDiagnostic(DiagnosticLevel.Error, $"Unsupported array type kind: '{initListExpr.Type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
                     }
 
                     if (rootSize == -1)
@@ -942,7 +951,11 @@ namespace ClangSharp
                         if (size != -1)
                         {
                             rootSize = size;
-                            outputBuilder.Write(size);
+
+                            if (!isUnmanagedConstant)
+                            {
+                                outputBuilder.Write(size);
+                            }
                         }
                         else
                         {
@@ -950,29 +963,58 @@ namespace ClangSharp
                         }
                     }
 
-                    outputBuilder.Write(']');
+                    if (!isUnmanagedConstant)
+                    {
+                        outputBuilder.Write(']');
+                    }
                     arrayType = arrayType.ElementType as ArrayType;
                 }
                 while (arrayType is not null);
 
-                outputBuilder.WriteNewline();
-                outputBuilder.WriteBlockStart();
+                return rootSize;
+            }
 
-                for (var i = 0; i < initListExpr.Inits.Count; i++)
+            void ForArrayType(InitListExpr initListExpr, ArrayType arrayType)
+            {
+                var type = initListExpr.Type;
+                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
+                var isUnmanagedConstant = false;
+
+                if (IsPrevContextDecl<VarDecl>(out _, out var userData))
                 {
-                    outputBuilder.WriteIndentation();
-                    Visit(initListExpr.Inits[i]);
-                    outputBuilder.WriteLine(',');
+                    isUnmanagedConstant = (userData is ValueDesc valueDesc) && (valueDesc.Kind == ValueKind.Unmanaged) && valueDesc.IsConstant;
                 }
 
-                for (var i = initListExpr.Inits.Count; i < rootSize; i++)
+                if (_config.GenerateUnmanagedConstants && isUnmanagedConstant)
                 {
-                    outputBuilder.WriteIndentedLine("default,");
+                    HandleUnmanagedConstant(initListExpr, arrayType, typeName);
                 }
+                else
+                {
+                    outputBuilder.Write("new ");
+                    outputBuilder.Write(typeName);
 
-                outputBuilder.DecreaseIndentation();
-                outputBuilder.WriteIndented('}');
-                outputBuilder.NeedsSemicolon = true;
+                    var rootSize = CalculateRootSize(initListExpr, arrayType, isUnmanagedConstant: false);
+
+                    outputBuilder.WriteNewline();
+                    outputBuilder.WriteBlockStart();
+
+                    for (var i = 0; i < initListExpr.Inits.Count; i++)
+                    {
+                        outputBuilder.WriteIndentation();
+                        Visit(initListExpr.Inits[i]);
+                        outputBuilder.WriteLine(',');
+                    }
+
+                    for (var i = initListExpr.Inits.Count; i < rootSize; i++)
+                    {
+                        outputBuilder.WriteIndentedLine("default,");
+                    }
+
+                    outputBuilder.DecreaseIndentation();
+                    outputBuilder.WriteIndented('}');
+                    outputBuilder.NeedsSemicolon = true;
+                }
             }
 
             void ForBuiltinType(InitListExpr initListExpr, BuiltinType builtinType)
@@ -993,64 +1035,74 @@ namespace ClangSharp
 
             void ForRecordType(InitListExpr initListExpr, RecordType recordType)
             {
-                outputBuilder.Write("new ");
-
                 var type = initListExpr.Type;
                 var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
+                var isUnmanagedConstant = false;
 
-                outputBuilder.Write(typeName);
-
-                if (typeName == "Guid")
+                if (IsPrevContextDecl<VarDecl>(out _, out var userData))
                 {
-                    outputBuilder.Write('(');
+                    isUnmanagedConstant = (userData is ValueDesc valueDesc) && (valueDesc.Kind == ValueKind.Unmanaged) && valueDesc.IsConstant;
+                }
 
-                    Visit(initListExpr.Inits[0]);
-
-                    outputBuilder.Write(", ");
-
-                    Visit(initListExpr.Inits[1]);
-
-                    outputBuilder.Write(", ");
-
-                    Visit(initListExpr.Inits[2]);
-                    initListExpr = (InitListExpr)initListExpr.Inits[3];
-
-                    for (var i = 0; i < initListExpr.Inits.Count; i++)
-                    {
-                        outputBuilder.Write(", ");
-
-                        Visit(initListExpr.Inits[i]);
-                    }
-
-                    outputBuilder.Write(')');
+                if (_config.GenerateUnmanagedConstants && isUnmanagedConstant)
+                {
+                    HandleUnmanagedConstant(initListExpr, recordType, typeName);
                 }
                 else
                 {
-                    outputBuilder.WriteNewline();
-                    outputBuilder.WriteBlockStart();
+                    outputBuilder.Write("new ");
+                    outputBuilder.Write(typeName);
 
-                    var decl = recordType.Decl;
-
-                    for (var i = 0; i < initListExpr.Inits.Count; i++)
+                    if (typeName == "Guid")
                     {
-                        var init = initListExpr.Inits[i];
+                        outputBuilder.Write('(');
 
-                        if (init is ImplicitValueInitExpr)
+                        Visit(initListExpr.Inits[0]);
+
+                        outputBuilder.Write(", ");
+                        Visit(initListExpr.Inits[1]);
+
+                        outputBuilder.Write(", ");
+                        Visit(initListExpr.Inits[2]);
+
+                        initListExpr = (InitListExpr)initListExpr.Inits[3];
+
+                        for (var i = 0; i < initListExpr.Inits.Count; i++)
                         {
-                            continue;
+                            outputBuilder.Write(", ");
+                            Visit(initListExpr.Inits[i]);
                         }
 
-                        var fieldName = GetRemappedCursorName(decl.Fields[i]);
-
-                        outputBuilder.WriteIndented(fieldName);
-                        outputBuilder.Write(" = ");
-                        Visit(init);
-                        outputBuilder.WriteLine(',');
+                        outputBuilder.Write(')');
                     }
+                    else
+                    {
+                        outputBuilder.WriteNewline();
+                        outputBuilder.WriteBlockStart();
 
-                    outputBuilder.DecreaseIndentation();
-                    outputBuilder.WriteIndented('}');
-                    outputBuilder.NeedsSemicolon = true;
+                        var decl = recordType.Decl;
+
+                        for (var i = 0; i < initListExpr.Inits.Count; i++)
+                        {
+                            var init = initListExpr.Inits[i];
+
+                            if (init is ImplicitValueInitExpr)
+                            {
+                                continue;
+                            }
+
+                            var fieldName = GetRemappedCursorName(decl.Fields[i]);
+
+                            outputBuilder.WriteIndented(fieldName);
+                            outputBuilder.Write(" = ");
+                            Visit(init);
+                            outputBuilder.WriteLine(',');
+                        }
+
+                        outputBuilder.DecreaseIndentation();
+                        outputBuilder.WriteIndented('}');
+                        outputBuilder.NeedsSemicolon = true;
+                    }
                 }
             }
 
@@ -1102,7 +1154,117 @@ namespace ClangSharp
                 }
             }
 
-            StopCSharpCode();
+            void HandleInitListExpr(InitListExpr initListExpr)
+            {
+                var inits = initListExpr.Inits;
+
+                if (initListExpr.NumInits > 0)
+                {
+                    HandleInitStmt(inits[0]);
+                }
+
+                for (var i = 1; i < inits.Count; i++)
+                {
+                    outputBuilder.WriteLine(',');
+                    HandleInitStmt(inits[i]);
+                }
+            }
+
+            void HandleInitStmt(Stmt init)
+            {
+                if (init is InitListExpr nestedInitListExpr)
+                {
+                    HandleInitListExpr(nestedInitListExpr);
+                }
+                else
+                {
+                    outputBuilder.WriteIndentation();
+
+                    var evaluation = init.Handle.Evaluate;
+
+                    switch (evaluation.Kind)
+                    {
+                        case CXEvalResultKind.CXEval_Int:
+                        {
+                            var sizeInChars = ((Expr)init).Type.Handle.SizeOf;
+                            outputBuilder.WriteValueAsBytes(evaluation.AsUnsigned, (int)sizeInChars);
+                            break;
+                        }
+
+                        case CXEvalResultKind.CXEval_Float:
+                        {
+                            var sizeInChars = ((Expr)init).Type.Handle.SizeOf;
+
+                            if (sizeInChars == 4)
+                            {
+                                var value = (float)evaluation.AsDouble;
+                                outputBuilder.WriteValueAsBytes(Unsafe.As<float, uint>(ref value), (int)sizeInChars);
+                            }
+                            else if (sizeInChars == 8)
+                            {
+                                var value = evaluation.AsDouble;
+                                outputBuilder.WriteValueAsBytes(Unsafe.As<double, ulong>(ref value), (int)sizeInChars);
+                            }
+                            else
+                            {
+                                goto default;
+                            }
+
+                            break;
+                        }
+
+                        default:
+                        {
+                            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported evaluation kind: '{evaluation.Kind}'. Generated bindings may be incomplete.", init);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            void HandleUnmanagedConstant(InitListExpr initListExpr, Type type, string typeName)
+            {
+                outputBuilder.AddUsingDirective("System");
+                outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
+                outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+
+                outputBuilder.WriteIndentedLine("ReadOnlySpan<byte> data = new byte[] {");
+                outputBuilder.IncreaseIndentation();
+
+                HandleInitListExpr(initListExpr);
+
+                outputBuilder.WriteNewline();
+                outputBuilder.DecreaseIndentation();
+                outputBuilder.WriteIndentedLine("};");
+
+                outputBuilder.NeedsNewline = true;
+                long rootSize = -1;
+
+                if (type is ArrayType arrayType)
+                {
+                    rootSize = CalculateRootSize(initListExpr, arrayType, isUnmanagedConstant: true);
+
+                    outputBuilder.WriteIndented("return MemoryMarshal.CreateReadOnlySpan<");
+                    outputBuilder.Write(typeName);
+                    outputBuilder.Write(">(");
+                }
+                else
+                {
+                    outputBuilder.WriteIndented("return ");
+                }
+                
+                outputBuilder.Write("ref Unsafe.As<byte, ");
+                outputBuilder.Write(typeName);
+                outputBuilder.Write(">(ref MemoryMarshal.GetReference(data))");
+
+                if (rootSize != -1)
+                {
+                    outputBuilder.Write(", ");
+                    outputBuilder.Write(rootSize);
+                    outputBuilder.Write(")");
+                }
+                outputBuilder.WriteLine(';');
+            }
         }
 
         private void VisitIntegerLiteral(IntegerLiteral integerLiteral)
@@ -1151,7 +1313,8 @@ namespace ClangSharp
                 valueString = valueString[0..^1] + "U";
             }
 
-            StartCSharpCode().Write(valueString);
+            var outputBuilder = StartCSharpCode();
+            outputBuilder.Write(valueString);
             StopCSharpCode();
         }
 
@@ -1235,7 +1398,7 @@ namespace ClangSharp
         private void VisitReturnStmt(ReturnStmt returnStmt)
         {
             var outputBuilder = StartCSharpCode();
-            if (IsPrevContextDecl<FunctionDecl>(out var functionDecl) && (functionDecl.ReturnType.CanonicalType.Kind != CXTypeKind.CXType_Void))
+            if (IsPrevContextDecl<FunctionDecl>(out var functionDecl, out _) && (functionDecl.ReturnType.CanonicalType.Kind != CXTypeKind.CXType_Void))
             {
                 outputBuilder.Write("return");
 
@@ -1767,7 +1930,7 @@ namespace ClangSharp
                 {
                     var context = string.Empty;
 
-                    if (IsPrevContextDecl<NamedDecl>(out var namedDecl))
+                    if (IsPrevContextDecl<NamedDecl>(out var namedDecl, out _))
                     {
                         context = $" in {GetCursorQualifiedName(namedDecl)}";
                     }
@@ -1907,7 +2070,7 @@ namespace ClangSharp
             {
                 case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
                 {
-                    if ((size32 == size64) && IsPrevContextDecl<VarDecl>(out _))
+                    if ((size32 == size64) && IsPrevContextDecl<VarDecl>(out _, out _))
                     {
                         outputBuilder.Write(size32);
                     }
@@ -1920,7 +2083,7 @@ namespace ClangSharp
 
                         var parentType = null as Type;
 
-                        if (IsPrevContextStmt<CallExpr>(out var callExpr))
+                        if (IsPrevContextStmt<CallExpr>(out var callExpr, out _))
                         {
                             var args = callExpr.Args;
                             var index = -1;
@@ -1957,11 +2120,11 @@ namespace ClangSharp
                             }
 
                         }
-                        else if (IsPrevContextStmt<Expr>(out var expr))
+                        else if (IsPrevContextStmt<Expr>(out var expr, out _))
                         {
                             parentType = expr.Type.CanonicalType;
                         }
-                        else if (IsPrevContextDecl<TypeDecl>(out var typeDecl))
+                        else if (IsPrevContextDecl<TypeDecl>(out var typeDecl, out _))
                         {
                             parentType = typeDecl.TypeForDecl.CanonicalType;
                         }

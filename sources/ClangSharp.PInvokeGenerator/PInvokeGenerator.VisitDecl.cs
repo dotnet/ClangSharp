@@ -271,31 +271,36 @@ namespace ClangSharp
             }
             else
             {
-                typeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type,
-                    out _);
+                typeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out _);
             }
 
-            var desc = new ConstantDesc
+            var kind = isAnonymousEnum ? ValueKind.Primitive : ValueKind.Enumerator;
+            var flags = ValueFlags.Constant;
+
+            if (enumConstantDecl.InitExpr is not null)
+            {
+                flags |= ValueFlags.Initializer;
+            }
+
+            var desc = new ValueDesc
             {
                 AccessSpecifier = accessSpecifier,
                 TypeName = typeName,
                 EscapedName = escapedName,
                 NativeTypeName = null,
-                Kind = isAnonymousEnum ? ConstantKind.PrimitiveConstant : ConstantKind.Enumerator,
+                Kind = kind,
+                Flags = flags,
                 Location = enumConstantDecl.Location
             };
 
-            _outputBuilder.BeginConstant(in desc);
+            _outputBuilder.BeginValue(in desc);
 
             if (enumConstantDecl.InitExpr != null)
             {
-                _outputBuilder.BeginConstantValue();
                 UncheckStmt(typeName, enumConstantDecl.InitExpr);
-                _outputBuilder.EndConstantValue();
             }
             else if (isAnonymousEnum)
             {
-                _outputBuilder.BeginConstantValue();
                 if (IsUnsigned(typeName))
                 {
                     _outputBuilder.WriteConstantValue(enumConstantDecl.UnsignedInitVal);
@@ -304,11 +309,9 @@ namespace ClangSharp
                 {
                     _outputBuilder.WriteConstantValue(enumConstantDecl.InitVal);
                 }
-
-                _outputBuilder.EndConstantValue();
             }
 
-            _outputBuilder.EndConstant(isAnonymousEnum);
+            _outputBuilder.EndValue(in desc);
         }
 
         private void VisitEnumDecl(EnumDecl enumDecl)
@@ -505,7 +508,7 @@ namespace ClangSharp
             {
                 Debug.Assert(cxxRecordDecl != null);
 
-                if (!IsPrevContextDecl<CXXRecordDecl>(out var thisCursor))
+                if (!IsPrevContextDecl<CXXRecordDecl>(out var thisCursor, out _))
                 {
                     thisCursor = cxxRecordDecl;
                 }
@@ -633,7 +636,7 @@ namespace ClangSharp
                 return;
             }
 
-            if (IsPrevContextDecl<RecordDecl>(out var prevContext) && prevContext.IsAnonymousStructOrUnion)
+            if (IsPrevContextDecl<RecordDecl>(out var prevContext, out _) && prevContext.IsAnonymousStructOrUnion)
             {
                 // We shouldn't process indirect fields where the prev context is an anonymous record decl
                 return;
@@ -893,17 +896,17 @@ namespace ClangSharp
                 return;
             }
 
-            if (IsPrevContextDecl<FunctionDecl>(out var functionDecl))
+            if (IsPrevContextDecl<FunctionDecl>(out var functionDecl, out _))
             {
                 ForFunctionDecl(parmVarDecl, functionDecl);
             }
-            else if (IsPrevContextDecl<TypedefDecl>(out var typedefDecl))
+            else if (IsPrevContextDecl<TypedefDecl>(out var typedefDecl, out _))
             {
                 ForTypedefDecl(parmVarDecl, typedefDecl);
             }
             else
             {
-                _ = IsPrevContextDecl<Decl>(out var previousContext);
+                _ = IsPrevContextDecl<Decl>(out var previousContext, out _);
                 AddDiagnostic(DiagnosticLevel.Error,
                     $"Unsupported parameter variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.",
                     previousContext);
@@ -1472,7 +1475,7 @@ namespace ClangSharp
                         _outputBuilder.WriteDivider();
 
                         var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
-                        Debug.Assert(CurrentContext == rootCxxRecordDecl);
+                        Debug.Assert(CurrentContext.Cursor == rootCxxRecordDecl);
                         Visit(cxxMethodDecl);
                     }
                 }
@@ -1493,7 +1496,7 @@ namespace ClangSharp
                         continue;
                     }
 
-                    Debug.Assert(CurrentContext == rootCxxRecordDecl);
+                    Debug.Assert(CurrentContext.Cursor == rootCxxRecordDecl);
                     Visit(cxxMethodDecl);
                     _outputBuilder.WriteDivider();
                 }
@@ -1561,7 +1564,7 @@ namespace ClangSharp
                     return;
                 }
 
-                var currentContext = _context.AddLast(cxxMethodDecl);
+                var currentContext = _context.AddLast((cxxMethodDecl, null));
                 var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var returnType = cxxMethodDecl.ReturnType;
                 var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
@@ -2105,7 +2108,7 @@ namespace ClangSharp
 
                 code.Write(") | ");
 
-                if ((canonicalTypeBacking != canonicalType) && !(canonicalType is EnumType))
+                if ((canonicalTypeBacking != canonicalType) && (canonicalType is not EnumType))
                 {
                     code.Write('(');
                     code.Write(typeNameBacking);
@@ -2598,11 +2601,11 @@ namespace ClangSharp
 
         private void VisitVarDecl(VarDecl varDecl)
         {
-            if (IsPrevContextStmt<DeclStmt>(out var declStmt))
+            if (IsPrevContextStmt<DeclStmt>(out var declStmt, out _))
             {
                 ForDeclStmt(varDecl, declStmt);
             }
-            else if (IsPrevContextDecl<TranslationUnitDecl>(out _) || IsPrevContextDecl<LinkageSpecDecl>(out _) || IsPrevContextDecl<RecordDecl>(out _))
+            else if (IsPrevContextDecl<TranslationUnitDecl>(out _, out _) || IsPrevContextDecl<LinkageSpecDecl>(out _, out _) || IsPrevContextDecl<RecordDecl>(out _, out _))
             {
                 if (!varDecl.HasInit)
                 {
@@ -2676,23 +2679,30 @@ namespace ClangSharp
                     nativeTypeName = nativeTypeNameBuilder.ToString();
                 }
 
-                var isProperty = false;
-                var isStringLiteral = false;
+                var kind = ValueKind.Unknown;
+                var flags = ValueFlags.None;
 
-                var kind = ConstantKind.None;
+                if (type.IsLocalConstQualified || isMacroDefinitionRecord || (type is ConstantArrayType))
+                {
+                    flags |= ValueFlags.Constant;
+                }
+
+                if (varDecl.HasInit)
+                {
+                    flags |= ValueFlags.Initializer;
+                }
+
                 if (IsStmtAsWritten<StringLiteral>(varDecl.Init, out var stringLiteral, removeParens: true))
                 {
+                    kind = ValueKind.String;
+
                     switch (stringLiteral.Kind)
                     {
                         case CX_CharacterKind.CX_CLK_Ascii:
                         case CX_CharacterKind.CX_CLK_UTF8:
                         {
                             _outputBuilder.EmitSystemSupport();
-                            kind |= ConstantKind.NonPrimitiveConstant;
-
                             typeName = "ReadOnlySpan<byte>";
-                            isProperty = true;
-                            isStringLiteral = true;
                             break;
                         }
 
@@ -2708,62 +2718,87 @@ namespace ClangSharp
 
                         case CX_CharacterKind.CX_CLK_UTF16:
                         {
-                            kind |= ConstantKind.PrimitiveConstant;
-
+                            kind = ValueKind.Primitive;
                             typeName = "string";
-                            isStringLiteral = true;
                             break;
                         }
 
                         default:
                         {
-                            AddDiagnostic(DiagnosticLevel.Error,
-                                $"Unsupported string literal kind: '{stringLiteral.Kind}'. Generated bindings may be incomplete.",
-                                stringLiteral);
+                            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported string literal kind: '{stringLiteral.Kind}'. Generated bindings may be incomplete.", stringLiteral);
                             break;
                         }
                     }
                 }
-                else if ((type.IsLocalConstQualified || isMacroDefinitionRecord) && CanBeConstant(type, typeName, varDecl.Init))
+                else if (IsPrimitiveValue(type))
                 {
-                    kind |= ConstantKind.PrimitiveConstant;
+                    kind = ValueKind.Primitive;
+
+                    if (!IsConstant(typeName, varDecl.Init))
+                    {
+                        flags &= ~ValueFlags.Constant;
+                    }
                 }
                 else if ((varDecl.StorageClass == CX_StorageClass.CX_SC_Static) || openedOutputBuilder)
                 {
-                    kind |= ConstantKind.NonPrimitiveConstant;
+                    kind = ValueKind.Unmanaged;
 
-                    if (type.IsLocalConstQualified || isMacroDefinitionRecord)
+                    if (_config.GenerateUnmanagedConstants)
                     {
-                        kind |= ConstantKind.ReadOnly;
+                        switch (typeName)
+                        {
+                            case "IntPtr":
+                            case "nint":
+                            case "nuint":
+                            case "UIntPtr":
+                            {
+                                // These small primitives are better handled as properties
+                                flags &= ~ValueFlags.Constant;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (varDecl.HasInit)
+                    {
+                        if ((varDecl.Init is CXXConstructExpr cxxConstructExpr) && cxxConstructExpr.Constructor.IsCopyConstructor)
+                        {
+                            flags |= ValueFlags.Copy;
+                        }
+                    }
+
+                    if (type is ArrayType arrayType)
+                    {
+                        flags |= ValueFlags.Array;
+
+                        if (!_config.GenerateUnmanagedConstants)
+                        {
+                            do
+                            {
+                                typeName += "[]";
+                                arrayType = arrayType.ElementType as ArrayType;
+                            }
+                            while (arrayType is not null);
+                        }
                     }
                 }
 
-                if (!isStringLiteral && type is ArrayType arrayType)
-                {
-                    do
-                    {
-                        typeName += "[]";
-                        arrayType = arrayType.ElementType as ArrayType;
-                    }
-                    while (arrayType is not null);
-                }
-
-                var desc = new ConstantDesc
+                var desc = new ValueDesc
                 {
                     AccessSpecifier = accessSpecifier,
                     TypeName = typeName,
                     EscapedName = escapedName,
                     NativeTypeName = nativeTypeName,
                     Kind = kind,
+                    Flags = flags,
                     Location = varDecl.Location
                 };
 
-                _outputBuilder.BeginConstant(in desc);
+                _outputBuilder.BeginValue(in desc);
+                _context.Last.Value = (_context.Last.Value.Cursor, desc);
 
                 if (varDecl.HasInit)
                 {
-                    _outputBuilder.BeginConstantValue(isProperty);
-
                     var dereference = (type.CanonicalType is PointerType pointerType) &&
                                       (pointerType.PointeeType.CanonicalType is FunctionType) &&
                                       isMacroDefinitionRecord;
@@ -2779,11 +2814,9 @@ namespace ClangSharp
                     {
                         _outputBuilder.EndDereference();
                     }
-
-                    _outputBuilder.EndConstantValue();
                 }
 
-                _outputBuilder.EndConstant(true);
+                _outputBuilder.EndValue(in desc);
 
                 if (openedOutputBuilder)
                 {
@@ -2794,16 +2827,14 @@ namespace ClangSharp
                     _outputBuilder.WriteDivider();
                 }
             }
-            else if (IsPrevContextDecl<FunctionDecl>(out _))
+            else if (IsPrevContextDecl<FunctionDecl>(out _, out _))
             {
                 // This should be handled in the function body as part of a DeclStmt
             }
             else
             {
-                _ = IsPrevContextDecl<Decl>(out var previousContext);
-                AddDiagnostic(DiagnosticLevel.Error,
-                    $"Unsupported variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.",
-                    previousContext);
+                _ = IsPrevContextDecl<Decl>(out var previousContext, out _);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.", previousContext);
             }
 
             void ForDeclStmt(VarDecl varDecl, DeclStmt declStmt)
@@ -2840,15 +2871,15 @@ namespace ClangSharp
                 StopCSharpCode();
             }
 
-            bool CanBeConstant(Type type, string targetTypeName, Expr initExpr)
+            bool IsPrimitiveValue(Type type)
             {
                 if (type is AttributedType attributedType)
                 {
-                    return CanBeConstant(attributedType.ModifiedType, targetTypeName, initExpr);
+                    return IsPrimitiveValue(attributedType.ModifiedType);
                 }
                 else if (type is AutoType autoType)
                 {
-                    return CanBeConstant(autoType.CanonicalType, targetTypeName, initExpr);
+                    return IsPrimitiveValue(autoType.CanonicalType);
                 }
                 else if (type is BuiltinType builtinType)
                 {
@@ -2872,29 +2903,34 @@ namespace ClangSharp
                         case CXTypeKind.CXType_Float:
                         case CXTypeKind.CXType_Double:
                         {
-                            return IsConstant(targetTypeName, initExpr);
+                            return true;
                         }
                     }
                 }
                 else if (type is ElaboratedType elaboratedType)
                 {
-                    return CanBeConstant(elaboratedType.NamedType, targetTypeName, initExpr);
+                    return IsPrimitiveValue(elaboratedType.NamedType);
                 }
                 else if (type is EnumType enumType)
                 {
-                    return CanBeConstant(enumType.Decl.IntegerType, targetTypeName, initExpr);
+                    return IsPrimitiveValue(enumType.Decl.IntegerType);
                 }
                 else if (type is TypedefType typedefType)
                 {
-                    return CanBeConstant(typedefType.Decl.UnderlyingType, targetTypeName, initExpr);
+                    return IsPrimitiveValue(typedefType.Decl.UnderlyingType);
                 }
 
-                return false;
+                return type.IsPointerType;
             }
         }
 
         private bool IsConstant(string targetTypeName, Expr initExpr)
         {
+            if (initExpr.Type.CanonicalType.IsPointerType)
+            {
+                return false;
+            }
+
             switch (initExpr.StmtClass)
             {
                 // case CX_StmtClass.CX_StmtClass_BinaryConditionalOperator:

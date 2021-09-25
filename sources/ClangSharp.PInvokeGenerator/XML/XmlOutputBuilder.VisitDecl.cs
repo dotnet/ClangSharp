@@ -21,21 +21,33 @@ namespace ClangSharp.XML
         public void BeginUnchecked() => _sb.Append("<unchecked>");
         public void EndUnchecked() => _sb.Append("</unchecked>");
 
-        public void BeginConstant(in ConstantDesc desc)
+        public void BeginValue(in ValueDesc desc)
         {
-            _ = _sb.Append((desc.Kind & ConstantKind.Enumerator) == 0
+            _ = _sb.Append((desc.Kind != ValueKind.Enumerator)
                 ? $"<constant name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">"
                 : $"<enumerator name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
-            _ = _sb.Append($"<type primitive=\"{(desc.Kind & ConstantKind.PrimitiveConstant) != 0}\">");
+            _ = _sb.Append($"<type primitive=\"{desc.Kind == ValueKind.Primitive}\">");
             _ = _sb.Append(EscapeText(desc.TypeName));
             _ = _sb.Append("</type>");
+
+            if (desc.HasInitializer)
+            {
+                _ = _sb.Append("<value>");
+            }
         }
 
-        public void BeginConstantValue(bool isGetOnlyProperty = false) => _sb.Append("<value>");
         public void WriteConstantValue(long value) => _sb.Append(value);
         public void WriteConstantValue(ulong value) => _sb.Append(value);
-        public void EndConstantValue() => _sb.Append("</value>");
-        public void EndConstant(bool isConstant) => _sb.Append(isConstant ? "</constant>" : "</enumerator>");
+
+        public void EndValue(in ValueDesc desc)
+        {
+            if (desc.HasInitializer)
+            {
+                _ = _sb.Append("</value>");
+            }
+
+            _ = _sb.Append((desc.Kind != ValueKind.Enumerator) ? "</constant>" : "</enumerator>");
+        }
 
         public void BeginEnum(in EnumDesc desc)
         {
@@ -289,7 +301,7 @@ namespace ClangSharp.XML
         public CSharpOutputBuilder BeginCSharpCode()
         {
             _ = _sb.Append("<code>");
-            return new CSharpOutputBuilder("__Internal", markerMode: MarkerMode.Xml);
+            return new CSharpOutputBuilder("__Internal", _config, markerMode: MarkerMode.Xml);
         }
 
         public void EndCSharpCode(CSharpOutputBuilder output)
