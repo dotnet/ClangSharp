@@ -17,10 +17,16 @@ namespace ClangSharp.CSharp
         public void WriteCastType(string targetTypeName) => Write(targetTypeName);
         public void EndInnerCast() => Write(')');
 
-        public void BeginUnchecked() => Write("unchecked");
+        public void BeginUnchecked()
+        {
+            Debug.Assert(!IsUncheckedContext);
+            Write("unchecked");
+            IsUncheckedContext = true;
+        }
         public void EndUnchecked()
         {
-            // nop, used only by XML
+            Debug.Assert(IsUncheckedContext);
+            IsUncheckedContext = false;
         }
 
         public void BeginValue(in ValueDesc desc)
@@ -33,6 +39,38 @@ namespace ClangSharp.CSharp
             if (desc.Location is { } location)
             {
                 WriteSourceLocation(location, false);
+            }
+
+            var isProperty = false;
+            var isLambdaExpr = false;
+
+            if (desc.Kind == ValueKind.String)
+            {
+                isLambdaExpr = true;
+            }
+            else if (desc.IsConstant)
+            {
+                if (_config.GenerateUnmanagedConstants && (desc.Kind == ValueKind.Unmanaged))
+                {
+                    if (desc.IsCopy)
+                    {
+                        isLambdaExpr = true;
+                    }
+                    else
+                    {
+                        isProperty = true;
+                    }
+                }
+            }
+            else
+            {
+                isLambdaExpr = true;
+            }
+
+            if (isProperty && _config.GenerateAggressiveInlining)
+            {
+                AddUsingDirective("System.Runtime.CompilerServices");
+                WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
             }
 
             WriteIndentation();
@@ -99,35 +137,21 @@ namespace ClangSharp.CSharp
 
             if (desc.HasInitializer)
             {
-                if (desc.Kind == ValueKind.String)
+                if (isLambdaExpr)
                 {
                     Write(" => ");
                 }
-                else if (desc.IsConstant)
+                else if (isProperty)
                 {
-                    if (_config.GenerateUnmanagedConstants && (desc.Kind == ValueKind.Unmanaged))
-                    {
-                        if (desc.IsCopy)
-                        {
-                            Write(" => ");
-                        }
-                        else
-                        {
-                            WriteNewline();
-                            WriteBlockStart();
+                    WriteNewline();
+                    WriteBlockStart();
 
-                            WriteIndentedLine("get");
-                            WriteBlockStart();
-                        }
-                    }
-                    else
-                    {
-                        Write(" = ");
-                    }
+                    WriteIndentedLine("get");
+                    WriteBlockStart();
                 }
                 else
                 {
-                    Write(" => ");
+                    Write(" = ");
                 }
             }
         }

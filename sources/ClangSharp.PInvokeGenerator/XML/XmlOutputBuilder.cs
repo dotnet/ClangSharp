@@ -20,6 +20,9 @@ namespace ClangSharp.XML
 
         public string Name { get; }
         public string Extension { get; } = ".xml";
+
+        public bool IsUncheckedContext { get; private set; }
+
         public bool IsTestOutput { get; } = false;
 
         public IEnumerable<string> Contents

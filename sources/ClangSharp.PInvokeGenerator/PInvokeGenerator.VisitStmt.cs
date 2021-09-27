@@ -191,6 +191,8 @@ namespace ClangSharp
                     else
                     {
                         var castType = "";
+                        var targetTypeName = "";
+                        var targetTypeNumBits = 0;
 
                         if (IsPrevContextStmt<ImplicitCastExpr>(out var implicitCastExpr, out _))
                         {
@@ -198,23 +200,31 @@ namespace ClangSharp
                             // most typically `sbyte`. Due to this we need to insert a correct implicit
                             // cast to ensure things are correctly handled here.
 
-                            var castExprTypeName = GetRemappedTypeName(implicitCastExpr, context: null, implicitCastExpr.Type, out _, skipUsing: true);
+                            var targetType = implicitCastExpr.Type;
+                            targetTypeName = GetRemappedTypeName(implicitCastExpr, context: null, targetType, out _, skipUsing: true);
+                            targetTypeNumBits = targetType.Handle.NumBits;
+                        }
+                        else if (PreviousContext.Cursor is VarDecl varDecl)
+                        {
+                            var targetType = varDecl.Type;
+                            targetTypeName = GetRemappedTypeName(varDecl, context: null, targetType, out _, skipUsing: true);
+                            targetTypeNumBits = targetType.Handle.NumBits;
+                        }
 
-                            if (!IsUnsigned(castExprTypeName))
+                        if (targetTypeName != "")
+                        {
+                            if (!IsUnsigned(targetTypeName))
                             {
                                 castType = "sbyte";
                             }
-                            else if (implicitCastExpr.Type.Handle.NumBits < 16)
+                            else if (targetTypeNumBits < 16)
                             {
-                                // Cast to byte if the target type is less 
-
                                 castType = "byte";
                             }
-                        }
 
-                        if (castType != "")
-                        {
-                            outputBuilder.Write("(sbyte)(");
+                            outputBuilder.Write('(');
+                            outputBuilder.Write(castType);
+                            outputBuilder.Write(")(");
                         }
 
                         outputBuilder.Write('\'');
@@ -878,7 +888,7 @@ namespace ClangSharp
                     }
                     else
                     {
-                        Visit(subExpr);
+                        VisitStmt(subExpr);
                     }
                     break;
                 }
@@ -1337,11 +1347,15 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             if (!memberExpr.IsImplicitAccess)
             {
-                Visit(memberExpr.Base);
+                var memberExprBase = memberExpr.Base;
 
-                var type = memberExpr.Base is CXXThisExpr
+                Visit(memberExprBase);
+
+                memberExprBase = memberExprBase.IgnoreParens;
+
+                var type = memberExprBase is CXXThisExpr
                          ? null
-                         : memberExpr.Base is DeclRefExpr declRefExpr ? declRefExpr.Decl.Type.CanonicalType : memberExpr.Base.Type.CanonicalType;
+                         : memberExprBase is DeclRefExpr declRefExpr ? declRefExpr.Decl.Type.CanonicalType : memberExpr.Base.Type.CanonicalType;
 
                 if (type is not null and (PointerType or ReferenceType))
                 {
@@ -1951,7 +1965,7 @@ namespace ClangSharp
             {
                 var stmt = stmts[i];
 
-                if ((previousStmt is DeclStmt) && !(stmt is DeclStmt))
+                if ((previousStmt is DeclStmt) && (stmt is not DeclStmt))
                 {
                     outputBuilder.NeedsNewline = true;
                 }
@@ -1972,7 +1986,7 @@ namespace ClangSharp
             {
                 var stmt = stmts[lastIndex];
 
-                if ((previousStmt is DeclStmt) && !(stmt is DeclStmt))
+                if ((previousStmt is DeclStmt) && (stmt is not DeclStmt))
                 {
                     outputBuilder.NeedsNewline = true;
                 }

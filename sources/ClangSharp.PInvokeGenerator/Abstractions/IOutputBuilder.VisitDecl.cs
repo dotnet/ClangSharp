@@ -4,6 +4,8 @@ namespace ClangSharp.Abstractions
 {
     internal partial interface IOutputBuilder
     {
+        bool IsUncheckedContext { get; }
+
         void BeginInnerValue();
         void EndInnerValue();
 

@@ -1400,6 +1400,63 @@ namespace ClangSharp
 #endif
         }
 
+        private string GetTargetTypeName(Cursor cursor, out string nativeTypeName)
+        {
+            var targetTypeName = "";
+            nativeTypeName = "";
+
+            if (cursor is Decl decl)
+            {
+                if (decl is EnumConstantDecl enumConstantDecl)
+                {
+                    if (enumConstantDecl.DeclContext is EnumDecl enumDecl)
+                    {
+                        targetTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out nativeTypeName);
+                    }
+                    else
+                    {
+                        targetTypeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out nativeTypeName);
+                    }
+                }
+                else if (decl is TypeDecl previousTypeDecl)
+                {
+                    targetTypeName = GetRemappedTypeName(previousTypeDecl, context: null, previousTypeDecl.TypeForDecl, out nativeTypeName);
+                }
+                else if (decl is VarDecl varDecl)
+                {
+                    if (varDecl is ParmVarDecl parmVarDecl)
+                    {
+                        targetTypeName = GetRemappedTypeName(parmVarDecl, context: null, parmVarDecl.Type, out nativeTypeName);
+
+                        if ((parmVarDecl.ParentFunctionOrMethod is FunctionDecl functionDecl) && ((functionDecl is CXXMethodDecl { IsVirtual: true }) || (functionDecl.Body is null)) && (targetTypeName == "bool"))
+                        {
+                            // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                            targetTypeName = "byte";
+                            nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
+                        }
+                    }
+                    else
+                    {
+                        var type = varDecl.Type;
+
+                        if (GetCursorName(varDecl).StartsWith("ClangSharpMacro_"))
+                        {
+                            type = varDecl.Init.Type;
+                        }
+
+                        targetTypeName = GetRemappedTypeName(varDecl, context: null, type, out nativeTypeName);
+                    }
+                }
+
+            }
+            else if ((cursor is Expr expr) && (expr is not MemberExpr))
+            {
+                targetTypeName = GetRemappedTypeName(expr, context: null, expr.Type, out nativeTypeName);
+            }
+
+            return targetTypeName;
+        }
+
         private string GetTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
         {
             return GetTypeName(cursor, context, type, type, out nativeTypeName);
@@ -2990,7 +3047,11 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
+                {
+                    return false;
+                }
 
                 case CX_StmtClass.CX_StmtClass_CallExpr:
                 {
@@ -3891,7 +3952,7 @@ namespace ClangSharp
 
         private void UncheckStmt(string targetTypeName, Stmt stmt)
         {
-            if (IsUnchecked(targetTypeName, stmt))
+            if (!_outputBuilder.IsUncheckedContext && IsUnchecked(targetTypeName, stmt))
             {
                 _outputBuilder.BeginUnchecked();
 
@@ -3948,7 +4009,7 @@ namespace ClangSharp
             }
             else
             {
-                Visit(stmt);
+                VisitStmt(stmt);
             }
         }
 
@@ -3971,7 +4032,16 @@ namespace ClangSharp
             }
             else if (cursor is Stmt stmt)
             {
-                VisitStmt(stmt);
+                var targetTypeName = GetTargetTypeName(PreviousContext.Cursor, out _);
+
+                if (targetTypeName != "")
+                {
+                    UncheckStmt(targetTypeName, stmt);
+                }
+                else
+                {
+                    VisitStmt(stmt);
+                }
             }
             else
             {

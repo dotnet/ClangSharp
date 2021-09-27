@@ -45,6 +45,8 @@ namespace ClangSharp.CSharp
 
         public string IndentationString => _indentationString;
 
+        public bool IsUncheckedContext { get; private set; }
+
         public bool IsTestOutput => _isTestOutput;
 
         public string Name => _name;

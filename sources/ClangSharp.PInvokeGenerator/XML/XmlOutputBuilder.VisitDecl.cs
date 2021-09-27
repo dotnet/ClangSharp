@@ -18,8 +18,19 @@ namespace ClangSharp.XML
         public void WriteCastType(string targetTypeName) => _sb.Append(targetTypeName);
         public void EndInnerCast() => _sb.Append("</cast>");
 
-        public void BeginUnchecked() => _sb.Append("<unchecked>");
-        public void EndUnchecked() => _sb.Append("</unchecked>");
+        public void BeginUnchecked()
+        {
+            Debug.Assert(!IsUncheckedContext);
+            _ = _sb.Append("<unchecked>");
+            IsUncheckedContext = true;
+        }
+
+        public void EndUnchecked()
+        {
+            Debug.Assert(IsUncheckedContext);
+            _ = _sb.Append("</unchecked>");
+            IsUncheckedContext = false;
+        }
 
         public void BeginValue(in ValueDesc desc)
         {

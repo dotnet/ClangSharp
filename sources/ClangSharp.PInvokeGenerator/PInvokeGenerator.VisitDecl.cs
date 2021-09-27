@@ -256,22 +256,13 @@ namespace ClangSharp
             var accessSpecifier = AccessSpecifier.None;
             var name = GetRemappedCursorName(enumConstantDecl);
             var escapedName = EscapeName(name);
+            var typeName = GetTargetTypeName(enumConstantDecl, out _);
             var isAnonymousEnum = false;
 
-            string typeName;
-            if (enumConstantDecl.DeclContext is EnumDecl enumDecl)
+            if ((enumConstantDecl.DeclContext is EnumDecl enumDecl) && GetRemappedCursorName(enumDecl).StartsWith("__AnonymousEnum_"))
             {
-                if (GetRemappedCursorName(enumDecl).StartsWith("__AnonymousEnum_"))
-                {
-                    isAnonymousEnum = true;
-                    accessSpecifier = GetAccessSpecifier(enumDecl);
-                }
-
-                typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out _);
-            }
-            else
-            {
-                typeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out _);
+                isAnonymousEnum = true;
+                accessSpecifier = GetAccessSpecifier(enumDecl);
             }
 
             var kind = isAnonymousEnum ? ValueKind.Primitive : ValueKind.Enumerator;
@@ -297,7 +288,7 @@ namespace ClangSharp
 
             if (enumConstantDecl.InitExpr != null)
             {
-                UncheckStmt(typeName, enumConstantDecl.InitExpr);
+                Visit(enumConstantDecl.InitExpr);
             }
             else if (isAnonymousEnum)
             {
@@ -915,15 +906,7 @@ namespace ClangSharp
             void ForFunctionDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
             {
                 var type = parmVarDecl.Type;
-                var typeName = GetRemappedTypeName(parmVarDecl, context: null, type, out var nativeTypeName);
-
-                if (((functionDecl is CXXMethodDecl {IsVirtual: true}) || (functionDecl.Body is null)) &&
-                    (typeName == "bool"))
-                {
-                    // bool is not blittable, so we shouldn't use it for P/Invoke signatures
-                    typeName = "byte";
-                    nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
-                }
+                var typeName = GetTargetTypeName(parmVarDecl, out var nativeTypeName);
 
                 var name = GetRemappedCursorName(parmVarDecl);
                 var escapedName = EscapeName(name);
@@ -973,7 +956,7 @@ namespace ClangSharp
                     }
                     else
                     {
-                        UncheckStmt(typeName, parmVarDecl.DefaultArg);
+                        Visit(parmVarDecl.DefaultArg);
                     }
 
                     _outputBuilder.EndParameterDefault();
@@ -990,7 +973,7 @@ namespace ClangSharp
             void ForTypedefDecl(ParmVarDecl parmVarDecl, TypedefDecl typedefDecl)
             {
                 var type = parmVarDecl.Type;
-                var typeName = GetRemappedTypeName(parmVarDecl, context: null, type, out var nativeTypeName);
+                var typeName = GetTargetTypeName(parmVarDecl, out var nativeTypeName);
 
                 var name = GetRemappedCursorName(parmVarDecl);
                 var escapedName = EscapeName(name);
@@ -1022,7 +1005,7 @@ namespace ClangSharp
                 if (parmVarDecl.HasDefaultArg)
                 {
                     _outputBuilder.BeginParameterDefault();
-                    UncheckStmt(typeName, parmVarDecl.DefaultArg);
+                    Visit(parmVarDecl.DefaultArg);
                     _outputBuilder.EndParameterDefault();
                 }
 
@@ -1086,8 +1069,7 @@ namespace ClangSharp
                         _testOutputBuilder.AddUsingDirective("System");
                         _testOutputBuilder.AddUsingDirective($"static {_config.Namespace}.{_config.MethodClassName}");
 
-                        _testOutputBuilder.WriteIndented(
-                            "/// <summary>Validates that the <see cref=\"Guid\" /> of the <see cref=\"");
+                        _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"Guid\" /> of the <see cref=\"");
                         _testOutputBuilder.Write(escapedName);
                         _testOutputBuilder.WriteLine("\" /> struct is correct.</summary>");
 
@@ -2643,7 +2625,6 @@ namespace ClangSharp
 
                 if (_outputBuilder is null)
                 {
-                    StartUsingOutputBuilder(_config.MethodClassName);
                     openedOutputBuilder = true;
 
                     if (IsUnsafe(varDecl, type) && (!varDecl.HasInit || !IsStmtAsWritten<StringLiteral>(varDecl.Init, out _, removeParens: true)))
@@ -2652,18 +2633,7 @@ namespace ClangSharp
                     }
                 }
 
-                WithAttributes("*");
-                WithAttributes(name);
-
-                WithUsings("*");
-                WithUsings(name);
-
-                var typeName = GetRemappedTypeName(varDecl, context: null, type, out var nativeTypeName);
-
-                if (typeName == "Guid")
-                {
-                    _ = _generatedUuids.Add(name);
-                }
+                var typeName = GetTargetTypeName(varDecl, out var nativeTypeName);
 
                 if (isMacroDefinitionRecord)
                 {
@@ -2701,7 +2671,6 @@ namespace ClangSharp
                         case CX_CharacterKind.CX_CLK_Ascii:
                         case CX_CharacterKind.CX_CLK_UTF8:
                         {
-                            _outputBuilder.EmitSystemSupport();
                             typeName = "ReadOnlySpan<byte>";
                             break;
                         }
@@ -2763,6 +2732,11 @@ namespace ClangSharp
                     {
                         if ((varDecl.Init is CXXConstructExpr cxxConstructExpr) && cxxConstructExpr.Constructor.IsCopyConstructor)
                         {
+                            if (cxxConstructExpr.Args[0] is CXXUuidofExpr)
+                            {
+                                // It's easiest just to let _uuidsToGenerate handle it
+                                return;
+                            }
                             flags |= ValueFlags.Copy;
                         }
                     }
@@ -2782,6 +2756,27 @@ namespace ClangSharp
                         }
                     }
                 }
+
+                if (typeName == "Guid")
+                {
+                    _ = _generatedUuids.Add(name);
+                }
+
+                if (openedOutputBuilder)
+                {
+                    StartUsingOutputBuilder(_config.MethodClassName);
+
+                    if ((kind == ValueKind.String) && (typeName == "ReadOnlySpan<byte>"))
+                    {
+                        _outputBuilder.EmitSystemSupport();
+                    }
+                }
+
+                WithAttributes("*");
+                WithAttributes(name);
+
+                WithUsings("*");
+                WithUsings(name);
 
                 var desc = new ValueDesc
                 {
@@ -2808,7 +2803,7 @@ namespace ClangSharp
                         _outputBuilder.BeginDereference();
                     }
 
-                    UncheckStmt(typeName, varDecl.Init);
+                    Visit(varDecl.Init);
 
                     if (dereference)
                     {
@@ -2846,7 +2841,6 @@ namespace ClangSharp
                 if (varDecl == declStmt.Decls.First())
                 {
                     var type = varDecl.Type;
-
                     var typeName = GetRemappedTypeName(varDecl, context: null, type, out _);
 
                     outputBuilder.Write(typeName);
@@ -2864,8 +2858,7 @@ namespace ClangSharp
                 if (varDecl.HasInit)
                 {
                     outputBuilder.Write(" = ");
-                    var varDeclTypeName = GetRemappedTypeName(varDecl, context: null, varDecl.Type, out _);
-                    UncheckStmt(varDeclTypeName, varDecl.Init);
+                    Visit(varDecl.Init);
                 }
 
                 StopCSharpCode();
@@ -3003,7 +2996,11 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
+                {
+                    return false;
+                }
 
                 case CX_StmtClass.CX_StmtClass_CallExpr:
                 {
