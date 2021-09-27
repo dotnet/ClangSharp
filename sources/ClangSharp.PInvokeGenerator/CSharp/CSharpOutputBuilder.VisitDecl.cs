@@ -208,7 +208,9 @@ namespace ClangSharp.CSharp
             }
 
             if (desc.Location is {} location)
+            {
                 WriteSourceLocation(location, false);
+            }
 
             WriteIndented(desc.AccessSpecifier.AsString());
             Write(" enum ");
@@ -239,7 +241,9 @@ namespace ClangSharp.CSharp
             }
 
             if (desc.Location is {} location)
+            {
                 WriteSourceLocation(location, false);
+            }
 
             WriteIndented(desc.AccessSpecifier.AsString());
             Write(' ');
@@ -342,7 +346,9 @@ namespace ClangSharp.CSharp
             }
 
             if (desc.Location is {} location)
+            {
                 WriteSourceLocation(location, false);
+            }
 
             if (desc.IsAggressivelyInlined)
             {
@@ -420,10 +426,14 @@ namespace ClangSharp.CSharp
         private void WriteSourceLocation(CXSourceLocation location, bool inline)
         {
             if (!_writeSourceLocation)
+            {
                 return;
+            }
 
             if (!inline)
+            {
                 WriteIndentation();
+            }
 
             Write("[SourceLocation(\"");
             location.GetFileLocation(out var file, out var line, out var column, out _);
@@ -435,9 +445,13 @@ namespace ClangSharp.CSharp
             Write(")]");
 
             if (!inline)
+            {
                 WriteNewline();
+            }
             else
+            {
                 Write(' ');
+            }
         }
 
         public void BeginFunctionInnerPrototype(string escapedName)
@@ -459,7 +473,9 @@ namespace ClangSharp.CSharp
             }
 
             if (info.Location is {} location)
+            {
                 WriteSourceLocation(location, true);
+            }
 
             _customAttrIsForParameter = true;
             info.WriteCustomAttrs(info.CustomAttrGeneratorData);
@@ -598,7 +614,9 @@ namespace ClangSharp.CSharp
             }
 
             if (info.Location is {} location)
+            {
                 WriteSourceLocation(location, false);
+            }
 
             WriteIndented(info.AccessSpecifier.AsString());
             Write(' ');
