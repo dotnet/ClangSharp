@@ -57,6 +57,7 @@ namespace ClangSharp.CSharp
             if (_config.GenerateUnmanagedConstants)
             {
                 AddUsingDirective("System");
+                AddUsingDirective("System.Diagnostics");
                 AddUsingDirective("System.Runtime.CompilerServices");
                 AddUsingDirective("System.Runtime.InteropServices");
 
@@ -96,6 +97,8 @@ namespace ClangSharp.CSharp
                 WriteIndentedLine("};");
 
                 NeedsNewline = true;
+
+                WriteIndentedLine("Debug.Assert(data.Length == Unsafe.SizeOf<Guid>());");
                 WriteIndentedLine("return ref Unsafe.As<byte, Guid>(ref MemoryMarshal.GetReference(data));");
 
                 WriteBlockEnd();

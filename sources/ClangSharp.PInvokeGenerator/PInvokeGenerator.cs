@@ -38,7 +38,9 @@ namespace ClangSharp
         private IOutputBuilder _outputBuilder;
         private CSharpOutputBuilder _testOutputBuilder;
         private CSharpOutputBuilder _stmtOutputBuilder;
+        private CSharpOutputBuilder _testStmtOutputBuilder;
         private int _stmtOutputBuilderUsers;
+        private int _testStmtOutputBuilderUsers;
         private int _outputBuilderUsers;
         private bool _disposed;
         private bool _isMethodClassUnsafe;
@@ -77,6 +79,8 @@ namespace ClangSharp
 
         public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
 
+        public string FilePath => _filePath;
+
         public CXIndex IndexHandle => _index;
 
         public (Cursor Cursor, object UserData) PreviousContext => _context.Last.Previous.Value;
@@ -85,6 +89,7 @@ namespace ClangSharp
         {
             Stream stream = null;
             IOutputBuilder methodClassOutputBuilder = null;
+            IOutputBuilder methodClassTestOutputBuilder = null;
             var emitNamespaceDeclaration = true;
             var leaveStreamOpen = false;
 
@@ -186,7 +191,10 @@ namespace ClangSharp
             {
                 var outputPath = outputBuilder.IsTestOutput ? _config.TestOutputLocation : _config.OutputLocation;
 
-                var isMethodClass = _config.MethodClassName.Equals(outputBuilder.Name);
+                var methodClassName = _config.MethodClassName;
+                var methodClassTestName = $"{methodClassName}Tests";
+
+                var isMethodClass = methodClassName.Equals(outputBuilder.Name) || methodClassTestName.Equals(outputBuilder.Name);
 
                 if (_config.GenerateMultipleFiles)
                 {
@@ -196,7 +204,14 @@ namespace ClangSharp
                 }
                 else if (isMethodClass)
                 {
-                    methodClassOutputBuilder = outputBuilder;
+                    if (outputBuilder.IsTestOutput)
+                    {
+                        methodClassTestOutputBuilder = outputBuilder;
+                    }
+                    else
+                    {
+                        methodClassOutputBuilder = outputBuilder;
+                    }
                     continue;
                 }
 
@@ -206,9 +221,14 @@ namespace ClangSharp
 
             if (leaveStreamOpen && _outputBuilderFactory.OutputBuilders.Any())
             {
-                if (methodClassOutputBuilder != null)
+                if (methodClassOutputBuilder is not null)
                 {
                     CloseOutputBuilder(stream, methodClassOutputBuilder, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
+                }
+
+                if (methodClassTestOutputBuilder is not null)
+                {
+                    CloseOutputBuilder(stream, methodClassTestOutputBuilder, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
                 }
 
                 using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
@@ -437,6 +457,15 @@ namespace ClangSharp
                 if (isMethodClass)
                 {
                     sw.Write(indentationString);
+
+                    if (outputBuilder.IsTestOutput)
+                    {
+                        sw.Write("/// <summary>Provides validation of the <see cref=\"");
+                        sw.Write(outputBuilder.Name[0..^5]);
+                        sw.WriteLine("\" /> class.</summary>");
+                        sw.Write(indentationString);
+                    }
+
                     sw.Write("public static ");
 
                     if (_isMethodClassUnsafe)
@@ -445,9 +474,21 @@ namespace ClangSharp
                     }
 
                     sw.Write("partial class ");
-                    sw.WriteLine(Config.MethodClassName);
+                    sw.Write(Config.MethodClassName);
+
+                    if (outputBuilder.IsTestOutput)
+                    {
+                        sw.Write("Tests");
+                    }
+
+                    sw.WriteLine();
                     sw.Write(indentationString);
-                    sw.WriteLine('{');
+                    sw.Write('{');
+
+                    if (!outputBuilder.IsTestOutput)
+                    {
+                        sw.WriteLine();
+                    }
 
                     indentationString += csharpOutputBuilder.IndentationString;
                 }
@@ -3711,6 +3752,8 @@ namespace ClangSharp
 
         private void StartUsingOutputBuilder(string name, bool includeTestOutput = false)
         {
+            var nameTests = $"{name}Tests";
+
             if (_outputBuilder != null)
             {
                 Debug.Assert(_outputBuilderUsers >= 1);
@@ -3720,6 +3763,17 @@ namespace ClangSharp
 
                 if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
                 {
+                    if (_testOutputBuilder is null)
+                    {
+                        if (!_outputBuilderFactory.TryGetOutputBuilder(nameTests, out var testOutputBuilder))
+                        {
+                            CreateTestOutputBuilder(nameTests);
+                        }
+                        else
+                        {
+                            _testOutputBuilder = (CSharpOutputBuilder)testOutputBuilder;
+                        }
+                    }
                     _testOutputBuilder.NeedsNewline = true;
                 }
                 return;
@@ -3739,18 +3793,7 @@ namespace ClangSharp
 
                 if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
                 {
-                    _testOutputBuilder = _outputBuilderFactory.CreateTests($"{name}Tests");
-
-                    _testOutputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-
-                    if (_config.GenerateTestsNUnit)
-                    {
-                        _testOutputBuilder.AddUsingDirective("NUnit.Framework");
-                    }
-                    else if (_config.GenerateTestsXUnit)
-                    {
-                        _testOutputBuilder.AddUsingDirective("Xunit");
-                    }
+                    CreateTestOutputBuilder(nameTests);
                 }
             }
             else
@@ -3759,12 +3802,43 @@ namespace ClangSharp
 
                 if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
                 {
-                    _testOutputBuilder = _outputBuilderFactory.GetTestOutputBuilder($"{name}Tests");
+                    if (!_outputBuilderFactory.TryGetOutputBuilder(nameTests, out var testOutputBuilder))
+                    {
+                        CreateTestOutputBuilder(nameTests);
+                    }
+                    else
+                    {
+                        _testOutputBuilder = (CSharpOutputBuilder)testOutputBuilder;
+                    }
+
                     Debug.Assert(_testOutputBuilder.IsTestOutput);
                     _testOutputBuilder.NeedsNewline = true;
                 }
             }
             _outputBuilderUsers++;
+
+            void CreateTestOutputBuilder(string name)
+            {
+                _testOutputBuilder = _outputBuilderFactory.CreateTests(name);
+
+                if (name != $"{_config.MethodClassName}Tests")
+                {
+                    _testOutputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                }
+                else
+                {
+
+                }
+
+                if (_config.GenerateTestsNUnit)
+                {
+                    _testOutputBuilder.AddUsingDirective("NUnit.Framework");
+                }
+                else if (_config.GenerateTestsXUnit)
+                {
+                    _testOutputBuilder.AddUsingDirective("Xunit");
+                }
+            }
         }
 
         private void StopUsingOutputBuilder()
@@ -4175,6 +4249,15 @@ namespace ClangSharp
 
         private CSharpOutputBuilder StartCSharpCode()
         {
+            if ((_outputBuilder == _testOutputBuilder) && (_testStmtOutputBuilder is null))
+            {
+                _testStmtOutputBuilder = _stmtOutputBuilder;
+                _testStmtOutputBuilderUsers = _stmtOutputBuilderUsers;
+
+                _stmtOutputBuilder = null;
+                _stmtOutputBuilderUsers = 0;
+            }
+
             if (_stmtOutputBuilder is null)
             {
                 _stmtOutputBuilder = _outputBuilder.BeginCSharpCode();
@@ -4194,7 +4277,19 @@ namespace ClangSharp
             if (_stmtOutputBuilderUsers <= 0)
             {
                 _outputBuilder.EndCSharpCode(_stmtOutputBuilder);
-                _stmtOutputBuilder = null;
+
+                if (_testStmtOutputBuilder is not null)
+                {
+                    _stmtOutputBuilder = _testStmtOutputBuilder;
+                    _stmtOutputBuilderUsers = _testStmtOutputBuilderUsers;
+
+                    _testStmtOutputBuilder = null;
+                    _testStmtOutputBuilderUsers = 0;
+                }
+                else
+                {
+                    _stmtOutputBuilder = null;
+                }
             }
         }
     }

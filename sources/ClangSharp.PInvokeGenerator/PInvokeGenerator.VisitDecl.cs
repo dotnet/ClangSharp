@@ -2762,6 +2762,16 @@ namespace ClangSharp
                     _ = _generatedUuids.Add(name);
                 }
 
+                var desc = new ValueDesc {
+                    AccessSpecifier = accessSpecifier,
+                    TypeName = typeName,
+                    EscapedName = escapedName,
+                    NativeTypeName = nativeTypeName,
+                    Kind = kind,
+                    Flags = flags,
+                    Location = varDecl.Location
+                };
+
                 if (openedOutputBuilder)
                 {
                     StartUsingOutputBuilder(_config.MethodClassName);
@@ -2777,17 +2787,6 @@ namespace ClangSharp
 
                 WithUsings("*");
                 WithUsings(name);
-
-                var desc = new ValueDesc
-                {
-                    AccessSpecifier = accessSpecifier,
-                    TypeName = typeName,
-                    EscapedName = escapedName,
-                    NativeTypeName = nativeTypeName,
-                    Kind = kind,
-                    Flags = flags,
-                    Location = varDecl.Location
-                };
 
                 _outputBuilder.BeginValue(in desc);
                 _context.Last.Value = (_context.Last.Value.Cursor, desc);

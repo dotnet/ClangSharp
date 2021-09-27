@@ -537,7 +537,7 @@ namespace ClangSharp
 
                 if (pinvokeGenerator.Diagnostics.Count != 0)
                 {
-                    Console.WriteLine("Diagnostics for binding generation:");
+                    Console.WriteLine($"Diagnostics for binding generation of {pinvokeGenerator.FilePath}:");
 
                     foreach (var diagnostic in pinvokeGenerator.Diagnostics)
                     {
