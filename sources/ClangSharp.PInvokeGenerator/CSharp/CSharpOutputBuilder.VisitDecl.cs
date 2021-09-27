@@ -42,11 +42,11 @@ namespace ClangSharp.CSharp
             }
 
             var isProperty = false;
-            var isLambdaExpr = false;
+            var isExpressionBody = false;
 
             if (desc.Kind == ValueKind.String)
             {
-                isLambdaExpr = true;
+                isExpressionBody = true;
             }
             else if (desc.IsConstant)
             {
@@ -54,7 +54,7 @@ namespace ClangSharp.CSharp
                 {
                     if (desc.IsCopy)
                     {
-                        isLambdaExpr = true;
+                        isExpressionBody = true;
                     }
                     else
                     {
@@ -64,13 +64,7 @@ namespace ClangSharp.CSharp
             }
             else
             {
-                isLambdaExpr = true;
-            }
-
-            if (isProperty && _config.GenerateAggressiveInlining)
-            {
-                AddUsingDirective("System.Runtime.CompilerServices");
-                WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                isExpressionBody = true;
             }
 
             WriteIndentation();
@@ -137,7 +131,7 @@ namespace ClangSharp.CSharp
 
             if (desc.HasInitializer)
             {
-                if (isLambdaExpr)
+                if (isExpressionBody)
                 {
                     Write(" => ");
                 }
@@ -145,9 +139,7 @@ namespace ClangSharp.CSharp
                 {
                     WriteNewline();
                     WriteBlockStart();
-
-                    WriteIndentedLine("get");
-                    WriteBlockStart();
+                    BeginGetter(desc.IsConstant && _config.GenerateAggressiveInlining);
                 }
                 else
                 {
@@ -181,7 +173,7 @@ namespace ClangSharp.CSharp
                     {
                         if (_config.GenerateUnmanagedConstants && !desc.IsCopy)
                         {
-                            WriteBlockEnd();
+                            EndGetter();
                             WriteBlockEnd();
                         }
                         else
