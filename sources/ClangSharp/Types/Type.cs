@@ -9,8 +9,10 @@ namespace ClangSharp
     [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
     public unsafe class Type : IEquatable<Type>
     {
+        private readonly Lazy<string> _asString;
         private readonly Lazy<Type> _canonicalType;
         private readonly Lazy<Type> _desugar;
+        private readonly Lazy<string> _kindSpelling;
         private readonly Lazy<Type> _pointeeType;
         private readonly Lazy<TranslationUnit> _translationUnit;
 
@@ -27,15 +29,17 @@ namespace ClangSharp
             }
             Handle = handle;
 
+            _asString = new Lazy<string>(() => Handle.Spelling.ToString());
             _canonicalType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CanonicalType));
             _desugar = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar));
+            _kindSpelling = new Lazy<string>(() => Handle.KindSpelling.ToString());
             _pointeeType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
             _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate((CXTranslationUnit)Handle.data[1]));
         }
 
         public CXXRecordDecl AsCXXRecordDecl => AsTagDecl as CXXRecordDecl;
 
-        public string AsString => Handle.Spelling.ToString();
+        public string AsString => _asString.Value;
 
         public TagDecl AsTagDecl
         {
@@ -79,7 +83,7 @@ namespace ClangSharp
 
         public CXTypeKind Kind => Handle.kind;
 
-        public string KindSpelling => Handle.KindSpelling.ToString();
+        public string KindSpelling => _kindSpelling.Value;
 
         public Type PointeeType => _pointeeType.Value;
 
@@ -191,6 +195,6 @@ namespace ClangSharp
 
         public override int GetHashCode() => Handle.GetHashCode();
 
-        public override string ToString() => Handle.ToString();
+        public override string ToString() => AsString;
     }
 }
