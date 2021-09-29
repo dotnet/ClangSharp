@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 
 namespace ClangSharp
@@ -10,10 +12,12 @@ namespace ClangSharp
     [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
     public unsafe class Cursor : IEquatable<Cursor>
     {
-        private readonly Lazy<IReadOnlyList<Cursor>> _cursorChildren;
+        private readonly Lazy<string> _kindSpelling;
         private readonly Lazy<Cursor> _lexicalParentCursor;
         private readonly Lazy<Cursor> _semanticParentCursor;
+        private readonly Lazy<string> _spelling;
         private readonly Lazy<TranslationUnit> _translationUnit;
+        private List<Cursor> _cursorChildren;
 
         private protected Cursor(CXCursor handle, CXCursorKind expectedCursorKind)
         {
@@ -23,28 +27,60 @@ namespace ClangSharp
             }
             Handle = handle;
 
-            _cursorChildren = new Lazy<IReadOnlyList<Cursor>>(() => {
-                var cursors = new List<Cursor>();
-
-                _ = Handle.VisitChildren((cursor, parent, clientData) => {
-                    var cursorChild = TranslationUnit.GetOrCreate<Cursor>(cursor);
-                    cursors.Add(cursorChild);
-                    return CXChildVisitResult.CXChildVisit_Continue;
-                }, clientData: default);
-
-                return cursors;
-            });
-
+            _kindSpelling = new Lazy<string>(() => Handle.KindSpelling.ToString());
             _lexicalParentCursor = new Lazy<Cursor>(() => TranslationUnit.GetOrCreate<Cursor>(Handle.LexicalParent));
             _semanticParentCursor = new Lazy<Cursor>(() => TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent));
+            _spelling = new Lazy<string>(() => Handle.Spelling.ToString());
             _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
         }
 
-        public IReadOnlyList<Cursor> CursorChildren => _cursorChildren.Value;
+        public IReadOnlyList<Cursor> CursorChildren
+        {
+            get
+            {
+                if (_cursorChildren is null)
+                {
+                    var cursorChildren = GCHandle.Alloc(new List<Cursor>());
 
-        public CXCursorKind CursorKind => Handle.Kind;
+#if !NET5_0_OR_GREATER
+                    var visitor = (CXCursorVisitor)Visitor;
+                    var pVisitor = Marshal.GetFunctionPointerForDelegate(visitor);
+#else
+                    var pVisitor = (delegate* unmanaged[Cdecl]<CXCursor, CXCursor, nint*, CXChildVisitResult>)&Visitor;
+#endif
 
-        public string CursorKindSpelling => Handle.KindSpelling.ToString();
+                    var client_data = stackalloc nint[2] {
+                        GCHandle.ToIntPtr(cursorChildren),
+                        TranslationUnit.Handle.Handle
+                    };
+
+                    _ = clang.visitChildren(Handle, (IntPtr)pVisitor, client_data);
+
+                    _cursorChildren = (List<Cursor>)cursorChildren.Target;
+                    cursorChildren.Free();
+
+#if !NET5_0_OR_GREATER
+                    GC.KeepAlive(visitor);
+#else
+                    [UnmanagedCallersOnly(CallConvs = new System.Type[] { typeof(CallConvCdecl) })]
+#endif
+                    static CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent, void* client_data)
+                    {
+                        var cursorChildren = (List<Cursor>)GCHandle.FromIntPtr(((nint*)client_data)[0]).Target;
+                        var translationUnit = TranslationUnit.GetOrCreate((CXTranslationUnitImpl*)((nint*)client_data)[1]);
+
+                        var cursorChild = translationUnit.GetOrCreate<Cursor>(cursor);
+                        cursorChildren.Add(cursorChild);
+                        return CXChildVisitResult.CXChildVisit_Continue;
+                    }
+                }
+                return _cursorChildren;
+            }
+        }
+
+        public CXCursorKind CursorKind => Handle.kind;
+
+        public string CursorKindSpelling => _kindSpelling.Value;
 
         public CXSourceRange Extent => Handle.Extent;
 
@@ -56,7 +92,7 @@ namespace ClangSharp
 
         public Cursor SemanticParentCursor => _semanticParentCursor.Value;
 
-        public string Spelling => Handle.Spelling.ToString();
+        public string Spelling => _spelling.Value;
 
         public TranslationUnit TranslationUnit => _translationUnit.Value;
 
@@ -103,6 +139,6 @@ namespace ClangSharp
 
         public override int GetHashCode() => Handle.GetHashCode();
 
-        public override string ToString() => Handle.ToString();
+        public override string ToString() => Spelling;
     }
 }
