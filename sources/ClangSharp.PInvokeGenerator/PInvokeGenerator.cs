@@ -3084,7 +3084,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXRewrittenBinaryOperator:
                 // case CX_StmtClass.CX_StmtClass_CXXScalarValueInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXThisExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXThisExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:

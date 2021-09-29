@@ -2652,14 +2652,14 @@ namespace ClangSharp
                 var kind = ValueKind.Unknown;
                 var flags = ValueFlags.None;
 
-                if (type.IsLocalConstQualified || isMacroDefinitionRecord || (type is ConstantArrayType))
-                {
-                    flags |= ValueFlags.Constant;
-                }
-
                 if (varDecl.HasInit)
                 {
                     flags |= ValueFlags.Initializer;
+                }
+
+                if (type.IsLocalConstQualified || isMacroDefinitionRecord || (type is ConstantArrayType))
+                {
+                    flags |= ValueFlags.Constant;
                 }
 
                 if (IsStmtAsWritten<StringLiteral>(varDecl.Init, out var stringLiteral, removeParens: true))
@@ -2703,30 +2703,14 @@ namespace ClangSharp
                 {
                     kind = ValueKind.Primitive;
 
-                    if (!IsConstant(typeName, varDecl.Init))
+                    if (flags.HasFlag(ValueFlags.Constant) && !IsConstant(typeName, varDecl.Init))
                     {
-                        flags &= ~ValueFlags.Constant;
+                        flags |= ValueFlags.Copy;
                     }
                 }
                 else if ((varDecl.StorageClass == CX_StorageClass.CX_SC_Static) || openedOutputBuilder)
                 {
                     kind = ValueKind.Unmanaged;
-
-                    if (_config.GenerateUnmanagedConstants)
-                    {
-                        switch (typeName)
-                        {
-                            case "IntPtr":
-                            case "nint":
-                            case "nuint":
-                            case "UIntPtr":
-                            {
-                                // These small primitives are better handled as properties
-                                flags &= ~ValueFlags.Constant;
-                                break;
-                            }
-                        }
-                    }
 
                     if (varDecl.HasInit)
                     {
@@ -2918,7 +2902,7 @@ namespace ClangSharp
 
         private bool IsConstant(string targetTypeName, Expr initExpr)
         {
-            if (initExpr.Type.CanonicalType.IsPointerType)
+            if (initExpr.Type.CanonicalType.IsPointerType && (targetTypeName != "string"))
             {
                 return false;
             }
@@ -2961,7 +2945,11 @@ namespace ClangSharp
                     return true;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXConstructExpr:
+                case CX_StmtClass.CX_StmtClass_CXXConstructExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
@@ -2991,7 +2979,12 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_CXXRewrittenBinaryOperator:
                 // case CX_StmtClass.CX_StmtClass_CXXScalarValueInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXThisExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXThisExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:
@@ -3093,7 +3086,11 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_GenericSelectionExpr:
                 // case CX_StmtClass.CX_StmtClass_ImaginaryLiteral:
                 // case CX_StmtClass.CX_StmtClass_ImplicitValueInitExpr:
-                // case CX_StmtClass.CX_StmtClass_InitListExpr:
+
+                case CX_StmtClass.CX_StmtClass_InitListExpr:
+                {
+                    return false;
+                }
 
                 case CX_StmtClass.CX_StmtClass_IntegerLiteral:
                 {

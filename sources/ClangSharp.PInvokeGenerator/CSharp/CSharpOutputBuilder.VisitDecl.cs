@@ -50,21 +50,17 @@ namespace ClangSharp.CSharp
             }
             else if (desc.IsConstant)
             {
-                if (_config.GenerateUnmanagedConstants && (desc.Kind == ValueKind.Unmanaged))
+                if (_config.GenerateUnmanagedConstants && (desc.Kind != ValueKind.Enumerator))
                 {
                     if (desc.IsCopy)
                     {
                         isExpressionBody = true;
                     }
-                    else
+                    else if (desc.Kind == ValueKind.Unmanaged)
                     {
                         isProperty = true;
                     }
                 }
-            }
-            else
-            {
-                isExpressionBody = true;
             }
 
             WriteIndentation();
@@ -75,7 +71,19 @@ namespace ClangSharp.CSharp
 
                 if (desc.IsConstant)
                 {
-                    Write(" const ");
+                    if (desc.IsCopy)
+                    {
+                        Write(" static ");
+
+                        if (!_config.GenerateUnmanagedConstants)
+                        {
+                            Write("readonly ");
+                        }
+                    }
+                    else
+                    {
+                        Write(" const ");
+                    }
                 }
                 else
                 {
@@ -90,30 +98,30 @@ namespace ClangSharp.CSharp
                 Write(desc.AccessSpecifier.AsString());
                 Write(" static ");
 
-                if (_config.GenerateUnmanagedConstants)
+                if (_config.GenerateUnmanagedConstants && desc.IsConstant)
                 {
-                    if (desc.IsConstant)
+                    if (desc.IsArray)
                     {
-                        if (desc.IsArray)
-                        {
-                            Write("ReadOnlySpan<");
-                        }
-                        else
-                        {
-                            Write("ref readonly ");
-                        }
+                        Write("ReadOnlySpan<");
+                    }
+                    else
+                    {
+                        Write("ref readonly ");
+                    }
 
-                        Write(desc.TypeName);
+                    Write(desc.TypeName);
 
-                        if (desc.IsArray)
-                        {
-                            Write('>');
-                        }
+                    if (desc.IsArray)
+                    {
+                        Write('>');
                     }
                 }
                 else
                 {
-                    Write("readonly ");
+                    if (desc.IsConstant)
+                    {
+                        Write("readonly ");
+                    }
                     Write(desc.TypeName);
                 }
 

@@ -311,7 +311,7 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"" unsafe=""true"">
       <constant name=""Macro1"" access=""public"">
-        <type primitive=""False"">int*</type>
+        <type primitive=""True"">int*</type>
         <value>
           <unchecked>
             <code>((int*)(<value>-1</value>))</code>
@@ -335,7 +335,7 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"" unsafe=""true"">
       <constant name=""Macro1"" access=""public"">
-        <type primitive=""False"">int*</type>
+        <type primitive=""True"">int*</type>
         <value>
           <unchecked>
             <value>
