@@ -60,5 +60,7 @@ namespace ClangSharp
         GenerateTemplateBindings = 1 << 24,
 
         GenerateSourceLocationAttribute = 1 << 25,
+
+        GenerateUnmanagedConstants = 1 << 26,
     }
 }

@@ -200,18 +200,32 @@ namespace ClangSharp.Abstractions
 
         public bool NeedsReturnFixup
         {
-            get => (Flags & FunctionOrDelegateFlags.NeedsReturnFixup) != 0;
-            set => Flags = value
-                ? Flags | FunctionOrDelegateFlags.NeedsReturnFixup
-                : Flags & ~FunctionOrDelegateFlags.NeedsReturnFixup;
+            get
+            {
+                return (Flags & FunctionOrDelegateFlags.NeedsReturnFixup) != 0;
+            }
+
+            set
+            {
+                Flags = value
+                      ? Flags | FunctionOrDelegateFlags.NeedsReturnFixup
+                      : Flags & ~FunctionOrDelegateFlags.NeedsReturnFixup;
+            }
         }
 
         public bool IsCxxConstructor
         {
-            get => (Flags & FunctionOrDelegateFlags.IsCxxConstructor) != 0;
-            set => Flags = value
-                ? Flags | FunctionOrDelegateFlags.IsCxxConstructor
-                : Flags & ~FunctionOrDelegateFlags.IsCxxConstructor;
+            get
+            {
+                return (Flags & FunctionOrDelegateFlags.IsCxxConstructor) != 0;
+            }
+
+            set
+            {
+                Flags = value
+                      ? Flags | FunctionOrDelegateFlags.IsCxxConstructor
+                      : Flags & ~FunctionOrDelegateFlags.IsCxxConstructor;
+            }
         }
 
         public Action<TCustomAttrGeneratorData> WriteCustomAttrs { get; set; }

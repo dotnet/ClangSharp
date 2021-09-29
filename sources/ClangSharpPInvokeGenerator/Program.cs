@@ -68,6 +68,7 @@ namespace ClangSharp
             new HelpItem("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
             new HelpItem("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
             new HelpItem("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),
+            new HelpItem("generate-unmanaged-constants", "Unmanaged constants should be generated using static ref readonly properties. This is currently experimental."),
             new HelpItem("generate-vtbl-index-attribute", "[VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method."),
 
             // Logging Options
@@ -369,6 +370,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "generate-unmanaged-constants":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateUnmanagedConstants;
+                        break;
+                    }
+
                     case "generate-vtbl-index-attribute":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute;
@@ -530,7 +537,7 @@ namespace ClangSharp
 
                 if (pinvokeGenerator.Diagnostics.Count != 0)
                 {
-                    Console.WriteLine("Diagnostics for binding generation:");
+                    Console.WriteLine($"Diagnostics for binding generation of {pinvokeGenerator.FilePath}:");
 
                     foreach (var diagnostic in pinvokeGenerator.Diagnostics)
                     {

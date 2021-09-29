@@ -10,14 +10,14 @@ namespace ClangSharp
 {
     internal sealed class OutputBuilderFactory
     {
-        private readonly PInvokeGeneratorOutputMode _mode;
+        private readonly PInvokeGeneratorConfiguration _config;
         private readonly bool _writeSourceLocation;
         private readonly Dictionary<string, IOutputBuilder> _outputBuilders;
 
-        public OutputBuilderFactory(PInvokeGeneratorConfiguration mode)
+        public OutputBuilderFactory(PInvokeGeneratorConfiguration config)
         {
-            _mode = mode.OutputMode;
-            _writeSourceLocation = mode.GenerateSourceLocationAttribute;
+            _config = config;
+            _writeSourceLocation = config.GenerateSourceLocationAttribute;
             _outputBuilders = new Dictionary<string, IOutputBuilder>();
         }
 
@@ -32,10 +32,10 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var outputBuilder = _mode switch
+            var outputBuilder = _config.OutputMode switch
             {
-                PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name, writeSourceLocation: _writeSourceLocation),
-                PInvokeGeneratorOutputMode.Xml => new XmlOutputBuilder(name),
+                PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name, _config, writeSourceLocation: _writeSourceLocation),
+                PInvokeGeneratorOutputMode.Xml => new XmlOutputBuilder(name, _config),
                 _ => throw new InvalidOperationException()
             };
 
@@ -50,7 +50,7 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var outputBuilder = new CSharpOutputBuilder(name, isTestOutput: true, writeSourceLocation: _writeSourceLocation);
+            var outputBuilder = new CSharpOutputBuilder(name, _config, isTestOutput: true, writeSourceLocation: _writeSourceLocation);
 
             _outputBuilders.Add(name, outputBuilder);
             return outputBuilder;

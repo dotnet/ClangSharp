@@ -5,12 +5,12 @@ using System;
 namespace ClangSharp.Abstractions
 {
     [Flags]
-    internal enum ConstantKind
+    internal enum ValueFlags
     {
         None = 0,
-        ReadOnly = 1 << 0,
-        Enumerator = 1 << 1,
-        PrimitiveConstant = 1 << 2,
-        NonPrimitiveConstant = 1 << 3
+        Initializer = 1 << 0,
+        Constant = 1 << 1,
+        Copy = 1 << 2,
+        Array = 1 << 3,
     }
 }

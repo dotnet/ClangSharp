@@ -46,8 +46,15 @@ namespace ClangSharp.Abstractions
 
         public bool IsUnion
         {
-            get => (Flags & StructFlags.IsUnion) != 0;
-            set => Flags = value ? Flags | StructFlags.IsUnion : Flags & ~StructFlags.IsUnion;
+            get
+            {
+                return (Flags & StructFlags.IsUnion) != 0;
+            }
+
+            set
+            {
+                Flags = value ? Flags | StructFlags.IsUnion : Flags & ~StructFlags.IsUnion;
+            }
         }
 
         public Action<TCustomAttrGeneratorData> WriteCustomAttrs { get; set; }

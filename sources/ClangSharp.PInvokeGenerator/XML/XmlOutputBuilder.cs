@@ -10,13 +10,19 @@ namespace ClangSharp.XML
 {
     internal partial class XmlOutputBuilder : IOutputBuilder
     {
-        public XmlOutputBuilder(string name)
+        private readonly PInvokeGeneratorConfiguration _config;
+
+        public XmlOutputBuilder(string name, PInvokeGeneratorConfiguration config)
         {
             Name = name;
+            _config = config;
         }
 
         public string Name { get; }
         public string Extension { get; } = ".xml";
+
+        public bool IsUncheckedContext { get; private set; }
+
         public bool IsTestOutput { get; } = false;
 
         public IEnumerable<string> Contents
