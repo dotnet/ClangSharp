@@ -726,6 +726,8 @@ CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getDtorVtblIdx(CXCursor C, CX_Destr
 
 CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getVtblIdx(CXCursor C);
 
+CLANGSHARP_LINKAGE CXString clangsharp_getVersion();
+
 CLANGSHARP_LINKAGE void clangsharp_TemplateArgument_dispose(CX_TemplateArgument T);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_TemplateArgument_getAsDecl(CX_TemplateArgument T);
