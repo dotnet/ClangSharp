@@ -86,6 +86,7 @@ namespace ClangSharp
                 Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(Run)))
             };
 
+            AddAccessOption(s_rootCommand);
             AddAdditionalOption(s_rootCommand);
             AddConfigOption(s_rootCommand);
             AddDefineMacroOption(s_rootCommand);
@@ -118,6 +119,7 @@ namespace ClangSharp
 
         public static int Run(InvocationContext context)
         {
+            var accessValuePairs = context.ParseResult.ValueForOption<string[]>("--access");
             var additionalArgs = context.ParseResult.ValueForOption<string[]>("--additional");
             var configSwitches = context.ParseResult.ValueForOption<string[]>("--config");
             var defineMacros = context.ParseResult.ValueForOption<string[]>("--define-macro");
@@ -161,6 +163,7 @@ namespace ClangSharp
                 errorList.Add("Error: No output file location provided. Use --output or -o");
             }
 
+            ParseKeyValuePairs(accessValuePairs, errorList, out Dictionary<string, string> accessValues);
             ParseKeyValuePairs(remappedNameValuePairs, errorList, out Dictionary<string, string> remappedNames);
             ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
             ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
@@ -474,7 +477,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, accessValues, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
 
             if (config.GenerateMacroBindings)
             {
@@ -619,6 +622,19 @@ namespace ClangSharp
                 var list = (List<string>)result[key];
                 list.Add(parts[1].TrimStart());
             }
+        }
+
+        private static void AddAccessOption(RootCommand rootCommand)
+        {
+            var option = new Option(
+                aliases: new string[] { "--access", "-ac" },
+                description: "Type visibility to use during binding generation.",
+                argumentType: typeof(string),
+                getDefaultValue: Array.Empty<string>,
+                arity: ArgumentArity.OneOrMore
+            );
+
+            rootCommand.AddOption(option);
         }
 
         private static void AddAdditionalOption(RootCommand rootCommand)

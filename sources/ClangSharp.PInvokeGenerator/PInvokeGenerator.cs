@@ -714,9 +714,95 @@ namespace ClangSharp
                                                                   .Replace("\t", "\\t")
                                                                   .Replace("\"", "\\\"");
 
+        private bool GetConfigAccessSpecifier(NamedDecl namedDecl, out AccessSpecifier name)
+        {
+            name = AccessSpecifier.Public;
+            string access;
+
+            // Top level declarations only
+            if(namedDecl is FieldDecl)
+            {
+                return false;
+            }
+
+            if(namedDecl is FunctionDecl)
+            {
+                if (TryGetValue($"{_config.Namespace}.{_config.MethodClassName}.{namedDecl.Name}", out access) || TryGetValue($"{_config.MethodClassName}.{namedDecl.Name}", out access))
+                {
+                    return GetAccess(access, out name, namedDecl);
+                }
+            }
+
+            if (TryGetValue($"{_config.Namespace}.{namedDecl.Name}", out access) || TryGetValue(namedDecl.Name, out access) || TryGetValue("*", out access))
+            {
+                return GetAccess(access, out name, namedDecl);
+            }
+
+            return false;
+
+            bool TryGetValue(string key, out string value)
+            {
+                return _config.AccessValues.TryGetValue(key, out value);
+            }
+
+            bool GetAccess(string access, out AccessSpecifier name, NamedDecl namedDecl)
+            {
+                string lowerAccess = access.ToLower();
+                switch(lowerAccess)
+                {
+                    case "public":
+                    {
+                        name = AccessSpecifier.Public;
+                        return true;
+                    }
+
+                    case "protected":
+                    {
+                        name = AccessSpecifier.Protected;
+                        return true;
+                    }
+
+                    case "protectedinternal":
+                    {
+                        name = AccessSpecifier.ProtectedInternal;
+                        return true;
+                    }
+
+                    case "internal":
+                    {
+                        name = AccessSpecifier.Internal;
+                        return true;
+                    }
+
+                    case "privateprotected":
+                    {
+                        name = AccessSpecifier.PrivateProtected;
+                        return true;
+                    }
+
+                    case "private":
+                    {
+                        name = AccessSpecifier.Private;
+                        return true;
+                    }
+
+                    default:
+                    {
+                        name = AccessSpecifier.Internal;
+                        AddDiagnostic(DiagnosticLevel.Warning, $"Unknown access specifier: '{access}' for '{namedDecl}'. Ignoring specifier.", namedDecl);
+                        return false;
+                    }
+                }
+            }
+        }
+
         private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl)
         {
             AccessSpecifier name;
+            if(GetConfigAccessSpecifier(namedDecl, out name))
+            {
+                return name;
+            }
 
             switch (namedDecl.Access)
             {

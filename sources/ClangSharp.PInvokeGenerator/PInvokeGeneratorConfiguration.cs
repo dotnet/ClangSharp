@@ -11,6 +11,7 @@ namespace ClangSharp
     {
         private const string DefaultMethodClassName = "Methods";
 
+        private readonly Dictionary<string, string> _accessValues;
         private readonly Dictionary<string, string> _remappedNames;
         private readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
         private readonly Dictionary<string, string> _withCallConvs;
@@ -20,7 +21,7 @@ namespace ClangSharp
 
         private PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorOutputMode outputMode = PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorOutputMode outputMode = PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, IReadOnlyDictionary<string, string> accessValues = null, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
         {
             if (excludedNames is null)
             {
@@ -83,6 +84,7 @@ namespace ClangSharp
             }
 
             _options = options;
+            _accessValues = new Dictionary<string, string>();
             _remappedNames = new Dictionary<string, string>();
             _withAttributes = new Dictionary<string, IReadOnlyList<string>>();
             _withCallConvs = new Dictionary<string, string>();
@@ -122,6 +124,7 @@ namespace ClangSharp
                 }
             }
 
+            AddRange(_accessValues, accessValues);
             AddRange(_remappedNames, remappedNames);
             AddRange(_withAttributes, withAttributes);
             AddRange(_withCallConvs, withCallConvs);
@@ -203,6 +206,8 @@ namespace ClangSharp
         public bool GenerateVtblIndexAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
 
         public bool GenerateSourceLocationAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
+
+        public IReadOnlyDictionary<string, string> AccessValues => _accessValues;
 
         public string MethodClassName { get; }
 
