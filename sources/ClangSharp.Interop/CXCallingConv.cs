@@ -25,6 +25,7 @@ namespace ClangSharp.Interop
         CXCallingConv_PreserveMost = 14,
         CXCallingConv_PreserveAll = 15,
         CXCallingConv_AArch64VectorCall = 16,
+        CXCallingConv_SwiftAsync = 17,
         CXCallingConv_Invalid = 100,
         CXCallingConv_Unexposed = 200,
     }

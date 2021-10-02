@@ -4,9 +4,9 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class UsingDecl : BaseUsingDecl, IMergeable<UsingDecl>
+    public sealed class UnresolvedUsingIfExistsDecl : NamedDecl
     {
-        internal UsingDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration, CX_DeclKind.CX_DeclKind_Using)
+        internal UnresolvedUsingIfExistsDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration, CX_DeclKind.CX_DeclKind_UnresolvedUsingIfExists)
         {
         }
     }

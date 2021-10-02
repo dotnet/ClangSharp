@@ -421,6 +421,7 @@ namespace ClangSharp.Interop
                     CX_CastKind.CX_CK_PointerToIntegral => "PointerToIntegral",
                     CX_CastKind.CX_CK_PointerToBoolean => "PointerToBoolean",
                     CX_CastKind.CX_CK_ToVoid => "ToVoid",
+                    CX_CastKind.CX_CK_MatrixCast => "MatrixCast",
                     CX_CastKind.CX_CK_VectorSplat => "VectorSplat",
                     CX_CastKind.CX_CK_IntegralCast => "IntegralCast",
                     CX_CastKind.CX_CK_IntegralToBoolean => "IntegralToBoolean",

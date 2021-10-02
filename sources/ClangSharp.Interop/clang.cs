@@ -1352,14 +1352,14 @@ namespace ClangSharp.Interop
         [NativeTypeName("#define CINDEX_VERSION_MAJOR 0")]
         public const int CINDEX_VERSION_MAJOR = 0;
 
-        [NativeTypeName("#define CINDEX_VERSION_MINOR 61")]
-        public const int CINDEX_VERSION_MINOR = 61;
+        [NativeTypeName("#define CINDEX_VERSION_MINOR 62")]
+        public const int CINDEX_VERSION_MINOR = 62;
 
         [NativeTypeName("#define CINDEX_VERSION CINDEX_VERSION_ENCODE(CINDEX_VERSION_MAJOR, CINDEX_VERSION_MINOR)")]
-        public const int CINDEX_VERSION = (((0) * 10000) + ((61) * 1));
+        public const int CINDEX_VERSION = (((0) * 10000) + ((62) * 1));
 
         [NativeTypeName("#define CINDEX_VERSION_STRING CINDEX_VERSION_STRINGIZE(CINDEX_VERSION_MAJOR, CINDEX_VERSION_MINOR)")]
-        public static ReadOnlySpan<byte> CINDEX_VERSION_STRING => new byte[] { 0x30, 0x2E, 0x36, 0x31, 0x00 };
+        public static ReadOnlySpan<byte> CINDEX_VERSION_STRING => new byte[] { 0x30, 0x2E, 0x36, 0x32, 0x00 };
 
         [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXRewriter_create", ExactSpelling = true)]
         [return: NativeTypeName("CXRewriter")]
