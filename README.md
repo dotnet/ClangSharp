@@ -65,7 +65,7 @@ Building this requires [CMake 3.13 or later](https://cmake.org/download/) as wel
 
 To succesfully build `libClangSharp` you must first build Clang (https://clang.llvm.org/get_started.html). The process done on Windows is roughly:
 ```cmd
-git clone --single-branch --branch llvmorg-12.0.0 https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-13.0.0 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir artifacts/bin
 cd artifacts/bin
@@ -90,7 +90,7 @@ git clone https://github.com/microsoft/clangsharp
 cd clangsharp
 mkdir artifacts/bin/native
 cd artifacts/bin/native
-cmake -DPATH_TO_LLVM=/usr/lib/llvm/12/ ../../..
+cmake -DPATH_TO_LLVM=/usr/lib/llvm/13/ ../../..
 make
 ```
 
@@ -100,7 +100,7 @@ git clone https://github.com/microsoft/clangsharp
 cd clangsharp
 mkdir artifacts/bin/native
 cd artifacts/bin/native
-cmake -DPATH_TO_LLVM=/usr/lib/llvm/12/ -G Ninja ../../..
+cmake -DPATH_TO_LLVM=/usr/lib/llvm/13/ -G Ninja ../../..
 ninja
 ```
 
@@ -110,7 +110,7 @@ This program will take a given set of C or C++ header files and generate C# bind
 
 The simplest and recommended setup is to install the generator as a .NET tool and then use response files:
 ```
-dotnet tool install --global ClangSharpPInvokeGenerator --version 12.0.0-beta1
+dotnet tool install --global ClangSharpPInvokeGenerator --version 13.0.0-beta1
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 
