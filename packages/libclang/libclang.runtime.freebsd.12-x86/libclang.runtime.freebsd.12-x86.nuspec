@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata minClientVersion="2.12">
-    <id>libclang.runtime.freebsd.11-x64</id>
+    <id>libclang.runtime.freebsd.12-x86</id>
     <version>13.0.0</version>
     <authors>Microsoft and Contributors</authors>
     <owners>Microsoft and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">Apache-2.0 WITH LLVM-exception</license>
     <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>
-    <description>freebsd 11 x64 native library for libclang.</description>
+    <description>freebsd 12 x86 native library for libclang.</description>
     <copyright>Copyright © LLVM Project</copyright>
     <repository type="git" url="https://github.com/llvm/llvm-project" branch="llvmorg-13.0.0" />
   </metadata>
   <files>
     <file src="..\libclang\LICENSE.TXT" target="LICENSE.TXT" />
-    <file src="libclang.so" target="runtimes\freebsd.11-x64\native\libclang.so" />
+    <file src="libclang.so" target="runtimes\freebsd.12-x86\native\libclang.so" />
   </files>
 </package>
