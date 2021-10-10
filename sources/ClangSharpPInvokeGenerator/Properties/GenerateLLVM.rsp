@@ -37,6 +37,7 @@ llvm-c/Transforms/AggressiveInstCombine.h
 llvm-c/Transforms/Coroutines.h
 llvm-c/Transforms/InstCombine.h
 llvm-c/Transforms/IPO.h
+llvm-c/Transforms/PassBuilder.h
 llvm-c/Transforms/PassManagerBuilder.h
 llvm-c/Transforms/Scalar.h
 llvm-c/Transforms/Utils.h

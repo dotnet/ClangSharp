@@ -31,6 +31,7 @@ namespace ClangSharp.Interop
         CX_CK_PointerToIntegral,
         CX_CK_PointerToBoolean,
         CX_CK_ToVoid,
+        CX_CK_MatrixCast,
         CX_CK_VectorSplat,
         CX_CK_IntegralCast,
         CX_CK_IntegralToBoolean,

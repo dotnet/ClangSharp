@@ -421,6 +421,7 @@ namespace ClangSharp.Interop
                     CX_CastKind.CX_CK_PointerToIntegral => "PointerToIntegral",
                     CX_CastKind.CX_CK_PointerToBoolean => "PointerToBoolean",
                     CX_CastKind.CX_CK_ToVoid => "ToVoid",
+                    CX_CastKind.CX_CK_MatrixCast => "MatrixCast",
                     CX_CastKind.CX_CK_VectorSplat => "VectorSplat",
                     CX_CastKind.CX_CK_IntegralCast => "IntegralCast",
                     CX_CastKind.CX_CK_IntegralToBoolean => "IntegralToBoolean",
@@ -561,7 +562,7 @@ namespace ClangSharp.Interop
                 Debug.Assert(CX_DeclKind.CX_DeclKind_LastDeclarator == CX_DeclKind.CX_DeclKind_VarTemplatePartialSpecialization);
                 Debug.Assert(CX_DeclKind.CX_DeclKind_FirstValue == CX_DeclKind.CX_DeclKind_Binding);
                 Debug.Assert(CX_DeclKind.CX_DeclKind_LastValue == CX_DeclKind.CX_DeclKind_UnresolvedUsingValue);
-                Debug.Assert(CX_DeclKind.CX_DeclKind_FirstNamed == CX_DeclKind.CX_DeclKind_Label);
+                Debug.Assert(CX_DeclKind.CX_DeclKind_FirstNamed == CX_DeclKind.CX_DeclKind_Using);
                 Debug.Assert(CX_DeclKind.CX_DeclKind_LastNamed == CX_DeclKind.CX_DeclKind_UnresolvedUsingValue);
                 Debug.Assert(CX_DeclKind.CX_DeclKind_FirstDecl == CX_DeclKind.CX_DeclKind_AccessSpec);
                 Debug.Assert(CX_DeclKind.CX_DeclKind_LastDecl == CX_DeclKind.CX_DeclKind_TranslationUnit);

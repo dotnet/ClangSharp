@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft and Contributors. All rights reserved. Licensed under the University of Illinois/NCSA Open Source License. See LICENSE.txt in the project root for license information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-12.0.0/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-13.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 namespace ClangSharp.Interop
@@ -25,6 +25,7 @@ namespace ClangSharp.Interop
         CXCallingConv_PreserveMost = 14,
         CXCallingConv_PreserveAll = 15,
         CXCallingConv_AArch64VectorCall = 16,
+        CXCallingConv_SwiftAsync = 17,
         CXCallingConv_Invalid = 100,
         CXCallingConv_Unexposed = 200,
     }

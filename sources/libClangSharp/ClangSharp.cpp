@@ -4743,6 +4743,10 @@ int64_t clangsharp_Cursor_getVtblIdx(CXCursor C) {
     return -1;
 }
 
+CXString clangsharp_getVersion() {
+    return cxstring::createDup("clangsharp version 13.0.0");
+}
+
 void clangsharp_TemplateArgument_dispose(CX_TemplateArgument T) {
     if (T.xdata & 1) {
         return delete T.value;

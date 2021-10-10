@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata minClientVersion="2.12">
+    <id>libClangSharp.runtime.freebsd.12-x64</id>
+    <version>13.0.0-beta1</version>
+    <authors>Microsoft and Contributors</authors>
+    <owners>Microsoft and Contributors</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">NCSA</license>
+    <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>
+    <description>freebsd 12 x64 native library for libClangSharp.</description>
+    <copyright>Copyright © Microsoft and Contributors</copyright>
+    <repository type="git" url="https://github.com/microsoft/clangsharp" branch="main" />
+  </metadata>
+  <files>
+    <file src="..\libClangSharp\LICENSE.TXT" target="LICENSE.TXT" />
+    <file src="..\libClangSharp\NOTICE.TXT" target="NOTICE.TXT" />
+    <file src="libClangSharp.so" target="runtimes\freebsd.12-x64\native\libClangSharp.so" />
+  </files>
+</package>

@@ -20,6 +20,9 @@ namespace ClangSharp
         private const int DefaultStreamWriterBufferSize = 1024;
         private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
+        private const string ExpectedClangVersion = "13.0.0";
+        private const string ExpectedClangSharpVersion = "13.0.0";
+
         private readonly CXIndex _index;
         private readonly OutputBuilderFactory _outputBuilderFactory;
         private readonly Func<string, Stream> _outputStreamFactory;
@@ -50,6 +53,20 @@ namespace ClangSharp
             if (config is null)
             {
                 throw new ArgumentNullException(nameof(config));
+            }
+
+            var clangVersion = clang.getClangVersion().ToString();
+
+            if (!clangVersion.Contains("13.0.0"))
+            {
+                throw new InvalidOperationException($"Invalid libClang version. Returned string '{clangVersion}' does not contain '{ExpectedClangVersion}'");
+            }
+
+            var clangSharpVersion = clangsharp.getVersion().ToString();
+
+            if (!clangSharpVersion.Contains("13.0.0"))
+            {
+                throw new InvalidOperationException($"Invalid libClang version. Returned string '{clangSharpVersion}' does not contain '{ExpectedClangSharpVersion}'");
             }
 
             _index = CXIndex.Create();
@@ -1506,6 +1523,12 @@ namespace ClangSharp
         private string GetTypeName(Cursor cursor, Cursor context, Type rootType, Type type, out string nativeTypeName)
         {
             var name = type.AsString.Replace('\\', '/');
+
+            if (name.Contains("unnamed struct at"))
+            {
+                name = name.Replace("unnamed struct at", "anonymous struct at");
+            }
+
             nativeTypeName = name;
 
             if (type is ArrayType arrayType)
