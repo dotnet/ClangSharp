@@ -1,4 +1,4 @@
-3{
+{
   "runtimes": {
     "freebsd.12-x64": {
       "libclang": {

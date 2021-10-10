@@ -562,7 +562,7 @@ namespace ClangSharp.Interop
                 Debug.Assert(CX_DeclKind.CX_DeclKind_LastDeclarator == CX_DeclKind.CX_DeclKind_VarTemplatePartialSpecialization);
                 Debug.Assert(CX_DeclKind.CX_DeclKind_FirstValue == CX_DeclKind.CX_DeclKind_Binding);
                 Debug.Assert(CX_DeclKind.CX_DeclKind_LastValue == CX_DeclKind.CX_DeclKind_UnresolvedUsingValue);
-                Debug.Assert(CX_DeclKind.CX_DeclKind_FirstNamed == CX_DeclKind.CX_DeclKind_Label);
+                Debug.Assert(CX_DeclKind.CX_DeclKind_FirstNamed == CX_DeclKind.CX_DeclKind_Using);
                 Debug.Assert(CX_DeclKind.CX_DeclKind_LastNamed == CX_DeclKind.CX_DeclKind_UnresolvedUsingValue);
                 Debug.Assert(CX_DeclKind.CX_DeclKind_FirstDecl == CX_DeclKind.CX_DeclKind_AccessSpec);
                 Debug.Assert(CX_DeclKind.CX_DeclKind_LastDecl == CX_DeclKind.CX_DeclKind_TranslationUnit);

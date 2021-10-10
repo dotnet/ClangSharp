@@ -17,7 +17,6 @@ namespace ClangSharp.Interop
 
         private static IntPtr OnDllImport(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
         {
-
             return TryResolveLibrary(libraryName, assembly, searchPath, out var nativeLibrary)
                 ? nativeLibrary
                 : libraryName.Equals("libclang") && TryResolveClang(assembly, searchPath, out nativeLibrary)
@@ -29,8 +28,8 @@ namespace ClangSharp.Interop
 
         private static bool TryResolveClang(Assembly assembly, DllImportSearchPath? searchPath, out IntPtr nativeLibrary)
         {
-            return (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang.so.12", assembly, searchPath, out nativeLibrary))
-                || (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang-12", assembly, searchPath, out nativeLibrary))
+            return (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang.so.13", assembly, searchPath, out nativeLibrary))
+                || (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang-13", assembly, searchPath, out nativeLibrary))
                 || (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang.so.1", assembly, searchPath, out nativeLibrary))
                 || NativeLibrary.TryLoad("libclang", assembly, searchPath, out nativeLibrary);
         }
