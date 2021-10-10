@@ -1529,6 +1529,11 @@ namespace ClangSharp
                 name = name.Replace("unnamed struct at", "anonymous struct at");
             }
 
+            if (name.Contains("unnamed union at"))
+            {
+                name = name.Replace("unnamed union at", "anonymous union at");
+            }
+
             nativeTypeName = name;
 
             if (type is ArrayType arrayType)
