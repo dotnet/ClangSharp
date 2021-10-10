@@ -33,8 +33,8 @@
 
   <!-- Package versions for package references across all projects -->
   <ItemGroup>
-    <PackageReference Update="libClang" Version="12.0.0" />
-    <PackageReference Update="libClangSharp" Version="12.0.0-beta1" />
+    <PackageReference Update="libClang" Version="13.0.0" />
+    <PackageReference Update="libClangSharp" Version="13.0.0-beta1" />
     <PackageReference Update="Microsoft.Bcl.HashCode" Version="1.1.1" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.0.0" />
