@@ -1523,6 +1523,12 @@ namespace ClangSharp
         private string GetTypeName(Cursor cursor, Cursor context, Type rootType, Type type, out string nativeTypeName)
         {
             var name = type.AsString.Replace('\\', '/');
+
+            if (name.Contains("unnamed struct at"))
+            {
+                name = name.Replace("unnamed struct at", "anonymous struct at");
+            }
+
             nativeTypeName = name;
 
             if (type is ArrayType arrayType)
