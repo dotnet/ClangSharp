@@ -1843,7 +1843,7 @@ namespace ClangSharp
                 // can be treated correctly. Otherwise, they will resolve to a particular
                 // platform size, based on whatever parameters were passed into clang.
 
-                var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
+                var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
                 name = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, out _);
             }
             else
