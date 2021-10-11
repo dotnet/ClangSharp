@@ -1050,7 +1050,7 @@ namespace ClangSharp
                     _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);
                     _testOutputBuilder.WriteLine("\" /> struct.</summary>");
-                    _testOutputBuilder.WriteIndented("public static unsafe class ");
+                    _testOutputBuilder.WriteIndented("public static unsafe partial class ");
                     _testOutputBuilder.Write(escapedName);
                     _testOutputBuilder.WriteLine("Tests");
                     _testOutputBuilder.WriteBlockStart();
