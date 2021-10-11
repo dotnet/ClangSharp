@@ -18,6 +18,7 @@ namespace ClangSharp
     {
         private static RootCommand s_rootCommand;
         private static Option s_configOption;
+        private static Option s_versionOption;
 
         private static readonly HelpItem[] s_configOptions = new HelpItem[]
         {
@@ -98,19 +99,20 @@ namespace ClangSharp
             AddLibraryOption(s_rootCommand);
             AddMethodClassNameOption(s_rootCommand);
             AddNamespaceOption(s_rootCommand);
+            AddOutputModeOption(s_rootCommand);
             AddOutputOption(s_rootCommand);
             AddPrefixStripOption(s_rootCommand);
             AddRemapOption(s_rootCommand);
             AddStdOption(s_rootCommand);
             AddTestOutputOption(s_rootCommand);
             AddTraverseOption(s_rootCommand);
+            AddVersionOption(s_rootCommand);
             AddWithAttributeOption(s_rootCommand);
             AddWithCallConvOption(s_rootCommand);
             AddWithLibraryPathOption(s_rootCommand);
             AddWithSetLastErrorOption(s_rootCommand);
             AddWithTypeOption(s_rootCommand);
             AddWithUsingOption(s_rootCommand);
-            AddOutputModeOption(s_rootCommand);
 
             return await s_rootCommand.InvokeAsync(args);
         }
@@ -132,6 +134,7 @@ namespace ClangSharp
             var methodPrefixToStrip = context.ParseResult.ValueForOption<string>("--prefixStrip");
             var namespaceName = context.ParseResult.ValueForOption<string>("--namespace");
             var outputLocation = context.ParseResult.ValueForOption<string>("--output");
+            var outputMode = context.ParseResult.ValueForOption<PInvokeGeneratorOutputMode>("--output-mode");
             var remappedNameValuePairs = context.ParseResult.ValueForOption<string[]>("--remap");
             var std = context.ParseResult.ValueForOption<string>("--std");
             var testOutputLocation = context.ParseResult.ValueForOption<string>("--test-output");
@@ -142,7 +145,19 @@ namespace ClangSharp
             var withSetLastErrors = context.ParseResult.ValueForOption<string[]>("--with-setlasterror");
             var withTypeNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-type");
             var withUsingNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-using");
-            var outputMode = context.ParseResult.ValueForOption<PInvokeGeneratorOutputMode>("--output-mode");
+
+            var versionResult = context.ParseResult.FindResultFor(s_versionOption);
+
+            if (versionResult is not null)
+            {
+                var helpBuilder = new CustomHelpBuilder(context.Console);
+
+                helpBuilder.WriteLine($"{s_rootCommand.Description} version 13.0.0");
+                helpBuilder.WriteLine($"  {clang.getClangVersion()}");
+                helpBuilder.WriteLine($"  {clangsharp.getVersion()}");
+
+                return -1;
+            }
 
             var errorList = new List<string>();
 
@@ -779,6 +794,19 @@ namespace ClangSharp
             rootCommand.AddOption(option);
         }
 
+        private static void AddOutputModeOption(RootCommand rootCommand)
+        {
+            var option = new Option(
+                aliases: new string[] { "--output-mode", "-om" },
+                description: "The mode describing how the information collected from the headers are presented in the resultant bindings.",
+                argumentType: typeof(PInvokeGeneratorOutputMode),
+                getDefaultValue: () => PInvokeGeneratorOutputMode.CSharp,
+                arity: ArgumentArity.ExactlyOne
+            );
+
+            rootCommand.AddOption(option);
+        }
+
         private static void AddOutputOption(RootCommand rootCommand)
         {
             var option = new Option(
@@ -842,6 +870,19 @@ namespace ClangSharp
             );
 
             rootCommand.AddOption(option);
+        }
+
+        private static void AddVersionOption(RootCommand rootCommand)
+        {
+            if (s_versionOption is null)
+            {
+                s_versionOption = new Option(
+                    aliases: new string[] { "--version", "-v" },
+                    description: "Prints the current version information for the tool and its native dependencies.",
+                    arity: ArgumentArity.Zero
+                );
+            }
+            rootCommand.AddOption(s_versionOption);
         }
 
         private static void AddTraverseOption(RootCommand rootCommand)
@@ -930,19 +971,6 @@ namespace ClangSharp
                 argumentType: typeof(string),
                 getDefaultValue: Array.Empty<string>,
                 arity: ArgumentArity.OneOrMore
-            );
-
-            rootCommand.AddOption(option);
-        }
-
-        private static void AddOutputModeOption(RootCommand rootCommand)
-        {
-            var option = new Option(
-                aliases: new string[] { "--output-mode", "-om" },
-                description: "The mode describing how the information collected from the headers are presented in the resultant bindings.",
-                argumentType: typeof(PInvokeGeneratorOutputMode),
-                getDefaultValue: () => PInvokeGeneratorOutputMode.CSharp,
-                arity: ArgumentArity.ExactlyOne
             );
 
             rootCommand.AddOption(option);
