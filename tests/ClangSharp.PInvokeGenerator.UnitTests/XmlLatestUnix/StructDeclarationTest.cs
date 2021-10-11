@@ -1591,6 +1591,67 @@ struct MyStruct1B : MyStruct1A
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task WithAccessSpecifierTest()
+        {
+            var inputContents = @"struct MyStruct1
+{
+    int Field1;
+    int Field2;
+};
+
+struct MyStruct2
+{
+    int Field1;
+    int Field2;
+};
+
+struct MyStruct3
+{
+    int Field1;
+    int Field2;
+};
+";
+
+            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct1"" access=""private"">
+      <field name=""Field1"" access=""private"">
+        <type>int</type>
+      </field>
+      <field name=""Field2"" access=""public"">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name=""MyStruct2"" access=""internal"">
+      <field name=""Field1"" access=""private"">
+        <type>int</type>
+      </field>
+      <field name=""Field2"" access=""public"">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name=""MyStruct3"" access=""public"">
+      <field name=""Field1"" access=""private"">
+        <type>int</type>
+      </field>
+      <field name=""Field2"" access=""internal"">
+        <type>int</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            var withAccessSpecifiers = new Dictionary<string, string> {
+                ["MyStruct1"] = "private",
+                ["MyStruct2"] = "internal",
+                ["Field1"] = "private",
+                ["MyStruct3.Field2"] = "internal",
+            };
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
+        }
+
         public override Task SourceLocationAttributeTest()
         {
             const string InputContents = @"struct MyStruct

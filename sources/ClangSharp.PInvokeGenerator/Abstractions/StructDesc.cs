@@ -18,16 +18,29 @@ namespace ClangSharp.Abstractions
         public StructFlags Flags { get; set; }
         public CXSourceLocation? Location { get; set; }
 
-        public bool IsUnsafe
+        public bool IsNested
         {
             get
             {
-                return (Flags & StructFlags.IsUnsafe) != 0;
+                return (Flags & StructFlags.Nested) != 0;
             }
 
             set
             {
-                Flags = value ? Flags | StructFlags.IsUnsafe : Flags & ~StructFlags.IsUnsafe;
+                Flags = value ? Flags | StructFlags.Nested : Flags & ~StructFlags.Nested;
+            }
+        }
+
+        public bool IsUnsafe
+        {
+            get
+            {
+                return (Flags & StructFlags.Unsafe) != 0;
+            }
+
+            set
+            {
+                Flags = value ? Flags | StructFlags.Unsafe : Flags & ~StructFlags.Unsafe;
             }
         }
 
@@ -35,12 +48,12 @@ namespace ClangSharp.Abstractions
         {
             get
             {
-                return (Flags & StructFlags.HasVtbl) != 0;
+                return (Flags & StructFlags.Vtbl) != 0;
             }
 
             set
             {
-                Flags = value ? Flags | StructFlags.HasVtbl : Flags & ~StructFlags.HasVtbl;
+                Flags = value ? Flags | StructFlags.Vtbl : Flags & ~StructFlags.Vtbl;
             }
         }
 
@@ -48,12 +61,12 @@ namespace ClangSharp.Abstractions
         {
             get
             {
-                return (Flags & StructFlags.IsUnion) != 0;
+                return (Flags & StructFlags.Union) != 0;
             }
 
             set
             {
-                Flags = value ? Flags | StructFlags.IsUnion : Flags & ~StructFlags.IsUnion;
+                Flags = value ? Flags | StructFlags.Union : Flags & ~StructFlags.Union;
             }
         }
 

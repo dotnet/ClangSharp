@@ -67,7 +67,7 @@ namespace ClangSharp.CSharp
 
             if (desc.Kind == ValueKind.Primitive)
             {
-                Write(desc.AccessSpecifier.AsString());
+                Write(GetAccessSpecifierString(desc.AccessSpecifier, isNested: true));
 
                 if (desc.IsConstant)
                 {
@@ -95,7 +95,7 @@ namespace ClangSharp.CSharp
             }
             else if (desc.Kind == ValueKind.Unmanaged)
             {
-                Write(desc.AccessSpecifier.AsString());
+                Write(GetAccessSpecifierString(desc.AccessSpecifier, isNested: true));
                 Write(" static ");
 
                 if (_config.GenerateUnmanagedConstants && desc.IsConstant)
@@ -129,7 +129,7 @@ namespace ClangSharp.CSharp
             }
             else if (desc.Kind == ValueKind.String)
             {
-                Write(desc.AccessSpecifier.AsString());
+                Write(GetAccessSpecifierString(desc.AccessSpecifier, isNested: true));
                 Write(" static ");
                 Write(desc.TypeName);
                 Write(' ');
@@ -212,7 +212,7 @@ namespace ClangSharp.CSharp
                 WriteSourceLocation(location, false);
             }
 
-            WriteIndented(desc.AccessSpecifier.AsString());
+            WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, desc.IsNested));
             Write(" enum ");
             Write(desc.EscapedName);
 
@@ -245,7 +245,7 @@ namespace ClangSharp.CSharp
                 WriteSourceLocation(location, false);
             }
 
-            WriteIndented(desc.AccessSpecifier.AsString());
+            WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, isNested: true));
             Write(' ');
 
             if (desc.NeedsNewKeyword)
@@ -368,7 +368,7 @@ namespace ClangSharp.CSharp
                 AddNativeTypeNameAttribute(desc.NativeTypeName, attributePrefix: "return: ");
             }
 
-            WriteIndented(desc.AccessSpecifier.AsString());
+            WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, isNested: false));
 
             if (!desc.IsMemberFunction)
             {
@@ -577,57 +577,57 @@ namespace ClangSharp.CSharp
             NeedsNewline = true;
         }
 
-        public void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info)
+        public void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> desc)
         {
-            if (info.LayoutAttribute is not null)
+            if (desc.LayoutAttribute is not null)
             {
                 AddUsingDirective("System.Runtime.InteropServices");
                 WriteIndented("[StructLayout(LayoutKind.");
-                Write(info.LayoutAttribute.Value);
+                Write(desc.LayoutAttribute.Value);
 
-                if (info.LayoutAttribute.Pack != 0)
+                if (desc.LayoutAttribute.Pack != 0)
                 {
                     Write(", Pack = ");
-                    Write(info.LayoutAttribute.Pack);
+                    Write(desc.LayoutAttribute.Pack);
                 }
 
                 WriteLine(")]");
             }
 
-            if (info.Uuid is not null)
+            if (desc.Uuid is not null)
             {
                 AddUsingDirective("System.Runtime.InteropServices");
 
                 WriteIndented("[Guid(\"");
-                Write(info.Uuid.Value.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant());
+                Write(desc.Uuid.Value.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant());
                 WriteLine("\")]");
             }
 
-            if (info.NativeType is not null)
+            if (desc.NativeType is not null)
             {
-                AddNativeTypeNameAttribute(info.NativeType);
+                AddNativeTypeNameAttribute(desc.NativeType);
             }
 
-            if (info.NativeInheritance is not null)
+            if (desc.NativeInheritance is not null)
             {
-                AddNativeInheritanceAttribute(info.NativeInheritance);
+                AddNativeInheritanceAttribute(desc.NativeInheritance);
             }
 
-            if (info.Location is {} location)
+            if (desc.Location is {} location)
             {
                 WriteSourceLocation(location, false);
             }
 
-            WriteIndented(info.AccessSpecifier.AsString());
+            WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, desc.IsNested));
             Write(' ');
 
-            if (info.IsUnsafe)
+            if (desc.IsUnsafe)
             {
                 Write("unsafe ");
             }
 
             Write("partial struct ");
-            Write(info.EscapedName);
+            Write(desc.EscapedName);
             WriteNewline();
             WriteBlockStart();
         }
@@ -698,7 +698,7 @@ namespace ClangSharp.CSharp
         public void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe)
         {
             NeedsNewline = true;
-            WriteIndented(accessSpecifier.AsString());
+            WriteIndented(GetAccessSpecifierString(accessSpecifier, isNested: true));
             Write(' ');
             if (isUnsafe)
             {
@@ -723,6 +723,45 @@ namespace ClangSharp.CSharp
         public void EndDereference()
         {
             // nop, used only by XML
+        }
+
+        private string GetAccessSpecifierString(AccessSpecifier accessSpecifier, bool isNested)
+        {
+            switch (accessSpecifier)
+            {
+                case AccessSpecifier.Private:
+                {
+                    // Non-nested members can only be public or internal
+                    // and C# defaults to internal when no specifier is given
+
+                    if (!isNested)
+                    {
+                        accessSpecifier = AccessSpecifier.Internal;
+                    }
+                    break;
+                }
+
+                case AccessSpecifier.PrivateProtected:
+                {
+                    // We only generate structs, enums, or static members so protected is invalid
+                    // fallback to internal to match the non-external visibility of private protected
+
+                    accessSpecifier = AccessSpecifier.Internal;
+                    break;
+                }
+
+                case AccessSpecifier.Protected:
+                case AccessSpecifier.ProtectedInternal:
+                {
+                    // We only generate structs, enums, or static members so protected is invalid
+                    // fallback to internal to match the external visibility of protected and protected internal
+
+                    accessSpecifier = AccessSpecifier.Public;
+                    break;
+                }
+            }
+
+            return accessSpecifier.AsString();
         }
     }
 }

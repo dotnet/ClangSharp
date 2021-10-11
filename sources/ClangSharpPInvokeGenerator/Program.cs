@@ -107,6 +107,7 @@ namespace ClangSharp
             AddTestOutputOption(s_rootCommand);
             AddTraverseOption(s_rootCommand);
             AddVersionOption(s_rootCommand);
+            AddWithAccessSpecifierOption(s_rootCommand);
             AddWithAttributeOption(s_rootCommand);
             AddWithCallConvOption(s_rootCommand);
             AddWithLibraryPathOption(s_rootCommand);
@@ -139,6 +140,7 @@ namespace ClangSharp
             var std = context.ParseResult.ValueForOption<string>("--std");
             var testOutputLocation = context.ParseResult.ValueForOption<string>("--test-output");
             var traversalNames = context.ParseResult.ValueForOption<string[]>("--traverse");
+            var withAccessSpecifierNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-access-specifier");
             var withAttributeNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-attribute");
             var withCallConvNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-callconv");
             var withLibraryPathNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-librarypath");
@@ -177,6 +179,7 @@ namespace ClangSharp
             }
 
             ParseKeyValuePairs(remappedNameValuePairs, errorList, out Dictionary<string, string> remappedNames);
+            ParseKeyValuePairs(withAccessSpecifierNameValuePairs, errorList, out Dictionary<string, string> withAccessSpecifiers);
             ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
             ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
             ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPath);
@@ -489,7 +492,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
 
             if (config.GenerateMacroBindings)
             {
@@ -890,6 +893,19 @@ namespace ClangSharp
             var option = new Option(
                 aliases: new string[] { "--traverse", "-t" },
                 description: "A file name included either directly or indirectly by -f that should be traversed during binding generation.",
+                argumentType: typeof(string),
+                getDefaultValue: Array.Empty<string>,
+                arity: ArgumentArity.OneOrMore
+            );
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddWithAccessSpecifierOption(RootCommand rootCommand)
+        {
+            var option = new Option(
+                aliases: new string[] { "--with-access-specifier", "-was" },
+                description: "An access specifier to be used with the given qualified or remapped declaration name during binding generation.",
                 argumentType: typeof(string),
                 getDefaultValue: Array.Empty<string>,
                 arity: ArgumentArity.OneOrMore
