@@ -401,7 +401,7 @@ namespace ClangSharp
                 }
             }
 
-            outputBuilder.Write(GetRemappedName(cxxDependentScopeMemberExpr.MemberName, cxxDependentScopeMemberExpr, tryRemapOperatorName: false, out _));
+            outputBuilder.Write(GetRemappedName(cxxDependentScopeMemberExpr.MemberName, cxxDependentScopeMemberExpr, tryRemapOperatorName: false, out _, skipUsing: true));
             StopCSharpCode();
         }
 
@@ -423,7 +423,7 @@ namespace ClangSharp
             outputBuilder.Write("cxx_new<");
 
 
-            var allocatedTypeName = GetRemappedTypeName(cxxNewExpr, null, cxxNewExpr.AllocatedType, out _);
+            var allocatedTypeName = GetRemappedTypeName(cxxNewExpr, null, cxxNewExpr.AllocatedType, out _, skipUsing: false);
             outputBuilder.Write(allocatedTypeName);
 
             outputBuilder.Write(">(sizeof(");
@@ -544,7 +544,7 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             outputBuilder.Write("new ");
 
-            var constructorName = GetRemappedTypeName(cxxUnresolvedConstructExpr, null, cxxUnresolvedConstructExpr.TypeAsWritten, out _);
+            var constructorName = GetRemappedTypeName(cxxUnresolvedConstructExpr, null, cxxUnresolvedConstructExpr.TypeAsWritten, out _, skipUsing: false);
             outputBuilder.Write(constructorName);
 
             outputBuilder.Write('(');
@@ -571,7 +571,7 @@ namespace ClangSharp
             outputBuilder.Write("typeof(");
 
             var type = cxxUuidofExpr.IsTypeOperand ? cxxUuidofExpr.TypeOperand : cxxUuidofExpr.ExprOperand.Type;
-            var typeName = GetRemappedTypeName(cxxUuidofExpr, context: null, type, out _);
+            var typeName = GetRemappedTypeName(cxxUuidofExpr, context: null, type, out _, skipUsing: false);
             outputBuilder.Write(typeName);
 
             outputBuilder.Write(").GUID");
@@ -647,7 +647,7 @@ namespace ClangSharp
         {
             var outputBuilder = StartCSharpCode();
 
-            var name = GetRemappedName(dependentScopeDeclRefExpr.DeclName, dependentScopeDeclRefExpr, tryRemapOperatorName: true, out _);
+            var name = GetRemappedName(dependentScopeDeclRefExpr.DeclName, dependentScopeDeclRefExpr, tryRemapOperatorName: true, out _, skipUsing: true);
             outputBuilder.Write(EscapeName(name));
 
             StopCSharpCode();
@@ -680,13 +680,13 @@ namespace ClangSharp
             if (IsPrevContextDecl<EnumConstantDecl>(out _, out _) && explicitCastExpr.Type is EnumType enumType)
             {
                 outputBuilder.Write('(');
-                var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _);
+                var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _, skipUsing: false);
                 outputBuilder.Write(enumUnderlyingTypeName);
                 outputBuilder.Write(')');
             }
 
             var type = explicitCastExpr.Type;
-            var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out _);
+            var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out _, skipUsing: false);
 
             if (typeName == "IntPtr")
             {
@@ -910,7 +910,7 @@ namespace ClangSharp
                 {
                     var type = implicitCastExpr.Type;
 
-                    var typeName = GetRemappedTypeName(implicitCastExpr, context: null, type, out _);
+                    var typeName = GetRemappedTypeName(implicitCastExpr, context: null, type, out _, skipUsing: false);
 
                     outputBuilder.Write('(');
                     outputBuilder.Write(typeName);
@@ -987,7 +987,7 @@ namespace ClangSharp
             void ForArrayType(InitListExpr initListExpr, ArrayType arrayType)
             {
                 var type = initListExpr.Type;
-                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
+                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _, skipUsing: false);
                 var isUnmanagedConstant = false;
                 var escapedName = "";
 
@@ -1051,7 +1051,7 @@ namespace ClangSharp
             void ForRecordType(InitListExpr initListExpr, RecordType recordType)
             {
                 var type = initListExpr.Type;
-                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
+                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _, skipUsing: false);
                 var isUnmanagedConstant = false;
                 var escapedName = "";
 
@@ -2294,7 +2294,7 @@ namespace ClangSharp
                         }
 
                         var needsCast = false;
-                        var typeName = GetRemappedTypeName(unaryExprOrTypeTraitExpr, context: null, argumentType, out _);
+                        var typeName = GetRemappedTypeName(unaryExprOrTypeTraitExpr, context: null, argumentType, out _, skipUsing: false);
 
                         if (parentType != null)
                         {
@@ -2438,7 +2438,7 @@ namespace ClangSharp
 
             outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
             outputBuilder.Write("Marshal.OffsetOf<");
-            outputBuilder.Write(GetRemappedTypeName(offsetOfExpr, context: null, offsetOfExpr.TypeSourceInfoType, out var _));
+            outputBuilder.Write(GetRemappedTypeName(offsetOfExpr, context: null, offsetOfExpr.TypeSourceInfoType, out var _, skipUsing: false));
             outputBuilder.Write(">(\"");
             Visit(offsetOfExpr.Referenced);
             outputBuilder.Write("\")");
@@ -2449,7 +2449,7 @@ namespace ClangSharp
         private void VisitUnresolvedLookupExpr(UnresolvedLookupExpr unresolvedLookupExpr)
         {
             var outputBuilder = StartCSharpCode();
-            outputBuilder.Write(GetRemappedName(unresolvedLookupExpr.Name, unresolvedLookupExpr, tryRemapOperatorName: false, out _));
+            outputBuilder.Write(GetRemappedName(unresolvedLookupExpr.Name, unresolvedLookupExpr, tryRemapOperatorName: false, out _, skipUsing: true));
             StopCSharpCode();
         }
 
@@ -2474,7 +2474,7 @@ namespace ClangSharp
                 }
             }
 
-            outputBuilder.Write(GetRemappedName(unresolvedMemberExpr.MemberName, unresolvedMemberExpr, tryRemapOperatorName: true, out _));
+            outputBuilder.Write(GetRemappedName(unresolvedMemberExpr.MemberName, unresolvedMemberExpr, tryRemapOperatorName: true, out _, skipUsing: true));
             StopCSharpCode();
         }
 

@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 using ClangSharp.Interop;
@@ -19,6 +19,7 @@ namespace ClangSharp
     {
         private const int DefaultStreamWriterBufferSize = 1024;
         private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        private static readonly Regex s_needsSystemSupportRegex = new Regex(@"\b(?:Guid|IntPtr|UIntPtr)\b", RegexOptions.Compiled);
 
         private const string ExpectedClangVersion = "13.0.0";
         private const string ExpectedClangSharpVersion = "13.0.0";
@@ -1255,7 +1256,7 @@ namespace ClangSharp
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
             var name = GetCursorQualifiedName(namedDecl);
-            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped);
+            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped, skipUsing: false);
 
             if (wasRemapped)
             {
@@ -1263,7 +1264,7 @@ namespace ClangSharp
             }
 
             name = name.Replace("::", ".");
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
 
             if (wasRemapped)
             {
@@ -1271,7 +1272,7 @@ namespace ClangSharp
             }
 
             name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
 
             if (wasRemapped)
             {
@@ -1279,7 +1280,7 @@ namespace ClangSharp
             }
 
             name = name.Replace("::", ".");
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
 
             if (wasRemapped)
             {
@@ -1287,7 +1288,7 @@ namespace ClangSharp
             }
 
             name = GetCursorName(namedDecl);
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
 
             if (wasRemapped)
             {
@@ -1330,7 +1331,7 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
+        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing)
         {
             if (_config.RemappedNames.TryGetValue(name, out var remappedName))
             {
@@ -1357,7 +1358,7 @@ namespace ClangSharp
 
             static string AddUsingDirectiveIfNeeded(IOutputBuilder outputBuilder, string remappedName, bool skipUsing)
             {
-                if (!skipUsing && (remappedName.Equals("Guid") || remappedName.Equals("IntPtr") || remappedName.Equals("UIntPtr")))
+                if (!skipUsing && s_needsSystemSupportRegex.IsMatch(remappedName))
                 {
                     outputBuilder?.EmitSystemSupport();
                 }
@@ -1366,7 +1367,7 @@ namespace ClangSharp
             }
         }
 
-        private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName, bool skipUsing = false)
+        private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName, bool skipUsing)
         {
             var name = GetTypeName(cursor, context, type, out nativeTypeName);
             var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing);
@@ -1428,7 +1429,7 @@ namespace ClangSharp
                 }
                 else if ((canonicalType is EnumType enumType) && remappedName.StartsWith("__AnonymousEnum_"))
                 {
-                    remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _);
+                    remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _, skipUsing);
                 }
                 else if (cursor is EnumDecl enumDecl)
                 {
@@ -1488,22 +1489,22 @@ namespace ClangSharp
                 {
                     if (enumConstantDecl.DeclContext is EnumDecl enumDecl)
                     {
-                        targetTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out nativeTypeName);
+                        targetTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out nativeTypeName, skipUsing: false);
                     }
                     else
                     {
-                        targetTypeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out nativeTypeName);
+                        targetTypeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out nativeTypeName, skipUsing: false);
                     }
                 }
                 else if (decl is TypeDecl previousTypeDecl)
                 {
-                    targetTypeName = GetRemappedTypeName(previousTypeDecl, context: null, previousTypeDecl.TypeForDecl, out nativeTypeName);
+                    targetTypeName = GetRemappedTypeName(previousTypeDecl, context: null, previousTypeDecl.TypeForDecl, out nativeTypeName, skipUsing: false);
                 }
                 else if (decl is VarDecl varDecl)
                 {
                     if (varDecl is ParmVarDecl parmVarDecl)
                     {
-                        targetTypeName = GetRemappedTypeName(parmVarDecl, context: null, parmVarDecl.Type, out nativeTypeName);
+                        targetTypeName = GetRemappedTypeName(parmVarDecl, context: null, parmVarDecl.Type, out nativeTypeName, skipUsing: false);
 
                         if ((parmVarDecl.ParentFunctionOrMethod is FunctionDecl functionDecl) && ((functionDecl is CXXMethodDecl { IsVirtual: true }) || (functionDecl.Body is null)) && (targetTypeName == "bool"))
                         {
@@ -1521,14 +1522,14 @@ namespace ClangSharp
                             type = varDecl.Init.Type;
                         }
 
-                        targetTypeName = GetRemappedTypeName(varDecl, context: null, type, out nativeTypeName);
+                        targetTypeName = GetRemappedTypeName(varDecl, context: null, type, out nativeTypeName, skipUsing: false);
                     }
                 }
 
             }
             else if ((cursor is Expr expr) && (expr is not MemberExpr))
             {
-                targetTypeName = GetRemappedTypeName(expr, context: null, expr.Type, out nativeTypeName);
+                targetTypeName = GetRemappedTypeName(expr, context: null, expr.Type, out nativeTypeName, skipUsing: false);
             }
 
             return targetTypeName;
@@ -1561,7 +1562,7 @@ namespace ClangSharp
 
                     if (cursor is FunctionDecl or ParmVarDecl)
                     {
-                        result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _);
+                        result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _, skipUsing: true);
                         result.typeName += '*';
                     }
                 }
@@ -1769,7 +1770,7 @@ namespace ClangSharp
                     if (result.typeName.Contains("::"))
                     {
                         result.typeName = result.typeName.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
-                        result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _);
+                        result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _, skipUsing: true);
                     }
                 }
                 else if (type is TemplateSpecializationType templateSpecializationType)
@@ -1780,7 +1781,7 @@ namespace ClangSharp
                                          ? recordType.Decl
                                          : (NamedDecl)templateSpecializationType.TemplateName.AsTemplateDecl;
 
-                    _ = nameBuilder.Append(GetRemappedName(templateTypeDecl.Name, templateTypeDecl, tryRemapOperatorName: false, out _));
+                    _ = nameBuilder.Append(GetRemappedName(templateTypeDecl.Name, templateTypeDecl, tryRemapOperatorName: false, out _, skipUsing: true));
                     _ = nameBuilder.Append('<');
 
                     var shouldWritePrecedingComma = false;
@@ -1799,7 +1800,7 @@ namespace ClangSharp
                         {
                             case CXTemplateArgumentKind.CXTemplateArgumentKind_Type:
                             {
-                                typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out var nativeAsTypeName);
+                                typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out var nativeAsTypeName, skipUsing: true);
                                 break;
                             }
 
@@ -1907,7 +1908,7 @@ namespace ClangSharp
                     _config.ExcludeFnptrCodegen = false;
 
                     var needsReturnFixup = false;
-                    var returnTypeName = GetRemappedTypeName(cursor, context: null, functionType.ReturnType, out _);
+                    var returnTypeName = GetRemappedTypeName(cursor, context: null, functionType.ReturnType, out _, skipUsing: true);
 
                     if (returnTypeName == "bool")
                     {
@@ -1964,13 +1965,13 @@ namespace ClangSharp
                         {
                             cursor = functionDecl;
                             paramTypes = functionDecl.Parameters.Select((param) => param.Type);
-                            returnTypeName = GetRemappedTypeName(cursor, context: null, functionDecl.ReturnType, out _);
+                            returnTypeName = GetRemappedTypeName(cursor, context: null, functionDecl.ReturnType, out _, skipUsing: true);
                         }
                     }
 
                     foreach (var paramType in paramTypes)
                     {
-                        var typeName = GetRemappedTypeName(cursor, context: null, paramType, out _);
+                        var typeName = GetRemappedTypeName(cursor, context: null, paramType, out _, skipUsing: true);
 
                         if (typeName == "bool")
                         {
@@ -2004,7 +2005,7 @@ namespace ClangSharp
                 // can be treated correctly. Otherwise, they will resolve to a particular
                 // platform size, based on whatever parameters were passed into clang.
 
-                var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped);
+                var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
 
                 if (wasRemapped)
                 {
@@ -2019,7 +2020,7 @@ namespace ClangSharp
             else
             {
                 // Otherwise fields that point at anonymous structs get the wrong name
-                name = GetRemappedTypeName(cursor, context, pointeeType, out nativePointeeTypeName);
+                name = GetRemappedTypeName(cursor, context, pointeeType, out nativePointeeTypeName, skipUsing: true);
                 name += '*';
             }
 
@@ -3176,7 +3177,7 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 {
                     var explicitCastExpr = (ExplicitCastExpr)stmt;
-                    var explicitCastExprTypeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _);
+                    var explicitCastExprTypeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _, skipUsing: false);
 
                     return IsUnchecked(targetTypeName, explicitCastExpr.SubExprAsWritten)
                         || IsUnchecked(targetTypeName, explicitCastExpr.Handle.Evaluate)
@@ -3485,7 +3486,7 @@ namespace ClangSharp
                     }
                 }
 
-                var targetTypeName = GetRemappedTypeName(binaryOperator, context: null, binaryOperator.Type, out _);
+                var targetTypeName = GetRemappedTypeName(binaryOperator, context: null, binaryOperator.Type, out _, skipUsing: true);
                 var isUnsigned = IsUnsigned(targetTypeName);
 
                 switch (binaryOperator.Opcode)
@@ -3946,7 +3947,7 @@ namespace ClangSharp
             if (functionDecl is CXXConversionDecl)
             {
                 var returnType = functionDecl.ReturnType;
-                var returnTypeName = GetRemappedTypeName(cursor: null, context: null, returnType, out _);
+                var returnTypeName = GetRemappedTypeName(cursor: null, context: null, returnType, out _, skipUsing: true);
 
                 name = $"To{returnTypeName}";
                 return true;

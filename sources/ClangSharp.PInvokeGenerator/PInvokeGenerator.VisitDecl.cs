@@ -322,8 +322,7 @@ namespace ClangSharp
             {
                 if (!isAnonymousEnum)
                 {
-                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType,
-                        out var nativeTypeName);
+                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName, skipUsing: false);
 
                     var desc = new EnumDesc()
                     {
@@ -361,7 +360,7 @@ namespace ClangSharp
             var escapedName = EscapeName(name);
 
             var type = fieldDecl.Type;
-            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
+            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName, skipUsing: false);
 
             int? offset = null;
             if (fieldDecl.Parent.IsUnion)
@@ -437,7 +436,7 @@ namespace ClangSharp
             var escapedName = isVirtual ? PrefixAndStripName(name, cxxMethodDecl.OverloadIndex) : EscapeAndStripName(name);
 
             var returnType = functionDecl.ReturnType;
-            var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
+            var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName, skipUsing: false);
 
             if ((isVirtual || (body is null)) && (returnTypeName == "bool"))
             {
@@ -609,8 +608,7 @@ namespace ClangSharp
 
                     _outputBuilder.BeginConstructorInitializer(memberRefName, memberInitName);
 
-                    var memberRefTypeName = GetRemappedTypeName(memberRef, context: null, memberRef.Type,
-                        out var memberRefNativeTypeName);
+                    var memberRefTypeName = GetRemappedTypeName(memberRef, context: null, memberRef.Type, out var memberRefNativeTypeName, skipUsing: false);
 
                     UncheckStmt(memberRefTypeName, memberInit);
 
@@ -667,7 +665,7 @@ namespace ClangSharp
 
                 contextNameParts.Push(EscapeName(contextNamePart));
 
-                contextTypeParts.Push(GetRemappedTypeName(rootRecordDecl, context: null, rootRecordDecl.TypeForDecl, out _));
+                contextTypeParts.Push(GetRemappedTypeName(rootRecordDecl, context: null, rootRecordDecl.TypeForDecl, out _, skipUsing: false));
 
                 rootRecordDecl = parentRecordDecl;
             }
@@ -691,7 +689,7 @@ namespace ClangSharp
 
             var accessSpecifier = GetAccessSpecifier(anonymousRecordDecl);
 
-            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out _);
+            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out _, skipUsing: false);
             var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
 
@@ -1061,7 +1059,7 @@ namespace ClangSharp
                 if (TryGetUuid(recordDecl, out var uuid))
                 {
                     nullableUuid = uuid;
-                    var iidName = GetRemappedName($"IID_{nativeName}", recordDecl, tryRemapOperatorName: false, out var wasRemapped);
+                    var iidName = GetRemappedName($"IID_{nativeName}", recordDecl, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
 
                     _uuidsToGenerate.Add(iidName, uuid);
 
@@ -1205,7 +1203,7 @@ namespace ClangSharp
                         {
                             var parent = GetRemappedCursorName(baseCxxRecordDecl);
                             var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
-                            baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped);
+                            baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
 
                             var fieldDesc = new FieldDesc
                             {
@@ -1512,8 +1510,7 @@ namespace ClangSharp
                     return;
                 }
 
-                var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type,
-                    out var nativeTypeName);
+                var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out var nativeTypeName, skipUsing: false);
 
                 var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
@@ -1551,7 +1548,7 @@ namespace ClangSharp
                 var currentContext = _context.AddLast((cxxMethodDecl, null));
                 var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var returnType = cxxMethodDecl.ReturnType;
-                var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
+                var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName, skipUsing: false);
 
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                 var name = GetRemappedCursorName(cxxMethodDecl);
@@ -1644,8 +1641,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    var cxxMethodDeclTypeName =
-                        GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out _);
+                    var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out _, skipUsing: false);
 
                     if (!_config.ExcludeFnptrCodegen)
                     {
@@ -1758,7 +1754,7 @@ namespace ClangSharp
                 Debug.Assert(fieldDecl.IsBitField);
 
                 var type = fieldDecl.Type;
-                var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
+                var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName, skipUsing: false);
 
                 if (string.IsNullOrWhiteSpace(nativeTypeName))
                 {
@@ -1787,7 +1783,7 @@ namespace ClangSharp
                     previousSize = 0;
 
                     typeBacking = (index > 0) ? types[index - 1] : types[0];
-                    typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
+                    typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _, skipUsing: false);
 
                     if (fieldDecl.Parent == recordDecl)
                     {
@@ -1820,7 +1816,7 @@ namespace ClangSharp
                     }
 
                     typeBacking = (index > 0) ? types[index - 1] : types[0];
-                    typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
+                    typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _, skipUsing: false);
                 }
 
                 var bitfieldOffset = (currentSize * 8) - remainingBits;
@@ -2153,7 +2149,7 @@ namespace ClangSharp
 
                 var outputBuilder = _outputBuilder;
                 var type = (ConstantArrayType)constantArray.Type.CanonicalType;
-                var typeName = GetRemappedTypeName(constantArray, context: null, constantArray.Type, out _);
+                var typeName = GetRemappedTypeName(constantArray, context: null, constantArray.Type, out _, skipUsing: false);
 
                 if (IsSupportedFixedSizedBufferType(typeName))
                 {
@@ -2432,7 +2428,7 @@ namespace ClangSharp
                 var callingConventionName = GetCallingConvention(typedefDecl, context: null, typedefDecl.TypeForDecl);
 
                 var returnType = functionProtoType.ReturnType;
-                var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
+                var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName, skipUsing: false);
 
                 StartUsingOutputBuilder(name);
                 {
@@ -2610,7 +2606,7 @@ namespace ClangSharp
                 }
 
                 var accessSpecifier = GetAccessSpecifier(varDecl);
-                var name = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false, out var wasRemapped);
+                var name = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
                 var escapedName = EscapeName(name);
 
                 if (isMacroDefinitionRecord)
@@ -2827,7 +2823,7 @@ namespace ClangSharp
                 if (varDecl == declStmt.Decls.First())
                 {
                     var type = varDecl.Type;
-                    var typeName = GetRemappedTypeName(varDecl, context: null, type, out _);
+                    var typeName = GetRemappedTypeName(varDecl, context: null, type, out _, skipUsing: false);
 
                     outputBuilder.Write(typeName);
 
