@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ClangSharp.Abstractions;
 
 namespace ClangSharp
 {
@@ -12,6 +13,7 @@ namespace ClangSharp
         private const string DefaultMethodClassName = "Methods";
 
         private readonly Dictionary<string, string> _remappedNames;
+        private readonly Dictionary<string, AccessSpecifier> _withAccessSpecifiers;
         private readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
         private readonly Dictionary<string, string> _withCallConvs;
         private readonly Dictionary<string, string> _withLibraryPaths;
@@ -20,7 +22,7 @@ namespace ClangSharp
 
         private PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorOutputMode outputMode = PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorOutputMode outputMode = PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, string> withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
         {
             if (excludedNames is null)
             {
@@ -84,6 +86,7 @@ namespace ClangSharp
 
             _options = options;
             _remappedNames = new Dictionary<string, string>();
+            _withAccessSpecifiers = new Dictionary<string, AccessSpecifier>();
             _withAttributes = new Dictionary<string, IReadOnlyList<string>>();
             _withCallConvs = new Dictionary<string, string>();
             _withLibraryPaths = new Dictionary<string, string>();
@@ -123,6 +126,7 @@ namespace ClangSharp
             }
 
             AddRange(_remappedNames, remappedNames);
+            AddRange(_withAccessSpecifiers, withAccessSpecifiers, ConvertStringToAccessSpecifier);
             AddRange(_withAttributes, withAttributes);
             AddRange(_withCallConvs, withCallConvs);
             AddRange(_withLibraryPaths, withLibraryPaths);
@@ -220,6 +224,8 @@ namespace ClangSharp
 
         public string[] TraversalNames { get; }
 
+        public IReadOnlyDictionary<string, AccessSpecifier> WithAccessSpcifier => _withAccessSpecifiers;
+
         public IReadOnlyDictionary<string, IReadOnlyList<string>> WithAttributes => _withAttributes;
 
         public IReadOnlyDictionary<string, string> WithCallConvs => _withCallConvs;
@@ -242,6 +248,51 @@ namespace ClangSharp
                     // default mappings can be overwritten if desired.
                     dictionary[keyValuePair.Key] = keyValuePair.Value;
                 }
+            }
+        }
+
+        private static void AddRange<TInput, TValue>(Dictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TInput>> keyValuePairs, Func<TInput, TValue> convert)
+        {
+            if (keyValuePairs != null)
+            {
+                foreach (var keyValuePair in keyValuePairs)
+                {
+                    // Use the indexer, rather than Add, so that any
+                    // default mappings can be overwritten if desired.
+                    dictionary[keyValuePair.Key] = convert(keyValuePair.Value);
+                }
+            }
+        }
+
+        private static AccessSpecifier ConvertStringToAccessSpecifier(string input)
+        {
+            if (input.Equals("internal", StringComparison.OrdinalIgnoreCase))
+            {
+                return AccessSpecifier.Internal;
+            }
+            else if (input.Equals("private", StringComparison.OrdinalIgnoreCase))
+            {
+                return AccessSpecifier.Private;
+            }
+            else if (input.Equals("private protected", StringComparison.OrdinalIgnoreCase))
+            {
+                return AccessSpecifier.PrivateProtected;
+            }
+            else if (input.Equals("protected", StringComparison.OrdinalIgnoreCase))
+            {
+                return AccessSpecifier.Protected;
+            }
+            else if (input.Equals("protected internal", StringComparison.OrdinalIgnoreCase))
+            {
+                return AccessSpecifier.ProtectedInternal;
+            }
+            else if (input.Equals("public", StringComparison.OrdinalIgnoreCase))
+            {
+                return AccessSpecifier.Public;
+            }
+            else
+            {
+                return AccessSpecifier.None;
             }
         }
     }

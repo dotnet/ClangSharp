@@ -1621,6 +1621,61 @@ struct MyStruct1B : MyStruct1A
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        public override Task WithAccessSpecifierTest()
+        {
+            var inputContents = @"struct MyStruct1
+{
+    int Field1;
+    int Field2;
+};
+
+struct MyStruct2
+{
+    int Field1;
+    int Field2;
+};
+
+struct MyStruct3
+{
+    int Field1;
+    int Field2;
+};
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    internal partial struct MyStruct1
+    {
+        private int Field1;
+
+        public int Field2;
+    }
+
+    internal partial struct MyStruct2
+    {
+        private int Field1;
+
+        public int Field2;
+    }
+
+    public partial struct MyStruct3
+    {
+        private int Field1;
+
+        internal int Field2;
+    }
+}
+";
+
+            var withAccessSpecifiers = new Dictionary<string, string> {
+                ["MyStruct1"] = "private",
+                ["MyStruct2"] = "internal",
+                ["Field1"] = "private",
+                ["MyStruct3.Field2"] = "internal",
+            };
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
+        }
+
         public override Task SourceLocationAttributeTest()
         {
             const string InputContents = @"struct MyStruct

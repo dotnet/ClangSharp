@@ -325,13 +325,14 @@ namespace ClangSharp
                     var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType,
                         out var nativeTypeName);
 
-                    EnumDesc desc = new()
+                    var desc = new EnumDesc()
                     {
                         AccessSpecifier = accessSpecifier,
                         TypeName = typeName,
                         EscapedName = escapedName,
                         NativeType = nativeTypeName,
-                        Location = enumDecl.Location
+                        Location = enumDecl.Location,
+                        IsNested = enumDecl.DeclContext is TagDecl,
                     };
 
                     _outputBuilder.BeginEnum(in desc);
@@ -1164,7 +1165,8 @@ namespace ClangSharp
                     WriteCustomAttrs = static _ => { },
                     NativeType = nativeNameWithExtras,
                     NativeInheritance = _config.GenerateNativeInheritanceAttribute ? nativeInheritance : null,
-                    Location = recordDecl.Location
+                    Location = recordDecl.Location,
+                    IsNested = recordDecl.DeclContext is TagDecl,
                 };
                 _outputBuilder.BeginStruct(in desc);
 
@@ -2209,7 +2211,8 @@ namespace ClangSharp
                         Kind = LayoutKind.Sequential
                     },
                     WriteCustomAttrs = static _ => { },
-                    Location = constantArray.Location
+                    Location = constantArray.Location,
+                    IsNested = true,
                 };
 
                 _outputBuilder.BeginStruct(in desc);

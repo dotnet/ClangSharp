@@ -739,44 +739,45 @@ namespace ClangSharp
 
         private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl)
         {
-            AccessSpecifier name;
-
-            switch (namedDecl.Access)
+            if (!TryGetRemappedValue(namedDecl, _config.WithAccessSpcifier, out var accessSpecifier) || (accessSpecifier == AccessSpecifier.None))
             {
-                case CX_CXXAccessSpecifier.CX_CXXInvalidAccessSpecifier:
+                switch (namedDecl.Access)
                 {
-                    // Top level declarations will have an invalid access specifier
-                    name = AccessSpecifier.Public;
-                    break;
-                }
+                    case CX_CXXAccessSpecifier.CX_CXXInvalidAccessSpecifier:
+                    {
+                        // Top level declarations will have an invalid access specifier
+                        accessSpecifier = AccessSpecifier.Public;
+                        break;
+                    }
 
-                case CX_CXXAccessSpecifier.CX_CXXPublic:
-                {
-                    name = AccessSpecifier.Public;
-                    break;
-                }
+                    case CX_CXXAccessSpecifier.CX_CXXPublic:
+                    {
+                        accessSpecifier = AccessSpecifier.Public;
+                        break;
+                    }
 
-                case CX_CXXAccessSpecifier.CX_CXXProtected:
-                {
-                    name = AccessSpecifier.Protected;
-                    break;
-                }
+                    case CX_CXXAccessSpecifier.CX_CXXProtected:
+                    {
+                        accessSpecifier = AccessSpecifier.Protected;
+                        break;
+                    }
 
-                case CX_CXXAccessSpecifier.CX_CXXPrivate:
-                {
-                    name = AccessSpecifier.Private;
-                    break;
-                }
+                    case CX_CXXAccessSpecifier.CX_CXXPrivate:
+                    {
+                        accessSpecifier = AccessSpecifier.Private;
+                        break;
+                    }
 
-                default:
-                {
-                    name = AccessSpecifier.Internal;
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unknown access specifier: '{namedDecl.Access}'. Falling back to '{name}'.", namedDecl);
-                    break;
+                    default:
+                    {
+                        accessSpecifier = AccessSpecifier.Internal;
+                        AddDiagnostic(DiagnosticLevel.Warning, $"Unknown access specifier: '{namedDecl.Access}'. Falling back to '{accessSpecifier}'.", namedDecl);
+                        break;
+                    }
                 }
             }
 
-            return name;
+            return accessSpecifier;
         }
 
         private static string GetAnonymousName(Cursor cursor, string kind)
@@ -4213,6 +4214,47 @@ namespace ClangSharp
 
         private bool GetSetLastError(string remappedName) => _config.WithSetLastErrors.Contains("*") ||
                                                              _config.WithSetLastErrors.Contains(remappedName);
+
+        private bool TryGetRemappedValue<T>(NamedDecl namedDecl, IReadOnlyDictionary<string, T> remappings, out T value)
+        {
+            var name = GetCursorQualifiedName(namedDecl);
+
+            if (remappings.TryGetValue(name, out value))
+            {
+                return true;
+            }
+
+            name = name.Replace("::", ".");
+
+            if (remappings.TryGetValue(name, out value))
+            {
+                return true;
+            }
+
+            name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
+
+            if (remappings.TryGetValue(name, out value))
+            {
+                return true;
+            }
+
+            name = name.Replace("::", ".");
+
+            if (remappings.TryGetValue(name, out value))
+            {
+                return true;
+            }
+
+            name = GetRemappedCursorName(namedDecl);
+
+            if (remappings.TryGetValue(name, out value))
+            {
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
 
         private void WithTestAttribute()
         {

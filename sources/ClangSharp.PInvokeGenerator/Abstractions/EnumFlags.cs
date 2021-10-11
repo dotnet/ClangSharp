@@ -5,12 +5,9 @@ using System;
 namespace ClangSharp.Abstractions
 {
     [Flags]
-    public enum StructFlags
+    public enum EnumFlags
     {
         None = 0,
-        Unsafe = 1 << 0,
-        Vtbl = 1 << 1,
-        Union = 1 << 2,
-        Nested = 1 << 3,
+        Nested = 1 << 0,
     }
 }
