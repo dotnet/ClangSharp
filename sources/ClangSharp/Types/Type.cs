@@ -116,6 +116,7 @@ namespace ClangSharp
 
         internal static Type Create(CXType handle) => handle.TypeClass switch
         {
+            CX_TypeClass.CX_TypeClass_Invalid => new Type(handle, handle.kind, handle.TypeClass),
             CX_TypeClass.CX_TypeClass_Adjusted => new AdjustedType(handle),
             CX_TypeClass.CX_TypeClass_Decayed => new DecayedType(handle),
             CX_TypeClass.CX_TypeClass_ConstantArray => new ConstantArrayType(handle),
@@ -131,15 +132,19 @@ namespace ClangSharp
             CX_TypeClass.CX_TypeClass_Auto => new AutoType(handle),
             CX_TypeClass.CX_TypeClass_DeducedTemplateSpecialization => new DeducedTemplateSpecializationType(handle),
             CX_TypeClass.CX_TypeClass_DependentAddressSpace => new DependentAddressSpaceType(handle),
+            CX_TypeClass.CX_TypeClass_DependentExtInt => new DependentExtIntType(handle),
             CX_TypeClass.CX_TypeClass_DependentName => new DependentNameType(handle),
             CX_TypeClass.CX_TypeClass_DependentSizedExtVector => new DependentSizedExtVectorType(handle),
             CX_TypeClass.CX_TypeClass_DependentTemplateSpecialization => new DependentTemplateSpecializationType(handle),
             CX_TypeClass.CX_TypeClass_DependentVector => new DependentVectorType(handle),
             CX_TypeClass.CX_TypeClass_Elaborated => new ElaboratedType(handle),
+            CX_TypeClass.CX_TypeClass_ExtInt => new ExtIntType(handle),
             CX_TypeClass.CX_TypeClass_FunctionNoProto => new FunctionNoProtoType(handle),
             CX_TypeClass.CX_TypeClass_FunctionProto => new FunctionProtoType(handle),
             CX_TypeClass.CX_TypeClass_InjectedClassName => new InjectedClassNameType(handle),
             CX_TypeClass.CX_TypeClass_MacroQualified => new MacroQualifiedType(handle),
+            CX_TypeClass.CX_TypeClass_ConstantMatrix => new ConstantMatrixType(handle),
+            CX_TypeClass.CX_TypeClass_DependentSizedMatrix => new DependentSizedMatrixType(handle),
             CX_TypeClass.CX_TypeClass_MemberPointer => new MemberPointerType(handle),
             CX_TypeClass.CX_TypeClass_ObjCObjectPointer => new ObjCObjectPointerType(handle),
             CX_TypeClass.CX_TypeClass_ObjCObject => new ObjCObjectType(handle),
@@ -164,7 +169,7 @@ namespace ClangSharp
             CX_TypeClass.CX_TypeClass_UnresolvedUsing => new UnresolvedUsingType(handle),
             CX_TypeClass.CX_TypeClass_Vector => new VectorType(handle),
             CX_TypeClass.CX_TypeClass_ExtVector => new ExtVectorType(handle),
-            _ => new Type(handle, handle.kind, handle.TypeClass),            
+            _ => new Type(handle, handle.kind, handle.TypeClass),
         };
 
         public override bool Equals(object obj) => (obj is Type other) && Equals(other);
