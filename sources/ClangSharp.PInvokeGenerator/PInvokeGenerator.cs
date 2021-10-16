@@ -37,6 +37,8 @@ namespace ClangSharp
         private readonly Dictionary<NamedDecl, string> _cursorNames;
         private readonly Dictionary<(NamedDecl namedDecl, bool truncateForFunctionParameters), string> _cursorQualifiedNames;
         private readonly Dictionary<(Cursor cursor, Cursor context, Type type), (string typeName, string nativeTypeName)> _typeNames;
+        private readonly Dictionary<string, HashSet<string>> _validNameRemappings;
+        private readonly HashSet<string> _usedRemappings;
 
         private string _filePath;
         private string[] _clangCommandLineArgs;
@@ -90,6 +92,14 @@ namespace ClangSharp
             _cursorNames = new Dictionary<NamedDecl, string>();
             _cursorQualifiedNames = new Dictionary<(NamedDecl, bool), string>();
             _typeNames = new Dictionary<(Cursor, Cursor, Type), (string, string)>();
+            _validNameRemappings = new Dictionary<string, HashSet<string>>() {
+                ["intptr_t"] = new HashSet<string>() { "IntPtr", "nint" },
+                ["ptrdiff_t"] = new HashSet<string>() { "IntPtr", "nint" },
+                ["size_t"] = new HashSet<string>() { "UIntPtr", "nuint" },
+                ["uintptr_t"] = new HashSet<string>() { "UIntPtr", "nuint" },
+                ["_GUID"] = new HashSet<string>() { "Guid" },
+            };
+            _usedRemappings = new HashSet<string>();
         }
 
         ~PInvokeGenerator()
@@ -121,7 +131,7 @@ namespace ClangSharp
             {
                 var iidName = foundUuid.Key;
 
-                if (_generatedUuids.Contains(iidName))
+                if (_generatedUuids.Contains(iidName) || _config.ExcludedNames.Contains(iidName))
                 {
                     continue;
                 }
@@ -354,6 +364,121 @@ namespace ClangSharp
                 else
                 {
                     Visit(translationUnit.TranslationUnitDecl);
+                }
+
+                if (_config.LogPotentialTypedefRemappings)
+                {
+                    foreach (var kvp in _validNameRemappings)
+                    {
+                        var name = kvp.Key;
+                        var remappings = kvp.Value;
+
+                        if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
+                        {
+                            AddDiagnostic(DiagnosticLevel.Info, $"Potential missing remapping '{name}'. {GetFoundRemappingString(name, remappings)}");
+                        }
+                        else if (!remappings.Contains(remappedName) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                        {
+                            AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. {GetFoundRemappingString(name, remappings)}");
+                        }
+                    }
+
+                    foreach (var name in _usedRemappings)
+                    {
+                        var remappedName = _config.RemappedNames[name];
+
+                        if (!_validNameRemappings.ContainsKey(name) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                        {
+                            AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. No remappings were found.");
+                        }
+                    }
+
+                    static string GetFoundRemappingString(string name, HashSet<string> remappings)
+                    {
+                        var recommendedRemapping = "";
+
+                        if (remappings.Count == 1)
+                        {
+                            recommendedRemapping = remappings.Single();
+                        }
+
+                        if ((recommendedRemapping == "") && name.StartsWith("_"))
+                        {
+                            var remapping = name[1..];
+
+                            if (remappings.Contains(remapping))
+                            {
+                                recommendedRemapping = remapping;
+                            }
+                        }
+
+                        if ((recommendedRemapping == "") && name.StartsWith("tag"))
+                        {
+                            var remapping = name[3..];
+
+                            if (remappings.Contains(remapping))
+                            {
+                                recommendedRemapping = remapping;
+                            }
+                        }
+
+                        if ((recommendedRemapping == "") && name.EndsWith("_"))
+                        {
+                            var remapping = name[0..^1];
+
+                            if (remappings.Contains(remapping))
+                            {
+                                recommendedRemapping = remapping;
+                            }
+                        }
+
+                        if ((recommendedRemapping == "") && name.EndsWith("tag"))
+                        {
+                            var remapping = name[0..^3];
+
+                            if (remappings.Contains(remapping))
+                            {
+                                recommendedRemapping = remapping;
+                            }
+                        }
+
+                        if (recommendedRemapping == "")
+                        {
+                            var remapping = name.ToUpperInvariant();
+
+                            if (remappings.Contains(remapping))
+                            {
+                                recommendedRemapping = remapping;
+                            }
+                        }
+
+                        var result = "";
+                        var remainingRemappings = (IEnumerable<string>)remappings;
+                        var remainingString = "Found";
+
+                        if (recommendedRemapping != "")
+                        {
+                            result += $"Recommended remapping: '{name}={recommendedRemapping}'.";
+
+                            if (remappings.Count == 1)
+                            {
+                                remainingRemappings = Array.Empty<string>();
+                            }
+                            else
+                            {
+                                result += ' ';
+                                remainingRemappings = remappings.Except(new string[] { recommendedRemapping });
+                                remainingString = "Other";
+                            }
+                        }
+
+                        if (remainingRemappings.Any())
+                        {
+                            result += $"{remainingString} typedefs: {string.Join("; ", remainingRemappings)}";
+                        }
+
+                        return result;
+                    }
                 }
             }
             catch (Exception e)
@@ -1336,13 +1461,21 @@ namespace ClangSharp
             if (_config.RemappedNames.TryGetValue(name, out var remappedName))
             {
                 wasRemapped = true;
+                _ = _usedRemappings.Add(name);
                 return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
 
-            if (name.StartsWith("const ") && _config.RemappedNames.TryGetValue(name[6..], out remappedName))
+            if (name.StartsWith("const "))
             {
-                wasRemapped = true;
-                return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
+                var tmpName = name[6..];
+
+                if (_config.RemappedNames.TryGetValue(tmpName, out remappedName))
+                {
+
+                    wasRemapped = true;
+                    _ = _usedRemappings.Add(tmpName);
+                    return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
+                }
             }
 
             remappedName = name;
@@ -1350,6 +1483,7 @@ namespace ClangSharp
             if ((cursor is FunctionDecl functionDecl) && tryRemapOperatorName && TryRemapOperatorName(ref remappedName, functionDecl))
             {
                 wasRemapped = true;
+                // We don't track remapped operators in _usedRemappings
                 return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
 
@@ -2607,6 +2741,17 @@ namespace ClangSharp
                 {
                     return false;
                 }
+
+                if (qualifiedName.Contains("ClangSharpMacro_"))
+                {
+                    qualifiedName = qualifiedName.Replace("ClangSharpMacro_", "");
+                }
+
+                if (name.Contains("ClangSharpMacro_"))
+                {
+                    name = name.Replace("ClangSharpMacro_", "");
+                }
+
                 if (cursor is RecordDecl recordDecl)
                 {
                     if (_config.ExcludeEmptyRecords && IsEmptyRecord(recordDecl))

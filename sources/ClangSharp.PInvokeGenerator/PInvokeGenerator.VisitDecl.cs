@@ -21,6 +21,10 @@ namespace ClangSharp
         {
             if (IsExcluded(decl))
             {
+                if (decl.Kind == CX_DeclKind.CX_DeclKind_Typedef)
+                {
+                    VisitTypedefDecl((TypedefDecl)decl, onlyHandleRemappings: true);
+                }
                 return;
             }
 
@@ -133,7 +137,7 @@ namespace ClangSharp
 
                 case CX_DeclKind.CX_DeclKind_Typedef:
                 {
-                    VisitTypedefDecl((TypedefDecl)decl);
+                    VisitTypedefDecl((TypedefDecl)decl, onlyHandleRemappings: false);
                     break;
                 }
 
@@ -268,7 +272,7 @@ namespace ClangSharp
             var kind = isAnonymousEnum ? ValueKind.Primitive : ValueKind.Enumerator;
             var flags = ValueFlags.Constant;
 
-            if (enumConstantDecl.InitExpr is not null)
+            if ((enumConstantDecl.InitExpr is not null) || isAnonymousEnum)
             {
                 flags |= ValueFlags.Initializer;
             }
@@ -2411,13 +2415,13 @@ namespace ClangSharp
             // Nothing to generate for type alias declarations
         }
 
-        private void VisitTypedefDecl(TypedefDecl typedefDecl)
+        private void VisitTypedefDecl(TypedefDecl typedefDecl, bool onlyHandleRemappings)
         {
-            ForUnderlyingType(typedefDecl, typedefDecl.UnderlyingType);
+            ForUnderlyingType(typedefDecl, typedefDecl.UnderlyingType, onlyHandleRemappings);
 
-            void ForFunctionProtoType(TypedefDecl typedefDecl, FunctionProtoType functionProtoType, Type parentType)
+            void ForFunctionProtoType(TypedefDecl typedefDecl, FunctionProtoType functionProtoType, Type parentType, bool onlyHandleRemappings)
             {
-                if (!_config.ExcludeFnptrCodegen)
+                if (!_config.ExcludeFnptrCodegen || onlyHandleRemappings)
                 {
                     return;
                 }
@@ -2457,27 +2461,27 @@ namespace ClangSharp
                 StopUsingOutputBuilder();
             }
 
-            void ForPointeeType(TypedefDecl typedefDecl, Type parentType, Type pointeeType)
+            void ForPointeeType(TypedefDecl typedefDecl, Type parentType, Type pointeeType, bool onlyHandleRemappings)
             {
                 if (pointeeType is AttributedType attributedType)
                 {
-                    ForPointeeType(typedefDecl, attributedType, attributedType.ModifiedType);
+                    ForPointeeType(typedefDecl, attributedType, attributedType.ModifiedType, onlyHandleRemappings);
                 }
                 else if (pointeeType is ElaboratedType elaboratedType)
                 {
-                    ForPointeeType(typedefDecl, elaboratedType, elaboratedType.NamedType);
+                    ForPointeeType(typedefDecl, elaboratedType, elaboratedType.NamedType, onlyHandleRemappings);
                 }
                 else if (pointeeType is FunctionProtoType functionProtoType)
                 {
-                    ForFunctionProtoType(typedefDecl, functionProtoType, parentType);
+                    ForFunctionProtoType(typedefDecl, functionProtoType, parentType, onlyHandleRemappings);
                 }
                 else if (pointeeType is PointerType pointerType)
                 {
-                    ForPointeeType(typedefDecl, pointerType, pointerType.PointeeType);
+                    ForPointeeType(typedefDecl, pointerType, pointerType.PointeeType, onlyHandleRemappings);
                 }
                 else if (pointeeType is TypedefType typedefType)
                 {
-                    ForPointeeType(typedefDecl, typedefType, typedefType.Decl.UnderlyingType);
+                    ForPointeeType(typedefDecl, typedefType, typedefType.Decl.UnderlyingType, onlyHandleRemappings);
                 }
                 else if (pointeeType is not ConstantArrayType and not BuiltinType and not TagType and not TemplateTypeParmType)
                 {
@@ -2485,7 +2489,7 @@ namespace ClangSharp
                 }
             }
 
-            void ForUnderlyingType(TypedefDecl typedefDecl, Type underlyingType)
+            void ForUnderlyingType(TypedefDecl typedefDecl, Type underlyingType, bool onlyHandleRemappings)
             {
                 if (underlyingType is ArrayType arrayType)
                 {
@@ -2493,7 +2497,7 @@ namespace ClangSharp
                 }
                 else if (underlyingType is AttributedType attributedType)
                 {
-                    ForUnderlyingType(typedefDecl, attributedType.ModifiedType);
+                    ForUnderlyingType(typedefDecl, attributedType.ModifiedType, onlyHandleRemappings);
                 }
                 else if (underlyingType is BuiltinType builtinType)
                 {
@@ -2505,46 +2509,41 @@ namespace ClangSharp
                 }
                 else if (underlyingType is ElaboratedType elaboratedType)
                 {
-                    ForUnderlyingType(typedefDecl, elaboratedType.NamedType);
+                    ForUnderlyingType(typedefDecl, elaboratedType.NamedType, onlyHandleRemappings);
                 }
                 else if (underlyingType is FunctionProtoType functionProtoType)
                 {
-                    ForFunctionProtoType(typedefDecl, functionProtoType, parentType: null);
+                    ForFunctionProtoType(typedefDecl, functionProtoType, parentType: null, onlyHandleRemappings);
                 }
                 else if (underlyingType is PointerType pointerType)
                 {
-                    ForPointeeType(typedefDecl, parentType: null, pointerType.PointeeType);
+                    ForPointeeType(typedefDecl, parentType: null, pointerType.PointeeType, onlyHandleRemappings);
                 }
                 else if (underlyingType is ReferenceType referenceType)
                 {
-                    ForPointeeType(typedefDecl, parentType: null, referenceType.PointeeType);
+                    ForPointeeType(typedefDecl, parentType: null, referenceType.PointeeType, onlyHandleRemappings);
                 }
                 else if (underlyingType is TagType underlyingTagType)
                 {
-                    // See if there's a potential typedef remapping we want to log
-                    if (_config.LogPotentialTypedefRemappings)
-                    {
-                        var typedefName = typedefDecl.UnderlyingDecl.Name;
-                        var possibleNamesToRemap = new string[] {"_" + typedefName, "_tag" + typedefName, "tag" + typedefName, typedefName + "_tag" };
-                        var underlyingName = underlyingTagType.AsString;
+                    var underlyingName = GetCursorName(underlyingTagType.AsTagDecl);
+                    var typedefName = GetCursorName(typedefDecl);
 
-                        foreach (var possibleNameToRemap in possibleNamesToRemap)
+                    if (underlyingName != typedefName)
+                    {
+                        if (!_validNameRemappings.TryGetValue(underlyingName, out var remappings))
                         {
-                            if (!_config.RemappedNames.ContainsKey(possibleNameToRemap) && !_config.RemappedNames.ContainsKey(possibleNameToRemap + "*"))
-                            {
-                                if (possibleNameToRemap == underlyingName)
-                                {
-                                    AddDiagnostic(DiagnosticLevel.Info, $"Potential remap: {possibleNameToRemap}={typedefName}");
-                                }
-                            }
+                            remappings = new HashSet<string>();
+                            _validNameRemappings[underlyingName] = remappings;
                         }
+
+                        _ = remappings.Add(typedefName);
                     }
                 }
                 else if (underlyingType is TemplateSpecializationType templateSpecializationType)
                 {
                     if (templateSpecializationType.IsTypeAlias)
                     {
-                        ForUnderlyingType(typedefDecl, templateSpecializationType.AliasedType);
+                        ForUnderlyingType(typedefDecl, templateSpecializationType.AliasedType, onlyHandleRemappings);
                     }
                     else
                     {
@@ -2557,7 +2556,7 @@ namespace ClangSharp
                 }
                 else if (underlyingType is TypedefType typedefType)
                 {
-                    ForUnderlyingType(typedefDecl, typedefType.Decl.UnderlyingType);
+                    ForUnderlyingType(typedefDecl, typedefType.Decl.UnderlyingType, onlyHandleRemappings);
                 }
                 else
                 {

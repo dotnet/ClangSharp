@@ -2440,7 +2440,7 @@ namespace ClangSharp
             outputBuilder.Write("Marshal.OffsetOf<");
             outputBuilder.Write(GetRemappedTypeName(offsetOfExpr, context: null, offsetOfExpr.TypeSourceInfoType, out var _, skipUsing: false));
             outputBuilder.Write(">(\"");
-            Visit(offsetOfExpr.Referenced);
+            Visit(offsetOfExpr.Referenced ?? offsetOfExpr.CursorChildren[1]);
             outputBuilder.Write("\")");
 
             StopCSharpCode();
