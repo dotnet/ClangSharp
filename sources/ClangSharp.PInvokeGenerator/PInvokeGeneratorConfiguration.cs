@@ -12,6 +12,7 @@ namespace ClangSharp
     {
         private const string DefaultMethodClassName = "Methods";
 
+        private readonly HashSet<string> _forceRemappedNames;
         private readonly Dictionary<string, string> _remappedNames;
         private readonly Dictionary<string, AccessSpecifier> _withAccessSpecifiers;
         private readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
@@ -85,6 +86,7 @@ namespace ClangSharp
             }
 
             _options = options;
+            _forceRemappedNames = new HashSet<string>();
             _remappedNames = new Dictionary<string, string>();
             _withAccessSpecifiers = new Dictionary<string, AccessSpecifier>();
             _withAttributes = new Dictionary<string, IReadOnlyList<string>>();
@@ -125,7 +127,8 @@ namespace ClangSharp
                 }
             }
 
-            AddRange(_remappedNames, remappedNames);
+            AddRange(_forceRemappedNames, remappedNames, ValueStartsWithAt);
+            AddRange(_remappedNames, remappedNames, RemoveAtPrefix);
             AddRange(_withAccessSpecifiers, withAccessSpecifiers, ConvertStringToAccessSpecifier);
             AddRange(_withAttributes, withAttributes);
             AddRange(_withCallConvs, withCallConvs);
@@ -220,6 +223,8 @@ namespace ClangSharp
 
         public IReadOnlyDictionary<string, string> RemappedNames => _remappedNames;
 
+        public IReadOnlyCollection<string> ForceRemappedNames => _forceRemappedNames;
+
         public string TestOutputLocation { get; }
 
         public string[] TraversalNames { get; }
@@ -247,6 +252,20 @@ namespace ClangSharp
                     // Use the indexer, rather than Add, so that any
                     // default mappings can be overwritten if desired.
                     dictionary[keyValuePair.Key] = keyValuePair.Value;
+                }
+            }
+        }
+
+        private static void AddRange<TInput>(HashSet<string> hashSet, IEnumerable<KeyValuePair<string, TInput>> keyValuePairs, Func<TInput, bool> shouldAdd)
+        {
+            if (keyValuePairs != null)
+            {
+                foreach (var keyValuePair in keyValuePairs)
+                {
+                    if (shouldAdd(keyValuePair.Value))
+                    {
+                        _ = hashSet.Add(keyValuePair.Key);
+                    }
                 }
             }
         }
@@ -295,5 +314,9 @@ namespace ClangSharp
                 return AccessSpecifier.None;
             }
         }
+
+        private static string RemoveAtPrefix(string value) => ValueStartsWithAt(value) ? value[1..] : value;
+
+        private static bool ValueStartsWithAt(string value) => value.StartsWith("@");
     }
 }
