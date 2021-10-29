@@ -1851,6 +1851,11 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_ULongLong:
                     {
+                        if (typeNameBacking == "nuint")
+                        {
+                            goto case CXTypeKind.CXType_UInt;
+                        }
+
                         bitwidthHexStringBacking += "UL";
                         break;
                     }
@@ -1875,6 +1880,11 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_LongLong:
                     {
+                        if (typeNameBacking == "nint")
+                        {
+                            goto case CXTypeKind.CXType_Int;
+                        }
+
                         bitwidthHexStringBacking += "L";
                         break;
                     }
@@ -1920,6 +1930,11 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_ULongLong:
                     {
+                        if (typeNameBacking == "nuint")
+                        {
+                            goto case CXTypeKind.CXType_UInt;
+                        }
+
                         bitwidthHexString += "UL";
                         break;
                     }
@@ -1944,6 +1959,11 @@ namespace ClangSharp
 
                     case CXTypeKind.CXType_LongLong:
                     {
+                        if (typeNameBacking == "nint")
+                        {
+                            goto case CXTypeKind.CXType_Int;
+                        }
+
                         bitwidthHexString += "L";
                         break;
                     }

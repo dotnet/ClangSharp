@@ -1650,9 +1650,17 @@ namespace ClangSharp
                     else
                     {
                         var type = varDecl.Type;
+                        var cursorName = GetCursorName(varDecl);
 
-                        if (GetCursorName(varDecl).StartsWith("ClangSharpMacro_"))
+                        if (cursorName.StartsWith("ClangSharpMacro_"))
                         {
+                            cursorName = cursorName["ClangSharpMacro_".Length..];
+
+                            if (_config.WithTypes.TryGetValue(cursorName, out targetTypeName))
+                            {
+                                return targetTypeName;
+                            }
+
                             type = varDecl.Init.Type;
                         }
 
@@ -2262,6 +2270,11 @@ namespace ClangSharp
                             size32 = 4;
                             size64 = 8;
 
+                            if (alignment32 == -1)
+                            {
+                                alignment32 = 4;
+                            }
+
                             if (alignment64 == -1)
                             {
                                 alignment64 = 8;
@@ -2280,6 +2293,11 @@ namespace ClangSharp
                     {
                         size32 = 8;
                         size64 = 8;
+
+                        if (alignment32 == -1)
+                        {
+                            alignment32 = 8;
+                        }
 
                         if (alignment64 == -1)
                         {
@@ -2342,6 +2360,10 @@ namespace ClangSharp
                 if (alignment32 == -1)
                 {
                     alignment32 = recordTypeAlignOf;
+                }
+
+                if (alignment64 == -1)
+                {
                     alignment64 = recordTypeAlignOf;
                 }
 
@@ -2358,16 +2380,21 @@ namespace ClangSharp
                         size32 += 4;
                         size64 += 8;
 
-                        if (alignment64 == 4)
+                        if (alignment32 < 4)
                         {
-                            alignment64 = 8;
+                            alignment32 = Math.Max(Math.Min(alignment32, 4), 1);
                         }
 
-                        maxFieldSize32 = 4;
-                        maxFieldSize64 = 8;
+                        if (alignment64 < 4)
+                        {
+                            alignment64 = Math.Max(Math.Min(alignment32, 8), 1);
+                        }
 
-                        maxFieldAlignment32 = alignment32;
-                        maxFieldAlignment64 = alignment64;
+                        maxFieldSize32 = Math.Max(maxFieldSize32, 4);
+                        maxFieldSize64 = Math.Max(maxFieldSize64, 8);
+
+                        maxFieldAlignment32 = Math.Max(maxFieldSize32, 4);
+                        maxFieldAlignment64 = Math.Max(maxFieldSize64, 8);
                     }
                     else
                     {
@@ -2413,7 +2440,7 @@ namespace ClangSharp
                 var bitfieldPreviousSize = 0L;
                 var bitfieldRemainingBits = 0L;
 
-                foreach (var declaration in recordType.Decl.Decls)
+                foreach (var fieldDecl in recordType.Decl.Fields)
                 {
                     long fieldSize32;
                     long fieldSize64;
@@ -2421,29 +2448,22 @@ namespace ClangSharp
                     long fieldAlignment32 = -1;
                     long fieldAlignment64 = -1;
 
-                    if (declaration is FieldDecl fieldDecl)
-                    {
-                        GetTypeSize(fieldDecl, fieldDecl.Type, ref fieldAlignment32, ref fieldAlignment64, out fieldSize32, out fieldSize64);
+                    GetTypeSize(fieldDecl, fieldDecl.Type, ref fieldAlignment32, ref fieldAlignment64, out fieldSize32, out fieldSize64);
 
-                        if (fieldDecl.IsBitField)
-                        {
-                            if ((fieldSize32 != bitfieldPreviousSize) || (fieldDecl.BitWidthValue > bitfieldRemainingBits))
-                            {
-                                bitfieldRemainingBits = fieldSize32 * 8;
-                                bitfieldPreviousSize = fieldSize32;
-                                bitfieldRemainingBits -= fieldDecl.BitWidthValue;
-                            }
-                            else
-                            {
-                                bitfieldPreviousSize = fieldSize32;
-                                bitfieldRemainingBits -= fieldDecl.BitWidthValue;
-                                continue;
-                            }
-                        }
-                    }
-                    else
+                    if (fieldDecl.IsBitField)
                     {
-                        continue;
+                        if ((fieldSize32 != bitfieldPreviousSize) || (fieldDecl.BitWidthValue > bitfieldRemainingBits))
+                        {
+                            bitfieldRemainingBits = fieldSize32 * 8;
+                            bitfieldPreviousSize = fieldSize32;
+                            bitfieldRemainingBits -= fieldDecl.BitWidthValue;
+                        }
+                        else
+                        {
+                            bitfieldPreviousSize = fieldSize32;
+                            bitfieldRemainingBits -= fieldDecl.BitWidthValue;
+                            continue;
+                        }
                     }
 
                     if ((fieldAlignment32 == -1) || (alignment32 < 4))
