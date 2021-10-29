@@ -39,7 +39,7 @@
   <Target Name="GenerateSkipLocalsInit"
           BeforeTargets="BeforeCompile;CoreCompile"
           DependsOnTargets="PrepareForBuild"
-          Condition="'$(Language)' == 'C#' And '$(TargetFramework)' == 'net5.0'"
+          Condition="'$(Language)' == 'C#' And '$(TargetFramework)' == 'net6.0'"
           Inputs="$(MSBuildAllProjects)"
           Outputs="$(GeneratedSkipLocalsInitFile)">
     <WriteLinesToFile Lines="$(GeneratedSkipLocalsInitFileLines)" Overwrite="true" WriteOnlyWhenDifferent="true" File="$(GeneratedSkipLocalsInitFile)" />

@@ -454,6 +454,9 @@ namespace ClangSharp
 
             if (errorList.Any())
             {
+                context.Console.Error.Write($"Error in args for '{files.FirstOrDefault()}'");
+                context.Console.Error.Write(Environment.NewLine);
+
                 foreach (var error in errorList)
                 {
                     context.Console.Error.Write(error);

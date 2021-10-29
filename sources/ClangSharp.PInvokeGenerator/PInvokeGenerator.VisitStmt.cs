@@ -2246,6 +2246,7 @@ namespace ClangSharp
                         }
 
                         var parentType = null as Type;
+                        var parentTypeIsVariableSized = false;
 
                         if (IsPrevContextStmt<CallExpr>(out var callExpr, out _))
                         {
@@ -2276,6 +2277,21 @@ namespace ClangSharp
                             }
                             else if (calleeDecl is FunctionDecl functionDecl)
                             {
+                                switch (functionDecl.Name)
+                                {
+                                    case "memcpy":
+                                    {
+                                        parentTypeIsVariableSized = true;
+                                        break;
+                                    }
+
+                                    case "memset":
+                                    {
+                                        parentTypeIsVariableSized = true;
+                                        break;
+                                    }
+                                }
+
                                 parentType = functionDecl.Parameters[index].Type.CanonicalType;
                             }
                             else
@@ -2302,6 +2318,7 @@ namespace ClangSharp
                             needsCast |= parentType.Kind == CXTypeKind.CXType_ULong;
                             needsCast &= !IsSupportedFixedSizedBufferType(typeName);
                             needsCast &= argumentType.CanonicalType.Kind != CXTypeKind.CXType_Enum;
+                            needsCast |= parentTypeIsVariableSized;
                         }
 
                         if (needsCast)
