@@ -996,7 +996,7 @@ namespace ClangSharp
 
         private CallingConvention GetCallingConvention(Cursor cursor, Cursor context, Type type, ref bool wasRemapped)
         {
-            var remappedName = GetRemappedTypeName(cursor, context, type, out _, skipUsing: true);
+            var remappedName = GetRemappedTypeName(cursor, context, type, out _, ignoreTransparentStructsWhereRequired: false, skipUsing: true);
 
             if (_config.WithCallConvs.TryGetValue(remappedName, out var callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
             {
@@ -1140,7 +1140,7 @@ namespace ClangSharp
                     {
                         name = (typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous
                              ? GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling)
-                             : GetTypeName(namedDecl, context: null, typeDecl.TypeForDecl, out _);
+                             : GetTypeName(namedDecl, context: null, typeDecl.TypeForDecl, ignoreTransparentStructsWhereRequired: false, out _);
                     }
                     else if (namedDecl is ParmVarDecl)
                     {
@@ -1381,7 +1381,7 @@ namespace ClangSharp
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
             var name = GetCursorQualifiedName(namedDecl);
-            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped, skipUsing: false);
+            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped);
 
             if (wasRemapped)
             {
@@ -1389,7 +1389,7 @@ namespace ClangSharp
             }
 
             name = name.Replace("::", ".");
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
             if (wasRemapped)
             {
@@ -1397,7 +1397,7 @@ namespace ClangSharp
             }
 
             name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
             if (wasRemapped)
             {
@@ -1405,7 +1405,7 @@ namespace ClangSharp
             }
 
             name = name.Replace("::", ".");
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
             if (wasRemapped)
             {
@@ -1413,7 +1413,7 @@ namespace ClangSharp
             }
 
             name = GetCursorName(namedDecl);
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
             if (wasRemapped)
             {
@@ -1456,7 +1456,7 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing)
+        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
         {
             if (_config.RemappedNames.TryGetValue(name, out var remappedName))
             {
@@ -1501,9 +1501,9 @@ namespace ClangSharp
             }
         }
 
-        private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName, bool skipUsing)
+        private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName, bool skipUsing = false, bool ignoreTransparentStructsWhereRequired = false)
         {
-            var name = GetTypeName(cursor, context, type, out nativeTypeName);
+            var name = GetTypeName(cursor, context, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
             var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing);
 
             if (!wasRemapped)
@@ -1623,22 +1623,22 @@ namespace ClangSharp
                 {
                     if (enumConstantDecl.DeclContext is EnumDecl enumDecl)
                     {
-                        targetTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out nativeTypeName, skipUsing: false);
+                        targetTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out nativeTypeName);
                     }
                     else
                     {
-                        targetTypeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out nativeTypeName, skipUsing: false);
+                        targetTypeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out nativeTypeName);
                     }
                 }
                 else if (decl is TypeDecl previousTypeDecl)
                 {
-                    targetTypeName = GetRemappedTypeName(previousTypeDecl, context: null, previousTypeDecl.TypeForDecl, out nativeTypeName, skipUsing: false);
+                    targetTypeName = GetRemappedTypeName(previousTypeDecl, context: null, previousTypeDecl.TypeForDecl, out nativeTypeName);
                 }
                 else if (decl is VarDecl varDecl)
                 {
                     if (varDecl is ParmVarDecl parmVarDecl)
                     {
-                        targetTypeName = GetRemappedTypeName(parmVarDecl, context: null, parmVarDecl.Type, out nativeTypeName, skipUsing: false);
+                        targetTypeName = GetRemappedTypeName(parmVarDecl, context: null, parmVarDecl.Type, out nativeTypeName);
 
                         if ((parmVarDecl.ParentFunctionOrMethod is FunctionDecl functionDecl) && ((functionDecl is CXXMethodDecl { IsVirtual: true }) || (functionDecl.Body is null)) && (targetTypeName == "bool"))
                         {
@@ -1664,23 +1664,23 @@ namespace ClangSharp
                             type = varDecl.Init.Type;
                         }
 
-                        targetTypeName = GetRemappedTypeName(varDecl, context: null, type, out nativeTypeName, skipUsing: false);
+                        targetTypeName = GetRemappedTypeName(varDecl, context: null, type, out nativeTypeName);
                     }
                 }
 
             }
             else if ((cursor is Expr expr) && (expr is not MemberExpr))
             {
-                targetTypeName = GetRemappedTypeName(expr, context: null, expr.Type, out nativeTypeName, skipUsing: false);
+                targetTypeName = GetRemappedTypeName(expr, context: null, expr.Type, out nativeTypeName);
             }
 
             return targetTypeName;
         }
 
-        private string GetTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
-            => GetTypeName(cursor, context, type, type, out nativeTypeName);
+        private string GetTypeName(Cursor cursor, Cursor context, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
+            => GetTypeName(cursor, context, type, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
 
-        private string GetTypeName(Cursor cursor, Cursor context, Type rootType, Type type, out string nativeTypeName)
+        private string GetTypeName(Cursor cursor, Cursor context, Type rootType, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
         {
             if (!_typeNames.TryGetValue((cursor, context, type), out var result))
             {
@@ -1700,7 +1700,7 @@ namespace ClangSharp
 
                 if (type is ArrayType arrayType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, arrayType.ElementType, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, arrayType.ElementType, ignoreTransparentStructsWhereRequired, out _);
 
                     if (cursor is FunctionDecl or ParmVarDecl)
                     {
@@ -1710,7 +1710,7 @@ namespace ClangSharp
                 }
                 else if (type is AttributedType attributedType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, attributedType.ModifiedType, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is BuiltinType)
                 {
@@ -1844,13 +1844,13 @@ namespace ClangSharp
                 }
                 else if (type is DeducedType deducedType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, deducedType.CanonicalType, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, deducedType.CanonicalType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is DependentNameType dependentNameType)
                 {
                     if (dependentNameType.IsSugared)
                     {
-                        result.typeName = GetTypeName(cursor, context, rootType, dependentNameType.Desugar, out _);
+                        result.typeName = GetTypeName(cursor, context, rootType, dependentNameType.Desugar, ignoreTransparentStructsWhereRequired, out _);
                     }
                     else
                     {
@@ -1859,31 +1859,31 @@ namespace ClangSharp
                 }
                 else if (type is ElaboratedType elaboratedType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is FunctionType functionType)
                 {
-                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, functionType, out _);
+                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, functionType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is InjectedClassNameType injectedClassNameType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, injectedClassNameType.InjectedTST, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, injectedClassNameType.InjectedTST, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is PackExpansionType packExpansionType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, packExpansionType.Pattern, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, packExpansionType.Pattern, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is PointerType pointerType)
                 {
-                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, pointerType.PointeeType, out _);
+                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, pointerType.PointeeType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is ReferenceType referenceType)
                 {
-                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, referenceType.PointeeType, out _);
+                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, referenceType.PointeeType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is SubstTemplateTypeParmType substTemplateTypeParmType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, substTemplateTypeParmType.ReplacementType, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, substTemplateTypeParmType.ReplacementType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is TagType tagType)
                 {
@@ -1893,7 +1893,7 @@ namespace ClangSharp
                     }
                     else if (tagType.Handle.IsConstQualified)
                     {
-                        result.typeName = GetTypeName(cursor, context, rootType, tagType.Decl.TypeForDecl, out _);
+                        result.typeName = GetTypeName(cursor, context, rootType, tagType.Decl.TypeForDecl, ignoreTransparentStructsWhereRequired, out _);
                     }
                     else
                     {
@@ -1992,7 +1992,7 @@ namespace ClangSharp
                 {
                     if (templateTypeParmType.IsSugared)
                     {
-                        result.typeName = GetTypeName(cursor, context, rootType, templateTypeParmType.Desugar, out _);
+                        result.typeName = GetTypeName(cursor, context, rootType, templateTypeParmType.Desugar, ignoreTransparentStructsWhereRequired, out _);
                     }
                     else
                     {
@@ -2006,7 +2006,7 @@ namespace ClangSharp
                     // platform size, based on whatever parameters were passed into clang.
 
                     var remappedName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
-                    result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, out _);
+                    result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else
                 {
@@ -2028,18 +2028,18 @@ namespace ClangSharp
             return result.typeName;
         }
 
-        private string GetTypeNameForPointeeType(Cursor cursor, Cursor context, Type rootType, Type pointeeType, out string nativePointeeTypeName)
+        private string GetTypeNameForPointeeType(Cursor cursor, Cursor context, Type rootType, Type pointeeType, bool ignoreTransparentStructsWhereRequired, out string nativePointeeTypeName)
         {
             var name = pointeeType.AsString;
             nativePointeeTypeName = name;
 
             if (pointeeType is AttributedType attributedType)
             {
-                name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, out var nativeModifiedTypeName);
             }
             else if (pointeeType is ElaboratedType elaboratedType)
             {
-                name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, out var nativeNamedTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, out var nativeNamedTypeName);
             }
             else if (pointeeType is FunctionType functionType)
             {
@@ -2126,11 +2126,18 @@ namespace ClangSharp
                         _ = nameBuilder.Append(' ');
                     }
 
-                    _ = nameBuilder.Append(returnTypeName);
-
-                    if (needsReturnFixup)
+                    if (!needsReturnFixup && ignoreTransparentStructsWhereRequired && _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentValueTypeName))
                     {
-                        _ = nameBuilder.Append('*');
+                        _ = nameBuilder.Append(transparentValueTypeName);
+                    }
+                    else
+                    {
+                        _ = nameBuilder.Append(returnTypeName);
+
+                        if (needsReturnFixup)
+                        {
+                            _ = nameBuilder.Append('*');
+                        }
                     }
 
                     _ = nameBuilder.Append('>');
@@ -2156,7 +2163,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    name = GetTypeNameForPointeeType(cursor, context, rootType, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
+                    name = GetTypeNameForPointeeType(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out var nativeUnderlyingTypeName);
                 }
             }
             else
@@ -2528,7 +2535,7 @@ namespace ClangSharp
                 // can be treated correctly. Otherwise, they will resolve to a particular
                 // platform size, based on whatever parameters were passed into clang.
 
-                var name = GetTypeName(cursor, context: null, type, out _);
+                var name = GetTypeName(cursor, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
 
                 if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
                 {
@@ -2899,7 +2906,7 @@ namespace ClangSharp
 
                 if ((parmVarDecl != null) && (parmVarDecl.Type is PointerType pointerType))
                 {
-                    var typeName = GetTypeName(parmVarDecl, context: null, pointerType.PointeeType, out var nativeTypeName);
+                    var typeName = GetTypeName(parmVarDecl, context: null, pointerType.PointeeType, ignoreTransparentStructsWhereRequired: false, out var nativeTypeName);
                     return name.StartsWith($"{nativeTypeName}_") || name.StartsWith($"{typeName}_") || (typeName == "IRpcStubBuffer");
                 }
                 return false;
@@ -3086,7 +3093,7 @@ namespace ClangSharp
             }
             else if (type is TypedefType typedefType)
             {
-                var name = GetTypeName(cursor, context: null, type, out _);
+                var name = GetTypeName(cursor, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
 
                 if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
                 {
@@ -3342,7 +3349,7 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 {
                     var explicitCastExpr = (ExplicitCastExpr)stmt;
-                    var explicitCastExprTypeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _, skipUsing: false);
+                    var explicitCastExprTypeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _);
 
                     return IsUnchecked(targetTypeName, explicitCastExpr.SubExprAsWritten)
                         || IsUnchecked(targetTypeName, explicitCastExpr.Handle.Evaluate)
@@ -3578,7 +3585,7 @@ namespace ClangSharp
                         return true;
                     }
 
-                    var sourceTypeName = GetTypeName(stmt, context: null, unaryOperator.SubExpr.Type, out _);
+                    var sourceTypeName = GetTypeName(stmt, context: null, unaryOperator.SubExpr.Type, ignoreTransparentStructsWhereRequired: false, out _);
 
                     switch (unaryOperator.Opcode)
                     {
@@ -3760,7 +3767,7 @@ namespace ClangSharp
 
             if (type.CanonicalType is ConstantArrayType)
             {
-                var name = GetTypeName(fieldDecl, context: null, type, out _);
+                var name = GetTypeName(fieldDecl, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
 
                 if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
                 {
@@ -3835,7 +3842,7 @@ namespace ClangSharp
 
         private bool IsUnsafe(NamedDecl namedDecl, Type type)
         {
-            var name = GetTypeName(namedDecl, context: null, type, out _);
+            var name = GetTypeName(namedDecl, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
 
             if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
             {
