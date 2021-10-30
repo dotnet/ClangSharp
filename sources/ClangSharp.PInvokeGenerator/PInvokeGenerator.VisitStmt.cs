@@ -2224,7 +2224,6 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
 
-
             long alignment32 = -1;
             long alignment64 = -1;
 
@@ -2314,6 +2313,17 @@ namespace ClangSharp
 
                         if (parentType != null)
                         {
+                            if ((parentType.Handle.SizeOf == 8) && IsPrevContextDecl<VarDecl>(out var varDecl, out _))
+                            {
+                                var cursorName = GetCursorName(varDecl);
+
+                                if (cursorName.StartsWith("ClangSharpMacro_"))
+                                {
+                                    cursorName = cursorName["ClangSharpMacro_".Length..];
+                                    parentTypeIsVariableSized |= _config.WithTypes.TryGetValue(cursorName, out var remappedTypeName) && ((remappedTypeName == "int") || (remappedTypeName == "uint"));
+                                }
+                            }
+
                             needsCast = parentType.Kind == CXTypeKind.CXType_UInt;
                             needsCast |= parentType.Kind == CXTypeKind.CXType_ULong;
                             needsCast &= !IsSupportedFixedSizedBufferType(typeName);

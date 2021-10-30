@@ -4259,7 +4259,6 @@ namespace ClangSharp
                 {
                     var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
 
-
                     long alignment32 = -1;
                     long alignment64 = -1;
 
