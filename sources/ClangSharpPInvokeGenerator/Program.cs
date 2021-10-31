@@ -66,6 +66,7 @@ namespace ClangSharp
 
             new HelpItem("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
             new HelpItem("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
+            new HelpItem("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
             new HelpItem("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
             new HelpItem("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
             new HelpItem("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),
@@ -375,6 +376,12 @@ namespace ClangSharp
                     case "generate-cpp-attributes":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCppAttributes;
+                        break;
+                    }
+
+                    case "generate-helper-types":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateHelperTypes;
                         break;
                     }
 

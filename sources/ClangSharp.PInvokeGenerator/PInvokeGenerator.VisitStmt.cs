@@ -588,7 +588,17 @@ namespace ClangSharp
 
                 if (!_config.DontUseUsingStaticsForEnums)
                 {
-                    outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
+                    if (enumName.StartsWith("__AnonymousEnum_"))
+                    {
+                        if (outputBuilder.Name != _config.MethodClassName)
+                        {
+                            outputBuilder.AddUsingDirective($"static {_config.Namespace}.{_config.MethodClassName}");
+                        }
+                    }
+                    else
+                    {
+                        outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
+                    }
                 }
                 else
                 {

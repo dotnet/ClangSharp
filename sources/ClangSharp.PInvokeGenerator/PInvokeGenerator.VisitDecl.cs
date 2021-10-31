@@ -696,6 +696,13 @@ namespace ClangSharp
             var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
 
+            var rootRecordDeclName = GetRemappedCursorName(rootRecordDecl);
+
+            if (_config.ExcludedNames.Contains($"{rootRecordDeclName}.{name}") || _config.ExcludedNames.Contains($"{rootRecordDeclName}::{name}"))
+            {
+                return;
+            }
+
             var desc = new FieldDesc {
                 AccessSpecifier = accessSpecifier,
                 NativeTypeName = null,

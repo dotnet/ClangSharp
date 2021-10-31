@@ -62,5 +62,7 @@ namespace ClangSharp
         GenerateSourceLocationAttribute = 1 << 25,
 
         GenerateUnmanagedConstants = 1 << 26,
+
+        GenerateHelperTypes = 1 << 27,
     }
 }

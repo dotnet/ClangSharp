@@ -253,6 +253,14 @@ namespace ClangSharp
                 emitNamespaceDeclaration = false;
             }
 
+            if (_config.GenerateHelperTypes && (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp))
+            {
+                GenerateNativeInheritanceAttribute(this);
+                GenerateNativeTypeNameAttribute(this);
+                GenerateVtblIndexAttribute(this);
+                GenerateTransparentStructs(this);
+            }
+
             if (leaveStreamOpen && _outputBuilderFactory.OutputBuilders.Any())
             {
                 if (methodClassOutputBuilder is not null)
@@ -286,6 +294,247 @@ namespace ClangSharp
             _outputBuilderFactory.Clear();
             _uuidsToGenerate.Clear();
             _visitedFiles.Clear();
+
+            static void GenerateNativeInheritanceAttribute(PInvokeGenerator generator)
+            {
+                var config = generator.Config;
+                var outputPath = Path.Combine(config.OutputLocation, "NativeInheritanceAttribute.cs");
+
+                using var sw = new StreamWriter(outputPath);
+                sw.NewLine = "\n";
+
+                if (config.HeaderText != string.Empty)
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
+                sw.WriteLine();
+
+                sw.Write("namespace ");
+                sw.WriteLine(config.Namespace);
+                sw.WriteLine('{');
+
+                sw.WriteLine("    /// <summary>Defines the base type of a struct as it was in the native signature.</summary>");
+                sw.WriteLine("    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]");
+                sw.WriteLine("    [Conditional(\"DEBUG\")]");
+                sw.WriteLine("    internal sealed partial class NativeInheritanceAttribute : Attribute");
+                sw.WriteLine("    {");
+                sw.WriteLine("        private readonly string _name;");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Initializes a new instance of the <see cref=\"NativeInheritanceAttribute\" /> class.</summary>");
+                sw.WriteLine("        /// <param name=\"name\">The name of the base type that was inherited from in the native signature.</param>");
+                sw.WriteLine("        public NativeInheritanceAttribute(string name)");
+                sw.WriteLine("        {");
+                sw.WriteLine("            _name = name;");
+                sw.WriteLine("        }");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Gets the name of the base type that was inherited from in the native signature.</summary>");
+                sw.WriteLine("        public string Name => _name;");
+                sw.WriteLine("    }");
+
+                sw.WriteLine('}');
+            }
+
+            static void GenerateNativeTypeNameAttribute(PInvokeGenerator generator)
+            {
+                var config = generator.Config;
+                var outputPath = Path.Combine(config.OutputLocation, "NativeTypeNameAttribute.cs");
+
+                using var sw = new StreamWriter(outputPath);
+                sw.NewLine = "\n";
+
+                if (config.HeaderText != string.Empty)
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
+                sw.WriteLine();
+
+                sw.Write("namespace ");
+                sw.WriteLine(config.Namespace);
+                sw.WriteLine('{');
+
+                sw.WriteLine("    /// <summary>Defines the type of a member as it was used in the native signature.</summary>");
+                sw.WriteLine("    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = false, Inherited = true)]");
+                sw.WriteLine("    [Conditional(\"DEBUG\")]");
+                sw.WriteLine("    internal sealed partial class NativeTypeNameAttribute : Attribute");
+                sw.WriteLine("    {");
+                sw.WriteLine("        private readonly string _name;");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Initializes a new instance of the <see cref=\"NativeTypeNameAttribute\" /> class.</summary>");
+                sw.WriteLine("        /// <param name=\"name\">The name of the type that was used in the native signature.</param>");
+                sw.WriteLine("        public NativeTypeNameAttribute(string name)");
+                sw.WriteLine("        {");
+                sw.WriteLine("            _name = name;");
+                sw.WriteLine("        }");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Gets the name of the type that was used in the native signature.</summary>");
+                sw.WriteLine("        public string Name => _name;");
+                sw.WriteLine("    }");
+
+                sw.WriteLine('}');
+            }
+
+            static void GenerateVtblIndexAttribute(PInvokeGenerator generator)
+            {
+                var config = generator.Config;
+                var outputPath = Path.Combine(config.OutputLocation, "VtblIndexAttribute.cs");
+
+                using var sw = new StreamWriter(outputPath);
+                sw.NewLine = "\n";
+
+                if (config.HeaderText != string.Empty)
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
+                sw.WriteLine();
+
+                sw.Write("namespace ");
+                sw.WriteLine(config.Namespace);
+                sw.WriteLine('{');
+
+                sw.WriteLine("    /// <summary>Defines the vtbl index of a method as it was in the native signature.</summary>");
+                sw.WriteLine("    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]");
+                sw.WriteLine("    [Conditional(\"DEBUG\")]");
+                sw.WriteLine("    internal sealed partial class VtblIndexAttribute : Attribute");
+                sw.WriteLine("    {");
+                sw.WriteLine("        private readonly uint _index;");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Initializes a new instance of the <see cref=\"VtblIndexAttribute\" /> class.</summary>");
+                sw.WriteLine("        /// <param name=\"index\">The vtbl index of a method as it was in the native signature.</param>");
+                sw.WriteLine("        public VtblIndexAttribute(uint index)");
+                sw.WriteLine("        {");
+                sw.WriteLine("            _index = index;");
+                sw.WriteLine("        }");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Gets the vtbl index of a method as it was in the native signature.</summary>");
+                sw.WriteLine("        public uint Index => _index;");
+                sw.WriteLine("    }");
+
+                sw.WriteLine('}');
+            }
+
+            static void GenerateTransparentStructs(PInvokeGenerator generator)
+            {
+                var config = generator.Config;
+
+                foreach (var transparentStruct in config.WithTransparentStructs)
+                {
+                    var outputPath = Path.Combine(config.OutputLocation, $"{transparentStruct.Key}.cs");
+
+                    using var sw = new StreamWriter(outputPath);
+                    sw.NewLine = "\n";
+
+                    if (config.HeaderText != string.Empty)
+                    {
+                        sw.WriteLine(config.HeaderText);
+                    }
+
+                    var isUnsafe = transparentStruct.Key.Contains('*');
+
+                    sw.WriteLine("using System;");
+                    sw.WriteLine();
+
+                    sw.Write("namespace ");
+                    sw.WriteLine(config.Namespace);
+                    sw.WriteLine('{');
+
+                    sw.Write("    public ");
+
+                    if (isUnsafe)
+                    {
+                        sw.Write("unsafe ");
+                    }
+
+                    sw.Write("partial struct ");
+                    sw.Write(transparentStruct.Key);
+                    sw.Write(": IEquatable<");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine('>');
+
+                    sw.WriteLine("    {");
+
+                    sw.Write("        public readonly ");
+                    sw.Write(transparentStruct.Value);
+                    sw.WriteLine(" Value;");
+                    sw.WriteLine();
+
+                    sw.Write("        public ");
+                    sw.Write(transparentStruct.Key);
+                    sw.Write('(');
+                    sw.Write(transparentStruct.Value);
+                    sw.WriteLine(" value)");
+                    sw.WriteLine("        {");
+                    sw.WriteLine("            Value = value;");
+                    sw.WriteLine("        }");
+                    sw.WriteLine();
+
+                    sw.Write("        public static bool operator ==(");
+                    sw.Write(transparentStruct.Key);
+                    sw.Write(" left, ");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine(" right) => left.Value == right.Value;");
+                    sw.WriteLine();
+
+                    sw.Write("        public static bool operator !=(");
+                    sw.Write(transparentStruct.Key);
+                    sw.Write(" left, ");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine(" right) => left.Value != right.Value;");
+                    sw.WriteLine();
+
+                    sw.Write("        public static implicit operator ");
+                    sw.Write(transparentStruct.Key);
+                    sw.Write('(');
+                    sw.Write(transparentStruct.Value);
+                    sw.Write(" value) => new ");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine("(value);");
+                    sw.WriteLine();
+
+                    sw.Write("        public static implicit operator ");
+                    sw.Write(transparentStruct.Value);
+                    sw.Write('(');
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine(" value) => value.Value;");
+                    sw.WriteLine();
+
+                    sw.Write("        public override bool Equals(object? obj) => (obj is ");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine(" other) && Equals(other);");
+                    sw.WriteLine();
+
+                    sw.Write("        public bool Equals(");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine(" other) => (this == other);");
+                    sw.WriteLine();
+
+                    sw.Write("        public override int GetHashCode() => ");
+
+                    if (isUnsafe)
+                    {
+                        sw.Write("((nuint)(");
+                    }
+
+                    sw.Write("Value");
+
+                    if (isUnsafe)
+                    {
+                        sw.Write("))");
+                    }
+
+                    sw.WriteLine(".GetHashCode();");
+                    sw.WriteLine("    }");
+                    sw.WriteLine('}');
+                }
+            }
         }
 
         public void Dispose()
@@ -2362,7 +2611,7 @@ namespace ClangSharp
             }
             else if (type is RecordType recordType)
             {
-                var recordTypeAlignOf = recordType.Handle.AlignOf;
+                var recordTypeAlignOf = Math.Min(recordType.Handle.AlignOf, 8);
 
                 if (alignment32 == -1)
                 {
@@ -2444,63 +2693,94 @@ namespace ClangSharp
                     }
                 }
 
-                var bitfieldPreviousSize = 0L;
-                var bitfieldRemainingBits = 0L;
+                var bitfieldPreviousSize32 = 0L;
+                var bitfieldPreviousSize64 = 0L;
+                var bitfieldRemainingBits32 = 0L;
+                var bitfieldRemainingBits64 = 0L;
 
                 foreach (var fieldDecl in recordType.Decl.Fields)
                 {
-                    long fieldSize32;
-                    long fieldSize64;
-
                     long fieldAlignment32 = -1;
                     long fieldAlignment64 = -1;
 
-                    GetTypeSize(fieldDecl, fieldDecl.Type, ref fieldAlignment32, ref fieldAlignment64, out fieldSize32, out fieldSize64);
+                    GetTypeSize(fieldDecl, fieldDecl.Type, ref fieldAlignment32, ref fieldAlignment64, out var fieldSize32, out var fieldSize64);
+
+                    var ignoreFieldSize32 = false;
+                    var ignoreFieldSize64 = false;
 
                     if (fieldDecl.IsBitField)
                     {
-                        if ((fieldSize32 != bitfieldPreviousSize) || (fieldDecl.BitWidthValue > bitfieldRemainingBits))
+                        if (fieldSize32 != bitfieldPreviousSize32)
                         {
-                            bitfieldRemainingBits = fieldSize32 * 8;
-                            bitfieldPreviousSize = fieldSize32;
-                            bitfieldRemainingBits -= fieldDecl.BitWidthValue;
+                            bitfieldRemainingBits32 = fieldSize32 * 8;
+                            bitfieldPreviousSize32 = fieldSize32;
+                            bitfieldRemainingBits32 -= fieldDecl.BitWidthValue;
+                        }
+                        else if (fieldDecl.BitWidthValue > bitfieldRemainingBits32)
+                        {
+                            if (bitfieldRemainingBits32 != bitfieldRemainingBits64)
+                            {
+                                ignoreFieldSize32 = true;
+                            }
+
+                            bitfieldRemainingBits32 = fieldSize32 * 8;
+                            bitfieldPreviousSize32 = fieldSize32;
+                            bitfieldRemainingBits32 -= fieldDecl.BitWidthValue;
                         }
                         else
                         {
-                            bitfieldPreviousSize = fieldSize32;
-                            bitfieldRemainingBits -= fieldDecl.BitWidthValue;
-                            continue;
+                            bitfieldPreviousSize32 = fieldSize32;
+                            bitfieldRemainingBits32 -= fieldDecl.BitWidthValue;
+                            ignoreFieldSize32 = true;
+                        }
+
+                        if ((fieldSize64 != bitfieldPreviousSize64) || (fieldDecl.BitWidthValue > bitfieldRemainingBits64))
+                        {
+                            bitfieldRemainingBits64 = fieldSize64 * 8;
+                            bitfieldPreviousSize64 = fieldSize64;
+                            bitfieldRemainingBits64 -= fieldDecl.BitWidthValue;
+                        }
+                        else
+                        {
+                            bitfieldPreviousSize64 = fieldSize64;
+                            bitfieldRemainingBits64 -= fieldDecl.BitWidthValue;
+                            ignoreFieldSize64 = true;
                         }
                     }
 
-                    if ((fieldAlignment32 == -1) || (alignment32 < 4))
+                    if (!ignoreFieldSize32)
                     {
-                        fieldAlignment32 = Math.Max(Math.Min(alignment32, fieldSize32), 1);
+                        if ((fieldAlignment32 == -1) || (alignment32 < 4))
+                        {
+                            fieldAlignment32 = Math.Max(Math.Min(alignment32, fieldSize32), 1);
+                        }
+
+                        if ((size32 % fieldAlignment32) != 0)
+                        {
+                            size32 += fieldAlignment32 - (size32 % fieldAlignment32);
+                        }
+
+                        size32 += fieldSize32;
+                        maxFieldAlignment32 = Math.Max(maxFieldAlignment32, fieldAlignment32);
+                        maxFieldSize32 = Math.Max(maxFieldSize32, fieldSize32);
                     }
 
-                    if ((fieldAlignment64 == -1) || (alignment64 < 4))
+                    if (!ignoreFieldSize64)
                     {
-                        fieldAlignment64 = Math.Max(Math.Min(alignment64, fieldSize64), 1);
+                        if ((fieldAlignment64 == -1) || (alignment64 < 4))
+                        {
+                            fieldAlignment64 = Math.Max(Math.Min(alignment64, fieldSize64), 1);
+                        }
+
+                        if ((size64 % fieldAlignment64) != 0)
+                        {
+                            size64 += fieldAlignment64 - (size64 % fieldAlignment64);
+                        }
+
+                        size64 += fieldSize64;
+                        maxFieldAlignment64 = Math.Max(maxFieldAlignment64, fieldAlignment64);
+                        maxFieldSize64 = Math.Max(maxFieldSize64, fieldSize64);
                     }
-
-                    if ((size32 % fieldAlignment32) != 0)
-                    {
-                        size32 += fieldAlignment32 - (size32 % fieldAlignment32);
-                    }
-
-                    if ((size64 % fieldAlignment64) != 0)
-                    {
-                        size64 += fieldAlignment64 - (size64 % fieldAlignment64);
-                    }
-
-                    size32 += fieldSize32;
-                    size64 += fieldSize64;
-
-                    maxFieldAlignment32 = Math.Max(maxFieldAlignment32, fieldAlignment32);
-                    maxFieldAlignment64 = Math.Max(maxFieldAlignment64, fieldAlignment64);
-
-                    maxFieldSize32 = Math.Max(maxFieldSize32, fieldSize32);
-                    maxFieldSize64 = Math.Max(maxFieldSize64, fieldSize64);
                 }
 
                 if (alignment32 == 8)
