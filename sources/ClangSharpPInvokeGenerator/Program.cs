@@ -186,7 +186,7 @@ namespace ClangSharp
             ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
             ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
             ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPath);
-            ParseKeyValuePairs(withTransparentStructNameValuePairs, errorList, out Dictionary<string, string> withTransparentStructs);
+            ParseKeyValuePairs(withTransparentStructNameValuePairs, errorList, out Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> withTransparentStructs);
             ParseKeyValuePairs(withTypeNameValuePairs, errorList, out Dictionary<string, string> withTypes);
             ParseKeyValuePairs(withUsingNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withUsings);
 
@@ -628,6 +628,46 @@ namespace ClangSharp
                 }
 
                 result.Add(key, parts[1].TrimStart());
+            }
+        }
+
+        private static void ParseKeyValuePairs(IEnumerable<string> keyValuePairs, List<string> errorList, out Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> result)
+        {
+            result = new Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)>();
+
+            foreach (var keyValuePair in keyValuePairs)
+            {
+                var parts = keyValuePair.Split('=');
+
+                if (parts.Length != 2)
+                {
+                    errorList.Add($"Error: Invalid key/value pair argument: {keyValuePair}. Expected 'name=value' or 'name=value;kind'");
+                    continue;
+                }
+
+                var key = parts[0].TrimEnd();
+
+                if (result.ContainsKey(key))
+                {
+                    errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {result[key]}");
+                    continue;
+                }
+
+                parts = parts[1].Split(';');
+
+                if (parts.Length == 1)
+                {
+                    result.Add(key, (parts[0], PInvokeGeneratorTransparentStructKind.Unknown));
+                }
+                else if ((parts.Length == 2) && Enum.TryParse<PInvokeGeneratorTransparentStructKind>(parts[1], out var transparentStructKind))
+                {
+                    result.Add(key, (parts[0], transparentStructKind));
+                }
+                else
+                {
+                    errorList.Add($"Error: Invalid key/value pair argument: {keyValuePair}. Expected 'name=value' or 'name=value;kind'");
+                    continue;
+                }
             }
         }
 

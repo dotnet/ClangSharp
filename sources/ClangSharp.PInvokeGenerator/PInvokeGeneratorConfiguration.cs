@@ -18,13 +18,13 @@ namespace ClangSharp
         private readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
         private readonly Dictionary<string, string> _withCallConvs;
         private readonly Dictionary<string, string> _withLibraryPaths;
-        private readonly Dictionary<string, string> _withTransparentStructs;
+        private readonly Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> _withTransparentStructs;
         private readonly Dictionary<string, string> _withTypes;
         private readonly Dictionary<string, IReadOnlyList<string>> _withUsings;
 
         private PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorOutputMode outputMode = PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, string> withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, string> withTransparentStructs = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorOutputMode outputMode = PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, string> withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)> withTransparentStructs = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
         {
             if (excludedNames is null)
             {
@@ -93,7 +93,7 @@ namespace ClangSharp
             _withAttributes = new Dictionary<string, IReadOnlyList<string>>();
             _withCallConvs = new Dictionary<string, string>();
             _withLibraryPaths = new Dictionary<string, string>();
-            _withTransparentStructs = new Dictionary<string, string>();
+            _withTransparentStructs = new Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)>();
             _withTypes = new Dictionary<string, string>();
             _withUsings = new Dictionary<string, IReadOnlyList<string>>();
 
@@ -244,7 +244,7 @@ namespace ClangSharp
 
         public string[] WithSetLastErrors { get; }
 
-        public IReadOnlyDictionary<string, string> WithTransparentStructs => _withTransparentStructs;
+        public IReadOnlyDictionary<string, (string Name, PInvokeGeneratorTransparentStructKind Kind)> WithTransparentStructs => _withTransparentStructs;
 
         public IReadOnlyDictionary<string, string> WithTypes => _withTypes;
 
@@ -323,6 +323,8 @@ namespace ClangSharp
         }
 
         private static string RemoveAtPrefix(string value) => ValueStartsWithAt(value) ? value[1..] : value;
+
+        private static (string, PInvokeGeneratorTransparentStructKind) RemoveAtPrefix((string Name, PInvokeGeneratorTransparentStructKind Kind) value) => (ValueStartsWithAt(value.Name) ? value.Name[1..] : value.Name, value.Kind);
 
         private static bool ValueStartsWithAt(string value) => value.StartsWith("@");
     }
