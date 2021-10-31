@@ -1589,10 +1589,12 @@ namespace ClangSharp
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                 var name = GetRemappedCursorName(cxxMethodDecl);
                 var needsReturnFixup = false;
+                var needsCastToTransparentStruct = false;
 
                 if (returnType.Kind != CXTypeKind.CXType_Void)
                 {
                     needsReturnFixup = NeedsReturnFixup(cxxMethodDecl);
+                    needsCastToTransparentStruct = _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentStruct) && IsTransparentStructHandle(transparentStruct.Kind);
                 }
 
                 var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
@@ -1650,6 +1652,13 @@ namespace ClangSharp
                 if (returnType.Kind != CXTypeKind.CXType_Void)
                 {
                     body.Write("return ");
+                }
+
+                if (needsCastToTransparentStruct)
+                {
+                    body.Write("((");
+                    body.Write(returnTypeName);
+                    body.Write(")(");
                 }
 
                 if (needsReturnFixup)
@@ -1746,6 +1755,11 @@ namespace ClangSharp
                 if (returnTypeName == "bool")
                 {
                     body.Write(" != 0");
+                }
+
+                if (needsCastToTransparentStruct)
+                {
+                    body.Write("))");
                 }
 
                 body.WriteSemicolon();
@@ -2743,9 +2757,9 @@ namespace ClangSharp
                     {
                         flags |= ValueFlags.Copy;
                     }
-                    else if (_config.WithTransparentStructs.TryGetValue(typeName, out var transparentValueTypeName))
+                    else if (_config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
                     {
-                        typeName = transparentValueTypeName;
+                        typeName = transparentStruct.Name;
                     }
                 }
                 else if ((varDecl.StorageClass == CX_StorageClass.CX_SC_Static) || openedOutputBuilder)

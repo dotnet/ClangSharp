@@ -427,7 +427,11 @@ namespace ClangSharp
 
                 foreach (var transparentStruct in config.WithTransparentStructs)
                 {
-                    var outputPath = Path.Combine(config.OutputLocation, $"{transparentStruct.Key}.cs");
+                    var name = transparentStruct.Key;
+                    var type = transparentStruct.Value.Name;
+                    var kind = transparentStruct.Value.Kind;
+
+                    var outputPath = Path.Combine(config.OutputLocation, $"{name}.cs");
 
                     using var sw = new StreamWriter(outputPath);
                     sw.NewLine = "\n";
@@ -437,7 +441,8 @@ namespace ClangSharp
                         sw.WriteLine(config.HeaderText);
                     }
 
-                    var isUnsafe = transparentStruct.Key.Contains('*');
+                    var isUnsafe = type.Contains('*') || IsTransparentStructHandle(kind);
+                    var secondaryType = GetSecondaryType(type);
 
                     sw.WriteLine("using System;");
                     sw.WriteLine();
@@ -454,65 +459,370 @@ namespace ClangSharp
                     }
 
                     sw.Write("partial struct ");
-                    sw.Write(transparentStruct.Key);
+                    sw.Write(name);
                     sw.Write(" : IEquatable<");
-                    sw.Write(transparentStruct.Key);
+                    sw.Write(name);
                     sw.WriteLine('>');
 
                     sw.WriteLine("    {");
 
                     sw.Write("        public readonly ");
-                    sw.Write(transparentStruct.Value);
+                    sw.Write(type);
                     sw.WriteLine(" Value;");
                     sw.WriteLine();
 
-                    sw.Write("        public ");
-                    sw.Write(transparentStruct.Key);
-                    sw.Write('(');
-                    sw.Write(transparentStruct.Value);
-                    sw.WriteLine(" value)");
-                    sw.WriteLine("        {");
-                    sw.WriteLine("            Value = value;");
-                    sw.WriteLine("        }");
-                    sw.WriteLine();
+                    if (kind == PInvokeGeneratorTransparentStructKind.Win32Handle)
+                    {
+                        sw.Write("        public static ");
+                        sw.Write(name);
+                        sw.Write(" NULL => (");
+                        sw.Write(name);
+                        sw.WriteLine(")(0);");
+                        sw.WriteLine();
+                    }
+
+                    switch (kind)
+                    {
+                        case PInvokeGeneratorTransparentStructKind.Typedef:
+                        {
+                            // Typedefs can be created directly from the underlying type
+                            // and from the secondary type if one exists
+
+                            sw.Write("        public ");
+                            sw.Write(name);
+                            sw.Write('(');
+                            sw.Write(type);
+                            sw.WriteLine(" value)");
+                            sw.WriteLine("        {");
+                            sw.WriteLine("            Value = value;");
+                            sw.WriteLine("        }");
+                            sw.WriteLine();
+
+                            if (!string.IsNullOrEmpty(secondaryType))
+                            {
+                                sw.Write("        public ");
+                                sw.Write(name);
+                                sw.Write('(');
+                                sw.Write(secondaryType);
+                                sw.WriteLine(" value)");
+                                sw.WriteLine("        {");
+                                sw.Write("            Value = ((");
+                                sw.Write(type);
+                                sw.WriteLine(")(value));");
+                                sw.WriteLine("        }");
+                                sw.WriteLine();
+                            }
+                            
+                            break;
+                        }
+
+                        case PInvokeGeneratorTransparentStructKind.Handle:
+                        case PInvokeGeneratorTransparentStructKind.Win32Handle:
+                        {
+                            // Handles can be created from nint, nuint, or void*
+                            // We also provide int and uint overloads for convenience
+
+                            sw.Write("        public ");
+                            sw.Write(name);
+                            sw.WriteLine("(int value)");
+                            sw.WriteLine("        {");
+                            sw.Write("            Value = ((");
+                            sw.Write(type);
+                            sw.WriteLine(")(value));");
+                            sw.WriteLine("        }");
+                            sw.WriteLine();
+
+                            sw.Write("        public ");
+                            sw.Write(name);
+                            sw.WriteLine("(uint value)");
+                            sw.WriteLine("        {");
+                            sw.Write("            Value = ((");
+                            sw.Write(type);
+                            sw.WriteLine(")(value));");
+                            sw.WriteLine("        }");
+                            sw.WriteLine();
+
+                            sw.Write("        public ");
+                            sw.Write(name);
+                            sw.WriteLine("(nint value)");
+                            sw.WriteLine("        {");
+                            sw.Write("            Value = ((");
+                            sw.Write(type);
+                            sw.WriteLine(")(value));");
+                            sw.WriteLine("        }");
+                            sw.WriteLine();
+
+                            sw.Write("        public ");
+                            sw.Write(name);
+                            sw.WriteLine("(nuint value)");
+                            sw.WriteLine("        {");
+                            sw.Write("            Value = ((");
+                            sw.Write(type);
+                            sw.WriteLine(")(value));");
+                            sw.WriteLine("        }");
+                            sw.WriteLine();
+
+                            sw.Write("        public ");
+                            sw.Write(name);
+                            sw.WriteLine("(void* value)");
+                            sw.WriteLine("        {");
+                            sw.Write("            Value = ((");
+                            sw.Write(type);
+                            sw.WriteLine(")(value));");
+                            sw.WriteLine("        }");
+                            sw.WriteLine();
+
+                            if (kind == PInvokeGeneratorTransparentStructKind.Win32Handle)
+                            {
+                                // Win32 Handles have additional support for creation from HANDLE
+
+                                sw.Write("        public ");
+                                sw.Write(name);
+                                sw.WriteLine("(HANDLE value)");
+                                sw.WriteLine("        {");
+                                sw.WriteLine("            Value = value.Value;");
+                                sw.WriteLine("        }");
+                                sw.WriteLine();
+                            }
+
+                            break;
+                        }
+
+                        case PInvokeGeneratorTransparentStructKind.Boolean:
+                        {
+                            // Booleans can be created directly from the underlying type or bool
+
+                            sw.Write("        public ");
+                            sw.Write(name);
+                            sw.Write('(');
+                            sw.Write(type);
+                            sw.WriteLine(" value)");
+                            sw.WriteLine("        {");
+                            sw.WriteLine("            Value = value;");
+                            sw.WriteLine("        }");
+                            sw.WriteLine();
+
+                            sw.Write("        public ");
+                            sw.Write(name);
+                            sw.WriteLine("(bool value)");
+                            sw.WriteLine("        {");
+                            sw.Write("            Value = ((");
+                            sw.Write(type);
+                            sw.WriteLine(")(value ? 1 : 0));");
+                            sw.WriteLine("        }");
+                            sw.WriteLine();
+
+                            break;
+                        }
+                    }
 
                     sw.Write("        public static bool operator ==(");
-                    sw.Write(transparentStruct.Key);
+                    sw.Write(name);
                     sw.Write(" left, ");
-                    sw.Write(transparentStruct.Key);
+                    sw.Write(name);
                     sw.WriteLine(" right) => left.Value == right.Value;");
                     sw.WriteLine();
 
                     sw.Write("        public static bool operator !=(");
-                    sw.Write(transparentStruct.Key);
+                    sw.Write(name);
                     sw.Write(" left, ");
-                    sw.Write(transparentStruct.Key);
+                    sw.Write(name);
                     sw.WriteLine(" right) => left.Value != right.Value;");
                     sw.WriteLine();
 
-                    sw.Write("        public static implicit operator ");
-                    sw.Write(transparentStruct.Key);
-                    sw.Write('(');
-                    sw.Write(transparentStruct.Value);
-                    sw.Write(" value) => new ");
-                    sw.Write(transparentStruct.Key);
-                    sw.WriteLine("(value);");
-                    sw.WriteLine();
+                    switch (kind)
+                    {
+                        case PInvokeGeneratorTransparentStructKind.Typedef:
+                        {
+                            // Typedefs can implicitly convert to and from the underlying type
+                            // They can also explicitly convert to and from the secondary type, if one exists
 
-                    sw.Write("        public static implicit operator ");
-                    sw.Write(transparentStruct.Value);
-                    sw.Write('(');
-                    sw.Write(transparentStruct.Key);
-                    sw.WriteLine(" value) => value.Value;");
-                    sw.WriteLine();
+                            if (!string.IsNullOrEmpty(secondaryType))
+                            {
+                                sw.Write("        public static explicit operator ");
+                                sw.Write(name);
+                                sw.Write('(');
+                                sw.Write(secondaryType);
+                                sw.Write(" value) => new ");
+                                sw.Write(name);
+                                sw.WriteLine("(value);");
+                                sw.WriteLine();
+
+                                sw.Write("        public static explicit operator ");
+                                sw.Write(secondaryType);
+                                sw.Write('(');
+                                sw.Write(name);
+                                sw.Write(" value) => (");
+                                sw.Write(secondaryType);
+                                sw.WriteLine(")(value.Value);");
+                                sw.WriteLine();
+                            }
+
+                            sw.Write("        public static implicit operator ");
+                            sw.Write(name);
+                            sw.Write('(');
+                            sw.Write(type);
+                            sw.Write(" value) => new ");
+                            sw.Write(name);
+                            sw.WriteLine("(value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static implicit operator ");
+                            sw.Write(type);
+                            sw.Write('(');
+                            sw.Write(name);
+                            sw.WriteLine(" value) => value.Value;");
+                            sw.WriteLine();
+
+                            break;
+                        }
+
+                        case PInvokeGeneratorTransparentStructKind.Handle:
+                        case PInvokeGeneratorTransparentStructKind.Win32Handle:
+                        {
+                            // Handles can implicitly convert to int, uint, nint, nuint, or void*
+                            // Casts from however are explicit
+
+                            sw.Write("        public static explicit operator ");
+                            sw.Write(name);
+                            sw.Write("(int value) => new ");
+                            sw.Write(name);
+                            sw.WriteLine("(value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static explicit operator ");
+                            sw.Write(name);
+                            sw.Write("(uint value) => new ");
+                            sw.Write(name);
+                            sw.WriteLine("(value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static explicit operator ");
+                            sw.Write(name);
+                            sw.Write("(nint value) => new ");
+                            sw.Write(name);
+                            sw.WriteLine("(value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static explicit operator ");
+                            sw.Write(name);
+                            sw.Write("(nuint value) => new ");
+                            sw.Write(name);
+                            sw.WriteLine("(value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static explicit operator ");
+                            sw.Write(name);
+                            sw.Write("(void* value) => new ");
+                            sw.Write(name);
+                            sw.WriteLine("(value);");
+                            sw.WriteLine();
+
+                            if (kind == PInvokeGeneratorTransparentStructKind.Win32Handle)
+                            {
+                                // Win32 handles can also be explicitly cast from HANDLE
+
+                                sw.Write("        public static explicit operator ");
+                                sw.Write(name);
+                                sw.Write("(HANDLE value) => new ");
+                                sw.Write(name);
+                                sw.WriteLine("(value);");
+                                sw.WriteLine();
+                            }
+
+                            sw.Write("        public static explicit operator int(");
+                            sw.Write(name);
+                            sw.WriteLine(" value) => (int)(value.Value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static explicit operator uint(");
+                            sw.Write(name);
+                            sw.WriteLine(" value) => (uint)(value.Value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static implicit operator nint(");
+                            sw.Write(name);
+                            sw.WriteLine(" value) => (nint)(value.Value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static implicit operator nuint(");
+                            sw.Write(name);
+                            sw.WriteLine(" value) => (nuint)(value.Value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static implicit operator void*(");
+                            sw.Write(name);
+                            sw.WriteLine(" value) => (void*)(value.Value);");
+                            sw.WriteLine();
+
+                            if (kind == PInvokeGeneratorTransparentStructKind.Win32Handle)
+                            {
+                                // Win32 handles can also be implicitly cast to HANDLE
+
+                                sw.Write("        public static implicit operator HANDLE(");
+                                sw.Write(name);
+                                sw.WriteLine(" value) => (HANDLE)(value.Value);");
+                                sw.WriteLine();
+                            }
+
+                            break;
+                        }
+
+                        case PInvokeGeneratorTransparentStructKind.Boolean:
+                        {
+                            // Booleans can implicitly convert from the underlying type and bool
+                            // They can implicitly convert to the underlying type and explicitly to bool
+                            // They also provide true/false operators to ease their use in bool like scenarios
+
+                            sw.Write("        public static explicit operator bool(");
+                            sw.Write(name);
+                            sw.WriteLine(" value) => value.Value != 0;");
+                            sw.WriteLine();
+
+                            sw.Write("        public static implicit operator ");
+                            sw.Write(name);
+                            sw.Write('(');
+                            sw.Write(type);
+                            sw.Write(" value) => new ");
+                            sw.Write(name);
+                            sw.WriteLine("(value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static implicit operator ");
+                            sw.Write(name);
+                            sw.Write("(bool value) => new ");
+                            sw.Write(name);
+                            sw.WriteLine("(value);");
+                            sw.WriteLine();
+
+                            sw.Write("        public static implicit operator ");
+                            sw.Write(type);
+                            sw.Write('(');
+                            sw.Write(name);
+                            sw.WriteLine(" value) => value.Value;");
+                            sw.WriteLine();
+
+                            sw.Write("        public static bool operator false(");
+                            sw.Write(name);
+                            sw.WriteLine(" value) => value.Value == 0;");
+                            sw.WriteLine();
+
+                            sw.Write("        public static bool operator true(");
+                            sw.Write(name);
+                            sw.WriteLine(" value) => value.Value != 0;");
+                            sw.WriteLine();
+
+                            break;
+                        }
+                    }
 
                     sw.Write("        public override bool Equals(object? obj) => (obj is ");
-                    sw.Write(transparentStruct.Key);
+                    sw.Write(name);
                     sw.WriteLine(" other) && Equals(other);");
                     sw.WriteLine();
 
                     sw.Write("        public bool Equals(");
-                    sw.Write(transparentStruct.Key);
+                    sw.Write(name);
                     sw.WriteLine(" other) => (this == other);");
                     sw.WriteLine();
 
@@ -533,6 +843,23 @@ namespace ClangSharp
                     sw.WriteLine(".GetHashCode();");
                     sw.WriteLine("    }");
                     sw.WriteLine('}');
+                }
+
+                static string GetSecondaryType(string type)
+                {
+                    return type switch {
+                        "byte" => "sbyte",
+                        "short" => "ushort",
+                        "int" => "uint",
+                        "long" => "ulong",
+                        "nint" => "nuint",
+                        "sbyte" => "byte",
+                        "ushort" => "short",
+                        "uint" => "int",
+                        "ulong" => "long",
+                        "nuint" => "nint",
+                        _ => "",
+                    };
                 }
             }
         }
@@ -2375,9 +2702,9 @@ namespace ClangSharp
                         _ = nameBuilder.Append(' ');
                     }
 
-                    if (!needsReturnFixup && ignoreTransparentStructsWhereRequired && _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentValueTypeName))
+                    if (!needsReturnFixup && ignoreTransparentStructsWhereRequired && _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentStruct))
                     {
-                        _ = nameBuilder.Append(transparentValueTypeName);
+                        _ = nameBuilder.Append(transparentStruct.Name);
                     }
                     else
                     {
@@ -3523,15 +3850,20 @@ namespace ClangSharp
             }
         }
 
+        private static bool IsTransparentStructHandle(PInvokeGeneratorTransparentStructKind kind)
+        {
+            return (kind == PInvokeGeneratorTransparentStructKind.Handle) || (kind == PInvokeGeneratorTransparentStructKind.Win32Handle);
+        }
+
         private bool IsUnchecked(string targetTypeName, Stmt stmt)
         {
             if (IsPrevContextDecl<VarDecl>(out var parentVarDecl, out _))
             {
                 var cursorName = GetCursorName(parentVarDecl);
 
-                if (cursorName.StartsWith("ClangSharpMacro_") && _config.WithTransparentStructs.TryGetValue(targetTypeName, out var transparentValueTypeName))
+                if (cursorName.StartsWith("ClangSharpMacro_") && _config.WithTransparentStructs.TryGetValue(targetTypeName, out var transparentStruct))
                 {
-                    targetTypeName = transparentValueTypeName;
+                    targetTypeName = transparentStruct.Name;
                 }
             }
 
