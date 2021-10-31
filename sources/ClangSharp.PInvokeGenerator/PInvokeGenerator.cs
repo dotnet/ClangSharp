@@ -471,6 +471,16 @@ namespace ClangSharp
                     sw.WriteLine(" Value;");
                     sw.WriteLine();
 
+                    if (kind == PInvokeGeneratorTransparentStructKind.Win32Handle)
+                    {
+                        sw.Write("        public static ");
+                        sw.Write(name);
+                        sw.Write(" NULL => (");
+                        sw.Write(name);
+                        sw.WriteLine(")(0);");
+                        sw.WriteLine();
+                    }
+
                     switch (kind)
                     {
                         case PInvokeGeneratorTransparentStructKind.Typedef:
