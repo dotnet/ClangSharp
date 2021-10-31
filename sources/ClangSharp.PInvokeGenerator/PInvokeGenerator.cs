@@ -730,12 +730,12 @@ namespace ClangSharp
                                 sw.WriteLine();
                             }
 
-                            sw.Write("        public static implicit operator int(");
+                            sw.Write("        public static explicit operator int(");
                             sw.Write(name);
                             sw.WriteLine(" value) => (int)(value.Value);");
                             sw.WriteLine();
 
-                            sw.Write("        public static implicit operator uint(");
+                            sw.Write("        public static explicit operator uint(");
                             sw.Write(name);
                             sw.WriteLine(" value) => (uint)(value.Value);");
                             sw.WriteLine();
