@@ -760,9 +760,7 @@ namespace ClangSharp
 
             _outputBuilder.WriteRegularField(typeString, escapedName);
 
-            generateCompatibleCode |=
-                ((type.CanonicalType is PointerType) || (type.CanonicalType is ReferenceType)) &&
-                (typeName != "IntPtr") && (typeName != "UIntPtr");
+            var isIndirectPointerField = ((type.CanonicalType is PointerType) || (type.CanonicalType is ReferenceType)) && (typeName != "IntPtr") && (typeName != "UIntPtr");
 
             _outputBuilder.BeginBody();
             _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
@@ -831,9 +829,16 @@ namespace ClangSharp
                     code.Write("MemoryMarshal.CreateSpan(ref ");
                 }
 
-                code.Write(contextName);
-                code.Write('.');
-                code.Write(escapedName);
+                if (isIndirectPointerField)
+                {
+                    code.Write("this");
+                }
+                else
+                {
+                    code.Write(contextName);
+                    code.Write('.');
+                    code.Write(escapedName);
+                }
 
                 if (isFixedSizedBuffer)
                 {
@@ -853,6 +858,15 @@ namespace ClangSharp
                 }
 
                 code.Write(')');
+
+                if (isIndirectPointerField)
+                {
+                    code.Write('.');
+                    code.Write(contextName);
+                    code.Write('.');
+                    code.Write(escapedName);
+                }
+
                 code.WriteSemicolon();
                 code.WriteNewline();
                 _outputBuilder.EndCSharpCode(code);
