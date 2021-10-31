@@ -2635,8 +2635,7 @@ namespace ClangSharp
                 var isMacroDefinitionRecord = false;
 
                 var nativeName = GetCursorName(varDecl);
-                if (nativeName.StartsWith("ClangSharpMacro_" +
-                    ""))
+                if (nativeName.StartsWith("ClangSharpMacro_" + ""))
                 {
                     type = varDecl.Init.Type;
                     nativeName = nativeName["ClangSharpMacro_".Length..];
@@ -2743,6 +2742,10 @@ namespace ClangSharp
                     if (flags.HasFlag(ValueFlags.Constant) && !IsConstant(typeName, varDecl.Init))
                     {
                         flags |= ValueFlags.Copy;
+                    }
+                    else if (_config.WithTransparentStructs.TryGetValue(typeName, out var transparentValueTypeName))
+                    {
+                        typeName = transparentValueTypeName;
                     }
                 }
                 else if ((varDecl.StorageClass == CX_StorageClass.CX_SC_Static) || openedOutputBuilder)

@@ -698,6 +698,16 @@ namespace ClangSharp
             var type = explicitCastExpr.Type;
             var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out _);
 
+            if (IsPrevContextDecl<VarDecl>(out var varDecl, out _))
+            {
+                var cursorName = GetCursorName(varDecl);
+
+                if (cursorName.StartsWith("ClangSharpMacro_") && _config.WithTransparentStructs.TryGetValue(typeName, out var transparentValueTypeName))
+                {
+                    typeName = transparentValueTypeName;
+                }
+            }
+
             if (typeName == "IntPtr")
             {
                 typeName = "nint";

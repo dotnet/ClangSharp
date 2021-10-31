@@ -1828,7 +1828,7 @@ namespace ClangSharp
                 }
             }
 
-            if (nativeTypeName.Equals(remappedName) || nativeTypeName.Replace(" ", "").Equals(remappedName))
+            if (IsNativeTypeNameEquivalent(nativeTypeName, remappedName))
             {
                 nativeTypeName = string.Empty;
             }
@@ -2265,7 +2265,7 @@ namespace ClangSharp
                 Debug.Assert(!string.IsNullOrWhiteSpace(result.typeName));
                 Debug.Assert(!string.IsNullOrWhiteSpace(result.nativeTypeName));
 
-                if (result.nativeTypeName.Equals(result.typeName))
+                if (IsNativeTypeNameEquivalent(result.nativeTypeName, result.typeName))
                 {
                     result.nativeTypeName = string.Empty;
                 }
@@ -3393,6 +3393,21 @@ namespace ClangSharp
             }
         }
 
+        private bool IsNativeTypeNameEquivalent(string nativeTypeName, string typeName)
+        {
+            if (nativeTypeName.Equals(typeName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (nativeTypeName.Replace(" ", "").Equals(typeName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private bool IsPrevContextDecl<T>(out T cursor, out object userData)
             where T : Decl
         {
@@ -3510,6 +3525,16 @@ namespace ClangSharp
 
         private bool IsUnchecked(string targetTypeName, Stmt stmt)
         {
+            if (IsPrevContextDecl<VarDecl>(out var parentVarDecl, out _))
+            {
+                var cursorName = GetCursorName(parentVarDecl);
+
+                if (cursorName.StartsWith("ClangSharpMacro_") && _config.WithTransparentStructs.TryGetValue(targetTypeName, out var transparentValueTypeName))
+                {
+                    targetTypeName = transparentValueTypeName;
+                }
+            }
+
             switch (stmt.StmtClass)
             {
                 // case CX_StmtClass.CX_StmtClass_BinaryConditionalOperator:
@@ -4779,7 +4804,7 @@ namespace ClangSharp
 
                 integerTypeName = type;
 
-                if (nativeTypeName.Equals(type))
+                if (IsNativeTypeNameEquivalent(nativeTypeName, type))
                 {
                     nativeTypeName = string.Empty;
                 }
