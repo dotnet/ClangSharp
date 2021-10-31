@@ -154,7 +154,7 @@ namespace ClangSharp.XML
 
             _ = _sb.Append('>');
 
-            desc.WriteCustomAttrs(desc.CustomAttrGeneratorData);
+            desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
 
             _ = _sb.Append("<type");
             if (!string.IsNullOrWhiteSpace(desc.NativeTypeName))
@@ -177,7 +177,7 @@ namespace ClangSharp.XML
         public void BeginParameter<TCustomAttrGeneratorData>(in ParameterDesc<TCustomAttrGeneratorData> info)
         {
             _ = _sb.Append($"<param name=\"{info.Name}\">");
-            info.WriteCustomAttrs(info.CustomAttrGeneratorData);
+            info.WriteCustomAttrs?.Invoke(info.CustomAttrGeneratorData);
             _ = _sb.Append("<type>");
             _ = _sb.Append(EscapeText(info.Type));
             _ = _sb.Append("</type>");
@@ -286,7 +286,7 @@ namespace ClangSharp.XML
             }
 
             _ = _sb.Append('>');
-            info.WriteCustomAttrs(info.CustomAttrGeneratorData);
+            info.WriteCustomAttrs?.Invoke(info.CustomAttrGeneratorData);
         }
 
         public void BeginExplicitVtbl() => _sb.Append("<vtbl>");

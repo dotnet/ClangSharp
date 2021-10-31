@@ -326,7 +326,7 @@ namespace ClangSharp
             {
                 if (!isAnonymousEnum)
                 {
-                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName, skipUsing: false);
+                    var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
 
                     var desc = new EnumDesc()
                     {
@@ -364,7 +364,7 @@ namespace ClangSharp
             var escapedName = EscapeName(name);
 
             var type = fieldDecl.Type;
-            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName, skipUsing: false);
+            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
 
             int? offset = null;
             if (fieldDecl.Parent.IsUnion)
@@ -395,8 +395,7 @@ namespace ClangSharp
                     elementType = subConstantArrayType.ElementType;
                 }
 
-                _outputBuilder.WriteFixedCountField(typeName, escapedName, GetArtificialFixedSizedBufferName(fieldDecl),
-                    count);
+                _outputBuilder.WriteFixedCountField(typeName, escapedName, GetArtificialFixedSizedBufferName(fieldDecl), count);
             }
             else
             {
@@ -440,7 +439,7 @@ namespace ClangSharp
             var escapedName = isVirtual ? PrefixAndStripName(name, cxxMethodDecl.OverloadIndex) : EscapeAndStripName(name);
 
             var returnType = functionDecl.ReturnType;
-            var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName, skipUsing: false);
+            var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
 
             if ((isVirtual || (body is null)) && (returnTypeName == "bool"))
             {
@@ -513,9 +512,7 @@ namespace ClangSharp
                 ParameterDesc<(string Name, PInvokeGenerator This)> parameterDesc = new()
                 {
                     Name = "pThis",
-                    Type = $"{cxxRecordEscapedName}*",
-                    WriteCustomAttrs = static x => { },
-                    CustomAttrGeneratorData = default
+                    Type = $"{cxxRecordEscapedName}*"
                 };
 
                 _outputBuilder.BeginParameter(in parameterDesc);
@@ -527,9 +524,7 @@ namespace ClangSharp
                     parameterDesc = new()
                     {
                         Name = "_result",
-                        Type = $"{returnTypeName}*",
-                        WriteCustomAttrs = static x => { },
-                        CustomAttrGeneratorData = default
+                        Type = $"{returnTypeName}*"
                     };
                     _outputBuilder.BeginParameter(in parameterDesc);
                     _outputBuilder.EndParameter();
@@ -612,7 +607,7 @@ namespace ClangSharp
 
                     _outputBuilder.BeginConstructorInitializer(memberRefName, memberInitName);
 
-                    var memberRefTypeName = GetRemappedTypeName(memberRef, context: null, memberRef.Type, out var memberRefNativeTypeName, skipUsing: false);
+                    var memberRefTypeName = GetRemappedTypeName(memberRef, context: null, memberRef.Type, out var memberRefNativeTypeName);
 
                     UncheckStmt(memberRefTypeName, memberInit);
 
@@ -669,7 +664,7 @@ namespace ClangSharp
 
                 contextNameParts.Push(EscapeName(contextNamePart));
 
-                contextTypeParts.Push(GetRemappedTypeName(rootRecordDecl, context: null, rootRecordDecl.TypeForDecl, out _, skipUsing: false));
+                contextTypeParts.Push(GetRemappedTypeName(rootRecordDecl, context: null, rootRecordDecl.TypeForDecl, out _));
 
                 rootRecordDecl = parentRecordDecl;
             }
@@ -693,9 +688,16 @@ namespace ClangSharp
 
             var accessSpecifier = GetAccessSpecifier(anonymousRecordDecl);
 
-            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out _, skipUsing: false);
+            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out _);
             var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
+
+            var rootRecordDeclName = GetRemappedCursorName(rootRecordDecl);
+
+            if (_config.ExcludedNames.Contains($"{rootRecordDeclName}.{name}") || _config.ExcludedNames.Contains($"{rootRecordDeclName}::{name}"))
+            {
+                return;
+            }
 
             var desc = new FieldDesc {
                 AccessSpecifier = accessSpecifier,
@@ -923,7 +925,7 @@ namespace ClangSharp
                     escapedName += index;
                 }
 
-                var desc = new ParameterDesc<(string Name, PInvokeGenerator This)>
+                var desc = new ParameterDesc<(PInvokeGenerator This, CSharp.CSharpOutputBuilder CSharpOutputBuilder, Expr DefaultArg)>
                 {
                     Name = escapedName,
                     Type = typeName,
@@ -931,14 +933,43 @@ namespace ClangSharp
                     CppAttributes = _config.GenerateCppAttributes
                         ? parmVarDecl.Attrs.Select(x => EscapeString(x.Spelling))
                         : null,
-                    CustomAttrGeneratorData = (name, this),
-                    WriteCustomAttrs = static _ => { },
                     Location = parmVarDecl.Location
                 };
 
-                _outputBuilder.BeginParameter(in desc);
+                var handledDefaultArg = false;
+                var isExprDefaultValue = false;
 
                 if (parmVarDecl.HasDefaultArg)
+                {
+                    isExprDefaultValue = IsDefaultValue(parmVarDecl.DefaultArg);
+
+                    if ((_outputBuilder is CSharp.CSharpOutputBuilder csharpOutputBuilder) && (_config.WithTransparentStructs.ContainsKey(typeName) || parameters.Skip(index).Any((parmVarDecl) => {
+                        var type = parmVarDecl.Type;
+                        var typeName = GetTargetTypeName(parmVarDecl, out var nativeTypeName);
+                        return _config.WithTransparentStructs.ContainsKey(typeName);
+                    })))
+                    {
+                        desc.CustomAttrGeneratorData = (this, csharpOutputBuilder, isExprDefaultValue ? null : parmVarDecl.DefaultArg);
+                        desc.WriteCustomAttrs = static x => {
+                            if (x.DefaultArg is not null)
+                            {
+                                x.CSharpOutputBuilder.WriteCustomAttribute("Optional, DefaultParameterValue(", () => {
+                                    x.This.Visit(x.DefaultArg);
+                                    x.CSharpOutputBuilder.Write(')');
+                                });
+                            }
+                            else
+                            {
+                                x.CSharpOutputBuilder.WriteCustomAttribute("Optional", null);
+                            }
+                        };
+                        handledDefaultArg = true;
+                    }
+                }
+
+                _outputBuilder.BeginParameter(in desc);
+
+                if (parmVarDecl.HasDefaultArg && !handledDefaultArg)
                 {
                     _outputBuilder.BeginParameterDefault();
 
@@ -946,9 +977,7 @@ namespace ClangSharp
 
                     if (parmVarDecl.Type.CanonicalType.IsPointerType && (defaultArg.Handle.Evaluate.Kind == CXEvalResultKind.CXEval_UnExposed))
                     {
-                        if (!IsStmtAsWritten<CXXNullPtrLiteralExpr>(defaultArg, out _, removeParens: true) &&
-                           (!IsStmtAsWritten<CastExpr>(defaultArg, out var castExpr, removeParens: true) || (castExpr.CastKind != CX_CastKind.CX_CK_NullToPointer)) &&
-                           (!IsStmtAsWritten<IntegerLiteral>(defaultArg, out var integerLiteral, removeParens: true) || (integerLiteral.Value != 0)))
+                        if (!isExprDefaultValue)
                         {
                             AddDiagnostic(DiagnosticLevel.Info, $"Unsupported default parameter: '{name}'. Generated bindings may be incomplete.", defaultArg);
                         }
@@ -998,8 +1027,6 @@ namespace ClangSharp
                     CppAttributes = _config.GenerateCppAttributes
                         ? parmVarDecl.Attrs.Select(x => EscapeString(x.Spelling))
                         : null,
-                    CustomAttrGeneratorData = (name, this),
-                    WriteCustomAttrs = static _ => { },
                     Location = parmVarDecl.Location
                 };
 
@@ -1018,6 +1045,13 @@ namespace ClangSharp
                 {
                     _outputBuilder.WriteParameterSeparator();
                 }
+            }
+
+            bool IsDefaultValue(Expr defaultArg)
+            {
+                return IsStmtAsWritten<CXXNullPtrLiteralExpr>(defaultArg, out _, removeParens: true) ||
+                       (IsStmtAsWritten<CastExpr>(defaultArg, out var castExpr, removeParens: true) && (castExpr.CastKind == CX_CastKind.CX_CK_NullToPointer)) ||
+                       (IsStmtAsWritten<IntegerLiteral>(defaultArg, out var integerLiteral, removeParens: true) && (integerLiteral.Value == 0));
             }
         }
 
@@ -1163,8 +1197,6 @@ namespace ClangSharp
                         Kind = layoutKind
                     },
                     Uuid = nullableUuid,
-                    CustomAttrGeneratorData = (name, this),
-                    WriteCustomAttrs = static _ => { },
                     NativeType = nativeNameWithExtras,
                     NativeInheritance = _config.GenerateNativeInheritanceAttribute ? nativeInheritance : null,
                     Location = recordDecl.Location,
@@ -1514,7 +1546,7 @@ namespace ClangSharp
                     return;
                 }
 
-                var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out var nativeTypeName, skipUsing: false);
+                var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out var nativeTypeName, skipUsing: false, ignoreTransparentStructsWhereRequired: true);
 
                 var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
@@ -1552,7 +1584,7 @@ namespace ClangSharp
                 var currentContext = _context.AddLast((cxxMethodDecl, null));
                 var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var returnType = cxxMethodDecl.ReturnType;
-                var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName, skipUsing: false);
+                var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
 
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                 var name = GetRemappedCursorName(cxxMethodDecl);
@@ -1566,10 +1598,8 @@ namespace ClangSharp
                 var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
                 {
                     AccessSpecifier = accessSpecifier,
-                    CustomAttrGeneratorData = (name, this),
                     IsAggressivelyInlined = _config.GenerateAggressiveInlining,
                     EscapedName = EscapeAndStripName(name),
-                    WriteCustomAttrs = static _ => {},
                     IsMemberFunction = true,
                     NativeTypeName = nativeTypeName,
                     NeedsNewKeyword = NeedsNewKeyword(name, cxxMethodDecl.Parameters),
@@ -1645,7 +1675,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out _, skipUsing: false);
+                    var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out _, skipUsing: false, ignoreTransparentStructsWhereRequired: true);
 
                     if (!_config.ExcludeFnptrCodegen)
                     {
@@ -1758,7 +1788,7 @@ namespace ClangSharp
                 Debug.Assert(fieldDecl.IsBitField);
 
                 var type = fieldDecl.Type;
-                var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName, skipUsing: false);
+                var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
 
                 if (string.IsNullOrWhiteSpace(nativeTypeName))
                 {
@@ -1787,7 +1817,7 @@ namespace ClangSharp
                     previousSize = 0;
 
                     typeBacking = (index > 0) ? types[index - 1] : types[0];
-                    typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _, skipUsing: false);
+                    typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
 
                     if (fieldDecl.Parent == recordDecl)
                     {
@@ -1820,7 +1850,7 @@ namespace ClangSharp
                     }
 
                     typeBacking = (index > 0) ? types[index - 1] : types[0];
-                    typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _, skipUsing: false);
+                    typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
                 }
 
                 var bitfieldOffset = (currentSize * 8) - remainingBits;
@@ -2173,7 +2203,7 @@ namespace ClangSharp
 
                 var outputBuilder = _outputBuilder;
                 var type = (ConstantArrayType)constantArray.Type.CanonicalType;
-                var typeName = GetRemappedTypeName(constantArray, context: null, constantArray.Type, out _, skipUsing: false);
+                var typeName = GetRemappedTypeName(constantArray, context: null, constantArray.Type, out _);
 
                 if (IsSupportedFixedSizedBufferType(typeName))
                 {
@@ -2218,7 +2248,6 @@ namespace ClangSharp
 
                 var desc = new StructDesc<(string Name, PInvokeGenerator This)> {
                     AccessSpecifier = accessSpecifier,
-                    CustomAttrGeneratorData = (name, this),
                     EscapedName = escapedName,
                     IsUnsafe = isUnsafeElementType,
                     Layout = new() {
@@ -2230,7 +2259,6 @@ namespace ClangSharp
                         MaxFieldAlignment = maxAlignm,
                         Kind = LayoutKind.Sequential
                     },
-                    WriteCustomAttrs = static _ => { },
                     Location = constantArray.Location,
                     IsNested = true,
                 };
@@ -2301,8 +2329,6 @@ namespace ClangSharp
                     {
                         Name = "index",
                         Type = "int",
-                        CustomAttrGeneratorData = (name, this),
-                        WriteCustomAttrs = static _ => {}
                     };
                     _outputBuilder.BeginParameter(in param);
                     _outputBuilder.EndParameter();
@@ -2337,8 +2363,6 @@ namespace ClangSharp
                     {
                         Name = "index",
                         Type = "int",
-                        CustomAttrGeneratorData = (name, this),
-                        WriteCustomAttrs = static _ => {}
                     };
                     _outputBuilder.BeginParameter(in param);
                     _outputBuilder.EndParameter();
@@ -2371,8 +2395,6 @@ namespace ClangSharp
                         AccessSpecifier = AccessSpecifier.Public,
                         EscapedName = "AsSpan",
                         IsAggressivelyInlined = _config.GenerateAggressiveInlining,
-                        CustomAttrGeneratorData = (name, this),
-                        WriteCustomAttrs = static _ => {},
                         IsStatic = false,
                         IsMemberFunction = true,
                         ReturnType = $"Span<{typeName}>",
@@ -2388,8 +2410,6 @@ namespace ClangSharp
                         {
                             Name = "length",
                             Type = "int",
-                            CustomAttrGeneratorData = (name, this),
-                            WriteCustomAttrs = static _ => {}
                         };
 
                         _outputBuilder.BeginParameter(in param);
@@ -2452,7 +2472,7 @@ namespace ClangSharp
                 var callingConventionName = GetCallingConvention(typedefDecl, context: null, typedefDecl.TypeForDecl);
 
                 var returnType = functionProtoType.ReturnType;
-                var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName, skipUsing: false);
+                var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
 
                 StartUsingOutputBuilder(name);
                 {
@@ -2460,12 +2480,10 @@ namespace ClangSharp
                     {
                         AccessSpecifier = GetAccessSpecifier(typedefDecl),
                         CallingConvention = callingConventionName,
-                        CustomAttrGeneratorData = (name, this),
                         EscapedName = escapedName,
                         IsVirtual = true, // such that it outputs as a delegate
                         IsUnsafe = IsUnsafe(typedefDecl, functionProtoType),
                         NativeTypeName = nativeTypeName,
-                        WriteCustomAttrs = static _ => {},
                         ReturnType = returnTypeName,
                         Location = typedefDecl.Location
                     };
@@ -2617,7 +2635,7 @@ namespace ClangSharp
                 var isMacroDefinitionRecord = false;
 
                 var nativeName = GetCursorName(varDecl);
-                if (nativeName.StartsWith("ClangSharpMacro_"))
+                if (nativeName.StartsWith("ClangSharpMacro_" + ""))
                 {
                     type = varDecl.Init.Type;
                     nativeName = nativeName["ClangSharpMacro_".Length..];
@@ -2724,6 +2742,10 @@ namespace ClangSharp
                     if (flags.HasFlag(ValueFlags.Constant) && !IsConstant(typeName, varDecl.Init))
                     {
                         flags |= ValueFlags.Copy;
+                    }
+                    else if (_config.WithTransparentStructs.TryGetValue(typeName, out var transparentValueTypeName))
+                    {
+                        typeName = transparentValueTypeName;
                     }
                 }
                 else if ((varDecl.StorageClass == CX_StorageClass.CX_SC_Static) || openedOutputBuilder)
@@ -2842,7 +2864,7 @@ namespace ClangSharp
                 if (varDecl == declStmt.Decls.First())
                 {
                     var type = varDecl.Type;
-                    var typeName = GetRemappedTypeName(varDecl, context: null, type, out _, skipUsing: false);
+                    var typeName = GetRemappedTypeName(varDecl, context: null, type, out _);
 
                     outputBuilder.Write(typeName);
 

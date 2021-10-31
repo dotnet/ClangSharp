@@ -8,7 +8,7 @@ namespace ClangSharp.CSharp
     internal partial class CSharpOutputBuilder
     {
         private bool _customAttrIsForParameter = false;
-        public void WriteCustomAttribute(string attribute)
+        public void WriteCustomAttribute(string attribute, Action callback = null)
         {
             if (attribute.Equals("Flags") || attribute.Equals("Obsolete"))
             {
@@ -18,22 +18,27 @@ namespace ClangSharp.CSharp
             {
                 AddUsingDirective("System.ComponentModel");
             }
-            else if (attribute.StartsWith("Guid("))
+            else if (attribute.StartsWith("Guid(") || attribute.StartsWith("Optional, DefaultParameterValue("))
             {
                 AddUsingDirective("System.Runtime.InteropServices");
             }
 
             if (!_customAttrIsForParameter)
             {
-                WriteIndented('[');
-                Write(attribute);
-                WriteLine(']');
+                WriteIndentation();
+            }
+
+            Write('[');
+            Write(attribute);
+            callback?.Invoke();
+            Write(']');
+
+            if (!_customAttrIsForParameter)
+            {
+                WriteNewline();
             }
             else
             {
-                Write('[');
-                Write(attribute);
-                Write(']');
                 Write(' ');
             }
         }

@@ -253,6 +253,14 @@ namespace ClangSharp
                 emitNamespaceDeclaration = false;
             }
 
+            if (_config.GenerateHelperTypes && (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp))
+            {
+                GenerateNativeInheritanceAttribute(this);
+                GenerateNativeTypeNameAttribute(this);
+                GenerateVtblIndexAttribute(this);
+                GenerateTransparentStructs(this);
+            }
+
             if (leaveStreamOpen && _outputBuilderFactory.OutputBuilders.Any())
             {
                 if (methodClassOutputBuilder is not null)
@@ -286,6 +294,247 @@ namespace ClangSharp
             _outputBuilderFactory.Clear();
             _uuidsToGenerate.Clear();
             _visitedFiles.Clear();
+
+            static void GenerateNativeInheritanceAttribute(PInvokeGenerator generator)
+            {
+                var config = generator.Config;
+                var outputPath = Path.Combine(config.OutputLocation, "NativeInheritanceAttribute.cs");
+
+                using var sw = new StreamWriter(outputPath);
+                sw.NewLine = "\n";
+
+                if (config.HeaderText != string.Empty)
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
+                sw.WriteLine();
+
+                sw.Write("namespace ");
+                sw.WriteLine(config.Namespace);
+                sw.WriteLine('{');
+
+                sw.WriteLine("    /// <summary>Defines the base type of a struct as it was in the native signature.</summary>");
+                sw.WriteLine("    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]");
+                sw.WriteLine("    [Conditional(\"DEBUG\")]");
+                sw.WriteLine("    internal sealed partial class NativeInheritanceAttribute : Attribute");
+                sw.WriteLine("    {");
+                sw.WriteLine("        private readonly string _name;");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Initializes a new instance of the <see cref=\"NativeInheritanceAttribute\" /> class.</summary>");
+                sw.WriteLine("        /// <param name=\"name\">The name of the base type that was inherited from in the native signature.</param>");
+                sw.WriteLine("        public NativeInheritanceAttribute(string name)");
+                sw.WriteLine("        {");
+                sw.WriteLine("            _name = name;");
+                sw.WriteLine("        }");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Gets the name of the base type that was inherited from in the native signature.</summary>");
+                sw.WriteLine("        public string Name => _name;");
+                sw.WriteLine("    }");
+
+                sw.WriteLine('}');
+            }
+
+            static void GenerateNativeTypeNameAttribute(PInvokeGenerator generator)
+            {
+                var config = generator.Config;
+                var outputPath = Path.Combine(config.OutputLocation, "NativeTypeNameAttribute.cs");
+
+                using var sw = new StreamWriter(outputPath);
+                sw.NewLine = "\n";
+
+                if (config.HeaderText != string.Empty)
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
+                sw.WriteLine();
+
+                sw.Write("namespace ");
+                sw.WriteLine(config.Namespace);
+                sw.WriteLine('{');
+
+                sw.WriteLine("    /// <summary>Defines the type of a member as it was used in the native signature.</summary>");
+                sw.WriteLine("    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = false, Inherited = true)]");
+                sw.WriteLine("    [Conditional(\"DEBUG\")]");
+                sw.WriteLine("    internal sealed partial class NativeTypeNameAttribute : Attribute");
+                sw.WriteLine("    {");
+                sw.WriteLine("        private readonly string _name;");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Initializes a new instance of the <see cref=\"NativeTypeNameAttribute\" /> class.</summary>");
+                sw.WriteLine("        /// <param name=\"name\">The name of the type that was used in the native signature.</param>");
+                sw.WriteLine("        public NativeTypeNameAttribute(string name)");
+                sw.WriteLine("        {");
+                sw.WriteLine("            _name = name;");
+                sw.WriteLine("        }");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Gets the name of the type that was used in the native signature.</summary>");
+                sw.WriteLine("        public string Name => _name;");
+                sw.WriteLine("    }");
+
+                sw.WriteLine('}');
+            }
+
+            static void GenerateVtblIndexAttribute(PInvokeGenerator generator)
+            {
+                var config = generator.Config;
+                var outputPath = Path.Combine(config.OutputLocation, "VtblIndexAttribute.cs");
+
+                using var sw = new StreamWriter(outputPath);
+                sw.NewLine = "\n";
+
+                if (config.HeaderText != string.Empty)
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
+                sw.WriteLine();
+
+                sw.Write("namespace ");
+                sw.WriteLine(config.Namespace);
+                sw.WriteLine('{');
+
+                sw.WriteLine("    /// <summary>Defines the vtbl index of a method as it was in the native signature.</summary>");
+                sw.WriteLine("    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]");
+                sw.WriteLine("    [Conditional(\"DEBUG\")]");
+                sw.WriteLine("    internal sealed partial class VtblIndexAttribute : Attribute");
+                sw.WriteLine("    {");
+                sw.WriteLine("        private readonly uint _index;");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Initializes a new instance of the <see cref=\"VtblIndexAttribute\" /> class.</summary>");
+                sw.WriteLine("        /// <param name=\"index\">The vtbl index of a method as it was in the native signature.</param>");
+                sw.WriteLine("        public VtblIndexAttribute(uint index)");
+                sw.WriteLine("        {");
+                sw.WriteLine("            _index = index;");
+                sw.WriteLine("        }");
+                sw.WriteLine();
+                sw.WriteLine("        /// <summary>Gets the vtbl index of a method as it was in the native signature.</summary>");
+                sw.WriteLine("        public uint Index => _index;");
+                sw.WriteLine("    }");
+
+                sw.WriteLine('}');
+            }
+
+            static void GenerateTransparentStructs(PInvokeGenerator generator)
+            {
+                var config = generator.Config;
+
+                foreach (var transparentStruct in config.WithTransparentStructs)
+                {
+                    var outputPath = Path.Combine(config.OutputLocation, $"{transparentStruct.Key}.cs");
+
+                    using var sw = new StreamWriter(outputPath);
+                    sw.NewLine = "\n";
+
+                    if (config.HeaderText != string.Empty)
+                    {
+                        sw.WriteLine(config.HeaderText);
+                    }
+
+                    var isUnsafe = transparentStruct.Key.Contains('*');
+
+                    sw.WriteLine("using System;");
+                    sw.WriteLine();
+
+                    sw.Write("namespace ");
+                    sw.WriteLine(config.Namespace);
+                    sw.WriteLine('{');
+
+                    sw.Write("    public ");
+
+                    if (isUnsafe)
+                    {
+                        sw.Write("unsafe ");
+                    }
+
+                    sw.Write("partial struct ");
+                    sw.Write(transparentStruct.Key);
+                    sw.Write(" : IEquatable<");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine('>');
+
+                    sw.WriteLine("    {");
+
+                    sw.Write("        public readonly ");
+                    sw.Write(transparentStruct.Value);
+                    sw.WriteLine(" Value;");
+                    sw.WriteLine();
+
+                    sw.Write("        public ");
+                    sw.Write(transparentStruct.Key);
+                    sw.Write('(');
+                    sw.Write(transparentStruct.Value);
+                    sw.WriteLine(" value)");
+                    sw.WriteLine("        {");
+                    sw.WriteLine("            Value = value;");
+                    sw.WriteLine("        }");
+                    sw.WriteLine();
+
+                    sw.Write("        public static bool operator ==(");
+                    sw.Write(transparentStruct.Key);
+                    sw.Write(" left, ");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine(" right) => left.Value == right.Value;");
+                    sw.WriteLine();
+
+                    sw.Write("        public static bool operator !=(");
+                    sw.Write(transparentStruct.Key);
+                    sw.Write(" left, ");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine(" right) => left.Value != right.Value;");
+                    sw.WriteLine();
+
+                    sw.Write("        public static implicit operator ");
+                    sw.Write(transparentStruct.Key);
+                    sw.Write('(');
+                    sw.Write(transparentStruct.Value);
+                    sw.Write(" value) => new ");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine("(value);");
+                    sw.WriteLine();
+
+                    sw.Write("        public static implicit operator ");
+                    sw.Write(transparentStruct.Value);
+                    sw.Write('(');
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine(" value) => value.Value;");
+                    sw.WriteLine();
+
+                    sw.Write("        public override bool Equals(object? obj) => (obj is ");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine(" other) && Equals(other);");
+                    sw.WriteLine();
+
+                    sw.Write("        public bool Equals(");
+                    sw.Write(transparentStruct.Key);
+                    sw.WriteLine(" other) => (this == other);");
+                    sw.WriteLine();
+
+                    sw.Write("        public override int GetHashCode() => ");
+
+                    if (isUnsafe)
+                    {
+                        sw.Write("((nuint)(");
+                    }
+
+                    sw.Write("Value");
+
+                    if (isUnsafe)
+                    {
+                        sw.Write("))");
+                    }
+
+                    sw.WriteLine(".GetHashCode();");
+                    sw.WriteLine("    }");
+                    sw.WriteLine('}');
+                }
+            }
         }
 
         public void Dispose()
@@ -996,7 +1245,7 @@ namespace ClangSharp
 
         private CallingConvention GetCallingConvention(Cursor cursor, Cursor context, Type type, ref bool wasRemapped)
         {
-            var remappedName = GetRemappedTypeName(cursor, context, type, out _, skipUsing: true);
+            var remappedName = GetRemappedTypeName(cursor, context, type, out _, ignoreTransparentStructsWhereRequired: false, skipUsing: true);
 
             if (_config.WithCallConvs.TryGetValue(remappedName, out var callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
             {
@@ -1140,7 +1389,7 @@ namespace ClangSharp
                     {
                         name = (typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous
                              ? GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling)
-                             : GetTypeName(namedDecl, context: null, typeDecl.TypeForDecl, out _);
+                             : GetTypeName(namedDecl, context: null, typeDecl.TypeForDecl, ignoreTransparentStructsWhereRequired: false, out _);
                     }
                     else if (namedDecl is ParmVarDecl)
                     {
@@ -1381,7 +1630,7 @@ namespace ClangSharp
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
             var name = GetCursorQualifiedName(namedDecl);
-            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped, skipUsing: false);
+            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped);
 
             if (wasRemapped)
             {
@@ -1389,7 +1638,7 @@ namespace ClangSharp
             }
 
             name = name.Replace("::", ".");
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
             if (wasRemapped)
             {
@@ -1397,7 +1646,7 @@ namespace ClangSharp
             }
 
             name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
             if (wasRemapped)
             {
@@ -1405,7 +1654,7 @@ namespace ClangSharp
             }
 
             name = name.Replace("::", ".");
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
             if (wasRemapped)
             {
@@ -1413,7 +1662,7 @@ namespace ClangSharp
             }
 
             name = GetCursorName(namedDecl);
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing: false);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
 
             if (wasRemapped)
             {
@@ -1456,7 +1705,7 @@ namespace ClangSharp
             return remappedName;
         }
 
-        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing)
+        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
         {
             if (_config.RemappedNames.TryGetValue(name, out var remappedName))
             {
@@ -1501,9 +1750,9 @@ namespace ClangSharp
             }
         }
 
-        private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName, bool skipUsing)
+        private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName, bool skipUsing = false, bool ignoreTransparentStructsWhereRequired = false)
         {
-            var name = GetTypeName(cursor, context, type, out nativeTypeName);
+            var name = GetTypeName(cursor, context, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
             var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing);
 
             if (!wasRemapped)
@@ -1579,7 +1828,7 @@ namespace ClangSharp
                 }
             }
 
-            if (nativeTypeName.Equals(remappedName) || nativeTypeName.Replace(" ", "").Equals(remappedName))
+            if (IsNativeTypeNameEquivalent(nativeTypeName, remappedName))
             {
                 nativeTypeName = string.Empty;
             }
@@ -1623,22 +1872,22 @@ namespace ClangSharp
                 {
                     if (enumConstantDecl.DeclContext is EnumDecl enumDecl)
                     {
-                        targetTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out nativeTypeName, skipUsing: false);
+                        targetTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out nativeTypeName);
                     }
                     else
                     {
-                        targetTypeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out nativeTypeName, skipUsing: false);
+                        targetTypeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out nativeTypeName);
                     }
                 }
                 else if (decl is TypeDecl previousTypeDecl)
                 {
-                    targetTypeName = GetRemappedTypeName(previousTypeDecl, context: null, previousTypeDecl.TypeForDecl, out nativeTypeName, skipUsing: false);
+                    targetTypeName = GetRemappedTypeName(previousTypeDecl, context: null, previousTypeDecl.TypeForDecl, out nativeTypeName);
                 }
                 else if (decl is VarDecl varDecl)
                 {
                     if (varDecl is ParmVarDecl parmVarDecl)
                     {
-                        targetTypeName = GetRemappedTypeName(parmVarDecl, context: null, parmVarDecl.Type, out nativeTypeName, skipUsing: false);
+                        targetTypeName = GetRemappedTypeName(parmVarDecl, context: null, parmVarDecl.Type, out nativeTypeName);
 
                         if ((parmVarDecl.ParentFunctionOrMethod is FunctionDecl functionDecl) && ((functionDecl is CXXMethodDecl { IsVirtual: true }) || (functionDecl.Body is null)) && (targetTypeName == "bool"))
                         {
@@ -1664,23 +1913,23 @@ namespace ClangSharp
                             type = varDecl.Init.Type;
                         }
 
-                        targetTypeName = GetRemappedTypeName(varDecl, context: null, type, out nativeTypeName, skipUsing: false);
+                        targetTypeName = GetRemappedTypeName(varDecl, context: null, type, out nativeTypeName);
                     }
                 }
 
             }
             else if ((cursor is Expr expr) && (expr is not MemberExpr))
             {
-                targetTypeName = GetRemappedTypeName(expr, context: null, expr.Type, out nativeTypeName, skipUsing: false);
+                targetTypeName = GetRemappedTypeName(expr, context: null, expr.Type, out nativeTypeName);
             }
 
             return targetTypeName;
         }
 
-        private string GetTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName)
-            => GetTypeName(cursor, context, type, type, out nativeTypeName);
+        private string GetTypeName(Cursor cursor, Cursor context, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
+            => GetTypeName(cursor, context, type, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
 
-        private string GetTypeName(Cursor cursor, Cursor context, Type rootType, Type type, out string nativeTypeName)
+        private string GetTypeName(Cursor cursor, Cursor context, Type rootType, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
         {
             if (!_typeNames.TryGetValue((cursor, context, type), out var result))
             {
@@ -1700,7 +1949,7 @@ namespace ClangSharp
 
                 if (type is ArrayType arrayType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, arrayType.ElementType, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, arrayType.ElementType, ignoreTransparentStructsWhereRequired, out _);
 
                     if (cursor is FunctionDecl or ParmVarDecl)
                     {
@@ -1710,7 +1959,7 @@ namespace ClangSharp
                 }
                 else if (type is AttributedType attributedType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, attributedType.ModifiedType, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is BuiltinType)
                 {
@@ -1844,13 +2093,13 @@ namespace ClangSharp
                 }
                 else if (type is DeducedType deducedType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, deducedType.CanonicalType, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, deducedType.CanonicalType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is DependentNameType dependentNameType)
                 {
                     if (dependentNameType.IsSugared)
                     {
-                        result.typeName = GetTypeName(cursor, context, rootType, dependentNameType.Desugar, out _);
+                        result.typeName = GetTypeName(cursor, context, rootType, dependentNameType.Desugar, ignoreTransparentStructsWhereRequired, out _);
                     }
                     else
                     {
@@ -1859,31 +2108,31 @@ namespace ClangSharp
                 }
                 else if (type is ElaboratedType elaboratedType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is FunctionType functionType)
                 {
-                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, functionType, out _);
+                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, functionType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is InjectedClassNameType injectedClassNameType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, injectedClassNameType.InjectedTST, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, injectedClassNameType.InjectedTST, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is PackExpansionType packExpansionType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, packExpansionType.Pattern, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, packExpansionType.Pattern, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is PointerType pointerType)
                 {
-                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, pointerType.PointeeType, out _);
+                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, pointerType.PointeeType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is ReferenceType referenceType)
                 {
-                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, referenceType.PointeeType, out _);
+                    result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, referenceType.PointeeType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is SubstTemplateTypeParmType substTemplateTypeParmType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, substTemplateTypeParmType.ReplacementType, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, substTemplateTypeParmType.ReplacementType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else if (type is TagType tagType)
                 {
@@ -1893,7 +2142,7 @@ namespace ClangSharp
                     }
                     else if (tagType.Handle.IsConstQualified)
                     {
-                        result.typeName = GetTypeName(cursor, context, rootType, tagType.Decl.TypeForDecl, out _);
+                        result.typeName = GetTypeName(cursor, context, rootType, tagType.Decl.TypeForDecl, ignoreTransparentStructsWhereRequired, out _);
                     }
                     else
                     {
@@ -1992,7 +2241,7 @@ namespace ClangSharp
                 {
                     if (templateTypeParmType.IsSugared)
                     {
-                        result.typeName = GetTypeName(cursor, context, rootType, templateTypeParmType.Desugar, out _);
+                        result.typeName = GetTypeName(cursor, context, rootType, templateTypeParmType.Desugar, ignoreTransparentStructsWhereRequired, out _);
                     }
                     else
                     {
@@ -2006,7 +2255,7 @@ namespace ClangSharp
                     // platform size, based on whatever parameters were passed into clang.
 
                     var remappedName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
-                    result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, out _);
+                    result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else
                 {
@@ -2016,7 +2265,7 @@ namespace ClangSharp
                 Debug.Assert(!string.IsNullOrWhiteSpace(result.typeName));
                 Debug.Assert(!string.IsNullOrWhiteSpace(result.nativeTypeName));
 
-                if (result.nativeTypeName.Equals(result.typeName))
+                if (IsNativeTypeNameEquivalent(result.nativeTypeName, result.typeName))
                 {
                     result.nativeTypeName = string.Empty;
                 }
@@ -2028,18 +2277,18 @@ namespace ClangSharp
             return result.typeName;
         }
 
-        private string GetTypeNameForPointeeType(Cursor cursor, Cursor context, Type rootType, Type pointeeType, out string nativePointeeTypeName)
+        private string GetTypeNameForPointeeType(Cursor cursor, Cursor context, Type rootType, Type pointeeType, bool ignoreTransparentStructsWhereRequired, out string nativePointeeTypeName)
         {
             var name = pointeeType.AsString;
             nativePointeeTypeName = name;
 
             if (pointeeType is AttributedType attributedType)
             {
-                name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, out var nativeModifiedTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, out var nativeModifiedTypeName);
             }
             else if (pointeeType is ElaboratedType elaboratedType)
             {
-                name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, out var nativeNamedTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, out var nativeNamedTypeName);
             }
             else if (pointeeType is FunctionType functionType)
             {
@@ -2126,11 +2375,18 @@ namespace ClangSharp
                         _ = nameBuilder.Append(' ');
                     }
 
-                    _ = nameBuilder.Append(returnTypeName);
-
-                    if (needsReturnFixup)
+                    if (!needsReturnFixup && ignoreTransparentStructsWhereRequired && _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentValueTypeName))
                     {
-                        _ = nameBuilder.Append('*');
+                        _ = nameBuilder.Append(transparentValueTypeName);
+                    }
+                    else
+                    {
+                        _ = nameBuilder.Append(returnTypeName);
+
+                        if (needsReturnFixup)
+                        {
+                            _ = nameBuilder.Append('*');
+                        }
                     }
 
                     _ = nameBuilder.Append('>');
@@ -2156,7 +2412,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    name = GetTypeNameForPointeeType(cursor, context, rootType, typedefType.Decl.UnderlyingType, out var nativeUnderlyingTypeName);
+                    name = GetTypeNameForPointeeType(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out var nativeUnderlyingTypeName);
                 }
             }
             else
@@ -2355,7 +2611,7 @@ namespace ClangSharp
             }
             else if (type is RecordType recordType)
             {
-                var recordTypeAlignOf = recordType.Handle.AlignOf;
+                var recordTypeAlignOf = Math.Min(recordType.Handle.AlignOf, 8);
 
                 if (alignment32 == -1)
                 {
@@ -2437,63 +2693,94 @@ namespace ClangSharp
                     }
                 }
 
-                var bitfieldPreviousSize = 0L;
-                var bitfieldRemainingBits = 0L;
+                var bitfieldPreviousSize32 = 0L;
+                var bitfieldPreviousSize64 = 0L;
+                var bitfieldRemainingBits32 = 0L;
+                var bitfieldRemainingBits64 = 0L;
 
                 foreach (var fieldDecl in recordType.Decl.Fields)
                 {
-                    long fieldSize32;
-                    long fieldSize64;
-
                     long fieldAlignment32 = -1;
                     long fieldAlignment64 = -1;
 
-                    GetTypeSize(fieldDecl, fieldDecl.Type, ref fieldAlignment32, ref fieldAlignment64, out fieldSize32, out fieldSize64);
+                    GetTypeSize(fieldDecl, fieldDecl.Type, ref fieldAlignment32, ref fieldAlignment64, out var fieldSize32, out var fieldSize64);
+
+                    var ignoreFieldSize32 = false;
+                    var ignoreFieldSize64 = false;
 
                     if (fieldDecl.IsBitField)
                     {
-                        if ((fieldSize32 != bitfieldPreviousSize) || (fieldDecl.BitWidthValue > bitfieldRemainingBits))
+                        if (fieldSize32 != bitfieldPreviousSize32)
                         {
-                            bitfieldRemainingBits = fieldSize32 * 8;
-                            bitfieldPreviousSize = fieldSize32;
-                            bitfieldRemainingBits -= fieldDecl.BitWidthValue;
+                            bitfieldRemainingBits32 = fieldSize32 * 8;
+                            bitfieldPreviousSize32 = fieldSize32;
+                            bitfieldRemainingBits32 -= fieldDecl.BitWidthValue;
+                        }
+                        else if (fieldDecl.BitWidthValue > bitfieldRemainingBits32)
+                        {
+                            if (bitfieldRemainingBits32 != bitfieldRemainingBits64)
+                            {
+                                ignoreFieldSize32 = true;
+                            }
+
+                            bitfieldRemainingBits32 = fieldSize32 * 8;
+                            bitfieldPreviousSize32 = fieldSize32;
+                            bitfieldRemainingBits32 -= fieldDecl.BitWidthValue;
                         }
                         else
                         {
-                            bitfieldPreviousSize = fieldSize32;
-                            bitfieldRemainingBits -= fieldDecl.BitWidthValue;
-                            continue;
+                            bitfieldPreviousSize32 = fieldSize32;
+                            bitfieldRemainingBits32 -= fieldDecl.BitWidthValue;
+                            ignoreFieldSize32 = true;
+                        }
+
+                        if ((fieldSize64 != bitfieldPreviousSize64) || (fieldDecl.BitWidthValue > bitfieldRemainingBits64))
+                        {
+                            bitfieldRemainingBits64 = fieldSize64 * 8;
+                            bitfieldPreviousSize64 = fieldSize64;
+                            bitfieldRemainingBits64 -= fieldDecl.BitWidthValue;
+                        }
+                        else
+                        {
+                            bitfieldPreviousSize64 = fieldSize64;
+                            bitfieldRemainingBits64 -= fieldDecl.BitWidthValue;
+                            ignoreFieldSize64 = true;
                         }
                     }
 
-                    if ((fieldAlignment32 == -1) || (alignment32 < 4))
+                    if (!ignoreFieldSize32)
                     {
-                        fieldAlignment32 = Math.Max(Math.Min(alignment32, fieldSize32), 1);
+                        if ((fieldAlignment32 == -1) || (alignment32 < 4))
+                        {
+                            fieldAlignment32 = Math.Max(Math.Min(alignment32, fieldSize32), 1);
+                        }
+
+                        if ((size32 % fieldAlignment32) != 0)
+                        {
+                            size32 += fieldAlignment32 - (size32 % fieldAlignment32);
+                        }
+
+                        size32 += fieldSize32;
+                        maxFieldAlignment32 = Math.Max(maxFieldAlignment32, fieldAlignment32);
+                        maxFieldSize32 = Math.Max(maxFieldSize32, fieldSize32);
                     }
 
-                    if ((fieldAlignment64 == -1) || (alignment64 < 4))
+                    if (!ignoreFieldSize64)
                     {
-                        fieldAlignment64 = Math.Max(Math.Min(alignment64, fieldSize64), 1);
+                        if ((fieldAlignment64 == -1) || (alignment64 < 4))
+                        {
+                            fieldAlignment64 = Math.Max(Math.Min(alignment64, fieldSize64), 1);
+                        }
+
+                        if ((size64 % fieldAlignment64) != 0)
+                        {
+                            size64 += fieldAlignment64 - (size64 % fieldAlignment64);
+                        }
+
+                        size64 += fieldSize64;
+                        maxFieldAlignment64 = Math.Max(maxFieldAlignment64, fieldAlignment64);
+                        maxFieldSize64 = Math.Max(maxFieldSize64, fieldSize64);
                     }
-
-                    if ((size32 % fieldAlignment32) != 0)
-                    {
-                        size32 += fieldAlignment32 - (size32 % fieldAlignment32);
-                    }
-
-                    if ((size64 % fieldAlignment64) != 0)
-                    {
-                        size64 += fieldAlignment64 - (size64 % fieldAlignment64);
-                    }
-
-                    size32 += fieldSize32;
-                    size64 += fieldSize64;
-
-                    maxFieldAlignment32 = Math.Max(maxFieldAlignment32, fieldAlignment32);
-                    maxFieldAlignment64 = Math.Max(maxFieldAlignment64, fieldAlignment64);
-
-                    maxFieldSize32 = Math.Max(maxFieldSize32, fieldSize32);
-                    maxFieldSize64 = Math.Max(maxFieldSize64, fieldSize64);
                 }
 
                 if (alignment32 == 8)
@@ -2528,7 +2815,7 @@ namespace ClangSharp
                 // can be treated correctly. Otherwise, they will resolve to a particular
                 // platform size, based on whatever parameters were passed into clang.
 
-                var name = GetTypeName(cursor, context: null, type, out _);
+                var name = GetTypeName(cursor, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
 
                 if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
                 {
@@ -2899,7 +3186,7 @@ namespace ClangSharp
 
                 if ((parmVarDecl != null) && (parmVarDecl.Type is PointerType pointerType))
                 {
-                    var typeName = GetTypeName(parmVarDecl, context: null, pointerType.PointeeType, out var nativeTypeName);
+                    var typeName = GetTypeName(parmVarDecl, context: null, pointerType.PointeeType, ignoreTransparentStructsWhereRequired: false, out var nativeTypeName);
                     return name.StartsWith($"{nativeTypeName}_") || name.StartsWith($"{typeName}_") || (typeName == "IRpcStubBuffer");
                 }
                 return false;
@@ -3086,7 +3373,7 @@ namespace ClangSharp
             }
             else if (type is TypedefType typedefType)
             {
-                var name = GetTypeName(cursor, context: null, type, out _);
+                var name = GetTypeName(cursor, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
 
                 if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
                 {
@@ -3104,6 +3391,21 @@ namespace ClangSharp
                 AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported type: '{type.TypeClass}'. Assuming unfixed size.", cursor);
                 return false;
             }
+        }
+
+        private bool IsNativeTypeNameEquivalent(string nativeTypeName, string typeName)
+        {
+            if (nativeTypeName.Equals(typeName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (nativeTypeName.Replace(" ", "").Equals(typeName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private bool IsPrevContextDecl<T>(out T cursor, out object userData)
@@ -3223,6 +3525,16 @@ namespace ClangSharp
 
         private bool IsUnchecked(string targetTypeName, Stmt stmt)
         {
+            if (IsPrevContextDecl<VarDecl>(out var parentVarDecl, out _))
+            {
+                var cursorName = GetCursorName(parentVarDecl);
+
+                if (cursorName.StartsWith("ClangSharpMacro_") && _config.WithTransparentStructs.TryGetValue(targetTypeName, out var transparentValueTypeName))
+                {
+                    targetTypeName = transparentValueTypeName;
+                }
+            }
+
             switch (stmt.StmtClass)
             {
                 // case CX_StmtClass.CX_StmtClass_BinaryConditionalOperator:
@@ -3342,7 +3654,7 @@ namespace ClangSharp
                 case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
                 {
                     var explicitCastExpr = (ExplicitCastExpr)stmt;
-                    var explicitCastExprTypeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _, skipUsing: false);
+                    var explicitCastExprTypeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _);
 
                     return IsUnchecked(targetTypeName, explicitCastExpr.SubExprAsWritten)
                         || IsUnchecked(targetTypeName, explicitCastExpr.Handle.Evaluate)
@@ -3578,7 +3890,7 @@ namespace ClangSharp
                         return true;
                     }
 
-                    var sourceTypeName = GetTypeName(stmt, context: null, unaryOperator.SubExpr.Type, out _);
+                    var sourceTypeName = GetTypeName(stmt, context: null, unaryOperator.SubExpr.Type, ignoreTransparentStructsWhereRequired: false, out _);
 
                     switch (unaryOperator.Opcode)
                     {
@@ -3760,7 +4072,7 @@ namespace ClangSharp
 
             if (type.CanonicalType is ConstantArrayType)
             {
-                var name = GetTypeName(fieldDecl, context: null, type, out _);
+                var name = GetTypeName(fieldDecl, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
 
                 if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
                 {
@@ -3835,7 +4147,7 @@ namespace ClangSharp
 
         private bool IsUnsafe(NamedDecl namedDecl, Type type)
         {
-            var name = GetTypeName(namedDecl, context: null, type, out _);
+            var name = GetTypeName(namedDecl, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
 
             if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
             {
@@ -4259,7 +4571,6 @@ namespace ClangSharp
                 {
                     var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
 
-
                     long alignment32 = -1;
                     long alignment64 = -1;
 
@@ -4493,7 +4804,7 @@ namespace ClangSharp
 
                 integerTypeName = type;
 
-                if (nativeTypeName.Equals(type))
+                if (IsNativeTypeNameEquivalent(nativeTypeName, type))
                 {
                     nativeTypeName = string.Empty;
                 }

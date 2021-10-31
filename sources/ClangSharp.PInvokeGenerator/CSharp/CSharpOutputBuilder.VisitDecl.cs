@@ -293,7 +293,7 @@ namespace ClangSharp.CSharp
 
         public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc, ref bool isMethodClassUnsafe)
         {
-            desc.WriteCustomAttrs(desc.CustomAttrGeneratorData);
+            desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
 
             if (desc.IsVirtual)
             {
@@ -478,7 +478,7 @@ namespace ClangSharp.CSharp
             }
 
             _customAttrIsForParameter = true;
-            info.WriteCustomAttrs(info.CustomAttrGeneratorData);
+            info.WriteCustomAttrs?.Invoke(info.CustomAttrGeneratorData);
             _customAttrIsForParameter = false;
             Write(info.Type);
             Write(' ');

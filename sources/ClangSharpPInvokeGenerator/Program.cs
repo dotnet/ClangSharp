@@ -66,6 +66,7 @@ namespace ClangSharp
 
             new HelpItem("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
             new HelpItem("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
+            new HelpItem("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
             new HelpItem("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
             new HelpItem("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
             new HelpItem("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),
@@ -112,6 +113,7 @@ namespace ClangSharp
             AddWithCallConvOption(s_rootCommand);
             AddWithLibraryPathOption(s_rootCommand);
             AddWithSetLastErrorOption(s_rootCommand);
+            AddWithTransparentStructOption(s_rootCommand);
             AddWithTypeOption(s_rootCommand);
             AddWithUsingOption(s_rootCommand);
 
@@ -145,6 +147,7 @@ namespace ClangSharp
             var withCallConvNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-callconv");
             var withLibraryPathNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-librarypath");
             var withSetLastErrors = context.ParseResult.ValueForOption<string[]>("--with-setlasterror");
+            var withTransparentStructNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-transparent-struct");
             var withTypeNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-type");
             var withUsingNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-using");
 
@@ -183,8 +186,14 @@ namespace ClangSharp
             ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
             ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
             ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPath);
+            ParseKeyValuePairs(withTransparentStructNameValuePairs, errorList, out Dictionary<string, string> withTransparentStructs);
             ParseKeyValuePairs(withTypeNameValuePairs, errorList, out Dictionary<string, string> withTypes);
             ParseKeyValuePairs(withUsingNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withUsings);
+
+            foreach (var key in withTransparentStructs.Keys)
+            {
+                remappedNames.Add(key, key);
+            }
 
             var configOptions = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? PInvokeGeneratorConfigurationOptions.None : PInvokeGeneratorConfigurationOptions.GenerateUnixTypes;
             var printConfigHelp = false;
@@ -370,6 +379,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "generate-helper-types":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateHelperTypes;
+                        break;
+                    }
+
                     case "generate-macro-bindings":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
@@ -495,7 +510,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTransparentStructs, withTypes, withUsings);
 
             if (config.GenerateMacroBindings)
             {
@@ -590,7 +605,7 @@ namespace ClangSharp
             return exitCode;
         }
 
-        private static void ParseKeyValuePairs(string[] keyValuePairs, List<string> errorList, out Dictionary<string, string> result)
+        private static void ParseKeyValuePairs(IEnumerable<string> keyValuePairs, List<string> errorList, out Dictionary<string, string> result)
         {
             result = new Dictionary<string, string>();
 
@@ -616,7 +631,7 @@ namespace ClangSharp
             }
         }
 
-        private static void ParseKeyValuePairs(string[] keyValuePairs, List<string> errorList, out Dictionary<string, IReadOnlyList<string>> result)
+        private static void ParseKeyValuePairs(IEnumerable<string> keyValuePairs, List<string> errorList, out Dictionary<string, IReadOnlyList<string>> result)
         {
             result = new Dictionary<string, IReadOnlyList<string>>();
 
@@ -961,6 +976,19 @@ namespace ClangSharp
             var option = new Option(
                 aliases: new string[] { "--with-setlasterror", "-wsle" },
                 description: "Add the SetLastError=true modifier to a given DllImport or UnmanagedFunctionPointer.",
+                argumentType: typeof(string),
+                getDefaultValue: Array.Empty<string>,
+                arity: ArgumentArity.OneOrMore
+            );
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddWithTransparentStructOption(RootCommand rootCommand)
+        {
+            var option = new Option(
+                aliases: new string[] { "--with-transparent-struct", "-wts" },
+                description: "A remapped type name to be treated as a transparent wrapper during binding generation.",
                 argumentType: typeof(string),
                 getDefaultValue: Array.Empty<string>,
                 arity: ArgumentArity.OneOrMore

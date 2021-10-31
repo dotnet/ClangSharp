@@ -423,7 +423,7 @@ namespace ClangSharp
             outputBuilder.Write("cxx_new<");
 
 
-            var allocatedTypeName = GetRemappedTypeName(cxxNewExpr, null, cxxNewExpr.AllocatedType, out _, skipUsing: false);
+            var allocatedTypeName = GetRemappedTypeName(cxxNewExpr, null, cxxNewExpr.AllocatedType, out _);
             outputBuilder.Write(allocatedTypeName);
 
             outputBuilder.Write(">(sizeof(");
@@ -544,7 +544,7 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             outputBuilder.Write("new ");
 
-            var constructorName = GetRemappedTypeName(cxxUnresolvedConstructExpr, null, cxxUnresolvedConstructExpr.TypeAsWritten, out _, skipUsing: false);
+            var constructorName = GetRemappedTypeName(cxxUnresolvedConstructExpr, null, cxxUnresolvedConstructExpr.TypeAsWritten, out _);
             outputBuilder.Write(constructorName);
 
             outputBuilder.Write('(');
@@ -571,7 +571,7 @@ namespace ClangSharp
             outputBuilder.Write("typeof(");
 
             var type = cxxUuidofExpr.IsTypeOperand ? cxxUuidofExpr.TypeOperand : cxxUuidofExpr.ExprOperand.Type;
-            var typeName = GetRemappedTypeName(cxxUuidofExpr, context: null, type, out _, skipUsing: false);
+            var typeName = GetRemappedTypeName(cxxUuidofExpr, context: null, type, out _);
             outputBuilder.Write(typeName);
 
             outputBuilder.Write(").GUID");
@@ -588,7 +588,17 @@ namespace ClangSharp
 
                 if (!_config.DontUseUsingStaticsForEnums)
                 {
-                    outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
+                    if (enumName.StartsWith("__AnonymousEnum_"))
+                    {
+                        if (outputBuilder.Name != _config.MethodClassName)
+                        {
+                            outputBuilder.AddUsingDirective($"static {_config.Namespace}.{_config.MethodClassName}");
+                        }
+                    }
+                    else
+                    {
+                        outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
+                    }
                 }
                 else
                 {
@@ -680,13 +690,23 @@ namespace ClangSharp
             if (IsPrevContextDecl<EnumConstantDecl>(out _, out _) && explicitCastExpr.Type is EnumType enumType)
             {
                 outputBuilder.Write('(');
-                var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _, skipUsing: false);
+                var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _);
                 outputBuilder.Write(enumUnderlyingTypeName);
                 outputBuilder.Write(')');
             }
 
             var type = explicitCastExpr.Type;
-            var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out _, skipUsing: false);
+            var typeName = GetRemappedTypeName(explicitCastExpr, context: null, type, out _);
+
+            if (IsPrevContextDecl<VarDecl>(out var varDecl, out _))
+            {
+                var cursorName = GetCursorName(varDecl);
+
+                if (cursorName.StartsWith("ClangSharpMacro_") && _config.WithTransparentStructs.TryGetValue(typeName, out var transparentValueTypeName))
+                {
+                    typeName = transparentValueTypeName;
+                }
+            }
 
             if (typeName == "IntPtr")
             {
@@ -910,7 +930,7 @@ namespace ClangSharp
                 {
                     var type = implicitCastExpr.Type;
 
-                    var typeName = GetRemappedTypeName(implicitCastExpr, context: null, type, out _, skipUsing: false);
+                    var typeName = GetRemappedTypeName(implicitCastExpr, context: null, type, out _);
 
                     outputBuilder.Write('(');
                     outputBuilder.Write(typeName);
@@ -987,7 +1007,7 @@ namespace ClangSharp
             void ForArrayType(InitListExpr initListExpr, ArrayType arrayType)
             {
                 var type = initListExpr.Type;
-                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _, skipUsing: false);
+                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
                 var isUnmanagedConstant = false;
                 var escapedName = "";
 
@@ -1051,7 +1071,7 @@ namespace ClangSharp
             void ForRecordType(InitListExpr initListExpr, RecordType recordType)
             {
                 var type = initListExpr.Type;
-                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _, skipUsing: false);
+                var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
                 var isUnmanagedConstant = false;
                 var escapedName = "";
 
@@ -2224,7 +2244,6 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             var argumentType = unaryExprOrTypeTraitExpr.TypeOfArgument;
 
-
             long alignment32 = -1;
             long alignment64 = -1;
 
@@ -2310,10 +2329,21 @@ namespace ClangSharp
                         }
 
                         var needsCast = false;
-                        var typeName = GetRemappedTypeName(unaryExprOrTypeTraitExpr, context: null, argumentType, out _, skipUsing: false);
+                        var typeName = GetRemappedTypeName(unaryExprOrTypeTraitExpr, context: null, argumentType, out _);
 
                         if (parentType != null)
                         {
+                            if ((parentType.Handle.SizeOf == 8) && IsPrevContextDecl<VarDecl>(out var varDecl, out _))
+                            {
+                                var cursorName = GetCursorName(varDecl);
+
+                                if (cursorName.StartsWith("ClangSharpMacro_"))
+                                {
+                                    cursorName = cursorName["ClangSharpMacro_".Length..];
+                                    parentTypeIsVariableSized |= _config.WithTypes.TryGetValue(cursorName, out var remappedTypeName) && ((remappedTypeName == "int") || (remappedTypeName == "uint"));
+                                }
+                            }
+
                             needsCast = parentType.Kind == CXTypeKind.CXType_UInt;
                             needsCast |= parentType.Kind == CXTypeKind.CXType_ULong;
                             needsCast &= !IsSupportedFixedSizedBufferType(typeName);
@@ -2455,7 +2485,7 @@ namespace ClangSharp
 
             outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
             outputBuilder.Write("Marshal.OffsetOf<");
-            outputBuilder.Write(GetRemappedTypeName(offsetOfExpr, context: null, offsetOfExpr.TypeSourceInfoType, out var _, skipUsing: false));
+            outputBuilder.Write(GetRemappedTypeName(offsetOfExpr, context: null, offsetOfExpr.TypeSourceInfoType, out var _));
             outputBuilder.Write(">(\"");
             Visit(offsetOfExpr.Referenced ?? offsetOfExpr.CursorChildren[1]);
             outputBuilder.Write("\")");
