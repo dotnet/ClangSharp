@@ -9,7 +9,7 @@ namespace ClangSharp.Abstractions
         void WriteDivider(bool force = false);
         void SuppressDivider();
 
-        void WriteCustomAttribute(string attribute);
+        void WriteCustomAttribute(string attribute, Action callback = null);
         void WriteIid(string name, Guid value);
         void EmitUsingDirective(string directive);
     }

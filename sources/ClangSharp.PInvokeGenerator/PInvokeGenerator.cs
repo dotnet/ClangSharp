@@ -455,7 +455,7 @@ namespace ClangSharp
 
                     sw.Write("partial struct ");
                     sw.Write(transparentStruct.Key);
-                    sw.Write(": IEquatable<");
+                    sw.Write(" : IEquatable<");
                     sw.Write(transparentStruct.Key);
                     sw.WriteLine('>');
 

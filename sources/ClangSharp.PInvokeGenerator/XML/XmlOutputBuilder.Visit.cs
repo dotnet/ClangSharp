@@ -6,8 +6,12 @@ namespace ClangSharp.XML
 {
     internal partial class XmlOutputBuilder
     {
-        public void WriteCustomAttribute(string attribute)
-            => _sb.Append($"<attribute>{attribute}</attribute>\n");
+        public void WriteCustomAttribute(string attribute, Action callback = null)
+        {
+            _ = _sb.Append($"<attribute>{attribute}");
+            callback?.Invoke();
+            _ = _sb.Append("</attribute >\n");
+        }
 
         public void WriteIid(string name, Guid value)
         {

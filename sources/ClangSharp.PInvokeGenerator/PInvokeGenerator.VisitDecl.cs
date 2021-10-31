@@ -512,9 +512,7 @@ namespace ClangSharp
                 ParameterDesc<(string Name, PInvokeGenerator This)> parameterDesc = new()
                 {
                     Name = "pThis",
-                    Type = $"{cxxRecordEscapedName}*",
-                    WriteCustomAttrs = static x => { },
-                    CustomAttrGeneratorData = default
+                    Type = $"{cxxRecordEscapedName}*"
                 };
 
                 _outputBuilder.BeginParameter(in parameterDesc);
@@ -526,9 +524,7 @@ namespace ClangSharp
                     parameterDesc = new()
                     {
                         Name = "_result",
-                        Type = $"{returnTypeName}*",
-                        WriteCustomAttrs = static x => { },
-                        CustomAttrGeneratorData = default
+                        Type = $"{returnTypeName}*"
                     };
                     _outputBuilder.BeginParameter(in parameterDesc);
                     _outputBuilder.EndParameter();
@@ -929,7 +925,7 @@ namespace ClangSharp
                     escapedName += index;
                 }
 
-                var desc = new ParameterDesc<(string Name, PInvokeGenerator This)>
+                var desc = new ParameterDesc<(PInvokeGenerator This, CSharp.CSharpOutputBuilder CSharpOutputBuilder, Expr DefaultArg)>
                 {
                     Name = escapedName,
                     Type = typeName,
@@ -937,14 +933,43 @@ namespace ClangSharp
                     CppAttributes = _config.GenerateCppAttributes
                         ? parmVarDecl.Attrs.Select(x => EscapeString(x.Spelling))
                         : null,
-                    CustomAttrGeneratorData = (name, this),
-                    WriteCustomAttrs = static _ => { },
                     Location = parmVarDecl.Location
                 };
 
-                _outputBuilder.BeginParameter(in desc);
+                var handledDefaultArg = false;
+                var isExprDefaultValue = false;
 
                 if (parmVarDecl.HasDefaultArg)
+                {
+                    isExprDefaultValue = IsDefaultValue(parmVarDecl.DefaultArg);
+
+                    if ((_outputBuilder is CSharp.CSharpOutputBuilder csharpOutputBuilder) && (_config.WithTransparentStructs.ContainsKey(typeName) || parameters.Skip(index).Any((parmVarDecl) => {
+                        var type = parmVarDecl.Type;
+                        var typeName = GetTargetTypeName(parmVarDecl, out var nativeTypeName);
+                        return _config.WithTransparentStructs.ContainsKey(typeName);
+                    })))
+                    {
+                        desc.CustomAttrGeneratorData = (this, csharpOutputBuilder, isExprDefaultValue ? null : parmVarDecl.DefaultArg);
+                        desc.WriteCustomAttrs = static x => {
+                            if (x.DefaultArg is not null)
+                            {
+                                x.CSharpOutputBuilder.WriteCustomAttribute("Optional, DefaultParameterValue(", () => {
+                                    x.This.Visit(x.DefaultArg);
+                                    x.CSharpOutputBuilder.Write(')');
+                                });
+                            }
+                            else
+                            {
+                                x.CSharpOutputBuilder.WriteCustomAttribute("Optional", null);
+                            }
+                        };
+                        handledDefaultArg = true;
+                    }
+                }
+
+                _outputBuilder.BeginParameter(in desc);
+
+                if (parmVarDecl.HasDefaultArg && !handledDefaultArg)
                 {
                     _outputBuilder.BeginParameterDefault();
 
@@ -952,9 +977,7 @@ namespace ClangSharp
 
                     if (parmVarDecl.Type.CanonicalType.IsPointerType && (defaultArg.Handle.Evaluate.Kind == CXEvalResultKind.CXEval_UnExposed))
                     {
-                        if (!IsStmtAsWritten<CXXNullPtrLiteralExpr>(defaultArg, out _, removeParens: true) &&
-                           (!IsStmtAsWritten<CastExpr>(defaultArg, out var castExpr, removeParens: true) || (castExpr.CastKind != CX_CastKind.CX_CK_NullToPointer)) &&
-                           (!IsStmtAsWritten<IntegerLiteral>(defaultArg, out var integerLiteral, removeParens: true) || (integerLiteral.Value != 0)))
+                        if (!isExprDefaultValue)
                         {
                             AddDiagnostic(DiagnosticLevel.Info, $"Unsupported default parameter: '{name}'. Generated bindings may be incomplete.", defaultArg);
                         }
@@ -1004,8 +1027,6 @@ namespace ClangSharp
                     CppAttributes = _config.GenerateCppAttributes
                         ? parmVarDecl.Attrs.Select(x => EscapeString(x.Spelling))
                         : null,
-                    CustomAttrGeneratorData = (name, this),
-                    WriteCustomAttrs = static _ => { },
                     Location = parmVarDecl.Location
                 };
 
@@ -1024,6 +1045,13 @@ namespace ClangSharp
                 {
                     _outputBuilder.WriteParameterSeparator();
                 }
+            }
+
+            bool IsDefaultValue(Expr defaultArg)
+            {
+                return IsStmtAsWritten<CXXNullPtrLiteralExpr>(defaultArg, out _, removeParens: true) ||
+                       (IsStmtAsWritten<CastExpr>(defaultArg, out var castExpr, removeParens: true) && (castExpr.CastKind == CX_CastKind.CX_CK_NullToPointer)) ||
+                       (IsStmtAsWritten<IntegerLiteral>(defaultArg, out var integerLiteral, removeParens: true) && (integerLiteral.Value == 0));
             }
         }
 
@@ -1169,8 +1197,6 @@ namespace ClangSharp
                         Kind = layoutKind
                     },
                     Uuid = nullableUuid,
-                    CustomAttrGeneratorData = (name, this),
-                    WriteCustomAttrs = static _ => { },
                     NativeType = nativeNameWithExtras,
                     NativeInheritance = _config.GenerateNativeInheritanceAttribute ? nativeInheritance : null,
                     Location = recordDecl.Location,
@@ -1572,10 +1598,8 @@ namespace ClangSharp
                 var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
                 {
                     AccessSpecifier = accessSpecifier,
-                    CustomAttrGeneratorData = (name, this),
                     IsAggressivelyInlined = _config.GenerateAggressiveInlining,
                     EscapedName = EscapeAndStripName(name),
-                    WriteCustomAttrs = static _ => {},
                     IsMemberFunction = true,
                     NativeTypeName = nativeTypeName,
                     NeedsNewKeyword = NeedsNewKeyword(name, cxxMethodDecl.Parameters),
@@ -2224,7 +2248,6 @@ namespace ClangSharp
 
                 var desc = new StructDesc<(string Name, PInvokeGenerator This)> {
                     AccessSpecifier = accessSpecifier,
-                    CustomAttrGeneratorData = (name, this),
                     EscapedName = escapedName,
                     IsUnsafe = isUnsafeElementType,
                     Layout = new() {
@@ -2236,7 +2259,6 @@ namespace ClangSharp
                         MaxFieldAlignment = maxAlignm,
                         Kind = LayoutKind.Sequential
                     },
-                    WriteCustomAttrs = static _ => { },
                     Location = constantArray.Location,
                     IsNested = true,
                 };
@@ -2307,8 +2329,6 @@ namespace ClangSharp
                     {
                         Name = "index",
                         Type = "int",
-                        CustomAttrGeneratorData = (name, this),
-                        WriteCustomAttrs = static _ => {}
                     };
                     _outputBuilder.BeginParameter(in param);
                     _outputBuilder.EndParameter();
@@ -2343,8 +2363,6 @@ namespace ClangSharp
                     {
                         Name = "index",
                         Type = "int",
-                        CustomAttrGeneratorData = (name, this),
-                        WriteCustomAttrs = static _ => {}
                     };
                     _outputBuilder.BeginParameter(in param);
                     _outputBuilder.EndParameter();
@@ -2377,8 +2395,6 @@ namespace ClangSharp
                         AccessSpecifier = AccessSpecifier.Public,
                         EscapedName = "AsSpan",
                         IsAggressivelyInlined = _config.GenerateAggressiveInlining,
-                        CustomAttrGeneratorData = (name, this),
-                        WriteCustomAttrs = static _ => {},
                         IsStatic = false,
                         IsMemberFunction = true,
                         ReturnType = $"Span<{typeName}>",
@@ -2394,8 +2410,6 @@ namespace ClangSharp
                         {
                             Name = "length",
                             Type = "int",
-                            CustomAttrGeneratorData = (name, this),
-                            WriteCustomAttrs = static _ => {}
                         };
 
                         _outputBuilder.BeginParameter(in param);
@@ -2466,12 +2480,10 @@ namespace ClangSharp
                     {
                         AccessSpecifier = GetAccessSpecifier(typedefDecl),
                         CallingConvention = callingConventionName,
-                        CustomAttrGeneratorData = (name, this),
                         EscapedName = escapedName,
                         IsVirtual = true, // such that it outputs as a delegate
                         IsUnsafe = IsUnsafe(typedefDecl, functionProtoType),
                         NativeTypeName = nativeTypeName,
-                        WriteCustomAttrs = static _ => {},
                         ReturnType = returnTypeName,
                         Location = typedefDecl.Location
                     };
