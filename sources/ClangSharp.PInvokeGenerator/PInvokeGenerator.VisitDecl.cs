@@ -760,9 +760,7 @@ namespace ClangSharp
 
             _outputBuilder.WriteRegularField(typeString, escapedName);
 
-            generateCompatibleCode |=
-                ((type.CanonicalType is PointerType) || (type.CanonicalType is ReferenceType)) &&
-                (typeName != "IntPtr") && (typeName != "UIntPtr");
+            var isIndirectPointerField = ((type.CanonicalType is PointerType) || (type.CanonicalType is ReferenceType)) && (typeName != "IntPtr") && (typeName != "UIntPtr");
 
             _outputBuilder.BeginBody();
             _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
@@ -831,9 +829,16 @@ namespace ClangSharp
                     code.Write("MemoryMarshal.CreateSpan(ref ");
                 }
 
-                code.Write(contextName);
-                code.Write('.');
-                code.Write(escapedName);
+                if (isIndirectPointerField)
+                {
+                    code.Write("this");
+                }
+                else
+                {
+                    code.Write(contextName);
+                    code.Write('.');
+                    code.Write(escapedName);
+                }
 
                 if (isFixedSizedBuffer)
                 {
@@ -853,6 +858,15 @@ namespace ClangSharp
                 }
 
                 code.Write(')');
+
+                if (isIndirectPointerField)
+                {
+                    code.Write('.');
+                    code.Write(contextName);
+                    code.Write('.');
+                    code.Write(escapedName);
+                }
+
                 code.WriteSemicolon();
                 code.WriteNewline();
                 _outputBuilder.EndCSharpCode(code);
@@ -1818,8 +1832,7 @@ namespace ClangSharp
                 Type typeBacking;
                 string typeNameBacking;
 
-                if ((!_config.GenerateUnixTypes && (currentSize != previousSize)) ||
-                    (fieldDecl.BitWidthValue > remainingBits))
+                if ((!_config.GenerateUnixTypes && (currentSize != previousSize)) || (fieldDecl.BitWidthValue > remainingBits))
                 {
                     if (index >= 0)
                     {
@@ -1935,9 +1948,7 @@ namespace ClangSharp
 
                     default:
                     {
-                        AddDiagnostic(DiagnosticLevel.Warning,
-                            $"Unsupported bitfield type: '{canonicalTypeBacking.TypeClassSpelling}'. Generated bindings may be incomplete.",
-                            fieldDecl);
+                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{canonicalTypeBacking.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
                         break;
                     }
                 }
@@ -2014,9 +2025,7 @@ namespace ClangSharp
 
                     default:
                     {
-                        AddDiagnostic(DiagnosticLevel.Warning,
-                            $"Unsupported bitfield type: '{canonicalType.TypeClassSpelling}'. Generated bindings may be incomplete.",
-                            fieldDecl);
+                        AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{canonicalType.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
                         break;
                     }
                 }
@@ -2046,7 +2055,12 @@ namespace ClangSharp
 
                 code.WriteIndented("return ");
 
-                if ((currentSize < 4) || (canonicalTypeBacking != canonicalType))
+                var recordDeclName = GetCursorName(recordDecl);
+
+                var isRemappedToSelf = _config.RemappedNames.TryGetValue(typeName, out var remappedTypeName) && typeName.Equals(remappedTypeName);
+                var needsCast = (currentSize < 4) || (canonicalTypeBacking != canonicalType) || isRemappedToSelf;
+
+                if (needsCast)
                 {
                     code.Write('(');
                     code.BeginMarker("typeName");
@@ -2086,7 +2100,7 @@ namespace ClangSharp
                 code.Write(bitwidthHexStringBacking);
                 code.EndMarker("bitwidthHexStringBacking");
 
-                if ((currentSize < 4) || (canonicalTypeBacking != canonicalType))
+                if (needsCast)
                 {
                     code.Write(')');
                 }
@@ -2170,7 +2184,7 @@ namespace ClangSharp
                     code.Write('(');
                 }
 
-                if (canonicalType is EnumType)
+                if ((canonicalType is EnumType) || isRemappedToSelf)
                 {
                     code.Write('(');
                     code.Write(typeNameBacking);

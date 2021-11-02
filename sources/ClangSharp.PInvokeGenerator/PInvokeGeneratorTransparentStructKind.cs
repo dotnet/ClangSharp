@@ -6,6 +6,8 @@ namespace ClangSharp
         Typedef = 1,
         Handle = 2,
         Boolean = 3,
-        Win32Handle = 4,
+        HandleWin32 = 4,
+        TypedefHex = 5,
+        HandleVulkan = 6,
     }
 }
