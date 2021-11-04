@@ -240,7 +240,7 @@ namespace ClangSharp.CSharp
                 AddNativeTypeNameAttribute(desc.NativeTypeName);
             }
 
-            if (desc.Location is {} location)
+            if (desc.Location is { } location)
             {
                 WriteSourceLocation(location, false);
             }

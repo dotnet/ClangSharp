@@ -56,6 +56,7 @@ namespace ClangSharp
 
             new HelpItem("explicit-vtbls", "VTBLs should have an explicit type generated with named fields per entry."),
             new HelpItem("implicit-vtbls", "VTBLs should be implicit to reduce metadata bloat. This is the current default"),
+            new HelpItem("trimmable-vtbls", "VTBLs should be defined but not used in helper methods to reduce metadata bloat when trimming."),
 
             // Test Options
 
@@ -324,12 +325,21 @@ namespace ClangSharp
                     case "explicit-vtbls":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateTrimmableVtbls;
                         break;
                     }
 
                     case "implicit-vtbls":
                     {
                         configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateTrimmableVtbls;
+                        break;
+                    }
+
+                    case "trimmable-vtbls":
+                    {
+                        configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls;
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateTrimmableVtbls;
                         break;
                     }
 

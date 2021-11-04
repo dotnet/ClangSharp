@@ -2,14 +2,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using ClangSharp.Interop;
 
 namespace ClangSharp
 {
     public class CXXMethodDecl : FunctionDecl
     {
-        private readonly Lazy<uint> _overloadIndex;
         private readonly Lazy<IReadOnlyList<CXXMethodDecl>> _overriddenMethods;
         private readonly Lazy<Type> _thisType;
         private readonly Lazy<Type> _thisObjectType;
@@ -24,25 +23,6 @@ namespace ClangSharp
             {
                 throw new ArgumentOutOfRangeException(nameof(handle));
             }
-
-            _overloadIndex = new Lazy<uint>(() => {
-                var index = 0u;
-                var name = Name;
-
-                foreach (var methodDecl in Parent.Methods)
-                {
-                    if (methodDecl == this)
-                    {
-                        break;
-                    }
-                    else if (methodDecl.Name == name)
-                    {
-                        index++;
-                    }
-                }
-
-                return index;
-            });
 
             _overriddenMethods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => {
                 var numOverriddenMethods = Handle.NumMethods;
@@ -68,8 +48,6 @@ namespace ClangSharp
         public bool IsVirtual => Handle.CXXMethod_IsVirtual;
 
         public new CXXMethodDecl MostRecentDecl => (CXXMethodDecl)base.MostRecentDecl;
-
-        public uint OverloadIndex => _overloadIndex.Value;
 
         public IReadOnlyList<CXXMethodDecl> OverriddenMethods => _overriddenMethods.Value;
 
