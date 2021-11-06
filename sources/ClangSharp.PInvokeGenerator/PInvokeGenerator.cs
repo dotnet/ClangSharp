@@ -5196,13 +5196,15 @@ namespace ClangSharp
 
         private void Visit(IEnumerable<Cursor> cursors, IEnumerable<Cursor> excludedCursors) => Visit(cursors.Except(excludedCursors));
 
-        private void WithAttributes(string remappedName)
+        private void WithAttributes(string remappedName, bool onlySupportedOSPlatform = false, bool isTestOutput = false)
         {
+            var outputBuilder = isTestOutput ? _testOutputBuilder : _outputBuilder;
+
             if (_config.WithAttributes.TryGetValue(remappedName, out var attributes))
             {
-                foreach (var attribute in attributes)
+                foreach (var attribute in attributes.Where((a) => !onlySupportedOSPlatform || a.StartsWith("SupportedOSPlatform(")))
                 {
-                    _outputBuilder.WriteCustomAttribute(attribute);
+                    outputBuilder.WriteCustomAttribute(attribute);
                 }
             }
         }

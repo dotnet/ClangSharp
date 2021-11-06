@@ -1101,6 +1101,10 @@ namespace ClangSharp
                     _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);
                     _testOutputBuilder.WriteLine("\" /> struct.</summary>");
+
+                    WithAttributes("*", onlySupportedOSPlatform: true, isTestOutput: true);
+                    WithAttributes(name, onlySupportedOSPlatform: true, isTestOutput: true);
+
                     _testOutputBuilder.WriteIndented("public static unsafe partial class ");
                     _testOutputBuilder.Write(escapedName);
                     _testOutputBuilder.WriteLine("Tests");
@@ -1434,6 +1438,11 @@ namespace ClangSharp
 
                     if (_config.GenerateMarkerInterfaces)
                     {
+                        if (_outputBuilder is CSharp.CSharpOutputBuilder csharpOutputBuilder)
+                        {
+                            csharpOutputBuilder.NeedsNewline = true;
+                        }
+
                         _outputBuilder.BeginMarkerInterface(baseTypeNames);
                         OutputMarkerInterfaces(cxxRecordDecl, cxxRecordDecl);
                         _outputBuilder.EndMarkerInterface();
@@ -1441,6 +1450,11 @@ namespace ClangSharp
 
                     if (_config.GenerateExplicitVtbls || _config.GenerateTrimmableVtbls)
                     {
+                        if (_outputBuilder is CSharp.CSharpOutputBuilder csharpOutputBuilder)
+                        {
+                            csharpOutputBuilder.NeedsNewline = true;
+                        }
+
                         _outputBuilder.BeginExplicitVtbl();
                         OutputVtblEntries(cxxRecordDecl, cxxRecordDecl);
                         _outputBuilder.EndExplicitVtbl();
@@ -1581,7 +1595,7 @@ namespace ClangSharp
                     return;
                 }
 
-                if (_config.GenerateTrimmableVtbls && cxxMethodDecl.Parameters.Any((parmVarDecl) => parmVarDecl.Type.CanonicalType.Kind == CXTypeKind.CXType_FunctionProto))
+                if (_config.GenerateTrimmableVtbls && cxxMethodDecl.Parameters.Any((parmVarDecl) => (parmVarDecl.Type.CanonicalType is PointerType pointerType) && (pointerType.PointeeType is FunctionType)))
                 {
                     // This breaks trimming right now
                     return;

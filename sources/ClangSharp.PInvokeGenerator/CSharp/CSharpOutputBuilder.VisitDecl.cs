@@ -648,7 +648,6 @@ namespace ClangSharp.CSharp
 
         public void BeginMarkerInterface(string[] baseTypeNames)
         {
-            NeedsNewline = true;
             WriteIndented("public interface Interface");
 
             if (baseTypeNames is not null)
@@ -672,7 +671,6 @@ namespace ClangSharp.CSharp
 
         public void BeginExplicitVtbl()
         {
-            NeedsNewline = true;
             WriteIndentedLine("public partial struct Vtbl");
             WriteBlockStart();
         }
