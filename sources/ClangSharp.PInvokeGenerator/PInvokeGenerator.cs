@@ -4772,8 +4772,7 @@ namespace ClangSharp
             return (name.Equals("GetHashCode")
                 || name.Equals("GetType")
                 || name.Equals("MemberwiseClone")
-                || name.Equals("ToString"))
-&& parmVarDecls.Count == 0;
+                || name.Equals("ToString")) && parmVarDecls.Count == 0;
         }
 
         private void ParenthesizeStmt(Stmt stmt)

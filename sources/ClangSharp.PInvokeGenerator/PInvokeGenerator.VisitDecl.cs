@@ -1171,10 +1171,13 @@ namespace ClangSharp
 
                 GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32, out var size64);
 
+                string[] baseTypeNames = null;
+
                 string nativeNameWithExtras = null, nativeInheritance = null;
                 if ((cxxRecordDecl != null) && cxxRecordDecl.Bases.Any())
                 {
                     var nativeTypeNameBuilder = new StringBuilder();
+                    var baseTypeNamesBuilder = new List<string>();
 
                     _ = nativeTypeNameBuilder.Append(recordDecl.IsUnion ? "union " : "struct ");
                     _ = nativeTypeNameBuilder.Append(nativeName);
@@ -1182,16 +1185,20 @@ namespace ClangSharp
 
                     var baseName = GetCursorName(cxxRecordDecl.Bases[0].Referenced);
                     _ = nativeTypeNameBuilder.Append(baseName);
+                    baseTypeNamesBuilder.Add(baseName);
 
                     for (var i = 1; i < cxxRecordDecl.Bases.Count; i++)
                     {
                         _ = nativeTypeNameBuilder.Append(", ");
                         baseName = GetCursorName(cxxRecordDecl.Bases[i].Referenced);
+
                         _ = nativeTypeNameBuilder.Append(baseName);
+                        baseTypeNamesBuilder.Add(baseName);
                     }
 
                     nativeNameWithExtras = nativeTypeNameBuilder.ToString();
                     nativeInheritance = GetCursorName(cxxRecordDecl.Bases.Last().Referenced);
+                    baseTypeNames = baseTypeNamesBuilder.ToArray();
                 }
 
                 var desc = new StructDesc<(string Name, PInvokeGenerator This)>
@@ -1406,8 +1413,7 @@ namespace ClangSharp
 
                 Visit(recordDecl.Decls, excludedCursors);
 
-                foreach (var constantArray in recordDecl.Fields.Where((field) =>
-                    field.Type.CanonicalType is ConstantArrayType))
+                foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type.CanonicalType is ConstantArrayType))
                 {
                     VisitConstantArrayFieldDecl(recordDecl, constantArray);
                 }
@@ -1425,6 +1431,13 @@ namespace ClangSharp
                     }
 
                     OutputVtblHelperMethods(cxxRecordDecl, cxxRecordDecl);
+
+                    if (_config.GenerateMarkerInterfaces)
+                    {
+                        _outputBuilder.BeginMarkerInterface(baseTypeNames);
+                        OutputMarkerInterfaces(cxxRecordDecl, cxxRecordDecl);
+                        _outputBuilder.EndMarkerInterface();
+                    }
 
                     if (_config.GenerateExplicitVtbls || _config.GenerateTrimmableVtbls)
                     {
@@ -1552,6 +1565,82 @@ namespace ClangSharp
                         Debug.Assert(CurrentContext.Cursor == rootCxxRecordDecl);
                         Visit(cxxMethodDecl);
                         _outputBuilder.WriteDivider();
+                    }
+                }
+            }
+
+            void OutputMarkerInterface(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl)
+            {
+                if (!cxxMethodDecl.IsVirtual)
+                {
+                    return;
+                }
+
+                if (IsExcluded(cxxMethodDecl, out var isExcludedByConflictingDefinition))
+                {
+                    return;
+                }
+
+                if (_config.GenerateTrimmableVtbls && cxxMethodDecl.Parameters.Any((parmVarDecl) => parmVarDecl.Type.CanonicalType.Kind == CXTypeKind.CXType_FunctionProto))
+                {
+                    // This breaks trimming right now
+                    return;
+                }
+
+                var currentContext = _context.AddLast((cxxMethodDecl, null));
+
+                var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
+                var returnType = cxxMethodDecl.ReturnType;
+                var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
+
+                var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
+                var name = GetRemappedCursorName(cxxMethodDecl);
+                var needsReturnFixup = false;
+                var needsCastToTransparentStruct = false;
+
+                if (returnType.Kind != CXTypeKind.CXType_Void)
+                {
+                    needsReturnFixup = NeedsReturnFixup(cxxMethodDecl);
+                    needsCastToTransparentStruct = _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentStruct) && IsTransparentStructHandle(transparentStruct.Kind);
+                }
+
+                var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)> {
+                    AccessSpecifier = accessSpecifier,
+                    EscapedName = EscapeAndStripName(name),
+                    IsMemberFunction = true,
+                    NativeTypeName = nativeTypeName,
+                    HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
+                    IsCtxCxxRecord = true,
+                    IsCxxRecordCtxUnsafe = IsUnsafe(cxxRecordDecl),
+                    IsUnsafe = true,
+                    NeedsReturnFixup = needsReturnFixup,
+                    ReturnType = returnTypeName,
+                    VtblIndex = _config.GenerateVtblIndexAttribute ? cxxMethodDecl.VtblIndex : -1,
+                    Location = cxxMethodDecl.Location
+                };
+
+                _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
+                _outputBuilder.BeginFunctionInnerPrototype(desc.EscapedName);
+
+                Visit(cxxMethodDecl.Parameters);
+
+                _outputBuilder.EndFunctionInnerPrototype();
+                _outputBuilder.EndFunctionOrDelegate(false, isBodyless: true);
+
+                Debug.Assert(_context.Last == currentContext);
+                _context.RemoveLast();
+            }
+
+            void OutputMarkerInterfaces(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+            {
+                // Don't process the base types because that's exposed via inheritance instead
+                var cxxMethodDecls = cxxRecordDecl.Methods;
+
+                if (cxxMethodDecls.Count != 0)
+                {
+                    foreach (var cxxMethodDecl in cxxMethodDecls.OrderBy((cxxmd) => cxxmd.VtblIndex))
+                    {
+                        OutputMarkerInterface(rootCxxRecordDecl, cxxMethodDecl);
                     }
                 }
             }

@@ -69,6 +69,7 @@ namespace ClangSharp
             new HelpItem("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
             new HelpItem("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
             new HelpItem("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
+            new HelpItem("generate-marker-interfaces", "Bindings for marker interfaces representing native inheritance hierarchies should be generated."),
             new HelpItem("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
             new HelpItem("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),
             new HelpItem("generate-unmanaged-constants", "Unmanaged constants should be generated using static ref readonly properties. This is currently experimental."),
@@ -398,6 +399,12 @@ namespace ClangSharp
                     case "generate-macro-bindings":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
+                        break;
+                    }
+
+                    case "generate-marker-interfaces":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces;
                         break;
                     }
 

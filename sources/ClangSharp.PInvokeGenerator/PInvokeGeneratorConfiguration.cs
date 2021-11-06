@@ -158,6 +158,8 @@ namespace ClangSharp
 
         public bool GenerateMacroBindings => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMacroBindings);
 
+        public bool GenerateMarkerInterfaces => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
+
         public bool ExcludeFnptrCodegen
         {
             get

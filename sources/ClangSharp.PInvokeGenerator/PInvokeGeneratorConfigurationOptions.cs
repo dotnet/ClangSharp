@@ -66,5 +66,7 @@ namespace ClangSharp
         GenerateHelperTypes = 1 << 27,
 
         GenerateTrimmableVtbls = 1 << 28,
+
+        GenerateMarkerInterfaces = 1 << 29,
     }
 }
