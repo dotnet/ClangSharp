@@ -425,19 +425,19 @@ namespace ClangSharp.Test
         public void** lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        public delegate int _GetType(MyStruct* pThis, int obj);
+        public delegate int _GetType(MyStruct* pThis, int objA, int objB);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType1(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        public delegate int _GetType2(MyStruct* pThis, int objA, int objB);
+        public delegate int _GetType2(MyStruct* pThis, int obj);
 
-        public int GetType(int obj)
+        public int GetType(int objA, int objB)
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType>((IntPtr)(lpVtbl[{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}]))(pThis, obj);
+                return Marshal.GetDelegateForFunctionPointer<_GetType>((IntPtr)(lpVtbl[0]))(pThis, objA, objB);
             }}
         }}
 
@@ -449,11 +449,11 @@ namespace ClangSharp.Test
             }}
         }}
 
-        public int GetType(int objA, int objB)
+        public int GetType(int obj)
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType2>((IntPtr)(lpVtbl[{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}]))(pThis, objA, objB);
+                return Marshal.GetDelegateForFunctionPointer<_GetType2>((IntPtr)(lpVtbl[2]))(pThis, obj);
             }}
         }}
     }}
@@ -489,19 +489,19 @@ namespace ClangSharp.Test
         public Vtbl* lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        public delegate int _GetType(MyStruct* pThis, int obj);
+        public delegate int _GetType(MyStruct* pThis, int objA, int objB);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType1(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        public delegate int _GetType2(MyStruct* pThis, int objA, int objB);
+        public delegate int _GetType2(MyStruct* pThis, int obj);
 
-        public int GetType(int obj)
+        public int GetType(int objA, int objB)
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)(pThis, obj);
+                return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)(pThis, objA, objB);
             }}
         }}
 
@@ -513,24 +513,24 @@ namespace ClangSharp.Test
             }}
         }}
 
-        public int GetType(int objA, int objB)
+        public int GetType(int obj)
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType2>(lpVtbl->GetType2)(pThis, objA, objB);
+                return Marshal.GetDelegateForFunctionPointer<_GetType2>(lpVtbl->GetType2)(pThis, obj);
             }}
         }}
 
         public partial struct Vtbl
         {{
-            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}{nativeCallConv}"")]
-            public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "new ")}IntPtr GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")};
+            [NativeTypeName(""int (int, int){nativeCallConv}"")]
+            public new IntPtr GetType;
 
             [NativeTypeName(""int (){nativeCallConv}"")]
             public IntPtr GetType1;
 
-            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}{nativeCallConv}"")]
-            public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "new " : "")}IntPtr GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")};
+            [NativeTypeName(""int (int){nativeCallConv}"")]
+            public IntPtr GetType2;
         }}
     }}
 }}

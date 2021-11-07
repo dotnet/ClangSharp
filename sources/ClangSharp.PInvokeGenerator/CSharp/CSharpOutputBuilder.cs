@@ -20,6 +20,7 @@ namespace ClangSharp.CSharp
         private readonly bool _isTestOutput;
 
         private int _indentationLevel;
+        private bool _isInMarkerInterface;
         private readonly MarkerMode _markerMode;
         private readonly bool _writeSourceLocation;
 

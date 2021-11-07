@@ -22,6 +22,10 @@ namespace ClangSharp.CSharp
             {
                 AddUsingDirective("System.Runtime.InteropServices");
             }
+            else if (attribute.StartsWith("SupportedOSPlatform("))
+            {
+                AddUsingDirective("System.Runtime.Versioning");
+            }
 
             if (!_customAttrIsForParameter)
             {

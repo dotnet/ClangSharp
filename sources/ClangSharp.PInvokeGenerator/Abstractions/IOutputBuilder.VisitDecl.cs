@@ -48,6 +48,8 @@ namespace ClangSharp.Abstractions
         void EndFunctionOrDelegate(bool isVirtual, bool isBodyless);
 
         void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info);
+        void BeginMarkerInterface(string[] baseTypeNames);
+        void EndMarkerInterface();
         void BeginExplicitVtbl();
         void EndExplicitVtbl();
         void EndStruct();

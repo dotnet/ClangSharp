@@ -436,7 +436,7 @@ namespace ClangSharp
             var body = functionDecl.Body;
 
             var isVirtual = (cxxMethodDecl != null) && cxxMethodDecl.IsVirtual;
-            var escapedName = isVirtual ? PrefixAndStripName(name, cxxMethodDecl.OverloadIndex) : EscapeAndStripName(name);
+            var escapedName = isVirtual ? PrefixAndStripName(name, GetOverloadIndex(cxxMethodDecl)) : EscapeAndStripName(name);
 
             var returnType = functionDecl.ReturnType;
             var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
@@ -1101,6 +1101,10 @@ namespace ClangSharp
                     _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);
                     _testOutputBuilder.WriteLine("\" /> struct.</summary>");
+
+                    WithAttributes("*", onlySupportedOSPlatform: true, isTestOutput: true);
+                    WithAttributes(name, onlySupportedOSPlatform: true, isTestOutput: true);
+
                     _testOutputBuilder.WriteIndented("public static unsafe partial class ");
                     _testOutputBuilder.Write(escapedName);
                     _testOutputBuilder.WriteLine("Tests");
@@ -1171,10 +1175,13 @@ namespace ClangSharp
 
                 GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32, out var size64);
 
+                string[] baseTypeNames = null;
+
                 string nativeNameWithExtras = null, nativeInheritance = null;
                 if ((cxxRecordDecl != null) && cxxRecordDecl.Bases.Any())
                 {
                     var nativeTypeNameBuilder = new StringBuilder();
+                    var baseTypeNamesBuilder = new List<string>();
 
                     _ = nativeTypeNameBuilder.Append(recordDecl.IsUnion ? "union " : "struct ");
                     _ = nativeTypeNameBuilder.Append(nativeName);
@@ -1182,16 +1189,20 @@ namespace ClangSharp
 
                     var baseName = GetCursorName(cxxRecordDecl.Bases[0].Referenced);
                     _ = nativeTypeNameBuilder.Append(baseName);
+                    baseTypeNamesBuilder.Add(baseName);
 
                     for (var i = 1; i < cxxRecordDecl.Bases.Count; i++)
                     {
                         _ = nativeTypeNameBuilder.Append(", ");
                         baseName = GetCursorName(cxxRecordDecl.Bases[i].Referenced);
+
                         _ = nativeTypeNameBuilder.Append(baseName);
+                        baseTypeNamesBuilder.Add(baseName);
                     }
 
                     nativeNameWithExtras = nativeTypeNameBuilder.ToString();
                     nativeInheritance = GetCursorName(cxxRecordDecl.Bases.Last().Referenced);
+                    baseTypeNames = baseTypeNamesBuilder.ToArray();
                 }
 
                 var desc = new StructDesc<(string Name, PInvokeGenerator This)>
@@ -1247,7 +1258,7 @@ namespace ClangSharp
                 {
                     foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                     {
-                        var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                        var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
                         if (HasFields(baseCxxRecordDecl))
                         {
@@ -1406,8 +1417,7 @@ namespace ClangSharp
 
                 Visit(recordDecl.Decls, excludedCursors);
 
-                foreach (var constantArray in recordDecl.Fields.Where((field) =>
-                    field.Type.CanonicalType is ConstantArrayType))
+                foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type.CanonicalType is ConstantArrayType))
                 {
                     VisitConstantArrayFieldDecl(recordDecl, constantArray);
                 }
@@ -1426,8 +1436,25 @@ namespace ClangSharp
 
                     OutputVtblHelperMethods(cxxRecordDecl, cxxRecordDecl);
 
-                    if (_config.GenerateExplicitVtbls)
+                    if (_config.GenerateMarkerInterfaces)
                     {
+                        if (_outputBuilder is CSharp.CSharpOutputBuilder csharpOutputBuilder)
+                        {
+                            csharpOutputBuilder.NeedsNewline = true;
+                        }
+
+                        _outputBuilder.BeginMarkerInterface(baseTypeNames);
+                        OutputMarkerInterfaces(cxxRecordDecl, cxxRecordDecl);
+                        _outputBuilder.EndMarkerInterface();
+                    }
+
+                    if (_config.GenerateExplicitVtbls || _config.GenerateTrimmableVtbls)
+                    {
+                        if (_outputBuilder is CSharp.CSharpOutputBuilder csharpOutputBuilder)
+                        {
+                            csharpOutputBuilder.NeedsNewline = true;
+                        }
+
                         _outputBuilder.BeginExplicitVtbl();
                         OutputVtblEntries(cxxRecordDecl, cxxRecordDecl);
                         _outputBuilder.EndExplicitVtbl();
@@ -1446,7 +1473,7 @@ namespace ClangSharp
             string FixupNameForMultipleHits(CXXMethodDecl cxxMethodDecl)
             {
                 var remappedName = GetRemappedCursorName(cxxMethodDecl);
-                var overloadIndex = cxxMethodDecl.OverloadIndex;
+                var overloadIndex = GetOverloadIndex(cxxMethodDecl);
 
                 if (overloadIndex != 0)
                 {
@@ -1475,7 +1502,7 @@ namespace ClangSharp
                 {
                     foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                     {
-                        var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                        var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
                         if (HasFields(baseCxxRecordDecl))
                         {
@@ -1489,21 +1516,33 @@ namespace ClangSharp
 
             void OutputDelegateSignatures(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
             {
+                if (!_config.ExcludeFnptrCodegen)
+                {
+                    return;
+                }
+
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
-                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
                     OutputDelegateSignatures(rootCxxRecordDecl, baseCxxRecordDecl);
                 }
 
-                foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
-                {
-                    if (!cxxMethodDecl.IsVirtual || IsExcluded(cxxMethodDecl))
-                    {
-                        continue;
-                    }
+                var cxxMethodDecls = cxxRecordDecl.Methods;
 
-                    if (_config.ExcludeFnptrCodegen)
+                if (cxxMethodDecls.Count != 0)
+                {
+                    foreach (var cxxMethodDecl in cxxMethodDecls.OrderBy((cxxmd) => cxxmd.VtblIndex))
                     {
+                        if (!cxxMethodDecl.IsVirtual)
+                        {
+                            continue;
+                        }
+
+                        if (IsExcluded(cxxMethodDecl, out var isExcludedByConflictingDefinition))
+                        {
+                            continue;
+                        }
+
                         _outputBuilder.WriteDivider();
 
                         var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
@@ -1517,20 +1556,106 @@ namespace ClangSharp
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
-                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
                     OutputMethods(rootCxxRecordDecl, baseCxxRecordDecl);
                 }
 
-                foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
-                {
-                    if (cxxMethodDecl.IsVirtual || (cxxMethodDecl is CXXConstructorDecl) || (cxxMethodDecl is CXXDestructorDecl))
-                    {
-                        continue;
-                    }
+                var cxxMethodDecls = cxxRecordDecl.Methods;
 
-                    Debug.Assert(CurrentContext.Cursor == rootCxxRecordDecl);
-                    Visit(cxxMethodDecl);
-                    _outputBuilder.WriteDivider();
+                if (cxxMethodDecls.Count != 0)
+                {
+                    foreach (var cxxMethodDecl in cxxMethodDecls.OrderBy((cxxmd) => cxxmd.VtblIndex))
+                    {
+                        if (cxxMethodDecl.IsVirtual)
+                        {
+                            continue;
+                        }
+
+                        if (cxxMethodDecl is CXXConstructorDecl or CXXDestructorDecl)
+                        {
+                            continue;
+                        }
+
+                        Debug.Assert(CurrentContext.Cursor == rootCxxRecordDecl);
+                        Visit(cxxMethodDecl);
+                        _outputBuilder.WriteDivider();
+                    }
+                }
+            }
+
+            void OutputMarkerInterface(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl)
+            {
+                if (!cxxMethodDecl.IsVirtual)
+                {
+                    return;
+                }
+
+                if (IsExcluded(cxxMethodDecl, out var isExcludedByConflictingDefinition))
+                {
+                    return;
+                }
+
+                if (_config.GenerateTrimmableVtbls && cxxMethodDecl.Parameters.Any((parmVarDecl) => (parmVarDecl.Type.CanonicalType is PointerType pointerType) && (pointerType.PointeeType is FunctionType)))
+                {
+                    // This breaks trimming right now
+                    return;
+                }
+
+                var currentContext = _context.AddLast((cxxMethodDecl, null));
+
+                var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
+                var returnType = cxxMethodDecl.ReturnType;
+                var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
+
+                var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
+                var name = GetRemappedCursorName(cxxMethodDecl);
+                var needsReturnFixup = false;
+                var needsCastToTransparentStruct = false;
+
+                if (returnType.Kind != CXTypeKind.CXType_Void)
+                {
+                    needsReturnFixup = NeedsReturnFixup(cxxMethodDecl);
+                    needsCastToTransparentStruct = _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentStruct) && IsTransparentStructHandle(transparentStruct.Kind);
+                }
+
+                var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)> {
+                    AccessSpecifier = accessSpecifier,
+                    EscapedName = EscapeAndStripName(name),
+                    IsMemberFunction = true,
+                    NativeTypeName = nativeTypeName,
+                    HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
+                    IsCtxCxxRecord = true,
+                    IsCxxRecordCtxUnsafe = IsUnsafe(cxxRecordDecl),
+                    IsUnsafe = true,
+                    NeedsReturnFixup = needsReturnFixup,
+                    ReturnType = returnTypeName,
+                    VtblIndex = _config.GenerateVtblIndexAttribute ? cxxMethodDecl.VtblIndex : -1,
+                    Location = cxxMethodDecl.Location
+                };
+
+                _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
+                _outputBuilder.BeginFunctionInnerPrototype(desc.EscapedName);
+
+                Visit(cxxMethodDecl.Parameters);
+
+                _outputBuilder.EndFunctionInnerPrototype();
+                _outputBuilder.EndFunctionOrDelegate(false, isBodyless: true);
+
+                Debug.Assert(_context.Last == currentContext);
+                _context.RemoveLast();
+            }
+
+            void OutputMarkerInterfaces(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
+            {
+                // Don't process the base types because that's exposed via inheritance instead
+                var cxxMethodDecls = cxxRecordDecl.Methods;
+
+                if (cxxMethodDecls.Count != 0)
+                {
+                    foreach (var cxxMethodDecl in cxxMethodDecls.OrderBy((cxxmd) => cxxmd.VtblIndex))
+                    {
+                        OutputMarkerInterface(rootCxxRecordDecl, cxxMethodDecl);
+                    }
                 }
             }
 
@@ -1538,7 +1663,7 @@ namespace ClangSharp
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
-                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
                     OutputVtblEntries(rootCxxRecordDecl, baseCxxRecordDecl);
                 }
 
@@ -1555,7 +1680,12 @@ namespace ClangSharp
 
             void OutputVtblEntry(CXXRecordDecl cxxRecordDecl, CXXMethodDecl cxxMethodDecl)
             {
-                if (!cxxMethodDecl.IsVirtual || IsExcluded(cxxMethodDecl))
+                if (!cxxMethodDecl.IsVirtual)
+                {
+                    return;
+                }
+
+                if (IsExcluded(cxxMethodDecl, out var isExcludedByConflictingDefinition))
                 {
                     return;
                 }
@@ -1565,6 +1695,11 @@ namespace ClangSharp
                 var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                 var escapedName = EscapeAndStripName(remappedName);
+
+                if (accessSpecifier == AccessSpecifier.Private)
+                {
+                    accessSpecifier = AccessSpecifier.Internal;
+                }
 
                 var desc = new FieldDesc
                 {
@@ -1596,6 +1731,7 @@ namespace ClangSharp
                 }
 
                 var currentContext = _context.AddLast((cxxMethodDecl, null));
+
                 var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var returnType = cxxMethodDecl.ReturnType;
                 var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
@@ -1684,7 +1820,7 @@ namespace ClangSharp
                 {
                     body.Write("Marshal.GetDelegateForFunctionPointer<");
                     body.BeginMarker("delegate");
-                    body.Write(PrefixAndStripName(name, cxxMethodDecl.OverloadIndex));
+                    body.Write(PrefixAndStripName(name, GetOverloadIndex(cxxMethodDecl)));
                     body.EndMarker("delegate");
                     body.Write(">(");
                 }
@@ -1797,17 +1933,19 @@ namespace ClangSharp
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
-                    var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
                     OutputVtblHelperMethods(rootCxxRecordDecl, baseCxxRecordDecl);
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
-                var outputBuilder = _outputBuilder;
 
-                foreach (var cxxMethodDecl in cxxMethodDecls)
+                if (cxxMethodDecls.Count != 0)
                 {
-                    _outputBuilder.WriteDivider();
-                    OutputVtblHelperMethod(rootCxxRecordDecl, cxxMethodDecl);
+                    foreach (var cxxMethodDecl in cxxMethodDecls.OrderBy((cxxmd) => cxxmd.VtblIndex))
+                    {
+                        _outputBuilder.WriteDivider();
+                        OutputVtblHelperMethod(rootCxxRecordDecl, cxxMethodDecl);
+                    }
                 }
             }
 

@@ -38,6 +38,8 @@ namespace ClangSharp
         private readonly Dictionary<(NamedDecl namedDecl, bool truncateForFunctionParameters), string> _cursorQualifiedNames;
         private readonly Dictionary<(Cursor cursor, Cursor context, Type type), (string typeName, string nativeTypeName)> _typeNames;
         private readonly Dictionary<string, HashSet<string>> _validNameRemappings;
+        private readonly Dictionary<CXXMethodDecl, uint> _overloadIndices;
+        private readonly Dictionary<Cursor, uint> _isExcluded;
         private readonly HashSet<string> _usedRemappings;
 
         private string _filePath;
@@ -99,6 +101,8 @@ namespace ClangSharp
                 ["uintptr_t"] = new HashSet<string>() { "UIntPtr", "nuint" },
                 ["_GUID"] = new HashSet<string>() { "Guid" },
             };
+            _overloadIndices = new Dictionary<CXXMethodDecl, uint>();
+            _isExcluded = new Dictionary<Cursor, uint>();
             _usedRemappings = new HashSet<string>();
         }
 
@@ -1978,7 +1982,46 @@ namespace ClangSharp
             while (true);
         }
 
-        private static CXXRecordDecl GetRecordDeclForBaseSpecifier(CXXBaseSpecifier cxxBaseSpecifier)
+        private uint GetOverloadIndex(CXXMethodDecl cxxMethodDeclToMatch)
+        {
+            if (!_overloadIndices.TryGetValue(cxxMethodDeclToMatch, out var index))
+            {
+                index = GetOverloadIndex(cxxMethodDeclToMatch, cxxMethodDeclToMatch.Parent, baseIndex: 0);
+                _overloadIndices.Add(cxxMethodDeclToMatch, index);
+            }
+            return index;
+
+            uint GetOverloadIndex(CXXMethodDecl cxxMethodDeclToMatch, CXXRecordDecl cxxRecordDecl, uint baseIndex)
+            {
+                var index = baseIndex;
+
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+                    index = GetOverloadIndex(cxxMethodDeclToMatch, baseCxxRecordDecl, index);
+                }
+
+                foreach (var cxxMethodDecl in cxxRecordDecl.Methods.OrderBy((cxxmd) => cxxmd.VtblIndex))
+                {
+                    if (IsExcluded(cxxMethodDecl))
+                    {
+                        continue;
+                    }
+                    else if (cxxMethodDecl == cxxMethodDeclToMatch)
+                    {
+                        break;
+                    }
+                    else if (cxxMethodDecl.Name == cxxMethodDeclToMatch.Name)
+                    {
+                        index++;
+                    }
+                }
+
+                return index;
+            }
+        }
+
+        private static CXXRecordDecl GetRecordDecl(CXXBaseSpecifier cxxBaseSpecifier)
         {
             var baseType = cxxBaseSpecifier.Type;
 
@@ -3312,7 +3355,7 @@ namespace ClangSharp
 
             foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
             {
-                var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
                 if (HasVtbl(baseCxxRecordDecl))
                 {
@@ -3373,10 +3416,13 @@ namespace ClangSharp
 
         private bool IsExcluded(Cursor cursor, out bool isExcludedByConflictingDefinition)
         {
-            isExcludedByConflictingDefinition = false;
-
-            return !IsAlwaysIncluded(cursor)
-                && (IsExcludedByConfig(cursor) || IsExcludedByFile(cursor) || IsExcludedByName(cursor, out isExcludedByConflictingDefinition));
+            if (!_isExcluded.TryGetValue(cursor, out var isExcludedValue))
+            {
+                isExcludedValue |= (!IsAlwaysIncluded(cursor) && (IsExcludedByConfig(cursor) || IsExcludedByFile(cursor) || IsExcludedByName(cursor, ref isExcludedValue))) ? 0b01u : 0b00u;
+                _isExcluded.Add(cursor, isExcludedValue);
+            }
+            isExcludedByConflictingDefinition = (isExcludedValue & 0b10) != 0;
+            return (isExcludedValue & 0b01) != 0;
 
             bool IsAlwaysIncluded(Cursor cursor)
             {
@@ -3427,10 +3473,9 @@ namespace ClangSharp
                 return !IsIncludedFileOrLocation(cursor, file, expansionLocation);
             }
 
-            bool IsExcludedByName(Cursor cursor, out bool isExcludedByConflictingDefinition)
+            bool IsExcludedByName(Cursor cursor, ref uint isExcludedValue)
             {
                 var isExcludedByConfigOption = false;
-                isExcludedByConflictingDefinition = false;
 
                 string qualifiedName;
                 string name;
@@ -3500,7 +3545,7 @@ namespace ClangSharp
                     }
                     else if ((functionDecl is CXXMethodDecl cxxMethodDecl) && IsConflictingMethodDecl(cxxMethodDecl, cxxMethodDecl.Parent))
                     {
-                        isExcludedByConflictingDefinition = true;
+                        isExcludedValue |= 0b10;
                     }
                 }
 
@@ -3514,7 +3559,7 @@ namespace ClangSharp
                         {
                             message += "; Exclusion is unnecessary due to a config option";
                         }
-                        else if (isExcludedByConflictingDefinition)
+                        else if ((isExcludedValue & 0b10) != 0)
                         {
                             message += "; Exclusion is unnecessary due to a conflicting definition";
                         }
@@ -3534,7 +3579,7 @@ namespace ClangSharp
                         {
                             message += "; Exclusion is unnecessary due to a config option";
                         }
-                        else if (isExcludedByConflictingDefinition)
+                        else if ((isExcludedValue & 0b10) != 0)
                         {
                             message += "; Exclusion is unnecessary due to a conflicting definition";
                         }
@@ -3553,7 +3598,7 @@ namespace ClangSharp
                     return true;
                 }
 
-                if (isExcludedByConflictingDefinition)
+                if ((isExcludedValue & 0b10) != 0)
                 {
                     if (_config.LogExclusions)
                     {
@@ -3614,54 +3659,83 @@ namespace ClangSharp
                 return false;
             }
 
-            bool IsConflictingMethodDecl(CXXMethodDecl cxxMethodDecl, CXXRecordDecl cxxRecordDecl)
+            bool IsConflictingMethodDecl(CXXMethodDecl cxxMethodDeclToMatch, CXXRecordDecl cxxRecordDecl)
             {
-                var cxxMethodName = GetRemappedCursorName(cxxMethodDecl);
-                var cxxMethodDeclIndex = -1;
+                var cxxMethodDeclToMatchName = GetRemappedCursorName(cxxMethodDeclToMatch);
+                var foundCxxMethodDeclToMatch = false;
 
-                for (var i = 0; i < cxxRecordDecl.Methods.Count; i++)
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
-                    var methodDecl = cxxRecordDecl.Methods[i];
-                    var methodName = GetRemappedCursorName(methodDecl);
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
-                    if (cxxMethodName != methodName)
+                    if (ContainsConflictingMethodDecl(cxxMethodDeclToMatch, cxxRecordDecl, baseCxxRecordDecl, cxxMethodDeclToMatchName, ref foundCxxMethodDeclToMatch))
                     {
-                        continue;
+                        return true;
+                    }
+                }
+
+                return ContainsConflictingMethodDecl(cxxMethodDeclToMatch, cxxRecordDecl, cxxRecordDecl, cxxMethodDeclToMatchName, ref foundCxxMethodDeclToMatch);
+
+                bool ContainsConflictingMethodDecl(CXXMethodDecl cxxMethodDeclToMatch, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, string cxxMethodDeclToMatchName, ref bool foundCxxMethodDeclToMatch)
+                {
+                    var cxxMethodDecls = cxxRecordDecl.Methods;
+
+                    if (cxxMethodDecls.Count != 0)
+                    {
+                        foreach (var cxxMethodDecl in cxxMethodDecls.OrderBy((cxxmd) => cxxmd.VtblIndex))
+                        {
+                            if (IsConflictingMethodDecl(cxxMethodDeclToMatch, cxxMethodDecl, rootCxxRecordDecl, cxxRecordDecl, cxxMethodDeclToMatchName, ref foundCxxMethodDeclToMatch))
+                            {
+                                return true;
+                            }
+                        }
                     }
 
-                    if (cxxMethodDecl == methodDecl)
+                    return false;
+                }
+
+                bool IsConflictingMethodDecl(CXXMethodDecl cxxMethodDeclToMatch, CXXMethodDecl cxxMethodDecl, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, string cxxMethodDeclToMatchName, ref bool foundCxxMethodDeclToMatch)
+                {
+                    var methodName = GetRemappedCursorName(cxxMethodDecl);
+
+                    if (cxxMethodDeclToMatchName != methodName)
                     {
-                        cxxMethodDeclIndex = i;
-                        continue;
+                        return false;
                     }
 
-                    if (cxxMethodDecl.Parameters.Count != methodDecl.Parameters.Count)
+                    if (cxxMethodDecl == cxxMethodDeclToMatch)
                     {
-                        continue;
+                        foundCxxMethodDeclToMatch = true;
+                        return false;
+                    }
+
+                    if (cxxMethodDecl.Parameters.Count != cxxMethodDeclToMatch.Parameters.Count)
+                    {
+                        return false;
                     }
 
                     var allMatch = true;
 
-                    for (var n = 0; n < cxxMethodDecl.Parameters.Count; n++)
+                    for (var n = 0; n < cxxMethodDeclToMatch.Parameters.Count; n++)
                     {
-                        var baseParameterType = cxxMethodDecl.Parameters[n].Type.CanonicalType;
-                        var thisParameterType = methodDecl.Parameters[n].Type.CanonicalType;
+                        var parameterTypeToMatch = cxxMethodDeclToMatch.Parameters[n].Type.CanonicalType;
+                        var parameterType = cxxMethodDecl.Parameters[n].Type.CanonicalType;
 
-                        if (baseParameterType == thisParameterType)
+                        if (parameterType == parameterTypeToMatch)
                         {
                             continue;
                         }
 
-                        if ((baseParameterType is PointerType basePointerType) &&
-                            (thisParameterType is ReferenceType thisReferenceType) &&
-                            (basePointerType.PointeeType.CanonicalType == thisReferenceType.PointeeType.CanonicalType))
+                        if ((parameterTypeToMatch is PointerType pointerTypeToMatch) &&
+                            (parameterType is ReferenceType referenceType) &&
+                            (referenceType.PointeeType.CanonicalType == pointerTypeToMatch.PointeeType.CanonicalType))
                         {
                             continue;
                         }
 
-                        if ((baseParameterType is ReferenceType baseReferenceType) &&
-                            (thisParameterType is PointerType thisPointerType) &&
-                            (baseReferenceType.PointeeType.CanonicalType == thisPointerType.PointeeType.CanonicalType))
+                        if ((parameterTypeToMatch is ReferenceType referenceTypeToMatch) &&
+                            (parameterType is PointerType pointerType) &&
+                            (pointerType.PointeeType.CanonicalType == referenceTypeToMatch.PointeeType.CanonicalType))
                         {
                             continue;
                         }
@@ -3670,39 +3744,52 @@ namespace ClangSharp
                         break;
                     }
 
-                    if (allMatch)
+                    if (!allMatch)
                     {
-                        // An index of -1 means we found a conflict before encountering
-                        // ourselves. Since we generally want to prefer the first declaration,
-                        // we want to classify ourselves as the conflicting instance.
-                        return cxxMethodDeclIndex == -1;
+                        return false;
                     }
-                }
 
-                foreach (var @base in cxxRecordDecl.Bases)
-                {
-                    CXXRecordDecl baseRecordDecl;
-
-                    if (@base.Referenced is CXXRecordDecl baseCXXRecordDecl)
+                    if (cxxMethodDecl.IsVirtual)
                     {
-                        baseRecordDecl = baseCXXRecordDecl;
+                        if (cxxMethodDeclToMatch.IsVirtual)
+                        {
+                            if (rootCxxRecordDecl != cxxRecordDecl)
+                            {
+                                // The found declaration and declaration to match are both virtual
+                                // We want to treat the one from the base declaration as non-conflicting
+                                // So return true to report the declration to match as the conflict
+                                return true;
+                            }
+                            else
+                            {
+                                AddDiagnostic(DiagnosticLevel.Error, "Found conflicting method definitions for two virtual methods.", cxxMethodDeclToMatch);
+                            }
+                        }
+                        else
+                        {
+                            // The found declaration is virtual while the declaration to match is not
+                            // We want to treat the virtual declaration as non-conflicting
+                            // So return true to report the declration to match as the conflict
+                            return true;
+                        }
                     }
-                    else if (@base.Referenced is TypedefDecl typedefDecl)
+                    else if (cxxMethodDeclToMatch.IsVirtual)
                     {
-                        baseRecordDecl = (CXXRecordDecl)((RecordType)typedefDecl.TypeForDecl.CanonicalType).Decl;
+                        // The declaration to match is virtual while the found declaration is not
+                        // We want to treat the virtual declaration as non-conflicting
+                        // So treat the declaration as non-conflicting and continue searching
+                        return false;
                     }
                     else
                     {
-                        continue;
+                        // Neither the declaration nor the declaration to match are virtual
+                        // We want to pick whichever declaration appears first
+                        // So return true or false based on if we already encounted the declaration to match
+                        return !foundCxxMethodDeclToMatch;
                     }
 
-                    if (IsConflictingMethodDecl(cxxMethodDecl, baseRecordDecl))
-                    {
-                        return true;
-                    }
+                    return false;
                 }
-
-                return false;
             }
 
             bool IsEmptyRecord(RecordDecl recordDecl)
@@ -3739,7 +3826,7 @@ namespace ClangSharp
                 {
                     foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                     {
-                        var baseCxxRecordDecl = GetRecordDeclForBaseSpecifier(cxxBaseSpecifier);
+                        var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
                         if (!IsEmptyRecord(baseCxxRecordDecl))
                         {
@@ -4685,8 +4772,7 @@ namespace ClangSharp
             return (name.Equals("GetHashCode")
                 || name.Equals("GetType")
                 || name.Equals("MemberwiseClone")
-                || name.Equals("ToString"))
-&& parmVarDecls.Count == 0;
+                || name.Equals("ToString")) && parmVarDecls.Count == 0;
         }
 
         private void ParenthesizeStmt(Stmt stmt)
@@ -5110,13 +5196,15 @@ namespace ClangSharp
 
         private void Visit(IEnumerable<Cursor> cursors, IEnumerable<Cursor> excludedCursors) => Visit(cursors.Except(excludedCursors));
 
-        private void WithAttributes(string remappedName)
+        private void WithAttributes(string remappedName, bool onlySupportedOSPlatform = false, bool isTestOutput = false)
         {
+            var outputBuilder = isTestOutput ? _testOutputBuilder : _outputBuilder;
+
             if (_config.WithAttributes.TryGetValue(remappedName, out var attributes))
             {
-                foreach (var attribute in attributes)
+                foreach (var attribute in attributes.Where((a) => !onlySupportedOSPlatform || a.StartsWith("SupportedOSPlatform(")))
                 {
-                    _outputBuilder.WriteCustomAttribute(attribute);
+                    outputBuilder.WriteCustomAttribute(attribute);
                 }
             }
         }

@@ -240,7 +240,7 @@ namespace ClangSharp.CSharp
                 AddNativeTypeNameAttribute(desc.NativeTypeName);
             }
 
-            if (desc.Location is {} location)
+            if (desc.Location is { } location)
             {
                 WriteSourceLocation(location, false);
             }
@@ -368,7 +368,15 @@ namespace ClangSharp.CSharp
                 AddNativeTypeNameAttribute(desc.NativeTypeName, attributePrefix: "return: ");
             }
 
-            WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, isNested: false));
+            if (_isInMarkerInterface)
+            {
+                WriteIndentation();
+            }
+            else
+            {
+                WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, isNested: false));
+                Write(' ');
+            }
 
             if (!desc.IsMemberFunction)
             {
@@ -376,22 +384,20 @@ namespace ClangSharp.CSharp
                 {
                     if (desc.IsUnsafe && !desc.IsCxxRecordCtxUnsafe)
                     {
-                        Write(" unsafe");
+                        Write("unsafe ");
                     }
-                    Write(" delegate");
+                    Write("delegate ");
                 }
                 else if (desc.IsStatic ?? (desc.IsDllImport || !desc.IsCxx))
                 {
-                    Write(" static");
+                    Write("static ");
 
                     if (desc.IsDllImport)
                     {
-                        Write(" extern");
+                        Write("extern ");
                     }
                 }
             }
-
-            Write(' ');
 
             if (!desc.IsVirtual)
             {
@@ -628,13 +634,43 @@ namespace ClangSharp.CSharp
 
             Write("partial struct ");
             Write(desc.EscapedName);
+
+            if (desc.HasVtbl && _config.GenerateMarkerInterfaces)
+            {
+                Write(" : ");
+                Write(desc.EscapedName);
+                Write(".Interface");
+            }
+
             WriteNewline();
             WriteBlockStart();
         }
 
+        public void BeginMarkerInterface(string[] baseTypeNames)
+        {
+            WriteIndented("public interface Interface");
+
+            if (baseTypeNames is not null)
+            {
+                Write(" : ");
+                Write(baseTypeNames[0]);
+                Write(".Interface");
+
+                for (var i = 1; i < baseTypeNames.Length; i++)
+                {
+                    Write(", ");
+                    Write(baseTypeNames[i]);
+                    Write(".Interface");
+                }
+            }
+
+            WriteNewline();
+            WriteBlockStart();
+            _isInMarkerInterface = true;
+        }
+
         public void BeginExplicitVtbl()
         {
-            NeedsNewline = true;
             WriteIndentedLine("public partial struct Vtbl");
             WriteBlockStart();
         }
@@ -650,6 +686,12 @@ namespace ClangSharp.CSharp
         public void EmitSystemSupport() => AddUsingDirective("System");
 
         public void EndStruct() => WriteBlockEnd();
+
+        public void EndMarkerInterface()
+        {
+            _isInMarkerInterface = false;
+            WriteBlockEnd();
+        }
 
         public void EndExplicitVtbl() => WriteBlockEnd();
 

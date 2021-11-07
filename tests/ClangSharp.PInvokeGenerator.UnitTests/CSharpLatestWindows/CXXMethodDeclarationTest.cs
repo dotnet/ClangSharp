@@ -423,9 +423,9 @@ namespace ClangSharp.Test
     {{
         public void** lpVtbl;
 
-        public int GetType(int obj)
+        public int GetType(int objA, int objB)
         {{
-            return ((delegate* unmanaged[Thiscall]<MyStruct*, int, int>)(lpVtbl[{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 2 : 0)}]))((MyStruct*)Unsafe.AsPointer(ref this), obj);
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, int, int, int>)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
         }}
 
         public new int GetType()
@@ -433,9 +433,9 @@ namespace ClangSharp.Test
             return ((delegate* unmanaged[Thiscall]<MyStruct*, int>)(lpVtbl[1]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
-        public int GetType(int objA, int objB)
+        public int GetType(int obj)
         {{
-            return ((delegate* unmanaged[Thiscall]<MyStruct*, int, int, int>)(lpVtbl[{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 0 : 2)}]))((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, int, int>)(lpVtbl[2]))((MyStruct*)Unsafe.AsPointer(ref this), obj);
         }}
     }}
 }}
@@ -468,9 +468,9 @@ namespace ClangSharp.Test
     {{
         public Vtbl* lpVtbl;
 
-        public int GetType(int obj)
+        public int GetType(int objA, int objB)
         {{
-            return lpVtbl->GetType((MyStruct*)Unsafe.AsPointer(ref this), obj);
+            return lpVtbl->GetType((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
         }}
 
         public new int GetType()
@@ -478,21 +478,21 @@ namespace ClangSharp.Test
             return lpVtbl->GetType1((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
-        public int GetType(int objA, int objB)
+        public int GetType(int obj)
         {{
-            return lpVtbl->GetType2((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
+            return lpVtbl->GetType2((MyStruct*)Unsafe.AsPointer(ref this), obj);
         }}
 
         public partial struct Vtbl
         {{
-            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int, int)" : "int (int)")}{nativeCallConv}"")]
-            public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "new ")}delegate* unmanaged[Thiscall]<MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", int" : "")}> GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "2" : "")};
+            [NativeTypeName(""int (int, int){nativeCallConv}"")]
+            public new delegate* unmanaged[Thiscall]<MyStruct*, int, int, int> GetType;
 
             [NativeTypeName(""int (){nativeCallConv}"")]
             public delegate* unmanaged[Thiscall]<MyStruct*, int> GetType1;
 
-            [NativeTypeName(""{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "int (int)" : "int (int, int)")}{nativeCallConv}"")]
-            public {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "new " : "")}delegate* unmanaged[Thiscall]<MyStruct*, int, int{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : ", int")}> GetType{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "2")};
+            [NativeTypeName(""int (int){nativeCallConv}"")]
+            public delegate* unmanaged[Thiscall]<MyStruct*, int, int> GetType2;
         }}
     }}
 }}

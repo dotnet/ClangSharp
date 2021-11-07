@@ -64,5 +64,9 @@ namespace ClangSharp
         GenerateUnmanagedConstants = 1 << 26,
 
         GenerateHelperTypes = 1 << 27,
+
+        GenerateTrimmableVtbls = 1 << 28,
+
+        GenerateMarkerInterfaces = 1 << 29,
     }
 }
