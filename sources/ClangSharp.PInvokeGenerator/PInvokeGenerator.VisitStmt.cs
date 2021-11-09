@@ -582,33 +582,63 @@ namespace ClangSharp
         private void VisitDeclRefExpr(DeclRefExpr declRefExpr)
         {
             var outputBuilder = StartCSharpCode();
-            if ((declRefExpr.Decl is EnumConstantDecl enumConstantDecl) && (declRefExpr.DeclContext != enumConstantDecl.DeclContext) && (enumConstantDecl.DeclContext is NamedDecl namedDecl))
-            {
-                var enumName = GetRemappedCursorName(namedDecl);
 
-                if (!_config.DontUseUsingStaticsForEnums)
+            var name = GetRemappedCursorName(declRefExpr.Decl, out _, skipUsing: true);
+            var escapedName = EscapeName(name);
+
+            if (declRefExpr.Decl is EnumConstantDecl enumConstantDecl)
+            {
+                if ((declRefExpr.DeclContext != enumConstantDecl.DeclContext) && (enumConstantDecl.DeclContext is NamedDecl namedDecl))
                 {
-                    if (enumName.StartsWith("__AnonymousEnum_"))
+                    var enumName = GetRemappedCursorName(namedDecl, out _, skipUsing: true);
+
+                    if (!_config.DontUseUsingStaticsForEnums)
                     {
-                        if (outputBuilder.Name != _config.MethodClassName)
+                        if (enumName.StartsWith("__AnonymousEnum_"))
                         {
-                            outputBuilder.AddUsingDirective($"static {_config.Namespace}.{_config.MethodClassName}");
+                            if (outputBuilder.Name != _config.MethodClassName)
+                            {
+                                outputBuilder.AddUsingDirective($"static {GetNamespace(_config.MethodClassName)}.{_config.MethodClassName}");
+                            }
+                        }
+                        else
+                        {
+                            outputBuilder.AddUsingDirective($"static {GetNamespace(enumName)}.{enumName}");
                         }
                     }
                     else
                     {
-                        outputBuilder.AddUsingDirective($"static {_config.Namespace}.{enumName}");
+                        outputBuilder.Write(enumName);
+                        outputBuilder.Write(".");
                     }
                 }
-                else
+            }
+            else
+            {
+                if (TryGetNamespace(name, out var namespaceName))
                 {
-                    outputBuilder.Write(enumName);
-                    outputBuilder.Write(".");
+                    var namespaceNameParts = namespaceName.Split(';');
+                    namespaceName = namespaceNameParts[0];
+
+                    if (namespaceNameParts.Length == 2)
+                    {
+                        if ($"{_currentNamespace}.{outputBuilder.Name}" != namespaceName)
+                        {
+                            outputBuilder.AddUsingDirective($"static {namespaceName}.{namespaceNameParts[1]}");
+                        }
+                    }
+                    else if (_currentNamespace != namespaceName)
+                    {
+                        outputBuilder.AddUsingDirective(namespaceName);
+                    }
+                }
+
+                if (declRefExpr.Decl is FunctionDecl)
+                {
+                    escapedName = EscapeAndStripName(name);
                 }
             }
 
-            var name = GetRemappedCursorName(declRefExpr.Decl);
-            var escapedName = (declRefExpr.Decl is FunctionDecl) ? EscapeAndStripName(name) : EscapeName(name);
             outputBuilder.Write(escapedName);
 
             StopCSharpCode();
@@ -1321,7 +1351,7 @@ namespace ClangSharp
                 if (_testOutputBuilder != null)
                 {
                     _testOutputBuilder.AddUsingDirective("System");
-                    _testOutputBuilder.AddUsingDirective($"static {_config.Namespace}.{_config.MethodClassName}");
+                    _testOutputBuilder.AddUsingDirective($"static {GetNamespace(_config.MethodClassName)}.{_config.MethodClassName}");
 
                     _testOutputBuilder.WriteIndented("/// <summary>Validates that the value of the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);

@@ -45,6 +45,7 @@ namespace ClangSharp
         private string _filePath;
         private string[] _clangCommandLineArgs;
         private CXTranslationUnit_Flags _translationFlags;
+        private string _currentNamespace;
 
         private IOutputBuilder _outputBuilder;
         private CSharpOutputBuilder _testOutputBuilder;
@@ -319,7 +320,7 @@ namespace ClangSharp
                 sw.WriteLine();
 
                 sw.Write("namespace ");
-                sw.WriteLine(config.Namespace);
+                sw.WriteLine(generator.GetNamespace("NativeInheritanceAttribute"));
                 sw.WriteLine('{');
 
                 sw.WriteLine("    /// <summary>Defines the base type of a struct as it was in the native signature.</summary>");
@@ -361,7 +362,7 @@ namespace ClangSharp
                 sw.WriteLine();
 
                 sw.Write("namespace ");
-                sw.WriteLine(config.Namespace);
+                sw.WriteLine(generator.GetNamespace("NativeTypeName"));
                 sw.WriteLine('{');
 
                 sw.WriteLine("    /// <summary>Defines the type of a member as it was used in the native signature.</summary>");
@@ -403,7 +404,7 @@ namespace ClangSharp
                 sw.WriteLine();
 
                 sw.Write("namespace ");
-                sw.WriteLine(config.Namespace);
+                sw.WriteLine(generator.GetNamespace("VtblIndexAttribute"));
                 sw.WriteLine('{');
 
                 sw.WriteLine("    /// <summary>Defines the vtbl index of a method as it was in the native signature.</summary>");
@@ -452,7 +453,7 @@ namespace ClangSharp
                     sw.WriteLine();
 
                     sw.Write("namespace ");
-                    sw.WriteLine(config.Namespace);
+                    sw.WriteLine(generator.GetNamespace(name));
                     sw.WriteLine('{');
 
                     sw.Write("    public ");
@@ -1220,11 +1221,12 @@ namespace ClangSharp
             void ForCSharp(CSharpOutputBuilder csharpOutputBuilder)
             {
                 var indentationString = csharpOutputBuilder.IndentationString;
+                var nonTestName = outputBuilder.IsTestOutput ? outputBuilder.Name[0..^5] : outputBuilder.Name;
 
                 if (emitNamespaceDeclaration)
                 {
                     sw.Write("namespace ");
-                    sw.Write(Config.Namespace);
+                    sw.Write(GetNamespace(nonTestName));
 
                     if (csharpOutputBuilder.IsTestOutput)
                     {
@@ -1246,7 +1248,7 @@ namespace ClangSharp
                     if (outputBuilder.IsTestOutput)
                     {
                         sw.Write("/// <summary>Provides validation of the <see cref=\"");
-                        sw.Write(outputBuilder.Name[0..^5]);
+                        sw.Write(nonTestName);
                         sw.WriteLine("\" /> class.</summary>");
                         sw.Write(indentationString);
                     }
@@ -1312,7 +1314,7 @@ namespace ClangSharp
                 {
                     sw.Write(indentationString);
                     sw.Write("<namespace name=\"");
-                    sw.Write(Config.Namespace);
+                    sw.Write(GetNamespace(Config.MethodClassName));
                     sw.WriteLine("\">");
                 }
 
@@ -2055,8 +2057,15 @@ namespace ClangSharp
 
         private string GetRemappedCursorName(NamedDecl namedDecl)
         {
+            return GetRemappedCursorName(namedDecl, out _, skipUsing: false);
+        }
+
+        private string GetRemappedCursorName(NamedDecl namedDecl, out string nativeTypeName, bool skipUsing)
+        {
+            nativeTypeName = GetCursorName(namedDecl);
+
             var name = GetCursorQualifiedName(namedDecl);
-            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped);
+            var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped, skipUsing);
 
             if (wasRemapped)
             {
@@ -2064,7 +2073,7 @@ namespace ClangSharp
             }
 
             name = name.Replace("::", ".");
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing);
 
             if (wasRemapped)
             {
@@ -2072,7 +2081,7 @@ namespace ClangSharp
             }
 
             name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing);
 
             if (wasRemapped)
             {
@@ -2080,15 +2089,15 @@ namespace ClangSharp
             }
 
             name = name.Replace("::", ".");
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing);
 
             if (wasRemapped)
             {
                 return remappedName;
             }
 
-            name = GetCursorName(namedDecl);
-            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped);
+            name = nativeTypeName;
+            remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing);
 
             if (wasRemapped)
             {
@@ -2165,11 +2174,40 @@ namespace ClangSharp
             wasRemapped = false;
             return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
 
-            static string AddUsingDirectiveIfNeeded(IOutputBuilder outputBuilder, string remappedName, bool skipUsing)
+            string AddUsingDirectiveIfNeeded(IOutputBuilder outputBuilder, string remappedName, bool skipUsing)
             {
-                if (!skipUsing && s_needsSystemSupportRegex.IsMatch(remappedName))
+                if (!skipUsing)
                 {
-                    outputBuilder?.EmitSystemSupport();
+                    if (s_needsSystemSupportRegex.IsMatch(remappedName))
+                    {
+                        outputBuilder?.EmitSystemSupport();
+                    }
+
+                    var namespaceName = GetNamespace(remappedName);
+                    var needsUsing = false;
+
+                    if (_currentNamespace is not null)
+                    {
+                        var namespaceNameParts = namespaceName.Split(';');
+                        namespaceName = namespaceNameParts[0];
+
+                        if (namespaceNameParts.Length != 2)
+                        {
+                            if (!_currentNamespace.StartsWith(namespaceName))
+                            {
+                                needsUsing = true;
+                            }
+                            else if ((_currentNamespace.Length > namespaceName.Length) && (_currentNamespace[namespaceName.Length] != '.'))
+                            {
+                                needsUsing = true;
+                            }
+                        }
+                    }
+
+                    if (needsUsing)
+                    {
+                        outputBuilder?.EmitUsingDirective(namespaceName);
+                    }
                 }
 
                 return remappedName;
@@ -2576,11 +2614,11 @@ namespace ClangSharp
 
                         if (result.typeName.StartsWith("enum "))
                         {
-                            result.typeName = result.typeName.Substring(5);
+                            result.typeName = result.typeName[5..];
                         }
                         else if (result.typeName.StartsWith("struct "))
                         {
-                            result.typeName = result.typeName.Substring(7);
+                            result.typeName = result.typeName[7..];
                         }
                     }
 
@@ -2853,16 +2891,6 @@ namespace ClangSharp
 
         private void GetTypeSize(Cursor cursor, Type type, ref long alignment32, ref long alignment64, out long size32, out long size64)
         {
-            if (cursor is NamedDecl namedDecl)
-            {
-                var cursorName = GetRemappedCursorName(namedDecl);
-
-                if (cursorName == "VkRayTracingPipelineCreateInfoKHR")
-                {
-                    Debugger.Break();
-                }
-            }
-
             var has8BytePrimitiveField = false;
             GetTypeSize(cursor, type, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out size32, out size64);
         }
@@ -3234,7 +3262,7 @@ namespace ClangSharp
                     alignment32 = Math.Min(alignment32, maxFieldAlignment32);
                 }
 
-                if (alignment64 == 4)
+                if ((alignment64 == 4) && !anyFieldIs8BytePrimitive)
                 {
                     alignment64 = Math.Max(alignment64, maxFieldAlignment64);
                 }
@@ -4814,6 +4842,9 @@ namespace ClangSharp
         {
             var nameTests = $"{name}Tests";
 
+            // Set the current namespace so subsequent type lookups add the right using
+            _currentNamespace = GetNamespace(name);
+
             if (_outputBuilder != null)
             {
                 Debug.Assert(_outputBuilderUsers >= 1);
@@ -4905,6 +4936,7 @@ namespace ClangSharp
         {
             if (_outputBuilderUsers == 1)
             {
+                _currentNamespace = null;
                 _outputBuilder = null;
                 _testOutputBuilder = null;
             }
@@ -5214,6 +5246,27 @@ namespace ClangSharp
             return !_config.WithLibraryPaths.TryGetValue(remappedName, out var libraryPath) && !_config.WithLibraryPaths.TryGetValue("*", out libraryPath)
                 ? _config.LibraryPath
                 : libraryPath;
+        }
+
+        private string GetNamespace(string remappedName)
+        {
+            if (!TryGetNamespace(remappedName, out var namespaceName))
+            {
+                namespaceName = _config.DefaultNamespace;
+            }
+            return namespaceName;
+        }
+
+        private bool TryGetNamespace(string remappedName, out string namespaceName)
+        {
+            var index = remappedName.IndexOf('*');
+
+            if (index != -1)
+            {
+                remappedName = remappedName[..index];
+            }
+
+            return _config.WithNamespaces.TryGetValue(remappedName, out namespaceName);
         }
 
         private bool GetSetLastError(string remappedName) => _config.WithSetLastErrors.Contains("*") ||
