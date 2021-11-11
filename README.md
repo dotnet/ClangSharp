@@ -19,12 +19,13 @@ NOTE: These may be out of date as compared to the latest sources. New versions a
 
 ## Table of Contents
 
-* [Microsoft Open Source Code of Conduct](#microsoft-open-source-code-of-conduct)
+* [Code of Conduct](#code-of-conduct)
 * [License](#license)
 * [Features](#features)
 * [Building Managed](#building-managed)
 * [Building Native](#building-native)
 * [Generating Bindings](#generating-bindings)
+* [Using locally built versions](#using-locally-build-versions)
 * [Spotlight](#spotlight)
 
 ### Code of Conduct
@@ -38,11 +39,11 @@ reported by contacting the project team at conduct@dotnetfoundation.org.
 
 ### License
 
-Copyright (c) .NET Foundation and Contributors.
+Copyright (c) .NET Foundation and Contributors. All Rights Reserved.
 Licensed under the MIT License (MIT).
 See [LICENSE.md](LICENSE.md) in the repository root for more information.
 
-## Features
+### Features
 
  * Auto-generated using Clang C headers files, and supports all functionality exposed by them ~ which means you can build tooling around C/C++
  * Exposes the raw unsafe API for performance
@@ -50,7 +51,7 @@ See [LICENSE.md](LICENSE.md) in the repository root for more information.
  * Exposes an again slightly higher abstraction that tries to mirror the Clang C++ Type Hierarchy where possible
  * Nearly identical to the Clang C APIs, e.g. `clang_getDiagnosticSpelling` in C, vs. `clang.getDiagnosticSpelling` (notice the . in the C# API)
 
-## Building Managed
+### Building Managed
 
 ClangSharp requires the [.NET 5 SDK](https://dotnet.microsoft.com/download/dotnet/5.0) and can be built simply with `dotnet build -c Release`.
 
@@ -63,7 +64,7 @@ Certain actions are dependent on a previous action having been run at least once
 
 You can see any additional options that are available by passing `-help` on Windows or `--help` on Unix to the available build scripts.
 
-## Building Native
+### Building Native
 
 ClangSharp provides a helper library, `libClangSharp`, that exposes additional functionality that is not available in `libClang`.
 Building this requires [CMake 3.13 or later](https://cmake.org/download/) as well as a version of MSVC or Clang that supports C++ 17.
@@ -109,7 +110,7 @@ cmake -DPATH_TO_LLVM=/usr/lib/llvm/13/ -G Ninja ../../..
 ninja
 ```
 
-## Generating Bindings
+### Generating Bindings
 
 This program will take a given set of C or C++ header files and generate C# bindings from them. It is still a work-in-progress and not every declaration can have bindings generated today (contributions are welcome).
 
@@ -258,7 +259,7 @@ Options:
                                            traversal issues.
 ```
 
-## Using locally built version
+### Using locally built versions
 
 After you build local version, you can use executable from build location.
 
@@ -273,7 +274,7 @@ LD_LIBRARY_PATH=$(pwd)/artifacts/bin/native/lib/
 artifacts/bin/sources/ClangSharpPInvokeGenerator/Debug/net5.0/ClangSharpPInvokeGenerator
 ```
 
-## Spotlight
+### Spotlight
 
 The P/Invoke Generator is currently used by several projects:
 
