@@ -114,6 +114,7 @@ namespace ClangSharp
             AddWithAttributeOption(s_rootCommand);
             AddWithCallConvOption(s_rootCommand);
             AddWithLibraryPathOption(s_rootCommand);
+            AddWithNamespaceOption(s_rootCommand);
             AddWithSetLastErrorOption(s_rootCommand);
             AddWithTransparentStructOption(s_rootCommand);
             AddWithTypeOption(s_rootCommand);
@@ -148,6 +149,7 @@ namespace ClangSharp
             var withAttributeNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-attribute");
             var withCallConvNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-callconv");
             var withLibraryPathNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-librarypath");
+            var withNamespaceNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-namespace");
             var withSetLastErrors = context.ParseResult.ValueForOption<string[]>("--with-setlasterror");
             var withTransparentStructNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-transparent-struct");
             var withTypeNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-type");
@@ -188,6 +190,7 @@ namespace ClangSharp
             ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
             ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
             ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPath);
+            ParseKeyValuePairs(withNamespaceNameValuePairs, errorList, out Dictionary<string, string> withNamespaces);
             ParseKeyValuePairs(withTransparentStructNameValuePairs, errorList, out Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> withTransparentStructs);
             ParseKeyValuePairs(withTypeNameValuePairs, errorList, out Dictionary<string, string> withTypes);
             ParseKeyValuePairs(withUsingNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withUsings);
@@ -527,7 +530,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withLibraryPath, withSetLastErrors, withTransparentStructs, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withLibraryPath, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings);
 
             if (config.GenerateMacroBindings)
             {
@@ -1020,6 +1023,19 @@ namespace ClangSharp
             var option = new Option(
                 aliases: new string[] { "--with-librarypath", "-wlb" },
                 description: "A library path to be used for the given declaration during binding generation.",
+                argumentType: typeof(string),
+                getDefaultValue: Array.Empty<string>,
+                arity: ArgumentArity.OneOrMore
+            );
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddWithNamespaceOption(RootCommand rootCommand)
+        {
+            var option = new Option(
+                aliases: new string[] { "--with-namespace", "-wn" },
+                description: "A namespace to be used for the given remapped declaration name during binding generation.",
                 argumentType: typeof(string),
                 getDefaultValue: Array.Empty<string>,
                 arity: ArgumentArity.OneOrMore

@@ -1122,7 +1122,7 @@ namespace ClangSharp
                     if (_testOutputBuilder != null)
                     {
                         _testOutputBuilder.AddUsingDirective("System");
-                        _testOutputBuilder.AddUsingDirective($"static {_config.Namespace}.{_config.MethodClassName}");
+                        _testOutputBuilder.AddUsingDirective($"static {GetNamespace(_config.MethodClassName)}.{_config.MethodClassName}");
 
                         _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"Guid\" /> of the <see cref=\"");
                         _testOutputBuilder.Write(escapedName);
@@ -1187,17 +1187,18 @@ namespace ClangSharp
                     _ = nativeTypeNameBuilder.Append(nativeName);
                     _ = nativeTypeNameBuilder.Append(" : ");
 
-                    var baseName = GetCursorName(cxxRecordDecl.Bases[0].Referenced);
-                    _ = nativeTypeNameBuilder.Append(baseName);
+                    var baseName = GetRemappedCursorName(cxxRecordDecl.Bases[0].Referenced, out var nativeBaseName, skipUsing: !_config.GenerateMarkerInterfaces);
+
                     baseTypeNamesBuilder.Add(baseName);
+                    _ = nativeTypeNameBuilder.Append(nativeBaseName);
 
                     for (var i = 1; i < cxxRecordDecl.Bases.Count; i++)
                     {
                         _ = nativeTypeNameBuilder.Append(", ");
-                        baseName = GetCursorName(cxxRecordDecl.Bases[i].Referenced);
+                        baseName = GetRemappedCursorName(cxxRecordDecl.Bases[i].Referenced, out nativeBaseName, skipUsing: !_config.GenerateMarkerInterfaces);
 
-                        _ = nativeTypeNameBuilder.Append(baseName);
                         baseTypeNamesBuilder.Add(baseName);
+                        _ = nativeTypeNameBuilder.Append(nativeBaseName);
                     }
 
                     nativeNameWithExtras = nativeTypeNameBuilder.ToString();
@@ -1603,7 +1604,6 @@ namespace ClangSharp
 
                 var currentContext = _context.AddLast((cxxMethodDecl, null));
 
-                var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var returnType = cxxMethodDecl.ReturnType;
                 var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
 
@@ -1619,7 +1619,7 @@ namespace ClangSharp
                 }
 
                 var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)> {
-                    AccessSpecifier = accessSpecifier,
+                    AccessSpecifier = AccessSpecifier.Public,
                     EscapedName = EscapeAndStripName(name),
                     IsMemberFunction = true,
                     NativeTypeName = nativeTypeName,
@@ -1692,18 +1692,12 @@ namespace ClangSharp
 
                 var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out var nativeTypeName, skipUsing: false, ignoreTransparentStructsWhereRequired: true);
 
-                var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                 var escapedName = EscapeAndStripName(remappedName);
 
-                if (accessSpecifier == AccessSpecifier.Private)
-                {
-                    accessSpecifier = AccessSpecifier.Internal;
-                }
-
                 var desc = new FieldDesc
                 {
-                    AccessSpecifier = accessSpecifier,
+                    AccessSpecifier = AccessSpecifier.Public,
                     NativeTypeName = nativeTypeName,
                     EscapedName = escapedName,
                     Offset = null,
@@ -1732,7 +1726,6 @@ namespace ClangSharp
 
                 var currentContext = _context.AddLast((cxxMethodDecl, null));
 
-                var accessSpecifier = GetAccessSpecifier(cxxMethodDecl);
                 var returnType = cxxMethodDecl.ReturnType;
                 var returnTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, returnType, out var nativeTypeName);
 
@@ -1749,7 +1742,7 @@ namespace ClangSharp
 
                 var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
                 {
-                    AccessSpecifier = accessSpecifier,
+                    AccessSpecifier = AccessSpecifier.Public,
                     IsAggressivelyInlined = _config.GenerateAggressiveInlining,
                     EscapedName = EscapeAndStripName(name),
                     IsMemberFunction = true,
