@@ -33,9 +33,9 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 ### License
 
-Copyright (c) .NET Foundation and Contributors. All rights reserved.
-Licensed under the University of Illinois/NCSA Open Source License.
-See [LICENSE.txt](LICENSE.txt) in the project root for license information.
+Copyright (c) .NET Foundation and Contributors.
+Licensed under the MIT License (MIT).
+See [LICENSE.md](LICENSE.md) in the repository root for more information.
 
 ## Features
 

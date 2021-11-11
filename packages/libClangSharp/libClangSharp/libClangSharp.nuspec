@@ -6,7 +6,7 @@
     <authors>.NET Foundation and Contributors</authors>
     <owners>.NET Foundation and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <license type="expression">NCSA</license>
+    <license type="expression">MIT</license>
     <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>
     <description>Multi-platform native library for libClangSharp.</description>
     <copyright>Copyright © .NET Foundation and Contributors</copyright>
@@ -18,8 +18,8 @@
       <group targetFramework=".NETStandard2.0" />
     </dependencies>
   </metadata><files>
-    <file src="LICENSE.TXT" target="LICENSE.TXT" />
-    <file src="NOTICE.TXT" target="NOTICE.TXT" />
+    <file src="..\..\..\LICENSE.md" target="LICENSE.TXT" />
+    <file src="..\..\..\NOTICE.md" target="NOTICE.TXT" />
     <file src="runtime.json" target="runtime.json" />
   </files>
 </package>

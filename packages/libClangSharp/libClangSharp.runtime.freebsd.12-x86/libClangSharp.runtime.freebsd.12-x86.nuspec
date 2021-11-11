@@ -13,8 +13,8 @@
     <repository type="git" url="https://github.com/microsoft/clangsharp" branch="main" />
   </metadata>
   <files>
-    <file src="..\libClangSharp\LICENSE.TXT" target="LICENSE.TXT" />
-    <file src="..\libClangSharp\NOTICE.TXT" target="NOTICE.TXT" />
+    <file src="..\..\..\LICENSE.md" target="LICENSE.TXT" />
+    <file src="..\..\..\NOTICE.md" target="NOTICE.TXT" />
     <file src="libClangSharp.so" target="runtimes\freebsd.12-x86\native\libClangSharp.so" />
   </files>
 </package>
