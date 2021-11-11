@@ -3,13 +3,13 @@
   <metadata minClientVersion="2.12">
     <id>libClangSharp.runtime.win-x86</id>
     <version>13.0.0-beta1</version>
-    <authors>Microsoft and Contributors</authors>
-    <owners>Microsoft and Contributors</owners>
+    <authors>.NET Foundation and Contributors</authors>
+    <owners>.NET Foundation and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">NCSA</license>
     <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>
     <description>win x86 native library for libClangSharp.</description>
-    <copyright>Copyright © Microsoft and Contributors</copyright>
+    <copyright>Copyright © .NET Foundation and Contributors</copyright>
     <repository type="git" url="https://github.com/microsoft/clangsharp" branch="main" />
   </metadata>
   <files>
