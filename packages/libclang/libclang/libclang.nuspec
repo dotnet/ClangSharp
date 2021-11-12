@@ -3,8 +3,8 @@
   <metadata minClientVersion="2.12">
     <id>libclang</id>
     <version>13.0.1</version>
-    <authors>Microsoft and Contributors</authors>
-    <owners>Microsoft and Contributors</owners>
+    <authors>.NET Foundation and Contributors</authors>
+    <owners>.NET Foundation and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">Apache-2.0 WITH LLVM-exception</license>
     <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>

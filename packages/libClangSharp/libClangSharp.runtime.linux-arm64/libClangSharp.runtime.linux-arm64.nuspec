@@ -3,18 +3,18 @@
   <metadata minClientVersion="2.12">
     <id>libClangSharp.runtime.linux-arm64</id>
     <version>13.0.0-beta1</version>
-    <authors>Microsoft and Contributors</authors>
-    <owners>Microsoft and Contributors</owners>
+    <authors>.NET Foundation and Contributors</authors>
+    <owners>.NET Foundation and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <license type="expression">NCSA</license>
+    <license type="expression">MIT</license>
     <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>
     <description>linux arm64 native library for libClangSharp.</description>
-    <copyright>Copyright © Microsoft and Contributors</copyright>
+    <copyright>Copyright © .NET Foundation and Contributors</copyright>
     <repository type="git" url="https://github.com/microsoft/clangsharp" branch="main" />
   </metadata>
   <files>
-    <file src="..\libClangSharp\LICENSE.TXT" target="LICENSE.TXT" />
-    <file src="..\libClangSharp\NOTICE.TXT" target="NOTICE.TXT" />
+    <file src="..\..\..\LICENSE.md" target="LICENSE.TXT" />
+    <file src="..\..\..\NOTICE.md" target="NOTICE.TXT" />
     <file src="libClangSharp.so" target="runtimes\linux-arm64\native\libClangSharp.so" />
   </files>
 </package>

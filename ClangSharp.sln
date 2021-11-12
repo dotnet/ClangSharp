@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.202
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.31903.286
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{14B849D1-0F45-4449-B3F6-A1A920B3C442}"
 	ProjectSection(SolutionItems) = preProject
@@ -10,10 +10,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		build.cmd = build.cmd
 		build.sh = build.sh
 		CMakeLists.txt = CMakeLists.txt
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
-		LICENSE.txt = LICENSE.txt
-		NOTICE.txt = NOTICE.txt
+		LICENSE.md = LICENSE.md
+		NOTICE.md = NOTICE.md
 		pack.cmd = pack.cmd
 		pack.sh = pack.sh
 		README.md = README.md
@@ -68,14 +69,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang", "libclang", "{C8
 		packages\libclang\libclang\runtime.json = packages\libclang\libclang\runtime.json
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.11-x64", "libclang.runtime.freebsd.11-x64", "{C90094F6-26DF-4B2C-BD61-540D4CE988A4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.12-x64", "libclang.runtime.freebsd.12-x64", "{C90094F6-26DF-4B2C-BD61-540D4CE988A4}"
 	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.freebsd.11-x64\libclang.runtime.freebsd.11-x64.nuspec = packages\libclang\libclang.runtime.freebsd.11-x64\libclang.runtime.freebsd.11-x64.nuspec
+		packages\libclang\libclang.runtime.freebsd.12-x64\libclang.runtime.freebsd.12-x64.nuspec = packages\libclang\libclang.runtime.freebsd.12-x64\libclang.runtime.freebsd.12-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.11-x86", "libclang.runtime.freebsd.11-x86", "{C57B4A74-2791-44C3-92D3-9B8AD5993F27}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.12-x86", "libclang.runtime.freebsd.12-x86", "{C57B4A74-2791-44C3-92D3-9B8AD5993F27}"
 	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.freebsd.11-x86\libclang.runtime.freebsd.11-x86.nuspec = packages\libclang\libclang.runtime.freebsd.11-x86\libclang.runtime.freebsd.11-x86.nuspec
+		packages\libclang\libclang.runtime.freebsd.12-x86\libclang.runtime.freebsd.12-x86.nuspec = packages\libclang\libclang.runtime.freebsd.12-x86\libclang.runtime.freebsd.12-x86.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.linux-arm", "libclang.runtime.linux-arm", "{F9915660-2229-418C-B269-83FE74C1943E}"
@@ -113,19 +114,17 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp", "libClangSharp", "{B043C50D-8B06-4663-943A-DEBB6CFACEA6}"
 	ProjectSection(SolutionItems) = preProject
 		packages\libClangSharp\libClangSharp\libClangSharp.nuspec = packages\libClangSharp\libClangSharp\libClangSharp.nuspec
-		packages\libClangSharp\libClangSharp\LICENSE.TXT = packages\libClangSharp\libClangSharp\LICENSE.TXT
-		packages\libClangSharp\libClangSharp\NOTICE.TXT = packages\libClangSharp\libClangSharp\NOTICE.TXT
 		packages\libClangSharp\libClangSharp\runtime.json = packages\libClangSharp\libClangSharp\runtime.json
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freebsd.11-x64", "libClangSharp.runtime.freebsd.11-x64", "{8DCBB5E9-A44C-462F-B9FE-418B18EC7E31}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freebsd.12-x64", "libClangSharp.runtime.freebsd.12-x64", "{8DCBB5E9-A44C-462F-B9FE-418B18EC7E31}"
 	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.freebsd.11-x64\libClangSharp.runtime.freebsd.11-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.freebsd.11-x64\libClangSharp.runtime.freebsd.11-x64.nuspec
+		packages\libClangSharp\libClangSharp.runtime.freebsd.12-x64\libClangSharp.runtime.freebsd.12-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.freebsd.12-x64\libClangSharp.runtime.freebsd.12-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freebsd.11-x86", "libClangSharp.runtime.freebsd.11-x86", "{47E5622B-77C6-44B7-8528-F03C3B63A217}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freebsd.12-x86", "libClangSharp.runtime.freebsd.12-x86", "{47E5622B-77C6-44B7-8528-F03C3B63A217}"
 	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.freebsd.11-x86\libClangSharp.runtime.freebsd.11-x86.nuspec = packages\libClangSharp\libClangSharp.runtime.freebsd.11-x86\libClangSharp.runtime.freebsd.11-x86.nuspec
+		packages\libClangSharp\libClangSharp.runtime.freebsd.12-x86\libClangSharp.runtime.freebsd.12-x86.nuspec = packages\libClangSharp\libClangSharp.runtime.freebsd.12-x86\libClangSharp.runtime.freebsd.12-x86.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.linux-arm", "libClangSharp.runtime.linux-arm", "{B48A71F0-AF48-4010-941F-AF24FDB614F2}"
@@ -211,6 +210,26 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.win-a
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.Interop", "sources\ClangSharp.Interop\ClangSharp.Interop.csproj", "{AADBAAC3-45F0-484F-BCB2-9809EDF1CA82}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.13-x64", "libclang.runtime.freebsd.13-x64", "{8FD0223B-88AD-4FA9-AE29-0B446FF17922}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libclang\libclang.runtime.freebsd.13-x64\libclang.runtime.freebsd.13-x64.nuspec = packages\libclang\libclang.runtime.freebsd.13-x64\libclang.runtime.freebsd.13-x64.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.13-x86", "libclang.runtime.freebsd.13-x86", "{E76E41C3-FD6E-47FB-BC1E-120C8F88C07C}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libclang\libclang.runtime.freebsd.13-x86\libclang.runtime.freebsd.13-x86.nuspec = packages\libclang\libclang.runtime.freebsd.13-x86\libclang.runtime.freebsd.13-x86.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freebsd.13-x86", "libClangSharp.runtime.freebsd.13-x86", "{19337D54-F5B0-4131-A753-B788EF5FE677}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libClangSharp\libClangSharp.runtime.freebsd.13-x86\libClangSharp.runtime.freebsd.13-x86.nuspec = packages\libClangSharp\libClangSharp.runtime.freebsd.13-x86\libClangSharp.runtime.freebsd.13-x86.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freebsd.13-x64", "libClangSharp.runtime.freebsd.13-x64", "{B3A22C21-0699-4963-B665-F9AA74F0AF08}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libClangSharp\libClangSharp.runtime.freebsd.13-x64\libClangSharp.runtime.freebsd.13-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.freebsd.13-x64\libClangSharp.runtime.freebsd.13-x64.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -279,6 +298,10 @@ Global
 		{D90C3C52-DA8D-44BB-B8B0-3E4EF4CBF4DC} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{69B805C6-230D-49A2-A569-3CAC2EC9F293} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{AADBAAC3-45F0-484F-BCB2-9809EDF1CA82} = {732BA761-B58E-4C34-9C96-097382A55A7A}
+		{8FD0223B-88AD-4FA9-AE29-0B446FF17922} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
+		{E76E41C3-FD6E-47FB-BC1E-120C8F88C07C} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
+		{19337D54-F5B0-4131-A753-B788EF5FE677} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
+		{B3A22C21-0699-4963-B665-F9AA74F0AF08} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9D18E0B-5409-457D-B5F3-0E217136BB01}
