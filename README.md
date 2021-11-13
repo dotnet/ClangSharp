@@ -125,138 +125,85 @@ At a minimum, the command line expects one or more input files (`-f`), an output
 
 The full set of available switches:
 ```
-ClangSharpPInvokeGenerator:
+ClangSharpPInvokeGenerator
   ClangSharp P/Invoke Binding Generator
 
 Usage:
   ClangSharpPInvokeGenerator [options]
 
 Options:
-  -a, --additional <<arg>>                                An argument to pass to Clang when parsing the input files.
-                                                          [default: System.String[]]
-  -c, --config <<arg>>                                    Aconfiguration option that controls how the bindings are
-                                                          generated. Specify 'help' to see the available options.
-                                                          [default: System.String[]]
-  -D, --define-macro <<macro>=<value>>                    Define <macro> to <value> (or 1 if <value> omitted).
-                                                          [default: System.String[]]
-  -e, --exclude <<name>>                                  Adeclaration name to exclude from binding generation.
-                                                          [default: System.String[]]
-  -f, --file <<file>>                                     Afile to parse and generate bindings for. [default:
-                                                          System.String[]]
-  -F, --file-directory <<directory>>                      The base path for files to parse. [default: ]
-  -h, --headerFile <<file>>                               Afile which contains the header to prefix every generated
-                                                          file with. [default: ]
-  -I, --include-directory <<arg>>                         Add directory to include search path. [default:
-                                                          System.String[]]
-  -x, --language <<arg>>                                  Treat subsequent input files as having type <language>.
-                                                          [default: c++]
-  -l, --libraryPath <<dllName>>                           The string to use in the DllImport attribute used when
-                                                          generating bindings. [default: ]
-  -m, --methodClassName <<className>>                     The name of the static class that will contain the generated
-                                                          method bindings. [default: Methods]
-  -n, --namespace <<namespace>>                           The namespace in which to place the generated bindings.
-                                                          [default: ]
-  -o, --output <<file>>                                   The output location to write the generated bindings to.
-                                                          [default: ]
-  -p, --prefixStrip <<prefix>>                            The prefix to strip from the generated method bindings.
-                                                          [default: ]
-  -r, --remap <<name>=<value>>                            Adeclaration name to be remapped to another name during
-                                                          binding generation. [default: System.String[]]
-  -std <<arg>>                                            Language standard to compile for. [default: c++17]
-  -to, --test-output <<file>>                             The output location to write the generated tests to.
-                                                          [default: ]
-  -t, --traverse <<name>>                                 Afile name included either directly or indirectly by -f that
-                                                          should be traversed during binding generation. [default:
-                                                          System.String[]]
-  -wa, --with-attribute <<remapped-name>=<value>>         An attribute to be added to the given remapped declaration
-                                                          name during binding generation. [default: System.String[]]
-  -wcc, --with-callconv <<remapped-name>=<value>>         Acalling convention to be used for the given declaration
-                                                          during binding generation. [default: System.String[]]
-  -wlb, --with-librarypath <<remapped-name>=<value>>      Alibrary path to be used for the given declaration during
-                                                          binding generation. [default: System.String[]]
-  -wsle, --with-setlasterror <<remapped-name>=<value>>    Add the SetLastError=true modifier to a given DllImport or
-                                                          UnmanagedFunctionPointer. [default: System.String[]]
-  -wt, --with-type <<remapped-name>=<value>>              Atype to be used for the given enum declaration during
-                                                          binding generation. [default: System.String[]]
-  -wu, --with-using <<remapped-name>=<value>>             Ausing directive to be included for the given remapped
-                                                          declaration name during binding generation. [default:
-                                                          System.String[]]
-  -om, --output-mode <CSharp|Xml>                         The mode describing how the information collected from the
-                                                          headers are presented in the resultant bindings. [default:
-                                                          CSharp]
-  --version                                               Show version information
-  -?, -h, --help                                          Show help and usage information
+  -a, --additional <additional>                              An argument to pass to Clang when parsing the input files. [default: ]
+  -c, --config <config>                                      A configuration option that controls how the bindings are generated. Specify 'help' to see the available options. [default: ]
+  -D, --define-macro <define-macro>                          Define <macro> to <value> (or 1 if <value> omitted). [default: ]
+  -e, --exclude <exclude>                                    A declaration name to exclude from binding generation. [default: ]
+  -f, --file <file>                                          A file to parse and generate bindings for. [default: ]
+  -F, --file-directory <file-directory>                      The base path for files to parse. [default: ]
+  -h, --headerFile <headerFile>                              A file which contains the header to prefix every generated file with. [default: ]
+  -i, --include <include>                                    A declaration name to include in binding generation. [default: ]
+  -I, --include-directory <include-directory>                Add directory to include search path. [default: ]
+  -x, --language <language>                                  Treat subsequent input files as having type <language>. [default: c++]
+  -l, --libraryPath <libraryPath>                            The string to use in the DllImport attribute used when generating bindings. [default: ]
+  -m, --methodClassName <methodClassName>                    The name of the static class that will contain the generated method bindings. [default: Methods]
+  -n, --namespace <namespace>                                The namespace in which to place the generated bindings. [default: ]
+  -om, --output-mode <CSharp|Xml>                            The mode describing how the information collected from the headers are presented in the resultant bindings. [default: CSharp]
+  -o, --output <output>                                      The output location to write the generated bindings to. [default: ]
+  -p, --prefixStrip <prefixStrip>                            The prefix to strip from the generated method bindings. [default: ]
+  -r, --remap <remap>                                        A declaration name to be remapped to another name during binding generation. [default: ]
+  -std <std>                                                 Language standard to compile for. [default: ]
+  -to, --test-output <test-output>                           The output location to write the generated tests to. [default: ]
+  -t, --traverse <traverse>                                  A file name included either directly or indirectly by -f that should be traversed during binding generation. [default: ]
+  -v, --version <version>                                    Prints the current version information for the tool and its native dependencies.
+  -was, --with-access-specifier <with-access-specifier>      An access specifier to be used with the given qualified or remapped declaration name during binding generation. [default: ]
+  -wa, --with-attribute <with-attribute>                     An attribute to be added to the given remapped declaration name during binding generation. [default: ]
+  -wcc, --with-callconv <with-callconv>                      A calling convention to be used for the given declaration during binding generation. [default: ]
+  -wlb, --with-librarypath <with-librarypath>                A library path to be used for the given declaration during binding generation. [default: ]
+  -wn, --with-namespace <with-namespace>                     A namespace to be used for the given remapped declaration name during binding generation. [default: ]
+  -wsle, --with-setlasterror <with-setlasterror>             Add the SetLastError=true modifier to a given DllImport or UnmanagedFunctionPointer. [default: ]
+  -wts, --with-transparent-struct <with-transparent-struct>  A remapped type name to be treated as a transparent wrapper during binding generation. [default: ]
+  -wt, --with-type <with-type>                               A type to be used for the given enum declaration during binding generation. [default: ]
+  -wu, --with-using <with-using>                             A using directive to be included for the given remapped declaration name during binding generation. [default: ]
+  -?, -h, --help                                             Show help and usage information
 ```
 
 The available configuration options (visible with `-c help`) are:
 ```
--c, --config <<arg>>    A configuration option that controls how the bindings are generated. Specify 'help' to see the available options.
+--config, -c    A configuration option that controls how the bindings are generated. Specify 'help' to see the available options.
 
 Options:
-  ?, h, help                               Show help and usage information for -c, --config
-
-  compatible-codegen                       Bindings should be generated with .NET Standard 2.0 compatibility. Setting
-                                           this disables preview code generation.
-  latest-codegen                           Bindings should be generated for the latest stable version of .NET/C#. This
-                                           is currently .NET 5/C# 9.
-  preview-codegen                          Bindings should be generated for the latest preview version of .NET/C#.
-                                           This is currently .NET 6/C# 10.
-
-  single-file                              Bindings should be generated to a single output file. This is the default.
-  multi-file                               Bindings should be generated so there is approximately one type per file.
-
-  unix-types                               Bindings should be generated assuming Unix defaults. This is the default on
-                                           Unix platforms.
-  windows-types                            Bindings should be generated assuming Windows defaults. This is the default
-                                           on Windows platforms.
-
-  exclude-anonymous-field-helpers          The helper ref properties generated for fields in nested anonymous structs
-                                           and unions should not be generated.
-  exclude-com-proxies                      Types recognized as COM proxies should not have bindings generated. Thes
-                                           are currently function declarations ending with _UserFree, _UserMarshal,
-                                           _UserSize, _UserUnmarshal, _Proxy, or _Stub.
-  exclude-default-remappings               Default remappings for well known types should not be added. This currently
-                                           includes intptr_t, ptrdiff_t, size_t, and uintptr_t
-  exclude-empty-records                    Bindings for records that contain no members should not be generated. These
-                                           are commonly encountered for opaque handle like types such as HWND.
-  exclude-enum-operators                   Bindings for operators over enum types should not be generated. These are
-                                           largely unnecessary in C# as the operators are available by default.
-  exclude-fnptr-codegen                    Generated bindings for latest or preview codegen should not use function
-                                           pointers.
-  exclude-funcs-with-body                  Bindings for functions with bodies should not be generated.
-  preview-codegen-nint                     Generated bindings for latest or preview codegen should not use nint or
-                                           nuint.
-  exclude-using-statics-for-enums          Enum usages should be fully qualified and should not include a
-                                           corresponding 'using static EnumName;'
-
-  explicit-vtbls                           VTBLs should have an explicit type generated with named fields per entry.
-  implicit-vtbls                           VTBLs should be implicit to reduce metadata bloat. This is the current
-                                           default
-
-  generate-tests-nunit                     Basic tests validating size, blittability, and associated metadata should
-                                           be generated for NUnit.
-  generate-tests-xunit                     Basic tests validating size, blittability, and associated metadata should
-                                           be generated for XUnit.
-
-  generate-aggressive-inlining             [MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to
-                                           generated helper functions.
-  generate-cpp-attributes                  [CppAttributeList("")] should be generated to document the encountered C++
-                                           attributes.
-  generate-macro-bindings                  Bindings for macro-definitions should be generated. This currently only
-                                           works with value like macros and not function-like ones.
-  generate-template-bindings               Bindings for template-definitions should be generated. This is currently
-                                           experimental.
-  generate-native-inheritance-attribute    [NativeInheritance("")] attribute should be generated to document the
-                                           encountered C++ base type.
-  generate-vtbl-index-attribute            [VtblIndex(#)] attribute should be generated to document the underlying
-                                           VTBL index for a helper method.
-
-  log-exclusions                           Alist of excluded declaration types should be generated. This will also log
-                                           if the exclusion was due to an exact or partial match.
-  log-potential-typedef-remappings         Alist of potential typedef remappings should be generated. This can help
-                                           identify missing remappings.
-  log-visited-files                        Alist of the visited files should be generated. This can help identify
-                                           traversal issues.
+  ?, h, help                             Show help and usage information for -c, --config
+  compatible-codegen                     Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation.
+  latest-codegen                         Bindings should be generated for the latest stable version of .NET/C#. This is currently .NET 5/C# 9.
+  preview-codegen                        Bindings should be generated for the latest preview version of .NET/C#. This is currently .NET 6/C# 10.
+  single-file                            Bindings should be generated to a single output file. This is the default.
+  multi-file                             Bindings should be generated so there is approximately one type per file.
+  unix-types                             Bindings should be generated assuming Unix defaults. This is the default on Unix platforms.
+  windows-types                          Bindings should be generated assuming Windows defaults. This is the default on Windows platforms.
+  exclude-anonymous-field-helpers        The helper ref properties generated for fields in nested anonymous structs and unions should not be generated.
+  exclude-com-proxies                    Types recognized as COM proxies should not have bindings generated. Thes are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub.
+  exclude-default-remappings             Default remappings for well known types should not be added. This currently includes intptr_t, ptrdiff_t, size_t, and uintptr_t
+  exclude-empty-records                  Bindings for records that contain no members should not be generated. These are commonly encountered for opaque handle like types such as HWND.
+  exclude-enum-operators                 Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default.
+  exclude-fnptr-codegen                  Generated bindings for latest or preview codegen should not use function pointers.
+  exclude-funcs-with-body                Bindings for functions with bodies should not be generated.
+  preview-codegen-nint                   Generated bindings for latest or preview codegen should not use nint or nuint.
+  exclude-using-statics-for-enums        Enum usages should be fully qualified and should not include a corresponding 'using static EnumName;'
+  explicit-vtbls                         VTBLs should have an explicit type generated with named fields per entry.
+  implicit-vtbls                         VTBLs should be implicit to reduce metadata bloat. This is the current default
+  trimmable-vtbls                        VTBLs should be defined but not used in helper methods to reduce metadata bloat when trimming.
+  generate-tests-nunit                   Basic tests validating size, blittability, and associated metadata should be generated for NUnit.
+  generate-tests-xunit                   Basic tests validating size, blittability, and associated metadata should be generated for XUnit.
+  generate-aggressive-inlining           [MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions.
+  generate-cpp-attributes                [CppAttributeList("")] should be generated to document the encountered C++ attributes.
+  generate-helper-types                  Code files should be generated for various helper attributes and declared transparent structs.
+  generate-macro-bindings                Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones.
+  generate-marker-interfaces             Bindings for marker interfaces representing native inheritance hierarchies should be generated.
+  generate-native-inheritance-attribute  [NativeInheritance("")] attribute should be generated to document the encountered C++ base type.
+  generate-template-bindings             Bindings for template-definitions should be generated. This is currently experimental.
+  generate-unmanaged-constants           Unmanaged constants should be generated using static ref readonly properties. This is currently experimental.
+  generate-vtbl-index-attribute          [VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method.
+  log-exclusions                         A list of excluded declaration types should be generated. This will also log if the exclusion was due to an exact or partial match.
+  log-potential-typedef-remappings       A list of potential typedef remappings should be generated. This can help identify missing remappings.
+  log-visited-files                      A list of the visited files should be generated. This can help identify traversal issues.
 ```
 
 ### Using locally built versions
