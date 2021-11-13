@@ -97,6 +97,7 @@ namespace ClangSharp
             AddFileOption(s_rootCommand);
             AddFileDirectoryOption(s_rootCommand);
             AddHeaderOption(s_rootCommand);
+            AddIncludeOption(s_rootCommand);
             AddIncludeDirectoryOption(s_rootCommand);
             AddLanguageOption(s_rootCommand);
             AddLibraryOption(s_rootCommand);
@@ -133,6 +134,7 @@ namespace ClangSharp
             var files = context.ParseResult.ValueForOption<string[]>("--file");
             var fileDirectory = context.ParseResult.ValueForOption<string>("--file-directory");
             var headerFile = context.ParseResult.ValueForOption<string>("--headerFile");
+            var includedNames = context.ParseResult.ValueForOption<string[]>("--include");
             var includeDirectories = context.ParseResult.ValueForOption<string[]>("--include-directory");
             var language = context.ParseResult.ValueForOption<string>("--language");
             var libraryPath = context.ParseResult.ValueForOption<string>("--libraryPath");
@@ -530,7 +532,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withLibraryPath, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, includedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withLibraryPath, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings);
 
             if (config.GenerateMacroBindings)
             {
@@ -805,6 +807,19 @@ namespace ClangSharp
                 argumentType: typeof(string),
                 getDefaultValue: () => string.Empty,
                 arity: ArgumentArity.ExactlyOne
+            );
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddIncludeOption(RootCommand rootCommand)
+        {
+            var option = new Option(
+                aliases: new string[] { "--include", "-i" },
+                description: "A declaration name to include in binding generation.",
+                argumentType: typeof(string),
+                getDefaultValue: Array.Empty<string>,
+                arity: ArgumentArity.OneOrMore
             );
 
             rootCommand.AddOption(option);
