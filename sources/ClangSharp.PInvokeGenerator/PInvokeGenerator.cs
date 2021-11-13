@@ -362,7 +362,7 @@ namespace ClangSharp
                 sw.WriteLine();
 
                 sw.Write("namespace ");
-                sw.WriteLine(generator.GetNamespace("NativeTypeName"));
+                sw.WriteLine(generator.GetNamespace("NativeTypeNameAttribute"));
                 sw.WriteLine('{');
 
                 sw.WriteLine("    /// <summary>Defines the type of a member as it was used in the native signature.</summary>");
@@ -449,11 +449,26 @@ namespace ClangSharp
                         sw.WriteLine(config.HeaderText);
                     }
 
+                    var targetNamespace = generator.GetNamespace(name);
+
                     sw.WriteLine("using System;");
+
+                    if (kind == PInvokeGeneratorTransparentStructKind.HandleWin32)
+                    {
+                        var handleNamespace = generator.GetNamespace("HANDLE");
+
+                        if (targetNamespace != handleNamespace)
+                        {
+                            sw.Write("using ");
+                            sw.Write(handleNamespace);
+                            sw.WriteLine(';');
+                        }
+                    }
+
                     sw.WriteLine();
 
                     sw.Write("namespace ");
-                    sw.WriteLine(generator.GetNamespace(name));
+                    sw.WriteLine(targetNamespace);
                     sw.WriteLine('{');
 
                     sw.Write("    public ");
@@ -3577,7 +3592,9 @@ namespace ClangSharp
                     }
                 }
 
-                if (_config.ExcludedNames.Contains(qualifiedName) || _config.ExcludedNames.Contains(qualifiedName.Replace("::", ".")))
+                var dottedQualifiedName = qualifiedName.Replace("::", ".");
+
+                if (_config.ExcludedNames.Contains(qualifiedName) || _config.ExcludedNames.Contains(dottedQualifiedName))
                 {
                     if (_config.LogExclusions)
                     {
@@ -3622,6 +3639,15 @@ namespace ClangSharp
                     if (_config.LogExclusions)
                     {
                         AddDiagnostic(DiagnosticLevel.Info, $"Excluded {kind} '{qualifiedName}' by config option");
+                    }
+                    return true;
+                }
+
+                if ((_config.IncludedNames.Length != 0) && !_config.IncludedNames.Contains(qualifiedName) && !_config.IncludedNames.Contains(dottedQualifiedName) && !_config.IncludedNames.Contains(name))
+                {
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded {kind} '{qualifiedName}' as it was not in the include list");
                     }
                     return true;
                 }
