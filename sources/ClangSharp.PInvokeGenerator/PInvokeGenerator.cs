@@ -40,11 +40,14 @@ namespace ClangSharp
         private readonly Dictionary<string, HashSet<string>> _validNameRemappings;
         private readonly Dictionary<CXXMethodDecl, uint> _overloadIndices;
         private readonly Dictionary<Cursor, uint> _isExcluded;
+        private readonly Dictionary<string, bool> _isTopLevelClassUnsafe;
+        private readonly HashSet<string> _topLevelClassNames;
         private readonly HashSet<string> _usedRemappings;
 
         private string _filePath;
         private string[] _clangCommandLineArgs;
         private CXTranslationUnit_Flags _translationFlags;
+        private string _currentClass;
         private string _currentNamespace;
 
         private IOutputBuilder _outputBuilder;
@@ -55,7 +58,6 @@ namespace ClangSharp
         private int _testStmtOutputBuilderUsers;
         private int _outputBuilderUsers;
         private bool _disposed;
-        private bool _isMethodClassUnsafe;
 
         public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null)
         {
@@ -104,6 +106,8 @@ namespace ClangSharp
             };
             _overloadIndices = new Dictionary<CXXMethodDecl, uint>();
             _isExcluded = new Dictionary<Cursor, uint>();
+            _isTopLevelClassUnsafe = new Dictionary<string, bool>();
+            _topLevelClassNames = new HashSet<string>();
             _usedRemappings = new HashSet<string>();
         }
 
@@ -127,8 +131,8 @@ namespace ClangSharp
         public void Close()
         {
             Stream stream = null;
-            IOutputBuilder methodClassOutputBuilder = null;
-            IOutputBuilder methodClassTestOutputBuilder = null;
+            var methodClassOutputBuilders = new Dictionary<string, IOutputBuilder>();
+            var methodClassTestOutputBuilders = new Dictionary<string, IOutputBuilder>();
             var emitNamespaceDeclaration = true;
             var leaveStreamOpen = false;
 
@@ -141,7 +145,7 @@ namespace ClangSharp
                     continue;
                 }
 
-                StartUsingOutputBuilder(_config.MethodClassName);
+                StartUsingOutputBuilder(GetClass(iidName));
                 _outputBuilder.WriteIid(iidName, foundUuid.Value);
                 StopUsingOutputBuilder();
             }
@@ -229,11 +233,7 @@ namespace ClangSharp
             foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
             {
                 var outputPath = outputBuilder.IsTestOutput ? _config.TestOutputLocation : _config.OutputLocation;
-
-                var methodClassName = _config.MethodClassName;
-                var methodClassTestName = $"{methodClassName}Tests";
-
-                var isMethodClass = methodClassName.Equals(outputBuilder.Name) || methodClassTestName.Equals(outputBuilder.Name);
+                var isMethodClass = _topLevelClassNames.Contains(outputBuilder.Name);
 
                 if (_config.GenerateMultipleFiles)
                 {
@@ -245,11 +245,11 @@ namespace ClangSharp
                 {
                     if (outputBuilder.IsTestOutput)
                     {
-                        methodClassTestOutputBuilder = outputBuilder;
+                        methodClassTestOutputBuilders.Add(outputBuilder.Name, outputBuilder);
                     }
                     else
                     {
-                        methodClassOutputBuilder = outputBuilder;
+                        methodClassOutputBuilders.Add(outputBuilder.Name, outputBuilder);
                     }
                     continue;
                 }
@@ -270,14 +270,14 @@ namespace ClangSharp
 
             if (leaveStreamOpen && _outputBuilderFactory.OutputBuilders.Any())
             {
-                if (methodClassOutputBuilder is not null)
+                foreach (var entry in methodClassOutputBuilders)
                 {
-                    CloseOutputBuilder(stream, methodClassOutputBuilder, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
+                    CloseOutputBuilder(stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
                 }
 
-                if (methodClassTestOutputBuilder is not null)
+                foreach (var entry in methodClassTestOutputBuilders)
                 {
-                    CloseOutputBuilder(stream, methodClassTestOutputBuilder, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
+                    CloseOutputBuilder(stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
                 }
 
                 using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
@@ -1270,18 +1270,13 @@ namespace ClangSharp
 
                     sw.Write("public static ");
 
-                    if (_isMethodClassUnsafe)
+                    if (_isTopLevelClassUnsafe.TryGetValue(nonTestName, out var isUnsafe) && isUnsafe)
                     {
                         sw.Write("unsafe ");
                     }
 
                     sw.Write("partial class ");
-                    sw.Write(Config.MethodClassName);
-
-                    if (outputBuilder.IsTestOutput)
-                    {
-                        sw.Write("Tests");
-                    }
+                    sw.Write(outputBuilder.Name);
 
                     sw.WriteLine();
                     sw.Write(indentationString);
@@ -1329,7 +1324,7 @@ namespace ClangSharp
                 {
                     sw.Write(indentationString);
                     sw.Write("<namespace name=\"");
-                    sw.Write(GetNamespace(Config.MethodClassName));
+                    sw.Write(GetNamespace(xmlOutputBuilder.Name));
                     sw.WriteLine("\">");
                 }
 
@@ -1339,10 +1334,10 @@ namespace ClangSharp
                 {
                     sw.Write(indentationString);
                     sw.Write("<class name=\"");
-                    sw.Write(Config.MethodClassName);
+                    sw.Write(xmlOutputBuilder.Name);
                     sw.Write("\" access=\"public\" static=\"true\"");
 
-                    if (_isMethodClassUnsafe)
+                    if (_isTopLevelClassUnsafe.TryGetValue(xmlOutputBuilder.Name, out var isUnsafe) && isUnsafe)
                     {
                         sw.Write(" unsafe=\"true\"");
                     }
@@ -2203,19 +2198,13 @@ namespace ClangSharp
 
                     if (_currentNamespace is not null)
                     {
-                        var namespaceNameParts = namespaceName.Split(';');
-                        namespaceName = namespaceNameParts[0];
-
-                        if (namespaceNameParts.Length != 2)
+                        if (!_currentNamespace.StartsWith(namespaceName))
                         {
-                            if (!_currentNamespace.StartsWith(namespaceName))
-                            {
-                                needsUsing = true;
-                            }
-                            else if ((_currentNamespace.Length > namespaceName.Length) && (_currentNamespace[namespaceName.Length] != '.'))
-                            {
-                                needsUsing = true;
-                            }
+                            needsUsing = true;
+                        }
+                        else if ((_currentNamespace.Length > namespaceName.Length) && (_currentNamespace[namespaceName.Length] != '.'))
+                        {
+                            needsUsing = true;
                         }
                     }
 
@@ -4870,6 +4859,7 @@ namespace ClangSharp
 
             // Set the current namespace so subsequent type lookups add the right using
             _currentNamespace = GetNamespace(name);
+            _currentClass = name;
 
             if (_outputBuilder != null)
             {
@@ -4938,13 +4928,9 @@ namespace ClangSharp
             {
                 _testOutputBuilder = _outputBuilderFactory.CreateTests(name);
 
-                if (name != $"{_config.MethodClassName}Tests")
+                if (!_topLevelClassNames.Contains(name))
                 {
                     _testOutputBuilder.AddUsingDirective("System.Runtime.InteropServices");
-                }
-                else
-                {
-
                 }
 
                 if (_config.GenerateTestsNUnit)
@@ -4962,6 +4948,7 @@ namespace ClangSharp
         {
             if (_outputBuilderUsers == 1)
             {
+                _currentClass = null;
                 _currentNamespace = null;
                 _outputBuilder = null;
                 _testOutputBuilder = null;
@@ -5274,11 +5261,70 @@ namespace ClangSharp
                 : libraryPath;
         }
 
+        private string GetClass(string remappedName, bool disallowPrefixMatch = false)
+        {
+            if (!TryGetClass(remappedName, out var className, disallowPrefixMatch))
+            {
+                className = _config.DefaultClass;
+                _ = _topLevelClassNames.Add(className);
+                _ = _topLevelClassNames.Add($"{className}Tests");
+            }
+            return className;
+        }
+
+        private bool TryGetClass(string remappedName, out string className, bool disallowPrefixMatch = false)
+        {
+            var index = remappedName.IndexOf('*');
+
+            if (index != -1)
+            {
+                remappedName = remappedName[..index];
+            }
+
+            if (_config.WithClasses.TryGetValue(remappedName, out className))
+            {
+                _ = _topLevelClassNames.Add(className);
+                _ = _topLevelClassNames.Add($"{className}Tests");
+                return true;
+            }
+
+            if (disallowPrefixMatch)
+            {
+                return false;
+            }
+
+            foreach (var withClass in _config.WithClasses)
+            {
+                if (!withClass.Key.EndsWith("*"))
+                {
+                    continue;
+                }
+
+                var prefix = withClass.Key[0..^1];
+
+                if (remappedName.StartsWith(prefix))
+                {
+                    className = withClass.Value;
+                    _ = _topLevelClassNames.Add(className);
+                    _ = _topLevelClassNames.Add($"{className}Tests");
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private string GetNamespace(string remappedName)
         {
             if (!TryGetNamespace(remappedName, out var namespaceName))
             {
-                namespaceName = _config.DefaultNamespace;
+                if (s_needsSystemSupportRegex.IsMatch(remappedName))
+                {
+                    namespaceName = "System";
+                }
+                else
+                {
+                    namespaceName = _config.DefaultNamespace;
+                }
             }
             return namespaceName;
         }

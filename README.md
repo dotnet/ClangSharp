@@ -156,6 +156,7 @@ Options:
   -was, --with-access-specifier <with-access-specifier>      An access specifier to be used with the given qualified or remapped declaration name during binding generation. [default: ]
   -wa, --with-attribute <with-attribute>                     An attribute to be added to the given remapped declaration name during binding generation. [default: ]
   -wcc, --with-callconv <with-callconv>                      A calling convention to be used for the given declaration during binding generation. [default: ]
+  -wc, --with-class <with-class>                             A class to be used for the given remapped constant or function declaration name during binding generation. [default: ]
   -wlb, --with-librarypath <with-librarypath>                A library path to be used for the given declaration during binding generation. [default: ]
   -wn, --with-namespace <with-namespace>                     A namespace to be used for the given remapped declaration name during binding generation. [default: ]
   -wsle, --with-setlasterror <with-setlasterror>             Add the SetLastError=true modifier to a given DllImport or UnmanagedFunctionPointer. [default: ]
