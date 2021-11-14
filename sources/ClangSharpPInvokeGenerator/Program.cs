@@ -114,6 +114,7 @@ namespace ClangSharp
             AddWithAccessSpecifierOption(s_rootCommand);
             AddWithAttributeOption(s_rootCommand);
             AddWithCallConvOption(s_rootCommand);
+            AddWithClassOption(s_rootCommand);
             AddWithLibraryPathOption(s_rootCommand);
             AddWithNamespaceOption(s_rootCommand);
             AddWithSetLastErrorOption(s_rootCommand);
@@ -150,6 +151,7 @@ namespace ClangSharp
             var withAccessSpecifierNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-access-specifier");
             var withAttributeNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-attribute");
             var withCallConvNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-callconv");
+            var withClassNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-class");
             var withLibraryPathNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-librarypath");
             var withNamespaceNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-namespace");
             var withSetLastErrors = context.ParseResult.ValueForOption<string[]>("--with-setlasterror");
@@ -191,6 +193,7 @@ namespace ClangSharp
             ParseKeyValuePairs(withAccessSpecifierNameValuePairs, errorList, out Dictionary<string, string> withAccessSpecifiers);
             ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
             ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
+            ParseKeyValuePairs(withClassNameValuePairs, errorList, out Dictionary<string, string> withClasses);
             ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPath);
             ParseKeyValuePairs(withNamespaceNameValuePairs, errorList, out Dictionary<string, string> withNamespaces);
             ParseKeyValuePairs(withTransparentStructNameValuePairs, errorList, out Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> withTransparentStructs);
@@ -532,7 +535,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, includedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withLibraryPath, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, includedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPath, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings);
 
             if (config.GenerateMacroBindings)
             {
@@ -1025,6 +1028,19 @@ namespace ClangSharp
             var option = new Option(
                 aliases: new string[] { "--with-callconv", "-wcc" },
                 description: "A calling convention to be used for the given declaration during binding generation.",
+                argumentType: typeof(string),
+                getDefaultValue: Array.Empty<string>,
+                arity: ArgumentArity.OneOrMore
+            );
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddWithClassOption(RootCommand rootCommand)
+        {
+            var option = new Option(
+                aliases: new string[] { "--with-class", "-wc" },
+                description: "A class to be used for the given remapped constant or function declaration name during binding generation.",
                 argumentType: typeof(string),
                 getDefaultValue: Array.Empty<string>,
                 arity: ArgumentArity.OneOrMore

@@ -319,7 +319,7 @@ namespace ClangSharp
             if (name.StartsWith("__AnonymousEnum_"))
             {
                 isAnonymousEnum = true;
-                name = _config.MethodClassName;
+                name = GetClass(name);
             }
 
             StartUsingOutputBuilder(name);
@@ -418,10 +418,14 @@ namespace ClangSharp
                 return;
             }
 
+            var name = GetRemappedCursorName(functionDecl);
+            var className = name;
+
             if (functionDecl.DeclContext is not CXXRecordDecl cxxRecordDecl)
             {
                 cxxRecordDecl = null;
-                StartUsingOutputBuilder(_config.MethodClassName);
+                className = GetClass(name);
+                StartUsingOutputBuilder(className);
             }
             else if ((Cursor)functionDecl.LexicalDeclContext != cxxRecordDecl)
             {
@@ -430,7 +434,6 @@ namespace ClangSharp
             }
 
             var accessSppecifier = GetAccessSpecifier(functionDecl);
-            var name = GetRemappedCursorName(functionDecl);
 
             var cxxMethodDecl = functionDecl as CXXMethodDecl;
             var body = functionDecl.Body;
@@ -494,7 +497,9 @@ namespace ClangSharp
                 Location = functionDecl.Location
             };
 
-            _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
+            _ = _isTopLevelClassUnsafe.TryGetValue(className, out var isUnsafe);
+            _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
+            _isTopLevelClassUnsafe[className] = isUnsafe;
 
             _outputBuilder.BeginFunctionInnerPrototype(escapedName);
 
@@ -1121,8 +1126,10 @@ namespace ClangSharp
 
                     if (_testOutputBuilder != null)
                     {
+                        var className = GetClass(iidName);
+
                         _testOutputBuilder.AddUsingDirective("System");
-                        _testOutputBuilder.AddUsingDirective($"static {GetNamespace(_config.MethodClassName)}.{_config.MethodClassName}");
+                        _testOutputBuilder.AddUsingDirective($"static {GetNamespace(className)}.{className}");
 
                         _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"Guid\" /> of the <see cref=\"");
                         _testOutputBuilder.Write(escapedName);
@@ -1633,7 +1640,9 @@ namespace ClangSharp
                     Location = cxxMethodDecl.Location
                 };
 
-                _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
+                var isUnsafe = true;
+                _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
+
                 _outputBuilder.BeginFunctionInnerPrototype(desc.EscapedName);
 
                 Visit(cxxMethodDecl.Parameters);
@@ -1758,7 +1767,9 @@ namespace ClangSharp
                     Location = cxxMethodDecl.Location
                 };
 
-                _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
+                var isUnsafe = true;
+                _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
+
                 _outputBuilder.BeginFunctionInnerPrototype(desc.EscapedName);
 
                 Visit(cxxMethodDecl.Parameters);
@@ -2560,7 +2571,9 @@ namespace ClangSharp
                         Location = constantArray.Location
                     };
 
-                    _outputBuilder.BeginFunctionOrDelegate(in function, ref _isMethodClassUnsafe);
+                    var isUnsafe = false;
+                    _outputBuilder.BeginFunctionOrDelegate(in function, ref isUnsafe);
+
                     _outputBuilder.BeginFunctionInnerPrototype("AsSpan");
 
                     if (type.Size == 1)
@@ -2647,7 +2660,9 @@ namespace ClangSharp
                         Location = typedefDecl.Location
                     };
 
-                    _outputBuilder.BeginFunctionOrDelegate(in desc, ref _isMethodClassUnsafe);
+                    var isUnsafe = desc.IsUnsafe;
+                    _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
+
                     _outputBuilder.BeginFunctionInnerPrototype(escapedName);
 
                     Visit(typedefDecl.CursorChildren.OfType<ParmVarDecl>());
@@ -2817,6 +2832,7 @@ namespace ClangSharp
                 }
 
                 var openedOutputBuilder = false;
+                var className = GetClass(name);
 
                 if (_outputBuilder is null)
                 {
@@ -2824,7 +2840,7 @@ namespace ClangSharp
 
                     if (IsUnsafe(varDecl, type) && (!varDecl.HasInit || !IsStmtAsWritten<StringLiteral>(varDecl.Init, out _, removeParens: true)))
                     {
-                        _isMethodClassUnsafe = true;
+                        _isTopLevelClassUnsafe[className] = true;
                     }
                 }
 
@@ -2957,7 +2973,7 @@ namespace ClangSharp
 
                 if (openedOutputBuilder)
                 {
-                    StartUsingOutputBuilder(_config.MethodClassName);
+                    StartUsingOutputBuilder(className);
 
                     if ((kind == ValueKind.String) && (typeName == "ReadOnlySpan<byte>"))
                     {

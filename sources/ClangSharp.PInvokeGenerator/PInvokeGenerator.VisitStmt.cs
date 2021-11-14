@@ -596,9 +596,11 @@ namespace ClangSharp
                     {
                         if (enumName.StartsWith("__AnonymousEnum_"))
                         {
-                            if (outputBuilder.Name != _config.MethodClassName)
+                            var className = GetClass(enumName);
+
+                            if (outputBuilder.Name != className)
                             {
-                                outputBuilder.AddUsingDirective($"static {GetNamespace(_config.MethodClassName)}.{_config.MethodClassName}");
+                                outputBuilder.AddUsingDirective($"static {GetNamespace(enumName)}.{className}");
                             }
                         }
                         else
@@ -615,22 +617,16 @@ namespace ClangSharp
             }
             else
             {
-                if (TryGetNamespace(name, out var namespaceName))
+                if (TryGetClass(name, out var className))
                 {
-                    var namespaceNameParts = namespaceName.Split(';');
-                    namespaceName = namespaceNameParts[0];
-
-                    if (namespaceNameParts.Length == 2)
+                    if (TryGetNamespace(className, out var namespaceName) && ((_currentNamespace != namespaceName) || (_currentClass != className)))
                     {
-                        if ($"{_currentNamespace}.{outputBuilder.Name}" != namespaceName)
-                        {
-                            outputBuilder.AddUsingDirective($"static {namespaceName}.{namespaceNameParts[1]}");
-                        }
+                        outputBuilder.AddUsingDirective($"static {namespaceName}.{className}");
                     }
-                    else if (_currentNamespace != namespaceName)
-                    {
-                        outputBuilder.AddUsingDirective(namespaceName);
-                    }
+                }
+                else if (TryGetNamespace(name, out var namespaceName) && (_currentNamespace != namespaceName))
+                {
+                    outputBuilder.AddUsingDirective(namespaceName);
                 }
 
                 if (declRefExpr.Decl is FunctionDecl)
@@ -1351,7 +1347,7 @@ namespace ClangSharp
                 if (_testOutputBuilder != null)
                 {
                     _testOutputBuilder.AddUsingDirective("System");
-                    _testOutputBuilder.AddUsingDirective($"static {GetNamespace(_config.MethodClassName)}.{_config.MethodClassName}");
+                    _testOutputBuilder.AddUsingDirective($"static {GetNamespace(_outputBuilder.Name)}.{_outputBuilder.Name}");
 
                     _testOutputBuilder.WriteIndented("/// <summary>Validates that the value of the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);
@@ -2289,9 +2285,9 @@ namespace ClangSharp
                     }
                     else
                     {
-                        if (_outputBuilder.Name == _config.MethodClassName)
+                        if (_topLevelClassNames.Contains(_outputBuilder.Name))
                         {
-                            _isMethodClassUnsafe = true;
+                            _isTopLevelClassUnsafe[_outputBuilder.Name] = true;
                         }
 
                         var parentType = null as Type;

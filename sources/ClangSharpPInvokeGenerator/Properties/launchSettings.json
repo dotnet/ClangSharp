@@ -13,10 +13,5 @@
       "commandName": "Project",
       "commandLineArgs": "\"@$(MSBuildProjectDirectory)/Properties/GenerateLLVM.rsp\" --file-directory \"$(LLVMIncludePath)\" --include-directory \"$(LLVMIncludePath)\" --libraryPath $(LibLLVMName)"
     },
-    "GenerateLocal": {
-      "commandName": "Project",
-      "commandLineArgs": "@generate.rsp",
-      "workingDirectory": "C:\\Users\\tagoo\\Source\\repos\\terrafx.interop.windows\\generation\\um\\tpcshrd"
-    }
   }
 }
