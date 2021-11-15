@@ -1300,6 +1300,11 @@ namespace ClangSharp
                     {
                         _topLevelClassUsings[name] = withUsings;
                     }
+
+                    if (desc.IsUnsafe)
+                    {
+                        _isTopLevelClassUnsafe[name] = true;
+                    }
                 }
 
                 if (hasVtbl)
