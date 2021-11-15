@@ -41,6 +41,8 @@ namespace ClangSharp
         private readonly Dictionary<CXXMethodDecl, uint> _overloadIndices;
         private readonly Dictionary<Cursor, uint> _isExcluded;
         private readonly Dictionary<string, bool> _isTopLevelClassUnsafe;
+        private readonly Dictionary<string, HashSet<string>> _topLevelClassUsings;
+        private readonly Dictionary<string, List<string>> _topLevelClassAttributes;
         private readonly HashSet<string> _topLevelClassNames;
         private readonly HashSet<string> _usedRemappings;
 
@@ -108,6 +110,8 @@ namespace ClangSharp
             _isExcluded = new Dictionary<Cursor, uint>();
             _isTopLevelClassUnsafe = new Dictionary<string, bool>();
             _topLevelClassNames = new HashSet<string>();
+            _topLevelClassAttributes = new Dictionary<string, List<string>>();
+            _topLevelClassUsings = new Dictionary<string, HashSet<string>>();
             _usedRemappings = new HashSet<string>();
         }
 
@@ -1190,6 +1194,19 @@ namespace ClangSharp
                         sw.WriteLine(_config.HeaderText);
                     }
 
+                    if (isMethodClass)
+                    {
+                        var nonTestName = outputBuilder.IsTestOutput ? outputBuilder.Name[0..^5] : outputBuilder.Name;
+
+                        if (_topLevelClassUsings.TryGetValue(nonTestName, out var withUsings))
+                        {
+                            foreach (var withUsing in withUsings)
+                            {
+                                csharpOutputBuilder.AddUsingDirective(withUsing);
+                            }
+                        }
+                    }
+
                     var usingDirectives = csharpOutputBuilder.UsingDirectives.Concat(csharpOutputBuilder.StaticUsingDirectives);
 
                     if (usingDirectives.Any())
@@ -1258,31 +1275,77 @@ namespace ClangSharp
 
                 if (isMethodClass)
                 {
-                    sw.Write(indentationString);
+                    var isTopLevelStruct = _config.WithTypes.TryGetValue(nonTestName, out var withType) && (withType == "struct");
 
                     if (outputBuilder.IsTestOutput)
                     {
+                        sw.Write(indentationString);
                         sw.Write("/// <summary>Provides validation of the <see cref=\"");
                         sw.Write(nonTestName);
-                        sw.WriteLine("\" /> class.</summary>");
-                        sw.Write(indentationString);
+                        sw.Write("\" /> ");
+
+                        if (isTopLevelStruct)
+                        {
+                            sw.Write("struct");
+                        }
+                        else
+                        {
+                            sw.Write("class");
+                        }
+
+                        sw.WriteLine(".</summary>");
                     }
 
-                    sw.Write("public static ");
+                    if (_topLevelClassAttributes.TryGetValue(nonTestName, out var withAttributes))
+                    {
+                        if (withAttributes.Any())
+                        {
+                            foreach (var attribute in withAttributes)
+                            {
+                                if (outputBuilder.IsTestOutput && !attribute.StartsWith("SupportedOSPlatform("))
+                                {
+                                    continue;
+                                }
 
-                    if (_isTopLevelClassUnsafe.TryGetValue(nonTestName, out var isUnsafe) && isUnsafe)
+                                sw.Write(indentationString);
+                                sw.Write('[');
+                                sw.Write(attribute);
+                                sw.WriteLine(']');
+                            }
+                        }
+                    }
+
+                    sw.Write(indentationString);
+                    sw.Write("public ");
+
+                    if (outputBuilder.IsTestOutput || !isTopLevelStruct)
+                    {
+                        sw.Write("static ");
+                    }
+
+                    if ((_isTopLevelClassUnsafe.TryGetValue(nonTestName, out var isUnsafe) && isUnsafe) || (outputBuilder.IsTestOutput && isTopLevelStruct))
                     {
                         sw.Write("unsafe ");
                     }
 
-                    sw.Write("partial class ");
+                    sw.Write("partial ");
+
+                    if (!outputBuilder.IsTestOutput && isTopLevelStruct)
+                    {
+                        sw.Write("struct ");
+                    }
+                    else
+                    {
+                        sw.Write("class ");
+                    }
+
                     sw.Write(outputBuilder.Name);
 
                     sw.WriteLine();
                     sw.Write(indentationString);
                     sw.Write('{');
 
-                    if (!outputBuilder.IsTestOutput)
+                    if ((!outputBuilder.IsTestOutput && !isTopLevelStruct) || !string.IsNullOrEmpty(csharpOutputBuilder.Contents.First()))
                     {
                         sw.WriteLine();
                     }

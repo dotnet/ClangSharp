@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -319,7 +320,14 @@ namespace ClangSharp
             if (name.StartsWith("__AnonymousEnum_"))
             {
                 isAnonymousEnum = true;
-                name = GetClass(name);
+
+                if (!TryGetClass(name, out var className, disallowPrefixMatch: true))
+                {
+                    className = _config.DefaultClass;
+                    AddDiagnostic(DiagnosticLevel.Info, $"Found anonymous enum: {name}. Mapping values as constants in: {className}", enumDecl);
+                }
+
+                name = className;
             }
 
             StartUsingOutputBuilder(name);
@@ -1099,9 +1107,10 @@ namespace ClangSharp
                 var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
                 var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
+                var isTopLevelStruct = _config.WithTypes.TryGetValue(name, out var withType) && (withType == "struct");
                 var generateTestsClass = _testOutputBuilder != null && !recordDecl.IsAnonymousStructOrUnion && recordDecl.DeclContext is not RecordDecl;
 
-                if (generateTestsClass)
+                if (generateTestsClass && !isTopLevelStruct)
                 {
                     _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);
@@ -1213,8 +1222,7 @@ namespace ClangSharp
                     baseTypeNames = baseTypeNamesBuilder.ToArray();
                 }
 
-                var desc = new StructDesc<(string Name, PInvokeGenerator This)>
-                {
+                var desc = new StructDesc<(string Name, PInvokeGenerator This)> {
                     AccessSpecifier = GetAccessSpecifier(recordDecl),
                     EscapedName = escapedName,
                     IsUnsafe = IsUnsafe(recordDecl),
@@ -1235,7 +1243,64 @@ namespace ClangSharp
                     Location = recordDecl.Location,
                     IsNested = recordDecl.DeclContext is TagDecl,
                 };
-                _outputBuilder.BeginStruct(in desc);
+
+                if (!isTopLevelStruct)
+                {
+                    _outputBuilder.BeginStruct(in desc);
+                }
+                else
+                {
+                    if (!_topLevelClassAttributes.TryGetValue(name, out var withAttributes))
+                    {
+                        withAttributes = new List<string>();
+                    }
+
+                    if (!_topLevelClassUsings.TryGetValue(name, out var withUsings))
+                    {
+                        withUsings = new HashSet<string>();
+                    }
+
+                    if (desc.LayoutAttribute is not null)
+                    {
+                        withAttributes.Add($"StructLayout(LayoutKind.{desc.LayoutAttribute.Value}{((desc.LayoutAttribute.Pack != 0) ? $", Pack = {desc.LayoutAttribute.Pack}" : "")})");
+                        _ = withUsings.Add("System.Runtime.InteropServices");
+                    }
+
+                    if (desc.Uuid is not null)
+                    {
+                        withAttributes.Add($"Guid(\"{nullableUuid.Value.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant()}\")");
+                        _ = withUsings.Add("System.Runtime.InteropServices");
+                    }
+
+                    if (desc.NativeType is not null)
+                    {
+                        withAttributes.Add($"NativeTypeName(\"{EscapeString(desc.NativeType)}\")");
+                        _ = withUsings.Add(GetNamespace("NativeTypeNameAttribute"));
+                    }
+
+                    if (_config.GenerateNativeInheritanceAttribute && (desc.NativeInheritance is not null))
+                    {
+                        withAttributes.Add($"NativeInheritance(\"{desc.NativeInheritance}\")");
+                        _ = withUsings.Add(GetNamespace("NativeInheritanceAttribute"));
+                    }
+
+                    if (_config.GenerateSourceLocationAttribute && (desc.Location is not null))
+                    {
+                        desc.Location.Value.GetFileLocation(out var file, out var line, out var column, out _);
+                        withAttributes.Add($"SourceLocation(\"{EscapeString(file.Name.ToString())}\", {line}, {column})");
+                        _ = withUsings.Add(GetNamespace("SourceLocationAttribute"));
+                    }
+
+                    if (withAttributes.Count != 0)
+                    {
+                        _topLevelClassAttributes[name] = withAttributes;
+                    }
+
+                    if (withUsings.Count != 0)
+                    {
+                        _topLevelClassUsings[name] = withUsings;
+                    }
+                }
 
                 if (hasVtbl)
                 {
@@ -1469,11 +1534,14 @@ namespace ClangSharp
                     }
                 }
 
-                _outputBuilder.EndStruct();
-
-                if (generateTestsClass)
+                if (!isTopLevelStruct)
                 {
-                    _testOutputBuilder.WriteBlockEnd();
+                    _outputBuilder.EndStruct();
+
+                    if (generateTestsClass)
+                    {
+                        _testOutputBuilder.WriteBlockEnd();
+                    }
                 }
             }
             StopUsingOutputBuilder();
