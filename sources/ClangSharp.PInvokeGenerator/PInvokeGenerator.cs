@@ -4991,7 +4991,9 @@ namespace ClangSharp
             {
                 _testOutputBuilder = _outputBuilderFactory.CreateTests(name);
 
-                if (!_topLevelClassNames.Contains(name))
+                var isTopLevelStruct = _config.WithTypes.TryGetValue(name, out var withType) && (withType == "struct");
+
+                if (!_topLevelClassNames.Contains(name) || isTopLevelStruct)
                 {
                     _testOutputBuilder.AddUsingDirective("System.Runtime.InteropServices");
                 }
