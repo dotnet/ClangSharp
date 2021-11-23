@@ -319,33 +319,64 @@ namespace ClangSharp
                     sw.WriteLine(config.HeaderText);
                 }
 
+                var indentString = "    ";
+
                 sw.WriteLine("using System;");
                 sw.WriteLine("using System.Diagnostics;");
                 sw.WriteLine();
 
                 sw.Write("namespace ");
-                sw.WriteLine(generator.GetNamespace("NativeInheritanceAttribute"));
+                sw.Write(generator.GetNamespace("NativeInheritanceAttribute"));
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
+
+                sw.Write(indentString);
+                sw.WriteLine("/// <summary>Defines the base type of a struct as it was in the native signature.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("[AttributeUsage(AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]");
+                sw.Write(indentString);
+                sw.WriteLine("[Conditional(\"DEBUG\")]");
+                sw.Write(indentString);
+                sw.WriteLine("internal sealed partial class NativeInheritanceAttribute : Attribute");
+                sw.Write(indentString);
                 sw.WriteLine('{');
-
-                sw.WriteLine("    /// <summary>Defines the base type of a struct as it was in the native signature.</summary>");
-                sw.WriteLine("    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]");
-                sw.WriteLine("    [Conditional(\"DEBUG\")]");
-                sw.WriteLine("    internal sealed partial class NativeInheritanceAttribute : Attribute");
+                sw.Write(indentString);
+                sw.WriteLine("    private readonly string _name;");
+                sw.WriteLine();
+                sw.Write(indentString);
+                sw.WriteLine("    /// <summary>Initializes a new instance of the <see cref=\"NativeInheritanceAttribute\" /> class.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("    /// <param name=\"name\">The name of the base type that was inherited from in the native signature.</param>");
+                sw.Write(indentString);
+                sw.WriteLine("    public NativeInheritanceAttribute(string name)");
+                sw.Write(indentString);
                 sw.WriteLine("    {");
-                sw.WriteLine("        private readonly string _name;");
-                sw.WriteLine();
-                sw.WriteLine("        /// <summary>Initializes a new instance of the <see cref=\"NativeInheritanceAttribute\" /> class.</summary>");
-                sw.WriteLine("        /// <param name=\"name\">The name of the base type that was inherited from in the native signature.</param>");
-                sw.WriteLine("        public NativeInheritanceAttribute(string name)");
-                sw.WriteLine("        {");
-                sw.WriteLine("            _name = name;");
-                sw.WriteLine("        }");
-                sw.WriteLine();
-                sw.WriteLine("        /// <summary>Gets the name of the base type that was inherited from in the native signature.</summary>");
-                sw.WriteLine("        public string Name => _name;");
+                sw.Write(indentString);
+                sw.WriteLine("        _name = name;");
+                sw.Write(indentString);
                 sw.WriteLine("    }");
-
+                sw.WriteLine();
+                sw.Write(indentString);
+                sw.WriteLine("    /// <summary>Gets the name of the base type that was inherited from in the native signature.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("    public string Name => _name;");
+                sw.Write(indentString);
                 sw.WriteLine('}');
+
+                if (!generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine('}');
+                }
             }
 
             static void GenerateNativeTypeNameAttribute(PInvokeGenerator generator)
@@ -361,33 +392,64 @@ namespace ClangSharp
                     sw.WriteLine(config.HeaderText);
                 }
 
+                var indentString = "    ";
+
                 sw.WriteLine("using System;");
                 sw.WriteLine("using System.Diagnostics;");
                 sw.WriteLine();
 
                 sw.Write("namespace ");
-                sw.WriteLine(generator.GetNamespace("NativeTypeNameAttribute"));
+                sw.Write(generator.GetNamespace("NativeTypeNameAttribute"));
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
+
+                sw.Write(indentString);
+                sw.WriteLine("/// <summary>Defines the type of a member as it was used in the native signature.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("[AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = false, Inherited = true)]");
+                sw.Write(indentString);
+                sw.WriteLine("[Conditional(\"DEBUG\")]");
+                sw.Write(indentString);
+                sw.WriteLine("internal sealed partial class NativeTypeNameAttribute : Attribute");
+                sw.Write(indentString);
                 sw.WriteLine('{');
-
-                sw.WriteLine("    /// <summary>Defines the type of a member as it was used in the native signature.</summary>");
-                sw.WriteLine("    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = false, Inherited = true)]");
-                sw.WriteLine("    [Conditional(\"DEBUG\")]");
-                sw.WriteLine("    internal sealed partial class NativeTypeNameAttribute : Attribute");
+                sw.Write(indentString);
+                sw.WriteLine("    private readonly string _name;");
+                sw.WriteLine();
+                sw.Write(indentString);
+                sw.WriteLine("    /// <summary>Initializes a new instance of the <see cref=\"NativeTypeNameAttribute\" /> class.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("    /// <param name=\"name\">The name of the type that was used in the native signature.</param>");
+                sw.Write(indentString);
+                sw.WriteLine("    public NativeTypeNameAttribute(string name)");
+                sw.Write(indentString);
                 sw.WriteLine("    {");
-                sw.WriteLine("        private readonly string _name;");
-                sw.WriteLine();
-                sw.WriteLine("        /// <summary>Initializes a new instance of the <see cref=\"NativeTypeNameAttribute\" /> class.</summary>");
-                sw.WriteLine("        /// <param name=\"name\">The name of the type that was used in the native signature.</param>");
-                sw.WriteLine("        public NativeTypeNameAttribute(string name)");
-                sw.WriteLine("        {");
-                sw.WriteLine("            _name = name;");
-                sw.WriteLine("        }");
-                sw.WriteLine();
-                sw.WriteLine("        /// <summary>Gets the name of the type that was used in the native signature.</summary>");
-                sw.WriteLine("        public string Name => _name;");
+                sw.Write(indentString);
+                sw.WriteLine("        _name = name;");
+                sw.Write(indentString);
                 sw.WriteLine("    }");
-
+                sw.WriteLine();
+                sw.Write(indentString);
+                sw.WriteLine("    /// <summary>Gets the name of the type that was used in the native signature.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("    public string Name => _name;");
+                sw.Write(indentString);
                 sw.WriteLine('}');
+
+                if (!generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine('}');
+                }
             }
 
             static void GenerateVtblIndexAttribute(PInvokeGenerator generator)
@@ -403,33 +465,64 @@ namespace ClangSharp
                     sw.WriteLine(config.HeaderText);
                 }
 
+                var indentString = "    ";
+
                 sw.WriteLine("using System;");
                 sw.WriteLine("using System.Diagnostics;");
                 sw.WriteLine();
 
                 sw.Write("namespace ");
-                sw.WriteLine(generator.GetNamespace("VtblIndexAttribute"));
+                sw.Write(generator.GetNamespace("VtblIndexAttribute"));
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
+
+                sw.Write(indentString);
+                sw.WriteLine("/// <summary>Defines the vtbl index of a method as it was in the native signature.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]");
+                sw.Write(indentString);
+                sw.WriteLine("[Conditional(\"DEBUG\")]");
+                sw.Write(indentString);
+                sw.WriteLine("internal sealed partial class VtblIndexAttribute : Attribute");
+                sw.Write(indentString);
                 sw.WriteLine('{');
-
-                sw.WriteLine("    /// <summary>Defines the vtbl index of a method as it was in the native signature.</summary>");
-                sw.WriteLine("    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]");
-                sw.WriteLine("    [Conditional(\"DEBUG\")]");
-                sw.WriteLine("    internal sealed partial class VtblIndexAttribute : Attribute");
+                sw.Write(indentString);
+                sw.WriteLine("    private readonly uint _index;");
+                sw.WriteLine();
+                sw.Write(indentString);
+                sw.WriteLine("    /// <summary>Initializes a new instance of the <see cref=\"VtblIndexAttribute\" /> class.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("    /// <param name=\"index\">The vtbl index of a method as it was in the native signature.</param>");
+                sw.Write(indentString);
+                sw.WriteLine("    public VtblIndexAttribute(uint index)");
+                sw.Write(indentString);
                 sw.WriteLine("    {");
-                sw.WriteLine("        private readonly uint _index;");
-                sw.WriteLine();
-                sw.WriteLine("        /// <summary>Initializes a new instance of the <see cref=\"VtblIndexAttribute\" /> class.</summary>");
-                sw.WriteLine("        /// <param name=\"index\">The vtbl index of a method as it was in the native signature.</param>");
-                sw.WriteLine("        public VtblIndexAttribute(uint index)");
-                sw.WriteLine("        {");
-                sw.WriteLine("            _index = index;");
-                sw.WriteLine("        }");
-                sw.WriteLine();
-                sw.WriteLine("        /// <summary>Gets the vtbl index of a method as it was in the native signature.</summary>");
-                sw.WriteLine("        public uint Index => _index;");
+                sw.Write(indentString);
+                sw.WriteLine("        _index = index;");
+                sw.Write(indentString);
                 sw.WriteLine("    }");
-
+                sw.WriteLine();
+                sw.Write(indentString);
+                sw.WriteLine("    /// <summary>Gets the vtbl index of a method as it was in the native signature.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("    public uint Index => _index;");
+                sw.Write(indentString);
                 sw.WriteLine('}');
+
+                if (!generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine('}');
+                }
             }
 
             static void GenerateTransparentStructs(PInvokeGenerator generator)
@@ -453,6 +546,7 @@ namespace ClangSharp
                         sw.WriteLine(config.HeaderText);
                     }
 
+                    var indentString = "    ";
                     var targetNamespace = generator.GetNamespace(name);
 
                     sw.WriteLine("using System;");
@@ -471,11 +565,23 @@ namespace ClangSharp
 
                     sw.WriteLine();
 
-                    sw.Write("namespace ");
-                    sw.WriteLine(targetNamespace);
-                    sw.WriteLine('{');
+                    sw.Write("namespace ");sw.WriteLine();
+                    sw.Write(targetNamespace);
 
-                    sw.Write("    public ");
+                    if (generator.Config.GenerateFileScopedNamespaces)
+                    {
+                        sw.WriteLine(';');
+                        sw.WriteLine();
+                        indentString = "";
+                    }
+                    else
+                    {
+                        sw.WriteLine();
+                        sw.WriteLine('{');
+                    }
+
+                    sw.Write(indentString);
+                    sw.Write("public ");
 
                     if (isTypePointer || IsTransparentStructHexBased(kind))
                     {
@@ -490,23 +596,29 @@ namespace ClangSharp
                     sw.Write(name);
                     sw.WriteLine(">, IFormattable");
 
-                    sw.WriteLine("    {");
+                    sw.Write(indentString);
+                    sw.WriteLine('{');
 
-                    sw.Write("        public readonly ");
+                    sw.Write(indentString);
+                    sw.Write("    public readonly ");
                     sw.Write(type);
                     sw.WriteLine(" Value;");
                     sw.WriteLine();
 
                     // All transparent structs be created directly from the underlying type
 
-                    sw.Write("        public ");
+                    sw.Write(indentString);
+                    sw.Write("    public ");
                     sw.Write(name);
                     sw.Write('(');
                     sw.Write(type);
                     sw.WriteLine(" value)");
-                    sw.WriteLine("        {");
-                    sw.WriteLine("            Value = value;");
-                    sw.WriteLine("        }");
+                    sw.Write(indentString);
+                    sw.WriteLine("    {");
+                    sw.Write(indentString);
+                    sw.WriteLine("        Value = value;");
+                    sw.Write(indentString);
+                    sw.WriteLine("    }");
                     sw.WriteLine();
 
                     if (IsTransparentStructHandle(kind) || (kind == PInvokeGeneratorTransparentStructKind.HandleVulkan))
@@ -515,7 +627,8 @@ namespace ClangSharp
 
                         if (kind == PInvokeGeneratorTransparentStructKind.HandleWin32)
                         {
-                            sw.Write("        public static ");
+                            sw.Write(indentString);
+                            sw.Write("    public static ");
                             sw.Write(name);
                             sw.Write(" INVALID_VALUE => new ");
                             sw.Write(name);
@@ -534,7 +647,8 @@ namespace ClangSharp
                             sw.WriteLine();
                         }
 
-                        sw.Write("        public static ");
+                        sw.Write(indentString);
+                        sw.Write("    public static ");
                         sw.Write(name);
                         sw.Write(" NULL => new ");
                         sw.Write(name);
@@ -554,14 +668,16 @@ namespace ClangSharp
                     {
                         // Boolean like transparent structs define FALSE and TRUE members
 
-                        sw.Write("        public static ");
+                        sw.Write(indentString);
+                        sw.Write("    public static ");
                         sw.Write(name);
                         sw.Write(" FALSE => new ");
                         sw.Write(name);
                         sw.WriteLine("(0);");
                         sw.WriteLine();
 
-                        sw.Write("        public static ");
+                        sw.Write(indentString);
+                        sw.Write("    public static ");
                         sw.Write(name);
                         sw.Write(" TRUE => new ");
                         sw.Write(name);
@@ -571,42 +687,48 @@ namespace ClangSharp
 
                     // All transparent structs support equality and relational comparisons with themselves
 
-                    sw.Write("        public static bool operator ==(");
+                    sw.Write(indentString);
+                    sw.Write("    public static bool operator ==(");
                     sw.Write(name);
                     sw.Write(" left, ");
                     sw.Write(name);
                     sw.WriteLine(" right) => left.Value == right.Value;");
                     sw.WriteLine();
 
-                    sw.Write("        public static bool operator !=(");
+                    sw.Write(indentString);
+                    sw.Write("    public static bool operator !=(");
                     sw.Write(name);
                     sw.Write(" left, ");
                     sw.Write(name);
                     sw.WriteLine(" right) => left.Value != right.Value;");
                     sw.WriteLine();
 
-                    sw.Write("        public static bool operator <(");
+                    sw.Write(indentString);
+                    sw.Write("    public static bool operator <(");
                     sw.Write(name);
                     sw.Write(" left, ");
                     sw.Write(name);
                     sw.WriteLine(" right) => left.Value < right.Value;");
                     sw.WriteLine();
 
-                    sw.Write("        public static bool operator <=(");
+                    sw.Write(indentString);
+                    sw.Write("    public static bool operator <=(");
                     sw.Write(name);
                     sw.Write(" left, ");
                     sw.Write(name);
                     sw.WriteLine(" right) => left.Value <= right.Value;");
                     sw.WriteLine();
 
-                    sw.Write("        public static bool operator >(");
+                    sw.Write(indentString);
+                    sw.Write("    public static bool operator >(");
                     sw.Write(name);
                     sw.Write(" left, ");
                     sw.Write(name);
                     sw.WriteLine(" right) => left.Value > right.Value;");
                     sw.WriteLine();
 
-                    sw.Write("        public static bool operator >=(");
+                    sw.Write(indentString);
+                    sw.Write("    public static bool operator >=(");
                     sw.Write(name);
                     sw.Write(" left, ");
                     sw.Write(name);
@@ -617,7 +739,8 @@ namespace ClangSharp
                     {
                         // Handle like transparent structs can be cast to/from void*
 
-                        sw.Write("        public static explicit operator ");
+                        sw.Write(indentString);
+                        sw.Write("    public static explicit operator ");
                         sw.Write(name);
                         sw.Write("(void* value) => new ");
                         sw.Write(name);
@@ -634,7 +757,8 @@ namespace ClangSharp
                         }
                         sw.WriteLine();
 
-                        sw.Write("        public static implicit operator void*(");
+                        sw.Write(indentString);
+                        sw.Write("    public static implicit operator void*(");
                         sw.Write(name);
 
                         if (isTypePointer)
@@ -652,14 +776,16 @@ namespace ClangSharp
                         {
                             // Win32 handle like transparent structs can also be cast to/from HANDLE
 
-                            sw.Write("        public static explicit operator ");
+                            sw.Write(indentString);
+                            sw.Write("    public static explicit operator ");
                             sw.Write(name);
                             sw.Write("(HANDLE value) => new ");
                             sw.Write(name);
                             sw.WriteLine("(value);");
                             sw.WriteLine();
 
-                            sw.Write("        public static implicit operator HANDLE(");
+                            sw.Write(indentString);
+                            sw.Write("    public static implicit operator HANDLE(");
                             sw.Write(name);
                             sw.WriteLine(" value) => new HANDLE(value.Value);");
                             sw.WriteLine();
@@ -670,12 +796,14 @@ namespace ClangSharp
                         // Boolean like transparent structs define conversion to/from bool
                         // and support for usage in bool like scenarios.
 
-                        sw.Write("        public static implicit operator bool(");
+                        sw.Write(indentString);
+                        sw.Write("    public static implicit operator bool(");
                         sw.Write(name);
                         sw.WriteLine(" value) => value.Value != 0;");
                         sw.WriteLine();
 
-                        sw.Write("        public static implicit operator ");
+                        sw.Write(indentString);
+                        sw.Write("    public static implicit operator ");
                         sw.Write(name);
                         sw.Write("(bool value) => new ");
                         sw.Write(name);
@@ -697,12 +825,14 @@ namespace ClangSharp
 
                         sw.WriteLine();
 
-                        sw.Write("        public static bool operator false(");
+                        sw.Write(indentString);
+                        sw.Write("    public static bool operator false(");
                         sw.Write(name);
                         sw.WriteLine(" value) => value.Value == 0;");
                         sw.WriteLine();
 
-                        sw.Write("        public static bool operator true(");
+                        sw.Write(indentString);
+                        sw.Write("    public static bool operator true(");
                         sw.Write(name);
                         sw.WriteLine(" value) => value.Value != 0;");
                         sw.WriteLine();
@@ -710,35 +840,44 @@ namespace ClangSharp
 
                     // All transparent structs define casts to/from the various integer types
 
-                    OutputConversions(sw, name, type, kind, "byte");
-                    OutputConversions(sw, name, type, kind, "short");
-                    OutputConversions(sw, name, type, kind, "int");
-                    OutputConversions(sw, name, type, kind, "long");
-                    OutputConversions(sw, name, type, kind, "nint");
-                    OutputConversions(sw, name, type, kind, "sbyte");
-                    OutputConversions(sw, name, type, kind, "ushort");
-                    OutputConversions(sw, name, type, kind, "uint");
-                    OutputConversions(sw, name, type, kind, "ulong");
-                    OutputConversions(sw, name, type, kind, "nuint");
+                    OutputConversions(sw, indentString, name, type, kind, "byte");
+                    OutputConversions(sw, indentString, name, type, kind, "short");
+                    OutputConversions(sw, indentString, name, type, kind, "int");
+                    OutputConversions(sw, indentString, name, type, kind, "long");
+                    OutputConversions(sw, indentString, name, type, kind, "nint");
+                    OutputConversions(sw, indentString, name, type, kind, "sbyte");
+                    OutputConversions(sw, indentString, name, type, kind, "ushort");
+                    OutputConversions(sw, indentString, name, type, kind, "uint");
+                    OutputConversions(sw, indentString, name, type, kind, "ulong");
+                    OutputConversions(sw, indentString, name, type, kind, "nuint");
 
                     // All transparent structs override CompareTo, Equals, GetHashCode, and ToString
 
-                    sw.WriteLine("        public int CompareTo(object? obj)");
-                    sw.WriteLine("        {");
+                    sw.Write(indentString);
+                    sw.WriteLine("    public int CompareTo(object? obj)");
+                    sw.Write(indentString);
+                    sw.WriteLine("    {");
+                    sw.Write(indentString);
                     sw.Write("            if (obj is ");
                     sw.Write(name);
                     sw.WriteLine(" other)");
-                    sw.WriteLine("            {");
-                    sw.WriteLine("                return CompareTo(other);");
-                    sw.WriteLine("            }");
-                    sw.WriteLine();
-                    sw.Write("            return (obj is null) ? 1 : throw new ArgumentException(\"obj is not an instance of ");
-                    sw.Write(name);
-                    sw.WriteLine(".\");");
+                    sw.Write(indentString);
+                    sw.WriteLine("        {");
+                    sw.Write(indentString);
+                    sw.WriteLine("            return CompareTo(other);");
+                    sw.Write(indentString);
                     sw.WriteLine("        }");
                     sw.WriteLine();
+                    sw.Write(indentString);
+                    sw.Write("        return (obj is null) ? 1 : throw new ArgumentException(\"obj is not an instance of ");
+                    sw.Write(name);
+                    sw.WriteLine(".\");");
+                    sw.Write(indentString);
+                    sw.WriteLine("    }");
+                    sw.WriteLine();
 
-                    sw.Write("        public int CompareTo(");
+                    sw.Write(indentString);
+                    sw.Write("    public int CompareTo(");
                     sw.Write(name);
 
                     if (isTypePointer)
@@ -752,12 +891,14 @@ namespace ClangSharp
 
                     sw.WriteLine();
 
-                    sw.Write("        public override bool Equals(object? obj) => (obj is ");
+                    sw.Write(indentString);
+                    sw.Write("    public override bool Equals(object? obj) => (obj is ");
                     sw.Write(name);
                     sw.WriteLine(" other) && Equals(other);");
                     sw.WriteLine();
 
-                    sw.Write("        public bool Equals(");
+                    sw.Write(indentString);
+                    sw.Write("    public bool Equals(");
                     sw.Write(name);
 
                     if (isTypePointer)
@@ -771,7 +912,8 @@ namespace ClangSharp
 
                     sw.WriteLine();
 
-                    sw.Write("        public override int GetHashCode() => ");
+                    sw.Write(indentString);
+                    sw.Write("    public override int GetHashCode() => ");
 
                     if (isTypePointer)
                     {
@@ -785,7 +927,8 @@ namespace ClangSharp
                     sw.WriteLine(".GetHashCode();");
                     sw.WriteLine();
 
-                    sw.Write("        public override string ToString() => ");
+                    sw.Write(indentString);
+                    sw.Write("    public override string ToString() => ");
 
                     if (isTypePointer)
                     {
@@ -818,7 +961,8 @@ namespace ClangSharp
                     sw.WriteLine(");");
                     sw.WriteLine();
 
-                    sw.Write("        public string ToString(string? format, IFormatProvider? formatProvider) => ");
+                    sw.Write(indentString);
+                    sw.Write("    public string ToString(string? format, IFormatProvider? formatProvider) => ");
 
                     if (isTypePointer)
                     {
@@ -831,8 +975,13 @@ namespace ClangSharp
 
                     sw.WriteLine(".ToString(format, formatProvider);");
 
-                    sw.WriteLine("    }");
+                    sw.Write(indentString);
                     sw.WriteLine('}');
+
+                    if (!generator.Config.GenerateFileScopedNamespaces)
+                    {
+                        sw.WriteLine('}');
+                    }
                 }
 
                 static (int srcSize, int dstSize, int sign) GetSizeAndSignOf(string type)
@@ -857,7 +1006,7 @@ namespace ClangSharp
                     };
                 }
 
-                static void OutputConversions(StreamWriter sw, string name, string type, PInvokeGeneratorTransparentStructKind kind, string target)
+                static void OutputConversions(StreamWriter sw, string indentString, string name, string type, PInvokeGeneratorTransparentStructKind kind, string target)
                 {
                     var (typeSrcSize, typeDstSize, typeSign) = GetSizeAndSignOf(type);
                     var (targetSrcSize, targetDstSize, targetSign) = GetSizeAndSignOf(target);
@@ -877,7 +1026,8 @@ namespace ClangSharp
                         castFromKind = "explicit";
                     }
 
-                    sw.Write("        public static ");
+                    sw.Write(indentString);
+                    sw.Write("    public static ");
                     sw.Write(castFromKind);
                     sw.Write(" operator ");
                     sw.Write(name);
@@ -916,7 +1066,8 @@ namespace ClangSharp
                         castToKind = "explicit";
                     }
 
-                    sw.Write("        public static ");
+                    sw.Write(indentString);
+                    sw.Write("    public static ");
                     sw.Write(castToKind);
                     sw.Write(" operator ");
                     sw.Write(target);
@@ -1265,8 +1416,17 @@ namespace ClangSharp
                         sw.Write(".UnitTests");
                     }
 
-                    sw.WriteLine();
-                    sw.WriteLine('{');
+                    if (Config.GenerateFileScopedNamespaces)
+                    {
+                        sw.WriteLine(';');
+                        sw.WriteLine();
+                        indentationString = "";
+                    }
+                    else
+                    {
+                        sw.WriteLine();
+                        sw.WriteLine('{');
+                    }
                 }
                 else
                 {
@@ -1368,11 +1528,13 @@ namespace ClangSharp
 
                 if (isMethodClass)
                 {
-                    sw.Write(csharpOutputBuilder.IndentationString);
+                    indentationString = indentationString[..^csharpOutputBuilder.IndentationString.Length];
+
+                    sw.Write(indentationString);
                     sw.WriteLine('}');
                 }
 
-                if (_config.GenerateMultipleFiles)
+                if (_config.GenerateMultipleFiles && !Config.GenerateFileScopedNamespaces)
                 {
                     sw.WriteLine('}');
                 }

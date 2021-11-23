@@ -49,7 +49,6 @@ namespace ClangSharp
             new HelpItem("exclude-enum-operators", "Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default."),
             new HelpItem("exclude-fnptr-codegen", "Generated bindings for latest or preview codegen should not use function pointers."),
             new HelpItem("exclude-funcs-with-body", "Bindings for functions with bodies should not be generated."),
-            new HelpItem("preview-codegen-nint", "Generated bindings for latest or preview codegen should not use nint or nuint."),
             new HelpItem("exclude-using-statics-for-enums", "Enum usages should be fully qualified and should not include a corresponding 'using static EnumName;'"),
 
             // VTBL Options
@@ -67,6 +66,7 @@ namespace ClangSharp
 
             new HelpItem("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
             new HelpItem("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
+            new HelpItem("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
             new HelpItem("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
             new HelpItem("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
             new HelpItem("generate-marker-interfaces", "Bindings for marker interfaces representing native inheritance hierarchies should be generated."),
@@ -395,6 +395,12 @@ namespace ClangSharp
                     case "generate-cpp-attributes":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCppAttributes;
+                        break;
+                    }
+
+                    case "generate-file-scoped-namespaces":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces;
                         break;
                     }
 

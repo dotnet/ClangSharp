@@ -5,7 +5,7 @@ using System;
 namespace ClangSharp
 {
     [Flags]
-    public enum PInvokeGeneratorConfigurationOptions
+    public enum PInvokeGeneratorConfigurationOptions : ulong
     {
         None = 0,
 
@@ -68,5 +68,7 @@ namespace ClangSharp
         GenerateTrimmableVtbls = 1 << 28,
 
         GenerateMarkerInterfaces = 1 << 29,
+
+        GenerateFileScopedNamespaces = 1 << 30,
     }
 }

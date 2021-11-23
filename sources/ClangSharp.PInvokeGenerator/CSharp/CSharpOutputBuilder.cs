@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace ClangSharp.CSharp
@@ -66,11 +67,7 @@ namespace ClangSharp.CSharp
 
         public void DecreaseIndentation()
         {
-            if (_indentationLevel == 0)
-            {
-                throw new InvalidOperationException();
-            }
-
+            Debug.Assert(_indentationLevel > 0);
             _indentationLevel--;
         }
 
