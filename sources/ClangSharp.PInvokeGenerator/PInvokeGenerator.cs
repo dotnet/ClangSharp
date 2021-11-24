@@ -1914,9 +1914,7 @@ namespace ClangSharp
         {
             if (cursor is NamedDecl namedDecl)
             {
-                var remappedName = GetRemappedCursorName(namedDecl);
-
-                if (_config.WithCallConvs.TryGetValue(remappedName, out var callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
+                if (TryGetRemappedValue(namedDecl, _config.WithCallConvs, out var callConv, matchStar: true))
                 {
                     if (Enum.TryParse<CallingConvention>(callConv, true, out var remappedCallingConvention))
                     {
@@ -2579,8 +2577,7 @@ namespace ClangSharp
                         remappedName = "uint";
                     }
 
-                    WithType("*", ref remappedName, ref nativeTypeName);
-                    WithType(enumDeclName, ref remappedName, ref nativeTypeName);
+                    WithType(enumDecl, ref remappedName, ref nativeTypeName);
                 }
             }
 
@@ -3072,12 +3069,22 @@ namespace ClangSharp
                     if (!isMacroDefinitionRecord)
                     {
                         _ = nameBuilder.Append(" unmanaged");
+                        var hasSuppressGCTransition = HasSuppressGCTransition(cursor);
 
                         if (callConv != CallingConvention.Winapi)
                         {
                             _ = nameBuilder.Append('[');
                             _ = nameBuilder.Append(callConv.AsString(true));
+
+                            if (hasSuppressGCTransition)
+                            {
+                                _ = nameBuilder.Append(", SuppressGCTransition");
+                            }
                             _ = nameBuilder.Append(']');
+                        }
+                        else if (hasSuppressGCTransition)
+                        {
+                            _ = nameBuilder.Append("[SuppressGCTransition]");
                         }
                     }
 
@@ -3668,6 +3675,15 @@ namespace ClangSharp
             }
         }
 
+        private bool HasSuppressGCTransition(Cursor cursor)
+        {
+            if (cursor is not NamedDecl namedDecl)
+            {
+                return false;
+            }
+            return HasRemapping(namedDecl, _config.WithSuppressGCTransitions);
+        }
+
         private bool HasVtbl(CXXRecordDecl cxxRecordDecl)
         {
             var hasDirectVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual);
@@ -3779,7 +3795,7 @@ namespace ClangSharp
 
                 declLocation.GetExpansionLocation(out var expansionFile, out var expansionLine, out var expansionColumn, out _);
 
-                if ((expansionFile == file) && (expansionLine == line) && (expansionColumn == column) && (_config.TraversalNames.Length != 0))
+                if ((expansionFile == file) && (expansionLine == line) && (expansionColumn == column) && _config.TraversalNames.Any())
                 {
                     // clang_getLocation is a very expensive call, so exit early if the expansion file is the same
                     // However, if we are not explicitly specifying traversal names, its possible the expansion location
@@ -3920,7 +3936,7 @@ namespace ClangSharp
                     return true;
                 }
 
-                if ((_config.IncludedNames.Length != 0) && !_config.IncludedNames.Contains(qualifiedName) && !_config.IncludedNames.Contains(dottedQualifiedName) && !_config.IncludedNames.Contains(name))
+                if (_config.IncludedNames.Any() && !_config.IncludedNames.Contains(qualifiedName) && !_config.IncludedNames.Contains(dottedQualifiedName) && !_config.IncludedNames.Contains(name))
                 {
                     if (_config.LogExclusions)
                     {
@@ -3958,7 +3974,7 @@ namespace ClangSharp
                 {
                     return true;
                 }
-                else if ((_config.TraversalNames.Length == 0) && location.IsFromMainFile)
+                else if (!_config.TraversalNames.Any() && location.IsFromMainFile)
                 {
                     return true;
                 }
@@ -5162,7 +5178,7 @@ namespace ClangSharp
                     {
                         if (!_outputBuilderFactory.TryGetOutputBuilder(nameTests, out var testOutputBuilder))
                         {
-                            CreateTestOutputBuilder(nameTests);
+                            CreateTestOutputBuilder(name, nameTests);
                         }
                         else
                         {
@@ -5182,7 +5198,7 @@ namespace ClangSharp
 
                 if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
                 {
-                    CreateTestOutputBuilder(nameTests);
+                    CreateTestOutputBuilder(name, nameTests);
                 }
             }
             else
@@ -5193,7 +5209,7 @@ namespace ClangSharp
                 {
                     if (!_outputBuilderFactory.TryGetOutputBuilder(nameTests, out var testOutputBuilder))
                     {
-                        CreateTestOutputBuilder(nameTests);
+                        CreateTestOutputBuilder(name, nameTests);
                     }
                     else
                     {
@@ -5206,9 +5222,9 @@ namespace ClangSharp
             }
             _outputBuilderUsers++;
 
-            void CreateTestOutputBuilder(string name)
+            void CreateTestOutputBuilder(string name, string nameTests)
             {
-                _testOutputBuilder = _outputBuilderFactory.CreateTests(name);
+                _testOutputBuilder = _outputBuilderFactory.CreateTests(nameTests);
 
                 var isTopLevelStruct = _config.WithTypes.TryGetValue(name, out var withType) && (withType == "struct");
 
@@ -5525,11 +5541,11 @@ namespace ClangSharp
 
         private void Visit(IEnumerable<Cursor> cursors, IEnumerable<Cursor> excludedCursors) => Visit(cursors.Except(excludedCursors));
 
-        private void WithAttributes(string remappedName, bool onlySupportedOSPlatform = false, bool isTestOutput = false)
+        private void WithAttributes(NamedDecl namedDecl, bool onlySupportedOSPlatform = false, bool isTestOutput = false)
         {
             var outputBuilder = isTestOutput ? _testOutputBuilder : _outputBuilder;
 
-            if (_config.WithAttributes.TryGetValue(remappedName, out var attributes))
+            if (TryGetRemappedValue(namedDecl, _config.WithAttributes, out var attributes))
             {
                 foreach (var attribute in attributes.Where((a) => !onlySupportedOSPlatform || a.StartsWith("SupportedOSPlatform(")))
                 {
@@ -5625,12 +5641,76 @@ namespace ClangSharp
             return _config.WithNamespaces.TryGetValue(remappedName, out namespaceName);
         }
 
-        private bool GetSetLastError(string remappedName) => _config.WithSetLastErrors.Contains("*") ||
-                                                             _config.WithSetLastErrors.Contains(remappedName);
+        private bool GetSetLastError(NamedDecl namedDecl) => HasRemapping(namedDecl, _config.WithSetLastErrors, matchStar: true);
 
-        private bool TryGetRemappedValue<T>(NamedDecl namedDecl, IReadOnlyDictionary<string, T> remappings, out T value)
+        private bool HasRemapping(NamedDecl namedDecl, IReadOnlyCollection<string> entries, bool matchStar = false)
         {
             var name = GetCursorQualifiedName(namedDecl);
+
+            if (name.StartsWith("ClangSharpMacro_"))
+            {
+                name = name["ClangSharpMacro_".Length..];
+            }
+
+            if (entries.Contains(name))
+            {
+                return true;
+            }
+
+            name = name.Replace("::", ".");
+
+            if (entries.Contains(name))
+            {
+                return true;
+            }
+
+            name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
+
+            if (name.StartsWith("ClangSharpMacro_"))
+            {
+                name = name["ClangSharpMacro_".Length..];
+            }
+
+            if (entries.Contains(name))
+            {
+                return true;
+            }
+
+            name = name.Replace("::", ".");
+
+            if (entries.Contains(name))
+            {
+                return true;
+            }
+
+            name = GetRemappedCursorName(namedDecl);
+
+            if (name.StartsWith("ClangSharpMacro_"))
+            {
+                name = name["ClangSharpMacro_".Length..];
+            }
+
+            if (entries.Contains(name))
+            {
+                return true;
+            }
+
+            if (matchStar && entries.Contains("*"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGetRemappedValue<T>(NamedDecl namedDecl, IReadOnlyDictionary<string, T> remappings, out T value, bool matchStar = false)
+        {
+            var name = GetCursorQualifiedName(namedDecl);
+
+            if (name.StartsWith("ClangSharpMacro_"))
+            {
+                name = name["ClangSharpMacro_".Length..];
+            }
 
             if (remappings.TryGetValue(name, out value))
             {
@@ -5646,6 +5726,11 @@ namespace ClangSharp
 
             name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
 
+            if (name.StartsWith("ClangSharpMacro_"))
+            {
+                name = name["ClangSharpMacro_".Length..];
+            }
+
             if (remappings.TryGetValue(name, out value))
             {
                 return true;
@@ -5660,7 +5745,17 @@ namespace ClangSharp
 
             name = GetRemappedCursorName(namedDecl);
 
+            if (name.StartsWith("ClangSharpMacro_"))
+            {
+                name = name["ClangSharpMacro_".Length..];
+            }
+
             if (remappings.TryGetValue(name, out value))
+            {
+                return true;
+            }
+
+            if (matchStar && remappings.TryGetValue("*", out value))
             {
                 return true;
             }
@@ -5729,9 +5824,9 @@ namespace ClangSharp
             }
         }
 
-        private void WithType(string remappedName, ref string integerTypeName, ref string nativeTypeName)
+        private void WithType(NamedDecl namedDecl, ref string integerTypeName, ref string nativeTypeName)
         {
-            if (_config.WithTypes.TryGetValue(remappedName, out var type))
+            if (TryGetRemappedValue(namedDecl, _config.WithTypes, out var type, matchStar: true))
             {
                 if (string.IsNullOrWhiteSpace(nativeTypeName))
                 {
@@ -5747,9 +5842,9 @@ namespace ClangSharp
             }
         }
 
-        private void WithUsings(string remappedName)
+        private void WithUsings(NamedDecl namedDecl)
         {
-            if (_config.WithUsings.TryGetValue(remappedName, out var usings))
+            if (TryGetRemappedValue(namedDecl, _config.WithUsings, out var usings))
             {
                 foreach (var @using in usings)
                 {
