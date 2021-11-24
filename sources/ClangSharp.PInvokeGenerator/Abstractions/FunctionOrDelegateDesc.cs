@@ -6,7 +6,7 @@ using ClangSharp.Interop;
 
 namespace ClangSharp.Abstractions
 {
-    internal struct FunctionOrDelegateDesc<TCustomAttrGeneratorData>
+    internal struct FunctionOrDelegateDesc
     {
         public AccessSpecifier AccessSpecifier { get; set; }
         public string NativeTypeName { get; set; }
@@ -18,6 +18,7 @@ namespace ClangSharp.Abstractions
         public FunctionOrDelegateFlags Flags { get; set; }
         public long? VtblIndex { get; set; }
         public CXSourceLocation? Location { get; set; }
+        public bool HasBody { get; set; }
 
         public bool IsVirtual
         {
@@ -228,7 +229,7 @@ namespace ClangSharp.Abstractions
             }
         }
 
-        public Action<TCustomAttrGeneratorData> WriteCustomAttrs { get; set; }
-        public TCustomAttrGeneratorData CustomAttrGeneratorData { get; set; }
+        public Action<object> WriteCustomAttrs { get; set; }
+        public object CustomAttrGeneratorData { get; set; }
     }
 }

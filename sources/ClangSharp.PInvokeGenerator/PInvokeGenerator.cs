@@ -5117,12 +5117,6 @@ namespace ClangSharp
             {
                 _outputBuilder = _outputBuilderFactory.Create(name);
 
-                WithAttributes("*");
-                WithAttributes(name);
-
-                WithUsings("*");
-                WithUsings(name);
-
                 if (includeTestOutput && !string.IsNullOrWhiteSpace(_config.TestOutputLocation))
                 {
                     CreateTestOutputBuilder(nameTests);

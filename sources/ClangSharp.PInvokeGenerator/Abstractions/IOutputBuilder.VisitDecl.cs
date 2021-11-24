@@ -22,19 +22,19 @@ namespace ClangSharp.Abstractions
         void EndValue(in ValueDesc desc);
 
         void BeginEnum(in EnumDesc desc);
-        void EndEnum();
+        void EndEnum(in EnumDesc desc);
 
         void BeginField(in FieldDesc desc);
         void WriteFixedCountField(string typeName, string escapedName, string fixedName, string count);
         void WriteRegularField(string typeName, string escapedName);
-        void EndField(bool isBodyless = true);
+        void EndField(in FieldDesc desc);
 
-        void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> info, ref bool isMethodClassUnsafe);
+        void BeginFunctionOrDelegate(in FunctionOrDelegateDesc info, ref bool isMethodClassUnsafe);
         void BeginFunctionInnerPrototype(string escapedName);
-        void BeginParameter<TCustomAttrGeneratorData>(in ParameterDesc<TCustomAttrGeneratorData> info);
+        void BeginParameter(in ParameterDesc info);
         void BeginParameterDefault();
         void EndParameterDefault();
-        void EndParameter();
+        void EndParameter(in ParameterDesc info);
         void WriteParameterSeparator();
         void EndFunctionInnerPrototype();
         void BeginConstructorInitializer(string memberRefName, string memberInitName);
@@ -45,14 +45,14 @@ namespace ClangSharp.Abstractions
         void BeginInnerFunctionBody();
         void EndInnerFunctionBody();
         void EndBody(bool isExpressionBody = false);
-        void EndFunctionOrDelegate(bool isVirtual, bool isBodyless);
+        void EndFunctionOrDelegate(in FunctionOrDelegateDesc info);
 
-        void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> info);
+        void BeginStruct(in StructDesc info);
         void BeginMarkerInterface(string[] baseTypeNames);
         void EndMarkerInterface();
         void BeginExplicitVtbl();
         void EndExplicitVtbl();
-        void EndStruct();
+        void EndStruct(in StructDesc info);
 
         void EmitCompatibleCodeSupport();
         void EmitFnPtrSupport();

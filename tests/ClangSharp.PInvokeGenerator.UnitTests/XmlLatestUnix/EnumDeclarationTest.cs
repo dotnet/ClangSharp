@@ -203,8 +203,8 @@ enum MyEnum2 : int
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <attribute>Flags</attribute>
     <enumeration name=""MyEnum1"" access=""public"">
+      <attribute>Flags</attribute>
       <type>int</type>
       <enumerator name=""MyEnum1_Value1"" access=""public"">
         <type primitive=""False"">int</type>
@@ -229,102 +229,6 @@ enum MyEnum2 : int
             var withAttributes = new Dictionary<string, IReadOnlyList<string>>
             {
                 ["MyEnum1"] = new List<string>() { "Flags" }
-            };
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
-        }
-
-        public override Task WithAttributeStarTest()
-        {
-            var inputContents = @"enum MyEnum1 : int
-{
-    MyEnum1_Value1 = 1,
-};
-
-enum MyEnum2 : int
-{
-    MyEnum2_Value1 = 1,
-};
-";
-
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
-<bindings>
-  <namespace name=""ClangSharp.Test"">
-    <attribute>Flags</attribute>
-    <enumeration name=""MyEnum1"" access=""public"">
-      <type>int</type>
-      <enumerator name=""MyEnum1_Value1"" access=""public"">
-        <type primitive=""False"">int</type>
-        <value>
-          <code>1</code>
-        </value>
-      </enumerator>
-    </enumeration>
-    <attribute>Flags</attribute>
-    <enumeration name=""MyEnum2"" access=""public"">
-      <type>int</type>
-      <enumerator name=""MyEnum2_Value1"" access=""public"">
-        <type primitive=""False"">int</type>
-        <value>
-          <code>1</code>
-        </value>
-      </enumerator>
-    </enumeration>
-  </namespace>
-</bindings>
-";
-
-            var withAttributes = new Dictionary<string, IReadOnlyList<string>>
-            {
-                ["*"] = new List<string>() { "Flags" }
-            };
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
-        }
-
-        public override Task WithAttributeStarPlusTest()
-        {
-            var inputContents = @"enum MyEnum1 : int
-{
-    MyEnum1_Value1 = 1,
-};
-
-enum MyEnum2 : int
-{
-    MyEnum2_Value1 = 1,
-};
-";
-
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
-<bindings>
-  <namespace name=""ClangSharp.Test"">
-    <attribute>Flags</attribute>
-    <enumeration name=""MyEnum1"" access=""public"">
-      <type>int</type>
-      <enumerator name=""MyEnum1_Value1"" access=""public"">
-        <type primitive=""False"">int</type>
-        <value>
-          <code>1</code>
-        </value>
-      </enumerator>
-    </enumeration>
-    <attribute>Flags</attribute>
-    <attribute>EditorBrowsable(EditorBrowsableState.Never)</attribute>
-    <enumeration name=""MyEnum2"" access=""public"">
-      <type>int</type>
-      <enumerator name=""MyEnum2_Value1"" access=""public"">
-        <type primitive=""False"">int</type>
-        <value>
-          <code>1</code>
-        </value>
-      </enumerator>
-    </enumeration>
-  </namespace>
-</bindings>
-";
-
-            var withAttributes = new Dictionary<string, IReadOnlyList<string>>
-            {
-                ["*"] = new List<string>() { "Flags" },
-                ["MyEnum2"] = new List<string>() { "EditorBrowsable(EditorBrowsableState.Never)" }
             };
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
         }

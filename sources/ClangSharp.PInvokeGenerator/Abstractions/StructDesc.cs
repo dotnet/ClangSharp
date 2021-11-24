@@ -7,7 +7,7 @@ using ClangSharp.Interop;
 
 namespace ClangSharp.Abstractions
 {
-    internal struct StructDesc<TCustomAttrGeneratorData>
+    internal struct StructDesc
     {
         public AccessSpecifier AccessSpecifier { get; set; }
         public string EscapedName { get; set; }
@@ -70,8 +70,8 @@ namespace ClangSharp.Abstractions
             }
         }
 
-        public Action<TCustomAttrGeneratorData> WriteCustomAttrs { get; set; }
-        public TCustomAttrGeneratorData CustomAttrGeneratorData { get; set; }
+        public Action<object> WriteCustomAttrs { get; set; }
+        public object CustomAttrGeneratorData { get; set; }
 
         public StructLayoutAttribute LayoutAttribute
         {

@@ -1,3 +1,4 @@
+using System;
 using ClangSharp.Interop;
 
 namespace ClangSharp.Abstractions
@@ -23,5 +24,7 @@ namespace ClangSharp.Abstractions
                 Flags = value ? Flags | EnumFlags.Nested : Flags & ~EnumFlags.Nested;
             }
         }
+        public Action<object> WriteCustomAttrs { get; set; }
+        public object CustomAttrGeneratorData { get; set; }
     }
 }
