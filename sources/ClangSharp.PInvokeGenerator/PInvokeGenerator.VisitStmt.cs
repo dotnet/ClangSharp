@@ -80,6 +80,11 @@ namespace ClangSharp
             }
             else if (calleeDecl is FunctionDecl functionDecl)
             {
+                if ((functionDecl.ReturnType.CanonicalType.Kind != CXTypeKind.CXType_Void) && IsPrevContextStmt<CompoundStmt>(out _, out _))
+                {
+                    outputBuilder.Write("_ = ");
+                }
+
                 switch (functionDecl.Name)
                 {
                     case "memcpy":

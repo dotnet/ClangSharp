@@ -597,9 +597,14 @@ namespace ClangSharp
 
                 if (body is CompoundStmt compoundStmt)
                 {
+                    var currentContext = _context.AddLast((compoundStmt, null));
+
                     _outputBuilder.BeginConstructorInitializers();
                     VisitStmts(compoundStmt.Body);
                     _outputBuilder.EndConstructorInitializers();
+
+                    Debug.Assert(_context.Last == currentContext);
+                    _context.RemoveLast();
                 }
                 else
                 {
