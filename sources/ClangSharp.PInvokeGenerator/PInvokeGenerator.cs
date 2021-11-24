@@ -268,6 +268,7 @@ namespace ClangSharp
 
                 GenerateNativeInheritanceAttribute(this);
                 GenerateNativeTypeNameAttribute(this);
+                GenerateSetsLastSystemErrorAttribute(this);
                 GenerateVtblIndexAttribute(this);
                 GenerateTransparentStructs(this);
             }
@@ -443,6 +444,68 @@ namespace ClangSharp
                 sw.WriteLine("    /// <summary>Gets the name of the type that was used in the native signature.</summary>");
                 sw.Write(indentString);
                 sw.WriteLine("    public string Name => _name;");
+                sw.Write(indentString);
+                sw.WriteLine('}');
+
+                if (!generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine('}');
+                }
+            }
+
+            static void GenerateSetsLastSystemErrorAttribute(PInvokeGenerator generator)
+            {
+                var config = generator.Config;
+                var outputPath = Path.Combine(config.OutputLocation, "SetsLastSystemErrorAttribute.cs");
+
+                using var sw = new StreamWriter(outputPath);
+                sw.NewLine = "\n";
+
+                if (config.HeaderText != string.Empty)
+                {
+                    sw.WriteLine(config.HeaderText);
+                }
+
+                var indentString = "    ";
+
+                sw.WriteLine("using System;");
+                sw.WriteLine("using System.Diagnostics;");
+                sw.WriteLine("using System.Runtime.InteropServices;");
+                sw.WriteLine();
+
+                sw.Write("namespace ");
+                sw.Write(generator.GetNamespace("SetsLastSystemErrorAttribute"));
+
+                if (generator.Config.GenerateFileScopedNamespaces)
+                {
+                    sw.WriteLine(';');
+                    sw.WriteLine();
+                    indentString = "";
+                }
+                else
+                {
+                    sw.WriteLine();
+                    sw.WriteLine('{');
+                }
+
+                sw.Write(indentString);
+                sw.WriteLine("/// <summary>Specifies that the given method sets the last system error and it can be retrieved via <see cref=\"Marshal.GetLastSystemError\" />.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]");
+                sw.Write(indentString);
+                sw.WriteLine("[Conditional(\"DEBUG\")]");
+                sw.Write(indentString);
+                sw.WriteLine("internal sealed partial class SetsLastSystemErrorAttribute : Attribute");
+                sw.Write(indentString);
+                sw.WriteLine('{');
+                sw.Write(indentString);
+                sw.WriteLine("    /// <summary>Initializes a new instance of the <see cref=\"SetsLastSystemErrorAttribute\" /> class.</summary>");
+                sw.Write(indentString);
+                sw.WriteLine("    public SetsLastSystemErrorAttribute()");
+                sw.Write(indentString);
+                sw.WriteLine("    {");
+                sw.Write(indentString);
+                sw.WriteLine("    }");
                 sw.Write(indentString);
                 sw.WriteLine('}');
 

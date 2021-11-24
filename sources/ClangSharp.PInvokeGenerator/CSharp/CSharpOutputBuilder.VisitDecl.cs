@@ -342,10 +342,12 @@ namespace ClangSharp.CSharp
                 }
 
                 Write("ExactSpelling = true");
-                if (desc.SetLastError)
+
+                if (desc.SetLastError && !_config.GenerateSetsLastSystemErrorAttribute)
                 {
                     Write(", SetLastError = true");
                 }
+
                 WriteLine(")]");
             }
 
@@ -353,6 +355,12 @@ namespace ClangSharp.CSharp
             {
                 WriteSourceLocation(location, false);
             }
+
+            if (desc.SetLastError && _config.GenerateSetsLastSystemErrorAttribute)
+            {
+                WriteIndentedLine("[SetsLastSystemError]");
+            }
+            // GenerateSetsLastSystemErrorAttribute
 
             if (desc.IsAggressivelyInlined)
             {
