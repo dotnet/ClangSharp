@@ -186,7 +186,6 @@ Options:
   exclude-enum-operators                 Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default.
   exclude-fnptr-codegen                  Generated bindings for latest or preview codegen should not use function pointers.
   exclude-funcs-with-body                Bindings for functions with bodies should not be generated.
-  preview-codegen-nint                   Generated bindings for latest or preview codegen should not use nint or nuint.
   exclude-using-statics-for-enums        Enum usages should be fully qualified and should not include a corresponding 'using static EnumName;'
   explicit-vtbls                         VTBLs should have an explicit type generated with named fields per entry.
   implicit-vtbls                         VTBLs should be implicit to reduce metadata bloat. This is the current default
@@ -195,6 +194,7 @@ Options:
   generate-tests-xunit                   Basic tests validating size, blittability, and associated metadata should be generated for XUnit.
   generate-aggressive-inlining           [MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions.
   generate-cpp-attributes                [CppAttributeList("")] should be generated to document the encountered C++ attributes.
+  generate-file-scoped-namespaces        Namespaces should be scoped to the file to reduce nesting.
   generate-helper-types                  Code files should be generated for various helper attributes and declared transparent structs.
   generate-macro-bindings                Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones.
   generate-marker-interfaces             Bindings for marker interfaces representing native inheritance hierarchies should be generated.

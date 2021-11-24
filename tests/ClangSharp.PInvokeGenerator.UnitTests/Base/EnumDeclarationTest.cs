@@ -36,12 +36,6 @@ namespace ClangSharp.UnitTests
         public abstract Task WithAttributeTest();
 
         [Fact]
-        public abstract Task WithAttributeStarTest();
-
-        [Fact]
-        public abstract Task WithAttributeStarPlusTest();
-
-        [Fact]
         public abstract Task WithNamespaceTest();
 
         [Fact]

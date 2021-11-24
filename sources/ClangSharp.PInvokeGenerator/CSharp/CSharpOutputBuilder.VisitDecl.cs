@@ -41,6 +41,8 @@ namespace ClangSharp.CSharp
                 WriteSourceLocation(location, false);
             }
 
+            desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
+
             var isProperty = false;
             var isExpressionBody = false;
 
@@ -212,6 +214,8 @@ namespace ClangSharp.CSharp
                 WriteSourceLocation(location, false);
             }
 
+            desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
+
             WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, desc.IsNested));
             Write(" enum ");
             Write(desc.EscapedName);
@@ -226,7 +230,7 @@ namespace ClangSharp.CSharp
             WriteBlockStart();
         }
 
-        public void EndEnum() => WriteBlockEnd();
+        public void EndEnum(in EnumDesc desc) => WriteBlockEnd();
 
         public void BeginField(in FieldDesc desc)
         {
@@ -244,6 +248,8 @@ namespace ClangSharp.CSharp
             {
                 WriteSourceLocation(location, false);
             }
+
+            desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
 
             WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, isNested: true));
             Write(' ');
@@ -281,9 +287,9 @@ namespace ClangSharp.CSharp
             Write(escapedName);
         }
 
-        public void EndField(bool isBodyless = true)
+        public void EndField(in FieldDesc desc)
         {
-            if (isBodyless)
+            if (!desc.HasBody)
             {
                 WriteSemicolon();
                 WriteNewline();
@@ -291,10 +297,8 @@ namespace ClangSharp.CSharp
             }
         }
 
-        public void BeginFunctionOrDelegate<TCustomAttrGeneratorData>(in FunctionOrDelegateDesc<TCustomAttrGeneratorData> desc, ref bool isMethodClassUnsafe)
+        public void BeginFunctionOrDelegate(in FunctionOrDelegateDesc desc, ref bool isMethodClassUnsafe)
         {
-            desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
-
             if (desc.IsVirtual)
             {
                 Debug.Assert(!desc.HasFnPtrCodeGen);
@@ -338,10 +342,12 @@ namespace ClangSharp.CSharp
                 }
 
                 Write("ExactSpelling = true");
-                if (desc.SetLastError)
+
+                if (desc.SetLastError && !_config.GenerateSetsLastSystemErrorAttribute)
                 {
                     Write(", SetLastError = true");
                 }
+
                 WriteLine(")]");
             }
 
@@ -349,6 +355,12 @@ namespace ClangSharp.CSharp
             {
                 WriteSourceLocation(location, false);
             }
+
+            if (desc.SetLastError && _config.GenerateSetsLastSystemErrorAttribute)
+            {
+                WriteIndentedLine("[SetsLastSystemError]");
+            }
+            // GenerateSetsLastSystemErrorAttribute
 
             if (desc.IsAggressivelyInlined)
             {
@@ -367,6 +379,8 @@ namespace ClangSharp.CSharp
             {
                 AddNativeTypeNameAttribute(desc.NativeTypeName, attributePrefix: "return: ");
             }
+
+            desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
 
             if (_isInMarkerInterface)
             {
@@ -466,7 +480,7 @@ namespace ClangSharp.CSharp
             Write('(');
         }
 
-        public void BeginParameter<TCustomAttrGeneratorData>(in ParameterDesc<TCustomAttrGeneratorData> info)
+        public void BeginParameter(in ParameterDesc info)
         {
             if (info.NativeTypeName is not null)
             {
@@ -498,7 +512,7 @@ namespace ClangSharp.CSharp
             // nop, used only by XML
         }
 
-        public void EndParameter()
+        public void EndParameter(in ParameterDesc info)
         {
             // nop, used only by XML
         }
@@ -572,9 +586,9 @@ namespace ClangSharp.CSharp
             }
         }
 
-        public void EndFunctionOrDelegate(bool isVirtual, bool isBodyless)
+        public void EndFunctionOrDelegate(in FunctionOrDelegateDesc desc)
         {
-            if (isBodyless)
+            if (!desc.HasBody || desc.IsVirtual)
             {
                 WriteSemicolon();
                 WriteNewline();
@@ -583,7 +597,7 @@ namespace ClangSharp.CSharp
             NeedsNewline = true;
         }
 
-        public void BeginStruct<TCustomAttrGeneratorData>(in StructDesc<TCustomAttrGeneratorData> desc)
+        public void BeginStruct(in StructDesc desc)
         {
             if (desc.LayoutAttribute is not null)
             {
@@ -623,6 +637,8 @@ namespace ClangSharp.CSharp
             {
                 WriteSourceLocation(location, false);
             }
+
+            desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
 
             WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, desc.IsNested));
             Write(' ');
@@ -685,7 +701,7 @@ namespace ClangSharp.CSharp
 
         public void EmitSystemSupport() => AddUsingDirective("System");
 
-        public void EndStruct() => WriteBlockEnd();
+        public void EndStruct(in StructDesc desc) => WriteBlockEnd();
 
         public void EndMarkerInterface()
         {

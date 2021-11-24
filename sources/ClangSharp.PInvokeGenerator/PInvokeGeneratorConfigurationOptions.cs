@@ -5,68 +5,72 @@ using System;
 namespace ClangSharp
 {
     [Flags]
-    public enum PInvokeGeneratorConfigurationOptions
+    public enum PInvokeGeneratorConfigurationOptions : ulong
     {
         None = 0,
 
-        GenerateMultipleFiles = 1 << 0,
+        GenerateMultipleFiles = 1UL << 0,
 
-        GenerateUnixTypes = 1 << 1,
+        GenerateUnixTypes = 1UL << 1,
 
-        NoDefaultRemappings = 1 << 2,
+        NoDefaultRemappings = 1UL << 2,
 
-        GenerateCompatibleCode = 1 << 3,
+        GenerateCompatibleCode = 1UL << 3,
 
-        ExcludeNIntCodegen = 1 << 4,
+        ExcludeNIntCodegen = 1UL << 4,
 
-        ExcludeFnptrCodegen = 1 << 5,
+        ExcludeFnptrCodegen = 1UL << 5,
 
-        LogExclusions = 1 << 6,
+        LogExclusions = 1UL << 6,
 
-        LogVisitedFiles = 1 << 7,
+        LogVisitedFiles = 1UL << 7,
 
-        GenerateExplicitVtbls = 1 << 8,
+        GenerateExplicitVtbls = 1UL << 8,
 
-        GenerateTestsNUnit = 1 << 9,
+        GenerateTestsNUnit = 1UL << 9,
 
-        GenerateTestsXUnit = 1 << 10,
+        GenerateTestsXUnit = 1UL << 10,
 
-        GenerateMacroBindings = 1 << 11,
+        GenerateMacroBindings = 1UL << 11,
 
-        ExcludeComProxies = 1 << 12,
+        ExcludeComProxies = 1UL << 12,
 
-        ExcludeEmptyRecords = 1 << 13,
+        ExcludeEmptyRecords = 1UL << 13,
 
-        ExcludeEnumOperators = 1 << 14,
+        ExcludeEnumOperators = 1UL << 14,
 
-        GenerateAggressiveInlining = 1 << 15,
+        GenerateAggressiveInlining = 1UL << 15,
 
-        ExcludeFunctionsWithBody = 1 << 16,
+        ExcludeFunctionsWithBody = 1UL << 16,
 
-        ExcludeAnonymousFieldHelpers = 1 << 17,
+        ExcludeAnonymousFieldHelpers = 1UL << 17,
 
-        LogPotentialTypedefRemappings = 1 << 18,
+        LogPotentialTypedefRemappings = 1UL << 18,
 
-        GenerateCppAttributes = 1 << 19,
+        GenerateCppAttributes = 1UL << 19,
 
-        GenerateNativeInheritanceAttribute = 1 << 20,
+        GenerateNativeInheritanceAttribute = 1UL << 20,
 
-        DontUseUsingStaticsForEnums = 1 << 21,
+        DontUseUsingStaticsForEnums = 1UL << 21,
 
-        GenerateVtblIndexAttribute = 1 << 22,
+        GenerateVtblIndexAttribute = 1UL << 22,
 
-        GeneratePreviewCode = 1 << 23,
+        GeneratePreviewCode = 1UL << 23,
 
-        GenerateTemplateBindings = 1 << 24,
+        GenerateTemplateBindings = 1UL << 24,
 
-        GenerateSourceLocationAttribute = 1 << 25,
+        GenerateSourceLocationAttribute = 1UL << 25,
 
-        GenerateUnmanagedConstants = 1 << 26,
+        GenerateUnmanagedConstants = 1UL << 26,
 
-        GenerateHelperTypes = 1 << 27,
+        GenerateHelperTypes = 1UL << 27,
 
-        GenerateTrimmableVtbls = 1 << 28,
+        GenerateTrimmableVtbls = 1UL << 28,
 
-        GenerateMarkerInterfaces = 1 << 29,
+        GenerateMarkerInterfaces = 1UL << 29,
+
+        GenerateFileScopedNamespaces = 1UL << 30,
+
+        GenerateSetsLastSystemErrorAttribute = 1UL << 31,
     }
 }

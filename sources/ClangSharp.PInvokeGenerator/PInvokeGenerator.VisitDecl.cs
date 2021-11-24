@@ -278,15 +278,22 @@ namespace ClangSharp
                 flags |= ValueFlags.Initializer;
             }
 
-            var desc = new ValueDesc
-            {
+            var desc = new ValueDesc {
                 AccessSpecifier = accessSpecifier,
                 TypeName = typeName,
                 EscapedName = escapedName,
                 NativeTypeName = null,
                 Kind = kind,
                 Flags = flags,
-                Location = enumConstantDecl.Location
+                Location = enumConstantDecl.Location,
+                WriteCustomAttrs = static context => {
+                    (var name, var generator) = ((string, PInvokeGenerator))context;
+                    generator.WithAttributes(name);
+
+                    generator.WithUsings("*");
+                    generator.WithUsings(name);
+                },
+                CustomAttrGeneratorData = (name, this),
             };
 
             _outputBuilder.BeginValue(in desc);
@@ -332,11 +339,13 @@ namespace ClangSharp
 
             StartUsingOutputBuilder(name);
             {
+                EnumDesc desc = default;
+
                 if (!isAnonymousEnum)
                 {
                     var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
 
-                    var desc = new EnumDesc()
+                    desc = new EnumDesc()
                     {
                         AccessSpecifier = accessSpecifier,
                         TypeName = typeName,
@@ -344,6 +353,14 @@ namespace ClangSharp
                         NativeType = nativeTypeName,
                         Location = enumDecl.Location,
                         IsNested = enumDecl.DeclContext is TagDecl,
+                        WriteCustomAttrs = static context => {
+                            (var name, var generator) = ((string, PInvokeGenerator))context;
+                            generator.WithAttributes(name);
+
+                            generator.WithUsings("*");
+                            generator.WithUsings(name);
+                        },
+                        CustomAttrGeneratorData = (name, this),
                     };
 
                     _outputBuilder.BeginEnum(in desc);
@@ -354,7 +371,7 @@ namespace ClangSharp
 
                 if (!isAnonymousEnum)
                 {
-                    _outputBuilder.EndEnum();
+                    _outputBuilder.EndEnum(in desc);
                 }
             }
             StopUsingOutputBuilder();
@@ -380,14 +397,21 @@ namespace ClangSharp
                 offset = 0;
             }
 
-            var desc = new FieldDesc
-            {
+            var desc = new FieldDesc {
                 AccessSpecifier = accessSpecifier,
                 NativeTypeName = nativeTypeName,
                 EscapedName = escapedName,
                 Offset = offset,
                 NeedsNewKeyword = NeedsNewKeyword(name),
-                Location = fieldDecl.Location
+                Location = fieldDecl.Location,
+                WriteCustomAttrs = static context => {
+                    (var name, var generator) = ((string, PInvokeGenerator))context;
+                    generator.WithAttributes(name);
+
+                    generator.WithUsings("*");
+                    generator.WithUsings(name);
+                },
+                CustomAttrGeneratorData = (name, this),
             };
 
             _outputBuilder.BeginField(in desc);
@@ -410,7 +434,7 @@ namespace ClangSharp
                 _outputBuilder.WriteRegularField(typeName, escapedName);
             }
 
-            _outputBuilder.EndField();
+            _outputBuilder.EndField(in desc);
         }
 
         private void VisitFunctionDecl(FunctionDecl functionDecl)
@@ -472,8 +496,7 @@ namespace ClangSharp
 
             var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
 
-            var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
-            {
+            var desc = new FunctionOrDelegateDesc {
                 AccessSpecifier = accessSppecifier,
                 NativeTypeName = nativeTypeName,
                 EscapedName = escapedName,
@@ -490,19 +513,19 @@ namespace ClangSharp
                 IsUnsafe = IsUnsafe(functionDecl),
                 IsCtxCxxRecord = cxxRecordDecl is not null,
                 IsCxxRecordCtxUnsafe = cxxRecordDecl is not null && IsUnsafe(cxxRecordDecl),
-                WriteCustomAttrs = static x =>
-                {
-                    x.This.WithAttributes("*");
-                    x.This.WithAttributes(x.Name);
-
-                    x.This.WithUsings("*");
-                    x.This.WithUsings(x.Name);
-                },
-                CustomAttrGeneratorData = (name, this),
                 NeedsReturnFixup = needsReturnFixup,
                 ReturnType = needsReturnFixup ? $"{returnTypeName}*" : returnTypeName,
                 IsCxxConstructor = functionDecl is CXXConstructorDecl,
-                Location = functionDecl.Location
+                Location = functionDecl.Location,
+                HasBody = body is not null,
+                WriteCustomAttrs = static context => {
+                    (var name, var generator) = ((string, PInvokeGenerator))context;
+                    generator.WithAttributes(name);
+
+                    generator.WithUsings("*");
+                    generator.WithUsings(name);
+                },
+                CustomAttrGeneratorData = (name, this),
             };
 
             _ = _isTopLevelClassUnsafe.TryGetValue(className, out var isUnsafe);
@@ -522,14 +545,21 @@ namespace ClangSharp
 
                 var cxxRecordDeclName = GetRemappedCursorName(thisCursor);
                 var cxxRecordEscapedName = EscapeName(cxxRecordDeclName);
-                ParameterDesc<(string Name, PInvokeGenerator This)> parameterDesc = new()
-                {
+                var parameterDesc = new ParameterDesc {
                     Name = "pThis",
-                    Type = $"{cxxRecordEscapedName}*"
+                    Type = $"{cxxRecordEscapedName}*",
+                    WriteCustomAttrs = static context => {
+                        (var name, var generator) = ((string, PInvokeGenerator))context;
+                        generator.WithAttributes(name);
+
+                        generator.WithUsings("*");
+                        generator.WithUsings(name);
+                    },
+                    CustomAttrGeneratorData = ("pThis", this),
                 };
 
                 _outputBuilder.BeginParameter(in parameterDesc);
-                _outputBuilder.EndParameter();
+                _outputBuilder.EndParameter(in parameterDesc);
 
                 if (needsReturnFixup)
                 {
@@ -540,7 +570,7 @@ namespace ClangSharp
                         Type = $"{returnTypeName}*"
                     };
                     _outputBuilder.BeginParameter(in parameterDesc);
-                    _outputBuilder.EndParameter();
+                    _outputBuilder.EndParameter(in parameterDesc);
                 }
 
                 if (functionDecl.Parameters.Any())
@@ -553,11 +583,7 @@ namespace ClangSharp
 
             _outputBuilder.EndFunctionInnerPrototype();
 
-            if ((body is null) || isVirtual)
-            {
-                _outputBuilder.EndFunctionOrDelegate(isVirtual, true);
-            }
-            else
+            if ((body is not null) && !isVirtual)
             {
                 var firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
                 var lastCtorInitializer = (functionDecl.Body != null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
@@ -571,9 +597,14 @@ namespace ClangSharp
 
                 if (body is CompoundStmt compoundStmt)
                 {
+                    var currentContext = _context.AddLast((compoundStmt, null));
+
                     _outputBuilder.BeginConstructorInitializers();
                     VisitStmts(compoundStmt.Body);
                     _outputBuilder.EndConstructorInitializers();
+
+                    Debug.Assert(_context.Last == currentContext);
+                    _context.RemoveLast();
                 }
                 else
                 {
@@ -583,8 +614,9 @@ namespace ClangSharp
                 }
 
                 _outputBuilder.EndBody();
-                _outputBuilder.EndFunctionOrDelegate(isVirtual, false);
             }
+
+            _outputBuilder.EndFunctionOrDelegate(in desc);
 
             Visit(functionDecl.Decls, excludedCursors: functionDecl.Parameters);
 
@@ -718,7 +750,16 @@ namespace ClangSharp
                 EscapedName = escapedName,
                 Offset = null,
                 NeedsNewKeyword = false,
-                Location = fieldDecl.Location
+                Location = fieldDecl.Location,
+                HasBody = true,
+                WriteCustomAttrs = static context => {
+                    (var name, var generator) = ((string, PInvokeGenerator))context;
+                    generator.WithAttributes(name);
+
+                    generator.WithUsings("*");
+                    generator.WithUsings(name);
+                },
+                CustomAttrGeneratorData = (name, this),
             };
 
             _outputBuilder.WriteDivider(true);
@@ -888,7 +929,7 @@ namespace ClangSharp
             }
 
             _outputBuilder.EndBody();
-            _outputBuilder.EndField(false);
+            _outputBuilder.EndField(in desc);
             _outputBuilder.WriteDivider();
         }
 
@@ -952,15 +993,34 @@ namespace ClangSharp
                     escapedName += index;
                 }
 
-                var desc = new ParameterDesc<(PInvokeGenerator This, CSharp.CSharpOutputBuilder CSharpOutputBuilder, Expr DefaultArg)>
-                {
+                var desc = new ParameterDesc {
                     Name = escapedName,
                     Type = typeName,
                     NativeTypeName = nativeTypeName,
                     CppAttributes = _config.GenerateCppAttributes
                         ? parmVarDecl.Attrs.Select(x => EscapeString(x.Spelling))
                         : null,
-                    Location = parmVarDecl.Location
+                    Location = parmVarDecl.Location,
+                    WriteCustomAttrs = static context => {
+                        (var name, var generator, var csharpOutputBuilder, var defaultArg) = ((string, PInvokeGenerator, CSharp.CSharpOutputBuilder, Expr))context;
+                        generator.WithAttributes(name);
+
+                        generator.WithUsings("*");
+                        generator.WithUsings(name);
+
+                        if (defaultArg is not null)
+                        {
+                            csharpOutputBuilder.WriteCustomAttribute("Optional, DefaultParameterValue(", () => {
+                                generator.Visit(defaultArg);
+                                csharpOutputBuilder.Write(')');
+                            });
+                        }
+                        else if (csharpOutputBuilder is not null)
+                        {
+                            csharpOutputBuilder.WriteCustomAttribute("Optional", null);
+                        }
+                    },
+                    CustomAttrGeneratorData = (name, this, null as CSharp.CSharpOutputBuilder, null as Expr),
                 };
 
                 var handledDefaultArg = false;
@@ -976,20 +1036,7 @@ namespace ClangSharp
                         return _config.WithTransparentStructs.ContainsKey(typeName);
                     })))
                     {
-                        desc.CustomAttrGeneratorData = (this, csharpOutputBuilder, isExprDefaultValue ? null : parmVarDecl.DefaultArg);
-                        desc.WriteCustomAttrs = static x => {
-                            if (x.DefaultArg is not null)
-                            {
-                                x.CSharpOutputBuilder.WriteCustomAttribute("Optional, DefaultParameterValue(", () => {
-                                    x.This.Visit(x.DefaultArg);
-                                    x.CSharpOutputBuilder.Write(')');
-                                });
-                            }
-                            else
-                            {
-                                x.CSharpOutputBuilder.WriteCustomAttribute("Optional", null);
-                            }
-                        };
+                        desc.CustomAttrGeneratorData = (name, this, csharpOutputBuilder, isExprDefaultValue ? null : parmVarDecl.DefaultArg);
                         handledDefaultArg = true;
                     }
                 }
@@ -1021,7 +1068,7 @@ namespace ClangSharp
                     _outputBuilder.EndParameterDefault();
                 }
 
-                _outputBuilder.EndParameter();
+                _outputBuilder.EndParameter(in desc);
 
                 if (index != lastIndex)
                 {
@@ -1046,7 +1093,7 @@ namespace ClangSharp
                     escapedName += index;
                 }
 
-                var desc = new ParameterDesc<(string Name, PInvokeGenerator This)>
+                var desc = new ParameterDesc
                 {
                     Name = escapedName,
                     Type = typeName,
@@ -1054,7 +1101,15 @@ namespace ClangSharp
                     CppAttributes = _config.GenerateCppAttributes
                         ? parmVarDecl.Attrs.Select(x => EscapeString(x.Spelling))
                         : null,
-                    Location = parmVarDecl.Location
+                    Location = parmVarDecl.Location,
+                    WriteCustomAttrs = static context => {
+                        (var name, var generator) = ((string, PInvokeGenerator))context;
+                        generator.WithAttributes(name);
+
+                        generator.WithUsings("*");
+                        generator.WithUsings(name);
+                    },
+                    CustomAttrGeneratorData = (name, this),
                 };
 
                 _outputBuilder.BeginParameter(in desc);
@@ -1066,7 +1121,7 @@ namespace ClangSharp
                     _outputBuilder.EndParameterDefault();
                 }
 
-                _outputBuilder.EndParameter();
+                _outputBuilder.EndParameter(in desc);
 
                 if (index != lastIndex)
                 {
@@ -1222,7 +1277,7 @@ namespace ClangSharp
                     baseTypeNames = baseTypeNamesBuilder.ToArray();
                 }
 
-                var desc = new StructDesc<(string Name, PInvokeGenerator This)> {
+                var desc = new StructDesc {
                     AccessSpecifier = GetAccessSpecifier(recordDecl),
                     EscapedName = escapedName,
                     IsUnsafe = IsUnsafe(recordDecl),
@@ -1242,6 +1297,14 @@ namespace ClangSharp
                     NativeInheritance = _config.GenerateNativeInheritanceAttribute ? nativeInheritance : null,
                     Location = recordDecl.Location,
                     IsNested = recordDecl.DeclContext is TagDecl,
+                    WriteCustomAttrs = static context => {
+                        (var name, var generator) = ((string, PInvokeGenerator))context;
+                        generator.WithAttributes(name);
+
+                        generator.WithUsings("*");
+                        generator.WithUsings(name);
+                    },
+                    CustomAttrGeneratorData = (name, this),
                 };
 
                 if (!isTopLevelStruct)
@@ -1309,13 +1372,20 @@ namespace ClangSharp
 
                 if (hasVtbl)
                 {
-                    var fieldDesc = new FieldDesc
-                    {
+                    var fieldDesc = new FieldDesc {
                         AccessSpecifier = AccessSpecifier.Public,
                         NativeTypeName = null,
                         EscapedName = "lpVtbl",
                         Offset = null,
-                        NeedsNewKeyword = false
+                        NeedsNewKeyword = false,
+                        WriteCustomAttrs = static context => {
+                            (var name, var generator) = ((string, PInvokeGenerator))context;
+                            generator.WithAttributes(name);
+
+                            generator.WithUsings("*");
+                            generator.WithUsings(name);
+                        },
+                        CustomAttrGeneratorData = ("lpVtbl", this),
                     };
 
                     _outputBuilder.BeginField(in fieldDesc);
@@ -1329,7 +1399,7 @@ namespace ClangSharp
                         _outputBuilder.WriteRegularField("void**", "lpVtbl");
                     }
 
-                    _outputBuilder.EndField();
+                    _outputBuilder.EndField(in fieldDesc);
                 }
 
                 if (cxxRecordDecl != null)
@@ -1344,20 +1414,27 @@ namespace ClangSharp
                             var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
                             baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
 
-                            var fieldDesc = new FieldDesc
-                            {
+                            var fieldDesc = new FieldDesc {
                                 AccessSpecifier = GetAccessSpecifier(baseCxxRecordDecl),
                                 NativeTypeName = null,
                                 EscapedName = baseFieldName,
                                 Offset = null,
                                 NeedsNewKeyword = false,
                                 InheritedFrom = parent,
-                                Location = cxxBaseSpecifier.Location
+                                Location = cxxBaseSpecifier.Location,
+                                WriteCustomAttrs = static context => {
+                                    (var name, var generator) = ((string, PInvokeGenerator))context;
+                                    generator.WithAttributes(name);
+
+                                    generator.WithUsings("*");
+                                    generator.WithUsings(name);
+                                },
+                                CustomAttrGeneratorData = (baseFieldName, this),
                             };
 
                             _outputBuilder.BeginField(in fieldDesc);
                             _outputBuilder.WriteRegularField(parent, baseFieldName);
-                            _outputBuilder.EndField();
+                            _outputBuilder.EndField(in fieldDesc);
                         }
                     }
                 }
@@ -1541,7 +1618,7 @@ namespace ClangSharp
 
                 if (!isTopLevelStruct)
                 {
-                    _outputBuilder.EndStruct();
+                    _outputBuilder.EndStruct(in desc);
 
                     if (generateTestsClass)
                     {
@@ -1698,7 +1775,7 @@ namespace ClangSharp
                     needsCastToTransparentStruct = _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentStruct) && IsTransparentStructHandle(transparentStruct.Kind);
                 }
 
-                var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)> {
+                var desc = new FunctionOrDelegateDesc {
                     AccessSpecifier = AccessSpecifier.Public,
                     EscapedName = EscapeAndStripName(name),
                     IsMemberFunction = true,
@@ -1710,7 +1787,15 @@ namespace ClangSharp
                     NeedsReturnFixup = needsReturnFixup,
                     ReturnType = returnTypeName,
                     VtblIndex = _config.GenerateVtblIndexAttribute ? cxxMethodDecl.VtblIndex : -1,
-                    Location = cxxMethodDecl.Location
+                    Location = cxxMethodDecl.Location,
+                    WriteCustomAttrs = static context => {
+                        (var name, var generator) = ((string, PInvokeGenerator))context;
+                        generator.WithAttributes(name);
+
+                        generator.WithUsings("*");
+                        generator.WithUsings(name);
+                    },
+                    CustomAttrGeneratorData = (name, this),
                 };
 
                 var isUnsafe = true;
@@ -1721,7 +1806,7 @@ namespace ClangSharp
                 Visit(cxxMethodDecl.Parameters);
 
                 _outputBuilder.EndFunctionInnerPrototype();
-                _outputBuilder.EndFunctionOrDelegate(false, isBodyless: true);
+                _outputBuilder.EndFunctionOrDelegate(in desc);
 
                 Debug.Assert(_context.Last == currentContext);
                 _context.RemoveLast();
@@ -1784,12 +1869,20 @@ namespace ClangSharp
                     EscapedName = escapedName,
                     Offset = null,
                     NeedsNewKeyword = NeedsNewKeyword(remappedName),
-                    Location = cxxMethodDecl.Location
+                    Location = cxxMethodDecl.Location,
+                    WriteCustomAttrs = static context => {
+                        (var name, var generator) = ((string, PInvokeGenerator))context;
+                        generator.WithAttributes(name);
+
+                        generator.WithUsings("*");
+                        generator.WithUsings(name);
+                    },
+                    CustomAttrGeneratorData = (remappedName, this),
                 };
 
                 _outputBuilder.BeginField(in desc);
                 _outputBuilder.WriteRegularField(cxxMethodDeclTypeName, escapedName);
-                _outputBuilder.EndField();
+                _outputBuilder.EndField(in desc);
 
                 _outputBuilder.WriteDivider();
             }
@@ -1822,8 +1915,7 @@ namespace ClangSharp
                     needsCastToTransparentStruct = _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentStruct) && IsTransparentStructHandle(transparentStruct.Kind);
                 }
 
-                var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
-                {
+                var desc = new FunctionOrDelegateDesc {
                     AccessSpecifier = AccessSpecifier.Public,
                     IsAggressivelyInlined = _config.GenerateAggressiveInlining,
                     EscapedName = EscapeAndStripName(name),
@@ -1837,7 +1929,16 @@ namespace ClangSharp
                     NeedsReturnFixup = needsReturnFixup,
                     ReturnType = returnTypeName,
                     VtblIndex = _config.GenerateVtblIndexAttribute ? cxxMethodDecl.VtblIndex : -1,
-                    Location = cxxMethodDecl.Location
+                    Location = cxxMethodDecl.Location,
+                    HasBody = true,
+                    WriteCustomAttrs = static context => {
+                        (var name, var generator) = ((string, PInvokeGenerator))context;
+                        generator.WithAttributes(name);
+
+                        generator.WithUsings("*");
+                        generator.WithUsings(name);
+                    },
+                    CustomAttrGeneratorData = (name, this),
                 };
 
                 var isUnsafe = true;
@@ -2000,7 +2101,7 @@ namespace ClangSharp
                 _outputBuilder.EndCSharpCode(body);
                 _outputBuilder.EndInnerFunctionBody();
                 _outputBuilder.EndBody();
-                _outputBuilder.EndFunctionOrDelegate(false, false);
+                _outputBuilder.EndFunctionOrDelegate(in desc);
 
                 Debug.Assert(_context.Last == currentContext);
                 _context.RemoveLast();
@@ -2063,18 +2164,25 @@ namespace ClangSharp
 
                     if (fieldDecl.Parent == recordDecl)
                     {
-                        var fieldDesc = new FieldDesc
-                        {
+                        var fieldDesc = new FieldDesc {
                             AccessSpecifier = AccessSpecifier.Public,
                             NativeTypeName = null,
                             EscapedName = bitfieldName,
                             Offset = fieldDecl.Parent.IsUnion ? 0 : null,
                             NeedsNewKeyword = false,
-                            Location = fieldDecl.Location
+                            Location = fieldDecl.Location,
+                            WriteCustomAttrs = static context => {
+                                (var name, var generator) = ((string, PInvokeGenerator))context;
+                                generator.WithAttributes(name);
+
+                                generator.WithUsings("*");
+                                generator.WithUsings(name);
+                            },
+                            CustomAttrGeneratorData = (bitfieldName, this),
                         };
                         _outputBuilder.BeginField(in fieldDesc);
                         _outputBuilder.WriteRegularField(typeNameBacking, bitfieldName);
-                        _outputBuilder.EndField();
+                        _outputBuilder.EndField(in fieldDesc);
                     }
                 }
                 else
@@ -2251,14 +2359,22 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(fieldDecl);
                 var escapedName = EscapeName(name);
 
-                var desc = new FieldDesc
-                {
+                var desc = new FieldDesc {
                     AccessSpecifier = accessSpecifier,
                     NativeTypeName = nativeTypeName,
                     EscapedName = escapedName,
                     Offset = null,
                     NeedsNewKeyword = false,
-                    Location = fieldDecl.Location
+                    Location = fieldDecl.Location,
+                    HasBody = true,
+                    WriteCustomAttrs = static context => {
+                        (var name, var generator) = ((string, PInvokeGenerator))context;
+                        generator.WithAttributes(name);
+
+                        generator.WithUsings("*");
+                        generator.WithUsings(name);
+                    },
+                    CustomAttrGeneratorData = (name, this),
                 };
 
                 _outputBuilder.WriteDivider();
@@ -2433,7 +2549,7 @@ namespace ClangSharp
                 _outputBuilder.EndCSharpCode(code);
                 _outputBuilder.EndSetter();
                 _outputBuilder.EndBody();
-                _outputBuilder.EndField(false);
+                _outputBuilder.EndField(in desc);
                 _outputBuilder.WriteDivider();
 
                 remainingBits -= fieldDecl.BitWidthValue;
@@ -2489,7 +2605,7 @@ namespace ClangSharp
                     AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} (constant array field) has a size of 0", constantArray);
                 }
 
-                var desc = new StructDesc<(string Name, PInvokeGenerator This)> {
+                var desc = new StructDesc {
                     AccessSpecifier = accessSpecifier,
                     EscapedName = escapedName,
                     IsUnsafe = isUnsafeElementType,
@@ -2504,6 +2620,14 @@ namespace ClangSharp
                     },
                     Location = constantArray.Location,
                     IsNested = true,
+                    WriteCustomAttrs = static context => {
+                        (var name, var generator) = ((string, PInvokeGenerator))context;
+                        generator.WithAttributes(name);
+
+                        generator.WithUsings("*");
+                        generator.WithUsings(name);
+                    },
+                    CustomAttrGeneratorData = (name, this),
                 };
 
                 _outputBuilder.BeginStruct(in desc);
@@ -2542,19 +2666,26 @@ namespace ClangSharp
                         firstFieldName = fieldName;
                     }
 
-                    var fieldDesc = new FieldDesc
-                    {
+                    var fieldDesc = new FieldDesc {
                         AccessSpecifier = accessSpecifier,
                         NativeTypeName = null,
                         EscapedName = fieldName,
                         Offset = null,
                         NeedsNewKeyword = false,
-                        Location = constantArray.Location
+                        Location = constantArray.Location,
+                        WriteCustomAttrs = static context => {
+                            (var name, var generator) = ((string, PInvokeGenerator))context;
+                            generator.WithAttributes(name);
+
+                            generator.WithUsings("*");
+                            generator.WithUsings(name);
+                        },
+                        CustomAttrGeneratorData = (fieldName, this),
                     };
 
                     _outputBuilder.BeginField(in fieldDesc);
                     _outputBuilder.WriteRegularField(typeName, fieldName);
-                    _outputBuilder.EndField();
+                    _outputBuilder.EndField(in fieldDesc);
                     if (!separateStride)
                     {
                         _outputBuilder.SuppressDivider();
@@ -2568,13 +2699,20 @@ namespace ClangSharp
                     _outputBuilder.BeginIndexer(AccessSpecifier.Public, generateCompatibleCode && !isUnsafeElementType);
                     _outputBuilder.WriteIndexer($"ref {typeName}");
                     _outputBuilder.BeginIndexerParameters();
-                    var param = new ParameterDesc<(string Name, PInvokeGenerator This)>
-                    {
+                    var param = new ParameterDesc {
                         Name = "index",
                         Type = "int",
+                        WriteCustomAttrs = static context => {
+                            (var name, var generator) = ((string, PInvokeGenerator))context;
+                            generator.WithAttributes(name);
+
+                            generator.WithUsings("*");
+                            generator.WithUsings(name);
+                        },
+                        CustomAttrGeneratorData = ("index", this),
                     };
                     _outputBuilder.BeginParameter(in param);
-                    _outputBuilder.EndParameter();
+                    _outputBuilder.EndParameter(in param);
                     _outputBuilder.EndIndexerParameters();
                     _outputBuilder.BeginBody();
 
@@ -2602,13 +2740,20 @@ namespace ClangSharp
                     _outputBuilder.BeginIndexer(AccessSpecifier.Public, false);
                     _outputBuilder.WriteIndexer($"ref {typeName}");
                     _outputBuilder.BeginIndexerParameters();
-                    var param = new ParameterDesc<(string Name, PInvokeGenerator This)>
-                    {
+                    var param = new ParameterDesc {
                         Name = "index",
                         Type = "int",
+                        WriteCustomAttrs = static context => {
+                            (var name, var generator) = ((string, PInvokeGenerator))context;
+                            generator.WithAttributes(name);
+
+                            generator.WithUsings("*");
+                            generator.WithUsings(name);
+                        },
+                        CustomAttrGeneratorData = ("index", this),
                     };
                     _outputBuilder.BeginParameter(in param);
-                    _outputBuilder.EndParameter();
+                    _outputBuilder.EndParameter(in param);
                     _outputBuilder.EndIndexerParameters();
                     _outputBuilder.BeginBody();
 
@@ -2633,15 +2778,23 @@ namespace ClangSharp
                     _outputBuilder.EndBody();
                     _outputBuilder.EndIndexer();
 
-                    var function = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
-                    {
+                    var function = new FunctionOrDelegateDesc {
                         AccessSpecifier = AccessSpecifier.Public,
                         EscapedName = "AsSpan",
                         IsAggressivelyInlined = _config.GenerateAggressiveInlining,
                         IsStatic = false,
                         IsMemberFunction = true,
                         ReturnType = $"Span<{typeName}>",
-                        Location = constantArray.Location
+                        Location = constantArray.Location,
+                        HasBody = true,
+                        WriteCustomAttrs = static context => {
+                            (var name, var generator) = ((string, PInvokeGenerator))context;
+                            generator.WithAttributes(name);
+
+                            generator.WithUsings("*");
+                            generator.WithUsings(name);
+                        },
+                        CustomAttrGeneratorData = ("AsSpan", this),
                     };
 
                     var isUnsafe = false;
@@ -2651,14 +2804,21 @@ namespace ClangSharp
 
                     if (type.Size == 1)
                     {
-                        param = new ParameterDesc<(string Name, PInvokeGenerator This)>
-                        {
+                        param = new ParameterDesc {
                             Name = "length",
                             Type = "int",
+                            WriteCustomAttrs = static context => {
+                                (var name, var generator) = ((string, PInvokeGenerator))context;
+                                generator.WithAttributes(name);
+
+                                generator.WithUsings("*");
+                                generator.WithUsings(name);
+                            },
+                            CustomAttrGeneratorData = ("length", this),
                         };
 
                         _outputBuilder.BeginParameter(in param);
-                        _outputBuilder.EndParameter();
+                        _outputBuilder.EndParameter(in param);
                     }
 
                     _outputBuilder.EndFunctionInnerPrototype();
@@ -2682,10 +2842,10 @@ namespace ClangSharp
                     code.WriteSemicolon();
                     _outputBuilder.EndBody(true);
                     _outputBuilder.EndCSharpCode(code);
-                    _outputBuilder.EndFunctionOrDelegate(false, false);
+                    _outputBuilder.EndFunctionOrDelegate(in function);
                 }
 
-                _outputBuilder.EndStruct();
+                _outputBuilder.EndStruct(in desc);
             }
         }
 
@@ -2721,8 +2881,7 @@ namespace ClangSharp
 
                 StartUsingOutputBuilder(name);
                 {
-                    var desc = new FunctionOrDelegateDesc<(string Name, PInvokeGenerator This)>
-                    {
+                    var desc = new FunctionOrDelegateDesc {
                         AccessSpecifier = GetAccessSpecifier(typedefDecl),
                         CallingConvention = callingConventionName,
                         EscapedName = escapedName,
@@ -2730,7 +2889,16 @@ namespace ClangSharp
                         IsUnsafe = IsUnsafe(typedefDecl, functionProtoType),
                         NativeTypeName = nativeTypeName,
                         ReturnType = returnTypeName,
-                        Location = typedefDecl.Location
+                        Location = typedefDecl.Location,
+                        HasBody = true,
+                        WriteCustomAttrs = static context => {
+                            (var name, var generator) = ((string, PInvokeGenerator))context;
+                            generator.WithAttributes(name);
+
+                            generator.WithUsings("*");
+                            generator.WithUsings(name);
+                        },
+                        CustomAttrGeneratorData = (name, this),
                     };
 
                     var isUnsafe = desc.IsUnsafe;
@@ -2741,7 +2909,7 @@ namespace ClangSharp
                     Visit(typedefDecl.CursorChildren.OfType<ParmVarDecl>());
 
                     _outputBuilder.EndFunctionInnerPrototype();
-                    _outputBuilder.EndFunctionOrDelegate(true, true);
+                    _outputBuilder.EndFunctionOrDelegate(in desc);
                 }
                 StopUsingOutputBuilder();
             }
@@ -3041,7 +3209,15 @@ namespace ClangSharp
                     NativeTypeName = nativeTypeName,
                     Kind = kind,
                     Flags = flags,
-                    Location = varDecl.Location
+                    Location = varDecl.Location,
+                    WriteCustomAttrs = static context => {
+                        (var name, var generator) = ((string, PInvokeGenerator))context;
+                        generator.WithAttributes(name);
+
+                        generator.WithUsings("*");
+                        generator.WithUsings(name);
+                    },
+                    CustomAttrGeneratorData = (name, this),
                 };
 
                 if (openedOutputBuilder)
@@ -3053,12 +3229,6 @@ namespace ClangSharp
                         _outputBuilder.EmitSystemSupport();
                     }
                 }
-
-                WithAttributes("*");
-                WithAttributes(name);
-
-                WithUsings("*");
-                WithUsings(name);
 
                 _outputBuilder.BeginValue(in desc);
                 _context.Last.Value = (_context.Last.Value.Cursor, desc);

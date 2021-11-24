@@ -100,8 +100,14 @@ namespace ClangSharp
 
                     default:
                     {
+                        if ((functionDecl.ReturnType.CanonicalType.Kind != CXTypeKind.CXType_Void) && IsPrevContextStmt<CompoundStmt>(out _, out _))
+                        {
+                            outputBuilder.Write("_ = ");
+                        }
+
                         Visit(callExpr.Callee);
                         VisitArgs(callExpr);
+
                         break;
                     }
                 }
