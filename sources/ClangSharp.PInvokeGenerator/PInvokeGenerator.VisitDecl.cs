@@ -1830,6 +1830,12 @@ namespace ClangSharp
 
                 var cxxMethodDeclTypeName = GetRemappedTypeName(cxxMethodDecl, cxxRecordDecl, cxxMethodDecl.Type, out var nativeTypeName, skipUsing: false, ignoreTransparentStructsWhereRequired: true);
 
+                if (_config.GenerateMarkerInterfaces && !_config.ExcludeFnptrCodegen)
+                {
+                    var cxxRecordDeclName = GetRemappedCursorName(cxxRecordDecl);
+                    cxxMethodDeclTypeName = cxxMethodDeclTypeName.Replace($"<{cxxRecordDeclName}*,", "<TSelf*,");
+                }
+
                 var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
                 var escapedName = EscapeAndStripName(remappedName);
 

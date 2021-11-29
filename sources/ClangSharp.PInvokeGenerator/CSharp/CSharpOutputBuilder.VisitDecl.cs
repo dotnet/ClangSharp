@@ -687,7 +687,16 @@ namespace ClangSharp.CSharp
 
         public void BeginExplicitVtbl()
         {
-            WriteIndentedLine("public partial struct Vtbl");
+            WriteIndented("public partial struct Vtbl");
+
+            if (_config.GenerateMarkerInterfaces && !_config.ExcludeFnptrCodegen)
+            {
+                WriteLine("<TSelf>");
+                IncreaseIndentation();
+                WriteIndentedLine("where TSelf : unmanaged, Interface");
+                DecreaseIndentation();
+            }
+
             WriteBlockStart();
         }
 
