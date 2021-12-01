@@ -31,6 +31,17 @@ namespace ClangSharp.CSharp
 
         public void BeginValue(in ValueDesc desc)
         {
+            if (_config.GenerateDocIncludes && (desc.Kind == ValueKind.Enumerator))
+            {
+                WriteIndented("/// <include file='");
+                Write(desc.ParentName);
+                Write(".xml' path='doc/member[@name=\"");
+                Write(desc.ParentName);
+                Write('.');
+                Write(desc.EscapedName);
+                WriteLine("\"]/*' />");
+            }
+
             if (desc.NativeTypeName is not null)
             {
                 AddNativeTypeNameAttribute(desc.NativeTypeName);
@@ -174,6 +185,11 @@ namespace ClangSharp.CSharp
                 case ValueKind.Enumerator:
                 {
                     WriteLine(',');
+
+                    if (_config.GenerateDocIncludes)
+                    {
+                        NeedsNewline = true;
+                    }
                     break;
                 }
 
@@ -204,6 +220,15 @@ namespace ClangSharp.CSharp
 
         public void BeginEnum(in EnumDesc desc)
         {
+            if (_config.GenerateDocIncludes)
+            {
+                WriteIndented("/// <include file='");
+                Write(desc.EscapedName);
+                Write(".xml' path='doc/member[@name=\"");
+                Write(desc.EscapedName);
+                WriteLine("\"]/*' />");
+            }
+
             if (desc.NativeType is not null)
             {
                 AddNativeTypeNameAttribute(desc.NativeType);
@@ -234,6 +259,17 @@ namespace ClangSharp.CSharp
 
         public void BeginField(in FieldDesc desc)
         {
+            if (_config.GenerateDocIncludes && !string.IsNullOrWhiteSpace(desc.ParentName))
+            {
+                WriteIndented("/// <include file='");
+                Write(desc.ParentName);
+                Write(".xml' path='doc/member[@name=\"");
+                Write(desc.ParentName);
+                Write('.');
+                Write(desc.EscapedName);
+                WriteLine("\"]/*' />");
+            }
+
             if (desc.Offset is not null)
             {
                 WriteIndentedLine($"[FieldOffset({desc.Offset})]");
@@ -299,6 +335,28 @@ namespace ClangSharp.CSharp
 
         public void BeginFunctionOrDelegate(in FunctionOrDelegateDesc desc, ref bool isMethodClassUnsafe)
         {
+            if (_config.GenerateDocIncludes && !string.IsNullOrEmpty(desc.ParentName))
+            {
+                if (desc.IsInherited)
+                {
+                    WriteIndented("/// <inheritdoc cref=\"");
+                    Write(desc.ParentName);
+                    Write('.');
+                    Write(desc.EscapedName);
+                    WriteLine("\" />");
+                }
+                else
+                {
+                    WriteIndented("/// <include file='");
+                    Write(desc.ParentName);
+                    Write(".xml' path='doc/member[@name=\"");
+                    Write(desc.ParentName);
+                    Write('.');
+                    Write(desc.EscapedName);
+                    WriteLine("\"]/*' />");
+                }
+            }
+
             if (desc.IsVirtual)
             {
                 Debug.Assert(!desc.HasFnPtrCodeGen);
@@ -599,6 +657,15 @@ namespace ClangSharp.CSharp
 
         public void BeginStruct(in StructDesc desc)
         {
+            if (_config.GenerateDocIncludes)
+            {
+                WriteIndented("/// <include file='");
+                Write(desc.EscapedName);
+                Write(".xml' path='doc/member[@name=\"");
+                Write(desc.EscapedName);
+                WriteLine("\"]/*' />");
+            }
+
             if (desc.LayoutAttribute is not null)
             {
                 AddUsingDirective("System.Runtime.InteropServices");

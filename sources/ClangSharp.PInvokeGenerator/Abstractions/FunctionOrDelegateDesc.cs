@@ -12,6 +12,7 @@ namespace ClangSharp.Abstractions
         public string NativeTypeName { get; set; }
         public string EscapedName { get; set; }
         public string EntryPoint { get; set; }
+        public string ParentName { get; set; }
         public string LibraryPath { get; set; }
         public string ReturnType { get; set; }
         public CallingConvention CallingConvention { get; set; }
@@ -19,6 +20,7 @@ namespace ClangSharp.Abstractions
         public long? VtblIndex { get; set; }
         public CXSourceLocation? Location { get; set; }
         public bool HasBody { get; set; }
+        public bool IsInherited { get; set; }
 
         public bool IsVirtual
         {

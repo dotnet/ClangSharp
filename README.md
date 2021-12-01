@@ -194,6 +194,7 @@ Options:
   generate-tests-xunit                   Basic tests validating size, blittability, and associated metadata should be generated for XUnit.
   generate-aggressive-inlining           [MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions.
   generate-cpp-attributes                [CppAttributeList("")] should be generated to document the encountered C++ attributes.
+  generate-doc-includes                  &lt;include&gt; xml documentation tags should be generated for declarations.
   generate-file-scoped-namespaces        Namespaces should be scoped to the file to reduce nesting.
   generate-helper-types                  Code files should be generated for various helper attributes and declared transparent structs.
   generate-macro-bindings                Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones.

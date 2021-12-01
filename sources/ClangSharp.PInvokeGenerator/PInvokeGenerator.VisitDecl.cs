@@ -263,11 +263,23 @@ namespace ClangSharp
             var escapedName = EscapeName(name);
             var typeName = GetTargetTypeName(enumConstantDecl, out _);
             var isAnonymousEnum = false;
+            var parentName = "";
 
-            if ((enumConstantDecl.DeclContext is EnumDecl enumDecl) && GetRemappedCursorName(enumDecl).StartsWith("__AnonymousEnum_"))
+            if (enumConstantDecl.DeclContext is EnumDecl enumDecl)
             {
-                isAnonymousEnum = true;
-                accessSpecifier = GetAccessSpecifier(enumDecl);
+                parentName = GetRemappedCursorName(enumDecl);
+
+                if (parentName.StartsWith("__AnonymousEnum_"))
+                {
+                    parentName = "";
+                    isAnonymousEnum = true;
+                    accessSpecifier = GetAccessSpecifier(enumDecl);
+                }
+            }
+
+            if (string.IsNullOrEmpty(parentName))
+            {
+                parentName = _outputBuilder.Name;
             }
 
             var kind = isAnonymousEnum ? ValueKind.Primitive : ValueKind.Enumerator;
@@ -283,6 +295,7 @@ namespace ClangSharp
                 TypeName = typeName,
                 EscapedName = escapedName,
                 NativeTypeName = null,
+                ParentName = parentName,
                 Kind = kind,
                 Flags = flags,
                 Location = enumConstantDecl.Location,
@@ -399,6 +412,7 @@ namespace ClangSharp
                 AccessSpecifier = accessSpecifier,
                 NativeTypeName = nativeTypeName,
                 EscapedName = escapedName,
+                ParentName = GetRemappedCursorName(fieldDecl.Parent),
                 Offset = offset,
                 NeedsNewKeyword = NeedsNewKeyword(name),
                 Location = fieldDecl.Location,
@@ -449,11 +463,13 @@ namespace ClangSharp
 
             var name = GetRemappedCursorName(functionDecl);
             var className = name;
+            var parentName = "";
 
             if (functionDecl.DeclContext is not CXXRecordDecl cxxRecordDecl)
             {
                 cxxRecordDecl = null;
                 className = GetClass(name);
+                parentName = className;
                 StartUsingOutputBuilder(className);
             }
             else if ((Cursor)functionDecl.LexicalDeclContext != cxxRecordDecl)
@@ -497,6 +513,7 @@ namespace ClangSharp
                 AccessSpecifier = accessSppecifier,
                 NativeTypeName = nativeTypeName,
                 EscapedName = escapedName,
+                ParentName = parentName,
                 EntryPoint = entryPoint,
                 CallingConvention = callingConventionName,
                 LibraryPath = isDllImport ? GetLibraryPath(name).Unquote() : null,
@@ -741,6 +758,7 @@ namespace ClangSharp
                 AccessSpecifier = accessSpecifier,
                 NativeTypeName = null,
                 EscapedName = escapedName,
+                ParentName = GetRemappedCursorName(fieldDecl.Parent),
                 Offset = null,
                 NeedsNewKeyword = false,
                 Location = fieldDecl.Location,
@@ -1884,6 +1902,15 @@ namespace ClangSharp
                 var name = GetRemappedCursorName(cxxMethodDecl);
                 var needsReturnFixup = false;
                 var needsCastToTransparentStruct = false;
+                var cxxRecordDeclName = GetRemappedCursorName(cxxRecordDecl);
+                var parentName = cxxRecordDeclName;
+                var isInherited = false;
+
+                if (cxxMethodDecl.Parent != cxxRecordDecl)
+                {
+                    parentName = GetRemappedCursorName(cxxMethodDecl.Parent);
+                    isInherited = true;
+                }
 
                 if (returnType.Kind != CXTypeKind.CXType_Void)
                 {
@@ -1895,7 +1922,9 @@ namespace ClangSharp
                     AccessSpecifier = AccessSpecifier.Public,
                     IsAggressivelyInlined = _config.GenerateAggressiveInlining,
                     EscapedName = EscapeAndStripName(name),
+                    ParentName = parentName,
                     IsMemberFunction = true,
+                    IsInherited = isInherited,
                     NativeTypeName = nativeTypeName,
                     NeedsNewKeyword = NeedsNewKeyword(name, cxxMethodDecl.Parameters),
                     HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
@@ -1926,7 +1955,6 @@ namespace ClangSharp
                 _outputBuilder.EndFunctionInnerPrototype();
                 _outputBuilder.BeginBody();
 
-                var cxxRecordDeclName = GetRemappedCursorName(cxxRecordDecl);
                 var escapedCXXRecordDeclName = EscapeName(cxxRecordDeclName);
 
                 _outputBuilder.BeginInnerFunctionBody();
@@ -2330,6 +2358,7 @@ namespace ClangSharp
                     AccessSpecifier = accessSpecifier,
                     NativeTypeName = nativeTypeName,
                     EscapedName = escapedName,
+                    ParentName = GetRemappedCursorName(fieldDecl.Parent),
                     Offset = null,
                     NeedsNewKeyword = false,
                     Location = fieldDecl.Location,

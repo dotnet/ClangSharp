@@ -161,6 +161,8 @@ namespace ClangSharp
 
         public bool GenerateCompatibleCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
 
+        public bool GenerateDocIncludes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateDocIncludes);
+
         public bool GenerateExplicitVtbls => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
 
         public bool GenerateFileScopedNamespaces => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces);

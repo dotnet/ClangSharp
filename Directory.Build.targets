@@ -36,8 +36,8 @@
     <PackageReference Update="libClang" Version="13.0.1" />
     <PackageReference Update="libClangSharp" Version="13.0.0-beta1" />
     <PackageReference Update="Microsoft.Bcl.HashCode" Version="1.1.1" />
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.11.0" />
-    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.0.0" />
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageReference Update="System.CommandLine" Version="2.0.0-beta1.21308.1" />
     <PackageReference Update="System.Memory" Version="4.5.4" />
     <PackageReference Update="xunit" Version="2.4.1" />

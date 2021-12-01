@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Help;
 using System.CommandLine.Invocation;
-using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -66,6 +65,7 @@ namespace ClangSharp
 
             new HelpItem("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
             new HelpItem("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
+            new HelpItem("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
             new HelpItem("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
             new HelpItem("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
             new HelpItem("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
@@ -398,6 +398,12 @@ namespace ClangSharp
                     case "generate-cpp-attributes":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCppAttributes;
+                        break;
+                    }
+
+                    case "generate-doc-includes":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateDocIncludes;
                         break;
                     }
 

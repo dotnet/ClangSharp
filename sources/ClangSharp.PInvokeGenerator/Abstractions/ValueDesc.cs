@@ -11,6 +11,8 @@ namespace ClangSharp.Abstractions
         public string TypeName { get; set; }
         public string EscapedName { get; set; }
         public string NativeTypeName { get; set; }
+
+        public string ParentName { get; set; }
         public ValueKind Kind { get; set; }
         public ValueFlags Flags { get; set; }
         public CXSourceLocation? Location { get; set; }
