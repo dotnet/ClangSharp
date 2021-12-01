@@ -763,6 +763,10 @@ namespace ClangSharp.CSharp
                 WriteIndentedLine("where TSelf : unmanaged, Interface");
                 DecreaseIndentation();
             }
+            else
+            {
+                WriteNewline();
+            }
 
             WriteBlockStart();
         }
