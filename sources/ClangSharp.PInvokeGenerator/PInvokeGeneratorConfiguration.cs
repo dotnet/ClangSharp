@@ -12,32 +12,28 @@ namespace ClangSharp
     {
         private const string DefaultMethodClassName = "Methods";
 
-        private readonly HashSet<string> _forceRemappedNames;
-        private readonly Dictionary<string, string> _remappedNames;
-        private readonly Dictionary<string, AccessSpecifier> _withAccessSpecifiers;
-        private readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
-        private readonly Dictionary<string, string> _withCallConvs;
-        private readonly Dictionary<string, string> _withClasses;
-        private readonly Dictionary<string, string> _withLibraryPaths;
-        private readonly Dictionary<string, string> _withNamespaces;
-        private readonly Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> _withTransparentStructs;
-        private readonly Dictionary<string, string> _withTypes;
-        private readonly Dictionary<string, IReadOnlyList<string>> _withUsings;
+        private readonly SortedSet<string> _excludedNames;
+        private readonly SortedSet<string> _forceRemappedNames;
+        private readonly SortedSet<string> _includedNames;
+        private readonly SortedSet<string> _traversalNames;
+        private readonly SortedSet<string> _withSetLastErrors;
+        private readonly SortedSet<string> _withSuppressGCTransitions;
+
+        private readonly SortedDictionary<string, string> _remappedNames;
+        private readonly SortedDictionary<string, AccessSpecifier> _withAccessSpecifiers;
+        private readonly SortedDictionary<string, IReadOnlyList<string>> _withAttributes;
+        private readonly SortedDictionary<string, string> _withCallConvs;
+        private readonly SortedDictionary<string, string> _withClasses;
+        private readonly SortedDictionary<string, string> _withLibraryPaths;
+        private readonly SortedDictionary<string, string> _withNamespaces;
+        private readonly SortedDictionary<string, (string, PInvokeGeneratorTransparentStructKind)> _withTransparentStructs;
+        private readonly SortedDictionary<string, string> _withTypes;
+        private readonly SortedDictionary<string, IReadOnlyList<string>> _withUsings;
 
         private PInvokeGeneratorConfigurationOptions _options;
 
-        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorOutputMode outputMode = PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, string[] excludedNames = null, string[] includedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, string[] traversalNames = null, IReadOnlyDictionary<string, string> withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withClasses = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, IReadOnlyDictionary<string, string> withNamespaces = null, string[] withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)> withTransparentStructs = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
+        public PInvokeGeneratorConfiguration(string libraryPath, string namespaceName, string outputLocation, string testOutputLocation, PInvokeGeneratorOutputMode outputMode = PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions options = PInvokeGeneratorConfigurationOptions.None, IReadOnlyCollection<string> excludedNames = null, IReadOnlyCollection<string> includedNames = null, string headerFile = null, string methodClassName = null, string methodPrefixToStrip = null, IReadOnlyDictionary<string, string> remappedNames = null, IReadOnlyCollection<string> traversalNames = null, IReadOnlyDictionary<string, string> withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withAttributes = null, IReadOnlyDictionary<string, string> withCallConvs = null, IReadOnlyDictionary<string, string> withClasses = null, IReadOnlyDictionary<string, string> withLibraryPaths = null, IReadOnlyDictionary<string, string> withNamespaces = null, IReadOnlyCollection<string> withSetLastErrors = null, IReadOnlyCollection<string> withSuppressGCTransitions = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)> withTransparentStructs = null, IReadOnlyDictionary<string, string> withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>> withUsings = null)
         {
-            if (excludedNames is null)
-            {
-                excludedNames = Array.Empty<string>();
-            }
-
-            if (includedNames is null)
-            {
-                includedNames = Array.Empty<string>();
-            }
-
             if (string.IsNullOrWhiteSpace(libraryPath))
             {
                 libraryPath = string.Empty;
@@ -83,32 +79,27 @@ namespace ClangSharp
                 throw new ArgumentNullException(nameof(outputLocation));
             }
 
-            if (traversalNames is null)
-            {
-                traversalNames = Array.Empty<string>();
-            }
-
-            if (withSetLastErrors is null)
-            {
-                withSetLastErrors = Array.Empty<string>();
-            }
-
             _options = options;
-            _forceRemappedNames = new HashSet<string>();
-            _remappedNames = new Dictionary<string, string>();
-            _withAccessSpecifiers = new Dictionary<string, AccessSpecifier>();
-            _withAttributes = new Dictionary<string, IReadOnlyList<string>>();
-            _withCallConvs = new Dictionary<string, string>();
-            _withClasses = new Dictionary<string, string>();
-            _withLibraryPaths = new Dictionary<string, string>();
-            _withNamespaces = new Dictionary<string, string>();
-            _withTransparentStructs = new Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)>();
-            _withTypes = new Dictionary<string, string>();
-            _withUsings = new Dictionary<string, IReadOnlyList<string>>();
 
-            ExcludedNames = excludedNames;
+            _excludedNames = new SortedSet<string>();
+            _forceRemappedNames = new SortedSet<string>();
+            _includedNames = new SortedSet<string>();
+            _traversalNames = new SortedSet<string>();
+            _withSetLastErrors = new SortedSet<string>();
+            _withSuppressGCTransitions = new SortedSet<string>();
+
+            _remappedNames = new SortedDictionary<string, string>();
+            _withAccessSpecifiers = new SortedDictionary<string, AccessSpecifier>();
+            _withAttributes = new SortedDictionary<string, IReadOnlyList<string>>();
+            _withCallConvs = new SortedDictionary<string, string>();
+            _withClasses = new SortedDictionary<string, string>();
+            _withLibraryPaths = new SortedDictionary<string, string>();
+            _withNamespaces = new SortedDictionary<string, string>();
+            _withTransparentStructs = new SortedDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>();
+            _withTypes = new SortedDictionary<string, string>();
+            _withUsings = new SortedDictionary<string, IReadOnlyList<string>>();
+
             HeaderText = string.IsNullOrWhiteSpace(headerFile) ? string.Empty : File.ReadAllText(headerFile);
-            IncludedNames = includedNames;
             LibraryPath = $@"""{libraryPath}""";
             DefaultClass = methodClassName;
             MethodPrefixToStrip = methodPrefixToStrip;
@@ -116,10 +107,6 @@ namespace ClangSharp
             OutputMode = outputMode;
             OutputLocation = Path.GetFullPath(outputLocation);
             TestOutputLocation = !string.IsNullOrWhiteSpace(testOutputLocation) ? Path.GetFullPath(testOutputLocation) : string.Empty;
-
-            // Normalize the traversal names to use \ rather than / so path comparisons are simpler
-            TraversalNames = traversalNames.Select(traversalName => traversalName.Replace('\\', '/')).ToArray();
-            WithSetLastErrors = withSetLastErrors;
 
             if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
             {
@@ -139,7 +126,13 @@ namespace ClangSharp
                 }
             }
 
+            AddRange(_excludedNames, excludedNames);
             AddRange(_forceRemappedNames, remappedNames, ValueStartsWithAt);
+            AddRange(_includedNames, includedNames);
+            AddRange(_traversalNames, traversalNames, NormalizePathSeparators);
+            AddRange(_withSetLastErrors, withSetLastErrors);
+            AddRange(_withSuppressGCTransitions, withSuppressGCTransitions);
+
             AddRange(_remappedNames, remappedNames, RemoveAtPrefix);
             AddRange(_withAccessSpecifiers, withAccessSpecifiers, ConvertStringToAccessSpecifier);
             AddRange(_withAttributes, withAttributes);
@@ -160,13 +153,15 @@ namespace ClangSharp
 
         public bool ExcludeEnumOperators => _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeEnumOperators);
 
-        public string[] ExcludedNames { get; }
+        public IReadOnlyCollection<string> ExcludedNames => _excludedNames;
 
-        public string[] IncludedNames { get; }
+        public IReadOnlyCollection<string> IncludedNames => _includedNames;
 
         public bool GenerateAggressiveInlining => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateAggressiveInlining);
 
         public bool GenerateCompatibleCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
+
+        public bool GenerateDocIncludes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateDocIncludes);
 
         public bool GenerateExplicitVtbls => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
 
@@ -254,7 +249,7 @@ namespace ClangSharp
 
         public string TestOutputLocation { get; }
 
-        public string[] TraversalNames { get; }
+        public IReadOnlyCollection<string> TraversalNames => _traversalNames;
 
         public IReadOnlyDictionary<string, AccessSpecifier> WithAccessSpcifier => _withAccessSpecifiers;
 
@@ -268,7 +263,9 @@ namespace ClangSharp
 
         public IReadOnlyDictionary<string, string> WithNamespaces => _withNamespaces;
 
-        public string[] WithSetLastErrors { get; }
+        public IReadOnlyCollection<string> WithSetLastErrors => _withSetLastErrors;
+
+        public IReadOnlyCollection<string> WithSuppressGCTransitions => _withSuppressGCTransitions;
 
         public IReadOnlyDictionary<string, (string Name, PInvokeGeneratorTransparentStructKind Kind)> WithTransparentStructs => _withTransparentStructs;
 
@@ -276,7 +273,7 @@ namespace ClangSharp
 
         public IReadOnlyDictionary<string, IReadOnlyList<string>> WithUsings => _withUsings;
 
-        private static void AddRange<TValue>(Dictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>> keyValuePairs)
+        private static void AddRange<TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>> keyValuePairs)
         {
             if (keyValuePairs != null)
             {
@@ -289,7 +286,42 @@ namespace ClangSharp
             }
         }
 
-        private static void AddRange<TInput>(HashSet<string> hashSet, IEnumerable<KeyValuePair<string, TInput>> keyValuePairs, Func<TInput, bool> shouldAdd)
+        private static void AddRange<TInput, TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TInput>> keyValuePairs, Func<TInput, TValue> convert)
+        {
+            if (keyValuePairs != null)
+            {
+                foreach (var keyValuePair in keyValuePairs)
+                {
+                    // Use the indexer, rather than Add, so that any
+                    // default mappings can be overwritten if desired.
+                    dictionary[keyValuePair.Key] = convert(keyValuePair.Value);
+                }
+            }
+        }
+
+        private static void AddRange<TInput>(SortedSet<TInput> hashSet, IEnumerable<TInput> keys)
+        {
+            if (keys != null)
+            {
+                foreach (var key in keys)
+                {
+                    _ = hashSet.Add(key);
+                }
+            }
+        }
+
+        private static void AddRange<TInput, TValue>(SortedSet<TValue> hashSet, IEnumerable<TInput> keys, Func<TInput, TValue> convert)
+        {
+            if (keys != null)
+            {
+                foreach (var key in keys)
+                {
+                    _ = hashSet.Add(convert(key));
+                }
+            }
+        }
+
+        private static void AddRange<TInput>(SortedSet<string> hashSet, IEnumerable<KeyValuePair<string, TInput>> keyValuePairs, Func<TInput, bool> shouldAdd)
         {
             if (keyValuePairs != null)
             {
@@ -299,19 +331,6 @@ namespace ClangSharp
                     {
                         _ = hashSet.Add(keyValuePair.Key);
                     }
-                }
-            }
-        }
-
-        private static void AddRange<TInput, TValue>(Dictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TInput>> keyValuePairs, Func<TInput, TValue> convert)
-        {
-            if (keyValuePairs != null)
-            {
-                foreach (var keyValuePair in keyValuePairs)
-                {
-                    // Use the indexer, rather than Add, so that any
-                    // default mappings can be overwritten if desired.
-                    dictionary[keyValuePair.Key] = convert(keyValuePair.Value);
                 }
             }
         }
@@ -347,6 +366,8 @@ namespace ClangSharp
                 return AccessSpecifier.None;
             }
         }
+
+        private static string NormalizePathSeparators(string value) => value.Replace('\\', '/');
 
         private static string RemoveAtPrefix(string value) => ValueStartsWithAt(value) ? value[1..] : value;
 

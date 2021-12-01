@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Help;
 using System.CommandLine.Invocation;
-using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -66,6 +65,7 @@ namespace ClangSharp
 
             new HelpItem("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
             new HelpItem("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
+            new HelpItem("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
             new HelpItem("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
             new HelpItem("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
             new HelpItem("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
@@ -119,6 +119,7 @@ namespace ClangSharp
             AddWithLibraryPathOption(s_rootCommand);
             AddWithNamespaceOption(s_rootCommand);
             AddWithSetLastErrorOption(s_rootCommand);
+            AddWithSuppressGCTransitionOption(s_rootCommand);
             AddWithTransparentStructOption(s_rootCommand);
             AddWithTypeOption(s_rootCommand);
             AddWithUsingOption(s_rootCommand);
@@ -156,6 +157,7 @@ namespace ClangSharp
             var withLibraryPathNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-librarypath");
             var withNamespaceNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-namespace");
             var withSetLastErrors = context.ParseResult.ValueForOption<string[]>("--with-setlasterror");
+            var withSuppressGCTransitions = context.ParseResult.ValueForOption<string[]>("--with-suppressgctransition");
             var withTransparentStructNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-transparent-struct");
             var withTypeNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-type");
             var withUsingNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-using");
@@ -399,6 +401,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "generate-doc-includes":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateDocIncludes;
+                        break;
+                    }
+
                     case "generate-file-scoped-namespaces":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces;
@@ -548,7 +556,7 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, includedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPath, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, includedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPath, withNamespaces, withSetLastErrors, withSuppressGCTransitions, withTransparentStructs, withTypes, withUsings);
 
             if (config.GenerateMacroBindings)
             {
@@ -1092,7 +1100,20 @@ namespace ClangSharp
         {
             var option = new Option(
                 aliases: new string[] { "--with-setlasterror", "-wsle" },
-                description: "Add the SetLastError=true modifier to a given DllImport or UnmanagedFunctionPointer.",
+                description: "Add the SetLastError=true modifier or SetsSystemLastError attribute to a given DllImport or UnmanagedFunctionPointer.",
+                argumentType: typeof(string),
+                getDefaultValue: Array.Empty<string>,
+                arity: ArgumentArity.OneOrMore
+            );
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddWithSuppressGCTransitionOption(RootCommand rootCommand)
+        {
+            var option = new Option(
+                aliases: new string[] { "--with-suppressgctransition", "-wsgct" },
+                description: "Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer.",
                 argumentType: typeof(string),
                 getDefaultValue: Array.Empty<string>,
                 arity: ArgumentArity.OneOrMore

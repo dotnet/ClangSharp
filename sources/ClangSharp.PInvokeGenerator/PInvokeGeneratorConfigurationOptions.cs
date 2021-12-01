@@ -72,5 +72,7 @@ namespace ClangSharp
         GenerateFileScopedNamespaces = 1UL << 30,
 
         GenerateSetsLastSystemErrorAttribute = 1UL << 31,
+
+        GenerateDocIncludes = 1UL << 32,
     }
 }
