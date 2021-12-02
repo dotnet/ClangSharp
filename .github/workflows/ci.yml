@@ -1,0 +1,139 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  windows-x64:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      matrix:
+        architecture: [ x64 ]
+        configuration: [ debug, release ]
+        os: [ windows ]
+    steps:
+    - uses: actions/checkout@v2
+    - run: ./scripts/cibuild.cmd -configuration ${{ matrix.configuration }} -architecture ${{ matrix.architecture }}
+      shell: cmd
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
+        path: |
+          ./artifacts/bin/**/*
+          ./artifacts/log/**/*
+          ./artifacts/pkg/**/*
+          ./artifacts/tst/**/*
+        if-no-files-found: error
+  windows-x86:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      matrix:
+        architecture: [ x86 ]
+        configuration: [ debug, release ]
+        os: [ windows ]
+    steps:
+    - uses: actions/checkout@v2
+    - run: ./scripts/cibuild.cmd -configuration ${{ matrix.configuration }} -architecture ${{ matrix.architecture }} /p:PlatformTarget=${{ matrix.architecture }}
+      shell: cmd
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_x86
+        path: |
+          ./artifacts/bin/**/*
+          ./artifacts/log/**/*
+          ./artifacts/pkg/**/*
+          ./artifacts/tst/**/*
+        if-no-files-found: error
+  linux-x64:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      matrix:
+        architecture: [ x64 ]
+        configuration: [ debug, release ]
+        os: [ ubuntu ]
+    steps:
+    - uses: actions/checkout@v2
+    - run: ./scripts/cibuild.sh --configuration ${{ matrix.configuration }} --architecture ${{ matrix.architecture }}
+      shell: bash
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
+        path: |
+          ./artifacts/bin/**/*
+          ./artifacts/log/**/*
+          ./artifacts/pkg/**/*
+          ./artifacts/tst/**/*
+        if-no-files-found: error
+  macos-x64:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      matrix:
+        architecture: [ x64 ]
+        configuration: [ debug, release ]
+        os: [ macos ]
+    steps:
+    - uses: actions/checkout@v2
+    - run: ./scripts/cibuild.sh --configuration ${{ matrix.configuration }} --architecture ${{ matrix.architecture }}
+      shell: bash
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
+        path: |
+          ./artifacts/bin/**/*
+          ./artifacts/log/**/*
+          ./artifacts/pkg/**/*
+          ./artifacts/tst/**/*
+        if-no-files-found: error
+  build-nuget-preview:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: ./scripts/cibuild.cmd -configuration release -architecture x64
+      shell: cmd
+      env:
+        EXCLUDE_RUN_ID_FROM_PACKAGE: true
+        EXCLUDE_SUFFIX_FROM_VERSION: false
+    - uses: actions/upload-artifact@v2
+      with:
+        name: nuget_preview
+        path: |
+          ./artifacts/bin/**/*
+          ./artifacts/log/**/*
+          ./artifacts/pkg/**/*
+          ./artifacts/tst/**/*
+        if-no-files-found: error
+  build-nuget-release:
+    runs-on: windows-latest
+    if: false
+    steps:
+    - uses: actions/checkout@v2
+    - run: ./scripts/cibuild.cmd -configuration release -architecture x64
+      shell: cmd
+      env:
+        EXCLUDE_RUN_ID_FROM_PACKAGE: true
+        EXCLUDE_SUFFIX_FROM_VERSION: true
+    - uses: actions/upload-artifact@v2
+      with:
+        name: nuget_release
+        path: |
+          ./artifacts/bin/**/*
+          ./artifacts/log/**/*
+          ./artifacts/pkg/**/*
+          ./artifacts/tst/**/*
+        if-no-files-found: error
+  publish-nightlies-github:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
+    needs: [ windows-x64, windows-x86, linux-x64, macos-x64, build-nuget-preview ]
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: windows_release_x64
+        path: ./artifacts
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.x'
+    - run: dotnet nuget push "./artifacts/pkg/Release/*.nupkg" --source https://nuget.pkg.github.com/dotnet/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
