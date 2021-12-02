@@ -5,7 +5,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
@@ -13,30 +13,30 @@ namespace ClangSharp.Interop.UnitTests
     public static unsafe class CXTypeTests
     {
         /// <summary>Validates that the <see cref="CXType" /> struct is blittable.</summary>
-        [Fact]
+        [Test]
         public static void IsBlittableTest()
         {
-            Assert.Equal(sizeof(CXType), Marshal.SizeOf<CXType>());
+            Assert.AreEqual(sizeof(CXType), Marshal.SizeOf<CXType>());
         }
 
         /// <summary>Validates that the <see cref="CXType" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Fact]
+        [Test]
         public static void IsLayoutSequentialTest()
         {
             Assert.True(typeof(CXType).IsLayoutSequential);
         }
 
         /// <summary>Validates that the <see cref="CXType" /> struct has the correct size.</summary>
-        [Fact]
+        [Test]
         public static void SizeOfTest()
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.Equal(24, sizeof(CXType));
+                Assert.AreEqual(24, sizeof(CXType));
             }
             else
             {
-                Assert.Equal(12, sizeof(CXType));
+                Assert.AreEqual(12, sizeof(CXType));
             }
         }
     }

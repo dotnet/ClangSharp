@@ -5,7 +5,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
@@ -13,30 +13,30 @@ namespace ClangSharp.Interop.UnitTests
     public static unsafe class CXIdxObjCProtocolRefInfoTests
     {
         /// <summary>Validates that the <see cref="CXIdxObjCProtocolRefInfo" /> struct is blittable.</summary>
-        [Fact]
+        [Test]
         public static void IsBlittableTest()
         {
-            Assert.Equal(sizeof(CXIdxObjCProtocolRefInfo), Marshal.SizeOf<CXIdxObjCProtocolRefInfo>());
+            Assert.AreEqual(sizeof(CXIdxObjCProtocolRefInfo), Marshal.SizeOf<CXIdxObjCProtocolRefInfo>());
         }
 
         /// <summary>Validates that the <see cref="CXIdxObjCProtocolRefInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Fact]
+        [Test]
         public static void IsLayoutSequentialTest()
         {
             Assert.True(typeof(CXIdxObjCProtocolRefInfo).IsLayoutSequential);
         }
 
         /// <summary>Validates that the <see cref="CXIdxObjCProtocolRefInfo" /> struct has the correct size.</summary>
-        [Fact]
+        [Test]
         public static void SizeOfTest()
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.Equal(64, sizeof(CXIdxObjCProtocolRefInfo));
+                Assert.AreEqual(64, sizeof(CXIdxObjCProtocolRefInfo));
             }
             else
             {
-                Assert.Equal(36, sizeof(CXIdxObjCProtocolRefInfo));
+                Assert.AreEqual(36, sizeof(CXIdxObjCProtocolRefInfo));
             }
         }
     }

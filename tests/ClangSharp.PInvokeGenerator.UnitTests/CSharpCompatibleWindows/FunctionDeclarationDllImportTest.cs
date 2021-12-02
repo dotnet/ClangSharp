@@ -8,7 +8,7 @@ namespace ClangSharp.UnitTests
 {
     public sealed class CSharpCompatibleWindows_FunctionDeclarationDllImportTest : FunctionDeclarationDllImportTest
     {
-        public override Task BasicTest()
+        protected override Task BasicTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction();";
 
@@ -27,7 +27,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task ArrayParameterTest()
+        protected override Task ArrayParameterTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction(const float color[4]);";
 
@@ -46,7 +46,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task FunctionPointerParameterTest()
+        protected override Task FunctionPointerParameterTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction(void (*callback)());";
 
@@ -66,7 +66,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task NamespaceTest()
+        protected override Task NamespaceTestImpl()
         {
             var inputContents = @"namespace MyNamespace
 {
@@ -95,7 +95,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task TemplateParameterTest(string nativeType, bool expectedNativeTypeAttr, string expectedManagedType, string expectedUsingStatement)
+        protected override Task TemplateParameterTestImpl(string nativeType, bool expectedNativeTypeAttr, string expectedManagedType, string expectedUsingStatement)
         {
             var inputContents = @$"template <typename T> struct MyTemplate;
 
@@ -116,7 +116,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
         }
 
-        public override Task TemplateMemberTest()
+        protected override Task TemplateMemberTestImpl()
         {
             var inputContents = @$"template <typename T> struct MyTemplate
 {{
@@ -143,7 +143,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
         }
 
-        public override Task NoLibraryPathTest()
+        protected override Task NoLibraryPathTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction();";
 
@@ -162,7 +162,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty);
         }
 
-        public override Task WithLibraryPathTest()
+        protected override Task WithLibraryPathTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction();";
 
@@ -185,7 +185,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
         }
 
-        public override Task WithLibraryPathStarTest()
+        protected override Task WithLibraryPathStarTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction();";
 
@@ -208,7 +208,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
         }
 
-        public override Task OptionalParameterTest(string nativeType, string nativeInit, bool expectedNativeTypeNameAttr, string expectedManagedType, string expectedManagedInit)
+        protected override Task OptionalParameterTestImpl(string nativeType, string nativeInit, bool expectedNativeTypeNameAttr, string expectedManagedType, string expectedManagedInit)
         {
             var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
 
@@ -227,7 +227,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task OptionalParameterUnsafeTest(string nativeType, string nativeInit, string expectedManagedType, string expectedManagedInit)
+        protected override Task OptionalParameterUnsafeTestImpl(string nativeType, string nativeInit, string expectedManagedType, string expectedManagedInit)
         {
             var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
 
@@ -246,7 +246,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task WithCallConvTest()
+        protected override Task WithCallConvTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
@@ -271,7 +271,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
         }
 
-        public override Task WithCallConvStarTest()
+        protected override Task WithCallConvStarTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
@@ -297,7 +297,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
         }
 
-        public override Task WithCallConvStarOverrideTest()
+        protected override Task WithCallConvStarOverrideTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
@@ -324,7 +324,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
         }
 
-        public override Task WithSetLastErrorTest()
+        protected override Task WithSetLastErrorTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
@@ -350,7 +350,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
         }
 
-        public override Task WithSetLastErrorStarTest()
+        protected override Task WithSetLastErrorStarTestImpl()
         {
             var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
@@ -376,7 +376,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
         }
 
-        public override Task SourceLocationTest()
+        protected override Task SourceLocationTestImpl()
         {
             const string InputContents = @"extern ""C"" void MyFunction(float value);";
 

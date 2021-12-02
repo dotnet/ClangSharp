@@ -6,7 +6,7 @@ namespace ClangSharp.UnitTests
 {
     public sealed class CSharpLatestUnix_FunctionPointerDeclarationTest : FunctionPointerDeclarationTest
     {
-        public override Task BasicTest()
+        protected override Task BasicTestImpl()
         {
             var inputContents = @"typedef void (*Callback)();
 
@@ -28,7 +28,7 @@ struct MyStruct {
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task CallconvTest()
+        protected override Task CallconvTestImpl()
         {
             var inputContents = @"typedef void (*Callback)() __attribute__((stdcall));
 
@@ -50,7 +50,7 @@ struct MyStruct {
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task PointerlessTypedefTest()
+        protected override Task PointerlessTypedefTestImpl()
         {
             var inputContents = @"typedef void (Callback)();
 

@@ -5,7 +5,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
@@ -13,30 +13,30 @@ namespace ClangSharp.Interop.UnitTests
     public static unsafe class CXIdxObjCInterfaceDeclInfoTests
     {
         /// <summary>Validates that the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct is blittable.</summary>
-        [Fact]
+        [Test]
         public static void IsBlittableTest()
         {
-            Assert.Equal(sizeof(CXIdxObjCInterfaceDeclInfo), Marshal.SizeOf<CXIdxObjCInterfaceDeclInfo>());
+            Assert.AreEqual(sizeof(CXIdxObjCInterfaceDeclInfo), Marshal.SizeOf<CXIdxObjCInterfaceDeclInfo>());
         }
 
         /// <summary>Validates that the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Fact]
+        [Test]
         public static void IsLayoutSequentialTest()
         {
             Assert.True(typeof(CXIdxObjCInterfaceDeclInfo).IsLayoutSequential);
         }
 
         /// <summary>Validates that the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct has the correct size.</summary>
-        [Fact]
+        [Test]
         public static void SizeOfTest()
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.Equal(24, sizeof(CXIdxObjCInterfaceDeclInfo));
+                Assert.AreEqual(24, sizeof(CXIdxObjCInterfaceDeclInfo));
             }
             else
             {
-                Assert.Equal(12, sizeof(CXIdxObjCInterfaceDeclInfo));
+                Assert.AreEqual(12, sizeof(CXIdxObjCInterfaceDeclInfo));
             }
         }
     }

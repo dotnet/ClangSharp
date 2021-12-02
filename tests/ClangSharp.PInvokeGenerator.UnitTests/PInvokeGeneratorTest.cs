@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using ClangSharp.Interop;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {
@@ -75,17 +75,17 @@ namespace ClangSharp.UnitTests
 
                 if (expectedDiagnostics is null)
                 {
-                    Assert.Empty(pinvokeGenerator.Diagnostics);
+                    Assert.IsEmpty(pinvokeGenerator.Diagnostics);
                 }
                 else
                 {
-                    Assert.Equal(expectedDiagnostics, pinvokeGenerator.Diagnostics);
+                    Assert.AreEqual(expectedDiagnostics, pinvokeGenerator.Diagnostics);
                 }
             }
             outputStream.Position = 0;
 
             var actualOutputContents = await new StreamReader(outputStream).ReadToEndAsync();
-            Assert.Equal(expectedOutputContents, actualOutputContents);
+            Assert.AreEqual(expectedOutputContents, actualOutputContents);
         }
     }
 }

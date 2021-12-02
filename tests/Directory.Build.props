@@ -28,8 +28,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" IsImplicitlyDefined="true" />
-    <PackageReference Include="xunit" IsImplicitlyDefined="true" />
-    <PackageReference Include="xunit.runner.visualstudio" IsImplicitlyDefined="true" />
+    <PackageReference Include="NUnit" IsImplicitlyDefined="true" PrivateAssets="all" />
+    <PackageReference Include="NUnit3TestAdapter" IsImplicitlyDefined="true" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

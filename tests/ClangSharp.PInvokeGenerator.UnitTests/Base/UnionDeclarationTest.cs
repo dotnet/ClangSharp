@@ -1,194 +1,233 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {
     public abstract class UnionDeclarationTest : PInvokeGeneratorTest
     {
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public abstract Task BasicTest(string nativeType, string expectedManagedType);
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("float", "float")]
+        public Task BasicTest(string nativeType, string expectedManagedType) => BasicTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public abstract Task BasicTestInCMode(string nativeType, string expectedManagedType);
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("float", "float")]
+        public Task BasicTestInCMode(string nativeType, string expectedManagedType) => BasicTestInCModeImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public abstract Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType);
+        [TestCase("unsigned char", "byte")]
+        [TestCase("long long", "long")]
+        [TestCase("signed char", "sbyte")]
+        [TestCase("unsigned short", "ushort")]
+        [TestCase("unsigned int", "uint")]
+        [TestCase("unsigned long long", "ulong")]
+        public Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType) => BasicWithNativeTypeNameTestImpl(nativeType, expectedManagedType);
 
-        [Fact]
-        public abstract Task BitfieldTest();
+        [Test]
+        public Task BitfieldTest() => BitfieldTestImpl();
 
-        [Fact]
-        public abstract Task ExcludeTest();
+        [Test]
+        public Task ExcludeTest() => ExcludeTestImpl();
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public abstract Task FixedSizedBufferNonPrimitiveTest(string nativeType, string expectedManagedType);
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("float", "float")]
+        public Task FixedSizedBufferNonPrimitiveTest(string nativeType, string expectedManagedType) => FixedSizedBufferNonPrimitiveTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public abstract Task FixedSizedBufferNonPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType);
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("float", "float")]
+        public Task FixedSizedBufferNonPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType) => FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public abstract Task FixedSizedBufferNonPrimitiveTypedefTest(string nativeType, string expectedManagedType);
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("float", "float")]
+        public Task FixedSizedBufferNonPrimitiveTypedefTest(string nativeType, string expectedManagedType) => FixedSizedBufferNonPrimitiveTypedefTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public abstract Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTest(string nativeType, string expectedManagedType);
+        [TestCase("unsigned char", "byte")]
+        [TestCase("long long", "long")]
+        [TestCase("signed char", "sbyte")]
+        [TestCase("unsigned short", "ushort")]
+        [TestCase("unsigned int", "uint")]
+        [TestCase("unsigned long long", "ulong")]
+        public Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTest(string nativeType, string expectedManagedType) => FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("double *", "double*")]
-        [InlineData("short *", "short*")]
-        [InlineData("int *", "int*")]
-        [InlineData("float *", "float*")]
-        public abstract Task FixedSizedBufferPointerTest(string nativeType, string expectedManagedType);
+        [TestCase("double *", "double*")]
+        [TestCase("short *", "short*")]
+        [TestCase("int *", "int*")]
+        [TestCase("float *", "float*")]
+        public Task FixedSizedBufferPointerTest(string nativeType, string expectedManagedType) => FixedSizedBufferPointerTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public abstract Task FixedSizedBufferPrimitiveTest(string nativeType, string expectedManagedType);
+        [TestCase("unsigned char", "byte")]
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("long long", "long")]
+        [TestCase("signed char", "sbyte")]
+        [TestCase("float", "float")]
+        [TestCase("unsigned short", "ushort")]
+        [TestCase("unsigned int", "uint")]
+        [TestCase("unsigned long long", "ulong")]
+        public Task FixedSizedBufferPrimitiveTest(string nativeType, string expectedManagedType) => FixedSizedBufferPrimitiveTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public abstract Task FixedSizedBufferPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType);
+        [TestCase("unsigned char", "byte")]
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("long long", "long")]
+        [TestCase("signed char", "sbyte")]
+        [TestCase("float", "float")]
+        [TestCase("unsigned short", "ushort")]
+        [TestCase("unsigned int", "uint")]
+        [TestCase("unsigned long long", "ulong")]
+        public Task FixedSizedBufferPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType) => FixedSizedBufferPrimitiveMultidimensionalTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public abstract Task FixedSizedBufferPrimitiveTypedefTest(string nativeType, string expectedManagedType);
+        [TestCase("unsigned char", "byte")]
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("long long", "long")]
+        [TestCase("signed char", "sbyte")]
+        [TestCase("float", "float")]
+        [TestCase("unsigned short", "ushort")]
+        [TestCase("unsigned int", "uint")]
+        [TestCase("unsigned long long", "ulong")]
+        public Task FixedSizedBufferPrimitiveTypedefTest(string nativeType, string expectedManagedType) => FixedSizedBufferPrimitiveTypedefTestImpl(nativeType, expectedManagedType);
 
-        [Fact]
-        public abstract Task GuidTest();
+        [Test]
+        public Task GuidTest() => GuidTestImpl();
 
-        [Theory]
-        [InlineData("double", "double", 11, 5)]
-        [InlineData("short", "short", 11, 5)]
-        [InlineData("int", "int", 11, 5)]
-        [InlineData("float", "float", 11, 5)]
-        public abstract Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column);
+        [TestCase("double", "double", 11, 5)]
+        [TestCase("short", "short", 11, 5)]
+        [TestCase("int", "int", 11, 5)]
+        [TestCase("float", "float", 11, 5)]
+        public Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column) => NestedAnonymousTestImpl(nativeType, expectedManagedType, line, column);
 
-        [Fact]
-        public abstract Task NestedAnonymousWithBitfieldTest();
+        [Test]
+        public Task NestedAnonymousWithBitfieldTest() => NestedAnonymousWithBitfieldTestImpl();
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public abstract Task NestedTest(string nativeType, string expectedManagedType);
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("float", "float")]
+        public Task NestedTest(string nativeType, string expectedManagedType) => NestedTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public abstract Task NestedWithNativeTypeNameTest(string nativeType, string expectedManagedType);
+        [TestCase("unsigned char", "byte")]
+        [TestCase("long long", "long")]
+        [TestCase("signed char", "sbyte")]
+        [TestCase("unsigned short", "ushort")]
+        [TestCase("unsigned int", "uint")]
+        [TestCase("unsigned long long", "ulong")]
+        public Task NestedWithNativeTypeNameTest(string nativeType, string expectedManagedType) => NestedWithNativeTypeNameTestImpl(nativeType, expectedManagedType);
 
-        [Fact]
-        public abstract Task NewKeywordTest();
+        [Test]
+        public Task NewKeywordTest() => NewKeywordTestImpl();
 
-        [Fact]
-        public abstract Task NoDefinitionTest();
+        [Test]
+        public Task NoDefinitionTest() => NoDefinitionTestImpl();
 
-        [Fact]
-        public abstract Task PointerToSelfTest();
+        [Test]
+        public Task PointerToSelfTest() => PointerToSelfTestImpl();
 
-        [Fact]
-        public abstract Task PointerToSelfViaTypedefTest();
+        [Test]
+        public Task PointerToSelfViaTypedefTest() => PointerToSelfViaTypedefTestImpl();
 
-        [Fact]
-        public abstract Task RemapTest();
+        [Test]
+        public Task RemapTest() => RemapTestImpl();
 
-        [Fact]
-        public abstract Task RemapNestedAnonymousTest();
+        [Test]
+        public Task RemapNestedAnonymousTest() => RemapNestedAnonymousTestImpl();
 
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public abstract Task SkipNonDefinitionTest(string nativeType, string expectedManagedType);
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("float", "float")]
+        public Task SkipNonDefinitionTest(string nativeType, string expectedManagedType) => SkipNonDefinitionTestImpl(nativeType, expectedManagedType);
 
-        [Fact]
-        public abstract Task SkipNonDefinitionPointerTest();
+        [Test]
+        public Task SkipNonDefinitionPointerTest() => SkipNonDefinitionPointerTestImpl();
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public abstract Task SkipNonDefinitionWithNativeTypeNameTest(string nativeType, string expectedManagedType);
+        [TestCase("unsigned char", "byte")]
+        [TestCase("long long", "long")]
+        [TestCase("signed char", "sbyte")]
+        [TestCase("unsigned short", "ushort")]
+        [TestCase("unsigned int", "uint")]
+        [TestCase("unsigned long long", "ulong")]
+        public Task SkipNonDefinitionWithNativeTypeNameTest(string nativeType, string expectedManagedType) => SkipNonDefinitionWithNativeTypeNameTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("float", "float")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public abstract Task TypedefTest(string nativeType, string expectedManagedType);
+        [TestCase("unsigned char", "byte")]
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("long long", "long")]
+        [TestCase("signed char", "sbyte")]
+        [TestCase("float", "float")]
+        [TestCase("unsigned short", "ushort")]
+        [TestCase("unsigned int", "uint")]
+        [TestCase("unsigned long long", "ulong")]
+        public Task TypedefTest(string nativeType, string expectedManagedType) => TypedefTestImpl(nativeType, expectedManagedType);
+
+        protected abstract Task BasicTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task BasicTestInCModeImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task BitfieldTestImpl();
+
+        protected abstract Task ExcludeTestImpl();
+
+        protected abstract Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task GuidTestImpl();
+
+        protected abstract Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column);
+
+        protected abstract Task NestedAnonymousWithBitfieldTestImpl();
+
+        protected abstract Task NestedTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task NewKeywordTestImpl();
+
+        protected abstract Task NoDefinitionTestImpl();
+
+        protected abstract Task PointerToSelfTestImpl();
+
+        protected abstract Task PointerToSelfViaTypedefTestImpl();
+
+        protected abstract Task RemapTestImpl();
+
+        protected abstract Task RemapNestedAnonymousTestImpl();
+
+        protected abstract Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task SkipNonDefinitionPointerTestImpl();
+
+        protected abstract Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task TypedefTestImpl(string nativeType, string expectedManagedType);
     }
 }

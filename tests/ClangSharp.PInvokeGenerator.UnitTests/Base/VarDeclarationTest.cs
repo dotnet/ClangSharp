@@ -1,81 +1,111 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {
     public abstract class VarDeclarationTest : PInvokeGeneratorTest
     {
-        [Theory]
-        [InlineData("double", "double")]
-        [InlineData("short", "short")]
-        [InlineData("int", "int")]
-        [InlineData("float", "float")]
-        public abstract Task BasicTest(string nativeType, string expectedManagedType);
+        [TestCase("double", "double")]
+        [TestCase("short", "short")]
+        [TestCase("int", "int")]
+        [TestCase("float", "float")]
+        public Task BasicTest(string nativeType, string expectedManagedType) => BasicTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public abstract Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType);
+        [TestCase("unsigned char", "byte")]
+        [TestCase("long long", "long")]
+        [TestCase("signed char", "sbyte")]
+        [TestCase("unsigned short", "ushort")]
+        [TestCase("unsigned int", "uint")]
+        [TestCase("unsigned long long", "ulong")]
+        public Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType) => BasicWithNativeTypeNameTestImpl(nativeType, expectedManagedType);
 
-        [Fact]
-        public abstract Task GuidMacroTest();
+        [Test]
+        public Task GuidMacroTest() => GuidMacroTestImpl();
 
-        [Theory]
-        [InlineData("0", "int", "0")]
-        [InlineData("0U", "uint", "0U")]
-        [InlineData("0LL", "long", "0L")]
-        [InlineData("0ULL", "ulong", "0UL")]
-        [InlineData("0.0", "double", "0.0")]
-        [InlineData("0.f", "float", "0.0f")]
-        public abstract Task MacroTest(string nativeValue, string expectedManagedType, string expectedManagedValue);
+        [TestCase("0", "int", "0")]
+        [TestCase("0U", "uint", "0U")]
+        [TestCase("0LL", "long", "0L")]
+        [TestCase("0ULL", "ulong", "0UL")]
+        [TestCase("0.0", "double", "0.0")]
+        [TestCase("0.f", "float", "0.0f")]
+        public Task MacroTest(string nativeValue, string expectedManagedType, string expectedManagedValue) => MacroTestImpl(nativeValue, expectedManagedType, expectedManagedValue);
 
-        [Fact]
-        public abstract Task MultilineMacroTest();
+        [Test]
+        public Task MultilineMacroTest() => MultilineMacroTestImpl();
 
-        [Theory]
-        [InlineData("double")]
-        [InlineData("short")]
-        [InlineData("int")]
-        [InlineData("float")]
-        public abstract Task NoInitializerTest(string nativeType);
+        [TestCase("double")]
+        [TestCase("short")]
+        [TestCase("int")]
+        [TestCase("float")]
+        public Task NoInitializerTest(string nativeType) => NoInitializerTestImpl(nativeType);
 
-        [Fact]
-        public abstract Task Utf8StringLiteralMacroTest();
+        [Test]
+        public Task Utf8StringLiteralMacroTest() => Utf8StringLiteralMacroTestImpl();
 
-        [Fact]
-        public abstract Task Utf16StringLiteralMacroTest();
+        [Test]
+        public Task Utf16StringLiteralMacroTest() => Utf16StringLiteralMacroTestImpl();
 
-        [Fact]
-        public abstract Task WideStringLiteralConstTest();
+        [Test]
+        public Task WideStringLiteralConstTest() => WideStringLiteralConstTestImpl();
 
-        [Fact]
-        public abstract Task StringLiteralConstTest();
+        [Test]
+        public Task StringLiteralConstTest() => StringLiteralConstTestImpl();
 
-        [Fact]
-        public abstract Task UncheckedConversionMacroTest();
+        [Test]
+        public Task UncheckedConversionMacroTest() => UncheckedConversionMacroTestImpl();
 
-        [Fact]
-        public abstract Task UncheckedFunctionLikeCastMacroTest();
+        [Test]
+        public Task UncheckedFunctionLikeCastMacroTest() => UncheckedFunctionLikeCastMacroTestImpl();
 
-        [Fact]
-        public abstract Task UncheckedConversionMacroTest2();
+        [Test]
+        public Task UncheckedConversionMacroTest2() => UncheckedConversionMacroTest2Impl();
 
-        [Fact]
-        public abstract Task UncheckedPointerMacroTest();
+        [Test]
+        public Task UncheckedPointerMacroTest() => UncheckedPointerMacroTestImpl();
 
-        [Fact]
-        public abstract Task UncheckedReinterpretCastMacroTest();
+        [Test]
+        public Task UncheckedReinterpretCastMacroTest() => UncheckedReinterpretCastMacroTestImpl();
 
-        [Fact]
-        public abstract Task MultidimensionlArrayTest();
+        [Test]
+        public Task MultidimensionlArrayTest() => MultidimensionlArrayTestImpl();
 
-        [Fact]
-        public abstract Task ConditionalDefineConstTest();
+        [Test]
+        public Task ConditionalDefineConstTest() => ConditionalDefineConstTestImpl();
+
+        protected abstract Task BasicTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task GuidMacroTestImpl();
+
+        protected abstract Task MacroTestImpl(string nativeValue, string expectedManagedType, string expectedManagedValue);
+
+        protected abstract Task MultilineMacroTestImpl();
+
+        protected abstract Task NoInitializerTestImpl(string nativeType);
+
+        protected abstract Task Utf8StringLiteralMacroTestImpl();
+
+        protected abstract Task Utf16StringLiteralMacroTestImpl();
+
+        protected abstract Task WideStringLiteralConstTestImpl();
+
+        protected abstract Task StringLiteralConstTestImpl();
+
+        protected abstract Task UncheckedConversionMacroTestImpl();
+
+        protected abstract Task UncheckedFunctionLikeCastMacroTestImpl();
+
+        protected abstract Task UncheckedConversionMacroTest2Impl();
+
+        protected abstract Task UncheckedPointerMacroTestImpl();
+
+        protected abstract Task UncheckedReinterpretCastMacroTestImpl();
+
+        protected abstract Task MultidimensionlArrayTestImpl();
+
+        protected abstract Task ConditionalDefineConstTestImpl();
     }
 }

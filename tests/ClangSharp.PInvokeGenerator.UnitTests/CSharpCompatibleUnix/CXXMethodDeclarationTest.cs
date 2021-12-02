@@ -8,7 +8,7 @@ namespace ClangSharp.UnitTests
 {
     public sealed class CSharpCompatibleUnix_CXXMethodDeclarationTest : CXXMethodDeclarationTest
     {
-        public override Task ConstructorTest()
+        protected override Task ConstructorTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -38,7 +38,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task ConstructorWithInitializeTest()
+        protected override Task ConstructorWithInitializeTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -93,7 +93,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task ConversionTest()
+        protected override Task ConversionTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -123,7 +123,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task DestructorTest()
+        protected override Task DestructorTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -147,7 +147,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task InstanceTest()
+        protected override Task InstanceTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -203,7 +203,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task MemberCallTest()
+        protected override Task MemberCallTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -276,7 +276,7 @@ int MyFunctionB(MyStruct* x)
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task MemberTest()
+        protected override Task MemberTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -306,7 +306,7 @@ int MyFunctionB(MyStruct* x)
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task NewKeywordTest()
+        protected override Task NewKeywordTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -406,7 +406,7 @@ int MyFunctionB(MyStruct* x)
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task NewKeywordVirtualTest()
+        protected override Task NewKeywordVirtualTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -463,7 +463,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task NewKeywordVirtualWithExplicitVtblTest()
+        protected override Task NewKeywordVirtualWithExplicitVtblTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -539,7 +539,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
         }
 
-        public override Task OperatorTest()
+        protected override Task OperatorTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -591,7 +591,7 @@ MyStruct operator-(MyStruct lhs, MyStruct rhs)
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task OperatorCallTest()
+        protected override Task OperatorCallTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -663,7 +663,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task StaticTest()
+        protected override Task StaticTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -713,7 +713,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task ThisTest()
+        protected override Task ThisTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -743,7 +743,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task UnsafeDoesNotImpactDllImportTest()
+        protected override Task UnsafeDoesNotImpactDllImportTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -778,7 +778,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task VirtualTest()
+        protected override Task VirtualTestImpl()
         {
             var inputContents = @"struct MyStruct
 {
@@ -856,7 +856,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task VirtualWithVtblIndexAttributeTest()
+        protected override Task VirtualWithVtblIndexAttributeTestImpl()
         {
             var inputContents = @"struct MyStruct
 {

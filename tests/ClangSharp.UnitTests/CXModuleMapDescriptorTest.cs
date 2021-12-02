@@ -2,13 +2,13 @@
 
 using System;
 using ClangSharp.Interop;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {
     public class CXModuleMapDescriptorTest
     {
-        [Fact]
+        [Test]
         public void Basic()
         {
             var contents =
@@ -24,7 +24,7 @@ namespace ClangSharp.UnitTests
             _ = mmd.SetUmbrellaHeader("TestFrame.h");
 
             var buffer = mmd.WriteToBuffer(options: 0, errorCode: out _);
-            Assert.Equal(contents, buffer.AsString());
+            Assert.AreEqual(contents, buffer.AsString());
             buffer.ClangFree();
         }
     }

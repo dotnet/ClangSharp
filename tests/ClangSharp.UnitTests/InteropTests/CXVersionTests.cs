@@ -4,7 +4,7 @@
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
@@ -12,24 +12,24 @@ namespace ClangSharp.Interop.UnitTests
     public static unsafe class CXVersionTests
     {
         /// <summary>Validates that the <see cref="CXVersion" /> struct is blittable.</summary>
-        [Fact]
+        [Test]
         public static void IsBlittableTest()
         {
-            Assert.Equal(sizeof(CXVersion), Marshal.SizeOf<CXVersion>());
+            Assert.AreEqual(sizeof(CXVersion), Marshal.SizeOf<CXVersion>());
         }
 
         /// <summary>Validates that the <see cref="CXVersion" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Fact]
+        [Test]
         public static void IsLayoutSequentialTest()
         {
             Assert.True(typeof(CXVersion).IsLayoutSequential);
         }
 
         /// <summary>Validates that the <see cref="CXVersion" /> struct has the correct size.</summary>
-        [Fact]
+        [Test]
         public static void SizeOfTest()
         {
-            Assert.Equal(12, sizeof(CXVersion));
+            Assert.AreEqual(12, sizeof(CXVersion));
         }
     }
 }
