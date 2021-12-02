@@ -49,9 +49,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClangSharp.PInvokeGenerator
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{2F805BB5-6089-44E3-8DD0-72104DBB29F0}"
 	ProjectSection(SolutionItems) = preProject
-		scripts\azure-pipelines.yml = scripts\azure-pipelines.yml
-		scripts\azure-unix.yml = scripts\azure-unix.yml
-		scripts\azure-windows.yml = scripts\azure-windows.yml
 		scripts\build.ps1 = scripts\build.ps1
 		scripts\build.sh = scripts\build.sh
 		scripts\cibuild.cmd = scripts\cibuild.cmd
@@ -230,6 +227,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freeb
 		packages\libClangSharp\libClangSharp.runtime.freebsd.13-x64\libClangSharp.runtime.freebsd.13-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.freebsd.13-x64\libClangSharp.runtime.freebsd.13-x64.nuspec
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{FF42B475-5025-45BA-B278-60F29B53C023}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{034EBD16-E96F-4530-B37D-30B16C4E9876}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -302,6 +306,7 @@ Global
 		{E76E41C3-FD6E-47FB-BC1E-120C8F88C07C} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{19337D54-F5B0-4131-A753-B788EF5FE677} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{B3A22C21-0699-4963-B665-F9AA74F0AF08} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
+		{034EBD16-E96F-4530-B37D-30B16C4E9876} = {FF42B475-5025-45BA-B278-60F29B53C023}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9D18E0B-5409-457D-B5F3-0E217136BB01}

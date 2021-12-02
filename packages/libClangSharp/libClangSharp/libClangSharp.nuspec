@@ -7,10 +7,10 @@
     <owners>.NET Foundation and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">MIT</license>
-    <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>
+    <projectUrl>https://github.com/dotnet/clangsharp</projectUrl>
     <description>Multi-platform native library for libClangSharp.</description>
     <copyright>Copyright © .NET Foundation and Contributors</copyright>
-    <repository type="git" url="https://github.com/microsoft/clangsharp" branch="main" />
+    <repository type="git" url="https://github.com/dotnet/clangsharp" branch="main" />
     <dependencies>
       <group targetFramework=".NETStandard1.0">
         <dependency id="Microsoft.NETCore.Platforms" version="1.0.1" />

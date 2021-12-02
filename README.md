@@ -2,12 +2,7 @@
 
 ClangSharp provides Clang bindings written in C#. It is self-hosted and auto-generates itself by parsing the Clang C header files using ClangSharpPInvokeGenerator.
 
-| Job | Debug Status | Release Status |
-| --- | ------------ | -------------- |
-| Windows x86 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=windows_debug_x86)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=windows_release_x86)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) |
-| Windows x64 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=windows_debug_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=windows_release_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) |
-| Ubuntu 18.04 x64 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=ubuntu_debug_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=ubuntu_release_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) |
-| MacOS x64 | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=macos_debug_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) | [![Build Status](https://dev.azure.com/ms/ClangSharp/_apis/build/status/microsoft.ClangSharp?branchName=main&jobName=macos_release_x64)](https://dev.azure.com/ms/ClangSharp/_build/latest?definitionId=155&branchName=main) |
+![ci](https://github.com/dotnet/clangsharp/workflows/ci/badge.svg?branch=main&event=push)
 
 A nuget package for the project is provided here: https://www.nuget.org/packages/clangsharp.
 A .NET tool for the P/Invoke generator project is provided here: https://www.nuget.org/packages/ClangSharpPInvokeGenerator
@@ -53,7 +48,7 @@ See [LICENSE.md](LICENSE.md) in the repository root for more information.
 
 ### Building Managed
 
-ClangSharp requires the [.NET 5 SDK](https://dotnet.microsoft.com/download/dotnet/5.0) and can be built simply with `dotnet build -c Release`.
+ClangSharp requires the [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) and can be built simply with `dotnet build -c Release`.
 
 You can reproduce what the CI environment does by running `./scripts/cibuild.cmd` on Windows or `./scripts.cibuild.sh` on Unix.
 This will download the required .NET SDK locally and use that to build the repo; it will also run through all available actions in the appropriate order.
@@ -81,7 +76,7 @@ cmake -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_INSTALL_PREFIX=../install -G "Visual 
 You can then open `LLVM.sln` in Visual Studio, change the configuration to `Release` and build the `install` project.
 Afterwards, you can then build `libClangSharp` where the process followed is roughly:
 ```cmd
-git clone https://github.com/microsoft/clangsharp
+git clone https://github.com/dotnet/clangsharp
 cd clangsharp
 mkdir artifacts/bin/native
 cd artifacts/bin/native
@@ -92,7 +87,7 @@ You can then open `libClangSharp.sln` in Visual Studio, change the configuration
 
 If you building on Linux
 ```
-git clone https://github.com/microsoft/clangsharp
+git clone https://github.com/dotnet/clangsharp
 cd clangsharp
 mkdir artifacts/bin/native
 cd artifacts/bin/native
@@ -102,7 +97,7 @@ make
 
 or if you prefer Ninja
 ```
-git clone https://github.com/microsoft/clangsharp
+git clone https://github.com/dotnet/clangsharp
 cd clangsharp
 mkdir artifacts/bin/native
 cd artifacts/bin/native
@@ -120,7 +115,7 @@ dotnet tool install --global ClangSharpPInvokeGenerator --version 13.0.0-beta1
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 
-A response file allows you to specify and checkin the command line arguments in a text file, with one argument per line. For example: https://github.com/microsoft/ClangSharp/blob/main/sources/ClangSharpPInvokeGenerator/Properties/GenerateClang.rsp
+A response file allows you to specify and checkin the command line arguments in a text file, with one argument per line. For example: https://github.com/dotnet/ClangSharp/blob/main/sources/ClangSharpPInvokeGenerator/Properties/GenerateClang.rsp
 At a minimum, the command line expects one or more input files (`-f`), an output namespace (`-n`), and an output location (`-o`). A typical response file may also specify explicit files to traverse, configuration options, name remappings, and other fixups.
 
 The full set of available switches:
@@ -227,9 +222,9 @@ artifacts/bin/sources/ClangSharpPInvokeGenerator/Debug/net5.0/ClangSharpPInvokeG
 
 The P/Invoke Generator is currently used by several projects:
 
-* [microsoft/clangsharp](https://github.com/microsoft/clangsharp) - ClangSharp is self-hosting
-* [microsoft/llvmsharp](https://github.com/microsoft/llvmsharp) - Bindings over libLLVM
-* [microsoft/win32metadata](https://github.com/microsoft/win32metadata) - Bindings over the Windows SDK meant for downstream use by projects such as CsWin32, RsWin32, etc
+* [dotnet/clangsharp](https://github.com/dotnet/clangsharp) - ClangSharp is self-hosting
+* [dotnet/llvmsharp](https://github.com/dotnet/llvmsharp) - Bindings over libLLVM
+* [microsoft/win32metadata](https://github.com/dotnet/win32metadata) - Bindings over the Windows SDK meant for downstream use by projects such as CsWin32, RsWin32, etc
 * [terrafx/terrafx.interop.windows](https://github.com/terrafx/terrafx.interop.windows) - Bindings for D3D10, D3D11, D3D12, D2D1, DWrite, WIC, User32, and more in a single NuGet
 * [terrafx/terrafx.interop.vulkan](https://github.com/terrafx/terrafx.interop.vulkan) - Bindings for Vulkan
 * [terrafx/terrafx.interop.xlib](https://github.com/terrafx/terrafx.interop.xlib) - Bindings for Xlib
