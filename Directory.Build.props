@@ -39,12 +39,12 @@
     <Authors>.NET Foundation and Contributors</Authors>
     <BaseOutputPath>$(BaseArtifactsPath)bin/$(BaseArtifactsPathSuffix)/</BaseOutputPath>
     <Company>.NET Foundation</Company>
-    <ContinuousIntegrationBuild Condition="'$(BUILD_BUILDNUMBER)' != ''">true</ContinuousIntegrationBuild>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_RUN_ID)' != ''">true</ContinuousIntegrationBuild>
     <PackageOutputPath>$(BaseArtifactsPath)pkg/$(Configuration)/</PackageOutputPath>
     <Product>ClangSharp</Product>
     <VersionPrefix>13.0.0</VersionPrefix>
-    <VersionSuffix>beta1</VersionSuffix>
-    <VersionSuffix Condition="'$(BUILD_REASON)' == 'PullRequest'">pr</VersionSuffix>
+    <VersionSuffix Condition="'$(EXCLUDE_SUFFIX_FROM_VERSION)' != 'true'">beta1</VersionSuffix>
+    <VersionSuffix Condition="'$(GITHUB_EVENT_NAME)' == 'pull_request'">pr</VersionSuffix>
   </PropertyGroup>
 
   <!-- Default settings that are otherwise undefined -->

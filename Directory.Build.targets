@@ -16,8 +16,8 @@
   </PropertyGroup>
 
   <!-- Settings that are only set for CI builds -->
-  <PropertyGroup Condition="'$(BUILD_BUILDNUMBER)' != ''">
-    <PackageVersion Condition="'$(EXCLUDE_BUILDNUMBER_FROM_PACKAGE)' == ''">$(Version)-$(BUILD_BUILDNUMBER)</PackageVersion>
+  <PropertyGroup Condition="'$(GITHUB_RUN_ID)' != ''">
+    <PackageVersion Condition="'$(EXCLUDE_RUN_ID_FROM_PACKAGE)' != 'true'">$(Version).$(GITHUB_RUN_ID)</PackageVersion>
   </PropertyGroup>
 
   <!-- Settings that allow testing and packing to work by default -->
