@@ -7,10 +7,10 @@
     <owners>Microsoft and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">NCSA</license>
-    <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>
+    <projectUrl>https://github.com/dotnet/clangsharp</projectUrl>
     <description>freebsd 12 x64 native library for libClangSharp.</description>
     <copyright>Copyright © Microsoft and Contributors</copyright>
-    <repository type="git" url="https://github.com/microsoft/clangsharp" branch="main" />
+    <repository type="git" url="https://github.com/dotnet/clangsharp" branch="main" />
   </metadata>
   <files>
     <file src="..\..\..\LICENSE.md" target="LICENSE.TXT" />

@@ -7,10 +7,10 @@
     <owners>.NET Foundation and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="expression">MIT</license>
-    <projectUrl>https://github.com/microsoft/clangsharp</projectUrl>
+    <projectUrl>https://github.com/dotnet/clangsharp</projectUrl>
     <description>ubuntu 18.04 x64 native library for libClangSharp.</description>
     <copyright>Copyright © .NET Foundation and Contributors</copyright>
-    <repository type="git" url="https://github.com/microsoft/clangsharp" branch="main" />
+    <repository type="git" url="https://github.com/dotnet/clangsharp" branch="main" />
   </metadata>
   <files>
     <file src="..\..\..\LICENSE.md" target="LICENSE.TXT" />
