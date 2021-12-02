@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == 'true'">
-    <IsPackable>false</IsPackable>
     <PackAsTool>true</PackAsTool>
     <RuntimeIdentifier></RuntimeIdentifier>
   </PropertyGroup>

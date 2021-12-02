@@ -126,7 +126,7 @@ jobs:
         if-no-files-found: error
   publish-nightlies-github:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' }}
+    if: false
     needs: [ windows-x64, windows-x86, linux-x64, macos-x64, build-nuget-preview ]
     steps:
     - uses: actions/download-artifact@v2
