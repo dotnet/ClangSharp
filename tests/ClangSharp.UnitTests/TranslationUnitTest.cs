@@ -3,7 +3,7 @@
 using System.IO;
 using System.Text;
 using ClangSharp.Interop;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {

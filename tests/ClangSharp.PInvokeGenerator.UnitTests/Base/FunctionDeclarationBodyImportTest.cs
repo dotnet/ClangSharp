@@ -1,199 +1,289 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {
     public abstract class FunctionDeclarationBodyImportTest : PInvokeGeneratorTest
     {
-        [Fact]
-        public abstract Task AccessUnionMemberTest();
+        [Test]
+        public Task AccessUnionMemberTest() => AccessUnionMemberTestImpl();
 
-        [Fact]
-        public abstract Task ArraySubscriptTest();
+        [Test]
+        public Task ArraySubscriptTest() => ArraySubscriptTestImpl();
 
-        [Fact]
-        public abstract Task BasicTest();
+        [Test]
+        public Task BasicTest() => BasicTestImpl();
 
-        [Theory]
-        [InlineData("%")]
-        [InlineData("%=")]
-        [InlineData("&")]
-        [InlineData("&=")]
-        [InlineData("*")]
-        [InlineData("*=")]
-        [InlineData("+")]
-        [InlineData("+=")]
-        [InlineData("-")]
-        [InlineData("-=")]
-        [InlineData("/")]
-        [InlineData("/=")]
-        [InlineData("<<")]
-        [InlineData("<<=")]
-        [InlineData("=")]
-        [InlineData(">>")]
-        [InlineData(">>=")]
-        [InlineData("^")]
-        [InlineData("^=")]
-        [InlineData("|")]
-        [InlineData("|=")]
-        public abstract Task BinaryOperatorBasicTest(string opcode);
+        [TestCase("%")]
+        [TestCase("%=")]
+        [TestCase("&")]
+        [TestCase("&=")]
+        [TestCase("*")]
+        [TestCase("*=")]
+        [TestCase("+")]
+        [TestCase("+=")]
+        [TestCase("-")]
+        [TestCase("-=")]
+        [TestCase("/")]
+        [TestCase("/=")]
+        [TestCase("<<")]
+        [TestCase("<<=")]
+        [TestCase("=")]
+        [TestCase(">>")]
+        [TestCase(">>=")]
+        [TestCase("^")]
+        [TestCase("^=")]
+        [TestCase("|")]
+        [TestCase("|=")]
+        public Task BinaryOperatorBasicTest(string opcode) => BinaryOperatorBasicTestImpl(opcode);
 
-        [Theory]
-        [InlineData("==")]
-        [InlineData("!=")]
-        [InlineData("<")]
-        [InlineData("<=")]
-        [InlineData(">")]
-        [InlineData(">=")]
-        public abstract Task BinaryOperatorCompareTest(string opcode);
+        [TestCase("==")]
+        [TestCase("!=")]
+        [TestCase("<")]
+        [TestCase("<=")]
+        [TestCase(">")]
+        [TestCase(">=")]
+        public Task BinaryOperatorCompareTest(string opcode) => BinaryOperatorCompareTestImpl(opcode);
 
-        [Theory]
-        [InlineData("&&")]
-        [InlineData("||")]
-        public abstract Task BinaryOperatorBooleanTest(string opcode);
+        [TestCase("&&")]
+        [TestCase("||")]
+        public Task BinaryOperatorBooleanTest(string opcode) => BinaryOperatorBooleanTestImpl(opcode);
 
-        [Fact]
-        public abstract Task BreakTest();
+        [Test]
+        public Task BreakTest() => BreakTestImpl();
 
-        [Fact]
-        public abstract Task CallFunctionTest();
+        [Test]
+        public Task CallFunctionTest() => CallFunctionTestImpl();
 
-        [Fact]
-        public abstract Task CallFunctionWithArgsTest();
+        [Test]
+        public Task CallFunctionWithArgsTest() => CallFunctionWithArgsTestImpl();
 
-        [Fact]
-        public abstract Task CaseTest();
+        [Test]
+        public Task CaseTest() => CaseTestImpl();
 
-        [Fact]
-        public abstract Task CaseNoCompoundTest();
+        [Test]
+        public Task CaseNoCompoundTest() => CaseNoCompoundTestImpl();
 
-        [Fact]
-        public abstract Task CompareMultipleEnumTest();
+        [Test]
+        public Task CompareMultipleEnumTest() => CompareMultipleEnumTestImpl();
 
-        [Fact]
-        public abstract Task ConditionalOperatorTest();
+        [Test]
+        public Task ConditionalOperatorTest() => ConditionalOperatorTestImpl();
 
-        [Fact]
-        public abstract Task ContinueTest();
+        [Test]
+        public Task ContinueTest() => ContinueTestImpl();
 
-        [Fact]
-        public abstract Task CStyleFunctionalCastTest();
+        [Test]
+        public Task CStyleFunctionalCastTest() => CStyleFunctionalCastTestImpl();
 
-        [Fact]
-        public abstract Task CxxFunctionalCastTest();
+        [Test]
+        public Task CxxFunctionalCastTest() => CxxFunctionalCastTestImpl();
 
-        [Fact]
-        public abstract Task CxxConstCastTest();
+        [Test]
+        public Task CxxConstCastTest() => CxxConstCastTestImpl();
 
-        [Fact]
-        public abstract Task CxxDynamicCastTest();
+        [Test]
+        public Task CxxDynamicCastTest() => CxxDynamicCastTestImpl();
 
-        [Fact]
-        public abstract Task CxxReinterpretCastTest();
+        [Test]
+        public Task CxxReinterpretCastTest() => CxxReinterpretCastTestImpl();
 
-        [Fact]
-        public abstract Task CxxStaticCastTest();
+        [Test]
+        public Task CxxStaticCastTest() => CxxStaticCastTestImpl();
 
-        [Fact]
-        public abstract Task DeclTest();
+        [Test]
+        public Task DeclTest() => DeclTestImpl();
 
-        [Fact]
-        public abstract Task DoTest();
+        [Test]
+        public Task DoTest() => DoTestImpl();
 
-        [Fact]
-        public abstract Task DoNonCompoundTest();
+        [Test]
+        public Task DoNonCompoundTest() => DoNonCompoundTestImpl();
 
-        [Fact]
-        public abstract Task ForTest();
+        [Test]
+        public Task ForTest() => ForTestImpl();
 
-        [Fact]
-        public abstract Task ForNonCompoundTest();
+        [Test]
+        public Task ForNonCompoundTest() => ForNonCompoundTestImpl();
 
-        [Fact]
-        public abstract Task IfTest();
+        [Test]
+        public Task IfTest() => IfTestImpl();
 
-        [Fact]
-        public abstract Task IfElseTest();
+        [Test]
+        public Task IfElseTest() => IfElseTestImpl();
 
-        [Fact]
-        public abstract Task IfElseIfTest();
+        [Test]
+        public Task IfElseIfTest() => IfElseIfTestImpl();
 
-        [Fact]
-        public abstract Task IfElseNonCompoundTest();
+        [Test]
+        public Task IfElseNonCompoundTest() => IfElseNonCompoundTestImpl();
 
-        [Fact]
-        public abstract Task InitListForArrayTest();
+        [Test]
+        public Task InitListForArrayTest() => InitListForArrayTestImpl();
 
-        [Fact]
-        public abstract Task InitListForRecordDeclTest();
+        [Test]
+        public Task InitListForRecordDeclTest() => InitListForRecordDeclTestImpl();
 
-        [Fact]
-        public abstract Task MemberTest();
+        [Test]
+        public Task MemberTest() => MemberTestImpl();
 
-        [Fact]
-        public abstract Task RefToPtrTest();
+        [Test]
+        public Task RefToPtrTest() => RefToPtrTestImpl();
 
-        [Fact]
-        public abstract Task ReturnCXXNullPtrTest();
+        [Test]
+        public Task ReturnCXXNullPtrTest() => ReturnCXXNullPtrTestImpl();
 
-        [Theory]
-        [InlineData("false")]
-        [InlineData("true")]
-        public abstract Task ReturnCXXBooleanLiteralTest(string value);
+        [TestCase("false")]
+        [TestCase("true")]
+        public Task ReturnCXXBooleanLiteralTest(string value) => ReturnCXXBooleanLiteralTestImpl(value);
 
-        [Theory]
-        [InlineData("5e-1")]
-        [InlineData("3.14")]
-        public abstract Task ReturnFloatingLiteralDoubleTest(string value);
+        [TestCase("5e-1")]
+        [TestCase("3.14")]
+        public Task ReturnFloatingLiteralDoubleTest(string value) => ReturnFloatingLiteralDoubleTestImpl(value);
 
-        [Theory]
-        [InlineData("5e-1f")]
-        [InlineData("3.14f")]
-        public abstract Task ReturnFloatingLiteralSingleTest(string value);
+        [TestCase("5e-1f")]
+        [TestCase("3.14f")]
+        public Task ReturnFloatingLiteralSingleTest(string value) => ReturnFloatingLiteralSingleTestImpl(value);
 
-        [Fact]
-        public abstract Task ReturnEmptyTest();
+        [Test]
+        public Task ReturnEmptyTest() => ReturnEmptyTestImpl();
 
-        [Fact]
-        public abstract Task ReturnIntegerLiteralInt32Test();
+        [Test]
+        public Task ReturnIntegerLiteralInt32Test() => ReturnIntegerLiteralInt32TestImpl();
 
-        [Fact]
-        public abstract Task ReturnStructTest();
+        [Test]
+        public Task ReturnStructTest() => ReturnStructTestImpl();
 
-        [Fact]
-        public abstract Task SwitchTest();
+        [Test]
+        public Task SwitchTest() => SwitchTestImpl();
 
-        [Fact]
-        public abstract Task SwitchNonCompoundTest();
+        [Test]
+        public Task SwitchNonCompoundTest() => SwitchNonCompoundTestImpl();
 
-        [Fact]
-        public abstract Task UnaryOperatorAddrOfTest();
+        [Test]
+        public Task UnaryOperatorAddrOfTest() => UnaryOperatorAddrOfTestImpl();
 
-        [Fact]
-        public abstract Task UnaryOperatorDerefTest();
+        [Test]
+        public Task UnaryOperatorDerefTest() => UnaryOperatorDerefTestImpl();
 
-        [Fact]
-        public abstract Task UnaryOperatorLogicalNotTest();
+        [Test]
+        public Task UnaryOperatorLogicalNotTest() => UnaryOperatorLogicalNotTestImpl();
 
-        [Theory]
-        [InlineData("++")]
-        [InlineData("--")]
-        public abstract Task UnaryOperatorPostfixTest(string opcode);
+        [TestCase("++")]
+        [TestCase("--")]
+        public Task UnaryOperatorPostfixTest(string opcode) => UnaryOperatorPostfixTestImpl(opcode);
 
-        [Theory]
-        [InlineData("+")]
-        [InlineData("++")]
-        [InlineData("-")]
-        [InlineData("--")]
-        [InlineData("~")]
-        public abstract Task UnaryOperatorPrefixTest(string opcode);
+        [TestCase("+")]
+        [TestCase("++")]
+        [TestCase("-")]
+        [TestCase("--")]
+        [TestCase("~")]
+        public Task UnaryOperatorPrefixTest(string opcode) => UnaryOperatorPrefixTestImpl(opcode);
 
-        [Fact]
-        public abstract Task WhileTest();
+        [Test]
+        public Task WhileTest() => WhileTestImpl();
 
-        [Fact]
-        public abstract Task WhileNonCompoundTest();
+        [Test]
+        public Task WhileNonCompoundTest() => WhileNonCompoundTestImpl();
+
+        protected abstract Task AccessUnionMemberTestImpl();
+
+        protected abstract Task ArraySubscriptTestImpl();
+
+        protected abstract Task BasicTestImpl();
+
+        protected abstract Task BinaryOperatorBasicTestImpl(string opcode);
+
+        protected abstract Task BinaryOperatorCompareTestImpl(string opcode);
+
+        protected abstract Task BinaryOperatorBooleanTestImpl(string opcode);
+
+        protected abstract Task BreakTestImpl();
+
+        protected abstract Task CallFunctionTestImpl();
+
+        protected abstract Task CallFunctionWithArgsTestImpl();
+
+        protected abstract Task CaseTestImpl();
+
+        protected abstract Task CaseNoCompoundTestImpl();
+
+        protected abstract Task CompareMultipleEnumTestImpl();
+
+        protected abstract Task ConditionalOperatorTestImpl();
+
+        protected abstract Task ContinueTestImpl();
+
+        protected abstract Task CStyleFunctionalCastTestImpl();
+
+        protected abstract Task CxxFunctionalCastTestImpl();
+
+        protected abstract Task CxxConstCastTestImpl();
+
+        protected abstract Task CxxDynamicCastTestImpl();
+
+        protected abstract Task CxxReinterpretCastTestImpl();
+
+        protected abstract Task CxxStaticCastTestImpl();
+
+        protected abstract Task DeclTestImpl();
+
+        protected abstract Task DoTestImpl();
+
+        protected abstract Task DoNonCompoundTestImpl();
+
+        protected abstract Task ForTestImpl();
+
+        protected abstract Task ForNonCompoundTestImpl();
+
+        protected abstract Task IfTestImpl();
+
+        protected abstract Task IfElseTestImpl();
+
+        protected abstract Task IfElseIfTestImpl();
+
+        protected abstract Task IfElseNonCompoundTestImpl();
+
+        protected abstract Task InitListForArrayTestImpl();
+
+        protected abstract Task InitListForRecordDeclTestImpl();
+
+        protected abstract Task MemberTestImpl();
+
+        protected abstract Task RefToPtrTestImpl();
+
+        protected abstract Task ReturnCXXNullPtrTestImpl();
+
+        protected abstract Task ReturnCXXBooleanLiteralTestImpl(string value);
+
+        protected abstract Task ReturnFloatingLiteralDoubleTestImpl(string value);
+
+        protected abstract Task ReturnFloatingLiteralSingleTestImpl(string value);
+
+        protected abstract Task ReturnEmptyTestImpl();
+
+        protected abstract Task ReturnIntegerLiteralInt32TestImpl();
+
+        protected abstract Task ReturnStructTestImpl();
+
+        protected abstract Task SwitchTestImpl();
+
+        protected abstract Task SwitchNonCompoundTestImpl();
+
+        protected abstract Task UnaryOperatorAddrOfTestImpl();
+
+        protected abstract Task UnaryOperatorDerefTestImpl();
+
+        protected abstract Task UnaryOperatorLogicalNotTestImpl();
+
+        protected abstract Task UnaryOperatorPostfixTestImpl(string opcode);
+
+        protected abstract Task UnaryOperatorPrefixTestImpl(string opcode);
+
+        protected abstract Task WhileTestImpl();
+
+        protected abstract Task WhileNonCompoundTestImpl();
     }
 }

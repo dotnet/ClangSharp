@@ -5,7 +5,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
@@ -13,30 +13,30 @@ namespace ClangSharp.Interop.UnitTests
     public static unsafe class IndexerCallbacksTests
     {
         /// <summary>Validates that the <see cref="IndexerCallbacks" /> struct is blittable.</summary>
-        [Fact]
+        [Test]
         public static void IsBlittableTest()
         {
-            Assert.Equal(sizeof(IndexerCallbacks), Marshal.SizeOf<IndexerCallbacks>());
+            Assert.AreEqual(sizeof(IndexerCallbacks), Marshal.SizeOf<IndexerCallbacks>());
         }
 
         /// <summary>Validates that the <see cref="IndexerCallbacks" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Fact]
+        [Test]
         public static void IsLayoutSequentialTest()
         {
             Assert.True(typeof(IndexerCallbacks).IsLayoutSequential);
         }
 
         /// <summary>Validates that the <see cref="IndexerCallbacks" /> struct has the correct size.</summary>
-        [Fact]
+        [Test]
         public static void SizeOfTest()
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.Equal(64, sizeof(IndexerCallbacks));
+                Assert.AreEqual(64, sizeof(IndexerCallbacks));
             }
             else
             {
-                Assert.Equal(32, sizeof(IndexerCallbacks));
+                Assert.AreEqual(32, sizeof(IndexerCallbacks));
             }
         }
     }

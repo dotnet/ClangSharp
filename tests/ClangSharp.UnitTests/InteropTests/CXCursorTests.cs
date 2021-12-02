@@ -5,7 +5,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
@@ -13,30 +13,30 @@ namespace ClangSharp.Interop.UnitTests
     public static unsafe class CXCursorTests
     {
         /// <summary>Validates that the <see cref="CXCursor" /> struct is blittable.</summary>
-        [Fact]
+        [Test]
         public static void IsBlittableTest()
         {
-            Assert.Equal(sizeof(CXCursor), Marshal.SizeOf<CXCursor>());
+            Assert.AreEqual(sizeof(CXCursor), Marshal.SizeOf<CXCursor>());
         }
 
         /// <summary>Validates that the <see cref="CXCursor" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Fact]
+        [Test]
         public static void IsLayoutSequentialTest()
         {
             Assert.True(typeof(CXCursor).IsLayoutSequential);
         }
 
         /// <summary>Validates that the <see cref="CXCursor" /> struct has the correct size.</summary>
-        [Fact]
+        [Test]
         public static void SizeOfTest()
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.Equal(32, sizeof(CXCursor));
+                Assert.AreEqual(32, sizeof(CXCursor));
             }
             else
             {
-                Assert.Equal(20, sizeof(CXCursor));
+                Assert.AreEqual(20, sizeof(CXCursor));
             }
         }
     }

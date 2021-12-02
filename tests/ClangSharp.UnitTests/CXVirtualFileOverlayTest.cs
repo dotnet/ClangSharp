@@ -3,7 +3,7 @@
 using System;
 using System.Runtime.InteropServices;
 using ClangSharp.Interop;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {
@@ -38,7 +38,7 @@ namespace ClangSharp.UnitTests
                 rPath = Fix(rPath);
 
                 var err = VFO.AddFileMapping(vPath, rPath);
-                Assert.Equal(CXErrorCode.CXError_Success, err);
+                Assert.AreEqual(CXErrorCode.CXError_Success, err);
             }
 
             public void MapError(string vPath, string rPath, CXErrorCode expErr)
@@ -47,7 +47,7 @@ namespace ClangSharp.UnitTests
                 rPath = Fix(rPath);
 
                 var err = VFO.AddFileMapping(vPath, rPath);
-                Assert.Equal(expErr, err);
+                Assert.AreEqual(expErr, err);
             }
 
             private static string Fix(string text)
@@ -78,7 +78,7 @@ namespace ClangSharp.UnitTests
                 if (_contents != null)
                 {
                     var buffer = VFO.WriteToBuffer(options: 0, errorCode: out _);
-                    Assert.Equal(_contents, buffer.AsString());
+                    Assert.AreEqual(_contents, buffer.AsString());
                     buffer.ClangFree();
                 }
 
@@ -86,7 +86,7 @@ namespace ClangSharp.UnitTests
             }
         }
 
-        [Fact]
+        [Test]
         public void Basic()
         {
             var contents =
@@ -111,7 +111,7 @@ namespace ClangSharp.UnitTests
             t.Map(@"$ROOT$/path/virtual/foo.h", @"$ROOT$/real/foo.h");
         }
 
-        [Fact]
+        [Test]
         public void Unicode()
         {
             var contents =
@@ -136,7 +136,7 @@ namespace ClangSharp.UnitTests
             t.Map("$ROOT$/path/♫/☂.h", "$ROOT$/real/☂.h");
         }
 
-        [Fact]
+        [Test]
         public void InvalidArgs()
         {
             using var t = new TestVFO(null);
@@ -144,7 +144,7 @@ namespace ClangSharp.UnitTests
                        CXErrorCode.CXError_InvalidArguments);
         }
 
-        [Fact]
+        [Test]
         public void RemapDirectories()
         {
             var contents =
@@ -199,7 +199,7 @@ namespace ClangSharp.UnitTests
             t.Map("$ROOT$/path/virtual/dir/in/subdir/foo4.h", "$ROOT$/real/foo4.h");
         }
 
-        [Fact]
+        [Test]
         public void CaseInsensitive()
         {
             var contents =
@@ -226,7 +226,7 @@ namespace ClangSharp.UnitTests
             _ = t.VFO.SetCaseSensitivity(false);
         }
 
-        [Fact]
+        [Test]
         public void SharedPrefix()
         {
             var contents =
@@ -281,7 +281,7 @@ namespace ClangSharp.UnitTests
             t.Map("$ROOT$/path/foobarbaz.h", "$ROOT$/real/foobarbaz.h");
         }
 
-        [Fact]
+        [Test]
         public void AdjacentDirectory()
         {
             var contents =
@@ -330,7 +330,7 @@ namespace ClangSharp.UnitTests
             t.Map("$ROOT$/path/dir2/baz.h", "$ROOT$/real/baz.h");
         }
 
-        [Fact]
+        [Test]
         public void TopLevel()
         {
             var contents =
@@ -355,7 +355,7 @@ namespace ClangSharp.UnitTests
             t.Map("$ROOT$/foo.h", "$ROOT$/real/foo.h");
         }
 
-        [Fact]
+        [Test]
         public void Empty()
         {
             var contents =

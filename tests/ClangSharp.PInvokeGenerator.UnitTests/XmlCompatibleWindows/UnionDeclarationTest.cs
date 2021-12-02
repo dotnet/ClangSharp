@@ -9,7 +9,7 @@ namespace ClangSharp.UnitTests
 {
     public sealed class XmlCompatibleWindows_UnionDeclarationTest : UnionDeclarationTest
     {
-        public override Task BasicTest(string nativeType, string expectedManagedType)
+        protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -40,7 +40,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task BasicTestInCMode(string nativeType, string expectedManagedType)
+        protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef union
 {{
@@ -70,7 +70,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
         }
 
-        public override Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -101,7 +101,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task BitfieldTest()
+        protected override Task BitfieldTestImpl()
         {
             var inputContents = @"union MyUnion1
 {
@@ -280,7 +280,7 @@ union MyUnion3
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task ExcludeTest()
+        protected override Task ExcludeTestImpl()
         {
             var inputContents = "typedef union MyUnion MyUnion;";
             var expectedOutputContents = string.Empty;
@@ -289,7 +289,7 @@ union MyUnion3
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
-        public override Task FixedSizedBufferNonPrimitiveTest(string nativeType, string expectedManagedType)
+        protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -345,7 +345,7 @@ union MyOtherUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task FixedSizedBufferNonPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType)
+        protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -464,7 +464,7 @@ union MyOtherUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task FixedSizedBufferNonPrimitiveTypedefTest(string nativeType, string expectedManagedType)
+        protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -522,7 +522,7 @@ union MyOtherUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -578,7 +578,7 @@ union MyOtherUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task FixedSizedBufferPointerTest(string nativeType, string expectedManagedType)
+        protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -624,7 +624,7 @@ union MyOtherUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task FixedSizedBufferPrimitiveTest(string nativeType, string expectedManagedType)
+        protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -647,7 +647,7 @@ union MyOtherUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task FixedSizedBufferPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType)
+        protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -670,7 +670,7 @@ union MyOtherUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task FixedSizedBufferPrimitiveTypedefTest(string nativeType, string expectedManagedType)
+        protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef {nativeType} MyBuffer[3];
 
@@ -694,7 +694,7 @@ union MyUnion
 
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
-        public override Task GuidTest()
+        protected override Task GuidTestImpl()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -740,7 +740,7 @@ union DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyUnion2
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
-        public override Task NestedAnonymousTest(string nativeType, string expectedManagedType, int line, int column)
+        protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
         {
             var inputContents = $@"typedef struct {{
     {nativeType} value;
@@ -830,7 +830,7 @@ union MyUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task NestedAnonymousWithBitfieldTest()
+        protected override Task NestedAnonymousWithBitfieldTestImpl()
         {
             var inputContents = @"union MyUnion
 {
@@ -945,7 +945,7 @@ union MyUnion
         }
 
 
-        public override Task NestedTest(string nativeType, string expectedManagedType)
+        protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -998,7 +998,7 @@ union MyUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task NestedWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"union MyUnion
 {{
@@ -1051,7 +1051,7 @@ union MyUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task NewKeywordTest()
+        protected override Task NewKeywordTestImpl()
         {
             var inputContents = @"union MyUnion
 {
@@ -1097,7 +1097,7 @@ union MyUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task NoDefinitionTest()
+        protected override Task NoDefinitionTestImpl()
         {
             var inputContents = "typedef union MyUnion MyUnion;";
 
@@ -1111,7 +1111,7 @@ union MyUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task PointerToSelfTest()
+        protected override Task PointerToSelfTestImpl()
         {
             var inputContents = @"union example_s {
    example_s* next;
@@ -1136,7 +1136,7 @@ union MyUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task PointerToSelfViaTypedefTest()
+        protected override Task PointerToSelfViaTypedefTestImpl()
         {
             var inputContents = @"typedef union example_s example_t;
 
@@ -1163,7 +1163,7 @@ union example_s {
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task RemapTest()
+        protected override Task RemapTestImpl()
         {
             var inputContents = "typedef union _MyUnion MyUnion;";
 
@@ -1179,7 +1179,7 @@ union example_s {
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
-        public override Task RemapNestedAnonymousTest()
+        protected override Task RemapNestedAnonymousTestImpl()
         {
             var inputContents = @"union MyUnion
 {
@@ -1235,7 +1235,7 @@ union example_s {
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
-        public override Task SkipNonDefinitionTest(string nativeType, string expectedManagedType)
+        protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef union MyUnion MyUnion;
 
@@ -1268,7 +1268,7 @@ union MyUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task SkipNonDefinitionPointerTest()
+        protected override Task SkipNonDefinitionPointerTestImpl()
         {
             var inputContents = @"typedef union MyUnion* MyUnionPtr;
 typedef union MyUnion& MyUnionRef;
@@ -1285,7 +1285,7 @@ typedef union MyUnion& MyUnionRef;
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task SkipNonDefinitionWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef union MyUnion MyUnion;
 
@@ -1318,7 +1318,7 @@ union MyUnion
             return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task TypedefTest(string nativeType, string expectedManagedType)
+        protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"typedef {nativeType} MyTypedefAlias;
 

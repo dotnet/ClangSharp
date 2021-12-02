@@ -1,68 +1,100 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {
     public abstract class EnumDeclarationTest : PInvokeGeneratorTest
     {
-        [Fact]
-        public abstract Task BasicTest();
+        [Test]
+        public Task BasicTest() => BasicTestImpl();
 
-        [Fact]
-        public abstract Task BasicValueTest();
+        [Test]
+        public Task BasicValueTest() => BasicValueTestImpl();
 
-        [Fact]
-        public abstract Task ExcludeTest();
+        [Test]
+        public Task ExcludeTest() => ExcludeTestImpl();
 
-        [Theory]
-        [InlineData("short", "short")]
-        public abstract Task ExplicitTypedTest(string nativeType, string expectedManagedType);
+        [TestCase("short", "short")]
+        public Task ExplicitTypedTest(string nativeType, string expectedManagedType) => ExplicitTypedTestImpl(nativeType, expectedManagedType);
 
-        [Theory]
-        [InlineData("unsigned char", "byte")]
-        [InlineData("long long", "long")]
-        [InlineData("signed char", "sbyte")]
-        [InlineData("unsigned short", "ushort")]
-        [InlineData("unsigned int", "uint")]
-        [InlineData("unsigned long long", "ulong")]
-        public abstract Task ExplicitTypedWithNativeTypeNameTest(string nativeType, string expectedManagedType);
+        [TestCase("unsigned char", "byte")]
+        [TestCase("long long", "long")]
+        [TestCase("signed char", "sbyte")]
+        [TestCase("unsigned short", "ushort")]
+        [TestCase("unsigned int", "uint")]
+        [TestCase("unsigned long long", "ulong")]
+        public Task ExplicitTypedWithNativeTypeNameTest(string nativeType, string expectedManagedType) => ExplicitTypedWithNativeTypeNameTestImpl(nativeType, expectedManagedType);
 
-        [Fact]
-        public abstract Task RemapTest();
+        [Test]
+        public Task RemapTest() => RemapTestImpl();
 
-        [Fact]
-        public abstract Task WithAttributeTest();
+        [Test]
+        public Task WithAttributeTest() => WithAttributeTestImpl();
 
-        [Fact]
-        public abstract Task WithNamespaceTest();
+        [Test]
+        public Task WithNamespaceTest() => WithNamespaceTestImpl();
 
-        [Fact]
-        public abstract Task WithNamespaceStarTest();
+        [Test]
+        public Task WithNamespaceStarTest() => WithNamespaceStarTestImpl();
 
-        [Fact]
-        public abstract Task WithNamespaceStarPlusTest();
+        [Test]
+        public Task WithNamespaceStarPlusTest() => WithNamespaceStarPlusTestImpl();
 
-        [Fact]
-        public abstract Task WithCastToEnumType();
+        [Test]
+        public Task WithCastToEnumType() => WithCastToEnumTypeImpl();
 
-        [Fact]
-        public abstract Task WithMultipleEnumsTest();
+        [Test]
+        public Task WithMultipleEnumsTest() => WithMultipleEnumsTestImpl();
 
-        [Fact]
-        public abstract Task WithImplicitConversionTest();
+        [Test]
+        public Task WithImplicitConversionTest() => WithImplicitConversionTestImpl();
 
-        [Fact]
-        public abstract Task WithTypeTest();
+        [Test]
+        public Task WithTypeTest() => WithTypeTestImpl();
 
-        [Fact]
-        public abstract Task WithTypeAndImplicitConversionTest();
+        [Test]
+        public Task WithTypeAndImplicitConversionTest() => WithTypeAndImplicitConversionTestImpl();
 
-        [Fact]
-        public abstract Task WithTypeStarTest();
+        [Test]
+        public Task WithTypeStarTest() => WithTypeStarTestImpl();
 
-        [Fact]
-        public abstract Task WithTypeStarOverrideTest();
+        [Test]
+        public Task WithTypeStarOverrideTest() => WithTypeStarOverrideTestImpl();
+
+        protected abstract Task BasicTestImpl();
+
+        protected abstract Task BasicValueTestImpl();
+
+        protected abstract Task ExcludeTestImpl();
+
+        protected abstract Task ExplicitTypedTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task ExplicitTypedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType);
+
+        protected abstract Task RemapTestImpl();
+
+        protected abstract Task WithAttributeTestImpl();
+
+        protected abstract Task WithNamespaceTestImpl();
+
+        protected abstract Task WithNamespaceStarTestImpl();
+
+        protected abstract Task WithNamespaceStarPlusTestImpl();
+
+        protected abstract Task WithCastToEnumTypeImpl();
+
+        protected abstract Task WithMultipleEnumsTestImpl();
+
+        protected abstract Task WithImplicitConversionTestImpl();
+
+        protected abstract Task WithTypeTestImpl();
+
+        protected abstract Task WithTypeAndImplicitConversionTestImpl();
+
+        protected abstract Task WithTypeStarTestImpl();
+
+        protected abstract Task WithTypeStarOverrideTestImpl();
     }
 }

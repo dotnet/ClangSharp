@@ -1,61 +1,95 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {
     public abstract class CXXMethodDeclarationTest : PInvokeGeneratorTest
     {
-        [Fact]
-        public abstract Task ConstructorTest();
+        [Test]
+        public Task ConstructorTest() => ConstructorTestImpl();
 
-        [Fact]
-        public abstract Task ConstructorWithInitializeTest();
+        [Test]
+        public Task ConstructorWithInitializeTest() => ConstructorWithInitializeTestImpl();
 
-        [Fact]
-        public abstract Task ConversionTest();
+        [Test]
+        public Task ConversionTest() => ConversionTestImpl();
 
-        [Fact]
-        public abstract Task DestructorTest();
+        [Test]
+        public Task DestructorTest() => DestructorTestImpl();
 
-        [Fact]
-        public abstract Task InstanceTest();
+        [Test]
+        public Task InstanceTest() => InstanceTestImpl();
 
-        [Fact]
-        public abstract Task MemberCallTest();
+        [Test]
+        public Task MemberCallTest() => MemberCallTestImpl();
 
-        [Fact]
-        public abstract Task MemberTest();
+        [Test]
+        public Task MemberTest() => MemberTestImpl();
 
-        [Fact]
-        public abstract Task NewKeywordTest();
+        [Test]
+        public Task NewKeywordTest() => NewKeywordTestImpl();
 
-        [Fact]
-        public abstract Task NewKeywordVirtualTest();
+        [Test]
+        public Task NewKeywordVirtualTest() => NewKeywordVirtualTestImpl();
 
-        [Fact]
-        public abstract Task NewKeywordVirtualWithExplicitVtblTest();
+        [Test]
+        public Task NewKeywordVirtualWithExplicitVtblTest() => NewKeywordVirtualWithExplicitVtblTestImpl();
 
-        [Fact]
-        public abstract Task OperatorTest();
+        [Test]
+        public Task OperatorTest() => OperatorTestImpl();
 
-        [Fact]
-        public abstract Task OperatorCallTest();
+        [Test]
+        public Task OperatorCallTest() => OperatorCallTestImpl();
 
-        [Fact]
-        public abstract Task StaticTest();
+        [Test]
+        public Task StaticTest() => StaticTestImpl();
 
-        [Fact]
-        public abstract Task ThisTest();
+        [Test]
+        public Task ThisTest() => ThisTestImpl();
 
-        [Fact]
-        public abstract Task UnsafeDoesNotImpactDllImportTest();
+        [Test]
+        public Task UnsafeDoesNotImpactDllImportTest() => UnsafeDoesNotImpactDllImportTestImpl();
 
-        [Fact]
-        public abstract Task VirtualTest();
+        [Test]
+        public Task VirtualTest() => VirtualTestImpl();
 
-        [Fact]
-        public abstract Task VirtualWithVtblIndexAttributeTest();
+        [Test]
+        public Task VirtualWithVtblIndexAttributeTest() => VirtualWithVtblIndexAttributeTestImpl();
+
+        protected abstract Task ConstructorTestImpl();
+
+        protected abstract Task ConstructorWithInitializeTestImpl();
+
+        protected abstract Task ConversionTestImpl();
+
+        protected abstract Task DestructorTestImpl();
+
+        protected abstract Task InstanceTestImpl();
+
+        protected abstract Task MemberCallTestImpl();
+
+        protected abstract Task MemberTestImpl();
+
+        protected abstract Task NewKeywordTestImpl();
+
+        protected abstract Task NewKeywordVirtualTestImpl();
+
+        protected abstract Task NewKeywordVirtualWithExplicitVtblTestImpl();
+
+        protected abstract Task OperatorTestImpl();
+
+        protected abstract Task OperatorCallTestImpl();
+
+        protected abstract Task StaticTestImpl();
+
+        protected abstract Task ThisTestImpl();
+
+        protected abstract Task UnsafeDoesNotImpactDllImportTestImpl();
+
+        protected abstract Task VirtualTestImpl();
+
+        protected abstract Task VirtualWithVtblIndexAttributeTestImpl();
     }
 }

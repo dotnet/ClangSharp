@@ -5,7 +5,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
@@ -13,30 +13,30 @@ namespace ClangSharp.Interop.UnitTests
     public static unsafe class CXIdxIBOutletCollectionAttrInfoTests
     {
         /// <summary>Validates that the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct is blittable.</summary>
-        [Fact]
+        [Test]
         public static void IsBlittableTest()
         {
-            Assert.Equal(sizeof(CXIdxIBOutletCollectionAttrInfo), Marshal.SizeOf<CXIdxIBOutletCollectionAttrInfo>());
+            Assert.AreEqual(sizeof(CXIdxIBOutletCollectionAttrInfo), Marshal.SizeOf<CXIdxIBOutletCollectionAttrInfo>());
         }
 
         /// <summary>Validates that the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Fact]
+        [Test]
         public static void IsLayoutSequentialTest()
         {
             Assert.True(typeof(CXIdxIBOutletCollectionAttrInfo).IsLayoutSequential);
         }
 
         /// <summary>Validates that the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct has the correct size.</summary>
-        [Fact]
+        [Test]
         public static void SizeOfTest()
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.Equal(72, sizeof(CXIdxIBOutletCollectionAttrInfo));
+                Assert.AreEqual(72, sizeof(CXIdxIBOutletCollectionAttrInfo));
             }
             else
             {
-                Assert.Equal(40, sizeof(CXIdxIBOutletCollectionAttrInfo));
+                Assert.AreEqual(40, sizeof(CXIdxIBOutletCollectionAttrInfo));
             }
         }
     }

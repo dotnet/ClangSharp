@@ -6,7 +6,7 @@ namespace ClangSharp.UnitTests
 {
     public sealed class CSharpCompatibleWindows_FunctionPointerDeclarationTest : FunctionPointerDeclarationTest
     {
-        public override Task BasicTest()
+        protected override Task BasicTestImpl()
         {
             var inputContents = @"typedef void (*Callback)();
 
@@ -34,7 +34,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task CallconvTest()
+        protected override Task CallconvTestImpl()
         {
             var inputContents = @"typedef void (*Callback)() __attribute__((stdcall));
 
@@ -62,7 +62,7 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task PointerlessTypedefTest()
+        protected override Task PointerlessTypedefTestImpl()
         {
             var inputContents = @"typedef void (Callback)();
 

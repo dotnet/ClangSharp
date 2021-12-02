@@ -2,13 +2,13 @@
 
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {
     public sealed class CTest : PInvokeGeneratorTest
     {
-        [Fact]
+        [Test]
         public Task BasicTest()
         {
             var inputContents = @"typedef enum MyEnum {

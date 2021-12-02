@@ -2,16 +2,15 @@
 
 using System.Linq;
 using ClangSharp.Interop;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests
 {
     public sealed class DeclTest : TranslationUnitTest
     {
-        [Theory]
-        [InlineData("private", CX_CXXAccessSpecifier.CX_CXXPrivate)]
-        [InlineData("protected", CX_CXXAccessSpecifier.CX_CXXProtected)]
-        [InlineData("public", CX_CXXAccessSpecifier.CX_CXXPublic)]
+        [TestCase("private", CX_CXXAccessSpecifier.CX_CXXPrivate)]
+        [TestCase("protected", CX_CXXAccessSpecifier.CX_CXXProtected)]
+        [TestCase("public", CX_CXXAccessSpecifier.CX_CXXPublic)]
         public void AccessSpecDeclTest(string accessSpecifier, CX_CXXAccessSpecifier expectedAccessSpecifier)
         {
             var inputContents = $@"struct MyStruct
@@ -25,10 +24,10 @@ namespace ClangSharp.UnitTests
             var recordDecl = translationUnit.TranslationUnitDecl.Decls.OfType<RecordDecl>().Where((recordDecl) => recordDecl.Name == "MyStruct").Single();
             var accessSpecDecl = recordDecl.Decls.OfType<AccessSpecDecl>().Single();
 
-            Assert.Equal(expectedAccessSpecifier, accessSpecDecl.Access);
+            Assert.AreEqual(expectedAccessSpecifier, accessSpecDecl.Access);
         }
 
-        [Fact]
+        [Test]
         public void ClassTemplateDeclTest()
         {
             var inputContents = $@"template<class T>
@@ -41,13 +40,13 @@ class MyClass
             using var translationUnit = CreateTranslationUnit(inputContents);
 
             var classTemplateDecl = translationUnit.TranslationUnitDecl.Decls.OfType<ClassTemplateDecl>().Single();
-            Assert.Equal("MyClass", classTemplateDecl.Name);
+            Assert.AreEqual("MyClass", classTemplateDecl.Name);
 
             var templateParameter = classTemplateDecl.TemplateParameters.Single();
-            Assert.Equal("T", templateParameter.Name);
+            Assert.AreEqual("T", templateParameter.Name);
         }
 
-        [Fact]
+        [Test]
         public void ClassTemplatePartialSpecializationDeclTest()
         {
             var inputContents = $@"template<class T, class U>
@@ -68,10 +67,10 @@ class MyClass<int, U>
             using var translationUnit = CreateTranslationUnit(inputContents);
 
             var classTemplatePartialSpecializationDecl = translationUnit.TranslationUnitDecl.Decls.OfType<ClassTemplatePartialSpecializationDecl>().Single();
-            Assert.Equal("MyClass", classTemplatePartialSpecializationDecl.Name);
+            Assert.AreEqual("MyClass", classTemplatePartialSpecializationDecl.Name);
 
             var templateParameter = classTemplatePartialSpecializationDecl.TemplateParameters.Single();
-            Assert.Equal("U", templateParameter.Name);
+            Assert.AreEqual("U", templateParameter.Name);
         }
     }
 }

@@ -3,7 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Xunit;
+using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
@@ -11,30 +11,30 @@ namespace ClangSharp.Interop.UnitTests
     public static unsafe class CX_TemplateArgumentTests
     {
         /// <summary>Validates that the <see cref="CX_TemplateArgument" /> struct is blittable.</summary>
-        [Fact]
+        [Test]
         public static void IsBlittableTest()
         {
-            Assert.Equal(sizeof(CX_TemplateArgument), Marshal.SizeOf<CX_TemplateArgument>());
+            Assert.AreEqual(sizeof(CX_TemplateArgument), Marshal.SizeOf<CX_TemplateArgument>());
         }
 
         /// <summary>Validates that the <see cref="CX_TemplateArgument" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Fact]
+        [Test]
         public static void IsLayoutSequentialTest()
         {
             Assert.True(typeof(CX_TemplateArgument).IsLayoutSequential);
         }
 
         /// <summary>Validates that the <see cref="CX_TemplateArgument" /> struct has the correct size.</summary>
-        [Fact]
+        [Test]
         public static void SizeOfTest()
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.Equal(24, sizeof(CX_TemplateArgument));
+                Assert.AreEqual(24, sizeof(CX_TemplateArgument));
             }
             else
             {
-                Assert.Equal(16, sizeof(CX_TemplateArgument));
+                Assert.AreEqual(16, sizeof(CX_TemplateArgument));
             }
         }
     }

@@ -7,7 +7,7 @@ namespace ClangSharp.UnitTests
 {
     public sealed class XmlLatestUnix_EnumDeclarationTest : EnumDeclarationTest
     {
-        public override Task BasicTest()
+        protected override Task BasicTestImpl()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -39,7 +39,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task BasicValueTest()
+        protected override Task BasicValueTestImpl()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -74,7 +74,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task ExcludeTest()
+        protected override Task ExcludeTestImpl()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -90,7 +90,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
         }
 
-        public override Task ExplicitTypedTest(string nativeType, string expectedManagedType)
+        protected override Task ExplicitTypedTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"enum MyEnum : {nativeType}
 {{
@@ -122,7 +122,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task ExplicitTypedWithNativeTypeNameTest(string nativeType, string expectedManagedType)
+        protected override Task ExplicitTypedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"enum MyEnum : {nativeType}
 {{
@@ -154,7 +154,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task RemapTest()
+        protected override Task RemapTestImpl()
         {
             var inputContents = @"typedef enum _MyEnum : int
 {
@@ -187,7 +187,7 @@ namespace ClangSharp.UnitTests
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
         }
 
-        public override Task WithAttributeTest()
+        protected override Task WithAttributeTestImpl()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -233,7 +233,7 @@ enum MyEnum2 : int
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
         }
 
-        public override Task WithNamespaceTest()
+        protected override Task WithNamespaceTestImpl()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -278,7 +278,7 @@ enum MyEnum2 : int
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
-        public override Task WithNamespaceStarTest()
+        protected override Task WithNamespaceStarTestImpl()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -323,7 +323,7 @@ enum MyEnum2 : int
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
-        public override Task WithNamespaceStarPlusTest()
+        protected override Task WithNamespaceStarPlusTestImpl()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -369,7 +369,7 @@ enum MyEnum2 : int
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
         }
 
-        public override Task WithCastToEnumType()
+        protected override Task WithCastToEnumTypeImpl()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -410,7 +410,7 @@ enum MyEnum2 : int
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task WithMultipleEnumsTest()
+        protected override Task WithMultipleEnumsTestImpl()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -458,7 +458,7 @@ enum MyEnum2 : int
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task WithImplicitConversionTest()
+        protected override Task WithImplicitConversionTestImpl()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -500,7 +500,7 @@ enum MyEnum2 : int
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        public override Task WithTypeTest()
+        protected override Task WithTypeTestImpl()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -535,7 +535,7 @@ enum MyEnum2 : int
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
 
-        public override Task WithTypeAndImplicitConversionTest()
+        protected override Task WithTypeAndImplicitConversionTestImpl()
         {
             var inputContents = @"enum MyEnum : int
 {
@@ -574,7 +574,7 @@ enum MyEnum2 : int
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
 
-        public override Task WithTypeStarTest()
+        protected override Task WithTypeStarTestImpl()
         {
             var inputContents = @"enum MyEnum1 : int
 {
@@ -613,7 +613,7 @@ enum MyEnum2 : int
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
         }
 
-        public override Task WithTypeStarOverrideTest()
+        protected override Task WithTypeStarOverrideTestImpl()
         {
             var inputContents = @"enum MyEnum1 : int
 {
