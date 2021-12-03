@@ -482,14 +482,16 @@ namespace ClangSharp
 
             var cxxMethodDecl = functionDecl as CXXMethodDecl;
             var body = functionDecl.Body;
+            var hasBody = body is not null;
 
-            var isVirtual = (cxxMethodDecl != null) && cxxMethodDecl.IsVirtual;
+            var isCxxMethodDecl = cxxMethodDecl is not null;
+            var isVirtual = isCxxMethodDecl && cxxMethodDecl.IsVirtual;
             var escapedName = isVirtual ? PrefixAndStripName(name, GetOverloadIndex(cxxMethodDecl)) : EscapeAndStripName(name);
 
             var returnType = functionDecl.ReturnType;
             var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
 
-            if ((isVirtual || (body is null)) && (returnTypeName == "bool"))
+            if ((isVirtual || !hasBody) && (returnTypeName == "bool"))
             {
                 // bool is not blittable, so we shouldn't use it for P/Invoke signatures
                 returnTypeName = "byte";
@@ -499,7 +501,7 @@ namespace ClangSharp
             var type = functionDecl.Type;
             var callingConventionName = GetCallingConvention(functionDecl, cxxRecordDecl, type);
 
-            var isDllImport = body is null && !isVirtual;
+            var isDllImport = !hasBody && !isVirtual;
             var entryPoint = "";
 
             if (isDllImport)
@@ -507,7 +509,7 @@ namespace ClangSharp
                 entryPoint = functionDecl.IsExternC ? GetCursorName(functionDecl) : functionDecl.Handle.Mangling.CString;
             }
 
-            var needsReturnFixup = isVirtual && NeedsReturnFixup(cxxMethodDecl);
+            var needsReturnFixup = isCxxMethodDecl && NeedsReturnFixup(cxxMethodDecl);
 
             var desc = new FunctionOrDelegateDesc {
                 AccessSpecifier = accessSppecifier,
@@ -521,8 +523,8 @@ namespace ClangSharp
                 IsDllImport = isDllImport,
                 HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
                 SetLastError = GetSetLastError(functionDecl),
-                IsCxx = cxxMethodDecl is not null,
-                IsStatic = isDllImport || (cxxMethodDecl?.IsStatic ?? true),
+                IsCxx = isCxxMethodDecl,
+                IsStatic = isDllImport || !isCxxMethodDecl || cxxMethodDecl.IsStatic,
                 NeedsNewKeyword = NeedsNewKeyword(escapedName, functionDecl.Parameters),
                 IsUnsafe = IsUnsafe(functionDecl),
                 IsCtxCxxRecord = cxxRecordDecl is not null,
@@ -531,7 +533,7 @@ namespace ClangSharp
                 ReturnType = needsReturnFixup ? $"{returnTypeName}*" : returnTypeName,
                 IsCxxConstructor = functionDecl is CXXConstructorDecl,
                 Location = functionDecl.Location,
-                HasBody = body is not null,
+                HasBody = hasBody,
                 WriteCustomAttrs = static context => {
                     (var functionDecl, var outputBuilder, var generator) = ((FunctionDecl, IOutputBuilder, PInvokeGenerator))context;
 
@@ -552,7 +554,7 @@ namespace ClangSharp
 
             _outputBuilder.BeginFunctionInnerPrototype(escapedName);
 
-            if (isVirtual)
+            if (isVirtual || (isCxxMethodDecl && !hasBody && cxxMethodDecl.IsInstance))
             {
                 Debug.Assert(cxxRecordDecl != null);
 
@@ -593,7 +595,7 @@ namespace ClangSharp
 
             _outputBuilder.EndFunctionInnerPrototype();
 
-            if ((body is not null) && !isVirtual)
+            if (hasBody && !isVirtual)
             {
                 var firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
                 var lastCtorInitializer = (functionDecl.Body != null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
