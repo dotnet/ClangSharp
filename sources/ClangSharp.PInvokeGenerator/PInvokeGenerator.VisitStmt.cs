@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -67,6 +68,51 @@ namespace ClangSharp
         {
             var outputBuilder = StartCSharpCode();
             var calleeDecl = callExpr.CalleeDecl;
+
+            if (callExpr.DirectCallee.IsInlined)
+            {
+                var evalResult = callExpr.Handle.Evaluate;
+                var canonicalType = callExpr.Type.CanonicalType;
+
+                switch (evalResult.Kind)
+                {
+                    case CXEvalResultKind.CXEval_Int:
+                    {
+                        if (canonicalType.Handle.IsUnsigned)
+                        {
+                            outputBuilder.Write(evalResult.AsUnsigned);
+                        }
+                        else
+                        {
+                            outputBuilder.Write(evalResult.AsLongLong);
+                        }
+
+                        StopCSharpCode();
+                        return;
+                    }
+
+                    case CXEvalResultKind.CXEval_Float:
+                    {
+                        if (canonicalType.Kind == CXTypeKind.CXType_Float)
+                        {
+                            outputBuilder.Write((float)evalResult.AsDouble);
+                        }
+                        else
+                        {
+                            outputBuilder.Write(evalResult.AsDouble);
+                        }
+
+                        StopCSharpCode();
+                        return;
+                    }
+
+                    case CXEvalResultKind.CXEval_StrLiteral:
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, "Possible string constant");
+                        break;
+                    }
+                }
+            }
 
             if (calleeDecl is null)
             {

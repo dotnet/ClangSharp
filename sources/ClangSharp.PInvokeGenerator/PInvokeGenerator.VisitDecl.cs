@@ -3406,6 +3406,26 @@ namespace ClangSharp
 
                 case CX_StmtClass.CX_StmtClass_CallExpr:
                 {
+                    var callExpr = (CallExpr)initExpr;
+
+                    if (callExpr.DirectCallee.IsInlined)
+                    {
+                        var evaluateResult = callExpr.Handle.Evaluate;
+
+                        switch (evaluateResult.Kind)
+                        {
+                            case CXEvalResultKind.CXEval_Int:
+                            {
+                                return true;
+                            }
+
+                            case CXEvalResultKind.CXEval_Float:
+                            {
+                                return true;
+                            }
+                        }
+                    }
+
                     return false;
                 }
 
