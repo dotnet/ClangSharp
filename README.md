@@ -12,6 +12,8 @@ A helper package which exposes many Clang APIs missing from libClang is provided
 
 Nightly packages are available via the NuGet Feed URL: https://pkgs.terrafx.dev/index.json
 
+Source browsing is available via: https://source.clangsharp.dev/
+
 ## Table of Contents
 
 * [Code of Conduct](#code-of-conduct)
