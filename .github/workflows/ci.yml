@@ -124,6 +124,22 @@ jobs:
           ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
         if-no-files-found: error
+  publish-nightlies-azure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
+    needs: [ windows-x64, windows-x86, linux-x64, macos-x64, build-nuget-preview ]
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: windows_release_x64
+        path: ./artifacts
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.x'
+        source-url: https://pkgs.clangsharp.dev/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.AZURE_DEVOPS_PAT }}
+    - run: dotnet nuget push "./artifacts/pkg/Release/*.nupkg" --api-key AzureDevOps --skip-duplicate
   publish-nightlies-github:
     runs-on: ubuntu-latest
     if: false

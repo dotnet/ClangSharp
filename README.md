@@ -10,7 +10,7 @@ A .NET tool for the P/Invoke generator project is provided here: https://www.nug
 A convenience package which provides the native libClang library for several platforms is provided here: https://www.nuget.org/packages/libclang
 A helper package which exposes many Clang APIs missing from libClang is provided here: https://www.nuget.org/packages/libClangSharp
 
-NOTE: These may be out of date as compared to the latest sources. New versions are published as appropriate and a nightly feed is not currently available.
+Nightly packages are available via the NuGet Feed URL: https://pkgs.terrafx.dev/index.json
 
 ## Table of Contents
 
