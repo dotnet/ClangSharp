@@ -1801,7 +1801,7 @@ namespace ClangSharp
 
         private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl)
         {
-            if (!TryGetRemappedValue(namedDecl, _config.WithAccessSpcifier, out var accessSpecifier) || (accessSpecifier == AccessSpecifier.None))
+            if (!TryGetRemappedValue(namedDecl, _config.WithAccessSpecifiers, out var accessSpecifier) || (accessSpecifier == AccessSpecifier.None))
             {
                 switch (namedDecl.Access)
                 {

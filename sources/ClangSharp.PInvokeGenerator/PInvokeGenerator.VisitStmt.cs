@@ -69,7 +69,7 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             var calleeDecl = callExpr.CalleeDecl;
 
-            if (callExpr.DirectCallee.IsInlined)
+            if ((callExpr.DirectCallee is not null) && callExpr.DirectCallee.IsInlined)
             {
                 var evalResult = callExpr.Handle.Evaluate;
                 var canonicalType = callExpr.Type.CanonicalType;

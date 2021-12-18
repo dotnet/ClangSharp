@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ClangSharp.Interop;
+using ClangSharp.Abstractions;
 
 namespace ClangSharp
 {
@@ -117,6 +118,7 @@ namespace ClangSharp
             AddWithCallConvOption(s_rootCommand);
             AddWithClassOption(s_rootCommand);
             AddWithLibraryPathOption(s_rootCommand);
+            AddWithManualImportOption(s_rootCommand);
             AddWithNamespaceOption(s_rootCommand);
             AddWithSetLastErrorOption(s_rootCommand);
             AddWithSuppressGCTransitionOption(s_rootCommand);
@@ -155,6 +157,7 @@ namespace ClangSharp
             var withCallConvNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-callconv");
             var withClassNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-class");
             var withLibraryPathNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-librarypath");
+            var withManualImports = context.ParseResult.ValueForOption<string[]>("--with-manual-import");
             var withNamespaceNameValuePairs = context.ParseResult.ValueForOption<string[]>("--with-namespace");
             var withSetLastErrors = context.ParseResult.ValueForOption<string[]>("--with-setlasterror");
             var withSuppressGCTransitions = context.ParseResult.ValueForOption<string[]>("--with-suppressgctransition");
@@ -193,11 +196,11 @@ namespace ClangSharp
             }
 
             ParseKeyValuePairs(remappedNameValuePairs, errorList, out Dictionary<string, string> remappedNames);
-            ParseKeyValuePairs(withAccessSpecifierNameValuePairs, errorList, out Dictionary<string, string> withAccessSpecifiers);
+            ParseKeyValuePairs(withAccessSpecifierNameValuePairs, errorList, out Dictionary<string, AccessSpecifier> withAccessSpecifiers);
             ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
             ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
             ParseKeyValuePairs(withClassNameValuePairs, errorList, out Dictionary<string, string> withClasses);
-            ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPath);
+            ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPaths);
             ParseKeyValuePairs(withNamespaceNameValuePairs, errorList, out Dictionary<string, string> withNamespaces);
             ParseKeyValuePairs(withTransparentStructNameValuePairs, errorList, out Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> withTransparentStructs);
             ParseKeyValuePairs(withTypeNameValuePairs, errorList, out Dictionary<string, string> withTypes);
@@ -556,7 +559,28 @@ namespace ClangSharp
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
             translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-            var config = new PInvokeGeneratorConfiguration(libraryPath, namespaceName, outputLocation, testOutputLocation, outputMode, configOptions, excludedNames, includedNames, headerFile, methodClassName, methodPrefixToStrip, remappedNames, traversalNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPath, withNamespaces, withSetLastErrors, withSuppressGCTransitions, withTransparentStructs, withTypes, withUsings);
+            var config = new PInvokeGeneratorConfiguration(namespaceName, outputLocation, headerFile, outputMode, configOptions) {
+                DefaultClass = methodClassName,
+                ExcludedNames = excludedNames,
+                IncludedNames = includedNames,
+                LibraryPath = libraryPath,
+                MethodPrefixToStrip = methodPrefixToStrip,
+                RemappedNames = remappedNames,
+                TraversalNames = traversalNames,
+                TestOutputLocation = testOutputLocation,
+                WithAccessSpecifiers = withAccessSpecifiers,
+                WithAttributes = withAttributes,
+                WithCallConvs = withCallConvs,
+                WithClasses = withClasses,
+                WithLibraryPaths = withLibraryPaths,
+                WithManualImports = withManualImports,
+                WithNamespaces = withNamespaces,
+                WithSetLastErrors = withSetLastErrors,
+                WithSuppressGCTransitions = withSuppressGCTransitions,
+                WithTransparentStructs = withTransparentStructs,
+                WithTypes = withTypes,
+                WithUsings = withUsings,
+            };
 
             if (config.GenerateMacroBindings)
             {
@@ -674,6 +698,32 @@ namespace ClangSharp
                 }
 
                 result.Add(key, parts[1].TrimStart());
+            }
+        }
+
+        private static void ParseKeyValuePairs(IEnumerable<string> keyValuePairs, List<string> errorList, out Dictionary<string, AccessSpecifier> result)
+        {
+            result = new Dictionary<string, AccessSpecifier>();
+
+            foreach (var keyValuePair in keyValuePairs)
+            {
+                var parts = keyValuePair.Split('=');
+
+                if (parts.Length != 2)
+                {
+                    errorList.Add($"Error: Invalid key/value pair argument: {keyValuePair}. Expected 'name=value'");
+                    continue;
+                }
+
+                var key = parts[0].TrimEnd();
+
+                if (result.ContainsKey(key))
+                {
+                    errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {result[key]}");
+                    continue;
+                }
+
+                result.Add(key, PInvokeGeneratorConfiguration.ConvertStringToAccessSpecifier(parts[1].TrimStart()));
             }
         }
 
@@ -1075,6 +1125,19 @@ namespace ClangSharp
             var option = new Option(
                 aliases: new string[] { "--with-librarypath", "-wlb" },
                 description: "A library path to be used for the given declaration during binding generation.",
+                argumentType: typeof(string),
+                getDefaultValue: Array.Empty<string>,
+                arity: ArgumentArity.OneOrMore
+            );
+
+            rootCommand.AddOption(option);
+        }
+
+        private static void AddWithManualImportOption(RootCommand rootCommand)
+        {
+            var option = new Option(
+                aliases: new string[] { "--with-manual-import", "-wmi" },
+                description: "A remapped function name to be treated as a manual import during binding generation.",
                 argumentType: typeof(string),
                 getDefaultValue: Array.Empty<string>,
                 arity: ArgumentArity.OneOrMore
