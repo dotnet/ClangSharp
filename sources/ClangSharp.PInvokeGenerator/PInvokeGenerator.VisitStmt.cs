@@ -780,9 +780,12 @@ namespace ClangSharp
             {
                 var cursorName = GetCursorName(varDecl);
 
-                if (cursorName.StartsWith("ClangSharpMacro_") && _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
+                if (cursorName.StartsWith("ClangSharpMacro_") &&  _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
                 {
-                    typeName = transparentStruct.Name;
+                    if (!IsPrimitiveValue(type) || IsConstant(typeName, varDecl.Init))
+                    {
+                        typeName = transparentStruct.Name;
+                    }
                 }
             }
 
