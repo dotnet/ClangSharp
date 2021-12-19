@@ -343,6 +343,8 @@ namespace ClangSharp
                 if (!TryGetClass(name, out var className, disallowPrefixMatch: true))
                 {
                     className = _config.DefaultClass;
+                    _ = _topLevelClassNames.Add(className);
+                    _ = _topLevelClassNames.Add($"{className}Tests");
                     AddDiagnostic(DiagnosticLevel.Info, $"Found anonymous enum: {name}. Mapping values as constants in: {className}", enumDecl);
                 }
 
