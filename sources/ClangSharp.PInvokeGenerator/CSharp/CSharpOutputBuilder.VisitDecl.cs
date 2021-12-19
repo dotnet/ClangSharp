@@ -373,7 +373,7 @@ namespace ClangSharp.CSharp
 
                 WriteLine(']');
             }
-            else if (desc.IsDllImport)
+            else if (desc.IsDllImport && !desc.IsManualImport)
             {
                 AddUsingDirective("System.Runtime.InteropServices");
 
@@ -418,7 +418,6 @@ namespace ClangSharp.CSharp
             {
                 WriteIndentedLine("[SetsLastSystemError]");
             }
-            // GenerateSetsLastSystemErrorAttribute
 
             if (desc.IsAggressivelyInlined)
             {
@@ -433,7 +432,7 @@ namespace ClangSharp.CSharp
                 AddVtblIndexAttribute(vtblIndex);
             }
 
-            if (desc.NativeTypeName is not null)
+            if ((desc.NativeTypeName is not null) && !desc.IsManualImport)
             {
                 AddNativeTypeNameAttribute(desc.NativeTypeName, attributePrefix: "return: ");
             }
@@ -460,7 +459,7 @@ namespace ClangSharp.CSharp
                     }
                     Write("delegate ");
                 }
-                else if (desc.IsStatic ?? (desc.IsDllImport || !desc.IsCxx))
+                else if ((desc.IsStatic ?? (desc.IsDllImport || !desc.IsCxx)) && !desc.IsManualImport)
                 {
                     Write("static ");
 
@@ -473,7 +472,6 @@ namespace ClangSharp.CSharp
 
             if (!desc.IsVirtual)
             {
-                //if (NeedsNewKeyword(escapedName, functionDecl.Parameters))
                 if (desc.NeedsNewKeyword)
                 {
                     Write("new ");
@@ -481,12 +479,10 @@ namespace ClangSharp.CSharp
 
                 if (desc.IsUnsafe)
                 {
-                    //if (cxxRecordDecl is null)
                     if (!desc.IsCtxCxxRecord)
                     {
                         isMethodClassUnsafe = true;
                     }
-                    //else if (!IsUnsafe(cxxRecordDecl))
                     else if (!desc.IsCxxRecordCtxUnsafe)
                     {
                         Write("unsafe ");
@@ -494,7 +490,7 @@ namespace ClangSharp.CSharp
                 }
             }
 
-            if (!desc.IsCxxConstructor)
+            if (!desc.IsCxxConstructor && !desc.IsManualImport)
             {
                 Write(desc.ReturnType);
                 Write(' ');
@@ -532,35 +528,59 @@ namespace ClangSharp.CSharp
             }
         }
 
-        public void BeginFunctionInnerPrototype(string escapedName)
+        public void BeginFunctionInnerPrototype(in FunctionOrDelegateDesc desc)
         {
-            Write(escapedName);
-            Write('(');
+            if (desc.IsManualImport)
+            {
+                Write("delegate* unmanaged");
+
+                if (desc.CallingConvention != CallingConvention.Winapi)
+                {
+                    Write('[');
+                    Write(desc.CallingConvention);
+                    Write(']');
+                }
+
+                Write('<');
+            }
+            else
+            {
+                Write(desc.EscapedName);
+                Write('(');
+            }
         }
 
         public void BeginParameter(in ParameterDesc info)
         {
-            if (info.NativeTypeName is not null)
+            if (info.IsForManualImport)
             {
-                AddNativeTypeNameAttribute(info.NativeTypeName, prefix: "", postfix: " ");
+                Write(info.Type);
             }
-
-            if (info.CppAttributes is not null)
+            else
             {
-                AddCppAttributes(info.CppAttributes, prefix: "", postfix: " ");
-            }
+                if (info.NativeTypeName is not null)
+                {
+                    AddNativeTypeNameAttribute(info.NativeTypeName, prefix: "", postfix: " ");
+                }
 
-            if (info.Location is {} location)
-            {
-                WriteSourceLocation(location, true);
-            }
+                if (info.CppAttributes is not null)
+                {
+                    AddCppAttributes(info.CppAttributes, prefix: "", postfix: " ");
+                }
 
-            _customAttrIsForParameter = true;
-            info.WriteCustomAttrs?.Invoke(info.CustomAttrGeneratorData);
-            _customAttrIsForParameter = false;
-            Write(info.Type);
-            Write(' ');
-            Write(info.Name);
+                if (info.Location is { } location)
+                {
+                    WriteSourceLocation(location, true);
+                }
+
+                _customAttrIsForParameter = true;
+                info.WriteCustomAttrs?.Invoke(info.CustomAttrGeneratorData);
+                _customAttrIsForParameter = false;
+
+                Write(info.Type);
+                Write(' ');
+                Write(info.Name);
+            }
         }
 
         public void BeginParameterDefault() => Write(" = ");
@@ -581,7 +601,18 @@ namespace ClangSharp.CSharp
             Write(' ');
         }
 
-        public void EndFunctionInnerPrototype() => Write(')');
+        public void EndFunctionInnerPrototype(in FunctionOrDelegateDesc desc)
+        {
+            if (desc.IsManualImport)
+            {
+                Write(desc.ReturnType);
+                Write('>');
+            }
+            else
+            {
+                Write(')');
+            }
+        }
 
         public void BeginConstructorInitializer(string memberRefName, string memberInitName)
         {
@@ -646,6 +677,12 @@ namespace ClangSharp.CSharp
 
         public void EndFunctionOrDelegate(in FunctionOrDelegateDesc desc)
         {
+            if (desc.IsManualImport)
+            {
+                Write(' ');
+                Write(desc.EscapedName);
+            }
+
             if (!desc.HasBody || desc.IsVirtual)
             {
                 WriteSemicolon();

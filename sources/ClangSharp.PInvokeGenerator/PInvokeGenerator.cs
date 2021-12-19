@@ -1801,7 +1801,7 @@ namespace ClangSharp
 
         private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl)
         {
-            if (!TryGetRemappedValue(namedDecl, _config.WithAccessSpcifier, out var accessSpecifier) || (accessSpecifier == AccessSpecifier.None))
+            if (!TryGetRemappedValue(namedDecl, _config.WithAccessSpecifiers, out var accessSpecifier) || (accessSpecifier == AccessSpecifier.None))
             {
                 switch (namedDecl.Access)
                 {
@@ -4960,6 +4960,13 @@ namespace ClangSharp
 
         private bool IsUnsafe(FunctionDecl functionDecl)
         {
+            var name = GetRemappedCursorName(functionDecl);
+
+            if (_config.WithManualImports.Contains(name))
+            {
+                return true;
+            }
+
             if (IsUnsafe(functionDecl, functionDecl.ReturnType))
             {
                 return true;

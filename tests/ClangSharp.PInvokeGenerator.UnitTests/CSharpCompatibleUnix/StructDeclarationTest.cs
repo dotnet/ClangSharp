@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using ClangSharp.Abstractions;
 
 namespace ClangSharp.UnitTests
 {
@@ -1663,11 +1663,11 @@ struct MyStruct3
 }
 ";
 
-            var withAccessSpecifiers = new Dictionary<string, string> {
-                ["MyStruct1"] = "private",
-                ["MyStruct2"] = "internal",
-                ["Field1"] = "private",
-                ["MyStruct3.Field2"] = "internal",
+            var withAccessSpecifiers = new Dictionary<string, AccessSpecifier> {
+                ["MyStruct1"] = AccessSpecifier.Private,
+                ["MyStruct2"] = AccessSpecifier.Internal,
+                ["Field1"] = AccessSpecifier.Private,
+                ["MyStruct3.Field2"] = AccessSpecifier.Internal,
             };
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
         }

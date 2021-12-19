@@ -50,6 +50,21 @@ namespace ClangSharp.Abstractions
             }
         }
 
+        public bool IsManualImport
+        {
+            get
+            {
+                return (Flags & FunctionOrDelegateFlags.IsManualImport) != 0;
+            }
+
+            set
+            {
+                Flags = value
+                      ? Flags | FunctionOrDelegateFlags.IsManualImport
+                      : Flags & ~FunctionOrDelegateFlags.IsManualImport;
+            }
+        }
+
         public bool HasFnPtrCodeGen
         {
             get

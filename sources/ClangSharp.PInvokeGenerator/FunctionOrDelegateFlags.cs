@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ClangSharp
 {
@@ -20,5 +20,6 @@ namespace ClangSharp
         IsNotStatic = 1 << 12,
         NeedsReturnFixup = 1 << 13,
         IsCxxConstructor = 1 << 14,
+        IsManualImport = 1 << 15,
     }
 }

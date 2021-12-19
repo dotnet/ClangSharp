@@ -30,13 +30,13 @@ namespace ClangSharp.Abstractions
         void EndField(in FieldDesc desc);
 
         void BeginFunctionOrDelegate(in FunctionOrDelegateDesc info, ref bool isMethodClassUnsafe);
-        void BeginFunctionInnerPrototype(string escapedName);
+        void BeginFunctionInnerPrototype(in FunctionOrDelegateDesc info);
         void BeginParameter(in ParameterDesc info);
         void BeginParameterDefault();
         void EndParameterDefault();
         void EndParameter(in ParameterDesc info);
         void WriteParameterSeparator();
-        void EndFunctionInnerPrototype();
+        void EndFunctionInnerPrototype(in FunctionOrDelegateDesc info);
         void BeginConstructorInitializer(string memberRefName, string memberInitName);
         void EndConstructorInitializer();
         void BeginBody(bool isExpressionBody = false);

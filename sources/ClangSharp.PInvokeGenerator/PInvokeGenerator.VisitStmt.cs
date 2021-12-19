@@ -69,7 +69,7 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             var calleeDecl = callExpr.CalleeDecl;
 
-            if (callExpr.DirectCallee.IsInlined)
+            if ((callExpr.DirectCallee is not null) && callExpr.DirectCallee.IsInlined)
             {
                 var evalResult = callExpr.Handle.Evaluate;
                 var canonicalType = callExpr.Type.CanonicalType;
@@ -780,9 +780,12 @@ namespace ClangSharp
             {
                 var cursorName = GetCursorName(varDecl);
 
-                if (cursorName.StartsWith("ClangSharpMacro_") && _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
+                if (cursorName.StartsWith("ClangSharpMacro_") &&  _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
                 {
-                    typeName = transparentStruct.Name;
+                    if (!IsPrimitiveValue(type) || IsConstant(typeName, varDecl.Init))
+                    {
+                        typeName = transparentStruct.Name;
+                    }
                 }
             }
 
