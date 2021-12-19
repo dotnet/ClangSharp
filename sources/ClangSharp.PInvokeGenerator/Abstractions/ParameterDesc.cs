@@ -15,5 +15,6 @@ namespace ClangSharp.Abstractions
         public Action<object> WriteCustomAttrs { get; set; }
         public object CustomAttrGeneratorData { get; set; }
         public CXSourceLocation? Location { get; set; }
+        public bool IsForManualImport { get; set; }
     }
 }

@@ -462,6 +462,8 @@ namespace ClangSharp
             }
 
             var name = GetRemappedCursorName(functionDecl);
+            var isManualImport = _config.WithManualImports.Contains(name);
+
             var className = name;
             var parentName = "";
 
@@ -490,6 +492,13 @@ namespace ClangSharp
 
             var returnType = functionDecl.ReturnType;
             var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
+
+            if (isManualImport && !_config.WithClasses.ContainsKey(name))
+            {
+                var firstParameter = functionDecl.Parameters.FirstOrDefault();
+                var firstParameterTypeName = (firstParameter is not null) ? GetTargetTypeName(firstParameter, out var _) : "void";
+                AddDiagnostic(DiagnosticLevel.Warning, $"Found manual import for {name} with no class remapping. First Parameter Type: {firstParameterTypeName}; Return Type: {returnTypeName}", functionDecl);
+            }
 
             if ((isVirtual || !hasBody) && (returnTypeName == "bool"))
             {
@@ -521,6 +530,7 @@ namespace ClangSharp
                 LibraryPath = isDllImport ? GetLibraryPath(name).Unquote() : null,
                 IsVirtual = isVirtual,
                 IsDllImport = isDllImport,
+                IsManualImport = isManualImport,
                 HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
                 SetLastError = GetSetLastError(functionDecl),
                 IsCxx = isCxxMethodDecl,
@@ -552,7 +562,7 @@ namespace ClangSharp
             _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
             _isTopLevelClassUnsafe[className] = isUnsafe;
 
-            _outputBuilder.BeginFunctionInnerPrototype(escapedName);
+            _outputBuilder.BeginFunctionInnerPrototype(in desc);
 
             if (isVirtual || (isCxxMethodDecl && !hasBody && cxxMethodDecl.IsInstance))
             {
@@ -593,7 +603,7 @@ namespace ClangSharp
 
             Visit(functionDecl.Parameters);
 
-            _outputBuilder.EndFunctionInnerPrototype();
+            _outputBuilder.EndFunctionInnerPrototype(in desc);
 
             if (hasBody && !isVirtual)
             {
@@ -983,9 +993,7 @@ namespace ClangSharp
             else
             {
                 _ = IsPrevContextDecl<Decl>(out var previousContext, out _);
-                AddDiagnostic(DiagnosticLevel.Error,
-                    $"Unsupported parameter variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.",
-                    previousContext);
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.", previousContext);
             }
 
             void ForFunctionDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
@@ -995,6 +1003,9 @@ namespace ClangSharp
 
                 var name = GetRemappedCursorName(parmVarDecl);
                 var escapedName = EscapeName(name);
+
+                var functionName = GetRemappedCursorName(functionDecl);
+                var isForManualImport = _config.WithManualImports.Contains(functionName);
 
                 var parameters = functionDecl.Parameters;
                 var index = parameters.IndexOf(parmVarDecl);
@@ -1032,6 +1043,7 @@ namespace ClangSharp
                         }
                     },
                     CustomAttrGeneratorData = (parmVarDecl, this, null as CSharp.CSharpOutputBuilder, null as Expr),
+                    IsForManualImport = isForManualImport
                 };
 
                 var handledDefaultArg = false;
@@ -1081,7 +1093,7 @@ namespace ClangSharp
 
                 _outputBuilder.EndParameter(in desc);
 
-                if (index != lastIndex)
+                if ((index != lastIndex) || isForManualImport)
                 {
                     _outputBuilder.WriteParameterSeparator();
                 }
@@ -1792,11 +1804,11 @@ namespace ClangSharp
                 var isUnsafe = true;
                 _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
 
-                _outputBuilder.BeginFunctionInnerPrototype(desc.EscapedName);
+                _outputBuilder.BeginFunctionInnerPrototype(in desc);
 
                 Visit(cxxMethodDecl.Parameters);
 
-                _outputBuilder.EndFunctionInnerPrototype();
+                _outputBuilder.EndFunctionInnerPrototype(in desc);
                 _outputBuilder.EndFunctionOrDelegate(in desc);
 
                 Debug.Assert(_context.Last == currentContext);
@@ -1950,11 +1962,11 @@ namespace ClangSharp
                 var isUnsafe = true;
                 _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
 
-                _outputBuilder.BeginFunctionInnerPrototype(desc.EscapedName);
+                _outputBuilder.BeginFunctionInnerPrototype(in desc);
 
                 Visit(cxxMethodDecl.Parameters);
 
-                _outputBuilder.EndFunctionInnerPrototype();
+                _outputBuilder.EndFunctionInnerPrototype(in desc);
                 _outputBuilder.BeginBody();
 
                 var escapedCXXRecordDeclName = EscapeName(cxxRecordDeclName);
@@ -2764,7 +2776,7 @@ namespace ClangSharp
                     var isUnsafe = false;
                     _outputBuilder.BeginFunctionOrDelegate(in function, ref isUnsafe);
 
-                    _outputBuilder.BeginFunctionInnerPrototype("AsSpan");
+                    _outputBuilder.BeginFunctionInnerPrototype(in function);
 
                     if (type.Size == 1)
                     {
@@ -2777,7 +2789,7 @@ namespace ClangSharp
                         _outputBuilder.EndParameter(in param);
                     }
 
-                    _outputBuilder.EndFunctionInnerPrototype();
+                    _outputBuilder.EndFunctionInnerPrototype(in function);
                     _outputBuilder.BeginBody(true);
                     code = _outputBuilder.BeginCSharpCode();
 
@@ -2859,11 +2871,11 @@ namespace ClangSharp
                     var isUnsafe = desc.IsUnsafe;
                     _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
 
-                    _outputBuilder.BeginFunctionInnerPrototype(escapedName);
+                    _outputBuilder.BeginFunctionInnerPrototype(in desc);
 
                     Visit(typedefDecl.CursorChildren.OfType<ParmVarDecl>());
 
-                    _outputBuilder.EndFunctionInnerPrototype();
+                    _outputBuilder.EndFunctionInnerPrototype(in desc);
                     _outputBuilder.EndFunctionOrDelegate(in desc);
                 }
                 StopUsingOutputBuilder();

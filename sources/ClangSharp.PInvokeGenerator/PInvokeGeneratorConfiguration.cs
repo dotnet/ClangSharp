@@ -282,6 +282,7 @@ namespace ClangSharp
 
             init
             {
+                AddRange(_forceRemappedNames, value, ValueStartsWithAt);
                 AddRange(_remappedNames, value, RemoveAtPrefix);
             }
         }
@@ -501,7 +502,6 @@ namespace ClangSharp
                 return AccessSpecifier.None;
             }
         }
-
 
         private static void AddRange<TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>> keyValuePairs)
         {

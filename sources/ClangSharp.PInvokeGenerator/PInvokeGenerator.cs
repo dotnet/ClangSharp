@@ -4960,6 +4960,13 @@ namespace ClangSharp
 
         private bool IsUnsafe(FunctionDecl functionDecl)
         {
+            var name = GetRemappedCursorName(functionDecl);
+
+            if (_config.WithManualImports.Contains(name))
+            {
+                return true;
+            }
+
             if (IsUnsafe(functionDecl, functionDecl.ReturnType))
             {
                 return true;

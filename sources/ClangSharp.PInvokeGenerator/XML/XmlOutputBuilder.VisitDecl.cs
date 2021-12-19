@@ -171,7 +171,7 @@ namespace ClangSharp.XML
             _ = _sb.Append("</type>");
         }
 
-        public void BeginFunctionInnerPrototype(string escapedName)
+        public void BeginFunctionInnerPrototype(in FunctionOrDelegateDesc info)
         {
             // nop, only used in C#
         }
@@ -196,7 +196,7 @@ namespace ClangSharp.XML
             // nop, used only in C#
         }
 
-        public void EndFunctionInnerPrototype()
+        public void EndFunctionInnerPrototype(in FunctionOrDelegateDesc info)
         {
             // nop, used only in C#
         }
