@@ -3007,6 +3007,24 @@ namespace ClangSharp
                     // can be treated correctly. Otherwise, they will resolve to a particular
                     // platform size, based on whatever parameters were passed into clang.
 
+                    var underlyingType = typedefType.Decl.UnderlyingType;
+
+                    if (underlyingType.AsTagDecl is TagDecl underlyingTagDecl)
+                    {
+                        var underlyingName = GetCursorName(underlyingTagDecl);
+
+                        if (underlyingName != result.typeName)
+                        {
+                            if (!_validNameRemappings.TryGetValue(underlyingName, out var remappings))
+                            {
+                                remappings = new HashSet<string>();
+                                _validNameRemappings[underlyingName] = remappings;
+                            }
+
+                            _ = remappings.Add(result.typeName);
+                        }
+                    }
+
                     var remappedName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
                     result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out _);
                 }
