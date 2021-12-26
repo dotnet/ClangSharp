@@ -1596,17 +1596,35 @@ namespace ClangSharp
         private void VisitMemberExpr(MemberExpr memberExpr)
         {
             var outputBuilder = StartCSharpCode();
-            if (!memberExpr.IsImplicitAccess)
+            var isDerivedToBase = (memberExpr.Base is ImplicitCastExpr implicitCastExpr) && (implicitCastExpr.CastKind is CX_CastKind.CX_CK_DerivedToBase or CX_CastKind.CX_CK_DerivedToBaseMemberPointer or CX_CastKind.CX_CK_UncheckedDerivedToBase);
+
+            if (!memberExpr.IsImplicitAccess || isDerivedToBase)
             {
                 var memberExprBase = memberExpr.Base;
 
-                Visit(memberExprBase);
+                if (isDerivedToBase)
+                {
+                    outputBuilder.Write("Base");
+                }
+                else
+                {
+                    Visit(memberExprBase);
+                }
 
-                memberExprBase = memberExprBase.IgnoreParens;
+                var type = null as Type;
+                memberExprBase = memberExprBase.IgnoreParens.IgnoreImplicit;
 
-                var type = memberExprBase is CXXThisExpr
-                         ? null
-                         : memberExprBase is DeclRefExpr declRefExpr ? declRefExpr.Decl.Type.CanonicalType : memberExpr.Base.Type.CanonicalType;
+                if (memberExprBase is not CXXThisExpr)
+                {
+                    if (memberExprBase is DeclRefExpr declRefExpr)
+                    {
+                        type = declRefExpr.Decl.Type.CanonicalType;
+                    }
+                    else
+                    {
+                        type = memberExpr.Base.Type.CanonicalType;
+                    }
+                }
 
                 if (type is not null and (PointerType or ReferenceType))
                 {
@@ -2398,7 +2416,6 @@ namespace ClangSharp
                             {
                                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.DeclKindName}'. Generated bindings may be incomplete.", calleeDecl);
                             }
-
                         }
                         else if (IsPrevContextStmt<Expr>(out var expr, out _))
                         {
@@ -2407,6 +2424,10 @@ namespace ClangSharp
                         else if (IsPrevContextDecl<TypeDecl>(out var typeDecl, out _))
                         {
                             parentType = typeDecl.TypeForDecl.CanonicalType;
+                        }
+                        else if (IsPrevContextDecl<ValueDecl>(out var valueDecl, out _))
+                        {
+                            parentType = valueDecl.Type.CanonicalType;
                         }
 
                         var needsCast = false;

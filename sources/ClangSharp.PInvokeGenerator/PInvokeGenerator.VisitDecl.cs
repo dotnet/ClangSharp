@@ -605,32 +605,74 @@ namespace ClangSharp
 
             if (hasBody && !isVirtual)
             {
-                var firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
-                var lastCtorInitializer = (functionDecl.Body != null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
-
                 _outputBuilder.BeginBody();
 
-                if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
+                if (_isForDerivedType)
                 {
-                    VisitCtorInitializers(cxxConstructorDecl, firstCtorInitializer, lastCtorInitializer);
-                }
+                    var outputBuilder = StartCSharpCode();
+                    outputBuilder.WriteIndentation();
 
-                if (body is CompoundStmt compoundStmt)
-                {
-                    var currentContext = _context.AddLast((compoundStmt, null));
+                    if (returnType.CanonicalType.Kind != CXTypeKind.CXType_Void)
+                    {
+                        outputBuilder.Write("return ");
+                    }
 
-                    _outputBuilder.BeginConstructorInitializers();
-                    VisitStmts(compoundStmt.Body);
-                    _outputBuilder.EndConstructorInitializers();
+                    outputBuilder.Write("Base.");
+                    outputBuilder.Write(name);
+                    outputBuilder.Write('(');
 
-                    Debug.Assert(_context.Last == currentContext);
-                    _context.RemoveLast();
+                    var parameters = functionDecl.Parameters;
+
+                    if (parameters.Count != 0)
+                    {
+                        var parameter = parameters[0];
+                        var parameterName = GetRemappedCursorName(parameter);
+                        outputBuilder.Write(EscapeName(parameterName));
+
+                        for (var i = 1; i < parameters.Count; i++)
+                        {
+                            parameter = parameters[i];
+                            parameterName = GetRemappedCursorName(parameter);
+
+                            outputBuilder.Write(", ");
+                            outputBuilder.Write(EscapeName(parameterName));
+                        }
+                    }
+
+                    outputBuilder.Write(')');
+
+                    outputBuilder.NeedsSemicolon = true;
+                    outputBuilder.NeedsNewline = true;
+
+                    StopCSharpCode();
                 }
                 else
                 {
-                    _outputBuilder.BeginInnerFunctionBody();
-                    Visit(body);
-                    _outputBuilder.EndInnerFunctionBody();
+                    var firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
+                    var lastCtorInitializer = (functionDecl.Body != null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
+
+                    if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
+                    {
+                        VisitCtorInitializers(cxxConstructorDecl, firstCtorInitializer, lastCtorInitializer);
+                    }
+
+                    if (body is CompoundStmt compoundStmt)
+                    {
+                        var currentContext = _context.AddLast((compoundStmt, null));
+
+                        _outputBuilder.BeginConstructorInitializers();
+                        VisitStmts(compoundStmt.Body);
+                        _outputBuilder.EndConstructorInitializers();
+
+                        Debug.Assert(_context.Last == currentContext);
+                        _context.RemoveLast();
+                    }
+                    else
+                    {
+                        _outputBuilder.BeginInnerFunctionBody();
+                        Visit(body);
+                        _outputBuilder.EndInnerFunctionBody();
+                    }
                 }
 
                 _outputBuilder.EndBody();
@@ -1424,6 +1466,11 @@ namespace ClangSharp
                             var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
                             baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
 
+                            if (baseFieldName.StartsWith("__AnonymousBase_"))
+                            {
+                                baseFieldName = "Base";
+                            }
+
                             var fieldDesc = new FieldDesc {
                                 AccessSpecifier = GetAccessSpecifier(baseCxxRecordDecl),
                                 NativeTypeName = null,
@@ -1716,8 +1763,12 @@ namespace ClangSharp
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
-                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-                    OutputMethods(rootCxxRecordDecl, baseCxxRecordDecl);
+                    _isForDerivedType = true;
+                    {
+                        var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+                        OutputMethods(rootCxxRecordDecl, baseCxxRecordDecl);
+                    }
+                    _isForDerivedType = false;
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;
@@ -3003,7 +3054,7 @@ namespace ClangSharp
             {
                 ForDeclStmt(varDecl, declStmt);
             }
-            else if (IsPrevContextDecl<TranslationUnitDecl>(out _, out _) || IsPrevContextDecl<LinkageSpecDecl>(out _, out _) || IsPrevContextDecl<RecordDecl>(out _, out _))
+            else if (IsPrevContextDecl<TranslationUnitDecl>(out _, out _) || IsPrevContextDecl<LinkageSpecDecl>(out _, out _) || IsPrevContextDecl<NamespaceDecl>(out _, out _) || IsPrevContextDecl<RecordDecl>(out _, out _))
             {
                 if (!varDecl.HasInit)
                 {

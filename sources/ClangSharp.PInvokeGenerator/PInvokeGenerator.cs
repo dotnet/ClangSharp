@@ -59,6 +59,7 @@ namespace ClangSharp
         private int _stmtOutputBuilderUsers;
         private int _testStmtOutputBuilderUsers;
         private int _outputBuilderUsers;
+        private bool _isForDerivedType;
         private bool _disposed;
 
         public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null)
@@ -2400,14 +2401,21 @@ namespace ClangSharp
                 return remappedName;
             }
 
-            if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith("__AnonymousFieldDecl_"))
+            if (namedDecl is FieldDecl fieldDecl)
             {
-                remappedName = "Anonymous";
-
-                if (fieldDecl.Parent.AnonymousFields.Count > 1)
+                if (name.StartsWith("__AnonymousFieldDecl_"))
                 {
-                    var index = fieldDecl.Parent.AnonymousFields.IndexOf(fieldDecl) + 1;
-                    remappedName += index.ToString();
+                    remappedName = "Anonymous";
+
+                    if (fieldDecl.Parent.AnonymousFields.Count > 1)
+                    {
+                        var index = fieldDecl.Parent.AnonymousFields.IndexOf(fieldDecl) + 1;
+                        remappedName += index.ToString();
+                    }
+                }
+                else if (name.StartsWith("__AnonymousBase_"))
+                {
+                    remappedName = "Base";
                 }
             }
             else if ((namedDecl is RecordDecl recordDecl) && name.StartsWith("__AnonymousRecord_"))
@@ -3702,27 +3710,73 @@ namespace ClangSharp
             return HasRemapping(namedDecl, _config.WithSuppressGCTransitions);
         }
 
-        private bool HasVtbl(CXXRecordDecl cxxRecordDecl)
+        private bool HasField(CXXRecordDecl cxxRecordDecl)
         {
-            var hasDirectVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual);
-            var indirectVtblCount = 0;
+            var hasFields = cxxRecordDecl.Fields.Any();
 
-            foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+            if (!hasFields)
             {
-                var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-
-                if (HasVtbl(baseCxxRecordDecl))
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
-                    indirectVtblCount++;
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+
+                    if (HasField(baseCxxRecordDecl))
+                    {
+                        hasFields = true;
+                        break;
+                    }
                 }
             }
 
-            if (indirectVtblCount > 1)
+            return hasFields;
+        }
+
+        private bool HasUnsafeMethod(CXXRecordDecl cxxRecordDecl)
+        {
+            var hasUnsafeMethod = cxxRecordDecl.Methods.Any((method) => IsUnsafe(method));
+
+            if (!hasUnsafeMethod)
             {
-                AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+
+                    if (HasUnsafeMethod(baseCxxRecordDecl))
+                    {
+                        hasUnsafeMethod = true;
+                        break;
+                    }
+                }
             }
 
-            return hasDirectVtbl || (indirectVtblCount != 0);
+            return hasUnsafeMethod;
+        }
+
+        private bool HasVtbl(CXXRecordDecl cxxRecordDecl)
+        {
+            var hasVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual && method.IsVirtual && (method.OverriddenMethods.Count == 0));
+
+            if (!hasVtbl)
+            {
+                var indirectVtblCount = 0;
+
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+
+                    if (HasVtbl(baseCxxRecordDecl) && !HasField(baseCxxRecordDecl))
+                    {
+                        indirectVtblCount++;
+                    }
+                }
+
+                if (indirectVtblCount > 1)
+                {
+                    AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
+                }
+            }
+
+            return hasVtbl;
         }
 
         private static bool IsEnumOperator(FunctionDecl functionDecl, string name)
@@ -3780,7 +3834,7 @@ namespace ClangSharp
 
             bool IsAlwaysIncluded(Cursor cursor)
             {
-                return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl) || ((cursor is VarDecl varDecl) && varDecl.Name.StartsWith("ClangSharpMacro_"));
+                return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl) || (cursor is NamespaceDecl) || ((cursor is VarDecl varDecl) && varDecl.Name.StartsWith("ClangSharpMacro_"));
             }
 
             bool IsExcludedByConfig(Cursor cursor)
@@ -4061,6 +4115,11 @@ namespace ClangSharp
 
                 bool IsConflictingMethodDecl(CXXMethodDecl cxxMethodDeclToMatch, CXXMethodDecl cxxMethodDecl, CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl, string cxxMethodDeclToMatchName, ref bool foundCxxMethodDeclToMatch)
                 {
+                    if (cxxMethodDeclToMatch.IsThisDeclarationADefinition != cxxMethodDecl.IsThisDeclarationADefinition)
+                    {
+                        return false;
+                    }
+
                     var methodName = GetRemappedCursorName(cxxMethodDecl);
 
                     if (cxxMethodDeclToMatchName != methodName)
@@ -4476,8 +4535,16 @@ namespace ClangSharp
                     return false;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
+                case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
+                {
+                    return false;
+                }
+
+                case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
 
@@ -4633,7 +4700,11 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_LambdaExpr:
                 // case CX_StmtClass.CX_StmtClass_MSPropertyRefExpr:
                 // case CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr:
-                // case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
+
+                case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
+                {
+                    return false;
+                }
 
                 case CX_StmtClass.CX_StmtClass_MemberExpr:
                 {
@@ -4881,7 +4952,7 @@ namespace ClangSharp
             }
         }
 
-        private static bool IsUnchecked(string typeName, CXEvalResult evalResult)
+        private bool IsUnchecked(string typeName, CXEvalResult evalResult)
         {
             if (evalResult.Kind != CXEvalResultKind.CXEval_Int)
             {
@@ -4892,7 +4963,7 @@ namespace ClangSharp
             return IsUnchecked(typeName, signedValue, signedValue < 0, isHex: false);
         }
 
-        private static bool IsUnchecked(string typeName, long signedValue, bool isNegative, bool isHex)
+        private bool IsUnchecked(string typeName, long signedValue, bool isNegative, bool isHex)
         {
             switch (typeName)
             {
@@ -5020,7 +5091,7 @@ namespace ClangSharp
                     return true;
                 }
             }
-            return (recordDecl is CXXRecordDecl cxxRecordDecl) && HasVtbl(cxxRecordDecl);
+            return (recordDecl is CXXRecordDecl cxxRecordDecl) && (HasVtbl(cxxRecordDecl) || HasUnsafeMethod(cxxRecordDecl));
         }
 
         private bool IsUnsafe(TypedefDecl typedefDecl, FunctionProtoType functionProtoType)
