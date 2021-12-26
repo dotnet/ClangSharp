@@ -464,6 +464,15 @@ namespace ClangSharp
             }
 
             var name = GetRemappedCursorName(functionDecl);
+
+            var cxxMethodDecl = functionDecl as CXXMethodDecl;
+            var isCxxMethodDecl = cxxMethodDecl is not null;
+
+            if (isCxxMethodDecl && (cxxMethodDecl is CXXConstructorDecl))
+            {
+                name = GetRemappedCursorName(cxxMethodDecl.Parent);
+            }
+
             var isManualImport = _config.WithManualImports.Contains(name);
 
             var className = name;
@@ -484,11 +493,9 @@ namespace ClangSharp
 
             var accessSppecifier = GetAccessSpecifier(functionDecl);
 
-            var cxxMethodDecl = functionDecl as CXXMethodDecl;
             var body = functionDecl.Body;
             var hasBody = body is not null;
 
-            var isCxxMethodDecl = cxxMethodDecl is not null;
             var isVirtual = isCxxMethodDecl && cxxMethodDecl.IsVirtual;
             var escapedName = isVirtual ? PrefixAndStripName(name, GetOverloadIndex(cxxMethodDecl)) : EscapeAndStripName(name);
 

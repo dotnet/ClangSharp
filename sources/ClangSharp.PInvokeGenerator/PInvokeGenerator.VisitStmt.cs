@@ -1598,9 +1598,16 @@ namespace ClangSharp
             var outputBuilder = StartCSharpCode();
             var isForDerivedType = false;
 
-            if ((memberExpr.MemberDecl is CXXMethodDecl cxxMethodDecl) && (_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxMethodDecl.Parent) && HasField(cxxMethodDecl.Parent))
+            if ((memberExpr.Base is ImplicitCastExpr implicitCastExpr) && (implicitCastExpr.CastKind is CX_CastKind.CX_CK_DerivedToBase or CX_CastKind.CX_CK_DerivedToBaseMemberPointer or CX_CastKind.CX_CK_UncheckedDerivedToBase))
             {
-                isForDerivedType = true;
+                if (memberExpr.MemberDecl is CXXMethodDecl cxxMethodDecl)
+                {
+                    isForDerivedType = (_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxMethodDecl.Parent) && HasField(cxxMethodDecl.Parent);
+                }
+                else if (memberExpr.MemberDecl is FieldDecl fieldDecl)
+                {
+                    isForDerivedType = (_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != fieldDecl.Parent);
+                }
             }
 
             if (!memberExpr.IsImplicitAccess || isForDerivedType)
