@@ -182,7 +182,7 @@ namespace ClangSharp.UnitTests
 
 namespace ClangSharp.Test
 {{
-    public partial struct MyStruct
+    public unsafe partial struct MyStruct
     {{
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
         public static extern void MyVoidMethod(MyStruct* pThis);
@@ -192,7 +192,7 @@ namespace ClangSharp.Test
             return 0;
         }}
 
-        public unsafe void* MyVoidStarMethod()
+        public void* MyVoidStarMethod()
         {{
             return null;
         }}
@@ -654,7 +654,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 
 namespace ClangSharp.Test
 {{
-    public partial struct MyStruct
+    public unsafe partial struct MyStruct
     {{
         [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
         public static extern void MyVoidMethod();
@@ -664,7 +664,7 @@ namespace ClangSharp.Test
             return 0;
         }}
 
-        public static unsafe void* MyVoidStarMethod()
+        public static void* MyVoidStarMethod()
         {{
             return null;
         }}
@@ -721,9 +721,9 @@ extern ""C"" void MyFunction();";
 
 namespace ClangSharp.Test
 {
-    public partial struct MyStruct
+    public unsafe partial struct MyStruct
     {
-        public unsafe void* MyVoidStarMethod()
+        public void* MyVoidStarMethod()
         {
             return null;
         }

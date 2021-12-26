@@ -37,7 +37,8 @@ namespace ClangSharp
         private readonly Dictionary<NamedDecl, string> _cursorNames;
         private readonly Dictionary<(NamedDecl namedDecl, bool truncateForFunctionParameters), string> _cursorQualifiedNames;
         private readonly Dictionary<(Cursor cursor, Cursor context, Type type), (string typeName, string nativeTypeName)> _typeNames;
-        private readonly Dictionary<string, HashSet<string>> _validNameRemappings;
+        private readonly Dictionary<string, HashSet<string>> _allValidNameRemappings;
+        private readonly Dictionary<string, HashSet<string>> _traversedValidNameRemappings;
         private readonly Dictionary<CXXMethodDecl, uint> _overloadIndices;
         private readonly Dictionary<Cursor, uint> _isExcluded;
         private readonly Dictionary<string, bool> _isTopLevelClassUnsafe;
@@ -59,6 +60,7 @@ namespace ClangSharp
         private int _stmtOutputBuilderUsers;
         private int _testStmtOutputBuilderUsers;
         private int _outputBuilderUsers;
+        private CXXRecordDecl _cxxRecordDeclContext;
         private bool _disposed;
 
         public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null)
@@ -99,13 +101,14 @@ namespace ClangSharp
             _cursorNames = new Dictionary<NamedDecl, string>();
             _cursorQualifiedNames = new Dictionary<(NamedDecl, bool), string>();
             _typeNames = new Dictionary<(Cursor, Cursor, Type), (string, string)>();
-            _validNameRemappings = new Dictionary<string, HashSet<string>>() {
+            _allValidNameRemappings = new Dictionary<string, HashSet<string>>() {
                 ["intptr_t"] = new HashSet<string>() { "IntPtr", "nint" },
                 ["ptrdiff_t"] = new HashSet<string>() { "IntPtr", "nint" },
                 ["size_t"] = new HashSet<string>() { "UIntPtr", "nuint" },
                 ["uintptr_t"] = new HashSet<string>() { "UIntPtr", "nuint" },
                 ["_GUID"] = new HashSet<string>() { "Guid" },
             };
+            _traversedValidNameRemappings = new Dictionary<string, HashSet<string>>();
             _overloadIndices = new Dictionary<CXXMethodDecl, uint>();
             _isExcluded = new Dictionary<Cursor, uint>();
             _isTopLevelClassUnsafe = new Dictionary<string, bool>();
@@ -1238,7 +1241,7 @@ namespace ClangSharp
 
                 if (_config.LogPotentialTypedefRemappings)
                 {
-                    foreach (var kvp in _validNameRemappings)
+                    foreach (var kvp in _traversedValidNameRemappings)
                     {
                         var name = kvp.Key;
                         var remappings = kvp.Value;
@@ -1247,7 +1250,14 @@ namespace ClangSharp
                         {
                             AddDiagnostic(DiagnosticLevel.Info, $"Potential missing remapping '{name}'. {GetFoundRemappingString(name, remappings)}");
                         }
-                        else if (!remappings.Contains(remappedName) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                    }
+
+                    foreach (var kvp in _allValidNameRemappings)
+                    {
+                        var name = kvp.Key;
+                        var remappings = kvp.Value;
+
+                        if (_config.RemappedNames.TryGetValue(name, out var remappedName) && !remappings.Contains(remappedName) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
                         {
                             AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. {GetFoundRemappingString(name, remappings)}");
                         }
@@ -1257,7 +1267,7 @@ namespace ClangSharp
                     {
                         var remappedName = _config.RemappedNames[name];
 
-                        if (!_validNameRemappings.ContainsKey(name) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                        if (!_allValidNameRemappings.ContainsKey(name) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
                         {
                             AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. No remappings were found.");
                         }
@@ -2400,14 +2410,17 @@ namespace ClangSharp
                 return remappedName;
             }
 
-            if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith("__AnonymousFieldDecl_"))
+            if (namedDecl is FieldDecl fieldDecl)
             {
-                remappedName = "Anonymous";
-
-                if (fieldDecl.Parent.AnonymousFields.Count > 1)
+                if (name.StartsWith("__AnonymousFieldDecl_"))
                 {
-                    var index = fieldDecl.Parent.AnonymousFields.IndexOf(fieldDecl) + 1;
-                    remappedName += index.ToString();
+                    remappedName = "Anonymous";
+
+                    if (fieldDecl.Parent.AnonymousFields.Count > 1)
+                    {
+                        var index = fieldDecl.Parent.AnonymousFields.IndexOf(fieldDecl) + 1;
+                        remappedName += index.ToString();
+                    }
                 }
             }
             else if ((namedDecl is RecordDecl recordDecl) && name.StartsWith("__AnonymousRecord_"))
@@ -2437,6 +2450,11 @@ namespace ClangSharp
         }
 
         private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
+        {
+            return GetRemappedName(name, cursor, tryRemapOperatorName, out wasRemapped, skipUsing, skipUsingIfNotRemapped: skipUsing);
+        }
+
+        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing, bool skipUsingIfNotRemapped)
         {
             if (_config.RemappedNames.TryGetValue(name, out var remappedName))
             {
@@ -2468,7 +2486,7 @@ namespace ClangSharp
             }
 
             wasRemapped = false;
-            return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
+            return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsingIfNotRemapped);
 
             string AddUsingDirectiveIfNeeded(IOutputBuilder outputBuilder, string remappedName, bool skipUsing)
             {
@@ -2507,7 +2525,25 @@ namespace ClangSharp
         private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName, bool skipUsing = false, bool ignoreTransparentStructsWhereRequired = false)
         {
             var name = GetTypeName(cursor, context, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
-            var remappedName = GetRemappedName(name, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing);
+
+            var nameToCheck = nativeTypeName;
+            var remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing, skipUsingIfNotRemapped: true);
+
+            if (wasRemapped)
+            {
+                return remappedName;
+            }
+
+            nameToCheck = nameToCheck.Replace("::", ".");
+            remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing, skipUsingIfNotRemapped: true);
+
+            if (wasRemapped)
+            {
+                return remappedName;
+            }
+
+            nameToCheck = name;
+            remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing);
 
             if (!wasRemapped)
             {
@@ -3007,24 +3043,6 @@ namespace ClangSharp
                     // can be treated correctly. Otherwise, they will resolve to a particular
                     // platform size, based on whatever parameters were passed into clang.
 
-                    var underlyingType = typedefType.Decl.UnderlyingType;
-
-                    if (underlyingType.AsTagDecl is TagDecl underlyingTagDecl)
-                    {
-                        var underlyingName = GetCursorName(underlyingTagDecl);
-
-                        if (underlyingName != result.typeName)
-                        {
-                            if (!_validNameRemappings.TryGetValue(underlyingName, out var remappings))
-                            {
-                                remappings = new HashSet<string>();
-                                _validNameRemappings[underlyingName] = remappings;
-                            }
-
-                            _ = remappings.Add(result.typeName);
-                        }
-                    }
-
                     var remappedName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
                     result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out _);
                 }
@@ -3422,7 +3440,7 @@ namespace ClangSharp
 
                 if (recordType.Decl is CXXRecordDecl cxxRecordDecl)
                 {
-                    if (HasVtbl(cxxRecordDecl))
+                    if (HasVtbl(cxxRecordDecl, out _))
                     {
                         size32 += 4;
                         size64 += 8;
@@ -3702,27 +3720,76 @@ namespace ClangSharp
             return HasRemapping(namedDecl, _config.WithSuppressGCTransitions);
         }
 
-        private bool HasVtbl(CXXRecordDecl cxxRecordDecl)
+        private bool HasField(RecordDecl recordDecl)
         {
-            var hasDirectVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual);
-            var indirectVtblCount = 0;
+            var hasFields = recordDecl.Fields.Any() || recordDecl.Decls.Any((decl) => (decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && HasField(nestedRecordDecl));
 
-            foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+            if (!hasFields && (recordDecl is CXXRecordDecl cxxRecordDecl))
             {
-                var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-
-                if (HasVtbl(baseCxxRecordDecl))
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
-                    indirectVtblCount++;
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+
+                    if (HasField(baseCxxRecordDecl))
+                    {
+                        hasFields = true;
+                        break;
+                    }
                 }
             }
 
-            if (indirectVtblCount > 1)
+            return hasFields;
+        }
+
+        private bool HasUnsafeMethod(CXXRecordDecl cxxRecordDecl)
+        {
+            var hasUnsafeMethod = cxxRecordDecl.Methods.Any((method) => method.IsUserProvided && IsUnsafe(method) && !IsExcluded(method));
+
+            if (!hasUnsafeMethod)
             {
-                AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+
+                    if (HasUnsafeMethod(baseCxxRecordDecl))
+                    {
+                        hasUnsafeMethod = true;
+                        break;
+                    }
+                }
             }
 
-            return hasDirectVtbl || (indirectVtblCount != 0);
+            return hasUnsafeMethod;
+        }
+
+        private bool HasVtbl(CXXRecordDecl cxxRecordDecl, out bool hasBaseVtbl)
+        {
+            var hasVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual && method.IsVirtual && (method.OverriddenMethods.Count == 0));
+            hasBaseVtbl = false;
+
+            if (!hasVtbl)
+            {
+                var indirectVtblCount = 0;
+
+                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                {
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+
+                    if ((HasVtbl(baseCxxRecordDecl, out var baseHasBaseVtbl) || baseHasBaseVtbl) && !HasField(baseCxxRecordDecl))
+                    {
+                        indirectVtblCount++;
+                    }
+                }
+
+                if (indirectVtblCount > 1)
+                {
+                    AddDiagnostic(DiagnosticLevel.Warning, "Unsupported cxx record declaration: 'multiple virtual bases'. Generated bindings may be incomplete.", cxxRecordDecl);
+                }
+
+                hasBaseVtbl = indirectVtblCount != 0;
+            }
+
+            return hasVtbl;
         }
 
         private static bool IsEnumOperator(FunctionDecl functionDecl, string name)
@@ -3780,7 +3847,7 @@ namespace ClangSharp
 
             bool IsAlwaysIncluded(Cursor cursor)
             {
-                return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl) || ((cursor is VarDecl varDecl) && varDecl.Name.StartsWith("ClangSharpMacro_"));
+                return (cursor is TranslationUnitDecl) || (cursor is LinkageSpecDecl) || (cursor is NamespaceDecl) || ((cursor is VarDecl varDecl) && varDecl.Name.StartsWith("ClangSharpMacro_"));
             }
 
             bool IsExcludedByConfig(Cursor cursor)
@@ -4124,6 +4191,10 @@ namespace ClangSharp
                                 // We want to treat the one from the base declaration as non-conflicting
                                 // So return true to report the declration to match as the conflict
                                 return true;
+                            }
+                            else if (cxxMethodDeclToMatch.IsThisDeclarationADefinition != cxxMethodDecl.IsThisDeclarationADefinition)
+                            {
+                                return false;
                             }
                             else
                             {
@@ -4476,8 +4547,16 @@ namespace ClangSharp
                     return false;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
+                case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
+                {
+                    return false;
+                }
+
+                case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
 
@@ -4633,7 +4712,11 @@ namespace ClangSharp
                 // case CX_StmtClass.CX_StmtClass_LambdaExpr:
                 // case CX_StmtClass.CX_StmtClass_MSPropertyRefExpr:
                 // case CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr:
-                // case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
+
+                case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
+                {
+                    return false;
+                }
 
                 case CX_StmtClass.CX_StmtClass_MemberExpr:
                 {
@@ -4881,7 +4964,7 @@ namespace ClangSharp
             }
         }
 
-        private static bool IsUnchecked(string typeName, CXEvalResult evalResult)
+        private bool IsUnchecked(string typeName, CXEvalResult evalResult)
         {
             if (evalResult.Kind != CXEvalResultKind.CXEval_Int)
             {
@@ -4892,7 +4975,7 @@ namespace ClangSharp
             return IsUnchecked(typeName, signedValue, signedValue < 0, isHex: false);
         }
 
-        private static bool IsUnchecked(string typeName, long signedValue, bool isNegative, bool isHex)
+        private bool IsUnchecked(string typeName, long signedValue, bool isNegative, bool isHex)
         {
             switch (typeName)
             {
@@ -5020,7 +5103,7 @@ namespace ClangSharp
                     return true;
                 }
             }
-            return (recordDecl is CXXRecordDecl cxxRecordDecl) && HasVtbl(cxxRecordDecl);
+            return (recordDecl is CXXRecordDecl cxxRecordDecl) && (HasVtbl(cxxRecordDecl, out var hasBaseVtbl) || hasBaseVtbl || HasUnsafeMethod(cxxRecordDecl));
         }
 
         private bool IsUnsafe(TypedefDecl typedefDecl, FunctionProtoType functionProtoType)

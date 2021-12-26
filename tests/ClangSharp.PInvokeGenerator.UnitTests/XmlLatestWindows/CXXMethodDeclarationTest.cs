@@ -223,7 +223,7 @@ namespace ClangSharp.UnitTests
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"">
+    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
       <function name=""MyVoidMethod"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint}"" static=""true"">
         <type>void</type>
         <param name=""pThis"">
@@ -773,7 +773,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"">
+    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
       <function name=""MyVoidMethod"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""Cdecl"" entrypoint=""{entryPoint}"" static=""true"">
         <type>void</type>
       </function>
@@ -840,7 +840,7 @@ extern ""C"" void MyFunction();";
             var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"">
+    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
       <function name=""MyVoidStarMethod"" access=""public"" unsafe=""true"">
         <type>void*</type>
         <code>return null;</code>

@@ -18,7 +18,7 @@ namespace ClangSharp.CSharp
             {
                 AddUsingDirective("System.ComponentModel");
             }
-            else if (attribute.StartsWith("Guid(") || attribute.StartsWith("Optional, DefaultParameterValue("))
+            else if (attribute.StartsWith("Guid(")|| attribute.Equals("Optional") || attribute.StartsWith("Optional, DefaultParameterValue("))
             {
                 AddUsingDirective("System.Runtime.InteropServices");
             }

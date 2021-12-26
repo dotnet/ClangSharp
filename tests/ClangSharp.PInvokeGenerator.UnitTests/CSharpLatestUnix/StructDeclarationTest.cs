@@ -742,9 +742,9 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
     [NativeTypeName(""struct MyStruct2 : MyStruct1A, MyStruct1B"")]
     public partial struct MyStruct2
     {
-        public MyStruct1A __AnonymousBase_ClangUnsavedFile_L13_C20;
+        public MyStruct1A Base;
 
-        public MyStruct1B __AnonymousBase_ClangUnsavedFile_L13_C32;
+        public MyStruct1B Base;
 
         public int z;
 
@@ -797,9 +797,9 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
     [NativeInheritance(""MyStruct1B"")]
     public partial struct MyStruct2
     {
-        public MyStruct1A __AnonymousBase_ClangUnsavedFile_L13_C20;
+        public MyStruct1A Base;
 
-        public MyStruct1B __AnonymousBase_ClangUnsavedFile_L13_C32;
+        public MyStruct1B Base;
 
         public int z;
 

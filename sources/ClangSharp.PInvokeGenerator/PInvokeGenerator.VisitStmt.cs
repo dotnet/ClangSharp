@@ -1596,17 +1596,46 @@ namespace ClangSharp
         private void VisitMemberExpr(MemberExpr memberExpr)
         {
             var outputBuilder = StartCSharpCode();
-            if (!memberExpr.IsImplicitAccess)
+            var isForDerivedType = false;
+
+            if ((memberExpr.Base is ImplicitCastExpr implicitCastExpr) && (implicitCastExpr.CastKind is CX_CastKind.CX_CK_DerivedToBase or CX_CastKind.CX_CK_DerivedToBaseMemberPointer or CX_CastKind.CX_CK_UncheckedDerivedToBase))
             {
-                var memberExprBase = memberExpr.Base;
+                if (memberExpr.MemberDecl is CXXMethodDecl cxxMethodDecl)
+                {
+                    isForDerivedType = (_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxMethodDecl.Parent) && HasField(cxxMethodDecl.Parent);
+                }
+                else if (memberExpr.MemberDecl is FieldDecl fieldDecl)
+                {
+                    isForDerivedType = (_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != fieldDecl.Parent);
+                }
+            }
 
-                Visit(memberExprBase);
+            if (!memberExpr.IsImplicitAccess || isForDerivedType)
+            {
+                var memberExprBase = memberExpr.Base.IgnoreParens.IgnoreImplicit;
 
-                memberExprBase = memberExprBase.IgnoreParens;
+                if (isForDerivedType)
+                {
+                    outputBuilder.Write("Base");
+                }
+                else
+                {
+                    Visit(memberExprBase);
+                }
 
-                var type = memberExprBase is CXXThisExpr
-                         ? null
-                         : memberExprBase is DeclRefExpr declRefExpr ? declRefExpr.Decl.Type.CanonicalType : memberExpr.Base.Type.CanonicalType;
+                var type = null as Type;
+
+                if (!IsStmtAsWritten<CXXThisExpr>(memberExprBase, out _, removeParens: true))
+                {
+                    if (memberExprBase is DeclRefExpr declRefExpr)
+                    {
+                        type = declRefExpr.Decl.Type.CanonicalType;
+                    }
+                    else
+                    {
+                        type = memberExpr.Base.Type.CanonicalType;
+                    }
+                }
 
                 if (type is not null and (PointerType or ReferenceType))
                 {
@@ -2398,7 +2427,6 @@ namespace ClangSharp
                             {
                                 AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.DeclKindName}'. Generated bindings may be incomplete.", calleeDecl);
                             }
-
                         }
                         else if (IsPrevContextStmt<Expr>(out var expr, out _))
                         {
@@ -2407,6 +2435,10 @@ namespace ClangSharp
                         else if (IsPrevContextDecl<TypeDecl>(out var typeDecl, out _))
                         {
                             parentType = typeDecl.TypeForDecl.CanonicalType;
+                        }
+                        else if (IsPrevContextDecl<ValueDecl>(out var valueDecl, out _))
+                        {
+                            parentType = valueDecl.Type.CanonicalType;
                         }
 
                         var needsCast = false;
