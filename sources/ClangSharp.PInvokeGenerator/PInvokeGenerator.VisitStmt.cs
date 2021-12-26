@@ -1596,27 +1596,17 @@ namespace ClangSharp
         private void VisitMemberExpr(MemberExpr memberExpr)
         {
             var outputBuilder = StartCSharpCode();
+            var isForDerivedType = false;
 
-            var memberExprBase = memberExpr.Base;
-            var isForDerivedType = _isForDerivedType;
-
-            var type = null as Type;
-            memberExprBase = memberExprBase.IgnoreParens.IgnoreImplicit;
-
-            if (!IsStmtAsWritten<CXXThisExpr>(memberExprBase, out _, removeParens: true))
+            if ((memberExpr.MemberDecl is CXXMethodDecl cxxMethodDecl) && (_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxMethodDecl.Parent) && HasField(cxxMethodDecl.Parent))
             {
-                if (memberExprBase is DeclRefExpr declRefExpr)
-                {
-                    type = declRefExpr.Decl.Type.CanonicalType;
-                }
-                else
-                {
-                    type = memberExpr.Base.Type.CanonicalType;
-                }
+                isForDerivedType = true;
             }
 
             if (!memberExpr.IsImplicitAccess || isForDerivedType)
             {
+                var memberExprBase = memberExpr.Base.IgnoreParens.IgnoreImplicit;
+
                 if (isForDerivedType)
                 {
                     outputBuilder.Write("Base");
@@ -1624,6 +1614,20 @@ namespace ClangSharp
                 else
                 {
                     Visit(memberExprBase);
+                }
+
+                var type = null as Type;
+
+                if (!IsStmtAsWritten<CXXThisExpr>(memberExprBase, out _, removeParens: true))
+                {
+                    if (memberExprBase is DeclRefExpr declRefExpr)
+                    {
+                        type = declRefExpr.Decl.Type.CanonicalType;
+                    }
+                    else
+                    {
+                        type = memberExpr.Base.Type.CanonicalType;
+                    }
                 }
 
                 if (type is not null and (PointerType or ReferenceType))

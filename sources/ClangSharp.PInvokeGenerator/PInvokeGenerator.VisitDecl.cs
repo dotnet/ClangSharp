@@ -611,7 +611,7 @@ namespace ClangSharp
             {
                 _outputBuilder.BeginBody();
 
-                if (_isForDerivedType)
+                if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxRecordDecl) && HasField(cxxRecordDecl))
                 {
                     var outputBuilder = StartCSharpCode();
                     outputBuilder.WriteIndentation();
@@ -1218,6 +1218,8 @@ namespace ClangSharp
             StartUsingOutputBuilder(name, includeTestOutput: true);
             {
                 var cxxRecordDecl = recordDecl as CXXRecordDecl;
+                _cxxRecordDeclContext = cxxRecordDecl;
+
                 var hasVtbl = false;
                 var hasBaseVtbl = false;
 
@@ -1679,6 +1681,8 @@ namespace ClangSharp
                         _testOutputBuilder.WriteBlockEnd();
                     }
                 }
+
+                _cxxRecordDeclContext = null;
             }
             StopUsingOutputBuilder();
 
@@ -1737,10 +1741,7 @@ namespace ClangSharp
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
                     var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-                    _isForDerivedType = HasField(baseCxxRecordDecl);
-
                     OutputMethods(rootCxxRecordDecl, baseCxxRecordDecl);
-                    _isForDerivedType = false;
                 }
 
                 var cxxMethodDecls = cxxRecordDecl.Methods;

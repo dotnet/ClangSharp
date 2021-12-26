@@ -60,7 +60,7 @@ namespace ClangSharp
         private int _stmtOutputBuilderUsers;
         private int _testStmtOutputBuilderUsers;
         private int _outputBuilderUsers;
-        private bool _isForDerivedType;
+        private CXXRecordDecl _cxxRecordDeclContext;
         private bool _disposed;
 
         public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null)
