@@ -2976,6 +2976,10 @@ namespace ClangSharp
                 {
                     // Nothing to do for builtin types
                 }
+                else if (underlyingType is DecltypeType decltypeType)
+                {
+                    ForUnderlyingType(typedefDecl, decltypeType.UnderlyingType, onlyHandleRemappings);
+                }
                 else if (underlyingType is DependentNameType dependentNameType)
                 {
                     // Nothing to do for dependent name types
@@ -3003,13 +3007,23 @@ namespace ClangSharp
 
                     if (underlyingName != typedefName)
                     {
-                        if (!_validNameRemappings.TryGetValue(underlyingName, out var remappings))
+                        if (!_allValidNameRemappings.TryGetValue(underlyingName, out var allRemappings))
                         {
-                            remappings = new HashSet<string>();
-                            _validNameRemappings[underlyingName] = remappings;
+                            allRemappings = new HashSet<string>();
+                            _allValidNameRemappings[underlyingName] = allRemappings;
                         }
+                        _ = allRemappings.Add(typedefName);
 
-                        _ = remappings.Add(typedefName);
+
+                        if (!onlyHandleRemappings)
+                        {
+                            if (!_traversedValidNameRemappings.TryGetValue(underlyingName, out var traversedRemappings))
+                            {
+                                traversedRemappings = new HashSet<string>();
+                                _traversedValidNameRemappings[underlyingName] = traversedRemappings;
+                            }
+                            _ = traversedRemappings.Add(typedefName);
+                        }
                     }
                 }
                 else if (underlyingType is TemplateSpecializationType templateSpecializationType)

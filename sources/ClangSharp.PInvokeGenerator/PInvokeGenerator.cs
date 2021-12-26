@@ -37,7 +37,8 @@ namespace ClangSharp
         private readonly Dictionary<NamedDecl, string> _cursorNames;
         private readonly Dictionary<(NamedDecl namedDecl, bool truncateForFunctionParameters), string> _cursorQualifiedNames;
         private readonly Dictionary<(Cursor cursor, Cursor context, Type type), (string typeName, string nativeTypeName)> _typeNames;
-        private readonly Dictionary<string, HashSet<string>> _validNameRemappings;
+        private readonly Dictionary<string, HashSet<string>> _allValidNameRemappings;
+        private readonly Dictionary<string, HashSet<string>> _traversedValidNameRemappings;
         private readonly Dictionary<CXXMethodDecl, uint> _overloadIndices;
         private readonly Dictionary<Cursor, uint> _isExcluded;
         private readonly Dictionary<string, bool> _isTopLevelClassUnsafe;
@@ -100,13 +101,14 @@ namespace ClangSharp
             _cursorNames = new Dictionary<NamedDecl, string>();
             _cursorQualifiedNames = new Dictionary<(NamedDecl, bool), string>();
             _typeNames = new Dictionary<(Cursor, Cursor, Type), (string, string)>();
-            _validNameRemappings = new Dictionary<string, HashSet<string>>() {
+            _allValidNameRemappings = new Dictionary<string, HashSet<string>>() {
                 ["intptr_t"] = new HashSet<string>() { "IntPtr", "nint" },
                 ["ptrdiff_t"] = new HashSet<string>() { "IntPtr", "nint" },
                 ["size_t"] = new HashSet<string>() { "UIntPtr", "nuint" },
                 ["uintptr_t"] = new HashSet<string>() { "UIntPtr", "nuint" },
                 ["_GUID"] = new HashSet<string>() { "Guid" },
             };
+            _traversedValidNameRemappings = new Dictionary<string, HashSet<string>>();
             _overloadIndices = new Dictionary<CXXMethodDecl, uint>();
             _isExcluded = new Dictionary<Cursor, uint>();
             _isTopLevelClassUnsafe = new Dictionary<string, bool>();
@@ -1239,7 +1241,7 @@ namespace ClangSharp
 
                 if (_config.LogPotentialTypedefRemappings)
                 {
-                    foreach (var kvp in _validNameRemappings)
+                    foreach (var kvp in _traversedValidNameRemappings)
                     {
                         var name = kvp.Key;
                         var remappings = kvp.Value;
@@ -1248,7 +1250,14 @@ namespace ClangSharp
                         {
                             AddDiagnostic(DiagnosticLevel.Info, $"Potential missing remapping '{name}'. {GetFoundRemappingString(name, remappings)}");
                         }
-                        else if (!remappings.Contains(remappedName) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                    }
+
+                    foreach (var kvp in _allValidNameRemappings)
+                    {
+                        var name = kvp.Key;
+                        var remappings = kvp.Value;
+
+                        if (_config.RemappedNames.TryGetValue(name, out var remappedName) && !remappings.Contains(remappedName) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
                         {
                             AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. {GetFoundRemappingString(name, remappings)}");
                         }
@@ -1258,7 +1267,7 @@ namespace ClangSharp
                     {
                         var remappedName = _config.RemappedNames[name];
 
-                        if (!_validNameRemappings.ContainsKey(name) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                        if (!_allValidNameRemappings.ContainsKey(name) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
                         {
                             AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. No remappings were found.");
                         }
