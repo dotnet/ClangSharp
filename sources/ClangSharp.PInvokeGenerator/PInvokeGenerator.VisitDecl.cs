@@ -1219,10 +1219,11 @@ namespace ClangSharp
             {
                 var cxxRecordDecl = recordDecl as CXXRecordDecl;
                 var hasVtbl = false;
+                var hasBaseVtbl = false;
 
                 if (cxxRecordDecl != null)
                 {
-                    hasVtbl = HasVtbl(cxxRecordDecl);
+                    hasVtbl = HasVtbl(cxxRecordDecl, out hasBaseVtbl);
                 }
 
                 var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
@@ -1346,7 +1347,7 @@ namespace ClangSharp
                     AccessSpecifier = GetAccessSpecifier(recordDecl),
                     EscapedName = escapedName,
                     IsUnsafe = IsUnsafe(recordDecl),
-                    HasVtbl = hasVtbl,
+                    HasVtbl = hasVtbl || hasBaseVtbl,
                     IsUnion = recordDecl.IsUnion,
                     Layout = new() {
                         Alignment32 = alignment32,
@@ -1434,7 +1435,7 @@ namespace ClangSharp
                     }
                 }
 
-                if (hasVtbl)
+                if (hasVtbl || (hasBaseVtbl && !HasField(cxxRecordDecl)))
                 {
                     var fieldDesc = new FieldDesc {
                         AccessSpecifier = AccessSpecifier.Public,
@@ -1464,7 +1465,7 @@ namespace ClangSharp
                     {
                         var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
-                        if (HasFields(baseCxxRecordDecl))
+                        if (HasField(baseCxxRecordDecl))
                         {
                             var parent = GetRemappedCursorName(baseCxxRecordDecl);
                             var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
@@ -1609,7 +1610,7 @@ namespace ClangSharp
                         _outputBuilder.WriteDivider();
                     }
 
-                    if (hasVtbl)
+                    if (hasVtbl || hasBaseVtbl)
                     {
                         OutputDelegateSignatures(cxxRecordDecl, cxxRecordDecl);
                     }
@@ -1630,7 +1631,7 @@ namespace ClangSharp
                     VisitConstantArrayFieldDecl(recordDecl, constantArray);
                 }
 
-                if (hasVtbl)
+                if (hasVtbl || hasBaseVtbl)
                 {
                     if (!_config.GenerateCompatibleCode)
                     {
@@ -1693,38 +1694,6 @@ namespace ClangSharp
                 return remappedName;
             }
 
-            bool HasFields(RecordDecl recordDecl)
-            {
-                if (recordDecl.Fields.Count != 0)
-                {
-                    return true;
-                }
-
-                foreach (var decl in recordDecl.Decls)
-                {
-                    if ((decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion &&
-                        HasFields(nestedRecordDecl))
-                    {
-                        return true;
-                    }
-                }
-
-                if (recordDecl is CXXRecordDecl cxxRecordDecl)
-                {
-                    foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
-                    {
-                        var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-
-                        if (HasFields(baseCxxRecordDecl))
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            }
-
             void OutputDelegateSignatures(CXXRecordDecl rootCxxRecordDecl, CXXRecordDecl cxxRecordDecl)
             {
                 if (!_config.ExcludeFnptrCodegen)
@@ -1767,11 +1736,10 @@ namespace ClangSharp
             {
                 foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
                 {
-                    _isForDerivedType = true;
-                    {
-                        var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
-                        OutputMethods(rootCxxRecordDecl, baseCxxRecordDecl);
-                    }
+                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+                    _isForDerivedType = HasField(baseCxxRecordDecl);
+
+                    OutputMethods(rootCxxRecordDecl, baseCxxRecordDecl);
                     _isForDerivedType = false;
                 }
 
