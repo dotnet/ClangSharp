@@ -3720,25 +3720,34 @@ namespace ClangSharp
             return HasRemapping(namedDecl, _config.WithSuppressGCTransitions);
         }
 
-        private bool HasField(RecordDecl recordDecl)
+        private bool HasBaseField(CXXRecordDecl cxxRecordDecl)
         {
-            var hasFields = recordDecl.Fields.Any() || recordDecl.Decls.Any((decl) => (decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && HasField(nestedRecordDecl));
+            var hasBaseField = false;
 
-            if (!hasFields && (recordDecl is CXXRecordDecl cxxRecordDecl))
+            foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
             {
-                foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
-                {
-                    var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+                var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
-                    if (HasField(baseCxxRecordDecl))
-                    {
-                        hasFields = true;
-                        break;
-                    }
+                if (HasField(baseCxxRecordDecl))
+                {
+                    hasBaseField = true;
+                    break;
                 }
             }
 
-            return hasFields;
+            return hasBaseField;
+        }
+
+        private bool HasField(RecordDecl recordDecl)
+        {
+            var hasField = recordDecl.Fields.Any() || recordDecl.Decls.Any((decl) => (decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && HasField(nestedRecordDecl));
+
+            if (!hasField && (recordDecl is CXXRecordDecl cxxRecordDecl))
+            {
+                hasField = HasBaseField(cxxRecordDecl);
+            }
+
+            return hasField;
         }
 
         private bool HasUnsafeMethod(CXXRecordDecl cxxRecordDecl)
@@ -3899,6 +3908,7 @@ namespace ClangSharp
                 var isExcludedByConfigOption = false;
 
                 string qualifiedName;
+                string qualifiedNameWithoutParameters = "";
                 string name;
                 string kind;
 
@@ -3908,6 +3918,12 @@ namespace ClangSharp
                     // can remove no-definition declarations in favor of remapped anonymous declarations.
 
                     qualifiedName = GetCursorQualifiedName(namedDecl);
+
+                    if (namedDecl is FunctionDecl)
+                    {
+                        qualifiedNameWithoutParameters = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
+                    }
+
                     name = GetCursorName(namedDecl);
                     kind = $"{namedDecl.DeclKindName} declaration";
 
@@ -3992,7 +4008,9 @@ namespace ClangSharp
                     return true;
                 }
 
-                if (_config.ExcludedNames.Contains(name))
+                var dottedQualifiedNameWithoutParameters = qualifiedNameWithoutParameters.Replace("::", ".");
+
+                if (_config.ExcludedNames.Contains(qualifiedNameWithoutParameters) || _config.ExcludedNames.Contains(dottedQualifiedNameWithoutParameters) || _config.ExcludedNames.Contains(name))
                 {
                     if (_config.LogExclusions)
                     {
@@ -4021,7 +4039,11 @@ namespace ClangSharp
                     return true;
                 }
 
-                if (_config.IncludedNames.Any() && !_config.IncludedNames.Contains(qualifiedName) && !_config.IncludedNames.Contains(dottedQualifiedName) && !_config.IncludedNames.Contains(name))
+                if (_config.IncludedNames.Any() && !_config.IncludedNames.Contains(qualifiedName)
+                                                && !_config.IncludedNames.Contains(dottedQualifiedName)
+                                                && !_config.IncludedNames.Contains(qualifiedNameWithoutParameters)
+                                                && !_config.IncludedNames.Contains(dottedQualifiedNameWithoutParameters)
+                                                && !_config.IncludedNames.Contains(name))
                 {
                     if (_config.LogExclusions)
                     {
