@@ -1444,7 +1444,7 @@ namespace ClangSharp
                     }
                 }
 
-                if (hasVtbl || (hasBaseVtbl && !HasField(cxxRecordDecl)))
+                if (hasVtbl || (hasBaseVtbl && !HasBaseField(cxxRecordDecl)))
                 {
                     var fieldDesc = new FieldDesc {
                         AccessSpecifier = AccessSpecifier.Public,
