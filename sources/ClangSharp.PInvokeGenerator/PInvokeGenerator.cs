@@ -2451,6 +2451,11 @@ namespace ClangSharp
 
         private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
         {
+            return GetRemappedName(name, cursor, tryRemapOperatorName, out wasRemapped, skipUsing, skipUsingIfNotRemapped: skipUsing);
+        }
+
+        private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing, bool skipUsingIfNotRemapped)
+        {
             if (_config.RemappedNames.TryGetValue(name, out var remappedName))
             {
                 wasRemapped = true;
@@ -2481,7 +2486,7 @@ namespace ClangSharp
             }
 
             wasRemapped = false;
-            return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
+            return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsingIfNotRemapped);
 
             string AddUsingDirectiveIfNeeded(IOutputBuilder outputBuilder, string remappedName, bool skipUsing)
             {
@@ -2522,7 +2527,7 @@ namespace ClangSharp
             var name = GetTypeName(cursor, context, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
 
             var nameToCheck = nativeTypeName;
-            var remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing);
+            var remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing, skipUsingIfNotRemapped: true);
 
             if (wasRemapped)
             {
@@ -2530,7 +2535,7 @@ namespace ClangSharp
             }
 
             nameToCheck = nameToCheck.Replace("::", ".");
-            remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing);
+            remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing, skipUsingIfNotRemapped: true);
 
             if (wasRemapped)
             {
