@@ -226,7 +226,7 @@ The P/Invoke Generator is currently used by several projects:
 
 * [dotnet/clangsharp](https://github.com/dotnet/clangsharp) - ClangSharp is self-hosting
 * [dotnet/llvmsharp](https://github.com/dotnet/llvmsharp) - Bindings over libLLVM
-* [microsoft/win32metadata](https://github.com/dotnet/win32metadata) - Bindings over the Windows SDK meant for downstream use by projects such as CsWin32, RsWin32, etc
+* [microsoft/win32metadata](https://github.com/microsoft/win32metadata) - Bindings over the Windows SDK meant for downstream use by projects such as CsWin32, RsWin32, etc
 * [terrafx/terrafx.interop.windows](https://github.com/terrafx/terrafx.interop.windows) - Bindings for D3D10, D3D11, D3D12, D2D1, DWrite, WIC, User32, and more in a single NuGet
 * [terrafx/terrafx.interop.vulkan](https://github.com/terrafx/terrafx.interop.vulkan) - Bindings for Vulkan
 * [terrafx/terrafx.interop.xlib](https://github.com/terrafx/terrafx.interop.xlib) - Bindings for Xlib
