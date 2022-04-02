@@ -2,67 +2,67 @@
   "runtimes": {
     "freebsd.12-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.freebsd.12-x64": "13.0.0-beta1"
+        "libClangSharp.runtime.freebsd.12-x64": "14.0.0-beta1"
       }
     },
     "freebsd.12-x86": {
       "libClangSharp": {
-        "libClangSharp.runtime.freebsd.12-x86": "13.0.0-beta1"
+        "libClangSharp.runtime.freebsd.12-x86": "14.0.0-beta1"
       }
     },
     "freebsd.13-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.freebsd.13-x64": "13.0.0-beta1"
+        "libClangSharp.runtime.freebsd.13-x64": "14.0.0-beta1"
       }
     },
     "freebsd.13-x86": {
       "libClangSharp": {
-        "libClangSharp.runtime.freebsd.13-x86": "13.0.0-beta1"
+        "libClangSharp.runtime.freebsd.13-x86": "14.0.0-beta1"
       }
     },
     "linux-arm": {
       "libClangSharp": {
-        "libClangSharp.runtime.linux-arm": "13.0.0-beta1"
+        "libClangSharp.runtime.linux-arm": "14.0.0-beta1"
       }
     },
     "linux-arm64": {
       "libClangSharp": {
-        "libClangSharp.runtime.linux-arm64": "13.0.0-beta1"
+        "libClangSharp.runtime.linux-arm64": "14.0.0-beta1"
       }
     },
     "osx-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.osx-x64": "13.0.0-beta1"
+        "libClangSharp.runtime.osx-x64": "14.0.0-beta1"
       }
     },
     "ubuntu.18.04-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.ubuntu.18.04-x64": "13.0.0-beta1"
+        "libClangSharp.runtime.ubuntu.18.04-x64": "14.0.0-beta1"
       }
     },
     "ubuntu.20.04-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.ubuntu.20.04-x64": "13.0.0-beta1"
+        "libClangSharp.runtime.ubuntu.20.04-x64": "14.0.0-beta1"
       }
     },
     "ubuntu.21.04-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.ubuntu.21.04-x64": "13.0.0-beta1"
+        "libClangSharp.runtime.ubuntu.21.04-x64": "14.0.0-beta1"
       }
     },
     "win-arm64": {
       "libClangSharp": {
-        "libClangSharp.runtime.win-arm64": "13.0.0-beta1"
+        "libClangSharp.runtime.win-arm64": "14.0.0-beta1"
       }
     },
     "win-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.win-x64": "13.0.0-beta1"
+        "libClangSharp.runtime.win-x64": "14.0.0-beta1"
       }
     },
     "win-x86": {
       "libClangSharp": {
-        "libClangSharp.runtime.win-x86": "13.0.0-beta1"
+        "libClangSharp.runtime.win-x86": "14.0.0-beta1"
       }
     }
   }

@@ -2,67 +2,67 @@
   "runtimes": {
     "freebsd.12-x64": {
       "libclang": {
-        "libclang.runtime.freebsd.12-x64": "13.0.0"
+        "libclang.runtime.freebsd.12-x64": "14.0.0"
       }
     },
     "freebsd.12-x86": {
       "libclang": {
-        "libclang.runtime.freebsd.12-x86": "13.0.0"
+        "libclang.runtime.freebsd.12-x86": "14.0.0"
       }
     },
     "freebsd.13-x64": {
       "libclang": {
-        "libclang.runtime.freebsd.13-x64": "13.0.0"
+        "libclang.runtime.freebsd.13-x64": "14.0.0"
       }
     },
     "freebsd.13-x86": {
       "libclang": {
-        "libclang.runtime.freebsd.13-x86": "13.0.0"
+        "libclang.runtime.freebsd.13-x86": "14.0.0"
       }
     },
     "linux-arm": {
       "libclang": {
-        "libclang.runtime.linux-arm": "13.0.0"
+        "libclang.runtime.linux-arm": "14.0.0"
       }
     },
     "linux-arm64": {
       "libclang": {
-        "libclang.runtime.linux-arm64": "13.0.0"
+        "libclang.runtime.linux-arm64": "14.0.0"
       }
     },
     "osx-x64": {
       "libclang": {
-        "libclang.runtime.osx-x64": "13.0.0"
+        "libclang.runtime.osx-x64": "14.0.0"
       }
     },
     "ubuntu.18.04-x64": {
       "libclang": {
-        "libclang.runtime.ubuntu.18.04-x64": "13.0.0"
+        "libclang.runtime.ubuntu.18.04-x64": "14.0.0"
       }
     },
     "ubuntu.20.04-x64": {
       "libclang": {
-        "libclang.runtime.ubuntu.20.04-x64": "13.0.0"
+        "libclang.runtime.ubuntu.20.04-x64": "14.0.0"
       }
     },
     "ubuntu.21.04-x64": {
       "libclang": {
-        "libclang.runtime.ubuntu.21.04-x64": "13.0.0"
+        "libclang.runtime.ubuntu.21.04-x64": "14.0.0"
       }
     },
     "win-arm64": {
       "libclang": {
-        "libclang.runtime.win-arm64": "13.0.0"
+        "libclang.runtime.win-arm64": "14.0.0"
       }
     },
     "win-x64": {
       "libclang": {
-        "libclang.runtime.win-x64": "13.0.0"
+        "libclang.runtime.win-x64": "14.0.0"
       }
     },
     "win-x86": {
       "libclang": {
-        "libclang.runtime.win-x86": "13.0.0"
+        "libclang.runtime.win-x86": "14.0.0"
       }
     }
   }
