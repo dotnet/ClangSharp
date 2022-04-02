@@ -3,27 +3,27 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
+using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
-using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
     /// <summary>Provides validation of the <see cref="CXIdxEntityRefInfo" /> struct.</summary>
-    public static unsafe class CXIdxEntityRefInfoTests
+    public static unsafe partial class CXIdxEntityRefInfoTests
     {
         /// <summary>Validates that the <see cref="CXIdxEntityRefInfo" /> struct is blittable.</summary>
         [Test]
         public static void IsBlittableTest()
         {
-            Assert.AreEqual(sizeof(CXIdxEntityRefInfo), Marshal.SizeOf<CXIdxEntityRefInfo>());
+            Assert.That(Marshal.SizeOf<CXIdxEntityRefInfo>(), Is.EqualTo(sizeof(CXIdxEntityRefInfo)));
         }
 
         /// <summary>Validates that the <see cref="CXIdxEntityRefInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
         [Test]
         public static void IsLayoutSequentialTest()
         {
-            Assert.True(typeof(CXIdxEntityRefInfo).IsLayoutSequential);
+            Assert.That(typeof(CXIdxEntityRefInfo).IsLayoutSequential, Is.True);
         }
 
         /// <summary>Validates that the <see cref="CXIdxEntityRefInfo" /> struct has the correct size.</summary>
@@ -32,11 +32,11 @@ namespace ClangSharp.Interop.UnitTests
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.AreEqual(96, sizeof(CXIdxEntityRefInfo));
+                Assert.That(sizeof(CXIdxEntityRefInfo), Is.EqualTo(96));
             }
             else
             {
-                Assert.AreEqual(52, sizeof(CXIdxEntityRefInfo));
+                Assert.That(sizeof(CXIdxEntityRefInfo), Is.EqualTo(52));
             }
         }
     }

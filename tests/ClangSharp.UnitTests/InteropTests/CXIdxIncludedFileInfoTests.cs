@@ -3,27 +3,27 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
+using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
-using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
     /// <summary>Provides validation of the <see cref="CXIdxIncludedFileInfo" /> struct.</summary>
-    public static unsafe class CXIdxIncludedFileInfoTests
+    public static unsafe partial class CXIdxIncludedFileInfoTests
     {
         /// <summary>Validates that the <see cref="CXIdxIncludedFileInfo" /> struct is blittable.</summary>
         [Test]
         public static void IsBlittableTest()
         {
-            Assert.AreEqual(sizeof(CXIdxIncludedFileInfo), Marshal.SizeOf<CXIdxIncludedFileInfo>());
+            Assert.That(Marshal.SizeOf<CXIdxIncludedFileInfo>(), Is.EqualTo(sizeof(CXIdxIncludedFileInfo)));
         }
 
         /// <summary>Validates that the <see cref="CXIdxIncludedFileInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
         [Test]
         public static void IsLayoutSequentialTest()
         {
-            Assert.True(typeof(CXIdxIncludedFileInfo).IsLayoutSequential);
+            Assert.That(typeof(CXIdxIncludedFileInfo).IsLayoutSequential, Is.True);
         }
 
         /// <summary>Validates that the <see cref="CXIdxIncludedFileInfo" /> struct has the correct size.</summary>
@@ -32,11 +32,11 @@ namespace ClangSharp.Interop.UnitTests
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.AreEqual(56, sizeof(CXIdxIncludedFileInfo));
+                Assert.That(sizeof(CXIdxIncludedFileInfo), Is.EqualTo(56));
             }
             else
             {
-                Assert.AreEqual(32, sizeof(CXIdxIncludedFileInfo));
+                Assert.That(sizeof(CXIdxIncludedFileInfo), Is.EqualTo(32));
             }
         }
     }

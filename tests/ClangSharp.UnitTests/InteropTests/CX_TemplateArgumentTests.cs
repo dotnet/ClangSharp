@@ -1,27 +1,27 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 // Ported from https://github.com/dotnet/clangsharp/blob/main/sources/libClangSharp
 
+using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
-using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
     /// <summary>Provides validation of the <see cref="CX_TemplateArgument" /> struct.</summary>
-    public static unsafe class CX_TemplateArgumentTests
+    public static unsafe partial class CX_TemplateArgumentTests
     {
         /// <summary>Validates that the <see cref="CX_TemplateArgument" /> struct is blittable.</summary>
         [Test]
         public static void IsBlittableTest()
         {
-            Assert.AreEqual(sizeof(CX_TemplateArgument), Marshal.SizeOf<CX_TemplateArgument>());
+            Assert.That(Marshal.SizeOf<CX_TemplateArgument>(), Is.EqualTo(sizeof(CX_TemplateArgument)));
         }
 
         /// <summary>Validates that the <see cref="CX_TemplateArgument" /> struct has the right <see cref="LayoutKind" />.</summary>
         [Test]
         public static void IsLayoutSequentialTest()
         {
-            Assert.True(typeof(CX_TemplateArgument).IsLayoutSequential);
+            Assert.That(typeof(CX_TemplateArgument).IsLayoutSequential, Is.True);
         }
 
         /// <summary>Validates that the <see cref="CX_TemplateArgument" /> struct has the correct size.</summary>
@@ -30,11 +30,11 @@ namespace ClangSharp.Interop.UnitTests
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.AreEqual(24, sizeof(CX_TemplateArgument));
+                Assert.That(sizeof(CX_TemplateArgument), Is.EqualTo(24));
             }
             else
             {
-                Assert.AreEqual(16, sizeof(CX_TemplateArgument));
+                Assert.That(sizeof(CX_TemplateArgument), Is.EqualTo(16));
             }
         }
     }

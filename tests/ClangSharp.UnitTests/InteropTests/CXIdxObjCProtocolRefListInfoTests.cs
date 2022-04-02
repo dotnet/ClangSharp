@@ -3,27 +3,27 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
+using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
-using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
     /// <summary>Provides validation of the <see cref="CXIdxObjCProtocolRefListInfo" /> struct.</summary>
-    public static unsafe class CXIdxObjCProtocolRefListInfoTests
+    public static unsafe partial class CXIdxObjCProtocolRefListInfoTests
     {
         /// <summary>Validates that the <see cref="CXIdxObjCProtocolRefListInfo" /> struct is blittable.</summary>
         [Test]
         public static void IsBlittableTest()
         {
-            Assert.AreEqual(sizeof(CXIdxObjCProtocolRefListInfo), Marshal.SizeOf<CXIdxObjCProtocolRefListInfo>());
+            Assert.That(Marshal.SizeOf<CXIdxObjCProtocolRefListInfo>(), Is.EqualTo(sizeof(CXIdxObjCProtocolRefListInfo)));
         }
 
         /// <summary>Validates that the <see cref="CXIdxObjCProtocolRefListInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
         [Test]
         public static void IsLayoutSequentialTest()
         {
-            Assert.True(typeof(CXIdxObjCProtocolRefListInfo).IsLayoutSequential);
+            Assert.That(typeof(CXIdxObjCProtocolRefListInfo).IsLayoutSequential, Is.True);
         }
 
         /// <summary>Validates that the <see cref="CXIdxObjCProtocolRefListInfo" /> struct has the correct size.</summary>
@@ -32,11 +32,11 @@ namespace ClangSharp.Interop.UnitTests
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.AreEqual(16, sizeof(CXIdxObjCProtocolRefListInfo));
+                Assert.That(sizeof(CXIdxObjCProtocolRefListInfo), Is.EqualTo(16));
             }
             else
             {
-                Assert.AreEqual(8, sizeof(CXIdxObjCProtocolRefListInfo));
+                Assert.That(sizeof(CXIdxObjCProtocolRefListInfo), Is.EqualTo(8));
             }
         }
     }

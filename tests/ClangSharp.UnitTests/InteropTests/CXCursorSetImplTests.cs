@@ -3,33 +3,33 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
-using System.Runtime.InteropServices;
 using NUnit.Framework;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Interop.UnitTests
 {
     /// <summary>Provides validation of the <see cref="CXCursorSetImpl" /> struct.</summary>
-    public static unsafe class CXCursorSetImplTests
+    public static unsafe partial class CXCursorSetImplTests
     {
         /// <summary>Validates that the <see cref="CXCursorSetImpl" /> struct is blittable.</summary>
         [Test]
         public static void IsBlittableTest()
         {
-            Assert.AreEqual(sizeof(CXCursorSetImpl), Marshal.SizeOf<CXCursorSetImpl>());
+            Assert.That(Marshal.SizeOf<CXCursorSetImpl>(), Is.EqualTo(sizeof(CXCursorSetImpl)));
         }
 
         /// <summary>Validates that the <see cref="CXCursorSetImpl" /> struct has the right <see cref="LayoutKind" />.</summary>
         [Test]
         public static void IsLayoutSequentialTest()
         {
-            Assert.True(typeof(CXCursorSetImpl).IsLayoutSequential);
+            Assert.That(typeof(CXCursorSetImpl).IsLayoutSequential, Is.True);
         }
 
         /// <summary>Validates that the <see cref="CXCursorSetImpl" /> struct has the correct size.</summary>
         [Test]
         public static void SizeOfTest()
         {
-            Assert.AreEqual(1, sizeof(CXCursorSetImpl));
+            Assert.That(sizeof(CXCursorSetImpl), Is.EqualTo(1));
         }
     }
 }

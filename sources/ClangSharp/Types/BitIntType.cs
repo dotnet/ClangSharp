@@ -4,10 +4,10 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class ExtIntType : Type
+    public sealed class BitIntType : Type
     {
 
-        internal ExtIntType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_ExtInt)
+        internal BitIntType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_BitInt)
         {
         }
 
