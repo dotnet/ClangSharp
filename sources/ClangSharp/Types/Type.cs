@@ -59,7 +59,7 @@ namespace ClangSharp
 
         public bool IsAnyPointerType => IsPointerType || IsObjCObjectPointerType;
 
-        public bool IsExtIntType => CanonicalType is ExtIntType;
+        public bool IsBitIntType => CanonicalType is BitIntType;
 
         public bool IsIntegerType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind is >= CXTypeKind.CXType_Bool and <= CXTypeKind.CXType_Int128;
 
@@ -69,7 +69,7 @@ namespace ClangSharp
             {
                 return CanonicalType is BuiltinType bt
                     ? bt.Kind is >= CXTypeKind.CXType_Bool and <= CXTypeKind.CXType_Int128
-                    : CanonicalType is EnumType et ? et.Decl.IsComplete : IsExtIntType;
+                    : CanonicalType is EnumType et ? et.Decl.IsComplete : IsBitIntType;
             }
         }
 
@@ -132,13 +132,13 @@ namespace ClangSharp
             CX_TypeClass.CX_TypeClass_Auto => new AutoType(handle),
             CX_TypeClass.CX_TypeClass_DeducedTemplateSpecialization => new DeducedTemplateSpecializationType(handle),
             CX_TypeClass.CX_TypeClass_DependentAddressSpace => new DependentAddressSpaceType(handle),
-            CX_TypeClass.CX_TypeClass_DependentExtInt => new DependentExtIntType(handle),
+            CX_TypeClass.CX_TypeClass_DependentBitInt => new DependentBitIntType(handle),
             CX_TypeClass.CX_TypeClass_DependentName => new DependentNameType(handle),
             CX_TypeClass.CX_TypeClass_DependentSizedExtVector => new DependentSizedExtVectorType(handle),
             CX_TypeClass.CX_TypeClass_DependentTemplateSpecialization => new DependentTemplateSpecializationType(handle),
             CX_TypeClass.CX_TypeClass_DependentVector => new DependentVectorType(handle),
             CX_TypeClass.CX_TypeClass_Elaborated => new ElaboratedType(handle),
-            CX_TypeClass.CX_TypeClass_ExtInt => new ExtIntType(handle),
+            CX_TypeClass.CX_TypeClass_BitInt => new BitIntType(handle),
             CX_TypeClass.CX_TypeClass_FunctionNoProto => new FunctionNoProtoType(handle),
             CX_TypeClass.CX_TypeClass_FunctionProto => new FunctionProtoType(handle),
             CX_TypeClass.CX_TypeClass_InjectedClassName => new InjectedClassNameType(handle),

@@ -1,29 +1,29 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-13.0.0/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
+using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
-using NUnit.Framework;
 
 namespace ClangSharp.Interop.UnitTests
 {
     /// <summary>Provides validation of the <see cref="CXIdxObjCContainerDeclInfo" /> struct.</summary>
-    public static unsafe class CXIdxObjCContainerDeclInfoTests
+    public static unsafe partial class CXIdxObjCContainerDeclInfoTests
     {
         /// <summary>Validates that the <see cref="CXIdxObjCContainerDeclInfo" /> struct is blittable.</summary>
         [Test]
         public static void IsBlittableTest()
         {
-            Assert.AreEqual(sizeof(CXIdxObjCContainerDeclInfo), Marshal.SizeOf<CXIdxObjCContainerDeclInfo>());
+            Assert.That(Marshal.SizeOf<CXIdxObjCContainerDeclInfo>(), Is.EqualTo(sizeof(CXIdxObjCContainerDeclInfo)));
         }
 
         /// <summary>Validates that the <see cref="CXIdxObjCContainerDeclInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
         [Test]
         public static void IsLayoutSequentialTest()
         {
-            Assert.True(typeof(CXIdxObjCContainerDeclInfo).IsLayoutSequential);
+            Assert.That(typeof(CXIdxObjCContainerDeclInfo).IsLayoutSequential, Is.True);
         }
 
         /// <summary>Validates that the <see cref="CXIdxObjCContainerDeclInfo" /> struct has the correct size.</summary>
@@ -32,11 +32,11 @@ namespace ClangSharp.Interop.UnitTests
         {
             if (Environment.Is64BitProcess)
             {
-                Assert.AreEqual(16, sizeof(CXIdxObjCContainerDeclInfo));
+                Assert.That(sizeof(CXIdxObjCContainerDeclInfo), Is.EqualTo(16));
             }
             else
             {
-                Assert.AreEqual(8, sizeof(CXIdxObjCContainerDeclInfo));
+                Assert.That(sizeof(CXIdxObjCContainerDeclInfo), Is.EqualTo(8));
             }
         }
     }

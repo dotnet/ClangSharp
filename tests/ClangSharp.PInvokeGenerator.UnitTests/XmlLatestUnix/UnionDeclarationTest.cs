@@ -306,7 +306,7 @@ union MyOtherUnion
     </struct>
     <struct name=""MyOtherUnion"" access=""public"" layout=""Explicit"">
       <field name=""c"" access=""public"" offset=""0"">
-        <type native=""MyUnion [3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyUnion</type>
+        <type native=""MyUnion[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyUnion</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
         <field name=""e0"" access=""public"">
@@ -363,7 +363,7 @@ union MyOtherUnion
     </struct>
     <struct name=""MyOtherUnion"" access=""public"" layout=""Explicit"">
       <field name=""c"" access=""public"" offset=""0"">
-        <type native=""MyUnion [2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">MyUnion</type>
+        <type native=""MyUnion[2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">MyUnion</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
         <field name=""e0_0_0_0"" access=""public"">
@@ -542,7 +542,7 @@ union MyOtherUnion
     </struct>
     <struct name=""MyOtherUnion"" access=""public"" layout=""Explicit"">
       <field name=""c"" access=""public"" offset=""0"">
-        <type native=""MyUnion [3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyUnion</type>
+        <type native=""MyUnion[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyUnion</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
         <field name=""e0"" access=""public"">
@@ -635,7 +635,7 @@ union MyOtherUnion
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
       <field name=""c"" access=""public"" offset=""0"">
-        <type native=""{nativeType} [3]"" count=""3"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
+        <type native=""{nativeType}[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
     </struct>
   </namespace>
@@ -658,7 +658,7 @@ union MyOtherUnion
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
       <field name=""c"" access=""public"" offset=""0"">
-        <type native=""{nativeType} [2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
+        <type native=""{nativeType}[2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
     </struct>
   </namespace>
@@ -808,7 +808,7 @@ union MyUnion
           <type>MyStruct</type>
         </field>
         <field name=""buffer"" access=""public"" offset=""0"">
-          <type native=""{nativeType} [4]"" count=""4"" fixed=""_buffer_e__FixedBuffer"">{expectedManagedType}</type>
+          <type native=""{nativeType}[4]"" count=""4"" fixed=""_buffer_e__FixedBuffer"">{expectedManagedType}</type>
         </field>
       </struct>
     </struct>

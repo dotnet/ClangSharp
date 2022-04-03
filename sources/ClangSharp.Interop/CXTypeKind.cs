@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-13.0.0/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 namespace ClangSharp.Interop
@@ -47,8 +47,9 @@ namespace ClangSharp.Interop
         CXType_UAccum = 37,
         CXType_ULongAccum = 38,
         CXType_BFloat16 = 39,
+        CXType_Ibm128 = 40,
         CXType_FirstBuiltin = CXType_Void,
-        CXType_LastBuiltin = CXType_BFloat16,
+        CXType_LastBuiltin = CXType_Ibm128,
         CXType_Complex = 100,
         CXType_Pointer = 101,
         CXType_BlockPointer = 102,

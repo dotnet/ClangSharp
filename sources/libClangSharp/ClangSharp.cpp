@@ -4744,7 +4744,7 @@ int64_t clangsharp_Cursor_getVtblIdx(CXCursor C) {
 }
 
 CXString clangsharp_getVersion() {
-    return cxstring::createDup("clangsharp version 13.0.0");
+    return cxstring::createDup("clangsharp version 14.0.0");
 }
 
 void clangsharp_TemplateArgument_dispose(CX_TemplateArgument T) {
@@ -5160,11 +5160,11 @@ unsigned clangsharp_Type_getIsSigned(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
 
-    if (const DependentExtIntType* DEIT = dyn_cast<DependentExtIntType>(TP)) {
+    if (const DependentBitIntType* DEIT = dyn_cast<DependentBitIntType>(TP)) {
         return DEIT->isSigned();
     }
 
-    if (const ExtIntType* EIT = dyn_cast<ExtIntType>(TP)) {
+    if (const BitIntType* EIT = dyn_cast<BitIntType>(TP)) {
         return EIT->isSigned();
     }
 
@@ -5200,11 +5200,11 @@ unsigned clangsharp_Type_getIsUnsigned(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
 
-    if (const DependentExtIntType* DEIT = dyn_cast<DependentExtIntType>(TP)) {
+    if (const DependentBitIntType* DEIT = dyn_cast<DependentBitIntType>(TP)) {
         return DEIT->isUnsigned();
     }
 
-    if (const ExtIntType* EIT = dyn_cast<ExtIntType>(TP)) {
+    if (const BitIntType* EIT = dyn_cast<BitIntType>(TP)) {
         return EIT->isUnsigned();
     }
 
@@ -5226,7 +5226,7 @@ int clangsharp_Type_getNumBits(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
 
-    if (const ExtIntType* EIT = dyn_cast<ExtIntType>(TP)) {
+    if (const BitIntType* EIT = dyn_cast<BitIntType>(TP)) {
         return EIT->getNumBits();
     }
 
@@ -5237,7 +5237,7 @@ CXCursor clangsharp_Type_getNumBitsExpr(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
 
-    if (const DependentExtIntType* DEIT = dyn_cast<DependentExtIntType>(TP)) {
+    if (const DependentBitIntType* DEIT = dyn_cast<DependentBitIntType>(TP)) {
         CXCursor C = clang_getTypeDeclaration(CT);
         return MakeCXCursor(DEIT->getNumBitsExpr(), getCursorDecl(C), GetTypeTU(CT));
     }

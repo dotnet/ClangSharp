@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-13.0.0/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 namespace ClangSharp.Interop
@@ -218,7 +218,9 @@ namespace ClangSharp.Interop
         CXCursor_OMPDispatchDirective = 291,
         CXCursor_OMPMaskedDirective = 292,
         CXCursor_OMPUnrollDirective = 293,
-        CXCursor_LastStmt = CXCursor_OMPUnrollDirective,
+        CXCursor_OMPMetaDirective = 294,
+        CXCursor_OMPGenericLoopDirective = 295,
+        CXCursor_LastStmt = CXCursor_OMPGenericLoopDirective,
         CXCursor_TranslationUnit = 300,
         CXCursor_FirstAttr = 400,
         CXCursor_UnexposedAttr = 400,

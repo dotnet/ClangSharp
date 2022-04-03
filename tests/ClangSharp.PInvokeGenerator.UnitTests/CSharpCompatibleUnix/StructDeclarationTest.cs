@@ -330,7 +330,7 @@ struct MyOtherStruct
 
     public partial struct MyOtherStruct
     {{
-        [NativeTypeName(""MyStruct [3]"")]
+        [NativeTypeName(""MyStruct[3]"")]
         public _c_e__FixedBuffer c;
 
         public partial struct _c_e__FixedBuffer
@@ -379,7 +379,7 @@ struct MyOtherStruct
 
     public partial struct MyOtherStruct
     {{
-        [NativeTypeName(""MyStruct [2][1][3][4]"")]
+        [NativeTypeName(""MyStruct[2][1][3][4]"")]
         public _c_e__FixedBuffer c;
 
         public partial struct _c_e__FixedBuffer
@@ -512,7 +512,7 @@ struct MyOtherStruct
 
     public partial struct MyOtherStruct
     {{
-        [NativeTypeName(""MyStruct [3]"")]
+        [NativeTypeName(""MyStruct[3]"")]
         public _c_e__FixedBuffer c;
 
         public partial struct _c_e__FixedBuffer
@@ -590,7 +590,7 @@ struct MyOtherStruct
 {{
     public unsafe partial struct MyStruct
     {{
-        [NativeTypeName(""{nativeType} [3]"")]
+        [NativeTypeName(""{nativeType}[3]"")]
         public fixed {expectedManagedType} c[3];
     }}
 }}
@@ -611,7 +611,7 @@ struct MyOtherStruct
 {{
     public unsafe partial struct MyStruct
     {{
-        [NativeTypeName(""{nativeType} [2][1][3][4]"")]
+        [NativeTypeName(""{nativeType}[2][1][3][4]"")]
         public fixed {expectedManagedType} c[2 * 1 * 3 * 4];
     }}
 }}
@@ -968,10 +968,10 @@ namespace ClangSharp.Test
 
             public MyUnion u;
 
-            [NativeTypeName(""{nativeType} [4]"")]
+            [NativeTypeName(""{nativeType}[4]"")]
             public fixed {expectedManagedType} buffer1[4];
 
-            [NativeTypeName(""MyUnion [4]"")]
+            [NativeTypeName(""MyUnion[4]"")]
             public _buffer2_e__FixedBuffer buffer2;
 
             public partial struct _w_e__Struct

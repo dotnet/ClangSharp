@@ -171,7 +171,7 @@ namespace ClangSharp
             {
                 var helpBuilder = new CustomHelpBuilder(context.Console);
 
-                helpBuilder.WriteLine($"{s_rootCommand.Description} version 13.0.0");
+                helpBuilder.WriteLine($"{s_rootCommand.Description} version 14.0.0");
                 helpBuilder.WriteLine($"  {clang.getClangVersion()}");
                 helpBuilder.WriteLine($"  {clangsharp.getVersion()}");
 

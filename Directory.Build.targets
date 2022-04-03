@@ -33,13 +33,13 @@
 
   <!-- Package versions for package references across all projects -->
   <ItemGroup>
-    <PackageReference Update="libClang" Version="13.0.1" />
-    <PackageReference Update="libClangSharp" Version="13.0.0-beta1" />
+    <PackageReference Update="libClang" Version="14.0.0" />
+    <PackageReference Update="libClangSharp" Version="14.0.0-beta1" />
     <PackageReference Update="Microsoft.Bcl.HashCode" Version="1.1.1" />
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.1.1" />
-    <PackageReference Update="NUnit" Version="3.13.2" />
-    <PackageReference Update="NUnit3TestAdapter" Version="4.0.0" />
+    <PackageReference Update="NUnit" Version="3.13.3" />
+    <PackageReference Update="NUnit3TestAdapter" Version="4.2.1" />
     <PackageReference Update="System.CommandLine" Version="2.0.0-beta1.21308.1" />
     <PackageReference Update="System.Memory" Version="4.5.4" />
   </ItemGroup>

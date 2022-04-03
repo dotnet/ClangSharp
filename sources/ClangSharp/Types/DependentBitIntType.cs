@@ -5,11 +5,11 @@ using ClangSharp.Interop;
 
 namespace ClangSharp
 {
-    public sealed class DependentExtIntType : Type
+    public sealed class DependentBitIntType : Type
     {
         private readonly Lazy<Expr> _numBitsExpr;
 
-        internal DependentExtIntType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_DependentExtInt)
+        internal DependentBitIntType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_DependentBitInt)
         {
             _numBitsExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.NumBitsExpr));
         }
