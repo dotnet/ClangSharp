@@ -39,11 +39,7 @@ find_package(Clang REQUIRED CONFIG
 
 add_library(ClangSharp SHARED ${SOURCES})
 
-if (TARGET clang-cpp) # Linux packages install libclang and clang-cpp
-    target_link_libraries(ClangSharp PRIVATE clang-cpp libclang)
-else()
-    target_link_libraries(ClangSharp PRIVATE clangAST clangFrontend libclang)
-endif()
+target_link_libraries(ClangSharp PRIVATE clangAST clangFrontend libclang)
 
 target_include_directories(ClangSharp PRIVATE ${CLANG_INCLUDE_DIRS})
 
