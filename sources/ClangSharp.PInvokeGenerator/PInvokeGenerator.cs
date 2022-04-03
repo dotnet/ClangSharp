@@ -21,8 +21,8 @@ namespace ClangSharp
         private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
         private static readonly Regex s_needsSystemSupportRegex = new Regex(@"\b(?:Guid|IntPtr|UIntPtr)\b", RegexOptions.Compiled);
 
-        private const string ExpectedClangVersion = "13.0.0";
-        private const string ExpectedClangSharpVersion = "13.0.0";
+        private const string ExpectedClangVersion = "14.0.0";
+        private const string ExpectedClangSharpVersion = "14.0.0";
 
         private readonly CXIndex _index;
         private readonly OutputBuilderFactory _outputBuilderFactory;
@@ -72,14 +72,14 @@ namespace ClangSharp
 
             var clangVersion = clang.getClangVersion().ToString();
 
-            if (!clangVersion.Contains("13.0.0"))
+            if (!clangVersion.Contains(ExpectedClangVersion))
             {
                 throw new InvalidOperationException($"Invalid libClang version. Returned string '{clangVersion}' does not contain '{ExpectedClangVersion}'");
             }
 
             var clangSharpVersion = clangsharp.getVersion().ToString();
 
-            if (!clangSharpVersion.Contains("13.0.0"))
+            if (!clangSharpVersion.Contains(ExpectedClangSharpVersion))
             {
                 throw new InvalidOperationException($"Invalid libClang version. Returned string '{clangSharpVersion}' does not contain '{ExpectedClangSharpVersion}'");
             }
