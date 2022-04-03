@@ -71,16 +71,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.12
 		packages\libclang\libclang.runtime.freebsd.12-x64\libclang.runtime.freebsd.12-x64.nuspec = packages\libclang\libclang.runtime.freebsd.12-x64\libclang.runtime.freebsd.12-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.12-x86", "libclang.runtime.freebsd.12-x86", "{C57B4A74-2791-44C3-92D3-9B8AD5993F27}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.freebsd.12-x86\libclang.runtime.freebsd.12-x86.nuspec = packages\libclang\libclang.runtime.freebsd.12-x86\libclang.runtime.freebsd.12-x86.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.linux-arm", "libclang.runtime.linux-arm", "{F9915660-2229-418C-B269-83FE74C1943E}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.linux-arm\libclang.runtime.linux-arm.nuspec = packages\libclang\libclang.runtime.linux-arm\libclang.runtime.linux-arm.nuspec
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.linux-arm64", "libclang.runtime.linux-arm64", "{7D89072F-8E3E-4009-BCCD-5D3C69F88042}"
 	ProjectSection(SolutionItems) = preProject
 		packages\libclang\libclang.runtime.linux-arm64\libclang.runtime.linux-arm64.nuspec = packages\libclang\libclang.runtime.linux-arm64\libclang.runtime.linux-arm64.nuspec
@@ -117,16 +107,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freebsd.12-x64", "libClangSharp.runtime.freebsd.12-x64", "{8DCBB5E9-A44C-462F-B9FE-418B18EC7E31}"
 	ProjectSection(SolutionItems) = preProject
 		packages\libClangSharp\libClangSharp.runtime.freebsd.12-x64\libClangSharp.runtime.freebsd.12-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.freebsd.12-x64\libClangSharp.runtime.freebsd.12-x64.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freebsd.12-x86", "libClangSharp.runtime.freebsd.12-x86", "{47E5622B-77C6-44B7-8528-F03C3B63A217}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.freebsd.12-x86\libClangSharp.runtime.freebsd.12-x86.nuspec = packages\libClangSharp\libClangSharp.runtime.freebsd.12-x86\libClangSharp.runtime.freebsd.12-x86.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.linux-arm", "libClangSharp.runtime.linux-arm", "{B48A71F0-AF48-4010-941F-AF24FDB614F2}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.linux-arm\libClangSharp.runtime.linux-arm.nuspec = packages\libClangSharp\libClangSharp.runtime.linux-arm\libClangSharp.runtime.linux-arm.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.linux-arm64", "libClangSharp.runtime.linux-arm64", "{4F2F7171-202E-4E23-AABF-EB3501BDB0B2}"
@@ -185,9 +165,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.20.
 		packages\libclang\libclang.runtime.ubuntu.20.04-x64\libclang.runtime.ubuntu.20.04-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.20.04-x64\libclang.runtime.ubuntu.20.04-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.21.04-x64", "libclang.runtime.ubuntu.21.04-x64", "{F3254760-351E-4886-A243-FF3778837C40}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.21.10-x64", "libclang.runtime.ubuntu.21.10-x64", "{F3254760-351E-4886-A243-FF3778837C40}"
 	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.ubuntu.21.04-x64\libclang.runtime.ubuntu.21.04-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.21.04-x64\libclang.runtime.ubuntu.21.04-x64.nuspec
+		packages\libclang\libclang.runtime.ubuntu.21.10-x64\libclang.runtime.ubuntu.21.10-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.21.10-x64\libclang.runtime.ubuntu.21.10-x64.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.win-arm64", "libclang.runtime.win-arm64", "{B3F3A831-DA09-40A2-A25C-DE47A58BB93B}"
@@ -195,9 +175,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.win-arm64"
 		packages\libclang\libclang.runtime.win-arm64\libclang.runtime.win-arm64.nuspec = packages\libclang\libclang.runtime.win-arm64\libclang.runtime.win-arm64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.ubuntu.21.04-x64", "libClangSharp.runtime.ubuntu.21.04-x64", "{D90C3C52-DA8D-44BB-B8B0-3E4EF4CBF4DC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.ubuntu.21.10-x64", "libClangSharp.runtime.ubuntu.21.10-x64", "{D90C3C52-DA8D-44BB-B8B0-3E4EF4CBF4DC}"
 	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.ubuntu.21.04-x64\libClangSharp.runtime.ubuntu.21.04-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.ubuntu.21.04-x64\libClangSharp.runtime.ubuntu.21.04-x64.nuspec
+		packages\libClangSharp\libClangSharp.runtime.ubuntu.21.10-x64\libClangSharp.runtime.ubuntu.21.10-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.ubuntu.21.10-x64\libClangSharp.runtime.ubuntu.21.10-x64.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.win-arm64", "libClangSharp.runtime.win-arm64", "{69B805C6-230D-49A2-A569-3CAC2EC9F293}"
@@ -210,16 +190,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.13-x64", "libclang.runtime.freebsd.13-x64", "{8FD0223B-88AD-4FA9-AE29-0B446FF17922}"
 	ProjectSection(SolutionItems) = preProject
 		packages\libclang\libclang.runtime.freebsd.13-x64\libclang.runtime.freebsd.13-x64.nuspec = packages\libclang\libclang.runtime.freebsd.13-x64\libclang.runtime.freebsd.13-x64.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.freebsd.13-x86", "libclang.runtime.freebsd.13-x86", "{E76E41C3-FD6E-47FB-BC1E-120C8F88C07C}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.freebsd.13-x86\libclang.runtime.freebsd.13-x86.nuspec = packages\libclang\libclang.runtime.freebsd.13-x86\libclang.runtime.freebsd.13-x86.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freebsd.13-x86", "libClangSharp.runtime.freebsd.13-x86", "{19337D54-F5B0-4131-A753-B788EF5FE677}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.freebsd.13-x86\libClangSharp.runtime.freebsd.13-x86.nuspec = packages\libClangSharp\libClangSharp.runtime.freebsd.13-x86\libClangSharp.runtime.freebsd.13-x86.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.freebsd.13-x64", "libClangSharp.runtime.freebsd.13-x64", "{B3A22C21-0699-4963-B665-F9AA74F0AF08}"
@@ -277,8 +247,6 @@ Global
 		{DFACF682-2673-4AE1-8F10-816D025C2D45} = {AE6CF12F-5CC3-463B-A74B-6CCAE26EE4EF}
 		{C8DB18BE-701A-46C4-98F9-2524914CB5DC} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{C90094F6-26DF-4B2C-BD61-540D4CE988A4} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
-		{C57B4A74-2791-44C3-92D3-9B8AD5993F27} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
-		{F9915660-2229-418C-B269-83FE74C1943E} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{7D89072F-8E3E-4009-BCCD-5D3C69F88042} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{8006B5D7-5E0E-4A0A-884F-62C5216144EE} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{8756B75F-F244-43AD-9C79-1610059BDF36} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
@@ -287,8 +255,6 @@ Global
 		{EDEC2130-DA14-4415-91A3-225733FB61F8} = {AE6CF12F-5CC3-463B-A74B-6CCAE26EE4EF}
 		{B043C50D-8B06-4663-943A-DEBB6CFACEA6} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{8DCBB5E9-A44C-462F-B9FE-418B18EC7E31} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
-		{47E5622B-77C6-44B7-8528-F03C3B63A217} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
-		{B48A71F0-AF48-4010-941F-AF24FDB614F2} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{4F2F7171-202E-4E23-AABF-EB3501BDB0B2} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{C2BE41E6-95E9-431A-9C49-923BD50692AB} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{A04F314B-2373-496E-879F-763B5C8EAF00} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
@@ -303,8 +269,6 @@ Global
 		{69B805C6-230D-49A2-A569-3CAC2EC9F293} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{AADBAAC3-45F0-484F-BCB2-9809EDF1CA82} = {732BA761-B58E-4C34-9C96-097382A55A7A}
 		{8FD0223B-88AD-4FA9-AE29-0B446FF17922} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
-		{E76E41C3-FD6E-47FB-BC1E-120C8F88C07C} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
-		{19337D54-F5B0-4131-A753-B788EF5FE677} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{B3A22C21-0699-4963-B665-F9AA74F0AF08} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{034EBD16-E96F-4530-B37D-30B16C4E9876} = {FF42B475-5025-45BA-B278-60F29B53C023}
 	EndGlobalSection
