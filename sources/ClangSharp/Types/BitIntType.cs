@@ -6,7 +6,6 @@ namespace ClangSharp
 {
     public sealed class BitIntType : Type
     {
-
         internal BitIntType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_BitInt)
         {
         }
