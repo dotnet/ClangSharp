@@ -165,7 +165,7 @@ namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
-        [NativeTypeName(""const char [5]"")]
+        [NativeTypeName(""const char[5]"")]
         public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
     }}
 }}
@@ -274,7 +274,7 @@ namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
-        [NativeTypeName(""const int [2][2]"")]
+        [NativeTypeName(""const int[2][2]"")]
         public static readonly int[][] MyArray = new int[2][]
         {{
             new int[2]

@@ -305,7 +305,7 @@ struct MyOtherStruct
     </struct>
     <struct name=""MyOtherStruct"" access=""public"">
       <field name=""c"" access=""public"">
-        <type native=""MyStruct [3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyStruct</type>
+        <type native=""MyStruct[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyStruct</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
         <field name=""e0"" access=""public"">
@@ -361,7 +361,7 @@ struct MyOtherStruct
     </struct>
     <struct name=""MyOtherStruct"" access=""public"">
       <field name=""c"" access=""public"">
-        <type native=""MyStruct [2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">MyStruct</type>
+        <type native=""MyStruct[2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">MyStruct</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
         <field name=""e0_0_0_0"" access=""public"">
@@ -538,7 +538,7 @@ struct MyOtherStruct
     </struct>
     <struct name=""MyOtherStruct"" access=""public"">
       <field name=""c"" access=""public"">
-        <type native=""MyStruct [3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyStruct</type>
+        <type native=""MyStruct[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyStruct</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
         <field name=""e0"" access=""public"">
@@ -630,7 +630,7 @@ struct MyOtherStruct
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" unsafe=""true"">
       <field name=""c"" access=""public"">
-        <type native=""{nativeType} [3]"" count=""3"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
+        <type native=""{nativeType}[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
     </struct>
   </namespace>
@@ -653,7 +653,7 @@ struct MyOtherStruct
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" unsafe=""true"">
       <field name=""c"" access=""public"">
-        <type native=""{nativeType} [2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
+        <type native=""{nativeType}[2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
     </struct>
   </namespace>
@@ -957,10 +957,10 @@ struct MyStruct
           <type>MyUnion</type>
         </field>
         <field name=""buffer1"" access=""public"">
-          <type native=""{nativeType} [4]"" count=""4"" fixed=""_buffer1_e__FixedBuffer"">{expectedManagedType}</type>
+          <type native=""{nativeType}[4]"" count=""4"" fixed=""_buffer1_e__FixedBuffer"">{expectedManagedType}</type>
         </field>
         <field name=""buffer2"" access=""public"">
-          <type native=""MyUnion [4]"" count=""4"" fixed=""_buffer2_e__FixedBuffer"">MyUnion</type>
+          <type native=""MyUnion[4]"" count=""4"" fixed=""_buffer2_e__FixedBuffer"">MyUnion</type>
         </field>
         <struct name=""_w_e__Struct"" access=""public"">
           <field name=""value"" access=""public"">
