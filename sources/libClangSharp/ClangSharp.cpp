@@ -5403,6 +5403,14 @@ CX_TemplateArgument clangsharp_Type_getTemplateArgument(CXType CT, unsigned i) {
         }
     }
 
+    // Matching what clang_Type_getNumTemplateArguments/Type.GetTemplateArguments is doing here
+    if (const auto* RecordDecl = T->getAsCXXRecordDecl()) {
+        const auto* TemplateDecl = dyn_cast<ClassTemplateSpecializationDecl>(RecordDecl);
+        if (TemplateDecl && i < TemplateDecl->getTemplateArgs().size()) {
+            return MakeCXTemplateArgument(&TemplateDecl->getTemplateArgs()[i], GetTypeTU(CT));
+        }
+    }
+
     return MakeCXTemplateArgument(nullptr, GetTypeTU(CT));
 }
 
