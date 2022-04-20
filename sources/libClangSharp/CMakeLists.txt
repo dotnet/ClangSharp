@@ -33,13 +33,20 @@ set(LLVM_SEARCH_PATHS
   ${PATH_TO_LLVM}/share/llvm/cmake/
 )
 
+option(LLVM_USE_STATIC "Link to static versions of LLVM/Clang libraries" ON)
+
 find_package(Clang REQUIRED CONFIG
              PATHS ${LLVM_SEARCH_PATHS}
              NO_DEFAULT_PATH)
 
 add_library(ClangSharp SHARED ${SOURCES})
 
-target_link_libraries(ClangSharp PRIVATE clangAST clangFrontend libclang)
+if (LLVM_USE_STATIC)
+    target_link_libraries(ClangSharp PRIVATE clangAST clangFrontend)
+else()
+    target_link_libraries(ClangSharp PRIVATE clang-cpp)
+endif()
+target_link_libraries(ClangSharp PRIVATE libclang)
 
 target_include_directories(ClangSharp PRIVATE ${CLANG_INCLUDE_DIRS})
 
