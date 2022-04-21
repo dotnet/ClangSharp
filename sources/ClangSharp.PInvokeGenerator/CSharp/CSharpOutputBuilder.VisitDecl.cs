@@ -445,7 +445,7 @@ namespace ClangSharp.CSharp
             }
             else
             {
-                WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, isNested: false));
+                WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, isNested: true));
                 Write(' ');
             }
 
