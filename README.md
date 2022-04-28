@@ -173,8 +173,8 @@ The available configuration options (visible with `-c help`) are:
 Options:
   ?, h, help                             Show help and usage information for -c, --config
   compatible-codegen                     Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation.
-  latest-codegen                         Bindings should be generated for the latest stable version of .NET/C#. This is currently .NET 5/C# 9.
-  preview-codegen                        Bindings should be generated for the latest preview version of .NET/C#. This is currently .NET 6/C# 10.
+  latest-codegen                         Bindings should be generated for the latest stable version of .NET/C#. This is currently .NET 6/C# 10.
+  preview-codegen                        Bindings should be generated for the latest preview version of .NET/C#. This is currently .NET 7/C# 11.
   single-file                            Bindings should be generated to a single output file. This is the default.
   multi-file                             Bindings should be generated so there is approximately one type per file.
   unix-types                             Bindings should be generated assuming Unix defaults. This is the default on Unix platforms.
