@@ -27,8 +27,8 @@ namespace ClangSharp
             // Codegen Options
 
             new HelpItem("compatible-codegen", "Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation."),
-            new HelpItem("latest-codegen", "Bindings should be generated for the latest stable version of .NET/C#. This is currently .NET 5/C# 9."),
-            new HelpItem("preview-codegen", "Bindings should be generated for the latest preview version of .NET/C#. This is currently .NET 6/C# 10."),
+            new HelpItem("latest-codegen", "Bindings should be generated for the latest stable version of .NET/C#. This is currently .NET 6/C# 10."),
+            new HelpItem("preview-codegen", "Bindings should be generated for the latest preview version of .NET/C#. This is currently .NET 7/C# 11."),
 
             // File Options
 

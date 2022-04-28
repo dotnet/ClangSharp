@@ -2292,18 +2292,27 @@ namespace ClangSharp
                 case CX_CharacterKind.CX_CLK_Ascii:
                 case CX_CharacterKind.CX_CLK_UTF8:
                 {
-                    outputBuilder.Write("new byte[] { ");
-
-                    var bytes = Encoding.UTF8.GetBytes(stringLiteral.String);
-
-                    foreach (var b in bytes)
+                    if (Config.GeneratePreviewCode)
                     {
-                        outputBuilder.Write("0x");
-                        outputBuilder.Write(b.ToString("X2"));
-                        outputBuilder.Write(", ");
+                        outputBuilder.Write('"');
+                        outputBuilder.Write(EscapeString(stringLiteral.String));
+                        outputBuilder.Write("\\0\"u8");
                     }
+                    else
+                    {
+                        outputBuilder.Write("new byte[] { ");
 
-                    outputBuilder.Write("0x00 }");
+                        var bytes = Encoding.UTF8.GetBytes(stringLiteral.String);
+
+                        foreach (var b in bytes)
+                        {
+                            outputBuilder.Write("0x");
+                            outputBuilder.Write(b.ToString("X2"));
+                            outputBuilder.Write(", ");
+                        }
+
+                        outputBuilder.Write("0x00 }");
+                    }
                     break;
                 }
 
