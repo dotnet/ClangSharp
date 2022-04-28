@@ -491,7 +491,7 @@ namespace ClangSharp
                 return;
             }
 
-            var accessSppecifier = GetAccessSpecifier(functionDecl);
+            var accessSpecifier = GetAccessSpecifier(functionDecl);
 
             var body = functionDecl.Body;
             var hasBody = body is not null;
@@ -530,7 +530,7 @@ namespace ClangSharp
             var needsReturnFixup = isCxxMethodDecl && NeedsReturnFixup(cxxMethodDecl);
 
             var desc = new FunctionOrDelegateDesc {
-                AccessSpecifier = accessSppecifier,
+                AccessSpecifier = accessSpecifier,
                 NativeTypeName = nativeTypeName,
                 EscapedName = escapedName,
                 ParentName = parentName,
@@ -3677,7 +3677,7 @@ namespace ClangSharp
             {
                 return IsPrimitiveValue(autoType.CanonicalType);
             }
-            else if (type is BuiltinType builtinType)
+            else if (type is BuiltinType)
             {
                 switch (type.Kind)
                 {
