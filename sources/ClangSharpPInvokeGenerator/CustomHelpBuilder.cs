@@ -11,12 +11,16 @@ namespace ClangSharp
 {
     internal sealed class CustomHelpBuilder : HelpBuilder
     {
-        public CustomHelpBuilder(IConsole console, int maxWidth = int.MaxValue)
-            : base(console, maxWidth)
+        private IConsole Console { get; }
+
+        public CustomHelpBuilder(IConsole console, LocalizationResources localizationResources,
+            int maxWidth = int.MaxValue)
+            : base(localizationResources, maxWidth)
         {
+            Console = console;
         }
 
-        public void Write(IOption option)
+        public void Write(Option option)
         {
             Write(string.Join(", ", option.Aliases));
             Write("\t");
@@ -26,15 +30,16 @@ namespace ClangSharp
 
         public void Write(string value) => Console.Out.Write(value);
 
-        public void Write(params HelpItem[] helpItems)
+        public void Write(params TwoColumnHelpRow[] helpItems)
         {
             WriteLine("Options:");
-            RenderAsColumns(helpItems);
+            var _ = new Command("unused");
+            WriteColumns(helpItems, new HelpContext(this, _, Console.Out.CreateTextWriter()));
             WriteLine();
         }
 
         public void WriteLine() => Console.Out.WriteLine();
-
+        
         public void WriteLine(string value) => Console.Out.WriteLine(value);
     }
 }
