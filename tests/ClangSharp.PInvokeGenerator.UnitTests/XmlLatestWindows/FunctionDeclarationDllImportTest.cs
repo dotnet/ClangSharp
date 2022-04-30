@@ -447,5 +447,7 @@ struct MyStruct
 
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
         }
+
+        protected override Task VarargsTestImpl() => Task.CompletedTask;
     }
 }

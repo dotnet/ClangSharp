@@ -395,5 +395,24 @@ namespace ClangSharp.Test
 
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
         }
+
+        protected override Task VarargsTestImpl()
+        {
+            const string InputContents = @"extern ""C"" void MyFunction(int value, ...);";
+
+            const string ExpectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void MyFunction(int value, __arglist );
+    }
+}
+";
+
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents);
+        }
     }
 }

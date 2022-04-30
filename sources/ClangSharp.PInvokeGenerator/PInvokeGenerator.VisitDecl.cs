@@ -573,7 +573,9 @@ namespace ClangSharp
 
             _outputBuilder.BeginFunctionInnerPrototype(in desc);
 
-            if (isVirtual || (isCxxMethodDecl && !hasBody && cxxMethodDecl.IsInstance))
+            bool needsThis = isVirtual || (isCxxMethodDecl && !hasBody && cxxMethodDecl.IsInstance);
+
+            if (needsThis)
             {
                 Debug.Assert(cxxRecordDecl != null);
 
@@ -612,6 +614,21 @@ namespace ClangSharp
 
             Visit(functionDecl.Parameters);
 
+            if (functionDecl.IsVariadic)
+            {
+                if (needsThis || functionDecl.Parameters.Any())
+                {
+                    _outputBuilder.WriteParameterSeparator();
+                }
+                var parameterDesc = new ParameterDesc
+                {
+                    Name = "",
+                    Type = "__arglist"
+                };
+                _outputBuilder.BeginParameter(in parameterDesc);
+                _outputBuilder.EndParameter(in parameterDesc);
+            }
+
             _outputBuilder.EndFunctionInnerPrototype(in desc);
 
             if (hasBody && !isVirtual)
@@ -648,6 +665,15 @@ namespace ClangSharp
                             outputBuilder.Write(", ");
                             outputBuilder.Write(EscapeName(parameterName));
                         }
+                    }
+
+                    if (functionDecl.IsVariadic)
+                    {
+                        if (parameters.Count != 0)
+                        {
+                            outputBuilder.Write(", ");
+                        }
+                        outputBuilder.Write("__arglist");
                     }
 
                     outputBuilder.Write(')');

@@ -447,5 +447,7 @@ struct MyStruct
 
             return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
         }
+
+        protected override Task VarargsTestImpl() => Task.CompletedTask;
     }
 }
