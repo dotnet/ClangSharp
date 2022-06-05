@@ -54,7 +54,7 @@ namespace ClangSharp
         private static Option<string[]> s_withTypeNameValuePairs;
         private static Option<string[]> s_withUsingNameValuePairs;
 
-        
+
         private static readonly TwoColumnHelpRow[] s_configOptions = new TwoColumnHelpRow[]
         {
             new TwoColumnHelpRow("?, h, help", "Show help and usage information for -c, --config"),
@@ -878,7 +878,9 @@ namespace ClangSharp
                 aliases: new string[] { "--additional", "-a" },
                 description: "An argument to pass to Clang when parsing the input files.",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetConfigOption()
@@ -887,7 +889,9 @@ namespace ClangSharp
                 aliases: new string[] { "--config", "-c" },
                 description: "A configuration option that controls how the bindings are generated. Specify 'help' to see the available options.",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetDefineMacroOption()
@@ -896,7 +900,9 @@ namespace ClangSharp
                 aliases: new string[] { "--define-macro", "-D" },
                 description: "Define <macro> to <value> (or 1 if <value> omitted).",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetExcludeOption()
@@ -905,7 +911,9 @@ namespace ClangSharp
                 aliases: new string[] { "--exclude", "-e" },
                 description: "A declaration name to exclude from binding generation.",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetFileOption()
@@ -914,7 +922,9 @@ namespace ClangSharp
                 aliases: new string[] { "--file", "-f" },
                 description: "A file to parse and generate bindings for.",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string> GetFileDirectoryOption()
@@ -941,7 +951,9 @@ namespace ClangSharp
                 aliases: new string[] { "--include", "-i" },
                 description: "A declaration name to include in binding generation.",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetIncludeDirectoryOption()
@@ -950,7 +962,9 @@ namespace ClangSharp
                 aliases: new string[] { "--include-directory", "-I" },
                 description: "Add directory to include search path.",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string> GetLanguageOption()
@@ -1022,7 +1036,9 @@ namespace ClangSharp
                 aliases: new string[] { "--remap", "-r" },
                 description: "A declaration name to be remapped to another name during binding generation.",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string> GetStdOption()
@@ -1059,7 +1075,9 @@ namespace ClangSharp
                 aliases: new string[] { "--traverse", "-t" },
                 description: "A file name included either directly or indirectly by -f that should be traversed during binding generation.",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithAccessSpecifierOption()
@@ -1068,7 +1086,9 @@ namespace ClangSharp
                 aliases: new string[] { "--with-access-specifier", "-was" },
                 description: "An access specifier to be used with the given qualified or remapped declaration name during binding generation.",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithAttributeOption()
@@ -1077,7 +1097,9 @@ namespace ClangSharp
                 aliases: new string[] { "--with-attribute", "-wa" },
                 description: "An attribute to be added to the given remapped declaration name during binding generation.",
                 getDefaultValue: Array.Empty<string>
-            );
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithCallConvOption()
@@ -1085,7 +1107,10 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-callconv", "-wcc" },
                 description: "A calling convention to be used for the given declaration during binding generation.",
-                getDefaultValue: Array.Empty<string>);
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithClassOption()
@@ -1093,7 +1118,10 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-class", "-wc" },
                 description: "A class to be used for the given remapped constant or function declaration name during binding generation.",
-                getDefaultValue: Array.Empty<string>);
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithLibraryPathOption()
@@ -1101,7 +1129,10 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-librarypath", "-wlb" },
                 description: "A library path to be used for the given declaration during binding generation.",
-                getDefaultValue: Array.Empty<string>);
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithManualImportOption()
@@ -1109,7 +1140,10 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-manual-import", "-wmi" },
                 description: "A remapped function name to be treated as a manual import during binding generation.",
-                getDefaultValue: Array.Empty<string>);
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithNamespaceOption()
@@ -1117,7 +1151,10 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-namespace", "-wn" },
                 description: "A namespace to be used for the given remapped declaration name during binding generation.",
-                getDefaultValue: Array.Empty<string>);
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithSetLastErrorOption()
@@ -1125,7 +1162,10 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-setlasterror", "-wsle" },
                 description: "Add the SetLastError=true modifier or SetsSystemLastError attribute to a given DllImport or UnmanagedFunctionPointer.",
-                getDefaultValue: Array.Empty<string>);
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithSuppressGCTransitionOption()
@@ -1133,7 +1173,10 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-suppressgctransition", "-wsgct" },
                 description: "Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer.",
-                getDefaultValue: Array.Empty<string>);
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithTransparentStructOption()
@@ -1141,7 +1184,10 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-transparent-struct", "-wts" },
                 description: "A remapped type name to be treated as a transparent wrapper during binding generation.",
-                getDefaultValue: Array.Empty<string>);
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithTypeOption()
@@ -1149,7 +1195,10 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-type", "-wt" },
                 description: "A type to be used for the given enum declaration during binding generation.",
-                getDefaultValue: Array.Empty<string>);
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
 
         private static Option<string[]> GetWithUsingOption()
@@ -1157,7 +1206,10 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-using", "-wu" },
                 description: "A using directive to be included for the given remapped declaration name during binding generation.",
-                getDefaultValue: Array.Empty<string>);
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
         }
     }
 }
