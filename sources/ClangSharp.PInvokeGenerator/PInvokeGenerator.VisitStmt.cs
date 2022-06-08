@@ -2296,7 +2296,8 @@ namespace ClangSharp
                     {
                         outputBuilder.Write('"');
                         outputBuilder.Write(EscapeString(stringLiteral.String));
-                        outputBuilder.Write("\\0\"u8");
+                        outputBuilder.Write('"');
+                        outputBuilder.Write("u8");
                     }
                     else
                     {
