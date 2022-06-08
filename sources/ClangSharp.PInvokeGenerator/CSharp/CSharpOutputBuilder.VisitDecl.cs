@@ -578,8 +578,11 @@ namespace ClangSharp.CSharp
                 _customAttrIsForParameter = false;
 
                 Write(info.Type);
-                Write(' ');
-                Write(info.Name);
+                if (info.Name.Length > 0)
+                {
+                    Write(' ');
+                    Write(info.Name);
+                }
             }
         }
 
