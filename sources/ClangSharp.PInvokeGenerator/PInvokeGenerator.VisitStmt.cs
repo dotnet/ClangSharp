@@ -2381,7 +2381,7 @@ namespace ClangSharp
                     {
                         if (_topLevelClassNames.Contains(_outputBuilder.Name))
                         {
-                            _isTopLevelClassUnsafe[_outputBuilder.Name] = true;
+                            _topLevelClassIsUnsafe[_outputBuilder.Name] = true;
                         }
 
                         var parentType = null as Type;

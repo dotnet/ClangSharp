@@ -37,6 +37,7 @@ namespace ClangSharp
         private readonly SortedDictionary<string, IReadOnlyList<string>> _withAttributes;
         private readonly SortedDictionary<string, string> _withCallConvs;
         private readonly SortedDictionary<string, string> _withClasses;
+        private readonly SortedDictionary<string, Guid> _withGuids;
         private readonly SortedDictionary<string, string> _withLibraryPaths;
         private readonly SortedDictionary<string, string> _withNamespaces;
         private readonly SortedDictionary<string, (string, PInvokeGeneratorTransparentStructKind)> _withTransparentStructs;
@@ -84,6 +85,7 @@ namespace ClangSharp
             _withAttributes = new SortedDictionary<string, IReadOnlyList<string>>();
             _withCallConvs = new SortedDictionary<string, string>();
             _withClasses = new SortedDictionary<string, string>();
+            _withGuids = new SortedDictionary<string, Guid>();
             _withLibraryPaths = new SortedDictionary<string, string>();
             _withNamespaces = new SortedDictionary<string, string>();
             _withTransparentStructs = new SortedDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>();
@@ -191,6 +193,8 @@ namespace ClangSharp
         public bool GenerateExplicitVtbls => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
 
         public bool GenerateFileScopedNamespaces => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces);
+
+        public bool GenerateGuidMember => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateGuidMember);
 
         public bool GenerateHelperTypes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateHelperTypes);
 
@@ -369,16 +373,16 @@ namespace ClangSharp
             }
         }
 
-        public IReadOnlyCollection<string> WithManualImports
+        public IReadOnlyDictionary<string, Guid> WithGuids
         {
             get
             {
-                return _withManualImports;
+                return _withGuids;
             }
 
             init
             {
-                AddRange(_withManualImports, value);
+                AddRange(_withGuids, value);
             }
         }
 
@@ -392,6 +396,19 @@ namespace ClangSharp
             init
             {
                 AddRange(_withLibraryPaths, value);
+            }
+        }
+
+        public IReadOnlyCollection<string> WithManualImports
+        {
+            get
+            {
+                return _withManualImports;
+            }
+
+            init
+            {
+                AddRange(_withManualImports, value);
             }
         }
 

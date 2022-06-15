@@ -41,7 +41,8 @@ namespace ClangSharp
         private readonly Dictionary<string, HashSet<string>> _traversedValidNameRemappings;
         private readonly Dictionary<CXXMethodDecl, uint> _overloadIndices;
         private readonly Dictionary<Cursor, uint> _isExcluded;
-        private readonly Dictionary<string, bool> _isTopLevelClassUnsafe;
+        private readonly Dictionary<string, bool> _topLevelClassHasGuidMember;
+        private readonly Dictionary<string, bool> _topLevelClassIsUnsafe;
         private readonly Dictionary<string, HashSet<string>> _topLevelClassUsings;
         private readonly Dictionary<string, List<string>> _topLevelClassAttributes;
         private readonly HashSet<string> _topLevelClassNames;
@@ -111,7 +112,8 @@ namespace ClangSharp
             _traversedValidNameRemappings = new Dictionary<string, HashSet<string>>();
             _overloadIndices = new Dictionary<CXXMethodDecl, uint>();
             _isExcluded = new Dictionary<Cursor, uint>();
-            _isTopLevelClassUnsafe = new Dictionary<string, bool>();
+            _topLevelClassHasGuidMember = new Dictionary<string, bool>();
+            _topLevelClassIsUnsafe = new Dictionary<string, bool>();
             _topLevelClassNames = new HashSet<string>();
             _topLevelClassAttributes = new Dictionary<string, List<string>>();
             _topLevelClassUsings = new Dictionary<string, HashSet<string>>();
@@ -280,6 +282,9 @@ namespace ClangSharp
             {
                 foreach (var entry in methodClassOutputBuilders)
                 {
+                    var hasGuidMember = _config.GenerateGuidMember && _config.GeneratePreviewCode;
+                    hasGuidMember &= _uuidsToGenerate.ContainsKey(entry.Value.Name) || _generatedUuids.Contains(entry.Value.Name);
+
                     CloseOutputBuilder(stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
                 }
 
@@ -631,7 +636,7 @@ namespace ClangSharp
 
                     sw.WriteLine();
 
-                    sw.Write("namespace ");sw.WriteLine();
+                    sw.Write("namespace ");
                     sw.Write(targetNamespace);
 
                     if (generator.Config.GenerateFileScopedNamespaces)
@@ -1556,7 +1561,7 @@ namespace ClangSharp
                         sw.Write("static ");
                     }
 
-                    if ((_isTopLevelClassUnsafe.TryGetValue(nonTestName, out var isUnsafe) && isUnsafe) || (outputBuilder.IsTestOutput && isTopLevelStruct))
+                    if ((_topLevelClassIsUnsafe.TryGetValue(nonTestName, out var isUnsafe) && isUnsafe) || (outputBuilder.IsTestOutput && isTopLevelStruct))
                     {
                         sw.Write("unsafe ");
                     }
@@ -1573,6 +1578,11 @@ namespace ClangSharp
                     }
 
                     sw.Write(outputBuilder.Name);
+
+                    if (_topLevelClassHasGuidMember.TryGetValue(outputBuilder.Name, out var hasGuidMember) && hasGuidMember)
+                    {
+                        sw.Write(" : INativeGuid");
+                    }
 
                     sw.WriteLine();
                     sw.Write(indentationString);
@@ -1635,7 +1645,7 @@ namespace ClangSharp
                     sw.Write(xmlOutputBuilder.Name);
                     sw.Write("\" access=\"public\" static=\"true\"");
 
-                    if (_isTopLevelClassUnsafe.TryGetValue(xmlOutputBuilder.Name, out var isUnsafe) && isUnsafe)
+                    if (_topLevelClassIsUnsafe.TryGetValue(xmlOutputBuilder.Name, out var isUnsafe) && isUnsafe)
                     {
                         sw.Write(" unsafe=\"true\"");
                     }
@@ -5388,6 +5398,12 @@ namespace ClangSharp
 
         private bool TryGetUuid(RecordDecl recordDecl, out Guid uuid)
         {
+            if (TryGetRemappedValue(recordDecl, _config.WithGuids, out var guid))
+            {
+                uuid = guid;
+                return true;
+            }
+
             var uuidAttrs = recordDecl.Attrs.Where((attr) => attr.Kind == CX_AttrKind.CX_AttrKind_Uuid);
 
             if (!uuidAttrs.Any())

@@ -567,9 +567,9 @@ namespace ClangSharp
                 CustomAttrGeneratorData = (functionDecl, _outputBuilder, this),
             };
 
-            _ = _isTopLevelClassUnsafe.TryGetValue(className, out var isUnsafe);
+            _ = _topLevelClassIsUnsafe.TryGetValue(className, out var isUnsafe);
             _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
-            _isTopLevelClassUnsafe[className] = isUnsafe;
+            _topLevelClassIsUnsafe[className] = isUnsafe;
 
             _outputBuilder.BeginFunctionInnerPrototype(in desc);
 
@@ -1255,17 +1255,19 @@ namespace ClangSharp
                     _testOutputBuilder.WriteBlockStart();
                 }
 
-                Guid? nullableUuid = null;
+                var nullableUuid = (Guid?)null;
+                var uuidName = "";
+
                 if (TryGetUuid(recordDecl, out var uuid))
                 {
                     nullableUuid = uuid;
-                    var iidName = GetRemappedName($"IID_{nativeName}", recordDecl, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
+                    uuidName = GetRemappedName($"IID_{nativeName}", recordDecl, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
 
-                    _uuidsToGenerate.Add(iidName, uuid);
+                    _uuidsToGenerate.Add(uuidName, uuid);
 
                     if (_testOutputBuilder != null)
                     {
-                        var className = GetClass(iidName);
+                        var className = GetClass(uuidName);
 
                         _testOutputBuilder.AddUsingDirective("System");
                         _testOutputBuilder.AddUsingDirective($"static {GetNamespace(className)}.{className}");
@@ -1297,7 +1299,7 @@ namespace ClangSharp
                             _testOutputBuilder.Write("Is.EqualTo(");
                         }
 
-                        _testOutputBuilder.Write(iidName);
+                        _testOutputBuilder.Write(uuidName);
 
                         if (_config.GenerateTestsNUnit)
                         {
@@ -1311,6 +1313,8 @@ namespace ClangSharp
                         _testOutputBuilder.NeedsNewline = true;
                     }
                 }
+
+                var hasGuidMember = _config.GenerateGuidMember && !string.IsNullOrWhiteSpace(uuidName);
 
                 var layoutKind = recordDecl.IsUnion
                     ? LayoutKind.Explicit
@@ -1355,7 +1359,7 @@ namespace ClangSharp
                 var desc = new StructDesc {
                     AccessSpecifier = GetAccessSpecifier(recordDecl),
                     EscapedName = escapedName,
-                    IsUnsafe = IsUnsafe(recordDecl),
+                    IsUnsafe = IsUnsafe(recordDecl) || hasGuidMember,
                     HasVtbl = hasVtbl || hasBaseVtbl,
                     IsUnion = recordDecl.IsUnion,
                     Layout = new() {
@@ -1440,8 +1444,41 @@ namespace ClangSharp
 
                     if (desc.IsUnsafe)
                     {
-                        _isTopLevelClassUnsafe[name] = true;
+                        _topLevelClassIsUnsafe[name] = true;
                     }
+
+                    if (hasGuidMember)
+                    {
+                        _topLevelClassHasGuidMember[name] = true;
+                    }
+                }
+
+                if (hasGuidMember)
+                {
+                    var valueDesc = new ValueDesc {
+                        AccessSpecifier = AccessSpecifier.None,
+                        TypeName = "Guid*",
+                        EscapedName = "INativeGuid.NativeGuid",
+                        ParentName = name,
+                        Kind = ValueKind.GuidMember,
+                        Flags = ValueFlags.Initializer,
+                    };
+
+                    var uuidClassName = GetClass(uuidName);
+
+                    _outputBuilder.EmitUsingDirective("System");
+                    _outputBuilder.EmitUsingDirective("System.Runtime.CompilerServices");
+
+                    _outputBuilder.EmitUsingDirective($"static {GetNamespace(uuidClassName)}.{uuidClassName}");
+                    _outputBuilder.BeginValue(in valueDesc);
+
+                    var code = _outputBuilder.BeginCSharpCode();
+                    code.Write("(Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in ");
+                    code.Write(uuidName);
+                    code.Write("))");
+                    _outputBuilder.EndCSharpCode(code);
+
+                    _outputBuilder.EndValue(in valueDesc);
                 }
 
                 if (hasVtbl || (hasBaseVtbl && !HasBaseField(cxxRecordDecl)))
@@ -3091,7 +3128,7 @@ namespace ClangSharp
 
                     if (IsUnsafe(varDecl, type) && (!varDecl.HasInit || !IsStmtAsWritten<StringLiteral>(varDecl.Init, out _, removeParens: true)))
                     {
-                        _isTopLevelClassUnsafe[className] = true;
+                        _topLevelClassIsUnsafe[className] = true;
                     }
                 }
 
