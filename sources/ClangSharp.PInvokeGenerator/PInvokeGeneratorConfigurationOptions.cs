@@ -74,5 +74,7 @@ namespace ClangSharp
         GenerateSetsLastSystemErrorAttribute = 1UL << 31,
 
         GenerateDocIncludes = 1UL << 32,
+
+        GenerateGuidMember = 1UL << 33,
     }
 }

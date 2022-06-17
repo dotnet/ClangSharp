@@ -45,6 +45,7 @@ namespace ClangSharp
         private static Option<string[]> s_withAttributeNameValuePairs;
         private static Option<string[]> s_withCallConvNameValuePairs;
         private static Option<string[]> s_withClassNameValuePairs;
+        private static Option<string[]> s_withGuidNameValuePairs;
         private static Option<string[]> s_withLibraryPathNameValuePairs;
         private static Option<string[]> s_withManualImports;
         private static Option<string[]> s_withNamespaceNameValuePairs;
@@ -103,6 +104,7 @@ namespace ClangSharp
             new TwoColumnHelpRow("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
             new TwoColumnHelpRow("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
             new TwoColumnHelpRow("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
+            new TwoColumnHelpRow("generate-guid-member", "Types with an associated GUID should have a corresponding member generated."),
             new TwoColumnHelpRow("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
             new TwoColumnHelpRow("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
             new TwoColumnHelpRow("generate-marker-interfaces", "Bindings for marker interfaces representing native inheritance hierarchies should be generated."),
@@ -147,6 +149,7 @@ namespace ClangSharp
             s_withAttributeNameValuePairs = GetWithAttributeOption();
             s_withCallConvNameValuePairs = GetWithCallConvOption();
             s_withClassNameValuePairs = GetWithClassOption();
+            s_withGuidNameValuePairs = GetWithGuidOption();
             s_withLibraryPathNameValuePairs = GetWithLibraryPathOption();
             s_withManualImports = GetWithManualImportOption();
             s_withNamespaceNameValuePairs = GetWithNamespaceOption();
@@ -182,6 +185,7 @@ namespace ClangSharp
                 s_withAttributeNameValuePairs,
                 s_withCallConvNameValuePairs,
                 s_withClassNameValuePairs,
+                s_withGuidNameValuePairs,
                 s_withLibraryPathNameValuePairs,
                 s_withManualImports,
                 s_withNamespaceNameValuePairs,
@@ -234,6 +238,7 @@ namespace ClangSharp
             var withAttributeNameValuePairs = context.ParseResult.GetValueForOption(s_withAttributeNameValuePairs);
             var withCallConvNameValuePairs = context.ParseResult.GetValueForOption(s_withCallConvNameValuePairs);
             var withClassNameValuePairs = context.ParseResult.GetValueForOption(s_withClassNameValuePairs);
+            var withGuidNameValuePairs = context.ParseResult.GetValueForOption(s_withGuidNameValuePairs);
             var withLibraryPathNameValuePairs = context.ParseResult.GetValueForOption(s_withLibraryPathNameValuePairs);
             var withManualImports = context.ParseResult.GetValueForOption(s_withManualImports);
             var withNamespaceNameValuePairs = context.ParseResult.GetValueForOption(s_withNamespaceNameValuePairs);
@@ -276,6 +281,7 @@ namespace ClangSharp
             ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
             ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
             ParseKeyValuePairs(withClassNameValuePairs, errorList, out Dictionary<string, string> withClasses);
+            ParseKeyValuePairs(withGuidNameValuePairs, errorList, out Dictionary<string, Guid> withGuids);
             ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPaths);
             ParseKeyValuePairs(withNamespaceNameValuePairs, errorList, out Dictionary<string, string> withNamespaces);
             ParseKeyValuePairs(withTransparentStructNameValuePairs, errorList, out Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> withTransparentStructs);
@@ -492,6 +498,12 @@ namespace ClangSharp
                         break;
                     }
 
+                    case "generate-guid-member":
+                    {
+                        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateGuidMember;
+                        break;
+                    }
+
                     case "generate-helper-types":
                     {
                         configOptions |= PInvokeGeneratorConfigurationOptions.GenerateHelperTypes;
@@ -651,6 +663,7 @@ namespace ClangSharp
                 WithAttributes = withAttributes,
                 WithCallConvs = withCallConvs,
                 WithClasses = withClasses,
+                WithGuids = withGuids,
                 WithLibraryPaths = withLibraryPaths,
                 WithManualImports = withManualImports,
                 WithNamespaces = withNamespaces,
@@ -803,6 +816,38 @@ namespace ClangSharp
                 }
 
                 result.Add(key, PInvokeGeneratorConfiguration.ConvertStringToAccessSpecifier(parts[1].TrimStart()));
+            }
+        }
+
+        private static void ParseKeyValuePairs(IEnumerable<string> keyValuePairs, List<string> errorList, out Dictionary<string, Guid> result)
+        {
+            result = new Dictionary<string, Guid>();
+
+            foreach (var keyValuePair in keyValuePairs)
+            {
+                var parts = keyValuePair.Split('=');
+
+                if (parts.Length != 2)
+                {
+                    errorList.Add($"Error: Invalid key/value pair argument: {keyValuePair}. Expected 'name=value'");
+                    continue;
+                }
+
+                var key = parts[0].TrimEnd();
+
+                if (result.ContainsKey(key))
+                {
+                    errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {result[key]}");
+                    continue;
+                }
+
+                if (!Guid.TryParse(parts[1].TrimStart(), out var guid))
+                {
+                    errorList.Add($"Error: Failed to parse guid: {parts[1]}");
+                    continue;
+                }
+
+                result.Add(key, guid);
             }
         }
 
@@ -1118,6 +1163,17 @@ namespace ClangSharp
             return new Option<string[]>(
                 aliases: new string[] { "--with-class", "-wc" },
                 description: "A class to be used for the given remapped constant or function declaration name during binding generation.",
+                getDefaultValue: Array.Empty<string>
+            ) {
+                AllowMultipleArgumentsPerToken = true
+            };
+        }
+
+        private static Option<string[]> GetWithGuidOption()
+        {
+            return new Option<string[]>(
+                aliases: new string[] { "--with-guid", "-wg" },
+                description: "A GUID to be used for the given declaration during binding generation.",
                 getDefaultValue: Array.Empty<string>
             ) {
                 AllowMultipleArgumentsPerToken = true

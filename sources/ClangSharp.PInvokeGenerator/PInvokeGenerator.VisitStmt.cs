@@ -2296,7 +2296,8 @@ namespace ClangSharp
                     {
                         outputBuilder.Write('"');
                         outputBuilder.Write(EscapeString(stringLiteral.String));
-                        outputBuilder.Write("\\0\"u8");
+                        outputBuilder.Write('"');
+                        outputBuilder.Write("u8");
                     }
                     else
                     {
@@ -2380,7 +2381,7 @@ namespace ClangSharp
                     {
                         if (_topLevelClassNames.Contains(_outputBuilder.Name))
                         {
-                            _isTopLevelClassUnsafe[_outputBuilder.Name] = true;
+                            _topLevelClassIsUnsafe[_outputBuilder.Name] = true;
                         }
 
                         var parentType = null as Type;

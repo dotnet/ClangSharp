@@ -9,5 +9,6 @@ namespace ClangSharp.Abstractions
         Enumerator,
         Unmanaged,
         String,
+        GuidMember,
     }
 }

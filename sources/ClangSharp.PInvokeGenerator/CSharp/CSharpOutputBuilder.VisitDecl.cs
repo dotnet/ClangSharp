@@ -147,6 +147,13 @@ namespace ClangSharp.CSharp
                 Write(desc.TypeName);
                 Write(' ');
             }
+            else if (desc.Kind == ValueKind.GuidMember)
+            {
+                Write("static ");
+                Write(desc.TypeName);
+                Write(' ');
+                isExpressionBody = true;
+            }
 
             Write(desc.EscapedName);
 
@@ -213,6 +220,13 @@ namespace ClangSharp.CSharp
                 case ValueKind.String:
                 {
                     WriteLine(';');
+                    break;
+                }
+
+                case ValueKind.GuidMember:
+                {
+                    WriteLine(';');
+                    NeedsNewline = true;
                     break;
                 }
             }
@@ -755,11 +769,20 @@ namespace ClangSharp.CSharp
             Write("partial struct ");
             Write(desc.EscapedName);
 
-            if (desc.HasVtbl && _config.GenerateMarkerInterfaces)
+            if (_config.GenerateMarkerInterfaces)
             {
-                Write(" : ");
-                Write(desc.EscapedName);
-                Write(".Interface");
+                if (desc.HasVtbl)
+                {
+                    Write(" : ");
+                    Write(desc.EscapedName);
+                    Write(".Interface");
+                }
+
+                if ((desc.Uuid is not null) && _config.GenerateGuidMember && _config.GeneratePreviewCode)
+                {
+                    Write(desc.HasVtbl ? ", " : " : ");
+                    Write("INativeGuid");
+                }
             }
 
             WriteNewline();
