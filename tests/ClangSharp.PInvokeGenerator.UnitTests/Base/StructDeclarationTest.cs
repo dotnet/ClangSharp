@@ -25,6 +25,7 @@ namespace ClangSharp.UnitTests
         [TestCase("unsigned short", "ushort")]
         [TestCase("unsigned int", "uint")]
         [TestCase("unsigned long long", "ulong")]
+        [TestCase("bool", "byte")]
         public Task BasicWithNativeTypeNameTest(string nativeType, string expectedManagedType) => BasicWithNativeTypeNameTestImpl(nativeType, expectedManagedType);
 
         [Test]
@@ -57,6 +58,7 @@ namespace ClangSharp.UnitTests
         [TestCase("unsigned short", "ushort")]
         [TestCase("unsigned int", "uint")]
         [TestCase("unsigned long long", "ulong")]
+        [TestCase("bool", "byte")]
         public Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTest(string nativeType, string expectedManagedType) => FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(nativeType, expectedManagedType);
 
         [TestCase("double *", "double*")]
@@ -75,6 +77,7 @@ namespace ClangSharp.UnitTests
         [TestCase("unsigned short", "ushort")]
         [TestCase("unsigned int", "uint")]
         [TestCase("unsigned long long", "ulong")]
+        [TestCase("bool", "byte")]
         public Task FixedSizedBufferPrimitiveTest(string nativeType, string expectedManagedType) => FixedSizedBufferPrimitiveTestImpl(nativeType, expectedManagedType);
 
         [TestCase("unsigned char", "byte")]
@@ -87,6 +90,7 @@ namespace ClangSharp.UnitTests
         [TestCase("unsigned short", "ushort")]
         [TestCase("unsigned int", "uint")]
         [TestCase("unsigned long long", "ulong")]
+        [TestCase("bool", "byte")]
         public Task FixedSizedBufferPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType) => FixedSizedBufferPrimitiveMultidimensionalTestImpl(nativeType, expectedManagedType);
 
         [TestCase("unsigned char", "byte")]
@@ -99,6 +103,7 @@ namespace ClangSharp.UnitTests
         [TestCase("unsigned short", "ushort")]
         [TestCase("unsigned int", "uint")]
         [TestCase("unsigned long long", "ulong")]
+        [TestCase("bool", "byte")]
         public Task FixedSizedBufferPrimitiveTypedefTest(string nativeType, string expectedManagedType) => FixedSizedBufferPrimitiveTypedefTestImpl(nativeType, expectedManagedType);
 
         [Test]
@@ -131,6 +136,7 @@ namespace ClangSharp.UnitTests
         [TestCase("unsigned short", "ushort")]
         [TestCase("unsigned int", "uint")]
         [TestCase("unsigned long long", "ulong")]
+        [TestCase("bool", "byte")]
         public Task NestedWithNativeTypeNameTest(string nativeType, string expectedManagedType) => NestedWithNativeTypeNameTestImpl(nativeType, expectedManagedType);
 
         [Test]
@@ -169,6 +175,7 @@ namespace ClangSharp.UnitTests
         [TestCase("unsigned short", "ushort")]
         [TestCase("unsigned int", "uint")]
         [TestCase("unsigned long long", "ulong")]
+        [TestCase("bool", "byte")]
         public Task SkipNonDefinitionWithNativeTypeNameTest(string nativeType, string expectedManagedType) => SkipNonDefinitionWithNativeTypeNameTestImpl(nativeType, expectedManagedType);
 
         [TestCase("unsigned char", "byte")]
@@ -181,6 +188,7 @@ namespace ClangSharp.UnitTests
         [TestCase("unsigned short", "ushort")]
         [TestCase("unsigned int", "uint")]
         [TestCase("unsigned long long", "ulong")]
+        [TestCase("bool", "byte")]
         public Task TypedefTest(string nativeType, string expectedManagedType) => TypedefTestImpl(nativeType, expectedManagedType);
 
         [Test]
