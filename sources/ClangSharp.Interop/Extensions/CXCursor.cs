@@ -27,16 +27,16 @@ namespace ClangSharp.Interop
             {
                 Debug.Assert(CX_AttrKind.CX_AttrKind_FirstDeclOrTypeAttr == CX_AttrKind.CX_AttrKind_AArch64VectorPcs);
                 Debug.Assert(CX_AttrKind.CX_AttrKind_LastDeclOrTypeAttr == CX_AttrKind.CX_AttrKind_VectorCall);
-                Debug.Assert(CX_AttrKind.CX_AttrKind_FirstInheritableParamAttr == CX_AttrKind.CX_AttrKind_SwiftContext);
+                Debug.Assert(CX_AttrKind.CX_AttrKind_FirstInheritableParamAttr == CX_AttrKind.CX_AttrKind_SwiftAsyncContext);
                 Debug.Assert(CX_AttrKind.CX_AttrKind_LastInheritableParamAttr == CX_AttrKind.CX_AttrKind_UseHandle);
-                Debug.Assert(CX_AttrKind.CX_AttrKind_FirstParameterABIAttr == CX_AttrKind.CX_AttrKind_SwiftContext);
+                Debug.Assert(CX_AttrKind.CX_AttrKind_FirstParameterABIAttr == CX_AttrKind.CX_AttrKind_SwiftAsyncContext);
                 Debug.Assert(CX_AttrKind.CX_AttrKind_LastParameterABIAttr == CX_AttrKind.CX_AttrKind_SwiftIndirectResult);
                 Debug.Assert(CX_AttrKind.CX_AttrKind_LastAttr == CX_AttrKind.CX_AttrKind_Thread);
                 Debug.Assert(CX_AttrKind.CX_AttrKind_FirstTypeAttr == CX_AttrKind.CX_AttrKind_AddressSpace);
                 Debug.Assert(CX_AttrKind.CX_AttrKind_LastTypeAttr == CX_AttrKind.CX_AttrKind_UPtr);
                 Debug.Assert(CX_AttrKind.CX_AttrKind_FirstStmtAttr == CX_AttrKind.CX_AttrKind_FallThrough);
-                Debug.Assert(CX_AttrKind.CX_AttrKind_LastStmtAttr == CX_AttrKind.CX_AttrKind_Suppress);
-                Debug.Assert(CX_AttrKind.CX_AttrKind_FirstInheritableAttr == CX_AttrKind.CX_AttrKind_AArch64VectorPcs);
+                Debug.Assert(CX_AttrKind.CX_AttrKind_LastStmtAttr == CX_AttrKind.CX_AttrKind_Unlikely);
+                Debug.Assert(CX_AttrKind.CX_AttrKind_FirstInheritableAttr == CX_AttrKind.CX_AttrKind_NoMerge);
                 Debug.Assert(CX_AttrKind.CX_AttrKind_LastInheritableAttr == CX_AttrKind.CX_AttrKind_XRayLogArgs);
 
                 return AttrKind switch

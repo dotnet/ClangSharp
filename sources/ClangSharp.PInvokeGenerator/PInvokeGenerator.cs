@@ -5698,6 +5698,59 @@ namespace ClangSharp
                     outputBuilder.WriteCustomAttribute(attribute);
                 }
             }
+
+            if (!isTestOutput && namedDecl.HasAttrs)
+            {
+                foreach (var attr in namedDecl.Attrs)
+                {
+                    switch (attr.Kind)
+                    {
+                        case CX_AttrKind.CX_AttrKind_Aligned:
+                        case CX_AttrKind.CX_AttrKind_AlwaysInline:
+                        case CX_AttrKind.CX_AttrKind_DLLExport:
+                        case CX_AttrKind.CX_AttrKind_DLLImport:
+                        {
+                            // Nothing to handle
+                            break;
+                        }
+
+                        case CX_AttrKind.CX_AttrKind_Deprecated:
+                        {
+                            var attrText = GetSourceRangeContents(namedDecl.TranslationUnit.Handle, attr.Extent);
+
+                            var textStart = attrText.IndexOf('"');
+                            var textLength = attrText.LastIndexOf('"') - textStart;
+
+                            if (textLength > 2)
+                            {
+                                var text = attrText.AsSpan(textStart + 1, textLength - 2);
+                                outputBuilder.WriteCustomAttribute($"Obsolete(\"{text}\")");
+                            }
+                            else
+                            {
+                                outputBuilder.WriteCustomAttribute($"Obsolete");
+                            }
+                            break;
+                        }
+
+                        case CX_AttrKind.CX_AttrKind_MSNoVTable:
+                        case CX_AttrKind.CX_AttrKind_MSAllocator:
+                        case CX_AttrKind.CX_AttrKind_MaxFieldAlignment:
+                        case CX_AttrKind.CX_AttrKind_SelectAny:
+                        case CX_AttrKind.CX_AttrKind_Uuid:
+                        {
+                            // Nothing to handle
+                            break;
+                        }
+
+                        default:
+                        {
+                            AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported attribute: '{attr.KindSpelling}'. Generated bindings may be incomplete.", namedDecl);
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         private string GetLibraryPath(string remappedName)
