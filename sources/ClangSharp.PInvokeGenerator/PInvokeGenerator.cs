@@ -652,7 +652,7 @@ namespace ClangSharp
                     }
 
                     sw.Write(indentString);
-                    sw.Write("public ");
+                    sw.Write("public readonly ");
 
                     if (isTypePointer || IsTransparentStructHexBased(kind))
                     {
