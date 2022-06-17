@@ -404,6 +404,20 @@ namespace ClangSharp
             var type = fieldDecl.Type;
             var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
 
+            if (typeName == "bool")
+            {
+                // bool is not blittable, so we shouldn't use it for structs that may be in P/Invoke signatures
+                typeName = "byte";
+                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
+            }
+
+            if (_config.GenerateCompatibleCode && typeName.StartsWith("bool*"))
+            {
+                // bool* is not blittable in compat mode, so we shouldn't use it for structs that may be in P/Invoke signatures
+                typeName = typeName.Replace("bool*", "byte*");
+                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? typeName.Replace("byte*", "bool *") : nativeTypeName;
+            }
+
             int? offset = null;
             if (fieldDecl.Parent.IsUnion)
             {
@@ -509,11 +523,21 @@ namespace ClangSharp
                 AddDiagnostic(DiagnosticLevel.Warning, $"Found manual import for {name} with no class remapping. First Parameter Type: {firstParameterTypeName}; Return Type: {returnTypeName}", functionDecl);
             }
 
-            if ((isVirtual || !hasBody) && (returnTypeName == "bool"))
+            if (isVirtual || !hasBody)
             {
-                // bool is not blittable, so we shouldn't use it for P/Invoke signatures
-                returnTypeName = "byte";
-                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
+                if (returnTypeName == "bool")
+                {
+                    // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                    returnTypeName = "byte";
+                    nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
+                }
+
+                if (_config.GenerateCompatibleCode && returnTypeName.StartsWith("bool*"))
+                {
+                    // bool* is not blittable in compat mode, so we shouldn't use it for P/Invoke signatures
+                    returnTypeName = returnTypeName.Replace("bool*", "byte*");
+                    nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? returnTypeName.Replace("byte*", "bool *") : nativeTypeName;
+                }
             }
 
             var type = functionDecl.Type;
