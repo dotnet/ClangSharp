@@ -213,14 +213,14 @@ Options:
 After you build local version, you can use executable from build location.
 
 ```
-artifacts/bin/sources/ClangSharpPInvokeGenerator/Debug/net5.0/ClangSharpPInvokeGenerator
+artifacts/bin/sources/ClangSharpPInvokeGenerator/Debug/net6.0/ClangSharpPInvokeGenerator
 ```
 
 If you are on Linux
 
 ```
 LD_LIBRARY_PATH=$(pwd)/artifacts/bin/native/lib/
-artifacts/bin/sources/ClangSharpPInvokeGenerator/Debug/net5.0/ClangSharpPInvokeGenerator
+artifacts/bin/sources/ClangSharpPInvokeGenerator/Debug/net6.0/ClangSharpPInvokeGenerator
 ```
 
 ### Spotlight
