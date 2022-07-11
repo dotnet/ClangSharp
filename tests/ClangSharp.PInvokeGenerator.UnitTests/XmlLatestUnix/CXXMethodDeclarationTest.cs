@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClangSharp.UnitTests
 {
-    public sealed class XmlLatestUnix_CXXMethodDeclarationTest : CXXMethodDeclarationTest
+    public sealed class XmlLatestUnix_CXXMethodDeclarationTest : CXXMethodDeclarationXmlTest
     {
         protected override Task ConstructorTestImpl()
         {
@@ -969,5 +969,7 @@ extern ""C"" void MyFunction();";
 
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
         }
+
+        protected override Task ValidateBindingsAsync(string inputContents, string expectedOutputContents) => ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 }

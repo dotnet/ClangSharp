@@ -1612,7 +1612,7 @@ namespace ClangSharp
 
             if (!memberExpr.IsImplicitAccess || isForDerivedType)
             {
-                var memberExprBase = memberExpr.Base.IgnoreParens.IgnoreImplicit;
+                var memberExprBase = memberExpr.Base.IgnoreImplicit;
 
                 if (isForDerivedType)
                 {

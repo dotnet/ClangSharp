@@ -58,6 +58,46 @@ namespace ClangSharp.UnitTests
         [Test]
         public Task VirtualWithVtblIndexAttributeTest() => VirtualWithVtblIndexAttributeTestImpl();
 
+        [Test]
+        public virtual Task MacrosExpansionTest()
+        {
+            var inputContents = @"typedef struct
+{
+	unsigned char *buf;
+	int size;
+} context_t;
+
+int buf_close(void *pcontext)
+{
+	((context_t*)pcontext)->buf=0;
+	return 0;
+}
+";
+
+            var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public unsafe partial struct context_t
+    {
+        [NativeTypeName(""unsigned char *"")]
+        public byte* buf;
+
+        public int size;
+    }
+
+    public static unsafe partial class Methods
+    {
+        public static int buf_close(void* pcontext)
+        {
+            ((context_t*)(pcontext))->buf = null;
+            return 0;
+        }
+    }
+}
+";
+
+            return ValidateBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         protected abstract Task ConstructorTestImpl();
 
         protected abstract Task ConstructorWithInitializeTestImpl();
@@ -91,5 +131,7 @@ namespace ClangSharp.UnitTests
         protected abstract Task VirtualTestImpl();
 
         protected abstract Task VirtualWithVtblIndexAttributeTestImpl();
+
+        protected abstract Task ValidateBindingsAsync(string inputContents, string expectedOutputContents);
     }
 }
