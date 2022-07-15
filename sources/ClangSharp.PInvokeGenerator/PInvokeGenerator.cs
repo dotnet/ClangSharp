@@ -1819,9 +1819,9 @@ namespace ClangSharp
                                                                   .Replace("\t", "\\t")
                                                                   .Replace("\"", "\\\"");
 
-        private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl)
+        private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl, bool matchStar)
         {
-            if (!TryGetRemappedValue(namedDecl, _config.WithAccessSpecifiers, out var accessSpecifier) || (accessSpecifier == AccessSpecifier.None))
+            if (!TryGetRemappedValue(namedDecl, _config.WithAccessSpecifiers, out var accessSpecifier, matchStar) || (accessSpecifier == AccessSpecifier.None))
             {
                 switch (namedDecl.Access)
                 {

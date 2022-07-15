@@ -273,7 +273,7 @@ namespace ClangSharp
                 {
                     parentName = "";
                     isAnonymousEnum = true;
-                    accessSpecifier = GetAccessSpecifier(enumDecl);
+                    accessSpecifier = GetAccessSpecifier(enumDecl, matchStar: true);
                 }
             }
 
@@ -331,7 +331,7 @@ namespace ClangSharp
 
         private void VisitEnumDecl(EnumDecl enumDecl)
         {
-            var accessSpecifier = GetAccessSpecifier(enumDecl);
+            var accessSpecifier = GetAccessSpecifier(enumDecl, matchStar: true);
             var name = GetRemappedCursorName(enumDecl);
             var escapedName = EscapeName(name);
             var isAnonymousEnum = false;
@@ -397,7 +397,7 @@ namespace ClangSharp
                 return;
             }
 
-            var accessSpecifier = GetAccessSpecifier(fieldDecl);
+            var accessSpecifier = GetAccessSpecifier(fieldDecl, matchStar: false);
             var name = GetRemappedCursorName(fieldDecl);
             var escapedName = EscapeName(name);
 
@@ -505,7 +505,7 @@ namespace ClangSharp
                 return;
             }
 
-            var accessSpecifier = GetAccessSpecifier(functionDecl);
+            var accessSpecifier = GetAccessSpecifier(functionDecl, matchStar: false);
 
             var body = functionDecl.Body;
             var hasBody = body is not null;
@@ -854,7 +854,7 @@ namespace ClangSharp
 
             var type = fieldDecl.Type;
 
-            var accessSpecifier = GetAccessSpecifier(anonymousRecordDecl);
+            var accessSpecifier = GetAccessSpecifier(anonymousRecordDecl, matchStar: true);
 
             var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out _);
             var name = GetRemappedCursorName(fieldDecl);
@@ -1407,7 +1407,7 @@ namespace ClangSharp
                 }
 
                 var desc = new StructDesc {
-                    AccessSpecifier = GetAccessSpecifier(recordDecl),
+                    AccessSpecifier = GetAccessSpecifier(recordDecl, matchStar: true),
                     EscapedName = escapedName,
                     IsUnsafe = IsUnsafe(recordDecl) || hasGuidMember,
                     HasVtbl = hasVtbl || hasBaseVtbl,
@@ -1573,7 +1573,7 @@ namespace ClangSharp
                             }
 
                             var fieldDesc = new FieldDesc {
-                                AccessSpecifier = GetAccessSpecifier(baseCxxRecordDecl),
+                                AccessSpecifier = GetAccessSpecifier(baseCxxRecordDecl, matchStar: true),
                                 NativeTypeName = null,
                                 EscapedName = baseFieldName,
                                 Offset = null,
@@ -2480,7 +2480,7 @@ namespace ClangSharp
 
                 canonicalType = type.CanonicalType;
 
-                var accessSpecifier = GetAccessSpecifier(fieldDecl);
+                var accessSpecifier = GetAccessSpecifier(fieldDecl, matchStar: false);
                 var name = GetRemappedCursorName(fieldDecl);
                 var escapedName = EscapeName(name);
 
@@ -2699,7 +2699,7 @@ namespace ClangSharp
                 var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
                 var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
-                var accessSpecifier = GetAccessSpecifier(constantArray);
+                var accessSpecifier = GetAccessSpecifier(constantArray, matchStar: false);
                 var canonicalElementType = type.ElementType.CanonicalType;
                 var isUnsafeElementType =
                     ((canonicalElementType is PointerType) || (canonicalElementType is ReferenceType)) &&
@@ -2966,7 +2966,7 @@ namespace ClangSharp
                 StartUsingOutputBuilder(name);
                 {
                     var desc = new FunctionOrDelegateDesc {
-                        AccessSpecifier = GetAccessSpecifier(typedefDecl),
+                        AccessSpecifier = GetAccessSpecifier(typedefDecl, matchStar: true),
                         CallingConvention = callingConventionName,
                         EscapedName = escapedName,
                         IsVirtual = true, // such that it outputs as a delegate
@@ -3154,7 +3154,7 @@ namespace ClangSharp
                     isMacroDefinitionRecord = true;
                 }
 
-                var accessSpecifier = GetAccessSpecifier(varDecl);
+                var accessSpecifier = GetAccessSpecifier(varDecl, matchStar: false);
                 var name = GetRemappedName(nativeName, varDecl, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
                 var escapedName = EscapeName(name);
 
