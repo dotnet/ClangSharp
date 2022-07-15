@@ -937,5 +937,7 @@ namespace ClangSharp.Test
 
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
         }
+
+        protected override Task ValidateBindingsAsync(string inputContents, string expectedOutputContents) => ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 }
