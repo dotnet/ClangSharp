@@ -394,5 +394,7 @@ namespace ClangSharp.Test
 
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
         }
+
+        protected override Task VarargsTestImpl() => Task.CompletedTask;
     }
 }

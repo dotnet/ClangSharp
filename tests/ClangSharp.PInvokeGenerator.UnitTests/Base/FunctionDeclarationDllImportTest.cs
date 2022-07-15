@@ -73,6 +73,9 @@ namespace ClangSharp.UnitTests
         [Test]
         public Task SourceLocationTest() => SourceLocationTestImpl();
 
+        [Test]
+        public Task VarargsTest() => VarargsTestImpl();
+
         protected abstract Task BasicTestImpl();
 
         protected abstract Task ArrayParameterTestImpl();
@@ -106,5 +109,7 @@ namespace ClangSharp.UnitTests
         protected abstract Task WithSetLastErrorStarTestImpl();
 
         protected abstract Task SourceLocationTestImpl();
+
+        protected abstract Task VarargsTestImpl();
     }
 }

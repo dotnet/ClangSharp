@@ -1932,6 +1932,14 @@ namespace ClangSharp
 
         private CallingConvention GetCallingConvention(Cursor cursor, Cursor context, Type type)
         {
+            if (cursor is FunctionDecl functionDecl)
+            {
+                if (functionDecl.IsVariadic)
+                {
+                    return CallingConvention.Cdecl;
+                }
+            }
+
             if (cursor is NamedDecl namedDecl)
             {
                 if (TryGetRemappedValue(namedDecl, _config.WithCallConvs, out var callConv, matchStar: true))
