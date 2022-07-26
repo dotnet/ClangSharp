@@ -11,7 +11,7 @@ A convenience package which provides the native libClang library for several pla
 
 A helper package which exposes many Clang APIs missing from libClang is provided here: https://www.nuget.org/packages/libClangSharp
 
-NOTE: libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/13.0.0-beta1); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
+NOTE: libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/14.0.0-beta1); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
 
 Nightly packages are available via the NuGet Feed URL: https://pkgs.clangsharp.dev/index.json
 
@@ -116,7 +116,7 @@ This program will take a given set of C or C++ header files and generate C# bind
 
 The simplest and recommended setup is to install the generator as a .NET tool and then use response files:
 ```
-dotnet tool install --global ClangSharpPInvokeGenerator --version 14.0.0-beta2
+dotnet tool install --global ClangSharpPInvokeGenerator --version 14.0.0-beta3
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 
@@ -157,9 +157,12 @@ Options:
   -wa, --with-attribute <with-attribute>                     An attribute to be added to the given remapped declaration name during binding generation. [default: ]
   -wcc, --with-callconv <with-callconv>                      A calling convention to be used for the given declaration during binding generation. [default: ]
   -wc, --with-class <with-class>                             A class to be used for the given remapped constant or function declaration name during binding generation. [default: ]
+  -wg, --with-guid <with-guid>                               A GUID to be used for the given declaration during binding generation. []
   -wlb, --with-librarypath <with-librarypath>                A library path to be used for the given declaration during binding generation. [default: ]
+  -wmi, --with-manual-import <with-manual-import>            A remapped function name to be treated as a manual import during binding generation. []
   -wn, --with-namespace <with-namespace>                     A namespace to be used for the given remapped declaration name during binding generation. [default: ]
   -wsle, --with-setlasterror <with-setlasterror>             Add the SetLastError=true modifier to a given DllImport or UnmanagedFunctionPointer. [default: ]
+  -wsgct, --with-suppressgctransition <with-suppressgctransition>  Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer. []
   -wts, --with-transparent-struct <with-transparent-struct>  A remapped type name to be treated as a transparent wrapper during binding generation. [default: ]
   -wt, --with-type <with-type>                               A type to be used for the given enum declaration during binding generation. [default: ]
   -wu, --with-using <with-using>                             A using directive to be included for the given remapped declaration name during binding generation. [default: ]
@@ -196,10 +199,12 @@ Options:
   generate-cpp-attributes                [CppAttributeList("")] should be generated to document the encountered C++ attributes.
   generate-doc-includes                  &lt;include&gt; xml documentation tags should be generated for declarations.
   generate-file-scoped-namespaces        Namespaces should be scoped to the file to reduce nesting.
+  generate-guid-member                   Types with an associated GUID should have a corresponding member generated.
   generate-helper-types                  Code files should be generated for various helper attributes and declared transparent structs.
   generate-macro-bindings                Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones.
   generate-marker-interfaces             Bindings for marker interfaces representing native inheritance hierarchies should be generated.
   generate-native-inheritance-attribute  [NativeInheritance("")] attribute should be generated to document the encountered C++ base type.
+  generate-setslastsystemerror-attribute [SetsLastSystemError] attribute should be generated rather than using SetLastError = true.
   generate-template-bindings             Bindings for template-definitions should be generated. This is currently experimental.
   generate-unmanaged-constants           Unmanaged constants should be generated using static ref readonly properties. This is currently experimental.
   generate-vtbl-index-attribute          [VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method.
