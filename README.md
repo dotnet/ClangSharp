@@ -11,7 +11,7 @@ A convenience package which provides the native libClang library for several pla
 
 A helper package which exposes many Clang APIs missing from libClang is provided here: https://www.nuget.org/packages/libClangSharp
 
-NOTE: libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/13.0.0-beta1); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
+NOTE: libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/14.0.0-beta1); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
 
 Nightly packages are available via the NuGet Feed URL: https://pkgs.clangsharp.dev/index.json
 
@@ -116,7 +116,7 @@ This program will take a given set of C or C++ header files and generate C# bind
 
 The simplest and recommended setup is to install the generator as a .NET tool and then use response files:
 ```
-dotnet tool install --global ClangSharpPInvokeGenerator --version 14.0.0-beta2
+dotnet tool install --global ClangSharpPInvokeGenerator --version 14.0.0-beta3
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 
@@ -132,37 +132,40 @@ Usage:
   ClangSharpPInvokeGenerator [options]
 
 Options:
-  -a, --additional <additional>                              An argument to pass to Clang when parsing the input files. [default: ]
-  -c, --config <config>                                      A configuration option that controls how the bindings are generated. Specify 'help' to see the available options. [default: ]
-  -D, --define-macro <define-macro>                          Define <macro> to <value> (or 1 if <value> omitted). [default: ]
-  -e, --exclude <exclude>                                    A declaration name to exclude from binding generation. [default: ]
-  -f, --file <file>                                          A file to parse and generate bindings for. [default: ]
-  -F, --file-directory <file-directory>                      The base path for files to parse. [default: ]
-  -h, --headerFile <headerFile>                              A file which contains the header to prefix every generated file with. [default: ]
-  -i, --include <include>                                    A declaration name to include in binding generation. [default: ]
-  -I, --include-directory <include-directory>                Add directory to include search path. [default: ]
+  -a, --additional <additional>                              An argument to pass to Clang when parsing the input files. []
+  -c, --config <config>                                      A configuration option that controls how the bindings are generated. Specify 'help' to see the available options. []
+  -D, --define-macro <define-macro>                          Define <macro> to <value> (or 1 if <value> omitted). []
+  -e, --exclude <exclude>                                    A declaration name to exclude from binding generation. []
+  -f, --file <file>                                          A file to parse and generate bindings for. []
+  -F, --file-directory <file-directory>                      The base path for files to parse. []
+  -h, --headerFile <headerFile>                              A file which contains the header to prefix every generated file with. []
+  -i, --include <include>                                    A declaration name to include in binding generation. []
+  -I, --include-directory <include-directory>                Add directory to include search path. []
   -x, --language <language>                                  Treat subsequent input files as having type <language>. [default: c++]
-  -l, --libraryPath <libraryPath>                            The string to use in the DllImport attribute used when generating bindings. [default: ]
+  -l, --libraryPath <libraryPath>                            The string to use in the DllImport attribute used when generating bindings. []
   -m, --methodClassName <methodClassName>                    The name of the static class that will contain the generated method bindings. [default: Methods]
-  -n, --namespace <namespace>                                The namespace in which to place the generated bindings. [default: ]
+  -n, --namespace <namespace>                                The namespace in which to place the generated bindings. []
   -om, --output-mode <CSharp|Xml>                            The mode describing how the information collected from the headers are presented in the resultant bindings. [default: CSharp]
-  -o, --output <output>                                      The output location to write the generated bindings to. [default: ]
-  -p, --prefixStrip <prefixStrip>                            The prefix to strip from the generated method bindings. [default: ]
-  -r, --remap <remap>                                        A declaration name to be remapped to another name during binding generation. [default: ]
-  -std <std>                                                 Language standard to compile for. [default: ]
-  -to, --test-output <test-output>                           The output location to write the generated tests to. [default: ]
-  -t, --traverse <traverse>                                  A file name included either directly or indirectly by -f that should be traversed during binding generation. [default: ]
+  -o, --output <output>                                      The output location to write the generated bindings to. []
+  -p, --prefixStrip <prefixStrip>                            The prefix to strip from the generated method bindings. []
+  -r, --remap <remap>                                        A declaration name to be remapped to another name during binding generation. []
+  -std <std>                                                 Language standard to compile for. []
+  -to, --test-output <test-output>                           The output location to write the generated tests to. []
+  -t, --traverse <traverse>                                  A file name included either directly or indirectly by -f that should be traversed during binding generation. []
   -v, --version <version>                                    Prints the current version information for the tool and its native dependencies.
-  -was, --with-access-specifier <with-access-specifier>      An access specifier to be used with the given qualified or remapped declaration name during binding generation. [default: ]
-  -wa, --with-attribute <with-attribute>                     An attribute to be added to the given remapped declaration name during binding generation. [default: ]
-  -wcc, --with-callconv <with-callconv>                      A calling convention to be used for the given declaration during binding generation. [default: ]
-  -wc, --with-class <with-class>                             A class to be used for the given remapped constant or function declaration name during binding generation. [default: ]
-  -wlb, --with-librarypath <with-librarypath>                A library path to be used for the given declaration during binding generation. [default: ]
-  -wn, --with-namespace <with-namespace>                     A namespace to be used for the given remapped declaration name during binding generation. [default: ]
-  -wsle, --with-setlasterror <with-setlasterror>             Add the SetLastError=true modifier to a given DllImport or UnmanagedFunctionPointer. [default: ]
-  -wts, --with-transparent-struct <with-transparent-struct>  A remapped type name to be treated as a transparent wrapper during binding generation. [default: ]
-  -wt, --with-type <with-type>                               A type to be used for the given enum declaration during binding generation. [default: ]
-  -wu, --with-using <with-using>                             A using directive to be included for the given remapped declaration name during binding generation. [default: ]
+  -was, --with-access-specifier <with-access-specifier>      An access specifier to be used with the given qualified or remapped declaration name during binding generation. []
+  -wa, --with-attribute <with-attribute>                     An attribute to be added to the given remapped declaration name during binding generation. []
+  -wcc, --with-callconv <with-callconv>                      A calling convention to be used for the given declaration during binding generation. []
+  -wc, --with-class <with-class>                             A class to be used for the given remapped constant or function declaration name during binding generation. []
+  -wg, --with-guid <with-guid>                               A GUID to be used for the given declaration during binding generation. []
+  -wlb, --with-librarypath <with-librarypath>                A library path to be used for the given declaration during binding generation. []
+  -wmi, --with-manual-import <with-manual-import>            A remapped function name to be treated as a manual import during binding generation. []
+  -wn, --with-namespace <with-namespace>                     A namespace to be used for the given remapped declaration name during binding generation. []
+  -wsle, --with-setlasterror <with-setlasterror>             Add the SetLastError=true modifier to a given DllImport or UnmanagedFunctionPointer. []
+  -wsgct, --with-suppressgctransition <with-suppressgctransition>  Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer. []
+  -wts, --with-transparent-struct <with-transparent-struct>  A remapped type name to be treated as a transparent wrapper during binding generation. []
+  -wt, --with-type <with-type>                               A type to be used for the given enum declaration during binding generation. []
+  -wu, --with-using <with-using>                             A using directive to be included for the given remapped declaration name during binding generation. []
   -?, -h, --help                                             Show help and usage information
 ```
 
@@ -196,10 +199,12 @@ Options:
   generate-cpp-attributes                [CppAttributeList("")] should be generated to document the encountered C++ attributes.
   generate-doc-includes                  &lt;include&gt; xml documentation tags should be generated for declarations.
   generate-file-scoped-namespaces        Namespaces should be scoped to the file to reduce nesting.
+  generate-guid-member                   Types with an associated GUID should have a corresponding member generated.
   generate-helper-types                  Code files should be generated for various helper attributes and declared transparent structs.
   generate-macro-bindings                Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones.
   generate-marker-interfaces             Bindings for marker interfaces representing native inheritance hierarchies should be generated.
   generate-native-inheritance-attribute  [NativeInheritance("")] attribute should be generated to document the encountered C++ base type.
+  generate-setslastsystemerror-attribute [SetsLastSystemError] attribute should be generated rather than using SetLastError = true.
   generate-template-bindings             Bindings for template-definitions should be generated. This is currently experimental.
   generate-unmanaged-constants           Unmanaged constants should be generated using static ref readonly properties. This is currently experimental.
   generate-vtbl-index-attribute          [VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method.
