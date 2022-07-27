@@ -501,6 +501,73 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
         }
 
+        protected override Task NewKeywordVirtualWithExplicitVtblAndMarkerInterfaceTestImpl()
+        {
+            var inputContents = @"struct MyStruct
+{
+    virtual int GetType(int obj) = 0;
+    virtual int GetType() = 0;
+    virtual int GetType(int objA, int objB) = 0;
+};";
+
+            var nativeCallConv = "";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+            {
+                nativeCallConv = " __attribute__((thiscall))";
+            }
+
+            var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+
+namespace ClangSharp.Test
+{{
+    public unsafe partial struct MyStruct : MyStruct.Interface
+    {{
+        public Vtbl<MyStruct>* lpVtbl;
+
+        public int GetType(int objA, int objB)
+        {{
+            return lpVtbl->GetType((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
+        }}
+
+        public new int GetType()
+        {{
+            return lpVtbl->GetType1((MyStruct*)Unsafe.AsPointer(ref this));
+        }}
+
+        public int GetType(int obj)
+        {{
+            return lpVtbl->GetType2((MyStruct*)Unsafe.AsPointer(ref this), obj);
+        }}
+
+        public interface Interface
+        {{
+            int GetType(int objA, int objB);
+
+            int GetType();
+
+            int GetType(int obj);
+        }}
+
+        public partial struct Vtbl<TSelf>
+            where TSelf : unmanaged, Interface
+        {{
+            [NativeTypeName(""int (int, int){nativeCallConv}"")]
+            public new delegate* unmanaged[Thiscall]<TSelf*, int, int, int> GetType;
+
+            [NativeTypeName(""int (){nativeCallConv}"")]
+            public delegate* unmanaged[Thiscall]<TSelf*, int> GetType1;
+
+            [NativeTypeName(""int (int){nativeCallConv}"")]
+            public delegate* unmanaged[Thiscall]<TSelf*, int, int> GetType2;
+        }}
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
+        }
+
         protected override Task OperatorTestImpl()
         {
             var inputContents = @"struct MyStruct

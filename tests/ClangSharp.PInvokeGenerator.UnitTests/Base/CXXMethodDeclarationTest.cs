@@ -38,6 +38,9 @@ namespace ClangSharp.UnitTests
         public Task NewKeywordVirtualWithExplicitVtblTest() => NewKeywordVirtualWithExplicitVtblTestImpl();
 
         [Test]
+        public Task NewKeywordVirtualWithExplicitVtblAndMarkerInterfaceTest() => NewKeywordVirtualWithExplicitVtblAndMarkerInterfaceTestImpl();
+
+        [Test]
         public Task OperatorTest() => OperatorTestImpl();
 
         [Test]
@@ -117,6 +120,8 @@ int buf_close(void *pcontext)
         protected abstract Task NewKeywordVirtualTestImpl();
 
         protected abstract Task NewKeywordVirtualWithExplicitVtblTestImpl();
+
+        protected abstract Task NewKeywordVirtualWithExplicitVtblAndMarkerInterfaceTestImpl();
 
         protected abstract Task OperatorTestImpl();
 

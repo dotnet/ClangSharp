@@ -539,6 +539,91 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
         }
 
+        protected override Task NewKeywordVirtualWithExplicitVtblAndMarkerInterfaceTestImpl()
+        {
+            var inputContents = @"struct MyStruct
+{
+    virtual int GetType(int obj) = 0;
+    virtual int GetType() = 0;
+    virtual int GetType(int objA, int objB) = 0;
+};";
+
+            var nativeCallConv = "";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+            {
+                nativeCallConv = " __attribute__((thiscall))";
+            }
+
+            var expectedOutputContents = $@"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    public unsafe partial struct MyStruct : MyStruct.Interface
+    {{
+        public Vtbl* lpVtbl;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate int _GetType(MyStruct* pThis, int objA, int objB);
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate int _GetType1(MyStruct* pThis);
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate int _GetType2(MyStruct* pThis, int obj);
+
+        public int GetType(int objA, int objB)
+        {{
+            fixed (MyStruct* pThis = &this)
+            {{
+                return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)(pThis, objA, objB);
+            }}
+        }}
+
+        public new int GetType()
+        {{
+            fixed (MyStruct* pThis = &this)
+            {{
+                return Marshal.GetDelegateForFunctionPointer<_GetType1>(lpVtbl->GetType1)(pThis);
+            }}
+        }}
+
+        public int GetType(int obj)
+        {{
+            fixed (MyStruct* pThis = &this)
+            {{
+                return Marshal.GetDelegateForFunctionPointer<_GetType2>(lpVtbl->GetType2)(pThis, obj);
+            }}
+        }}
+
+        public interface Interface
+        {{
+            int GetType(int objA, int objB);
+
+            int GetType();
+
+            int GetType(int obj);
+        }}
+
+        public partial struct Vtbl
+        {{
+            [NativeTypeName(""int (int, int){nativeCallConv}"")]
+            public new IntPtr GetType;
+
+            [NativeTypeName(""int (){nativeCallConv}"")]
+            public IntPtr GetType1;
+
+            [NativeTypeName(""int (int){nativeCallConv}"")]
+            public IntPtr GetType2;
+        }}
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
+        }
+
         protected override Task OperatorTestImpl()
         {
             var inputContents = @"struct MyStruct
