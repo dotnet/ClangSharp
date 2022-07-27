@@ -1545,7 +1545,14 @@ namespace ClangSharp
 
                     if (_config.GenerateExplicitVtbls)
                     {
-                        _outputBuilder.WriteRegularField("Vtbl*", "lpVtbl");
+                        if (_config.GenerateMarkerInterfaces && !_config.GenerateCompatibleCode)
+                        {
+                            _outputBuilder.WriteRegularField($"Vtbl<{nativeName}>*", "lpVtbl");
+                        }
+                        else
+                        {
+                            _outputBuilder.WriteRegularField("Vtbl*", "lpVtbl");
+                        }
                     }
                     else
                     {
