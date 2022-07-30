@@ -583,6 +583,95 @@ int MyFunctionB(MyStruct* x)
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
         }
 
+        protected override Task NewKeywordVirtualWithExplicitVtblAndMarkerInterfaceTestImpl()
+        {
+            var inputContents = @"struct MyStruct
+{
+    virtual int GetType(int obj) = 0;
+    virtual int GetType() = 0;
+    virtual int GetType(int objA, int objB) = 0;
+};";
+
+            var nativeCallConv = "";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+            {
+                nativeCallConv = " __attribute__((thiscall))";
+            }
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
+      <field name=""lpVtbl"" access=""public"">
+        <type>Vtbl&lt;MyStruct&gt;*</type>
+      </field>
+      <function name=""GetType"" access=""public"" unsafe=""true"">
+        <type>int</type>
+        <param name=""objA"">
+          <type>int</type>
+        </param>
+        <param name=""objB"">
+          <type>int</type>
+        </param>
+        <body>
+          <code>return lpVtbl-&gt;<vtbl explicit=""True"">GetType</vtbl>(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""objA"">objA</param>, <param name=""objB"">objB</param>);</code>
+        </body>
+      </function>
+      <function name=""GetType"" access=""public"" unsafe=""true"">
+        <type>int</type>
+        <body>
+          <code>return lpVtbl-&gt;<vtbl explicit=""True"">GetType1</vtbl>(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
+        </body>
+      </function>
+      <function name=""GetType"" access=""public"" unsafe=""true"">
+        <type>int</type>
+        <param name=""obj"">
+          <type>int</type>
+        </param>
+        <body>
+          <code>return lpVtbl-&gt;<vtbl explicit=""True"">GetType2</vtbl>(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>, <param name=""obj"">obj</param>);</code>
+        </body>
+      </function>
+      <interface>
+        <function name=""GetType"" access=""public"" unsafe=""true"">
+          <type>int</type>
+          <param name=""objA"">
+            <type>int</type>
+          </param>
+          <param name=""objB"">
+            <type>int</type>
+          </param>
+        </function>
+        <function name=""GetType"" access=""public"" unsafe=""true"">
+          <type>int</type>
+        </function>
+        <function name=""GetType"" access=""public"" unsafe=""true"">
+          <type>int</type>
+          <param name=""obj"">
+            <type>int</type>
+          </param>
+        </function>
+      </interface>
+      <vtbl>
+        <field name=""GetType"" access=""public"">
+          <type native=""int (int, int){nativeCallConv}"">delegate* unmanaged[Thiscall]&lt;TSelf*, int, int, int&gt;</type>
+        </field>
+        <field name=""GetType1"" access=""public"">
+          <type native=""int (){nativeCallConv}"">delegate* unmanaged[Thiscall]&lt;TSelf*, int&gt;</type>
+        </field>
+        <field name=""GetType2"" access=""public"">
+          <type native=""int (int){nativeCallConv}"">delegate* unmanaged[Thiscall]&lt;TSelf*, int, int&gt;</type>
+        </field>
+      </vtbl>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
+        }
+
         protected override Task OperatorTestImpl()
         {
             var inputContents = @"struct MyStruct
