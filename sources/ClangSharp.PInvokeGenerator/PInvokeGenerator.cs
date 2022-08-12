@@ -2758,7 +2758,7 @@ namespace ClangSharp
                 {
                     result.typeName = GetTypeName(cursor, context, rootType, arrayType.ElementType, ignoreTransparentStructsWhereRequired, out _);
 
-                    if (cursor is FunctionDecl or ParmVarDecl)
+                    if ((cursor is FunctionDecl or ParmVarDecl) || (arrayType is IncompleteArrayType))
                     {
                         result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _, skipUsing: true);
                         result.typeName += '*';
