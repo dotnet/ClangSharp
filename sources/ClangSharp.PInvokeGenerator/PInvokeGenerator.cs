@@ -21,8 +21,8 @@ namespace ClangSharp
         private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
         private static readonly Regex s_needsSystemSupportRegex = new Regex(@"\b(?:Guid|IntPtr|UIntPtr)\b", RegexOptions.Compiled);
 
-        private const string ExpectedClangVersion = "14.0.";
-        private const string ExpectedClangSharpVersion = "14.0.";
+        private const string ExpectedClangVersion = "version 14.0";
+        private const string ExpectedClangSharpVersion = "version 14.0.";
 
         private readonly CXIndex _index;
         private readonly OutputBuilderFactory _outputBuilderFactory;
