@@ -151,13 +151,36 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        protected override Task WideStringLiteralConstTestImpl() =>
-            // Unsupported string literal kind: 'CX_CLK_Wide'
-            Task.CompletedTask;
+        protected override Task WideStringLiteralConstTestImpl()
+        {
+            var inputContents = $@"const wchar_t MyConst1[] = L""Test"";
+const wchar_t* MyConst2 = L""Test"";
+const wchar_t* const MyConst3 = L""Test"";";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const wchar_t[5]"")]
+        public static readonly uint[] MyConst1 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
+
+        [NativeTypeName(""const wchar_t *"")]
+        public static uint[] MyConst2 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
+
+        [NativeTypeName(""const wchar_t *const"")]
+        public static readonly uint[] MyConst3 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
 
         protected override Task StringLiteralConstTestImpl()
         {
-            var inputContents = $@"const char MyConst1[] = ""Test"";";
+            var inputContents = $@"const char MyConst1[] = ""Test"";
+const char* MyConst2 = ""Test"";
+const char* const MyConst3 = ""Test"";";
 
             var expectedOutputContents = $@"using System;
 
@@ -167,6 +190,64 @@ namespace ClangSharp.Test
     {{
         [NativeTypeName(""const char[5]"")]
         public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *"")]
+        public static byte[] MyConst2 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *const"")]
+        public static ReadOnlySpan<byte> MyConst3 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task WideStringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const wchar_t MyConst1[] = L""Test"";
+static const wchar_t* MyConst2 = L""Test"";
+static const wchar_t* const MyConst3 = L""Test"";";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const wchar_t[5]"")]
+        public static readonly uint[] MyConst1 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
+
+        [NativeTypeName(""const wchar_t *"")]
+        public static uint[] MyConst2 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
+
+        [NativeTypeName(""const wchar_t *const"")]
+        public static readonly uint[] MyConst3 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task StringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const char MyConst1[] = ""Test"";
+static const char* MyConst2 = ""Test"";
+static const char* const MyConst3 = ""Test"";";
+
+            var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const char[5]"")]
+        public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *"")]
+        public static byte[] MyConst2 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *const"")]
+        public static ReadOnlySpan<byte> MyConst3 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
     }}
 }}
 ";

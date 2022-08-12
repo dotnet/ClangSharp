@@ -3227,7 +3227,14 @@ namespace ClangSharp
                         case CX_CharacterKind.CX_CLK_Ascii:
                         case CX_CharacterKind.CX_CLK_UTF8:
                         {
-                            typeName = "ReadOnlySpan<byte>";
+                            if (flags.HasFlag(ValueFlags.Constant))
+                            {
+                                typeName = "ReadOnlySpan<byte>";
+                            }
+                            else
+                            {
+                                typeName = "byte[]";
+                            }
                             break;
                         }
 
@@ -3235,16 +3242,31 @@ namespace ClangSharp
                         {
                             if (_config.GenerateUnixTypes)
                             {
-                                goto default;
+                                goto case CX_CharacterKind.CX_CLK_UTF32;
                             }
-
-                            goto case CX_CharacterKind.CX_CLK_UTF16;
+                            else
+                            {
+                                goto case CX_CharacterKind.CX_CLK_UTF16;
+                            }
                         }
 
                         case CX_CharacterKind.CX_CLK_UTF16:
                         {
                             kind = ValueKind.Primitive;
                             typeName = "string";
+                            break;
+                        }
+
+                        case CX_CharacterKind.CX_CLK_UTF32:
+                        {
+                            if (_config.GeneratePreviewCode && flags.HasFlag(ValueFlags.Constant))
+                            {
+                                typeName = "ReadOnlySpan<uint>";
+                            }
+                            else
+                            {
+                                typeName = "uint[]";
+                            }
                             break;
                         }
 
@@ -3327,7 +3349,7 @@ namespace ClangSharp
                 {
                     StartUsingOutputBuilder(className);
 
-                    if ((kind == ValueKind.String) && (typeName == "ReadOnlySpan<byte>"))
+                    if ((kind == ValueKind.String) && typeName.StartsWith("ReadOnlySpan<"))
                     {
                         _outputBuilder.EmitSystemSupport();
                     }

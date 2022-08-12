@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Abstractions;
 using ClangSharp.Interop;
@@ -2321,10 +2322,12 @@ namespace ClangSharp
                 {
                     if (_config.GenerateUnixTypes)
                     {
-                        goto default;
+                        goto case CX_CharacterKind.CX_CLK_UTF32;
                     }
-
-                    goto case CX_CharacterKind.CX_CLK_UTF16;
+                    else
+                    {
+                        goto case CX_CharacterKind.CX_CLK_UTF16;
+                    }
                 }
 
                 case CX_CharacterKind.CX_CLK_UTF16:
@@ -2332,6 +2335,24 @@ namespace ClangSharp
                     outputBuilder.Write('"');
                     outputBuilder.Write(EscapeString(stringLiteral.String));
                     outputBuilder.Write('"');
+                    break;
+                }
+
+                case CX_CharacterKind.CX_CLK_UTF32:
+                {
+                    outputBuilder.Write("new uint[] { ");
+
+                    var bytes = Encoding.UTF32.GetBytes(stringLiteral.String);
+                    var codepoints = MemoryMarshal.Cast<byte, uint>(bytes);
+
+                    foreach (var codepoint in codepoints)
+                    {
+                        outputBuilder.Write("0x");
+                        outputBuilder.Write(codepoint.ToString("X8"));
+                        outputBuilder.Write(", ");
+                    }
+
+                    outputBuilder.Write("0x00000000 }");
                     break;
                 }
 

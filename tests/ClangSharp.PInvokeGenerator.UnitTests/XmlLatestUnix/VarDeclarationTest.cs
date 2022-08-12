@@ -15,12 +15,12 @@ namespace ClangSharp.UnitTests
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
-      <constant name=""MyVariable"" access=""public"">
+      <field name=""MyVariable"" access=""public"">
         <type primitive=""True"">{expectedManagedType}</type>
         <value>
           <code>0</code>
         </value>
-      </constant>
+      </field>
     </class>
   </namespace>
 </bindings>
@@ -37,12 +37,12 @@ namespace ClangSharp.UnitTests
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
-      <constant name=""MyVariable"" access=""public"">
+      <field name=""MyVariable"" access=""public"">
         <type primitive=""True"">{expectedManagedType}</type>
         <value>
           <code>0</code>
         </value>
-      </constant>
+      </field>
     </class>
   </namespace>
 </bindings>
@@ -186,19 +186,137 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        protected override Task WideStringLiteralConstTestImpl() =>
-            // Unsupported string literal kind: 'CX_CLK_Wide'
-            Task.CompletedTask;
-
-        protected override Task StringLiteralConstTestImpl()
+        protected override Task WideStringLiteralConstTestImpl()
         {
-            var inputContents = $@"const char MyConst1[] = ""Test"";";
+            var inputContents = $@"const wchar_t MyConst1[] = L""Test"";
+const wchar_t* MyConst2 = L""Test"";
+const wchar_t* const MyConst3 = L""Test"";";
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <constant name=""MyConst1"" access=""public"">
+        <type primitive=""False"">uint[]</type>
+        <value>
+          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+        </value>
+      </constant>
+      <field name=""MyConst2"" access=""public"">
+        <type primitive=""False"">uint[]</type>
+        <value>
+          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+        </value>
+      </field>
+      <constant name=""MyConst3"" access=""public"">
+        <type primitive=""False"">uint[]</type>
+        <value>
+          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task StringLiteralConstTestImpl()
+        {
+            var inputContents = $@"const char MyConst1[] = ""Test"";
+const char* MyConst2 = ""Test"";
+const char* const MyConst3 = ""Test"";";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""MyConst1"" access=""public"">
+        <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
+        <value>
+          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+        </value>
+      </constant>
+      <field name=""MyConst2"" access=""public"">
+        <type primitive=""False"">byte[]</type>
+        <value>
+          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+        </value>
+      </field>
+      <constant name=""MyConst3"" access=""public"">
+        <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
+        <value>
+          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task WideStringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const wchar_t MyConst1[] = L""Test"";
+static const wchar_t* MyConst2 = L""Test"";
+static const wchar_t* const MyConst3 = L""Test"";";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""MyConst1"" access=""public"">
+        <type primitive=""False"">uint[]</type>
+        <value>
+          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+        </value>
+      </constant>
+      <field name=""MyConst2"" access=""public"">
+        <type primitive=""False"">uint[]</type>
+        <value>
+          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+        </value>
+      </field>
+      <constant name=""MyConst3"" access=""public"">
+        <type primitive=""False"">uint[]</type>
+        <value>
+          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task StringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const char MyConst1[] = ""Test"";
+static const char* MyConst2 = ""Test"";
+static const char* const MyConst3 = ""Test"";";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""MyConst1"" access=""public"">
+        <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
+        <value>
+          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+        </value>
+      </constant>
+      <field name=""MyConst2"" access=""public"">
+        <type primitive=""False"">byte[]</type>
+        <value>
+          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+        </value>
+      </field>
+      <constant name=""MyConst3"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
           <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>

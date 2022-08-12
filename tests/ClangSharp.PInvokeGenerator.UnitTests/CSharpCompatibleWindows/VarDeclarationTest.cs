@@ -153,7 +153,9 @@ namespace ClangSharp.Test
 
         protected override Task WideStringLiteralConstTestImpl()
         {
-            var inputContents = $@"const wchar_t MyConst1[] = L""Test"";";
+            var inputContents = $@"const wchar_t MyConst1[] = L""Test"";
+const wchar_t* MyConst2 = L""Test"";
+const wchar_t* const MyConst3 = L""Test"";";
 
             var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
@@ -161,6 +163,12 @@ namespace ClangSharp.Test
     {{
         [NativeTypeName(""const wchar_t[5]"")]
         public const string MyConst1 = ""Test"";
+
+        [NativeTypeName(""const wchar_t *"")]
+        public static string MyConst2 = ""Test"";
+
+        [NativeTypeName(""const wchar_t *const"")]
+        public const string MyConst3 = ""Test"";
     }}
 }}
 ";
@@ -170,7 +178,9 @@ namespace ClangSharp.Test
 
         protected override Task StringLiteralConstTestImpl()
         {
-            var inputContents = $@"const char MyConst1[] = ""Test"";";
+            var inputContents = $@"const char MyConst1[] = ""Test"";
+const char* MyConst2 = ""Test"";
+const char* const MyConst3 = ""Test"";";
 
             var expectedOutputContents = $@"using System;
 
@@ -180,6 +190,64 @@ namespace ClangSharp.Test
     {{
         [NativeTypeName(""const char[5]"")]
         public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *"")]
+        public static byte[] MyConst2 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *const"")]
+        public static ReadOnlySpan<byte> MyConst3 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task WideStringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const wchar_t MyConst1[] = L""Test"";
+static const wchar_t* MyConst2 = L""Test"";
+static const wchar_t* const MyConst3 = L""Test"";";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const wchar_t[5]"")]
+        public const string MyConst1 = ""Test"";
+
+        [NativeTypeName(""const wchar_t *"")]
+        public static string MyConst2 = ""Test"";
+
+        [NativeTypeName(""const wchar_t *const"")]
+        public const string MyConst3 = ""Test"";
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task StringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const char MyConst1[] = ""Test"";
+static const char* MyConst2 = ""Test"";
+static const char* const MyConst3 = ""Test"";";
+
+            var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const char[5]"")]
+        public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *"")]
+        public static byte[] MyConst2 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *const"")]
+        public static ReadOnlySpan<byte> MyConst3 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
     }}
 }}
 ";

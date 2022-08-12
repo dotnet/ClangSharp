@@ -54,6 +54,12 @@ namespace ClangSharp.UnitTests
         public Task StringLiteralConstTest() => StringLiteralConstTestImpl();
 
         [Test]
+        public Task WideStringLiteralStaticConstTest() => WideStringLiteralStaticConstTestImpl();
+
+        [Test]
+        public Task StringLiteralStaticConstTest() => StringLiteralStaticConstTestImpl();
+
+        [Test]
         public Task UncheckedConversionMacroTest() => UncheckedConversionMacroTestImpl();
 
         [Test]
@@ -93,6 +99,10 @@ namespace ClangSharp.UnitTests
         protected abstract Task WideStringLiteralConstTestImpl();
 
         protected abstract Task StringLiteralConstTestImpl();
+
+        protected abstract Task WideStringLiteralStaticConstTestImpl();
+
+        protected abstract Task StringLiteralStaticConstTestImpl();
 
         protected abstract Task UncheckedConversionMacroTestImpl();
 
