@@ -3227,7 +3227,14 @@ namespace ClangSharp
                         case CX_CharacterKind.CX_CLK_Ascii:
                         case CX_CharacterKind.CX_CLK_UTF8:
                         {
-                            typeName = "ReadOnlySpan<byte>";
+                            if (flags.HasFlag(ValueFlags.Constant))
+                            {
+                                typeName = "ReadOnlySpan<byte>";
+                            }
+                            else
+                            {
+                                typeName = "byte[]";
+                            }
                             break;
                         }
 
@@ -3252,7 +3259,7 @@ namespace ClangSharp
 
                         case CX_CharacterKind.CX_CLK_UTF32:
                         {
-                            if (_config.GeneratePreviewCode)
+                            if (_config.GeneratePreviewCode && flags.HasFlag(ValueFlags.Constant))
                             {
                                 typeName = "ReadOnlySpan<uint>";
                             }

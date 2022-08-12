@@ -34,9 +34,21 @@ namespace ClangSharp.XML
 
         public void BeginValue(in ValueDesc desc)
         {
-            _ = _sb.Append((desc.Kind != ValueKind.Enumerator)
-                ? $"<constant name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">"
-                : $"<enumerator name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
+            if (desc.Kind == ValueKind.Enumerator)
+            {
+                _ = _sb.Append("<enumerator");
+            }
+            else if (desc.IsConstant)
+            {
+                _ = _sb.Append("<constant");
+            }
+            else
+            {
+                _ = _sb.Append("<field");
+            }
+
+            _ = _sb.Append($" name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
+
             desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
             _ = _sb.Append($"<type primitive=\"{desc.Kind == ValueKind.Primitive}\">");
             _ = _sb.Append(EscapeText(desc.TypeName));
@@ -58,7 +70,18 @@ namespace ClangSharp.XML
                 _ = _sb.Append("</value>");
             }
 
-            _ = _sb.Append((desc.Kind != ValueKind.Enumerator) ? "</constant>" : "</enumerator>");
+            if (desc.Kind == ValueKind.Enumerator)
+            {
+                _ = _sb.Append("</enumerator>");
+            }
+            else if (desc.IsConstant)
+            {
+                _ = _sb.Append("</constant>");
+            }
+            else
+            {
+                _ = _sb.Append("</field>");
+            }
         }
 
         public void BeginEnum(in EnumDesc desc)

@@ -145,9 +145,12 @@ namespace ClangSharp.CSharp
                 Write(GetAccessSpecifierString(desc.AccessSpecifier, isNested: true));
                 Write(" static ");
 
-                if (desc.TypeName == "uint[]")
+                if (desc.TypeName is "byte[]" or "uint[]")
                 {
-                    Write("readonly ");
+                    if (desc.IsConstant)
+                    {
+                        Write("readonly ");
+                    }
                     isExpressionBody = false;
                 }
 
