@@ -64,7 +64,7 @@ namespace ClangSharp
         private CXXRecordDecl _cxxRecordDeclContext;
         private bool _disposed;
 
-        public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null, bool ignoreClangVersion = false, bool ignoreClangSharpVersion = false)
+        public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null)
         {
             if (config is null)
             {
@@ -73,14 +73,14 @@ namespace ClangSharp
 
             var clangVersion = clang.getClangVersion().ToString();
 
-            if (!ignoreClangVersion && !clangVersion.Contains(ExpectedClangVersion))
+            if (!clangVersion.Contains(ExpectedClangVersion))
             {
                 throw new InvalidOperationException($"Invalid libClang version. Returned string '{clangVersion}' does not contain '{ExpectedClangVersion}'");
             }
 
             var clangSharpVersion = clangsharp.getVersion().ToString();
 
-            if (!ignoreClangSharpVersion && !clangSharpVersion.Contains(ExpectedClangSharpVersion))
+            if (!clangSharpVersion.Contains(ExpectedClangSharpVersion))
             {
                 throw new InvalidOperationException($"Invalid libClang version. Returned string '{clangSharpVersion}' does not contain '{ExpectedClangSharpVersion}'");
             }
