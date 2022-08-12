@@ -230,6 +230,50 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
             return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        protected override Task WideStringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const wchar_t MyConst1[] = L""Test"";";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""MyConst1"" access=""public"">
+        <type primitive=""True"">string</type>
+        <value>
+          <code>""Test""</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task StringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const char MyConst1[] = ""Test"";";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""MyConst1"" access=""public"">
+        <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
+        <value>
+          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         protected override Task UncheckedConversionMacroTestImpl()
         {
             var inputContents = $@"#define MyMacro1 (long)0x80000000L

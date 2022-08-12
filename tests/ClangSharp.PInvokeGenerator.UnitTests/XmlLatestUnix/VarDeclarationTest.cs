@@ -186,13 +186,75 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
             return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
         }
 
-        protected override Task WideStringLiteralConstTestImpl() =>
-            // Unsupported string literal kind: 'CX_CLK_Wide'
-            Task.CompletedTask;
+        protected override Task WideStringLiteralConstTestImpl()
+        {
+            var inputContents = $@"const char MyConst1[] = ""Test"";";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"" readonly=""true"">
+      <constant name=""MyConst1"" access=""public"">
+        <type primitive=""False"">uint[]</type>
+        <value>
+          <code>new uint[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
 
         protected override Task StringLiteralConstTestImpl()
         {
             var inputContents = $@"const char MyConst1[] = ""Test"";";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""MyConst1"" access=""public"">
+        <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
+        <value>
+          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task WideStringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const char MyConst1[] = ""Test"";";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"" readonly=""true"">
+      <constant name=""MyConst1"" access=""public"">
+        <type primitive=""False"">uint[]</type>
+        <value>
+          <code>new uint[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task StringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const char MyConst1[] = ""Test"";";
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>

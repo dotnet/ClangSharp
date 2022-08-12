@@ -187,6 +187,42 @@ namespace ClangSharp.Test
             return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
         }
 
+        protected override Task WideStringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const wchar_t MyConst1[] = L""Test"";";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const wchar_t[5]"")]
+        public const string MyConst1 = ""Test"";
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
+        protected override Task StringLiteralStaticConstTestImpl()
+        {
+            var inputContents = $@"static const char MyConst1[] = ""Test"";";
+
+            var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""const char[5]"")]
+        public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         protected override Task UncheckedConversionMacroTestImpl()
         {
             var inputContents = $@"#define MyMacro1 (long)0x80000000L
