@@ -7,6 +7,12 @@ namespace ClangSharp.UnitTests
 {
     public abstract class StructDeclarationTest : PInvokeGeneratorTest
     {
+        [TestCase("double", "double*")]
+        [TestCase("short", "short*")]
+        [TestCase("int", "int*")]
+        [TestCase("float", "float*")]
+        public Task ArrayUnknownSizeTest(string nativeType, string expectedManagedType) => ArrayUnknownSizeTestImpl(nativeType, expectedManagedType);
+
         [TestCase("double", "double")]
         [TestCase("short", "short")]
         [TestCase("int", "int")]
@@ -199,6 +205,8 @@ namespace ClangSharp.UnitTests
 
         [Test]
         public Task SourceLocationAttributeTest() => SourceLocationAttributeTestImpl();
+
+        protected abstract Task ArrayUnknownSizeTestImpl(string nativeType, string expectedManagedType);
 
         protected abstract Task BasicTestImpl(string nativeType, string expectedManagedType);
 
