@@ -10,6 +10,29 @@ namespace ClangSharp.UnitTests
 {
     public sealed class XmlCompatibleUnix_StructDeclarationTest : StructDeclarationTest
     {
+        protected override Task ArrayUnknownSizeTestImpl(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} x[];
+}};
+";
+
+            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+      <field name=""x"" access=""public"">
+        <type native=""{nativeType}[]"">{expectedManagedType}</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct

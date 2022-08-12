@@ -10,6 +10,27 @@ namespace ClangSharp.UnitTests
 {
     public sealed class CSharpLatestUnix_StructDeclarationTest : StructDeclarationTest
     {
+        protected override Task ArrayUnknownSizeTestImpl(string nativeType, string expectedManagedType)
+        {
+            var inputContents = $@"struct MyStruct
+{{
+    {nativeType} x[];
+}};
+";
+
+            var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public unsafe partial struct MyStruct
+    {{
+        [NativeTypeName(""{nativeType}[]"")]
+        public {expectedManagedType} x;
+    }}
+}}
+";
+
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        }
+
         protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
