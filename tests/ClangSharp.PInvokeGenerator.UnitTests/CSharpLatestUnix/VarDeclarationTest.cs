@@ -155,14 +155,12 @@ namespace ClangSharp.Test
         {
             var inputContents = $@"const wchar_t MyConst1[] = L""Test"";";
 
-            var expectedOutputContents = $@"using System;
-
-namespace ClangSharp.Test
+            var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
         [NativeTypeName(""const wchar_t[5]"")]
-        public static readonly uint[] MyConst1 = new uint[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+        public static readonly uint[] MyConst1 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
     }}
 }}
 ";
@@ -193,14 +191,12 @@ namespace ClangSharp.Test
         {
             var inputContents = $@"static const wchar_t MyConst1[] = L""Test"";";
 
-            var expectedOutputContents = $@"using System;
-
-namespace ClangSharp.Test
+            var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
         [NativeTypeName(""const wchar_t[5]"")]
-        public static readonly uint[] MyConst1 = new uint[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+        public static readonly uint[] MyConst1 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
     }}
 }}
 ";

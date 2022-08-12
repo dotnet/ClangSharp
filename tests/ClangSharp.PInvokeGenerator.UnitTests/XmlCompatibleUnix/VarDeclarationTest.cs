@@ -188,16 +188,16 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
 
         protected override Task WideStringLiteralConstTestImpl()
         {
-            var inputContents = $@"const char MyConst1[] = ""Test"";";
+            var inputContents = $@"const wchar_t MyConst1[] = L""Test"";";
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <class name=""Methods"" access=""public"" static=""true"" readonly=""true"">
+    <class name=""Methods"" access=""public"" static=""true"">
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""False"">uint[]</type>
         <value>
-          <code>new uint[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
         </value>
       </constant>
     </class>
@@ -232,16 +232,16 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
 
         protected override Task WideStringLiteralStaticConstTestImpl()
         {
-            var inputContents = $@"static const char MyConst1[] = ""Test"";";
+            var inputContents = $@"static const wchar_t MyConst1[] = L""Test"";";
 
             var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <class name=""Methods"" access=""public"" static=""true"" readonly=""true"">
+    <class name=""Methods"" access=""public"" static=""true"">
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""False"">uint[]</type>
         <value>
-          <code>new uint[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
         </value>
       </constant>
     </class>

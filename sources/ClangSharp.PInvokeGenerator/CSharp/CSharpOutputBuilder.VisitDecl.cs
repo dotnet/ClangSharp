@@ -144,6 +144,13 @@ namespace ClangSharp.CSharp
             {
                 Write(GetAccessSpecifierString(desc.AccessSpecifier, isNested: true));
                 Write(" static ");
+
+                if (desc.TypeName == "uint[]")
+                {
+                    Write("readonly ");
+                    isExpressionBody = false;
+                }
+
                 Write(desc.TypeName);
                 Write(' ');
             }
