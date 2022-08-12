@@ -153,7 +153,9 @@ namespace ClangSharp.Test
 
         protected override Task WideStringLiteralConstTestImpl()
         {
-            var inputContents = $@"const wchar_t MyConst1[] = L""Test"";";
+            var inputContents = $@"const wchar_t MyConst1[] = L""Test"";
+const wchar_t* MyConst2 = L""Test"";
+const wchar_t* const MyConst3 = L""Test"";";
 
             var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
@@ -161,6 +163,12 @@ namespace ClangSharp.Test
     {{
         [NativeTypeName(""const wchar_t[5]"")]
         public static readonly uint[] MyConst1 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
+
+        [NativeTypeName(""const wchar_t *"")]
+        public static uint[] MyConst2 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
+
+        [NativeTypeName(""const wchar_t *const"")]
+        public static readonly uint[] MyConst3 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
     }}
 }}
 ";
@@ -170,7 +178,9 @@ namespace ClangSharp.Test
 
         protected override Task StringLiteralConstTestImpl()
         {
-            var inputContents = $@"const char MyConst1[] = ""Test"";";
+            var inputContents = $@"const char MyConst1[] = ""Test"";
+const char* MyConst2 = ""Test"";
+const char* const MyConst3 = ""Test"";";
 
             var expectedOutputContents = $@"using System;
 
@@ -180,6 +190,12 @@ namespace ClangSharp.Test
     {{
         [NativeTypeName(""const char[5]"")]
         public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *"")]
+        public static byte[] MyConst2 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *const"")]
+        public static ReadOnlySpan<byte> MyConst3 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
     }}
 }}
 ";
@@ -189,7 +205,9 @@ namespace ClangSharp.Test
 
         protected override Task WideStringLiteralStaticConstTestImpl()
         {
-            var inputContents = $@"static const wchar_t MyConst1[] = L""Test"";";
+            var inputContents = $@"static const wchar_t MyConst1[] = L""Test"";
+static const wchar_t* MyConst2 = L""Test"";
+static const wchar_t* const MyConst3 = L""Test"";";
 
             var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
@@ -197,6 +215,12 @@ namespace ClangSharp.Test
     {{
         [NativeTypeName(""const wchar_t[5]"")]
         public static readonly uint[] MyConst1 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
+
+        [NativeTypeName(""const wchar_t *"")]
+        public static uint[] MyConst2 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
+
+        [NativeTypeName(""const wchar_t *const"")]
+        public static readonly uint[] MyConst3 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }};
     }}
 }}
 ";
@@ -206,7 +230,9 @@ namespace ClangSharp.Test
 
         protected override Task StringLiteralStaticConstTestImpl()
         {
-            var inputContents = $@"static const char MyConst1[] = ""Test"";";
+            var inputContents = $@"static const char MyConst1[] = ""Test"";
+static const char* MyConst2 = ""Test"";
+static const char* const MyConst3 = ""Test"";";
 
             var expectedOutputContents = $@"using System;
 
@@ -216,6 +242,12 @@ namespace ClangSharp.Test
     {{
         [NativeTypeName(""const char[5]"")]
         public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *"")]
+        public static byte[] MyConst2 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+
+        [NativeTypeName(""const char *const"")]
+        public static ReadOnlySpan<byte> MyConst3 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
     }}
 }}
 ";
