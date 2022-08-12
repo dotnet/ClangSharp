@@ -73,14 +73,14 @@ namespace ClangSharp
 
             var clangVersion = clang.getClangVersion().ToString();
 
-            if (!ignoreClangVersion && !clangVersion.StartsWith(ExpectedClangVersion))
+            if (!ignoreClangVersion && !clangVersion.Contains(ExpectedClangVersion))
             {
                 throw new InvalidOperationException($"Invalid libClang version. Returned string '{clangVersion}' does not contain '{ExpectedClangVersion}'");
             }
 
             var clangSharpVersion = clangsharp.getVersion().ToString();
 
-            if (!ignoreClangSharpVersion && !clangSharpVersion.StartsWith(ExpectedClangSharpVersion))
+            if (!ignoreClangSharpVersion && !clangSharpVersion.Contains(ExpectedClangSharpVersion))
             {
                 throw new InvalidOperationException($"Invalid libClang version. Returned string '{clangSharpVersion}' does not contain '{ExpectedClangSharpVersion}'");
             }
