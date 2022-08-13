@@ -1597,27 +1597,37 @@ namespace ClangSharp
         private void VisitMemberExpr(MemberExpr memberExpr)
         {
             var outputBuilder = StartCSharpCode();
-            var isForDerivedType = false;
+            var baseFieldName = "";
 
             if ((memberExpr.Base is ImplicitCastExpr implicitCastExpr) && (implicitCastExpr.CastKind is CX_CastKind.CX_CK_DerivedToBase or CX_CastKind.CX_CK_DerivedToBaseMemberPointer or CX_CastKind.CX_CK_UncheckedDerivedToBase))
             {
                 if (memberExpr.MemberDecl is CXXMethodDecl cxxMethodDecl)
                 {
-                    isForDerivedType = (_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxMethodDecl.Parent) && HasField(cxxMethodDecl.Parent);
+                    if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxMethodDecl.Parent) && HasField(cxxMethodDecl.Parent))
+                    {
+                        var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == cxxMethodDecl.Parent).Single();
+                        baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
+                        baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                    }
                 }
                 else if (memberExpr.MemberDecl is FieldDecl fieldDecl)
                 {
-                    isForDerivedType = (_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != fieldDecl.Parent);
+                    if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != fieldDecl.Parent))
+                    {
+                        var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == fieldDecl.Parent).Single();
+                        baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
+                        baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                    }
                 }
             }
 
-            if (!memberExpr.IsImplicitAccess || isForDerivedType)
+            if (!memberExpr.IsImplicitAccess || !string.IsNullOrWhiteSpace(baseFieldName))
             {
                 var memberExprBase = memberExpr.Base.IgnoreImplicit;
 
-                if (isForDerivedType)
+                if (!string.IsNullOrWhiteSpace(baseFieldName))
                 {
-                    outputBuilder.Write("Base");
+                    outputBuilder.Write(baseFieldName);
                 }
                 else
                 {

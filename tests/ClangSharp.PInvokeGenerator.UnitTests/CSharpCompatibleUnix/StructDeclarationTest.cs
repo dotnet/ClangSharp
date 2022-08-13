@@ -755,9 +755,9 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
     [NativeTypeName(""struct MyStruct2 : MyStruct1A, MyStruct1B"")]
     public partial struct MyStruct2
     {
-        public MyStruct1A Base;
+        public MyStruct1A Base1;
 
-        public MyStruct1B Base;
+        public MyStruct1B Base2;
 
         public int z;
 
@@ -810,9 +810,9 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
     [NativeInheritance(""MyStruct1B"")]
     public partial struct MyStruct2
     {
-        public MyStruct1A Base;
+        public MyStruct1A Base1;
 
-        public MyStruct1B Base;
+        public MyStruct1B Base2;
 
         public int z;
 

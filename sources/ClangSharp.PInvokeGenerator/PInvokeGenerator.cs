@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -2500,6 +2501,20 @@ namespace ClangSharp
             {
                 wasRemapped = true;
                 // We don't track remapped operators in _usedRemappings
+                return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
+            }
+
+            if ((cursor is CXXBaseSpecifier cxxBaseSpecifier) && remappedName.StartsWith("__AnonymousBase_"))
+            {
+                remappedName = "Base";
+
+                if (_cxxRecordDeclContext.Bases.Count > 1)
+                {
+                    var index = _cxxRecordDeclContext.Bases.IndexOf(cxxBaseSpecifier) + 1;
+                    remappedName += index.ToString();
+                }
+
+                wasRemapped = true;
                 return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
 

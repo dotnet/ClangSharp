@@ -798,10 +798,10 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
       </field>
     </struct>
     <struct name=""MyStruct2"" access=""public"" native=""struct MyStruct2 : MyStruct1A, MyStruct1B"">
-      <field name=""Base"" access=""public"" inherited=""MyStruct1A"">
+      <field name=""Base1"" access=""public"" inherited=""MyStruct1A"">
         <type>MyStruct1A</type>
       </field>
-      <field name=""Base"" access=""public"" inherited=""MyStruct1B"">
+      <field name=""Base2"" access=""public"" inherited=""MyStruct1B"">
         <type>MyStruct1B</type>
       </field>
       <field name=""z"" access=""public"">
@@ -859,10 +859,10 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
       </field>
     </struct>
     <struct name=""MyStruct2"" access=""public"" native=""struct MyStruct2 : MyStruct1A, MyStruct1B"" parent=""MyStruct1B"">
-      <field name=""Base"" access=""public"" inherited=""MyStruct1A"">
+      <field name=""Base1"" access=""public"" inherited=""MyStruct1A"">
         <type>MyStruct1A</type>
       </field>
-      <field name=""Base"" access=""public"" inherited=""MyStruct1B"">
+      <field name=""Base2"" access=""public"" inherited=""MyStruct1B"">
         <type>MyStruct1B</type>
       </field>
       <field name=""z"" access=""public"">
