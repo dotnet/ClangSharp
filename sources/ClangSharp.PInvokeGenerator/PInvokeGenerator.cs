@@ -2582,9 +2582,18 @@ namespace ClangSharp
             {
                 var canonicalType = type.CanonicalType;
 
-                if ((canonicalType is ConstantArrayType constantArrayType) && (constantArrayType.ElementType is RecordType))
+                if (canonicalType is ConstantArrayType or IncompleteArrayType)
                 {
-                    canonicalType = constantArrayType.ElementType;
+                    var arrayType = (ArrayType)canonicalType;
+
+                    if (arrayType.ElementType is RecordType)
+                    {
+                        canonicalType = arrayType.ElementType;
+                    }
+                }
+                else if ((canonicalType is IncompleteArrayType incompleteArrayType) && (incompleteArrayType.ElementType is RecordType))
+                {
+                    canonicalType = incompleteArrayType.ElementType;
                 }
 
                 if ((canonicalType is RecordType recordType) && remappedName.StartsWith("__AnonymousRecord_"))
@@ -2773,7 +2782,7 @@ namespace ClangSharp
                 {
                     result.typeName = GetTypeName(cursor, context, rootType, arrayType.ElementType, ignoreTransparentStructsWhereRequired, out _);
 
-                    if ((cursor is FunctionDecl or ParmVarDecl) || (arrayType is IncompleteArrayType))
+                    if (cursor is FunctionDecl or ParmVarDecl)
                     {
                         result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _, skipUsing: true);
                         result.typeName += '*';
@@ -3270,29 +3279,13 @@ namespace ClangSharp
 
             if (type is ArrayType arrayType)
             {
-                if (type is ConstantArrayType constantArrayType)
+                if (type is ConstantArrayType or IncompleteArrayType)
                 {
-                    GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out var elementSize32, out var elementSize64);
+                    var count = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1);
+                    GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out var elementSize32, out var elementSize64);                   
 
-                    size32 = elementSize32 * Math.Max(constantArrayType.Size, 1);
-                    size64 = elementSize64 * Math.Max(constantArrayType.Size, 1);
-
-                    if (alignment32 == -1)
-                    {
-                        alignment32 = elementSize32;
-                    }
-
-                    if (alignment64 == -1)
-                    {
-                        alignment64 = elementSize64;
-                    }
-                }
-                else if (type is IncompleteArrayType)
-                {
-                    GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out var elementSize32, out var elementSize64);
-
-                    size32 = elementSize32;
-                    size64 = elementSize64;
+                    size32 = elementSize32 * Math.Max(count, 1);
+                    size64 = elementSize64 * Math.Max(count, 1);
 
                     if (alignment32 == -1)
                     {
@@ -5099,7 +5092,7 @@ namespace ClangSharp
         {
             var type = fieldDecl.Type;
 
-            if (type.CanonicalType is ConstantArrayType)
+            if (type.CanonicalType is ConstantArrayType or IncompleteArrayType)
             {
                 var name = GetTypeName(fieldDecl, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
 

@@ -443,15 +443,18 @@ namespace ClangSharp
 
             _outputBuilder.BeginField(in desc);
 
-            if (type.CanonicalType is ConstantArrayType constantArrayType)
+            if (type.CanonicalType is ConstantArrayType or IncompleteArrayType)
             {
-                var count = Math.Max(constantArrayType.Size, 1).ToString();
-                var elementType = constantArrayType.ElementType;
-                while (elementType.CanonicalType is ConstantArrayType subConstantArrayType)
+                var arrayType = (ArrayType)type.CanonicalType;
+
+                var count = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1).ToString();
+                var elementType = arrayType.ElementType;
+                while (elementType.CanonicalType is ConstantArrayType or IncompleteArrayType)
                 {
+                    var subArrayType = (ArrayType)elementType.CanonicalType;
                     count += " * ";
-                    count += Math.Max(subConstantArrayType.Size, 1).ToString();
-                    elementType = subConstantArrayType.ElementType;
+                    count += Math.Max((subArrayType as ConstantArrayType)?.Size ?? 0, 1).ToString();
+                    elementType = subArrayType.ElementType;
                 }
 
                 _outputBuilder.WriteFixedCountField(typeName, escapedName, GetArtificialFixedSizedBufferName(fieldDecl), count);
@@ -893,7 +896,7 @@ namespace ClangSharp
             _outputBuilder.WriteDivider(true);
             _outputBuilder.BeginField(in desc);
 
-            var isFixedSizedBuffer = type.CanonicalType is ConstantArrayType;
+            var isFixedSizedBuffer = type.CanonicalType is ConstantArrayType or IncompleteArrayType;
             var generateCompatibleCode = _config.GenerateCompatibleCode;
             var typeString = string.Empty;
 
@@ -1027,7 +1030,7 @@ namespace ClangSharp
                     if (isSupportedFixedSizedBufferType)
                     {
                         code.Write("[0], ");
-                        code.Write(((ConstantArrayType)type.CanonicalType).Size);
+                        code.Write(Math.Max((type.CanonicalType as ConstantArrayType)?.Size ?? 0, 1));
                     }
                     else
                     {
@@ -1730,9 +1733,9 @@ namespace ClangSharp
 
                 Visit(recordDecl.Decls, excludedCursors);
 
-                foreach (var constantArray in recordDecl.Fields.Where((field) => field.Type.CanonicalType is ConstantArrayType))
+                foreach (var array in recordDecl.Fields.Where((field) => field.Type.CanonicalType is ConstantArrayType or IncompleteArrayType))
                 {
-                    VisitConstantArrayFieldDecl(recordDecl, constantArray);
+                    VisitConstantOrIncompleteArrayFieldDecl(recordDecl, array);
                 }
 
                 if (hasVtbl || hasBaseVtbl)
@@ -2689,15 +2692,15 @@ namespace ClangSharp
                 previousSize = Math.Max(previousSize, currentSize);
             }
 
-            void VisitConstantArrayFieldDecl(RecordDecl recordDecl, FieldDecl constantArray)
+            void VisitConstantOrIncompleteArrayFieldDecl(RecordDecl recordDecl, FieldDecl constantOrIncompleteArray)
             {
-                Debug.Assert(constantArray.Type.CanonicalType is ConstantArrayType);
+                Debug.Assert(constantOrIncompleteArray.Type.CanonicalType is ConstantArrayType or IncompleteArrayType);
 
                 var outputBuilder = _outputBuilder;
-                var type = (ConstantArrayType)constantArray.Type.CanonicalType;
-                var typeName = GetRemappedTypeName(constantArray, context: null, constantArray.Type, out _);
+                var arrayType = (ArrayType)constantOrIncompleteArray.Type.CanonicalType;
+                var arrayTypeName = GetRemappedTypeName(constantOrIncompleteArray, context: null, constantOrIncompleteArray.Type, out _);
 
-                if (IsSupportedFixedSizedBufferType(typeName))
+                if (IsSupportedFixedSizedBufferType(arrayTypeName))
                 {
                     return;
                 }
@@ -2707,35 +2710,40 @@ namespace ClangSharp
                 var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
                 var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
-                var accessSpecifier = GetAccessSpecifier(constantArray, matchStar: false);
-                var canonicalElementType = type.ElementType.CanonicalType;
+                var accessSpecifier = GetAccessSpecifier(constantOrIncompleteArray, matchStar: false);
+                var canonicalElementType = arrayType.ElementType.CanonicalType;
                 var isUnsafeElementType =
                     ((canonicalElementType is PointerType) || (canonicalElementType is ReferenceType)) &&
-                    (typeName != "IntPtr") && (typeName != "UIntPtr");
+                    (arrayTypeName != "IntPtr") && (arrayTypeName != "UIntPtr");
 
-                var name = GetArtificialFixedSizedBufferName(constantArray);
+                var name = GetArtificialFixedSizedBufferName(constantOrIncompleteArray);
                 var escapedName = EscapeName(name);
 
-                var totalSize = Math.Max(type.Size, 1);
-                var sizePerDimension = new List<(long index, long size)>() {(0, type.Size)};
+                var arraySize = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1);
+                var totalSize = arraySize;
+                var sizePerDimension = new List<(long index, long size)>() {(0, arraySize) };
 
-                var elementType = type.ElementType;
+                var elementType = arrayType.ElementType;
 
-                while (elementType.CanonicalType is ConstantArrayType subConstantArrayType)
+                while (elementType.CanonicalType is ConstantArrayType or IncompleteArrayType)
                 {
-                    totalSize *= Math.Max(subConstantArrayType.Size, 1);
-                    sizePerDimension.Add((0, Math.Max(subConstantArrayType.Size, 1)));
-                    elementType = subConstantArrayType.ElementType;
+                    var subArrayType = (ArrayType)elementType.CanonicalType;
+
+                    var subArraySize = Math.Max((subArrayType as ConstantArrayType)?.Size ?? 0, 1);
+                    totalSize *= subArraySize;
+                    sizePerDimension.Add((0, subArraySize));
+
+                    elementType = subArrayType.ElementType;
                 }
 
                 long alignment32 = -1;
                 long alignment64 = -1;
 
-                GetTypeSize(constantArray, constantArray.Type, ref alignment32, ref alignment64, out var size32, out var size64);
+                GetTypeSize(constantOrIncompleteArray, constantOrIncompleteArray.Type, ref alignment32, ref alignment64, out var size32, out var size64);
 
                 if ((size32 == 0 || size64 == 0) && _testOutputBuilder != null)
                 {
-                    AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} (constant array field) has a size of 0", constantArray);
+                    AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} (constant array field) has a size of 0", constantOrIncompleteArray);
                 }
 
                 var desc = new StructDesc {
@@ -2751,7 +2759,7 @@ namespace ClangSharp
                         MaxFieldAlignment = maxAlignm,
                         Kind = LayoutKind.Sequential
                     },
-                    Location = constantArray.Location,
+                    Location = constantOrIncompleteArray.Location,
                     IsNested = true,
                     WriteCustomAttrs = static context => {
                         (var fieldDecl, var generator) = ((FieldDecl, PInvokeGenerator))context;
@@ -2759,7 +2767,7 @@ namespace ClangSharp
                         generator.WithAttributes(fieldDecl);
                         generator.WithUsings(fieldDecl);
                     },
-                    CustomAttrGeneratorData = (constantArray, this),
+                    CustomAttrGeneratorData = (constantOrIncompleteArray, this),
                 };
 
                 _outputBuilder.BeginStruct(in desc);
@@ -2804,11 +2812,11 @@ namespace ClangSharp
                         EscapedName = fieldName,
                         Offset = null,
                         NeedsNewKeyword = false,
-                        Location = constantArray.Location,
+                        Location = constantOrIncompleteArray.Location,
                     };
 
                     _outputBuilder.BeginField(in fieldDesc);
-                    _outputBuilder.WriteRegularField(typeName, fieldName);
+                    _outputBuilder.WriteRegularField(arrayTypeName, fieldName);
                     _outputBuilder.EndField(in fieldDesc);
                     if (!separateStride)
                     {
@@ -2821,7 +2829,7 @@ namespace ClangSharp
                 if (generateCompatibleCode || isUnsafeElementType)
                 {
                     _outputBuilder.BeginIndexer(AccessSpecifier.Public, generateCompatibleCode && !isUnsafeElementType);
-                    _outputBuilder.WriteIndexer($"ref {typeName}");
+                    _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
                     _outputBuilder.BeginIndexerParameters();
                     var param = new ParameterDesc {
                         Name = "index",
@@ -2836,7 +2844,7 @@ namespace ClangSharp
                     var code = _outputBuilder.BeginCSharpCode();
 
                     code.WriteIndented("fixed (");
-                    code.Write(typeName);
+                    code.Write(arrayTypeName);
                     code.Write("* pThis = &");
                     code.Write(firstFieldName);
                     code.WriteLine(')');
@@ -2854,7 +2862,7 @@ namespace ClangSharp
                 else
                 {
                     _outputBuilder.BeginIndexer(AccessSpecifier.Public, false);
-                    _outputBuilder.WriteIndexer($"ref {typeName}");
+                    _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
                     _outputBuilder.BeginIndexerParameters();
                     var param = new ParameterDesc {
                         Name = "index",
@@ -2872,7 +2880,7 @@ namespace ClangSharp
 
                     code.WriteIndented("return ref AsSpan(");
 
-                    if (type.Size == 1)
+                    if (arraySize == 1)
                     {
                         code.Write("int.MaxValue");
                     }
@@ -2892,8 +2900,8 @@ namespace ClangSharp
                         IsAggressivelyInlined = _config.GenerateAggressiveInlining,
                         IsStatic = false,
                         IsMemberFunction = true,
-                        ReturnType = $"Span<{typeName}>",
-                        Location = constantArray.Location,
+                        ReturnType = $"Span<{arrayTypeName}>",
+                        Location = constantOrIncompleteArray.Location,
                         HasBody = true,
                     };
 
@@ -2902,7 +2910,7 @@ namespace ClangSharp
 
                     _outputBuilder.BeginFunctionInnerPrototype(in function);
 
-                    if (type.Size == 1)
+                    if (arraySize == 1)
                     {
                         param = new ParameterDesc {
                             Name = "length",
@@ -2921,7 +2929,7 @@ namespace ClangSharp
                     code.Write(firstFieldName);
                     code.Write(", ");
 
-                    if (type.Size == 1)
+                    if (arraySize == 1)
                     {
                         code.Write("length");
                     }
@@ -3027,7 +3035,7 @@ namespace ClangSharp
                 {
                     ForPointeeType(typedefDecl, typedefType, typedefType.Decl.UnderlyingType, onlyHandleRemappings);
                 }
-                else if (pointeeType is not ConstantArrayType and not BuiltinType and not TagType and not TemplateTypeParmType)
+                else if (pointeeType is not ConstantArrayType and not IncompleteArrayType and not BuiltinType and not TagType and not TemplateTypeParmType)
                 {
                     AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.TypeClassSpelling}'. Generating bindings may be incomplete.", typedefDecl);
                 }
@@ -3214,7 +3222,7 @@ namespace ClangSharp
                     flags |= ValueFlags.Initializer;
                 }
 
-                if (type.IsLocalConstQualified || isMacroDefinitionRecord || (type is ConstantArrayType))
+                if (type.IsLocalConstQualified || isMacroDefinitionRecord || (type is ConstantArrayType or IncompleteArrayType))
                 {
                     flags |= ValueFlags.Constant;
                 }

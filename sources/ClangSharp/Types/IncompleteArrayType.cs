@@ -6,7 +6,6 @@ namespace ClangSharp
 {
     public sealed class IncompleteArrayType : ArrayType
     {
-
         internal IncompleteArrayType(CXType handle) : base(handle, CXTypeKind.CXType_IncompleteArray, CX_TypeClass.CX_TypeClass_IncompleteArray)
         {
         }

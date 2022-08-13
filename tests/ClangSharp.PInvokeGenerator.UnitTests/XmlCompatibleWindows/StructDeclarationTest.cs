@@ -10,7 +10,7 @@ namespace ClangSharp.UnitTests
 {
     public sealed class XmlCompatibleWindows_StructDeclarationTest : StructDeclarationTest
     {
-        protected override Task ArrayUnknownSizeTestImpl(string nativeType, string expectedManagedType)
+        protected override Task IncompleteArraySizeTestImpl(string nativeType, string expectedManagedType)
         {
             var inputContents = $@"struct MyStruct
 {{
@@ -23,7 +23,7 @@ namespace ClangSharp.UnitTests
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" unsafe=""true"">
       <field name=""x"" access=""public"">
-        <type native=""{nativeType}[]"">{expectedManagedType}</type>
+        <type native=""{nativeType}[]"" count=""1"" fixed=""_x_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
     </struct>
   </namespace>
