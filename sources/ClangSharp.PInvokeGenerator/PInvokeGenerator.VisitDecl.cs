@@ -597,7 +597,7 @@ namespace ClangSharp
 
             _outputBuilder.BeginFunctionInnerPrototype(in desc);
 
-            bool needsThis = isVirtual || (isCxxMethodDecl && !hasBody && cxxMethodDecl.IsInstance);
+            var needsThis = isVirtual || (isCxxMethodDecl && !hasBody && cxxMethodDecl.IsInstance);
 
             if (needsThis)
             {
@@ -669,7 +669,12 @@ namespace ClangSharp
                         outputBuilder.Write("return ");
                     }
 
-                    outputBuilder.Write("Base.");
+                    var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == cxxMethodDecl.Parent).Single();
+                    var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
+                    baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+
+                    outputBuilder.Write(baseFieldName);
+                    outputBuilder.Write('.');
                     outputBuilder.Write(name);
                     outputBuilder.Write('(');
 
@@ -1564,8 +1569,9 @@ namespace ClangSharp
 
                 if (cxxRecordDecl != null)
                 {
-                    foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+                    for (var index = 0; index < cxxRecordDecl.Bases.Count; index++)
                     {
+                        var cxxBaseSpecifier = cxxRecordDecl.Bases[index];
                         var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
                         if (HasField(baseCxxRecordDecl))
@@ -1573,11 +1579,6 @@ namespace ClangSharp
                             var parent = GetRemappedCursorName(baseCxxRecordDecl);
                             var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
                             baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
-
-                            if (baseFieldName.StartsWith("__AnonymousBase_"))
-                            {
-                                baseFieldName = "Base";
-                            }
 
                             var fieldDesc = new FieldDesc {
                                 AccessSpecifier = GetAccessSpecifier(baseCxxRecordDecl, matchStar: true),
