@@ -102,7 +102,7 @@ jobs:
         dotnet-version: '6.0.x'
     - run: dotnet tool install --tool-path ./artifacts/tools SignClient
       if: ${{ github.event_name == 'push' }}
-    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "${{ env.GITHUB_WORKSPACE }}/artifacts/pkg" --input "**/*.{nupkg}" --config "${{ env.GITHUB_WORKSPACE }}/scripts/SignClientSettings.json" --filelist "${{ env.GITHUB_WORKSPACE }}/scripts/SignClientFileList.txt" --user "${{ secrets.SC_USER }}" --secret "${{ secrets.SC_PASS }}" --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
+    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "${{ github.workspace }}/artifacts/pkg" --input "**/*.{nupkg}" --config "${{ github.workspace }}/scripts/SignClientSettings.json" --filelist "${{ github.workspace }}/scripts/SignClientFileList.txt" --user "${{ secrets.SC_USER }}" --secret "${{ secrets.SC_PASS }}" --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
       if: ${{ github.event_name == 'push' }}
     - uses: actions/upload-artifact@v3
       with:
@@ -129,7 +129,7 @@ jobs:
         dotnet-version: '6.0.x'
     - run: dotnet tool install --tool-path ./artifacts/tools SignClient
       if: ${{ github.event_name == 'push' }}
-    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "${{ env.GITHUB_WORKSPACE }}/artifacts/pkg" --input "**/*.{nupkg}" --config "${{ env.GITHUB_WORKSPACE }}/scripts/SignClientSettings.json" --filelist "${{ env.GITHUB_WORKSPACE }}/scripts/SignClientFileList.txt" --user "${{ secrets.SC_USER }}" --secret "${{ secrets.SC_PASS }}" --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
+    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "${{ github.workspace }}/artifacts/pkg" --input "**/*.{nupkg}" --config "${{ github.workspace }}/scripts/SignClientSettings.json" --filelist "${{ github.workspace }}/scripts/SignClientFileList.txt" --user "${{ secrets.SC_USER }}" --secret "${{ secrets.SC_PASS }}" --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
       if: ${{ github.event_name == 'push' }}
     - uses: actions/upload-artifact@v3
       with:
