@@ -15,10 +15,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ windows ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: ./scripts/cibuild.cmd -configuration ${{ matrix.configuration }} -architecture ${{ matrix.architecture }}
       shell: cmd
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -35,10 +35,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ windows ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: ./scripts/cibuild.cmd -configuration ${{ matrix.configuration }} -architecture ${{ matrix.architecture }} /p:PlatformTarget=${{ matrix.architecture }}
       shell: cmd
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_x86
         path: |
@@ -55,10 +55,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ ubuntu ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: ./scripts/cibuild.sh --configuration ${{ matrix.configuration }} --architecture ${{ matrix.architecture }}
       shell: bash
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -75,10 +75,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ macos ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: ./scripts/cibuild.sh --configuration ${{ matrix.configuration }} --architecture ${{ matrix.architecture }}
       shell: bash
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -90,13 +90,24 @@ jobs:
   build-nuget-preview:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: ./scripts/cibuild.cmd -configuration release -architecture x64
       shell: cmd
       env:
         EXCLUDE_RUN_ID_FROM_PACKAGE: true
         EXCLUDE_SUFFIX_FROM_VERSION: false
-    - uses: actions/upload-artifact@v2
+    - uses: actions/setup-dotnet@v2
+      if: ${{ github.event_name == 'push' }}
+      with:
+        dotnet-version: '6.0.x'
+      env:
+        SC_USER: ${{ secrets.SC_USER }}
+        SC_PASS: ${{ secrets.SC_PASS }}
+    - run: dotnet install --tool-path ./artifacts/tools SignClient
+      if: ${{ github.event_name == 'push' }}
+    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "./artifacts/pkg" --input "**/*.{nupkg}" --config "./scripts/SignClientSettings.json" --filelist "./scripts/SignClientFileList.txt" --user '$(SC_USER)' --secret '$(SC_PASS)' --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
+      if: ${{ github.event_name == 'push' }}
+    - uses: actions/upload-artifact@v3
       with:
         name: nuget_preview
         path: |
@@ -109,13 +120,24 @@ jobs:
     runs-on: windows-latest
     if: false
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: ./scripts/cibuild.cmd -configuration release -architecture x64
       shell: cmd
       env:
         EXCLUDE_RUN_ID_FROM_PACKAGE: true
         EXCLUDE_SUFFIX_FROM_VERSION: true
-    - uses: actions/upload-artifact@v2
+    - uses: actions/setup-dotnet@v2
+      if: ${{ github.event_name == 'push' }}
+      with:
+        dotnet-version: '6.0.x'
+      env:
+        SC_USER: ${{ secrets.SC_USER }}
+        SC_PASS: ${{ secrets.SC_PASS }}
+    - run: dotnet install --tool-path ./artifacts/tools SignClient
+      if: ${{ github.event_name == 'push' }}
+    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "./artifacts/pkg" --input "**/*.{nupkg}" --config "./scripts/SignClientSettings.json" --filelist "./scripts/SignClientFileList.txt" --user '$(SC_USER)' --secret '$(SC_PASS)' --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
+      if: ${{ github.event_name == 'push' }}
+    - uses: actions/upload-artifact@v3
       with:
         name: nuget_release
         path: |
@@ -133,7 +155,7 @@ jobs:
       with:
         name: windows_release_x64
         path: ./artifacts
-    - uses: actions/setup-dotnet@v1
+    - uses: actions/setup-dotnet@v2
       with:
         dotnet-version: '6.0.x'
         source-url: https://pkgs.clangsharp.dev/index.json
@@ -149,7 +171,7 @@ jobs:
       with:
         name: windows_release_x64
         path: ./artifacts
-    - uses: actions/setup-dotnet@v1
+    - uses: actions/setup-dotnet@v2
       with:
         dotnet-version: '6.0.x'
     - run: dotnet nuget push "./artifacts/pkg/Release/*.nupkg" --source https://nuget.pkg.github.com/dotnet/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
