@@ -105,7 +105,7 @@ jobs:
         SC_PASS: ${{ secrets.SC_PASS }}
     - run: dotnet tool install --tool-path ./artifacts/tools SignClient
       if: ${{ github.event_name == 'push' }}
-    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "$GITHUB_WORKSPACE/artifacts/pkg" --input "**/*.{nupkg}" --config "./scripts/SignClientSettings.json" --filelist "./scripts/SignClientFileList.txt" --user '$(SC_USER)' --secret '$(SC_PASS)' --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
+    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "$GITHUB_WORKSPACE/artifacts/pkg" --input "**/*.{nupkg}" --config "$GITHUB_WORKSPACE/scripts/SignClientSettings.json" --filelist "$GITHUB_WORKSPACE/scripts/SignClientFileList.txt" --user '$(SC_USER)' --secret '$(SC_PASS)' --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
       if: ${{ github.event_name == 'push' }}
     - uses: actions/upload-artifact@v3
       with:
@@ -135,7 +135,7 @@ jobs:
         SC_PASS: ${{ secrets.SC_PASS }}
     - run: dotnet tool install --tool-path ./artifacts/tools SignClient
       if: ${{ github.event_name == 'push' }}
-    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "$GITHUB_WORKSPACE/artifacts/pkg" --input "**/*.{nupkg}" --config "./scripts/SignClientSettings.json" --filelist "./scripts/SignClientFileList.txt" --user '$(SC_USER)' --secret '$(SC_PASS)' --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
+    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "$GITHUB_WORKSPACE/artifacts/pkg" --input "**/*.{nupkg}" --config "$GITHUB_WORKSPACE/scripts/SignClientSettings.json" --filelist "$GITHUB_WORKSPACE/scripts/SignClientFileList.txt" --user '$(SC_USER)' --secret '$(SC_PASS)' --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
       if: ${{ github.event_name == 'push' }}
     - uses: actions/upload-artifact@v3
       with:
