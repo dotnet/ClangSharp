@@ -1049,9 +1049,9 @@ namespace ClangSharp
                     }
                     long size = -1;
 
-                    if (arrayType is ConstantArrayType constantArrayType)
+                    if (arrayType is ConstantArrayType or IncompleteArrayType)
                     {
-                        size = constantArrayType.Size;
+                        size = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1);
                     }
                     else
                     {
