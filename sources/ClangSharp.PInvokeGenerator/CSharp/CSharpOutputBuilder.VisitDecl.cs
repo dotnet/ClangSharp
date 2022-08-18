@@ -311,6 +311,11 @@ namespace ClangSharp.CSharp
 
             desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
 
+            if (desc.NeedsUnscopedRef)
+            {
+                WriteCustomAttribute("UnscopedRef");
+            }
+
             WriteIndented(GetAccessSpecifierString(desc.AccessSpecifier, isNested: true));
             Write(' ');
 
@@ -462,6 +467,11 @@ namespace ClangSharp.CSharp
             }
 
             desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
+
+            if (desc.NeedsUnscopedRef)
+            {
+                WriteCustomAttribute("UnscopedRef");
+            }
 
             if (_isInMarkerInterface)
             {
@@ -906,9 +916,15 @@ namespace ClangSharp.CSharp
             NeedsNewline = false;
         }
 
-        public void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe)
+        public void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe, bool needsUnscopedRef)
         {
             NeedsNewline = true;
+
+            if (needsUnscopedRef)
+            {
+                WriteCustomAttribute("UnscopedRef");
+            }
+
             WriteIndented(GetAccessSpecifierString(accessSpecifier, isNested: true));
             Write(' ');
             if (isUnsafe)

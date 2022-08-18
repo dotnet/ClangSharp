@@ -66,7 +66,7 @@ namespace ClangSharp.Abstractions
         void BeginSetter(bool aggressivelyInlined);
         void EndSetter();
 
-        void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe);
+        void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe, bool needsUnscopedRef);
         void WriteIndexer(string typeName);
         void BeginIndexerParameters();
         void EndIndexerParameters();

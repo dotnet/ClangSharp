@@ -21,6 +21,7 @@ namespace ClangSharp.Abstractions
         public CXSourceLocation? Location { get; set; }
         public bool HasBody { get; set; }
         public bool IsInherited { get; set; }
+        public bool NeedsUnscopedRef { get; set; }
 
         public bool IsVirtual
         {

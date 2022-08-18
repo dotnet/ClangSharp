@@ -1806,6 +1806,7 @@ namespace ClangSharp
         }
 
         internal static string EscapeCharacter(char value) => value switch {
+            '\0' => "\\0",
             '\\' => "\\\\",
             '\r' => "\\r",
             '\n' => "\\n",
@@ -1814,7 +1815,8 @@ namespace ClangSharp
             _ => value.ToString(),
         };
 
-        internal static string EscapeString(string value) => value.Replace("\\", "\\\\")
+        internal static string EscapeString(string value) => value.Replace("\0", "\\0")
+                                                                  .Replace("\\", "\\\\")
                                                                   .Replace("\r", "\\r")
                                                                   .Replace("\n", "\\n")
                                                                   .Replace("\t", "\\t")

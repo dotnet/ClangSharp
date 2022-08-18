@@ -13,6 +13,7 @@ namespace ClangSharp.Abstractions
         public string ParentName { get; set; }
         public int? Offset { get; set; }
         public bool NeedsNewKeyword { get; set; }
+        public bool NeedsUnscopedRef { get; set; }
         public bool HasBody { get; set; }
         public string InheritedFrom { get; set; }
         public CXSourceLocation? Location { get; set; }

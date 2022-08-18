@@ -18,6 +18,10 @@ namespace ClangSharp.CSharp
             {
                 AddUsingDirective("System.ComponentModel");
             }
+            else if (attribute.Equals("UnscopedRef"))
+            {
+                AddUsingDirective("System.Diagnostics.CodeAnalysis");
+            }
             else if (attribute.StartsWith("Guid(")|| attribute.Equals("Optional") || attribute.StartsWith("Optional, DefaultParameterValue("))
             {
                 AddUsingDirective("System.Runtime.InteropServices");
