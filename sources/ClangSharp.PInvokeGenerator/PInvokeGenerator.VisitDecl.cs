@@ -883,6 +883,7 @@ namespace ClangSharp
                 ParentName = GetRemappedCursorName(fieldDecl.Parent),
                 Offset = null,
                 NeedsNewKeyword = false,
+                NeedsUnscopedRef = _config.GeneratePreviewCode,
                 Location = fieldDecl.Location,
                 HasBody = true,
                 WriteCustomAttrs = static context => {
@@ -921,8 +922,7 @@ namespace ClangSharp
                 }
             }
 
-            var isSupportedFixedSizedBufferType =
-                isFixedSizedBuffer && IsSupportedFixedSizedBufferType(typeName);
+            var isSupportedFixedSizedBufferType = isFixedSizedBuffer && IsSupportedFixedSizedBufferType(typeName);
 
             if (isFixedSizedBuffer)
             {
@@ -1004,53 +1004,63 @@ namespace ClangSharp
             {
                 code.WriteIndented("return ");
 
-                if (!isFixedSizedBuffer)
+                if (desc.NeedsUnscopedRef && !isFixedSizedBuffer)
                 {
-                    code.AddUsingDirective("System.Runtime.InteropServices");
-                    code.Write("ref MemoryMarshal.GetReference(");
-                }
-
-                if (!isFixedSizedBuffer || isSupportedFixedSizedBufferType)
-                {
-                    code.Write("MemoryMarshal.CreateSpan(ref ");
-                }
-
-                if (isIndirectPointerField)
-                {
-                    code.Write("this");
-                }
-                else
-                {
+                    code.Write("ref ");
                     code.Write(contextName);
                     code.Write('.');
                     code.Write(escapedName);
                 }
-
-                if (isFixedSizedBuffer)
+                else
                 {
-                    if (isSupportedFixedSizedBufferType)
+                    if (!isFixedSizedBuffer)
                     {
-                        code.Write("[0], ");
-                        code.Write(Math.Max((type.CanonicalType as ConstantArrayType)?.Size ?? 0, 1));
+                        code.AddUsingDirective("System.Runtime.InteropServices");
+                        code.Write("ref MemoryMarshal.GetReference(");
+                    }
+
+                    if (!isFixedSizedBuffer || isSupportedFixedSizedBufferType)
+                    {
+                        code.Write("MemoryMarshal.CreateSpan(ref ");
+                    }
+
+                    if (isIndirectPointerField)
+                    {
+                        code.Write("this");
                     }
                     else
                     {
-                        code.Write(".AsSpan(");
+                        code.Write(contextName);
+                        code.Write('.');
+                        code.Write(escapedName);
                     }
-                }
-                else
-                {
-                    code.Write(", 1)");
-                }
 
-                code.Write(')');
+                    if (isFixedSizedBuffer)
+                    {
+                        if (isSupportedFixedSizedBufferType)
+                        {
+                            code.Write("[0], ");
+                            code.Write(Math.Max((type.CanonicalType as ConstantArrayType)?.Size ?? 0, 1));
+                        }
+                        else
+                        {
+                            code.Write(".AsSpan(");
+                        }
+                    }
+                    else
+                    {
+                        code.Write(", 1)");
+                    }
 
-                if (isIndirectPointerField)
-                {
-                    code.Write('.');
-                    code.Write(contextName);
-                    code.Write('.');
-                    code.Write(escapedName);
+                    code.Write(')');
+
+                    if (isIndirectPointerField)
+                    {
+                        code.Write('.');
+                        code.Write(contextName);
+                        code.Write('.');
+                        code.Write(escapedName);
+                    }
                 }
 
                 code.WriteSemicolon();
@@ -2829,7 +2839,7 @@ namespace ClangSharp
 
                 if (generateCompatibleCode || isUnsafeElementType)
                 {
-                    _outputBuilder.BeginIndexer(AccessSpecifier.Public, generateCompatibleCode && !isUnsafeElementType);
+                    _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: generateCompatibleCode && !isUnsafeElementType, needsUnscopedRef: false);
                     _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
                     _outputBuilder.BeginIndexerParameters();
                     var param = new ParameterDesc {
@@ -2862,7 +2872,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    _outputBuilder.BeginIndexer(AccessSpecifier.Public, false);
+                    _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: false, needsUnscopedRef: _config.GeneratePreviewCode);
                     _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
                     _outputBuilder.BeginIndexerParameters();
                     var param = new ParameterDesc {
@@ -2904,6 +2914,7 @@ namespace ClangSharp
                         ReturnType = $"Span<{arrayTypeName}>",
                         Location = constantOrIncompleteArray.Location,
                         HasBody = true,
+                        NeedsUnscopedRef = _config.GeneratePreviewCode,
                     };
 
                     var isUnsafe = false;

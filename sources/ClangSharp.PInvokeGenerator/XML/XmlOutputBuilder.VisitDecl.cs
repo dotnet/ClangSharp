@@ -389,7 +389,7 @@ namespace ClangSharp.XML
 
         public void EndSetter() => _ = _sb.Append("</set>");
 
-        public void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe)
+        public void BeginIndexer(AccessSpecifier accessSpecifier, bool isUnsafe, bool needsUnscopedRef)
         {
             _ = _sb.Append("<indexer access=\"");
             _ = _sb.Append(accessSpecifier.AsString());
