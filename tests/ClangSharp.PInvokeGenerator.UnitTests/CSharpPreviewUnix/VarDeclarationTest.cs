@@ -126,7 +126,7 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [NativeTypeName(""#define MyMacro1 \""Test\"""")]
-        public static ReadOnlySpan<byte> MyMacro1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+        public static ReadOnlySpan<byte> MyMacro1 => ""Test""u8;
     }}
 }}
 ";
@@ -189,13 +189,13 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [NativeTypeName(""const char[5]"")]
-        public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+        public static ReadOnlySpan<byte> MyConst1 => ""Test""u8;
 
         [NativeTypeName(""const char *"")]
-        public static byte[] MyConst2 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+        public static byte[] MyConst2 = ""Test""u8.ToArray();
 
         [NativeTypeName(""const char *const"")]
-        public static ReadOnlySpan<byte> MyConst3 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+        public static ReadOnlySpan<byte> MyConst3 => ""Test""u8;
     }}
 }}
 ";
@@ -241,13 +241,13 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [NativeTypeName(""const char[5]"")]
-        public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+        public static ReadOnlySpan<byte> MyConst1 => ""Test""u8;
 
         [NativeTypeName(""const char *"")]
-        public static byte[] MyConst2 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+        public static byte[] MyConst2 = ""Test""u8.ToArray();
 
         [NativeTypeName(""const char *const"")]
-        public static ReadOnlySpan<byte> MyConst3 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }};
+        public static ReadOnlySpan<byte> MyConst3 => ""Test""u8;
     }}
 }}
 ";

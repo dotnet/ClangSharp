@@ -153,7 +153,7 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
       <constant name=""MyMacro1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8</code>
         </value>
       </constant>
     </class>
@@ -235,19 +235,19 @@ const char* const MyConst3 = ""Test"";";
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8</code>
         </value>
       </constant>
       <field name=""MyConst2"" access=""public"">
         <type primitive=""False"">byte[]</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8.ToArray()</code>
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8</code>
         </value>
       </constant>
     </class>
@@ -307,19 +307,19 @@ static const char* const MyConst3 = ""Test"";";
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8</code>
         </value>
       </constant>
       <field name=""MyConst2"" access=""public"">
         <type primitive=""False"">byte[]</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8.ToArray()</code>
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8</code>
         </value>
       </constant>
     </class>

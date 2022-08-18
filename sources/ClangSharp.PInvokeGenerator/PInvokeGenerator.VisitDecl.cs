@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Abstractions;
+using ClangSharp.CSharp;
 using ClangSharp.Interop;
 
 namespace ClangSharp
