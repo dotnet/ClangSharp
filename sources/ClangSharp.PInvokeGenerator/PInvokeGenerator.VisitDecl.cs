@@ -883,7 +883,7 @@ namespace ClangSharp
                 ParentName = GetRemappedCursorName(fieldDecl.Parent),
                 Offset = null,
                 NeedsNewKeyword = false,
-                NeedsUnscopedRef = _config.GeneratePreviewCode,
+                NeedsUnscopedRef = _config.GeneratePreviewCode && !fieldDecl.IsBitField,
                 Location = fieldDecl.Location,
                 HasBody = true,
                 WriteCustomAttrs = static context => {
