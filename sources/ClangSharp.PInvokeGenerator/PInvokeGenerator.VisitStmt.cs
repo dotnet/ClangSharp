@@ -2309,6 +2309,17 @@ namespace ClangSharp
                         outputBuilder.Write(EscapeString(stringLiteral.String));
                         outputBuilder.Write('"');
                         outputBuilder.Write("u8");
+
+                        if (IsPrevContextDecl<VarDecl>(out _, out var userData))
+                        {
+                            if (userData is ValueDesc valueDesc)
+                            {
+                                if ((valueDesc.Kind == ValueKind.String) && (valueDesc.TypeName == "byte[]"))
+                                {
+                                    outputBuilder.Write(".ToArray()");
+                                }
+                            }
+                        }
                     }
                     else
                     {
