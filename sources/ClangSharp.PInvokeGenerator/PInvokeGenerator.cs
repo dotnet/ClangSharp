@@ -3038,8 +3038,23 @@ namespace ClangSharp
                                          ? recordType.Decl
                                          : (NamedDecl)templateSpecializationType.TemplateName.AsTemplateDecl;
 
-                    _ = nameBuilder.Append(GetRemappedCursorName(templateTypeDecl, out _, skipUsing: true));
-                    _ = nameBuilder.Append('<');
+                    var templateTypeDeclName = GetRemappedCursorName(templateTypeDecl, out _, skipUsing: true);
+                    var isStdAtomic = false;
+
+                    if (templateTypeDeclName == "atomic")
+                    {
+                        isStdAtomic = (templateTypeDecl.Parent is NamespaceDecl namespaceDecl) && namespaceDecl.IsStdNamespace;
+                    }
+
+                    if (!isStdAtomic)
+                    {
+                        _ = nameBuilder.Append(templateTypeDeclName);
+                        _ = nameBuilder.Append('<');
+                    }
+                    else
+                    {
+                        _ = nameBuilder.Append("volatile ");
+                    }
 
                     var shouldWritePrecedingComma = false;
 
@@ -3099,7 +3114,10 @@ namespace ClangSharp
                         shouldWritePrecedingComma = true;
                     }
 
-                    _ = nameBuilder.Append('>');
+                    if (!isStdAtomic)
+                    {
+                        _ = nameBuilder.Append('>');
+                    }
 
                     result.typeName = nameBuilder.ToString();
                 }
@@ -3122,6 +3140,10 @@ namespace ClangSharp
 
                     var remappedName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
                     result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out _);
+                }
+                else if (type is UsingType usingType)
+                {
+                    result.typeName = GetTypeName(cursor, context, rootType, usingType.Desugar, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else
                 {
