@@ -139,6 +139,39 @@ namespace ClangSharp
 
                     case "memset":
                     {
+                        NamedDecl namedDecl = null;
+
+                        if (callExpr.NumArgs == 3)
+                        {
+                            if (IsStmtAsWritten<IntegerLiteral>(callExpr.Args[1], out var integerLiteralExpr, removeParens: true) && (integerLiteralExpr.Value == 0) &&
+                                IsStmtAsWritten<UnaryExprOrTypeTraitExpr>(callExpr.Args[2], out var unaryExprOrTypeTraitExpr, removeParens: true) && (unaryExprOrTypeTraitExpr.Kind == CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf))
+                            {
+                                var typeOfArgument = unaryExprOrTypeTraitExpr.TypeOfArgument.CanonicalType;
+                                var expr = callExpr.Args[0];
+
+                                if (IsStmtAsWritten<UnaryOperator>(expr, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_AddrOf))
+                                {
+                                    expr = unaryOperator.SubExpr;
+                                }
+
+                                if (IsStmtAsWritten<DeclRefExpr>(expr, out var declRefExpr, removeParens: true) && (typeOfArgument == declRefExpr.Type.CanonicalType))
+                                {
+                                    namedDecl = declRefExpr.Decl;
+                                }
+                                else if (IsStmtAsWritten<MemberExpr>(expr, out var memberExpr, removeParens: true) && (typeOfArgument == memberExpr.Type.CanonicalType))
+                                {
+                                    namedDecl = memberExpr.MemberDecl;
+                                }
+                            }
+
+                            if (namedDecl is not null)
+                            {
+                                outputBuilder.Write(GetRemappedCursorName(namedDecl));
+                                outputBuilder.Write(" = default");
+                                break;
+                            }
+                        }
+
                         outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
                         outputBuilder.Write("Unsafe.InitBlockUnaligned");
                         VisitArgs(callExpr);
