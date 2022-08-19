@@ -145,8 +145,7 @@ namespace ClangSharp
 
         public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.Value;
 
-        internal static new Decl Create(CXCursor handle) => handle.DeclKind switch
-        {
+        internal static new Decl Create(CXCursor handle) => handle.DeclKind switch {
             CX_DeclKind.CX_DeclKind_Invalid => new Decl(handle, handle.kind, handle.DeclKind),
             CX_DeclKind.CX_DeclKind_AccessSpec => new AccessSpecDecl(handle),
             CX_DeclKind.CX_DeclKind_Block => new BlockDecl(handle),

@@ -113,8 +113,7 @@ namespace ClangSharp
             }
         }
 
-        internal static new Stmt Create(CXCursor handle) => handle.StmtClass switch
-        {
+        internal static new Stmt Create(CXCursor handle) => handle.StmtClass switch {
             CX_StmtClass.CX_StmtClass_Invalid => new Stmt(handle, handle.Kind, handle.StmtClass),
             CX_StmtClass.CX_StmtClass_GCCAsmStmt => new GCCAsmStmt(handle),
             CX_StmtClass.CX_StmtClass_MSAsmStmt => new MSAsmStmt(handle),
@@ -151,6 +150,7 @@ namespace ClangSharp
             CX_StmtClass.CX_StmtClass_OMPDistributeSimdDirective => new OMPDistributeSimdDirective(handle),
             CX_StmtClass.CX_StmtClass_OMPForDirective => new OMPForDirective(handle),
             CX_StmtClass.CX_StmtClass_OMPForSimdDirective => new OMPForSimdDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPGenericLoopDirective => new OMPGenericLoopDirective(handle),
             CX_StmtClass.CX_StmtClass_OMPMasterTaskLoopDirective => new OMPMasterTaskLoopDirective(handle),
             CX_StmtClass.CX_StmtClass_OMPMasterTaskLoopSimdDirective => new OMPMasterTaskLoopSimdDirective(handle),
             CX_StmtClass.CX_StmtClass_OMPParallelForDirective => new OMPParallelForDirective(handle),
@@ -174,6 +174,7 @@ namespace ClangSharp
             CX_StmtClass.CX_StmtClass_OMPUnrollDirective => new OMPUnrollDirective(handle),
             CX_StmtClass.CX_StmtClass_OMPMaskedDirective => new OMPMaskedDirective(handle),
             CX_StmtClass.CX_StmtClass_OMPMasterDirective => new OMPMasterDirective(handle),
+            CX_StmtClass.CX_StmtClass_OMPMetaDirective => new OMPMetaDirective(handle),
             CX_StmtClass.CX_StmtClass_OMPOrderedDirective => new OMPOrderedDirective(handle),
             CX_StmtClass.CX_StmtClass_OMPParallelDirective => new OMPParallelDirective(handle),
             CX_StmtClass.CX_StmtClass_OMPParallelMasterDirective => new OMPParallelMasterDirective(handle),
