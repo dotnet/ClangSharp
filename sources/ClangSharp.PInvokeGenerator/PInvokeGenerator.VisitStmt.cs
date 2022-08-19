@@ -653,12 +653,12 @@ namespace ClangSharp
 
                             if (outputBuilder.Name != className)
                             {
-                                outputBuilder.AddUsingDirective($"static {GetNamespace(enumName)}.{className}");
+                                outputBuilder.AddUsingDirective($"static {GetNamespace(enumName, namedDecl)}.{className}");
                             }
                         }
                         else
                         {
-                            outputBuilder.AddUsingDirective($"static {GetNamespace(enumName)}.{enumName}");
+                            outputBuilder.AddUsingDirective($"static {GetNamespace(enumName, namedDecl)}.{enumName}");
                         }
                     }
                     else
@@ -1003,12 +1003,33 @@ namespace ClangSharp
                 if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator, out _) && ((binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_EQ) || (binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_NE)))
                 {
                     Visit(subExpr);
+                    subExpr = null;
+                }
+                else if (IsPrevContextStmt<CaseStmt>(out _, out _))
+                {
+                    var previousContext = _context.Last.Previous;
+
+                    do
+                    {
+                        previousContext = previousContext.Previous;
+                    }
+                    while (previousContext.Value.Cursor is ParenExpr or ImplicitCastExpr or CaseStmt or CompoundStmt);
+
+                    var value = previousContext.Value;
+
+                    if ((value.Cursor is SwitchStmt switchStmt) && (switchStmt.Cond.IgnoreImplicit.Type.CanonicalType is EnumType))
+                    {
+                        Visit(subExpr);
+                        subExpr = null;
+                    }
                 }
                 else if (IsPrevContextDecl<EnumConstantDecl>(out _, out _))
                 {
                     Visit(subExpr);
+                    subExpr = null;
                 }
-                else
+
+                if (subExpr is not null)
                 {
                     var type = implicitCastExpr.Type;
 
@@ -1335,6 +1356,14 @@ namespace ClangSharp
                             break;
                         }
 
+                        case CXEvalResultKind.CXEval_StrLiteral:
+                        {
+                            outputBuilder.Write('"');
+                            outputBuilder.Write(evaluation.AsStr);
+                            outputBuilder.Write('"');
+                            break;
+                        }
+
                         default:
                         {
                             AddDiagnostic(DiagnosticLevel.Error, $"Unsupported evaluation kind: '{evaluation.Kind}'. Generated bindings may be incomplete.", init);
@@ -1605,18 +1634,34 @@ namespace ClangSharp
                 {
                     if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxMethodDecl.Parent) && HasField(cxxMethodDecl.Parent))
                     {
-                        var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == cxxMethodDecl.Parent).Single();
-                        baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
-                        baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                        var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == cxxMethodDecl.Parent).SingleOrDefault();
+
+                        if (cxxBaseSpecifier is not null)
+                        {
+                            baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
+                            baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                        }
+                        else
+                        {
+                            baseFieldName = "Base";
+                        }
                     }
                 }
                 else if (memberExpr.MemberDecl is FieldDecl fieldDecl)
                 {
                     if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != fieldDecl.Parent))
                     {
-                        var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == fieldDecl.Parent).Single();
-                        baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
-                        baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                        var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == fieldDecl.Parent).SingleOrDefault();
+
+                        if (cxxBaseSpecifier is not null)
+                        {
+                            baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
+                            baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                        }
+                        else
+                        {
+                            baseFieldName = "Base";
+                        }
                     }
                 }
             }
