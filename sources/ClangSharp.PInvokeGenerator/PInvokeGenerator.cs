@@ -1555,7 +1555,8 @@ namespace ClangSharp
                     }
 
                     sw.Write(indentationString);
-                    sw.Write("public ");
+                    sw.Write(GetMethodClassAccessSpecifier(outputBuilder.Name).AsString());
+                    sw.Write(' ');
 
                     if (outputBuilder.IsTestOutput || !isTopLevelStruct)
                     {
@@ -1863,6 +1864,23 @@ namespace ClangSharp
             }
 
             return accessSpecifier;
+        }
+
+        private AccessSpecifier GetMethodClassAccessSpecifier(string name)
+        {
+            var accessMap = _config.WithAccessSpecifiers;
+
+            if (accessMap.TryGetValue(name, out var accessSpecifier))
+            {
+                return accessSpecifier;
+            }
+
+            if (accessMap.TryGetValue("*", out accessSpecifier))
+            {
+                return accessSpecifier;
+            }
+
+            return AccessSpecifier.None;
         }
 
         private static string GetAnonymousName(Cursor cursor, string kind)
