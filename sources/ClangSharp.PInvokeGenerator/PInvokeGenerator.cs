@@ -2815,11 +2815,10 @@ namespace ClangSharp
 
                 if (type is ArrayType arrayType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, arrayType.ElementType, ignoreTransparentStructsWhereRequired, out _);
+                    result.typeName = GetRemappedTypeName(cursor, context, arrayType.ElementType, out _, skipUsing: true, ignoreTransparentStructsWhereRequired);
 
                     if (cursor is FunctionDecl or ParmVarDecl)
                     {
-                        result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _, skipUsing: true);
                         result.typeName += '*';
                     }
                 }

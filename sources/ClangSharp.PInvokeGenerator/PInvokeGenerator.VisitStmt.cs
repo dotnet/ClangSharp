@@ -115,6 +115,24 @@ namespace ClangSharp
                 }
             }
 
+            var isUnusedValue = false;
+
+            if (callExpr.Type.CanonicalType.Kind != CXTypeKind.CXType_Void)
+            {
+                isUnusedValue = IsPrevContextStmt<CompoundStmt>(out _, out _)
+                             || IsPrevContextStmt<IfStmt>(out _, out _);
+
+                if ((calleeDecl is FunctionDecl functionDecl) && (functionDecl.Name is "memcpy" or "memset"))
+                {
+                    isUnusedValue = false;
+                }
+            }
+
+            if (isUnusedValue)
+            {
+                outputBuilder.Write("_ = ");
+            }
+
             if (calleeDecl is null)
             {
                 Visit(callExpr.Callee);
@@ -178,16 +196,25 @@ namespace ClangSharp
                         break;
                     }
 
-                    default:
+                    case "wcslen":
                     {
-                        if ((functionDecl.ReturnType.CanonicalType.Kind != CXTypeKind.CXType_Void) && IsPrevContextStmt<CompoundStmt>(out _, out _))
+                        if (_config.GenerateCompatibleCode)
                         {
-                            outputBuilder.Write("_ = ");
+                            goto default;
                         }
 
+                        outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                        outputBuilder.Write("MemoryMarshal.CreateReadOnlySpanFromNullTerminated");
+
+                        VisitArgs(callExpr);
+                        outputBuilder.Write(".Length");
+                        break;
+                    }
+
+                    default:
+                    {
                         Visit(callExpr.Callee);
                         VisitArgs(callExpr);
-
                         break;
                     }
                 }
@@ -209,6 +236,15 @@ namespace ClangSharp
 
             void VisitArgs(CallExpr callExpr)
             {
+                var callExprType = (callExpr.Callee is MemberExpr memberExpr)
+                                 ? memberExpr.MemberDecl.Type.CanonicalType
+                                 : callExpr.Callee.Type.CanonicalType;
+
+                if (callExprType is PointerType pointerType)
+                {
+                    callExprType = pointerType.PointeeType.CanonicalType;
+                }
+
                 outputBuilder.Write('(');
 
                 var args = callExpr.Args;
@@ -216,12 +252,30 @@ namespace ClangSharp
 
                 for (var i = 0; i < args.Count; i++)
                 {
-                    if (needsComma)
+                    var arg = args[i];
+
+                    if (needsComma && (arg is not CXXDefaultArgExpr))
                     {
                         outputBuilder.Write(", ");
                     }
 
-                    var arg = args[i];
+                    if (callExprType is FunctionProtoType functionProtoType)
+                    {
+                        var paramType = functionProtoType.ParamTypes[i].CanonicalType;
+
+                        if (paramType is ReferenceType)
+                        {
+                            if (IsStmtAsWritten<UnaryOperator>(arg, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_Deref))
+                            {
+                                arg = unaryOperator.SubExpr;
+                            }
+                            else if (arg.Type is not ReferenceType and not PointerType)
+                            {
+                                outputBuilder.Write('&');
+                            }
+                        }
+                    }
+
                     Visit(arg);
 
                     if (arg is not CXXDefaultArgExpr)
@@ -1326,7 +1380,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression type: '{type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression type: '{type.TypeClassSpelling}'. Generated bindings may be incomplete.", initListExpr);
                 }
             }
 
@@ -1674,10 +1728,6 @@ namespace ClangSharp
                             baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
                             baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
                         }
-                        else
-                        {
-                            baseFieldName = "Base";
-                        }
                     }
                 }
                 else if (memberExpr.MemberDecl is FieldDecl fieldDecl)
@@ -1690,10 +1740,6 @@ namespace ClangSharp
                         {
                             baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
                             baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
-                        }
-                        else
-                        {
-                            baseFieldName = "Base";
                         }
                     }
                 }
@@ -1788,6 +1834,15 @@ namespace ClangSharp
                 if (returnStmt.RetValue != null)
                 {
                     outputBuilder.Write(' ');
+
+                    if (functionDecl.ReturnType.CanonicalType is not ReferenceType and not PointerType)
+                    {
+                        if ((returnStmt.RetValue.Type.CanonicalType is ReferenceType) || (returnStmt.RetValue is CXXConstructExpr cxxConstructExpr))
+                        {
+                            outputBuilder.Write('*');
+                        }
+                    }
+
                     Visit(returnStmt.RetValue);
                 }
             }
@@ -2687,8 +2742,20 @@ namespace ClangSharp
                     }
                     else if (canonicalType is PointerType or ReferenceType)
                     {
+                        var needsParens = !IsPrevContextStmt<ParenExpr>(out _, out _, preserveParen: true);
+
+                        if (needsParens)
+                        {
+                            outputBuilder.Write('(');
+                        }
+
                         Visit(subExpr);
-                        outputBuilder.Write(" == null");
+                        outputBuilder.Write(" is null");
+
+                        if (needsParens)
+                        {
+                            outputBuilder.Write(')');
+                        }
                     }
                     else
                     {
