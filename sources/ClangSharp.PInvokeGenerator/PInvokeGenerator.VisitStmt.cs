@@ -269,7 +269,14 @@ namespace ClangSharp
                             {
                                 arg = unaryOperator.SubExpr;
                             }
-                            else if (arg.Type is not ReferenceType and not PointerType)
+                            else if (IsStmtAsWritten<DeclRefExpr>(arg, out var declRefExpr, removeParens: true))
+                            {
+                                if (declRefExpr.Decl.Type.CanonicalType is not ReferenceType and not PointerType)
+                                {
+                                    outputBuilder.Write('&');
+                                }
+                            }
+                            else if (arg.Type.CanonicalType is not ReferenceType and not PointerType)
                             {
                                 outputBuilder.Write('&');
                             }
@@ -738,7 +745,7 @@ namespace ClangSharp
                         {
                             var className = GetClass(enumName);
 
-                            if (outputBuilder.Name != className)
+                            if ((outputBuilder.Name != className) && (namedDecl.Parent is not TagDecl))
                             {
                                 outputBuilder.AddUsingDirective($"static {GetNamespace(enumName, namedDecl)}.{className}");
                             }
@@ -1837,7 +1844,7 @@ namespace ClangSharp
 
                     if (functionDecl.ReturnType.CanonicalType is not ReferenceType and not PointerType)
                     {
-                        if ((returnStmt.RetValue.Type.CanonicalType is ReferenceType) || (returnStmt.RetValue is CXXConstructExpr cxxConstructExpr))
+                        if (returnStmt.RetValue.Type.CanonicalType is ReferenceType)
                         {
                             outputBuilder.Write('*');
                         }
