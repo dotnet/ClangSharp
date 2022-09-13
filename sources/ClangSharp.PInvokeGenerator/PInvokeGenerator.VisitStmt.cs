@@ -2749,7 +2749,8 @@ namespace ClangSharp
                     }
                     else if (canonicalType is PointerType or ReferenceType)
                     {
-                        var needsParens = !IsPrevContextStmt<ParenExpr>(out _, out _, preserveParen: true);
+                        var needsParens = !IsPrevContextStmt<ParenExpr>(out _, out _, preserveParen: true) &&
+                                          !IsPrevContextStmt<IfStmt>(out _, out _, preserveParen: true);
 
                         if (needsParens)
                         {
@@ -2757,7 +2758,7 @@ namespace ClangSharp
                         }
 
                         Visit(subExpr);
-                        outputBuilder.Write(" is null");
+                        outputBuilder.Write(" == null");
 
                         if (needsParens)
                         {

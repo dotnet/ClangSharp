@@ -823,6 +823,11 @@ namespace ClangSharp
                         }
                         else
                         {
+                            if (!IsUnsigned(type))
+                            {
+                                sw.Write("unchecked");
+                            }
+
                             sw.Write("((");
                             sw.Write(type);
                             sw.WriteLine(")(value));");
@@ -839,7 +844,20 @@ namespace ClangSharp
                         }
                         else
                         {
-                            sw.WriteLine(" value) => (void*)(value.Value);");
+                            var isUnchecked = !IsUnsigned(type);
+                            sw.Write(" value) => ");
+
+                            if (isUnchecked)
+                            {
+                                sw.Write("unchecked(");
+                            }
+                            sw.Write("(void*)(value.Value)");
+
+                            if (isUnchecked)
+                            {
+                                sw.Write(")");
+                            }
+                            sw.WriteLine();
                         }
 
                         sw.WriteLine();
@@ -1111,7 +1129,7 @@ namespace ClangSharp
 
                     if ((castFromKind == "explicit") || isPointerToNativeCast)
                     {
-                        sw.Write('(');
+                        sw.Write("unchecked((");
                         sw.Write(type);
                         sw.Write(")(");
                     }
@@ -1120,7 +1138,7 @@ namespace ClangSharp
 
                     if ((castFromKind == "explicit") || isPointerToNativeCast)
                     {
-                        sw.Write(')');
+                        sw.Write("))");
                     }
 
                     sw.WriteLine(");");
