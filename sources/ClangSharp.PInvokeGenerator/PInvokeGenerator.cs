@@ -823,6 +823,11 @@ namespace ClangSharp
                         }
                         else
                         {
+                            if (!IsUnsigned(type))
+                            {
+                                sw.Write("unchecked");
+                            }
+
                             sw.Write("((");
                             sw.Write(type);
                             sw.WriteLine(")(value));");
@@ -839,7 +844,20 @@ namespace ClangSharp
                         }
                         else
                         {
-                            sw.WriteLine(" value) => (void*)(value.Value);");
+                            var isUnchecked = !IsUnsigned(type);
+                            sw.Write(" value) => ");
+
+                            if (isUnchecked)
+                            {
+                                sw.Write("unchecked(");
+                            }
+                            sw.Write("(void*)(value.Value)");
+
+                            if (isUnchecked)
+                            {
+                                sw.Write(")");
+                            }
+                            sw.WriteLine();
                         }
 
                         sw.WriteLine();
@@ -1111,7 +1129,7 @@ namespace ClangSharp
 
                     if ((castFromKind == "explicit") || isPointerToNativeCast)
                     {
-                        sw.Write('(');
+                        sw.Write("unchecked((");
                         sw.Write(type);
                         sw.Write(")(");
                     }
@@ -1120,7 +1138,7 @@ namespace ClangSharp
 
                     if ((castFromKind == "explicit") || isPointerToNativeCast)
                     {
-                        sw.Write(')');
+                        sw.Write("))");
                     }
 
                     sw.WriteLine(");");
@@ -2146,9 +2164,9 @@ namespace ClangSharp
             return name;
         }
 
-        private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateFunctionParameters = false)
+        private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateParameters = false)
         {
-            if (!_cursorQualifiedNames.TryGetValue((namedDecl, truncateFunctionParameters), out var qualifiedName))
+            if (!_cursorQualifiedNames.TryGetValue((namedDecl, truncateParameters), out var qualifiedName))
             {
                 var parts = new Stack<NamedDecl>();
                 Decl decl = namedDecl;
@@ -2180,7 +2198,7 @@ namespace ClangSharp
                 AppendNamedDecl(part, GetCursorName(part), qualifiedNameBuilder);
 
                 qualifiedName = qualifiedNameBuilder.ToString();
-                _cursorQualifiedNames[(namedDecl, truncateFunctionParameters)] = qualifiedName;
+                _cursorQualifiedNames[(namedDecl, truncateParameters)] = qualifiedName;
             }
 
             Debug.Assert(!string.IsNullOrWhiteSpace(qualifiedName));
@@ -2188,7 +2206,7 @@ namespace ClangSharp
 
             void AppendFunctionParameters(CXType functionType, StringBuilder qualifiedName)
             {
-                if (truncateFunctionParameters)
+                if (truncateParameters)
                 {
                     return;
                 }
@@ -2268,6 +2286,11 @@ namespace ClangSharp
 
             void AppendTemplateArguments(ClassTemplateSpecializationDecl classTemplateSpecializationDecl, StringBuilder qualifiedName)
             {
+                if (truncateParameters)
+                {
+                    return;
+                }
+
                 _ = qualifiedName.Append('<');
 
                 var templateArgs = classTemplateSpecializationDecl.TemplateArgs;
@@ -2289,6 +2312,11 @@ namespace ClangSharp
 
             void AppendTemplateParameters(TemplateDecl templateDecl, StringBuilder qualifiedName)
             {
+                if (truncateParameters)
+                {
+                    return;
+                }
+
                 _ = qualifiedName.Append('<');
 
                 var templateParameters = templateDecl.TemplateParameters;
@@ -2425,7 +2453,8 @@ namespace ClangSharp
                 return remappedName;
             }
 
-            name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
+
+            name = GetCursorQualifiedName(namedDecl, truncateParameters: true);
             remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing);
 
             if (wasRemapped)
@@ -2449,7 +2478,11 @@ namespace ClangSharp
                 return remappedName;
             }
 
-            if (namedDecl is FieldDecl fieldDecl)
+            if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
+            {
+                remappedName = GetRemappedCursorName(cxxConstructorDecl.Parent);
+            }
+            else if (namedDecl is FieldDecl fieldDecl)
             {
                 if (name.StartsWith("__AnonymousFieldDecl_"))
                 {
@@ -2800,11 +2833,10 @@ namespace ClangSharp
 
                 if (type is ArrayType arrayType)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, arrayType.ElementType, ignoreTransparentStructsWhereRequired, out _);
+                    result.typeName = GetRemappedTypeName(cursor, context, arrayType.ElementType, out _, skipUsing: true, ignoreTransparentStructsWhereRequired);
 
                     if (cursor is FunctionDecl or ParmVarDecl)
                     {
-                        result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _, skipUsing: true);
                         result.typeName += '*';
                     }
                 }
@@ -3023,8 +3055,23 @@ namespace ClangSharp
                                          ? recordType.Decl
                                          : (NamedDecl)templateSpecializationType.TemplateName.AsTemplateDecl;
 
-                    _ = nameBuilder.Append(GetRemappedName(templateTypeDecl.Name, templateTypeDecl, tryRemapOperatorName: false, out _, skipUsing: true));
-                    _ = nameBuilder.Append('<');
+                    var templateTypeDeclName = GetRemappedCursorName(templateTypeDecl, out _, skipUsing: true);
+                    var isStdAtomic = false;
+
+                    if (templateTypeDeclName == "atomic")
+                    {
+                        isStdAtomic = (templateTypeDecl.Parent is NamespaceDecl namespaceDecl) && namespaceDecl.IsStdNamespace;
+                    }
+
+                    if (!isStdAtomic)
+                    {
+                        _ = nameBuilder.Append(templateTypeDeclName);
+                        _ = nameBuilder.Append('<');
+                    }
+                    else
+                    {
+                        _ = nameBuilder.Append("volatile ");
+                    }
 
                     var shouldWritePrecedingComma = false;
 
@@ -3084,7 +3131,10 @@ namespace ClangSharp
                         shouldWritePrecedingComma = true;
                     }
 
-                    _ = nameBuilder.Append('>');
+                    if (!isStdAtomic)
+                    {
+                        _ = nameBuilder.Append('>');
+                    }
 
                     result.typeName = nameBuilder.ToString();
                 }
@@ -3107,6 +3157,10 @@ namespace ClangSharp
 
                     var remappedName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
                     result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out _);
+                }
+                else if (type is UsingType usingType)
+                {
+                    result.typeName = GetTypeName(cursor, context, rootType, usingType.Desugar, ignoreTransparentStructsWhereRequired, out _);
                 }
                 else
                 {
@@ -3967,7 +4021,7 @@ namespace ClangSharp
 
                     if (namedDecl is FunctionDecl)
                     {
-                        qualifiedNameWithoutParameters = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
+                        qualifiedNameWithoutParameters = GetCursorQualifiedName(namedDecl, truncateParameters: true);
                     }
 
                     name = GetCursorName(namedDecl);
@@ -4625,7 +4679,11 @@ namespace ClangSharp
                     return false;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
+                case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
 
                 case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
@@ -4777,7 +4835,11 @@ namespace ClangSharp
                     return IsUnchecked(targetTypeName, signedValue, integerLiteral.IsNegative, isHex: integerLiteral.ValueString.StartsWith("0x"));
                 }
 
-                // case CX_StmtClass.CX_StmtClass_LambdaExpr:
+                case CX_StmtClass.CX_StmtClass_LambdaExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_MSPropertyRefExpr:
                 // case CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr:
 
@@ -4854,7 +4916,11 @@ namespace ClangSharp
                     return false;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
+                case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
                 // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
                 // case CX_StmtClass.CX_StmtClass_TypoExpr:
@@ -5848,11 +5914,16 @@ namespace ClangSharp
             return false;
         }
 
-        private string GetNamespace(string remappedName)
+        private string GetNamespace(string remappedName, NamedDecl namedDecl = null)
         {
             if (!TryGetNamespace(remappedName, out var namespaceName))
             {
-                if (s_needsSystemSupportRegex.IsMatch(remappedName))
+                if ((namedDecl is not null) && (namedDecl.Parent is TypeDecl parentTypeDecl))
+                {
+                    var parentName = GetRemappedCursorName(parentTypeDecl);
+                    namespaceName = $"{GetNamespace(parentName, parentTypeDecl)}.{parentName}";
+                }
+                else if (s_needsSystemSupportRegex.IsMatch(remappedName))
                 {
                     namespaceName = "System";
                 }
@@ -5899,7 +5970,7 @@ namespace ClangSharp
                 return true;
             }
 
-            name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
+            name = GetCursorQualifiedName(namedDecl, truncateParameters: true);
 
             if (name.StartsWith("ClangSharpMacro_"))
             {
@@ -5959,7 +6030,7 @@ namespace ClangSharp
                 return true;
             }
 
-            name = GetCursorQualifiedName(namedDecl, truncateFunctionParameters: true);
+            name = GetCursorQualifiedName(namedDecl, truncateParameters: true);
 
             if (name.StartsWith("ClangSharpMacro_"))
             {

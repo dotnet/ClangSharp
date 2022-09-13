@@ -115,6 +115,24 @@ namespace ClangSharp
                 }
             }
 
+            var isUnusedValue = false;
+
+            if (callExpr.Type.CanonicalType.Kind != CXTypeKind.CXType_Void)
+            {
+                isUnusedValue = IsPrevContextStmt<CompoundStmt>(out _, out _)
+                             || IsPrevContextStmt<IfStmt>(out _, out _);
+
+                if ((calleeDecl is FunctionDecl functionDecl) && (functionDecl.Name is "memcpy" or "memset"))
+                {
+                    isUnusedValue = false;
+                }
+            }
+
+            if (isUnusedValue)
+            {
+                outputBuilder.Write("_ = ");
+            }
+
             if (calleeDecl is null)
             {
                 Visit(callExpr.Callee);
@@ -139,22 +157,64 @@ namespace ClangSharp
 
                     case "memset":
                     {
+                        NamedDecl namedDecl = null;
+
+                        if (callExpr.NumArgs == 3)
+                        {
+                            if (IsStmtAsWritten<IntegerLiteral>(callExpr.Args[1], out var integerLiteralExpr, removeParens: true) && (integerLiteralExpr.Value == 0) &&
+                                IsStmtAsWritten<UnaryExprOrTypeTraitExpr>(callExpr.Args[2], out var unaryExprOrTypeTraitExpr, removeParens: true) && (unaryExprOrTypeTraitExpr.Kind == CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf))
+                            {
+                                var typeOfArgument = unaryExprOrTypeTraitExpr.TypeOfArgument.CanonicalType;
+                                var expr = callExpr.Args[0];
+
+                                if (IsStmtAsWritten<UnaryOperator>(expr, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_AddrOf))
+                                {
+                                    expr = unaryOperator.SubExpr;
+                                }
+
+                                if (IsStmtAsWritten<DeclRefExpr>(expr, out var declRefExpr, removeParens: true) && (typeOfArgument == declRefExpr.Type.CanonicalType))
+                                {
+                                    namedDecl = declRefExpr.Decl;
+                                }
+                                else if (IsStmtAsWritten<MemberExpr>(expr, out var memberExpr, removeParens: true) && (typeOfArgument == memberExpr.Type.CanonicalType))
+                                {
+                                    namedDecl = memberExpr.MemberDecl;
+                                }
+                            }
+
+                            if (namedDecl is not null)
+                            {
+                                outputBuilder.Write(GetRemappedCursorName(namedDecl));
+                                outputBuilder.Write(" = default");
+                                break;
+                            }
+                        }
+
                         outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
                         outputBuilder.Write("Unsafe.InitBlockUnaligned");
                         VisitArgs(callExpr);
                         break;
                     }
 
-                    default:
+                    case "wcslen":
                     {
-                        if ((functionDecl.ReturnType.CanonicalType.Kind != CXTypeKind.CXType_Void) && IsPrevContextStmt<CompoundStmt>(out _, out _))
+                        if (_config.GenerateCompatibleCode)
                         {
-                            outputBuilder.Write("_ = ");
+                            goto default;
                         }
 
+                        outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
+                        outputBuilder.Write("MemoryMarshal.CreateReadOnlySpanFromNullTerminated");
+
+                        VisitArgs(callExpr);
+                        outputBuilder.Write(".Length");
+                        break;
+                    }
+
+                    default:
+                    {
                         Visit(callExpr.Callee);
                         VisitArgs(callExpr);
-
                         break;
                     }
                 }
@@ -176,6 +236,15 @@ namespace ClangSharp
 
             void VisitArgs(CallExpr callExpr)
             {
+                var callExprType = (callExpr.Callee is MemberExpr memberExpr)
+                                 ? memberExpr.MemberDecl.Type.CanonicalType
+                                 : callExpr.Callee.Type.CanonicalType;
+
+                if (callExprType is PointerType pointerType)
+                {
+                    callExprType = pointerType.PointeeType.CanonicalType;
+                }
+
                 outputBuilder.Write('(');
 
                 var args = callExpr.Args;
@@ -183,12 +252,37 @@ namespace ClangSharp
 
                 for (var i = 0; i < args.Count; i++)
                 {
-                    if (needsComma)
+                    var arg = args[i];
+
+                    if (needsComma && (arg is not CXXDefaultArgExpr))
                     {
                         outputBuilder.Write(", ");
                     }
 
-                    var arg = args[i];
+                    if (callExprType is FunctionProtoType functionProtoType)
+                    {
+                        var paramType = functionProtoType.ParamTypes[i].CanonicalType;
+
+                        if (paramType is ReferenceType)
+                        {
+                            if (IsStmtAsWritten<UnaryOperator>(arg, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_Deref))
+                            {
+                                arg = unaryOperator.SubExpr;
+                            }
+                            else if (IsStmtAsWritten<DeclRefExpr>(arg, out var declRefExpr, removeParens: true))
+                            {
+                                if (declRefExpr.Decl.Type.CanonicalType is not ReferenceType and not PointerType)
+                                {
+                                    outputBuilder.Write('&');
+                                }
+                            }
+                            else if (arg.Type.CanonicalType is not ReferenceType and not PointerType)
+                            {
+                                outputBuilder.Write('&');
+                            }
+                        }
+                    }
+
                     Visit(arg);
 
                     if (arg is not CXXDefaultArgExpr)
@@ -651,14 +745,14 @@ namespace ClangSharp
                         {
                             var className = GetClass(enumName);
 
-                            if (outputBuilder.Name != className)
+                            if ((outputBuilder.Name != className) && (namedDecl.Parent is not TagDecl))
                             {
-                                outputBuilder.AddUsingDirective($"static {GetNamespace(enumName)}.{className}");
+                                outputBuilder.AddUsingDirective($"static {GetNamespace(enumName, namedDecl)}.{className}");
                             }
                         }
                         else
                         {
-                            outputBuilder.AddUsingDirective($"static {GetNamespace(enumName)}.{enumName}");
+                            outputBuilder.AddUsingDirective($"static {GetNamespace(enumName, namedDecl)}.{enumName}");
                         }
                     }
                     else
@@ -1003,12 +1097,33 @@ namespace ClangSharp
                 if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator, out _) && ((binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_EQ) || (binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_NE)))
                 {
                     Visit(subExpr);
+                    subExpr = null;
+                }
+                else if (IsPrevContextStmt<CaseStmt>(out _, out _))
+                {
+                    var previousContext = _context.Last.Previous;
+
+                    do
+                    {
+                        previousContext = previousContext.Previous;
+                    }
+                    while (previousContext.Value.Cursor is ParenExpr or ImplicitCastExpr or CaseStmt or CompoundStmt);
+
+                    var value = previousContext.Value;
+
+                    if ((value.Cursor is SwitchStmt switchStmt) && (switchStmt.Cond.IgnoreImplicit.Type.CanonicalType is EnumType))
+                    {
+                        Visit(subExpr);
+                        subExpr = null;
+                    }
                 }
                 else if (IsPrevContextDecl<EnumConstantDecl>(out _, out _))
                 {
                     Visit(subExpr);
+                    subExpr = null;
                 }
-                else
+
+                if (subExpr is not null)
                 {
                     var type = implicitCastExpr.Type;
 
@@ -1272,7 +1387,7 @@ namespace ClangSharp
                 }
                 else
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression type: '{type.KindSpelling}'. Generated bindings may be incomplete.", initListExpr);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression type: '{type.TypeClassSpelling}'. Generated bindings may be incomplete.", initListExpr);
                 }
             }
 
@@ -1332,6 +1447,14 @@ namespace ClangSharp
                                 goto default;
                             }
 
+                            break;
+                        }
+
+                        case CXEvalResultKind.CXEval_StrLiteral:
+                        {
+                            outputBuilder.Write('"');
+                            outputBuilder.Write(evaluation.AsStr);
+                            outputBuilder.Write('"');
                             break;
                         }
 
@@ -1605,18 +1728,26 @@ namespace ClangSharp
                 {
                     if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxMethodDecl.Parent) && HasField(cxxMethodDecl.Parent))
                     {
-                        var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == cxxMethodDecl.Parent).Single();
-                        baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
-                        baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                        var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == cxxMethodDecl.Parent).SingleOrDefault();
+
+                        if (cxxBaseSpecifier is not null)
+                        {
+                            baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
+                            baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                        }
                     }
                 }
                 else if (memberExpr.MemberDecl is FieldDecl fieldDecl)
                 {
                     if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != fieldDecl.Parent))
                     {
-                        var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == fieldDecl.Parent).Single();
-                        baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
-                        baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                        var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == fieldDecl.Parent).SingleOrDefault();
+
+                        if (cxxBaseSpecifier is not null)
+                        {
+                            baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
+                            baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                        }
                     }
                 }
             }
@@ -1710,6 +1841,15 @@ namespace ClangSharp
                 if (returnStmt.RetValue != null)
                 {
                     outputBuilder.Write(' ');
+
+                    if (functionDecl.ReturnType.CanonicalType is not ReferenceType and not PointerType)
+                    {
+                        if (returnStmt.RetValue.Type.CanonicalType is ReferenceType)
+                        {
+                            outputBuilder.Write('*');
+                        }
+                    }
+
                     Visit(returnStmt.RetValue);
                 }
             }
@@ -2609,8 +2749,21 @@ namespace ClangSharp
                     }
                     else if (canonicalType is PointerType or ReferenceType)
                     {
+                        var needsParens = !IsPrevContextStmt<ParenExpr>(out _, out _, preserveParen: true) &&
+                                          !IsPrevContextStmt<IfStmt>(out _, out _, preserveParen: true);
+
+                        if (needsParens)
+                        {
+                            outputBuilder.Write('(');
+                        }
+
                         Visit(subExpr);
                         outputBuilder.Write(" == null");
+
+                        if (needsParens)
+                        {
+                            outputBuilder.Write(')');
+                        }
                     }
                     else
                     {

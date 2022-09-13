@@ -114,8 +114,7 @@ namespace ClangSharp
 
         public static bool operator !=(Type left, Type right) => (left is object) ? ((right is null) || (left.Handle != right.Handle)) : (right is object);
 
-        internal static Type Create(CXType handle) => handle.TypeClass switch
-        {
+        internal static Type Create(CXType handle) => handle.TypeClass switch {
             CX_TypeClass.CX_TypeClass_Invalid => new Type(handle, handle.kind, handle.TypeClass),
             CX_TypeClass.CX_TypeClass_Adjusted => new AdjustedType(handle),
             CX_TypeClass.CX_TypeClass_Decayed => new DecayedType(handle),
@@ -167,6 +166,7 @@ namespace ClangSharp
             CX_TypeClass.CX_TypeClass_Typedef => new TypedefType(handle),
             CX_TypeClass.CX_TypeClass_UnaryTransform => new UnaryTransformType(handle),
             CX_TypeClass.CX_TypeClass_UnresolvedUsing => new UnresolvedUsingType(handle),
+            CX_TypeClass.CX_TypeClass_Using => new UsingType(handle),
             CX_TypeClass.CX_TypeClass_Vector => new VectorType(handle),
             CX_TypeClass.CX_TypeClass_ExtVector => new ExtVectorType(handle),
             _ => new Type(handle, handle.kind, handle.TypeClass),

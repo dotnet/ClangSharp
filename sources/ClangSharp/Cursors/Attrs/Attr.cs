@@ -15,11 +15,11 @@ namespace ClangSharp
             }
         }
 
-        internal static new Attr Create(CXCursor handle) => handle.AttrKind switch
-        {
+        internal static new Attr Create(CXCursor handle) => handle.AttrKind switch {
             CX_AttrKind.CX_AttrKind_Invalid => new Attr(handle),
             CX_AttrKind.CX_AttrKind_AddressSpace => new TypeAttr(handle),
             CX_AttrKind.CX_AttrKind_ArmMveStrictPolymorphism => new TypeAttr(handle),
+            CX_AttrKind.CX_AttrKind_BTFTypeTag => new TypeAttr(handle),
             CX_AttrKind.CX_AttrKind_CmseNSCall => new TypeAttr(handle),
             CX_AttrKind.CX_AttrKind_NoDeref => new TypeAttr(handle),
             CX_AttrKind.CX_AttrKind_ObjCGC => new TypeAttr(handle),
@@ -113,6 +113,7 @@ namespace ClangSharp
             CX_AttrKind.CX_AttrKind_Assumption => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_Availability => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_BPFPreserveAccessIndex => new InheritableAttr(handle),
+            CX_AttrKind.CX_AttrKind_BTFDeclTag => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_Blocks => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_Builtin => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_C11NoReturn => new InheritableAttr(handle),
@@ -156,13 +157,16 @@ namespace ClangSharp
             CX_AttrKind.CX_AttrKind_DLLImportStaticLocal => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_Deprecated => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_Destructor => new InheritableAttr(handle),
+            CX_AttrKind.CX_AttrKind_DiagnoseAsBuiltin => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_DiagnoseIf => new InheritableAttr(handle),
+            CX_AttrKind.CX_AttrKind_DisableSanitizerInstrumentation => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_DisableTailCalls => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_EmptyBases => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_EnableIf => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_EnforceTCB => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_EnforceTCBLeaf => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_EnumExtensibility => new InheritableAttr(handle),
+            CX_AttrKind.CX_AttrKind_Error => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_ExcludeFromExplicitInstantiation => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_ExclusiveTrylockFunction => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_ExternalSourceSymbol => new InheritableAttr(handle),
@@ -282,6 +286,7 @@ namespace ClangSharp
             CX_AttrKind.CX_AttrKind_ReturnsNonNull => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_ReturnsTwice => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_SYCLKernel => new InheritableAttr(handle),
+            CX_AttrKind.CX_AttrKind_SYCLSpecialClass => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_ScopedLockable => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_Section => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_SelectAny => new InheritableAttr(handle),
@@ -303,6 +308,7 @@ namespace ClangSharp
             CX_AttrKind.CX_AttrKind_SwiftPrivate => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_TLSModel => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_Target => new InheritableAttr(handle),
+            CX_AttrKind.CX_AttrKind_TargetClones => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_TestTypestate => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_TransparentUnion => new InheritableAttr(handle),
             CX_AttrKind.CX_AttrKind_TrivialABI => new InheritableAttr(handle),

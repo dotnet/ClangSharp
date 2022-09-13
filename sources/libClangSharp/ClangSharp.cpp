@@ -5063,6 +5063,10 @@ CXCursor clangsharp_Type_getDeclaration(CXType CT) {
         return MakeCXCursor(UUT->getDecl(), GetTypeTU(CT));
     }
 
+    if (const UsingType* UT = dyn_cast<UsingType>(TP)) {
+        return MakeCXCursor(UT->getFoundDecl(), GetTypeTU(CT));
+    }
+
     return clang_getTypeDeclaration(CT);
 }
 

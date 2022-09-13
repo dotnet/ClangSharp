@@ -673,11 +673,19 @@ namespace ClangSharp
                         outputBuilder.Write("return ");
                     }
 
-                    var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == cxxMethodDecl.Parent).Single();
-                    var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
-                    baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                    var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == cxxMethodDecl.Parent).SingleOrDefault();
 
-                    outputBuilder.Write(baseFieldName);
+                    if (cxxBaseSpecifier != null)
+                    {
+                        var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
+                        baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
+                        outputBuilder.Write(baseFieldName);
+                    }
+                    else
+                    {
+                        outputBuilder.Write("Base");
+                    }
+                    
                     outputBuilder.Write('.');
                     outputBuilder.Write(name);
                     outputBuilder.Write('(');
@@ -3504,7 +3512,12 @@ namespace ClangSharp
 
                 // case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
                 // case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
-                // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
+
+                case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
 
                 case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
@@ -3669,7 +3682,11 @@ namespace ClangSharp
                     return true;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_LambdaExpr:
+                case CX_StmtClass.CX_StmtClass_LambdaExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_MSPropertyRefExpr:
                 // case CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr:
                 // case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
@@ -3741,7 +3758,11 @@ namespace ClangSharp
                     return true;
                 }
 
-                // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
+                case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
+                {
+                    return false;
+                }
+
                 // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
                 // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
                 // case CX_StmtClass.CX_StmtClass_TypoExpr:
