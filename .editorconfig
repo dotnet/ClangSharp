@@ -450,4 +450,5 @@ csharp_using_directive_placement = outside_namespace:error
 # Set dotnet analyzer rules to:
 #    disable CA1401: P/Invoke method '*' should not be visible
 ###############################################################################
+[*.cs]
 dotnet_diagnostic.CA1401.severity = silent

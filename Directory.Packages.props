@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <!--
+    Directory.Packages.props is automatically picked up and imported by
+    Microsoft.Common.targets. This file needs to exist, even if empty so that
+    files in the parent directory tree, with the same name, are not imported
+    instead. The import fairly late and most other props/targets will have been
+    imported beforehand. We also don't need to add ourselves to
+    MSBuildAllProjects, as that is done by the file that imports us.
+  -->
+
+  <!-- Package versions for package references across all projects -->
+  <ItemGroup>
+    <PackageVersion Include="libClang" Version="15.0.0" />
+    <PackageVersion Include="libClangSharp" Version="15.0.0" />
+    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
+    <PackageVersion Include="NUnit" Version="3.13.3" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="4.2.1" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
+    <PackageVersion Include="System.Memory" Version="4.5.5" />
+  </ItemGroup>
+
+</Project>
