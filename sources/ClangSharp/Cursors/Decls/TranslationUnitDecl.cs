@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed unsafe class TranslationUnitDecl : Decl, IDeclContext
 {
-    public sealed unsafe class TranslationUnitDecl : Decl, IDeclContext
+    internal TranslationUnitDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TranslationUnit, CX_DeclKind.CX_DeclKind_TranslationUnit)
     {
-        internal TranslationUnitDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TranslationUnit, CX_DeclKind.CX_DeclKind_TranslationUnit)
-        {
-        }
     }
 }

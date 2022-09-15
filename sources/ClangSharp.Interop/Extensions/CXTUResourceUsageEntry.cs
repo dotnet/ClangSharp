@@ -2,26 +2,25 @@
 
 using System;
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public unsafe partial struct CXTUResourceUsageEntry
 {
-    public unsafe partial struct CXTUResourceUsageEntry
+    public string Name
     {
-        public string Name
+        get
         {
-            get
+            var pName = clang.getTUResourceUsageName(kind);
+
+            if (pName is null)
             {
-                var pName = clang.getTUResourceUsageName(kind);
-
-                if (pName is null)
-                {
-                    return string.Empty;
-                }
-
-                var span = new ReadOnlySpan<byte>(pName, int.MaxValue);
-                return span.Slice(0, span.IndexOf((byte)'\0')).AsString();
+                return string.Empty;
             }
-        }
 
-        public override string ToString() => Name;
+            var span = new ReadOnlySpan<byte>(pName, int.MaxValue);
+            return span.Slice(0, span.IndexOf((byte)'\0')).AsString();
+        }
     }
+
+    public override string ToString() => Name;
 }

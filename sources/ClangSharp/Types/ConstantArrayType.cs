@@ -3,19 +3,18 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ConstantArrayType : ArrayType
 {
-    public sealed class ConstantArrayType : ArrayType
+    private readonly Lazy<Expr> _sizeExpr;
+
+    internal ConstantArrayType(CXType handle) : base(handle, CXTypeKind.CXType_ConstantArray, CX_TypeClass.CX_TypeClass_ConstantArray)
     {
-        private readonly Lazy<Expr> _sizeExpr;
-
-        internal ConstantArrayType(CXType handle) : base(handle, CXTypeKind.CXType_ConstantArray, CX_TypeClass.CX_TypeClass_ConstantArray)
-        {
-            _sizeExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SizeExpr));
-        }
-
-        public long Size => Handle.ArraySize;
-
-        public Expr SizeExpr => _sizeExpr.Value;
+        _sizeExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SizeExpr));
     }
+
+    public long Size => Handle.ArraySize;
+
+    public Expr SizeExpr => _sizeExpr.Value;
 }

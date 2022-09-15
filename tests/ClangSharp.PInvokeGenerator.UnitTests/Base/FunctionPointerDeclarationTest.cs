@@ -3,23 +3,22 @@
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public abstract class FunctionPointerDeclarationTest : PInvokeGeneratorTest
 {
-    public abstract class FunctionPointerDeclarationTest : PInvokeGeneratorTest
-    {
-        [Test]
-        public Task BasicTest() => BasicTestImpl();
+    [Test]
+    public Task BasicTest() => BasicTestImpl();
 
-        [Test]
-        public Task CallconvTest() => CallconvTestImpl();
+    [Test]
+    public Task CallconvTest() => CallconvTestImpl();
 
-        [Test]
-        public Task PointerlessTypedefTest() => PointerlessTypedefTestImpl();
+    [Test]
+    public Task PointerlessTypedefTest() => PointerlessTypedefTestImpl();
 
-        protected abstract Task BasicTestImpl();
+    protected abstract Task BasicTestImpl();
 
-        protected abstract Task CallconvTestImpl();
+    protected abstract Task CallconvTestImpl();
 
-        protected abstract Task PointerlessTypedefTestImpl();
-    }
+    protected abstract Task PointerlessTypedefTestImpl();
 }

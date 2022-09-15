@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXTUResourceUsageEntry" /> struct.</summary>
+public static unsafe partial class CXTUResourceUsageEntryTests
 {
-    /// <summary>Provides validation of the <see cref="CXTUResourceUsageEntry" /> struct.</summary>
-    public static unsafe partial class CXTUResourceUsageEntryTests
+    /// <summary>Validates that the <see cref="CXTUResourceUsageEntry" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXTUResourceUsageEntry" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXTUResourceUsageEntry>(), Is.EqualTo(sizeof(CXTUResourceUsageEntry)));
-        }
+        Assert.That(Marshal.SizeOf<CXTUResourceUsageEntry>(), Is.EqualTo(sizeof(CXTUResourceUsageEntry)));
+    }
 
-        /// <summary>Validates that the <see cref="CXTUResourceUsageEntry" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXTUResourceUsageEntry).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXTUResourceUsageEntry" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXTUResourceUsageEntry).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXTUResourceUsageEntry" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXTUResourceUsageEntry" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXTUResourceUsageEntry), Is.EqualTo(16));
-            }
-            else
-            {
-                Assert.That(sizeof(CXTUResourceUsageEntry), Is.EqualTo(8));
-            }
+            Assert.That(sizeof(CXTUResourceUsageEntry), Is.EqualTo(16));
+        }
+        else
+        {
+            Assert.That(sizeof(CXTUResourceUsageEntry), Is.EqualTo(8));
         }
     }
 }

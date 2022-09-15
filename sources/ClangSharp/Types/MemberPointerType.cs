@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class MemberPointerType : Type
 {
-    public sealed class MemberPointerType : Type
+    internal MemberPointerType(CXType handle) : base(handle, CXTypeKind.CXType_MemberPointer, CX_TypeClass.CX_TypeClass_MemberPointer)
     {
-        internal MemberPointerType(CXType handle) : base(handle, CXTypeKind.CXType_MemberPointer, CX_TypeClass.CX_TypeClass_MemberPointer)
-        {
-        }
     }
 }

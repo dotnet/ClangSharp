@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class UsingDecl : BaseUsingDecl, IMergeable<UsingDecl>
 {
-    public sealed class UsingDecl : BaseUsingDecl, IMergeable<UsingDecl>
+    internal UsingDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration, CX_DeclKind.CX_DeclKind_Using)
     {
-        internal UsingDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration, CX_DeclKind.CX_DeclKind_Using)
-        {
-        }
     }
 }

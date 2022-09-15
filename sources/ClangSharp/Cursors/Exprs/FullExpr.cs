@@ -4,20 +4,19 @@ using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public class FullExpr : Expr
-    {
-        private protected FullExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
-        {
-            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastFullExpr or < CX_StmtClass.CX_StmtClass_FirstFullExpr)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
+namespace ClangSharp;
 
-            Debug.Assert(NumChildren is 1);
+public class FullExpr : Expr
+{
+    private protected FullExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
+    {
+        if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastFullExpr or < CX_StmtClass.CX_StmtClass_FirstFullExpr)
+        {
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        public Expr SubExpr => (Expr)Children[0];
+        Debug.Assert(NumChildren is 1);
     }
+
+    public Expr SubExpr => (Expr)Children[0];
 }

@@ -2,13 +2,12 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class ExtVectorType : Type
-    {
+namespace ClangSharp;
 
-        internal ExtVectorType(CXType handle) : base(handle, CXTypeKind.CXType_ExtVector, CX_TypeClass.CX_TypeClass_ExtVector)
-        {
-        }
+public sealed class ExtVectorType : Type
+{
+
+    internal ExtVectorType(CXType handle) : base(handle, CXTypeKind.CXType_ExtVector, CX_TypeClass.CX_TypeClass_ExtVector)
+    {
     }
 }

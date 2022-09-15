@@ -3,16 +3,15 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class DeclOrStmtAttr : InheritableAttr
 {
-    public sealed class DeclOrStmtAttr : InheritableAttr
+    internal DeclOrStmtAttr(CXCursor handle) : base(handle)
     {
-        internal DeclOrStmtAttr(CXCursor handle) : base(handle)
+        if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastDeclOrStmtAttr or < CX_AttrKind.CX_AttrKind_FirstDeclOrStmtAttr)
         {
-            if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastDeclOrStmtAttr or < CX_AttrKind.CX_AttrKind_FirstDeclOrStmtAttr)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
     }
 }

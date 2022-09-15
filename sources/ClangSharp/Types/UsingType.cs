@@ -3,17 +3,16 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class UsingType : Type
 {
-    public sealed class UsingType : Type
+    private readonly Lazy<UsingShadowDecl> _foundDecl;
+
+    internal UsingType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_Using)
     {
-        private readonly Lazy<UsingShadowDecl> _foundDecl;
-
-        internal UsingType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_Using)
-        {
-            _foundDecl = new Lazy<UsingShadowDecl>(() => TranslationUnit.GetOrCreate<UsingShadowDecl>(Handle.Declaration));
-        }
-
-        public UsingShadowDecl FoundDecl => _foundDecl.Value;
+        _foundDecl = new Lazy<UsingShadowDecl>(() => TranslationUnit.GetOrCreate<UsingShadowDecl>(Handle.Declaration));
     }
+
+    public UsingShadowDecl FoundDecl => _foundDecl.Value;
 }

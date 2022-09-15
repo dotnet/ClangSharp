@@ -4,13 +4,13 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class XmlPreviewUnix_CXXMethodDeclarationTest : CXXMethodDeclarationXmlTest
 {
-    public sealed class XmlPreviewUnix_CXXMethodDeclarationTest : CXXMethodDeclarationXmlTest
+    protected override Task ConstructorTestImpl()
     {
-        protected override Task ConstructorTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+        var inputContents = @"struct MyStruct
 {
     int _value;
 
@@ -21,7 +21,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -40,12 +40,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ConstructorWithInitializeTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task ConstructorWithInitializeTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int _x;
     int _y;
@@ -65,7 +65,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -128,12 +128,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ConversionTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task ConversionTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -144,7 +144,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -160,12 +160,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task DestructorTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task DestructorTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     ~MyStruct()
     {
@@ -173,7 +173,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -186,12 +186,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task InstanceTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task InstanceTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     void MyVoidMethod();
 
@@ -206,21 +206,21 @@ namespace ClangSharp.UnitTests
     }
 };
 ";
-            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN8MyStruct12MyVoidMethodEv" : "_ZN8MyStruct12MyVoidMethodEv";
+        var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN8MyStruct12MyVoidMethodEv" : "_ZN8MyStruct12MyVoidMethodEv";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            if (!Environment.Is64BitProcess)
             {
-                if (!Environment.Is64BitProcess)
-                {
-                    entryPoint = "?MyVoidMethod@MyStruct@@QAEXXZ";
-                }
-                else
-                {
-                    entryPoint = "?MyVoidMethod@MyStruct@@QEAAXXZ";
-                }
+                entryPoint = "?MyVoidMethod@MyStruct@@QAEXXZ";
             }
+            else
+            {
+                entryPoint = "?MyVoidMethod@MyStruct@@QEAAXXZ";
+            }
+        }
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" unsafe=""true"">
@@ -243,12 +243,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task MemberCallTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task MemberCallTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -279,7 +279,7 @@ int MyFunctionB(MyStruct* x)
 }
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -319,12 +319,12 @@ int MyFunctionB(MyStruct* x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task MemberTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task MemberTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -335,7 +335,7 @@ int MyFunctionB(MyStruct* x)
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -351,12 +351,12 @@ int MyFunctionB(MyStruct* x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NewKeywordTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NewKeywordTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int Equals() { return 0; }
     int Equals(int obj) { return 0; }
@@ -374,7 +374,7 @@ int MyFunctionB(MyStruct* x)
     int ToString(int obj) { return 0; }
 };";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -460,19 +460,19 @@ int MyFunctionB(MyStruct* x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NewKeywordVirtualTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NewKeywordVirtualTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     virtual int GetType(int obj) = 0;
     virtual int GetType() = 0;
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
@@ -511,26 +511,26 @@ int MyFunctionB(MyStruct* x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NewKeywordVirtualWithExplicitVtblTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NewKeywordVirtualWithExplicitVtblTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     virtual int GetType(int obj) = 0;
     virtual int GetType() = 0;
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var nativeCallConv = "";
+        var nativeCallConv = "";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                nativeCallConv = " __attribute__((thiscall))";
-            }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+        {
+            nativeCallConv = " __attribute__((thiscall))";
+        }
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
@@ -580,26 +580,26 @@ int MyFunctionB(MyStruct* x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
+    }
 
-        protected override Task NewKeywordVirtualWithExplicitVtblAndMarkerInterfaceTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NewKeywordVirtualWithExplicitVtblAndMarkerInterfaceTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     virtual int GetType(int obj) = 0;
     virtual int GetType() = 0;
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var nativeCallConv = "";
+        var nativeCallConv = "";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                nativeCallConv = " __attribute__((thiscall))";
-            }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+        {
+            nativeCallConv = " __attribute__((thiscall))";
+        }
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
@@ -669,12 +669,12 @@ int MyFunctionB(MyStruct* x)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
+    }
 
-        protected override Task OperatorTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task OperatorTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -694,7 +694,7 @@ MyStruct operator-(MyStruct lhs, MyStruct rhs)
 }
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -735,12 +735,12 @@ MyStruct operator-(MyStruct lhs, MyStruct rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task OperatorCallTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task OperatorCallTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -770,7 +770,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 }
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -831,12 +831,12 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task StaticTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task StaticTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     static void MyVoidMethod();
 
@@ -852,14 +852,14 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 };
 ";
 
-            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "?MyVoidMethod@MyStruct@@SAXXZ" : "_ZN8MyStruct12MyVoidMethodEv";
+        var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "?MyVoidMethod@MyStruct@@SAXXZ" : "_ZN8MyStruct12MyVoidMethodEv";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                entryPoint = $"_{entryPoint}";
-            }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            entryPoint = $"_{entryPoint}";
+        }
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" unsafe=""true"">
@@ -879,12 +879,12 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ThisTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task ThisTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -895,7 +895,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -911,12 +911,12 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task UnsafeDoesNotImpactDllImportTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task UnsafeDoesNotImpactDllImportTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     void* MyVoidStarMethod()
     {
@@ -926,7 +926,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 
 extern ""C"" void MyFunction();";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" unsafe=""true"">
@@ -944,12 +944,12 @@ extern ""C"" void MyFunction();";
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task VirtualTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task VirtualTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     virtual void MyVoidMethod() = 0;
 
@@ -964,7 +964,7 @@ extern ""C"" void MyFunction();";
 };
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
@@ -1000,12 +1000,12 @@ extern ""C"" void MyFunction();";
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task VirtualWithVtblIndexAttributeTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task VirtualWithVtblIndexAttributeTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     virtual void MyVoidMethod() = 0;
 
@@ -1020,7 +1020,7 @@ extern ""C"" void MyFunction();";
 };
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" vtbl=""true"" unsafe=""true"">
@@ -1056,9 +1056,8 @@ extern ""C"" void MyFunction();";
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
-        }
-
-        protected override Task ValidateBindingsAsync(string inputContents, string expectedOutputContents) => ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
     }
+
+    protected override Task ValidateBindingsAsync(string inputContents, string expectedOutputContents) => ValidateGeneratedXmlPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
 }

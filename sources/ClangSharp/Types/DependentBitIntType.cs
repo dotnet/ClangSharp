@@ -3,21 +3,20 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class DependentBitIntType : Type
 {
-    public sealed class DependentBitIntType : Type
+    private readonly Lazy<Expr> _numBitsExpr;
+
+    internal DependentBitIntType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_DependentBitInt)
     {
-        private readonly Lazy<Expr> _numBitsExpr;
-
-        internal DependentBitIntType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_DependentBitInt)
-        {
-            _numBitsExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.NumBitsExpr));
-        }
-
-        public bool IsSigned => Handle.IsSigned;
-
-        public bool IsUnsigned => Handle.IsUnsigned;
-
-        public Expr NumBitsExpr => _numBitsExpr.Value;
+        _numBitsExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.NumBitsExpr));
     }
+
+    public bool IsSigned => Handle.IsSigned;
+
+    public bool IsUnsigned => Handle.IsUnsigned;
+
+    public Expr NumBitsExpr => _numBitsExpr.Value;
 }

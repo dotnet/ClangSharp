@@ -4,52 +4,52 @@ using System.Linq;
 using ClangSharp.Interop;
 using NUnit.Framework;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class DeclTest : TranslationUnitTest
 {
-    public sealed class DeclTest : TranslationUnitTest
+    [TestCase("private", CX_CXXAccessSpecifier.CX_CXXPrivate)]
+    [TestCase("protected", CX_CXXAccessSpecifier.CX_CXXProtected)]
+    [TestCase("public", CX_CXXAccessSpecifier.CX_CXXPublic)]
+    public void AccessSpecDeclTest(string accessSpecifier, CX_CXXAccessSpecifier expectedAccessSpecifier)
     {
-        [TestCase("private", CX_CXXAccessSpecifier.CX_CXXPrivate)]
-        [TestCase("protected", CX_CXXAccessSpecifier.CX_CXXProtected)]
-        [TestCase("public", CX_CXXAccessSpecifier.CX_CXXPublic)]
-        public void AccessSpecDeclTest(string accessSpecifier, CX_CXXAccessSpecifier expectedAccessSpecifier)
-        {
-            var inputContents = $@"struct MyStruct
+        var inputContents = $@"struct MyStruct
 {{
 {accessSpecifier}:
 }};
 ";
 
-            using var translationUnit = CreateTranslationUnit(inputContents);
+        using var translationUnit = CreateTranslationUnit(inputContents);
 
-            var recordDecl = translationUnit.TranslationUnitDecl.Decls.OfType<RecordDecl>().Where((recordDecl) => recordDecl.Name == "MyStruct").Single();
-            var accessSpecDecl = recordDecl.Decls.OfType<AccessSpecDecl>().Single();
+        var recordDecl = translationUnit.TranslationUnitDecl.Decls.OfType<RecordDecl>().Where((recordDecl) => recordDecl.Name == "MyStruct").Single();
+        var accessSpecDecl = recordDecl.Decls.OfType<AccessSpecDecl>().Single();
 
-            Assert.AreEqual(expectedAccessSpecifier, accessSpecDecl.Access);
-        }
+        Assert.AreEqual(expectedAccessSpecifier, accessSpecDecl.Access);
+    }
 
-        [Test]
-        public void ClassTemplateDeclTest()
-        {
-            var inputContents = $@"template<class T>
+    [Test]
+    public void ClassTemplateDeclTest()
+    {
+        var inputContents = $@"template<class T>
 class MyClass
 {{
     T value;
 }};
 ";
 
-            using var translationUnit = CreateTranslationUnit(inputContents);
+        using var translationUnit = CreateTranslationUnit(inputContents);
 
-            var classTemplateDecl = translationUnit.TranslationUnitDecl.Decls.OfType<ClassTemplateDecl>().Single();
-            Assert.AreEqual("MyClass", classTemplateDecl.Name);
+        var classTemplateDecl = translationUnit.TranslationUnitDecl.Decls.OfType<ClassTemplateDecl>().Single();
+        Assert.AreEqual("MyClass", classTemplateDecl.Name);
 
-            var templateParameter = classTemplateDecl.TemplateParameters.Single();
-            Assert.AreEqual("T", templateParameter.Name);
-        }
+        var templateParameter = classTemplateDecl.TemplateParameters.Single();
+        Assert.AreEqual("T", templateParameter.Name);
+    }
 
-        [Test]
-        public void ClassTemplatePartialSpecializationDeclTest()
-        {
-            var inputContents = $@"template<class T, class U>
+    [Test]
+    public void ClassTemplatePartialSpecializationDeclTest()
+    {
+        var inputContents = $@"template<class T, class U>
 class MyClass
 {{
     T value1;
@@ -64,13 +64,12 @@ class MyClass<int, U>
 }};
 ";
 
-            using var translationUnit = CreateTranslationUnit(inputContents);
+        using var translationUnit = CreateTranslationUnit(inputContents);
 
-            var classTemplatePartialSpecializationDecl = translationUnit.TranslationUnitDecl.Decls.OfType<ClassTemplatePartialSpecializationDecl>().Single();
-            Assert.AreEqual("MyClass", classTemplatePartialSpecializationDecl.Name);
+        var classTemplatePartialSpecializationDecl = translationUnit.TranslationUnitDecl.Decls.OfType<ClassTemplatePartialSpecializationDecl>().Single();
+        Assert.AreEqual("MyClass", classTemplatePartialSpecializationDecl.Name);
 
-            var templateParameter = classTemplatePartialSpecializationDecl.TemplateParameters.Single();
-            Assert.AreEqual("U", templateParameter.Name);
-        }
+        var templateParameter = classTemplatePartialSpecializationDecl.TemplateParameters.Single();
+        Assert.AreEqual("U", templateParameter.Name);
     }
 }

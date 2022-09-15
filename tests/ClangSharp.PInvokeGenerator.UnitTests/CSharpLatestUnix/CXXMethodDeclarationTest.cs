@@ -4,13 +4,13 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class CSharpLatestUnix_CXXMethodDeclarationTest : CXXMethodDeclarationTest
 {
-    public sealed class CSharpLatestUnix_CXXMethodDeclarationTest : CXXMethodDeclarationTest
+    protected override Task ConstructorTestImpl()
     {
-        protected override Task ConstructorTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+        var inputContents = @"struct MyStruct
 {
     int _value;
 
@@ -21,7 +21,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -35,12 +35,12 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ConstructorWithInitializeTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task ConstructorWithInitializeTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int _x;
     int _y;
@@ -60,7 +60,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -90,12 +90,12 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ConversionTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task ConversionTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -106,7 +106,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -120,12 +120,12 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task DestructorTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task DestructorTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     ~MyStruct()
     {
@@ -133,7 +133,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -144,12 +144,12 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task InstanceTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task InstanceTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     void MyVoidMethod();
 
@@ -164,21 +164,21 @@ namespace ClangSharp.UnitTests
     }
 };
 ";
-            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN8MyStruct12MyVoidMethodEv" : "_ZN8MyStruct12MyVoidMethodEv";
+        var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN8MyStruct12MyVoidMethodEv" : "_ZN8MyStruct12MyVoidMethodEv";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            if (!Environment.Is64BitProcess)
             {
-                if (!Environment.Is64BitProcess)
-                {
-                    entryPoint = "?MyVoidMethod@MyStruct@@QAEXXZ";
-                }
-                else
-                {
-                    entryPoint = "?MyVoidMethod@MyStruct@@QEAAXXZ";
-                }
+                entryPoint = "?MyVoidMethod@MyStruct@@QAEXXZ";
             }
+            else
+            {
+                entryPoint = "?MyVoidMethod@MyStruct@@QEAAXXZ";
+            }
+        }
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -200,12 +200,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task MemberCallTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task MemberCallTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -236,7 +236,7 @@ int MyFunctionB(MyStruct* x)
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -273,12 +273,12 @@ int MyFunctionB(MyStruct* x)
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task MemberTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task MemberTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -289,7 +289,7 @@ int MyFunctionB(MyStruct* x)
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -303,12 +303,12 @@ int MyFunctionB(MyStruct* x)
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NewKeywordTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NewKeywordTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int Equals() { return 0; }
     int Equals(int obj) { return 0; }
@@ -326,7 +326,7 @@ int MyFunctionB(MyStruct* x)
     int ToString(int obj) { return 0; }
 };";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -403,19 +403,19 @@ int MyFunctionB(MyStruct* x)
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NewKeywordVirtualTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NewKeywordVirtualTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     virtual int GetType(int obj) = 0;
     virtual int GetType() = 0;
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -441,26 +441,26 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NewKeywordVirtualWithExplicitVtblTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NewKeywordVirtualWithExplicitVtblTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     virtual int GetType(int obj) = 0;
     virtual int GetType() = 0;
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var nativeCallConv = "";
+        var nativeCallConv = "";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                nativeCallConv = " __attribute__((thiscall))";
-            }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+        {
+            nativeCallConv = " __attribute__((thiscall))";
+        }
 
-            var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -498,26 +498,26 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
+    }
 
-        protected override Task NewKeywordVirtualWithExplicitVtblAndMarkerInterfaceTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NewKeywordVirtualWithExplicitVtblAndMarkerInterfaceTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     virtual int GetType(int obj) = 0;
     virtual int GetType() = 0;
     virtual int GetType(int objA, int objB) = 0;
 };";
 
-            var nativeCallConv = "";
+        var nativeCallConv = "";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
-            {
-                nativeCallConv = " __attribute__((thiscall))";
-            }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Environment.Is64BitProcess)
+        {
+            nativeCallConv = " __attribute__((thiscall))";
+        }
 
-            var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -565,12 +565,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls | PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
+    }
 
-        protected override Task OperatorTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task OperatorTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -590,7 +590,7 @@ MyStruct operator-(MyStruct lhs, MyStruct rhs)
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -617,12 +617,12 @@ MyStruct operator-(MyStruct lhs, MyStruct rhs)
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task OperatorCallTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task OperatorCallTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -652,7 +652,7 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -689,12 +689,12 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task StaticTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task StaticTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     static void MyVoidMethod();
 
@@ -710,14 +710,14 @@ MyStruct MyFunction2(MyStruct lhs, MyStruct rhs)
 };
 ";
 
-            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "?MyVoidMethod@MyStruct@@SAXXZ" : "_ZN8MyStruct12MyVoidMethodEv";
+        var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "?MyVoidMethod@MyStruct@@SAXXZ" : "_ZN8MyStruct12MyVoidMethodEv";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                entryPoint = $"_{entryPoint}";
-            }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            entryPoint = $"_{entryPoint}";
+        }
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -739,12 +739,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ThisTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task ThisTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 
@@ -755,7 +755,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -769,12 +769,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task UnsafeDoesNotImpactDllImportTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task UnsafeDoesNotImpactDllImportTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     void* MyVoidStarMethod()
     {
@@ -784,7 +784,7 @@ namespace ClangSharp.Test
 
 extern ""C"" void MyFunction();";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -804,12 +804,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task VirtualTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task VirtualTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     virtual void MyVoidMethod() = 0;
 
@@ -824,7 +824,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -856,12 +856,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task VirtualWithVtblIndexAttributeTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task VirtualWithVtblIndexAttributeTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     virtual void MyVoidMethod() = 0;
 
@@ -876,7 +876,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -912,9 +912,8 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
-        }
-
-        protected override Task ValidateBindingsAsync(string inputContents, string expectedOutputContents) => ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
     }
+
+    protected override Task ValidateBindingsAsync(string inputContents, string expectedOutputContents) => ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
 }

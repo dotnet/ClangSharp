@@ -3,13 +3,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class XmlCompatibleUnix_EnumDeclarationTest : EnumDeclarationTest
 {
-    public sealed class XmlCompatibleUnix_EnumDeclarationTest : EnumDeclarationTest
+    protected override Task BasicTestImpl()
     {
-        protected override Task BasicTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -17,7 +17,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum"" access=""public"">
@@ -36,12 +36,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BasicValueTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task BasicValueTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value1 = 1,
     MyEnum_Value2,
@@ -49,7 +49,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum"" access=""public"">
@@ -71,12 +71,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ExcludeTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task ExcludeTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -84,15 +84,15 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = string.Empty;
+        var expectedOutputContents = string.Empty;
 
-            var excludedNames = new string[] { "MyEnum" };
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
-        }
+        var excludedNames = new string[] { "MyEnum" };
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+    }
 
-        protected override Task ExplicitTypedTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"enum MyEnum : {nativeType}
+    protected override Task ExplicitTypedTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"enum MyEnum : {nativeType}
 {{
     MyEnum_Value0,
     MyEnum_Value1,
@@ -100,7 +100,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum"" access=""public"">
@@ -119,12 +119,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ExplicitTypedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"enum MyEnum : {nativeType}
+    protected override Task ExplicitTypedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"enum MyEnum : {nativeType}
 {{
     MyEnum_Value0,
     MyEnum_Value1,
@@ -132,7 +132,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum"" access=""public"">
@@ -151,12 +151,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task RemapTestImpl()
-        {
-            var inputContents = @"typedef enum _MyEnum : int
+    protected override Task RemapTestImpl()
+    {
+        var inputContents = @"typedef enum _MyEnum : int
 {
     MyEnum_Value1,
     MyEnum_Value2,
@@ -164,7 +164,7 @@ namespace ClangSharp.UnitTests
 } MyEnum;
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum"" access=""public"">
@@ -183,13 +183,13 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            var remappedNames = new Dictionary<string, string> { ["_MyEnum"] = "MyEnum" };
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
-        }
+        var remappedNames = new Dictionary<string, string> { ["_MyEnum"] = "MyEnum" };
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+    }
 
-        protected override Task WithAttributeTestImpl()
-        {
-            var inputContents = @"enum MyEnum1 : int
+    protected override Task WithAttributeTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value1 = 1,
 };
@@ -200,7 +200,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum1"" access=""public"">
@@ -226,16 +226,16 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            var withAttributes = new Dictionary<string, IReadOnlyList<string>>
-            {
-                ["MyEnum1"] = new List<string>() { "Flags" }
-            };
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
-        }
-
-        protected override Task WithNamespaceTestImpl()
+        var withAttributes = new Dictionary<string, IReadOnlyList<string>>
         {
-            var inputContents = @"enum MyEnum1 : int
+            ["MyEnum1"] = new List<string>() { "Flags" }
+        };
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
+    }
+
+    protected override Task WithNamespaceTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value1 = 1,
 };
@@ -246,7 +246,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum1"" access=""public"">
@@ -271,16 +271,16 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
-            {
-                ["MyEnum1"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
-            };
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
-        }
-
-        protected override Task WithNamespaceStarTestImpl()
+        var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
         {
-            var inputContents = @"enum MyEnum1 : int
+            ["MyEnum1"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
+        };
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
+    }
+
+    protected override Task WithNamespaceStarTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value1 = 1,
 };
@@ -291,7 +291,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum1"" access=""public"">
@@ -316,16 +316,16 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
-            {
-                ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
-            };
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
-        }
-
-        protected override Task WithNamespaceStarPlusTestImpl()
+        var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
         {
-            var inputContents = @"enum MyEnum1 : int
+            ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
+        };
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
+    }
+
+    protected override Task WithNamespaceStarPlusTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value1 = 1,
 };
@@ -336,7 +336,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum1"" access=""public"">
@@ -361,17 +361,17 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
-            {
-                ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" },
-                ["MyEnum2"] = new List<string>() { "System" }
-            };
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
-        }
-
-        protected override Task WithCastToEnumTypeImpl()
+        var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
         {
-            var inputContents = @"enum MyEnum : int
+            ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" },
+            ["MyEnum2"] = new List<string>() { "System" }
+        };
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
+    }
+
+    protected override Task WithCastToEnumTypeImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0 = (MyEnum) 10,
     MyEnum_Value1 = (MyEnum) MyEnum_Value0,
@@ -379,7 +379,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum"" access=""public"">
@@ -407,12 +407,12 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WithMultipleEnumsTestImpl()
-        {
-            var inputContents = @"enum MyEnum1 : int
+    protected override Task WithMultipleEnumsTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value0 = 10,
 };
@@ -424,7 +424,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum1"" access=""public"">
@@ -455,12 +455,12 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WithImplicitConversionTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task WithImplicitConversionTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -468,7 +468,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum"" access=""public"">
@@ -497,12 +497,12 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WithTypeTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task WithTypeTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -510,7 +510,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum"" access=""public"">
@@ -529,15 +529,15 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            var withTypes = new Dictionary<string, string> {
-                ["MyEnum"] = "uint"
-            };
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
-        }
+        var withTypes = new Dictionary<string, string> {
+            ["MyEnum"] = "uint"
+        };
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+    }
 
-        protected override Task WithTypeAndImplicitConversionTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task WithTypeAndImplicitConversionTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -545,7 +545,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum"" access=""public"">
@@ -567,16 +567,16 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            var withTypes = new Dictionary<string, string>
-            {
-                ["MyEnum"] = "uint"
-            };
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
-        }
-
-        protected override Task WithTypeStarTestImpl()
+        var withTypes = new Dictionary<string, string>
         {
-            var inputContents = @"enum MyEnum1 : int
+            ["MyEnum"] = "uint"
+        };
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+    }
+
+    protected override Task WithTypeStarTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value0
 };
@@ -587,7 +587,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum1"" access=""public"">
@@ -606,16 +606,16 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            var withTypes = new Dictionary<string, string>
-            {
-                ["*"] = "uint"
-            };
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
-        }
-
-        protected override Task WithTypeStarOverrideTestImpl()
+        var withTypes = new Dictionary<string, string>
         {
-            var inputContents = @"enum MyEnum1 : int
+            ["*"] = "uint"
+        };
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+    }
+
+    protected override Task WithTypeStarOverrideTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value0
 };
@@ -626,7 +626,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <enumeration name=""MyEnum1"" access=""public"">
@@ -645,12 +645,11 @@ enum MyEnum2 : int
 </bindings>
 ";
 
-            var withTypes = new Dictionary<string, string>
-            {
-                ["*"] = "uint",
-                ["MyEnum1"] = "int",
-            };
-            return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
-        }
+        var withTypes = new Dictionary<string, string>
+        {
+            ["*"] = "uint",
+            ["MyEnum1"] = "int",
+        };
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
     }
 }

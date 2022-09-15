@@ -3,53 +3,52 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class PreprocessedEntity : Cursor
 {
-    public class PreprocessedEntity : Cursor
+    private protected PreprocessedEntity(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
     {
-        private protected PreprocessedEntity(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
-        {
-        }
+    }
 
-        internal static new PreprocessedEntity Create(CXCursor handle)
-        {
-            PreprocessedEntity result;
+    internal static new PreprocessedEntity Create(CXCursor handle)
+    {
+        PreprocessedEntity result;
 
-            switch (handle.Kind)
+        switch (handle.Kind)
+        {
+            case CXCursorKind.CXCursor_PreprocessingDirective:
             {
-                case CXCursorKind.CXCursor_PreprocessingDirective:
-                {
-                    result = new PreprocessingDirective(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_MacroDefinition:
-                {
-                    result = new MacroDefinitionRecord(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_MacroExpansion:
-                {
-                    result = new MacroExpansion(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_InclusionDirective:
-                {
-                    result = new InclusionDirective(handle);
-                    break;
-                }
-
-                default:
-                {
-                    Debug.WriteLine($"Unhandled preprocessing kind: {handle.KindSpelling}.");
-                    result = new PreprocessedEntity(handle, handle.Kind);
-                    break;
-                }
+                result = new PreprocessingDirective(handle);
+                break;
             }
 
-            return result;
+            case CXCursorKind.CXCursor_MacroDefinition:
+            {
+                result = new MacroDefinitionRecord(handle);
+                break;
+            }
+
+            case CXCursorKind.CXCursor_MacroExpansion:
+            {
+                result = new MacroExpansion(handle);
+                break;
+            }
+
+            case CXCursorKind.CXCursor_InclusionDirective:
+            {
+                result = new InclusionDirective(handle);
+                break;
+            }
+
+            default:
+            {
+                Debug.WriteLine($"Unhandled preprocessing kind: {handle.KindSpelling}.");
+                result = new PreprocessedEntity(handle, handle.Kind);
+                break;
+            }
         }
+
+        return result;
     }
 }

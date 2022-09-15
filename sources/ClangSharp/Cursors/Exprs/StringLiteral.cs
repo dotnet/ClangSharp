@@ -4,62 +4,61 @@ using System;
 using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class StringLiteral : Expr
 {
-    public sealed class StringLiteral : Expr
+    internal StringLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_StringLiteral, CX_StmtClass.CX_StmtClass_StringLiteral)
     {
-        internal StringLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_StringLiteral, CX_StmtClass.CX_StmtClass_StringLiteral)
-        {
-        }
+    }
 
-        public CX_CharacterKind Kind => Handle.CharacterLiteralKind;
+    public CX_CharacterKind Kind => Handle.CharacterLiteralKind;
 
-        public unsafe string String
+    public unsafe string String
+    {
+        get
         {
-            get
+            var pCString = clang.getCString(Handle.StringLiteralValue);
+
+            if (pCString is null)
             {
-                var pCString = clang.getCString(Handle.StringLiteralValue);
+                return string.Empty;
+            }
 
-                if (pCString is null)
+            var constantArrayType = (ConstantArrayType)Type;
+            var length = unchecked((int)constantArrayType.Size - 1);
+
+            switch (Kind)
+            {
+                case CX_CharacterKind.CX_CLK_Ascii:
+                case CX_CharacterKind.CX_CLK_UTF8:
                 {
-                    return string.Empty;
+                    return new ReadOnlySpan<byte>(pCString, length).AsString();
                 }
 
-                var constantArrayType = (ConstantArrayType)Type;
-                var length = unchecked((int)constantArrayType.Size - 1);
-
-                switch (Kind)
+                case CX_CharacterKind.CX_CLK_Wide:
                 {
-                    case CX_CharacterKind.CX_CLK_Ascii:
-                    case CX_CharacterKind.CX_CLK_UTF8:
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        return new ReadOnlySpan<byte>(pCString, length).AsString();
+                        goto case CX_CharacterKind.CX_CLK_UTF16;
                     }
 
-                    case CX_CharacterKind.CX_CLK_Wide:
-                    {
-                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        {
-                            goto case CX_CharacterKind.CX_CLK_UTF16;
-                        }
+                    goto case CX_CharacterKind.CX_CLK_UTF32;
+                }
 
-                        goto case CX_CharacterKind.CX_CLK_UTF32;
-                    }
+                case CX_CharacterKind.CX_CLK_UTF16:
+                {
+                    return new ReadOnlySpan<ushort>(pCString, length).AsString();
+                }
 
-                    case CX_CharacterKind.CX_CLK_UTF16:
-                    {
-                        return new ReadOnlySpan<ushort>(pCString, length).AsString();
-                    }
+                case CX_CharacterKind.CX_CLK_UTF32:
+                {
+                    return new ReadOnlySpan<uint>(pCString, length).AsString();
+                }
 
-                    case CX_CharacterKind.CX_CLK_UTF32:
-                    {
-                        return new ReadOnlySpan<uint>(pCString, length).AsString();
-                    }
-
-                    default:
-                    {
-                        return string.Empty;
-                    }
+                default:
+                {
+                    return string.Empty;
                 }
             }
         }

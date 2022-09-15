@@ -3,16 +3,15 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class OMPLoopBasedDirective : OMPExecutableDirective
 {
-    public class OMPLoopBasedDirective : OMPExecutableDirective
+    private protected OMPLoopBasedDirective(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
-        private protected OMPLoopBasedDirective(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
+        if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastOMPLoopBasedDirective or < CX_StmtClass.CX_StmtClass_FirstOMPLoopBasedDirective)
         {
-            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastOMPLoopBasedDirective or < CX_StmtClass.CX_StmtClass_FirstOMPLoopBasedDirective)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
     }
 }

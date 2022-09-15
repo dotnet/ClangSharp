@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPUnrollDirective : OMPLoopTransformationDirective
 {
-    public sealed class OMPUnrollDirective : OMPLoopTransformationDirective
+    internal OMPUnrollDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPUnrollDirective, CX_StmtClass.CX_StmtClass_OMPUnrollDirective)
     {
-        internal OMPUnrollDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPUnrollDirective, CX_StmtClass.CX_StmtClass_OMPUnrollDirective)
-        {
-        }
     }
 }

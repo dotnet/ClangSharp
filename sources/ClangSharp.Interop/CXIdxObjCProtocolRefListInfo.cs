@@ -3,14 +3,13 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
-namespace ClangSharp.Interop
-{
-    public unsafe partial struct CXIdxObjCProtocolRefListInfo
-    {
-        [NativeTypeName("const CXIdxObjCProtocolRefInfo *const *")]
-        public CXIdxObjCProtocolRefInfo** protocols;
+namespace ClangSharp.Interop;
 
-        [NativeTypeName("unsigned int")]
-        public uint numProtocols;
-    }
+public unsafe partial struct CXIdxObjCProtocolRefListInfo
+{
+    [NativeTypeName("const CXIdxObjCProtocolRefInfo *const *")]
+    public CXIdxObjCProtocolRefInfo** protocols;
+
+    [NativeTypeName("unsigned int")]
+    public uint numProtocols;
 }

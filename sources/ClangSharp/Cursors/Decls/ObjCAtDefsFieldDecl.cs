@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ObjCAtDefsFieldDecl : FieldDecl
 {
-    public sealed class ObjCAtDefsFieldDecl : FieldDecl
+    internal ObjCAtDefsFieldDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_ObjCAtDefsField)
     {
-        internal ObjCAtDefsFieldDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_ObjCAtDefsField)
-        {
-        }
     }
 }

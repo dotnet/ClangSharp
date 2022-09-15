@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class TypeAliasTemplateDecl : RedeclarableTemplateDecl
 {
-    public sealed class TypeAliasTemplateDecl : RedeclarableTemplateDecl
+    internal TypeAliasTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TypeAliasTemplateDecl, CX_DeclKind.CX_DeclKind_TypeAliasTemplate)
     {
-        internal TypeAliasTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TypeAliasTemplateDecl, CX_DeclKind.CX_DeclKind_TypeAliasTemplate)
-        {
-        }
     }
 }

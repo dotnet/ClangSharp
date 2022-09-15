@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class DesignatedInitExpr : Expr
 {
-    public sealed class DesignatedInitExpr : Expr
+    internal DesignatedInitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_DesignatedInitExpr)
     {
-        internal DesignatedInitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_DesignatedInitExpr)
-        {
-        }
     }
 }

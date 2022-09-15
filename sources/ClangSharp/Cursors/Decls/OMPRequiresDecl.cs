@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPRequiresDecl : Decl
 {
-    public sealed class OMPRequiresDecl : Decl
+    internal OMPRequiresDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_OMPRequires)
     {
-        internal OMPRequiresDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_OMPRequires)
-        {
-        }
     }
 }

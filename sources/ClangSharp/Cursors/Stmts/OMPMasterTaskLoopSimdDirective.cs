@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPMasterTaskLoopSimdDirective : OMPLoopDirective
 {
-    public sealed class OMPMasterTaskLoopSimdDirective : OMPLoopDirective
+    internal OMPMasterTaskLoopSimdDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPMasterTaskLoopSimdDirective, CX_StmtClass.CX_StmtClass_OMPMasterTaskLoopSimdDirective)
     {
-        internal OMPMasterTaskLoopSimdDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPMasterTaskLoopSimdDirective, CX_StmtClass.CX_StmtClass_OMPMasterTaskLoopSimdDirective)
-        {
-        }
     }
 }

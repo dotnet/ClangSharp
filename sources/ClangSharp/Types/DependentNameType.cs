@@ -2,13 +2,12 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class DependentNameType : TypeWithKeyword
-    {
+namespace ClangSharp;
 
-        internal DependentNameType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_DependentName)
-        {
-        }
+public sealed class DependentNameType : TypeWithKeyword
+{
+
+    internal DependentNameType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_DependentName)
+    {
     }
 }

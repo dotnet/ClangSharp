@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace ClangSharp.UnitTests
-{
-    public sealed class XmlPreviewWindows_FunctionDeclarationDllImportTest : FunctionDeclarationDllImportTest
-    {
-        protected override Task BasicTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction();";
+namespace ClangSharp.UnitTests;
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+public sealed class XmlPreviewWindows_FunctionDeclarationDllImportTest : FunctionDeclarationDllImportTest
+{
+    protected override Task BasicTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction();";
+
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -24,14 +24,14 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ArrayParameterTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction(const float color[4]);";
+    protected override Task ArrayParameterTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction(const float color[4]);";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -46,14 +46,14 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FunctionPointerParameterTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction(void (*callback)());";
+    protected override Task FunctionPointerParameterTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction(void (*callback)());";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -68,24 +68,24 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NamespaceTestImpl()
-        {
-            var inputContents = @"namespace MyNamespace
+    protected override Task NamespaceTestImpl()
+    {
+        var inputContents = @"namespace MyNamespace
 {
     void MyFunction();
 }";
 
-            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN11MyNamespace10MyFunctionEv" : "_ZN11MyNamespace10MyFunctionEv";
+        var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN11MyNamespace10MyFunctionEv" : "_ZN11MyNamespace10MyFunctionEv";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                entryPoint = "?MyFunction@MyNamespace@@YAXXZ";
-            }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            entryPoint = "?MyFunction@MyNamespace@@YAXXZ";
+        }
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -97,16 +97,16 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task TemplateParameterTestImpl(string nativeType, bool expectedNativeTypeAttr, string expectedManagedType, string expectedUsingStatement)
-        {
-            var inputContents = @$"template <typename T> struct MyTemplate;
+    protected override Task TemplateParameterTestImpl(string nativeType, bool expectedNativeTypeAttr, string expectedManagedType, string expectedUsingStatement)
+    {
+        var inputContents = @$"template <typename T> struct MyTemplate;
 
 extern ""C"" void MyFunction(MyTemplate<{nativeType}> myStruct);";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -121,12 +121,12 @@ extern ""C"" void MyFunction(MyTemplate<{nativeType}> myStruct);";
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
-        }
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+    }
 
-        protected override Task TemplateMemberTestImpl()
-        {
-            var inputContents = @$"template <typename T> struct MyTemplate
+    protected override Task TemplateMemberTestImpl()
+    {
+        var inputContents = @$"template <typename T> struct MyTemplate
 {{
 }};
 
@@ -136,7 +136,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -148,14 +148,14 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
-        }
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+    }
 
-        protected override Task NoLibraryPathTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction();";
+    protected override Task NoLibraryPathTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction();";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -167,14 +167,14 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty);
-        }
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty);
+    }
 
-        protected override Task WithLibraryPathTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction();";
+    protected override Task WithLibraryPathTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction();";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -186,18 +186,18 @@ struct MyStruct
 </bindings>
 ";
 
-            var withLibraryPaths = new Dictionary<string, string>
-            {
-                ["MyFunction"] = "ClangSharpPInvokeGenerator"
-            };
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
-        }
-
-        protected override Task WithLibraryPathStarTestImpl()
+        var withLibraryPaths = new Dictionary<string, string>
         {
-            var inputContents = @"extern ""C"" void MyFunction();";
+            ["MyFunction"] = "ClangSharpPInvokeGenerator"
+        };
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
+    }
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+    protected override Task WithLibraryPathStarTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction();";
+
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -209,18 +209,18 @@ struct MyStruct
 </bindings>
 ";
 
-            var withLibraryPaths = new Dictionary<string, string>
-            {
-                ["*"] = "ClangSharpPInvokeGenerator"
-            };
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
-        }
-
-        protected override Task OptionalParameterTestImpl(string nativeType, string nativeInit, bool expectedNativeTypeNameAttr, string expectedManagedType, string expectedManagedInit)
+        var withLibraryPaths = new Dictionary<string, string>
         {
-            var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
+            ["*"] = "ClangSharpPInvokeGenerator"
+        };
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
+    }
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+    protected override Task OptionalParameterTestImpl(string nativeType, string nativeInit, bool expectedNativeTypeNameAttr, string expectedManagedType, string expectedManagedInit)
+    {
+        var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
+
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -238,14 +238,14 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task OptionalParameterUnsafeTestImpl(string nativeType, string nativeInit, string expectedManagedType, string expectedManagedInit)
-        {
-            var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
+    protected override Task OptionalParameterUnsafeTestImpl(string nativeType, string nativeInit, string expectedManagedType, string expectedManagedInit)
+    {
+        var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -263,14 +263,14 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WithCallConvTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+    protected override Task WithCallConvTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -291,17 +291,17 @@ struct MyStruct
 </bindings>
 ";
 
-            var withCallConvs = new Dictionary<string, string> {
-                ["MyFunction1"] = "Winapi"
-            };
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
-        }
+        var withCallConvs = new Dictionary<string, string> {
+            ["MyFunction1"] = "Winapi"
+        };
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+    }
 
-        protected override Task WithCallConvStarTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+    protected override Task WithCallConvStarTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -322,18 +322,18 @@ struct MyStruct
 </bindings>
 ";
 
-            var withCallConvs = new Dictionary<string, string>
-            {
-                ["*"] = "Winapi"
-            };
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
-        }
-
-        protected override Task WithCallConvStarOverrideTestImpl()
+        var withCallConvs = new Dictionary<string, string>
         {
-            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+            ["*"] = "Winapi"
+        };
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+    }
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+    protected override Task WithCallConvStarOverrideTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -354,19 +354,19 @@ struct MyStruct
 </bindings>
 ";
 
-            var withCallConvs = new Dictionary<string, string>
-            {
-                ["*"] = "Winapi",
-                ["MyFunction2"] = "StdCall"
-            };
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
-        }
-
-        protected override Task WithSetLastErrorTestImpl()
+        var withCallConvs = new Dictionary<string, string>
         {
-            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+            ["*"] = "Winapi",
+            ["MyFunction2"] = "StdCall"
+        };
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+    }
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+    protected override Task WithSetLastErrorTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -387,18 +387,18 @@ struct MyStruct
 </bindings>
 ";
 
-            var withSetLastErrors = new string[]
-            {
-                "MyFunction1"
-            };
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
-        }
-
-        protected override Task WithSetLastErrorStarTestImpl()
+        var withSetLastErrors = new string[]
         {
-            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+            "MyFunction1"
+        };
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+    }
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+    protected override Task WithSetLastErrorStarTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -419,18 +419,18 @@ struct MyStruct
 </bindings>
 ";
 
-            var withSetLastErrors = new string[]
-            {
-                "*"
-            };
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
-        }
-
-        protected override Task SourceLocationTestImpl()
+        var withSetLastErrors = new string[]
         {
-            const string InputContents = @"extern ""C"" void MyFunction(float value);";
+            "*"
+        };
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+    }
 
-            const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+    protected override Task SourceLocationTestImpl()
+    {
+        const string InputContents = @"extern ""C"" void MyFunction(float value);";
+
+        const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
@@ -445,9 +445,8 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlPreviewWindowsBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
-        }
-
-        protected override Task VarargsTestImpl() => Task.CompletedTask;
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
     }
+
+    protected override Task VarargsTestImpl() => Task.CompletedTask;
 }

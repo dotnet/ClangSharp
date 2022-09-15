@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class LambdaExpr : Expr
 {
-    public sealed class LambdaExpr : Expr
+    internal LambdaExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_LambdaExpr, CX_StmtClass.CX_StmtClass_LambdaExpr)
     {
-        internal LambdaExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_LambdaExpr, CX_StmtClass.CX_StmtClass_LambdaExpr)
-        {
-        }
     }
 }

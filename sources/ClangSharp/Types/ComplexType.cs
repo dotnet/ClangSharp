@@ -3,17 +3,16 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ComplexType : Type
 {
-    public sealed class ComplexType : Type
+    private readonly Lazy<Type> _elementType;
+
+    internal ComplexType(CXType handle) : base(handle, CXTypeKind.CXType_Complex, CX_TypeClass.CX_TypeClass_Complex)
     {
-        private readonly Lazy<Type> _elementType;
-
-        internal ComplexType(CXType handle) : base(handle, CXTypeKind.CXType_Complex, CX_TypeClass.CX_TypeClass_Complex)
-        {
-            _elementType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
-        }
-
-        public Type ElementType => _elementType.Value;
+        _elementType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
     }
+
+    public Type ElementType => _elementType.Value;
 }

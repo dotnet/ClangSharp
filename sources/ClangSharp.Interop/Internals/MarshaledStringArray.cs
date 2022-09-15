@@ -2,52 +2,51 @@
 
 using System;
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public unsafe ref struct MarshaledStringArray
 {
-    public unsafe ref struct MarshaledStringArray
+    private MarshaledString[] _values;
+
+    public MarshaledStringArray(ReadOnlySpan<string> inputs)
     {
-        private MarshaledString[] _values;
-
-        public MarshaledStringArray(ReadOnlySpan<string> inputs)
+        if (inputs.Length == 0)
         {
-            if (inputs.Length == 0)
-            {
-                _values = null;
-            }
-            else
-            {
-                _values = new MarshaledString[inputs.Length];
+            _values = null;
+        }
+        else
+        {
+            _values = new MarshaledString[inputs.Length];
 
-                for (var i = 0; i < inputs.Length; i++)
-                {
-                    _values[i] = new MarshaledString(inputs[i]);
-                }
+            for (var i = 0; i < inputs.Length; i++)
+            {
+                _values[i] = new MarshaledString(inputs[i]);
             }
         }
+    }
 
-        public ReadOnlySpan<MarshaledString> Values => _values;
+    public ReadOnlySpan<MarshaledString> Values => _values;
 
-        public void Dispose()
+    public void Dispose()
+    {
+        if (_values != null)
         {
-            if (_values != null)
+            for (var i = 0; i < _values.Length; i++)
             {
-                for (var i = 0; i < _values.Length; i++)
-                {
-                    _values[i].Dispose();
-                }
-
-                _values = null;
+                _values[i].Dispose();
             }
-        }
 
-        public void Fill(sbyte** pDestination)
+            _values = null;
+        }
+    }
+
+    public void Fill(sbyte** pDestination)
+    {
+        if (_values != null)
         {
-            if (_values != null)
+            for (var i = 0; i < _values.Length; i++)
             {
-                for (var i = 0; i < _values.Length; i++)
-                {
-                    pDestination[i] = Values[i];
-                }
+                pDestination[i] = Values[i];
             }
         }
     }

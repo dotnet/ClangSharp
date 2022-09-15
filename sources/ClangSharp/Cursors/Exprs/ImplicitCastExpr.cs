@@ -2,14 +2,13 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class ImplicitCastExpr : CastExpr
-    {
-        internal ImplicitCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ImplicitCastExpr)
-        {
-        }
+namespace ClangSharp;
 
-        public bool IsPartOfExplicitCast => !Handle.IsImplicit;
+public sealed class ImplicitCastExpr : CastExpr
+{
+    internal ImplicitCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ImplicitCastExpr)
+    {
     }
+
+    public bool IsPartOfExplicitCast => !Handle.IsImplicit;
 }

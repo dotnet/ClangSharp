@@ -3,20 +3,19 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public partial struct CXPlatformAvailability
 {
-    public partial struct CXPlatformAvailability
-    {
-        public CXString Platform;
+    public CXString Platform;
 
-        public CXVersion Introduced;
+    public CXVersion Introduced;
 
-        public CXVersion Deprecated;
+    public CXVersion Deprecated;
 
-        public CXVersion Obsoleted;
+    public CXVersion Obsoleted;
 
-        public int Unavailable;
+    public int Unavailable;
 
-        public CXString Message;
-    }
+    public CXString Message;
 }

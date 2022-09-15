@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class TypedefDecl : TypedefNameDecl
 {
-    public sealed class TypedefDecl : TypedefNameDecl
+    internal TypedefDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TypedefDecl, CX_DeclKind.CX_DeclKind_Typedef)
     {
-        internal TypedefDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TypedefDecl, CX_DeclKind.CX_DeclKind_Typedef)
-        {
-        }
     }
 }

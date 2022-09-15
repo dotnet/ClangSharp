@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class CXXReinterpretCastExpr : CXXNamedCastExpr
 {
-    public sealed class CXXReinterpretCastExpr : CXXNamedCastExpr
+    internal CXXReinterpretCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXReinterpretCastExpr, CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr)
     {
-        internal CXXReinterpretCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXReinterpretCastExpr, CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr)
-        {
-        }
     }
 }

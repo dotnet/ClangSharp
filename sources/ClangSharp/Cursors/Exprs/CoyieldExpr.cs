@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class CoyieldExpr : CoroutineSuspendExpr
 {
-    public sealed class CoyieldExpr : CoroutineSuspendExpr
+    internal CoyieldExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_CoyieldExpr)
     {
-        internal CoyieldExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_CoyieldExpr)
-        {
-        }
     }
 }

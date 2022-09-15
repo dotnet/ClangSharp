@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXIdxIncludedFileInfo" /> struct.</summary>
+public static unsafe partial class CXIdxIncludedFileInfoTests
 {
-    /// <summary>Provides validation of the <see cref="CXIdxIncludedFileInfo" /> struct.</summary>
-    public static unsafe partial class CXIdxIncludedFileInfoTests
+    /// <summary>Validates that the <see cref="CXIdxIncludedFileInfo" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXIdxIncludedFileInfo" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXIdxIncludedFileInfo>(), Is.EqualTo(sizeof(CXIdxIncludedFileInfo)));
-        }
+        Assert.That(Marshal.SizeOf<CXIdxIncludedFileInfo>(), Is.EqualTo(sizeof(CXIdxIncludedFileInfo)));
+    }
 
-        /// <summary>Validates that the <see cref="CXIdxIncludedFileInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXIdxIncludedFileInfo).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXIdxIncludedFileInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXIdxIncludedFileInfo).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXIdxIncludedFileInfo" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXIdxIncludedFileInfo" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXIdxIncludedFileInfo), Is.EqualTo(56));
-            }
-            else
-            {
-                Assert.That(sizeof(CXIdxIncludedFileInfo), Is.EqualTo(32));
-            }
+            Assert.That(sizeof(CXIdxIncludedFileInfo), Is.EqualTo(56));
+        }
+        else
+        {
+            Assert.That(sizeof(CXIdxIncludedFileInfo), Is.EqualTo(32));
         }
     }
 }

@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class CUDAKernelCallExpr : CallExpr
 {
-    public sealed class CUDAKernelCallExpr : CallExpr
+    internal CUDAKernelCallExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr)
     {
-        internal CUDAKernelCallExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr)
-        {
-        }
     }
 }

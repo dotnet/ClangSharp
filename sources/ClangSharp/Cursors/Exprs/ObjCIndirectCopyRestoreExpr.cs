@@ -3,17 +3,16 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ObjCIndirectCopyRestoreExpr : Expr
 {
-    public sealed class ObjCIndirectCopyRestoreExpr : Expr
+    internal ObjCIndirectCopyRestoreExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ObjCIndirectCopyRestoreExpr)
     {
-        internal ObjCIndirectCopyRestoreExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ObjCIndirectCopyRestoreExpr)
-        {
-            Debug.Assert(NumChildren is 1);
-        }
-
-        public bool ShouldCopy => Handle.ShouldCopy;
-
-        public Expr SubExpr => (Expr)Children[0];
+        Debug.Assert(NumChildren is 1);
     }
+
+    public bool ShouldCopy => Handle.ShouldCopy;
+
+    public Expr SubExpr => (Expr)Children[0];
 }

@@ -2,16 +2,15 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public class PreprocessingDirective : PreprocessedEntity
-    {
-        internal PreprocessingDirective(CXCursor handle) : this(handle, CXCursorKind.CXCursor_PreprocessingDirective)
-        {
-        }
+namespace ClangSharp;
 
-        private protected PreprocessingDirective(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
-        {
-        }
+public class PreprocessingDirective : PreprocessedEntity
+{
+    internal PreprocessingDirective(CXCursor handle) : this(handle, CXCursorKind.CXCursor_PreprocessingDirective)
+    {
+    }
+
+    private protected PreprocessingDirective(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
+    {
     }
 }

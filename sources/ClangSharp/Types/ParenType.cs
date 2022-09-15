@@ -2,15 +2,14 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ParenType : Type
 {
-    public sealed class ParenType : Type
+
+    internal ParenType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_Paren)
     {
-
-        internal ParenType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_Paren)
-        {
-        }
-
-        public Type InnerType => Desugar;
     }
+
+    public Type InnerType => Desugar;
 }

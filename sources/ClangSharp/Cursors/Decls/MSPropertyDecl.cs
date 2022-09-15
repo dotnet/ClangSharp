@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class MSPropertyDecl : DeclaratorDecl
 {
-    public sealed class MSPropertyDecl : DeclaratorDecl
+    internal MSPropertyDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_MSProperty)
     {
-        internal MSPropertyDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_MSProperty)
-        {
-        }
     }
 }

@@ -3,17 +3,16 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class SEHExceptStmt : Stmt
 {
-    public sealed class SEHExceptStmt : Stmt
+    internal SEHExceptStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHExceptStmt, CX_StmtClass.CX_StmtClass_SEHExceptStmt)
     {
-        internal SEHExceptStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHExceptStmt, CX_StmtClass.CX_StmtClass_SEHExceptStmt)
-        {
-            Debug.Assert(NumChildren is 2);
-        }
-
-        public Expr FilterExpr => (Expr)Children[0];
-
-        public CompoundStmt Block => (CompoundStmt)Children[1];
+        Debug.Assert(NumChildren is 2);
     }
+
+    public Expr FilterExpr => (Expr)Children[0];
+
+    public CompoundStmt Block => (CompoundStmt)Children[1];
 }

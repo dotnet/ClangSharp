@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class RequiresExprBodyDecl : Decl, IDeclContext
 {
-    public sealed class RequiresExprBodyDecl : Decl, IDeclContext
+    internal RequiresExprBodyDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_RequiresExprBody)
     {
-        internal RequiresExprBodyDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_RequiresExprBody)
-        {
-        }
     }
 }

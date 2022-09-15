@@ -3,26 +3,25 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class RedeclarableTemplateDecl : TemplateDecl, IRedeclarable<RedeclarableTemplateDecl>
 {
-    public class RedeclarableTemplateDecl : TemplateDecl, IRedeclarable<RedeclarableTemplateDecl>
+    private readonly Lazy<RedeclarableTemplateDecl> _instantiatedFromMemberTemplate;
+
+    private protected RedeclarableTemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        private readonly Lazy<RedeclarableTemplateDecl> _instantiatedFromMemberTemplate;
-
-        private protected RedeclarableTemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastRedeclarableTemplate or < CX_DeclKind.CX_DeclKind_FirstRedeclarableTemplate)
         {
-            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastRedeclarableTemplate or < CX_DeclKind.CX_DeclKind_FirstRedeclarableTemplate)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
-
-            _instantiatedFromMemberTemplate = new Lazy<RedeclarableTemplateDecl>(() => TranslationUnit.GetOrCreate<RedeclarableTemplateDecl>(Handle.SpecializedCursorTemplate));
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        public new RedeclarableTemplateDecl CanonicalDecl => (RedeclarableTemplateDecl)base.CanonicalDecl;
-
-        public bool IsMemberSpecialization => Handle.IsMemberSpecialization;
-
-        public RedeclarableTemplateDecl InstantiatedFromMemberTemplate => _instantiatedFromMemberTemplate.Value;
+        _instantiatedFromMemberTemplate = new Lazy<RedeclarableTemplateDecl>(() => TranslationUnit.GetOrCreate<RedeclarableTemplateDecl>(Handle.SpecializedCursorTemplate));
     }
+
+    public new RedeclarableTemplateDecl CanonicalDecl => (RedeclarableTemplateDecl)base.CanonicalDecl;
+
+    public bool IsMemberSpecialization => Handle.IsMemberSpecialization;
+
+    public RedeclarableTemplateDecl InstantiatedFromMemberTemplate => _instantiatedFromMemberTemplate.Value;
 }

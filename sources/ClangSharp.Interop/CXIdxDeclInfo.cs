@@ -3,41 +3,40 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public unsafe partial struct CXIdxDeclInfo
 {
-    public unsafe partial struct CXIdxDeclInfo
-    {
-        [NativeTypeName("const CXIdxEntityInfo *")]
-        public CXIdxEntityInfo* entityInfo;
+    [NativeTypeName("const CXIdxEntityInfo *")]
+    public CXIdxEntityInfo* entityInfo;
 
-        public CXCursor cursor;
+    public CXCursor cursor;
 
-        public CXIdxLoc loc;
+    public CXIdxLoc loc;
 
-        [NativeTypeName("const CXIdxContainerInfo *")]
-        public CXIdxContainerInfo* semanticContainer;
+    [NativeTypeName("const CXIdxContainerInfo *")]
+    public CXIdxContainerInfo* semanticContainer;
 
-        [NativeTypeName("const CXIdxContainerInfo *")]
-        public CXIdxContainerInfo* lexicalContainer;
+    [NativeTypeName("const CXIdxContainerInfo *")]
+    public CXIdxContainerInfo* lexicalContainer;
 
-        public int isRedeclaration;
+    public int isRedeclaration;
 
-        public int isDefinition;
+    public int isDefinition;
 
-        public int isContainer;
+    public int isContainer;
 
-        [NativeTypeName("const CXIdxContainerInfo *")]
-        public CXIdxContainerInfo* declAsContainer;
+    [NativeTypeName("const CXIdxContainerInfo *")]
+    public CXIdxContainerInfo* declAsContainer;
 
-        public int isImplicit;
+    public int isImplicit;
 
-        [NativeTypeName("const CXIdxAttrInfo *const *")]
-        public CXIdxAttrInfo** attributes;
+    [NativeTypeName("const CXIdxAttrInfo *const *")]
+    public CXIdxAttrInfo** attributes;
 
-        [NativeTypeName("unsigned int")]
-        public uint numAttributes;
+    [NativeTypeName("unsigned int")]
+    public uint numAttributes;
 
-        [NativeTypeName("unsigned int")]
-        public uint flags;
-    }
+    [NativeTypeName("unsigned int")]
+    public uint flags;
 }

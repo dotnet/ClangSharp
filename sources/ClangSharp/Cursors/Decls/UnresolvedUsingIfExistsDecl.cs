@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class UnresolvedUsingIfExistsDecl : NamedDecl
 {
-    public sealed class UnresolvedUsingIfExistsDecl : NamedDecl
+    internal UnresolvedUsingIfExistsDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration, CX_DeclKind.CX_DeclKind_UnresolvedUsingIfExists)
     {
-        internal UnresolvedUsingIfExistsDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration, CX_DeclKind.CX_DeclKind_UnresolvedUsingIfExists)
-        {
-        }
     }
 }

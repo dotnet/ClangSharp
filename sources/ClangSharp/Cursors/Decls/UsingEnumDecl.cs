@@ -3,19 +3,18 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class UsingEnumDecl : BaseUsingDecl, IMergeable<UsingEnumDecl>
 {
-    public sealed class UsingEnumDecl : BaseUsingDecl, IMergeable<UsingEnumDecl>
+    private readonly Lazy<EnumDecl> _enumDecl;
+
+    internal UsingEnumDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_UsingEnum)
     {
-        private readonly Lazy<EnumDecl> _enumDecl;
-
-        internal UsingEnumDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_UsingEnum)
-        {
-            _enumDecl = new Lazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.Definition));
-        }
-
-        public new UsingEnumDecl CanonicalDecl => (UsingEnumDecl)base.CanonicalDecl;
-
-        public EnumDecl EnumDecl => _enumDecl.Value;
+        _enumDecl = new Lazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.Definition));
     }
+
+    public new UsingEnumDecl CanonicalDecl => (UsingEnumDecl)base.CanonicalDecl;
+
+    public EnumDecl EnumDecl => _enumDecl.Value;
 }

@@ -2,22 +2,21 @@
 
 using System.Collections.Generic;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public interface IDeclContext
 {
-    public interface IDeclContext
-    {
-        IReadOnlyList<Decl> Decls { get; }
+    IReadOnlyList<Decl> Decls { get; }
 
-        bool IsNamespace { get; }
+    bool IsNamespace { get; }
 
-        bool IsStdNamespace { get; }
+    bool IsStdNamespace { get; }
 
-        bool IsTranslationUnit { get; }
+    bool IsTranslationUnit { get; }
 
-        IDeclContext LexicalParent { get; }
+    IDeclContext LexicalParent { get; }
 
-        IDeclContext Parent { get; }
+    IDeclContext Parent { get; }
 
-        IDeclContext RedeclContext { get; }
-    }
+    IDeclContext RedeclContext { get; }
 }

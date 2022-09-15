@@ -2,18 +2,17 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class MacroDefinitionRecord : PreprocessingDirective
 {
-    public sealed class MacroDefinitionRecord : PreprocessingDirective
+    internal MacroDefinitionRecord(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MacroDefinition)
     {
-        internal MacroDefinitionRecord(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MacroDefinition)
-        {
-        }
-
-        public bool IsFunctionLike => Handle.IsMacroFunctionLike;
-
-        public bool IsBuiltinMacro => Handle.IsMacroBuiltIn;
-
-        public string Name => Handle.Spelling.CString;
     }
+
+    public bool IsFunctionLike => Handle.IsMacroFunctionLike;
+
+    public bool IsBuiltinMacro => Handle.IsMacroBuiltIn;
+
+    public string Name => Handle.Spelling.CString;
 }

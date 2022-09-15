@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class CSharpPreviewUnix_UnionDeclarationTest : UnionDeclarationTest
 {
-    public sealed class CSharpPreviewUnix_UnionDeclarationTest : UnionDeclarationTest
+    protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
     {
-        protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} r;
     {nativeType} g;
@@ -19,7 +19,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -38,12 +38,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef union
+    protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef union
 {{
     {nativeType} r;
     {nativeType} g;
@@ -51,7 +51,7 @@ namespace ClangSharp.Test
 }}  MyUnion;
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -69,12 +69,12 @@ namespace ClangSharp.Test
     }}
 }}
 ";
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
+    }
 
-        protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} r;
     {nativeType} g;
@@ -82,7 +82,7 @@ namespace ClangSharp.Test
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -104,12 +104,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BitfieldTestImpl()
-        {
-            var inputContents = @"union MyUnion1
+    protected override Task BitfieldTestImpl()
+    {
+        var inputContents = @"union MyUnion1
 {
     unsigned int o0_b0_24 : 24;
     unsigned int o4_b0_16 : 16;
@@ -134,9 +134,9 @@ union MyUnion3
 };
 ";
 
-            var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", Pack = 1" : "";
+        var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ", Pack = 1" : "";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -326,21 +326,21 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ExcludeTestImpl()
-        {
-            var inputContents = "typedef union MyUnion MyUnion;";
-            var expectedOutputContents = string.Empty;
+    protected override Task ExcludeTestImpl()
+    {
+        var inputContents = "typedef union MyUnion MyUnion;";
+        var expectedOutputContents = string.Empty;
 
-            var excludedNames = new string[] { "MyUnion" };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
-        }
+        var excludedNames = new string[] { "MyUnion" };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} value;
 }};
@@ -351,7 +351,7 @@ union MyOtherUnion
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -393,12 +393,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} value;
 }};
@@ -409,7 +409,7 @@ union MyOtherUnion
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -483,12 +483,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} value;
 }};
@@ -501,7 +501,7 @@ union MyOtherUnion
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -543,12 +543,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} value;
 }};
@@ -559,7 +559,7 @@ union MyOtherUnion
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -602,18 +602,18 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} c[3];
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -645,18 +645,18 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} c[3];
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -670,18 +670,18 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} c[2][1][3][4];
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -695,12 +695,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef {nativeType} MyBuffer[3];
+    protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef {nativeType} MyBuffer[3];
 
 union MyUnion
 {{
@@ -708,7 +708,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -722,17 +722,17 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
-        protected override Task GuidTestImpl()
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
+    protected override Task GuidTestImpl()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // Non-Windows doesn't support __declspec(uuid(""))
-                return Task.CompletedTask;
-            }
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
 
-            var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+        var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
 
 union __declspec(uuid(""00000000-0000-0000-C000-000000000046"")) MyUnion1
 {{
@@ -745,7 +745,7 @@ union DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyUnion2
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -775,13 +775,13 @@ namespace ClangSharp.Test
 }}
 ";
 
-            var excludedNames = new string[] { "DECLSPEC_UUID" };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
-        }
+        var excludedNames = new string[] { "DECLSPEC_UUID" };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+    }
 
-        protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
-        {
-            var inputContents = $@"typedef struct {{
+    protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
+    {
+        var inputContents = $@"typedef struct {{
     {nativeType} value;
 }} MyStruct;
 
@@ -802,7 +802,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -873,12 +873,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NestedAnonymousWithBitfieldTestImpl()
-        {
-            var inputContents = @"union MyUnion
+    protected override Task NestedAnonymousWithBitfieldTestImpl()
+    {
+        var inputContents = @"union MyUnion
 {
     int x;
     int y;
@@ -897,7 +897,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
+        var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -1011,13 +1011,13 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
 
-        protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} r;
     {nativeType} g;
@@ -1033,7 +1033,7 @@ namespace ClangSharp.Test
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -1068,12 +1068,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} r;
     {nativeType} g;
@@ -1089,7 +1089,7 @@ namespace ClangSharp.Test
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -1131,12 +1131,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NewKeywordTestImpl()
-        {
-            var inputContents = @"union MyUnion
+    protected override Task NewKeywordTestImpl()
+    {
+        var inputContents = @"union MyUnion
 {
     int Equals;
     int Dispose;
@@ -1147,7 +1147,7 @@ namespace ClangSharp.Test
     int ToString;
 };";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -1178,14 +1178,14 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NoDefinitionTestImpl()
-        {
-            var inputContents = "typedef union MyUnion MyUnion;";
+    protected override Task NoDefinitionTestImpl()
+    {
+        var inputContents = "typedef union MyUnion MyUnion;";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -1195,17 +1195,17 @@ namespace ClangSharp.Test
     }}
 }}
 ";
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task PointerToSelfTestImpl()
-        {
-            var inputContents = @"union example_s {
+    protected override Task PointerToSelfTestImpl()
+    {
+        var inputContents = @"union example_s {
    example_s* next;
    void* data;
 };";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -1221,19 +1221,19 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task PointerToSelfViaTypedefTestImpl()
-        {
-            var inputContents = @"typedef union example_s example_t;
+    protected override Task PointerToSelfViaTypedefTestImpl()
+    {
+        var inputContents = @"typedef union example_s example_t;
 
 union example_s {
    example_t* next;
    void* data;
 };";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -1250,14 +1250,14 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task RemapTestImpl()
-        {
-            var inputContents = "typedef union _MyUnion MyUnion;";
+    protected override Task RemapTestImpl()
+    {
+        var inputContents = "typedef union _MyUnion MyUnion;";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -1268,13 +1268,13 @@ namespace ClangSharp.Test
 }}
 ";
 
-            var remappedNames = new Dictionary<string, string> { ["_MyUnion"] = "MyUnion" };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
-        }
+        var remappedNames = new Dictionary<string, string> { ["_MyUnion"] = "MyUnion" };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+    }
 
-        protected override Task RemapNestedAnonymousTestImpl()
-        {
-            var inputContents = @"union MyUnion
+    protected override Task RemapNestedAnonymousTestImpl()
+    {
+        var inputContents = @"union MyUnion
 {
     double r;
     double g;
@@ -1286,7 +1286,7 @@ namespace ClangSharp.Test
     };
 };";
 
-            var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
+        var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -1326,16 +1326,16 @@ namespace ClangSharp.Test
 }
 ";
 
-            var remappedNames = new Dictionary<string, string> {
-                ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
-                ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Union"
-            };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
-        }
+        var remappedNames = new Dictionary<string, string> {
+            ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
+            ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Union"
+        };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+    }
 
-        protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef union MyUnion MyUnion;
+    protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef union MyUnion MyUnion;
 
 union MyUnion
 {{
@@ -1345,7 +1345,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -1364,16 +1364,16 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task SkipNonDefinitionPointerTestImpl()
-        {
-            var inputContents = @"typedef union MyUnion* MyUnionPtr;
+    protected override Task SkipNonDefinitionPointerTestImpl()
+    {
+        var inputContents = @"typedef union MyUnion* MyUnionPtr;
 typedef union MyUnion& MyUnionRef;
 ";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -1384,12 +1384,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef union MyUnion MyUnion;
+    protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef union MyUnion MyUnion;
 
 union MyUnion
 {{
@@ -1399,7 +1399,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -1421,12 +1421,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef {nativeType} MyTypedefAlias;
+    protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef {nativeType} MyTypedefAlias;
 
 union MyUnion
 {{
@@ -1436,7 +1436,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -1458,7 +1458,6 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 }

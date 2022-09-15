@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class RValueReferenceType : ReferenceType
 {
-    public sealed class RValueReferenceType : ReferenceType
+    internal RValueReferenceType(CXType handle) : base(handle, CXTypeKind.CXType_RValueReference, CX_TypeClass.CX_TypeClass_RValueReference)
     {
-        internal RValueReferenceType(CXType handle) : base(handle, CXTypeKind.CXType_RValueReference, CX_TypeClass.CX_TypeClass_RValueReference)
-        {
-        }
     }
 }

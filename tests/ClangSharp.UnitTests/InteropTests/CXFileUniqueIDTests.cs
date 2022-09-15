@@ -6,30 +6,29 @@
 using NUnit.Framework;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXFileUniqueID" /> struct.</summary>
+public static unsafe partial class CXFileUniqueIDTests
 {
-    /// <summary>Provides validation of the <see cref="CXFileUniqueID" /> struct.</summary>
-    public static unsafe partial class CXFileUniqueIDTests
+    /// <summary>Validates that the <see cref="CXFileUniqueID" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXFileUniqueID" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXFileUniqueID>(), Is.EqualTo(sizeof(CXFileUniqueID)));
-        }
+        Assert.That(Marshal.SizeOf<CXFileUniqueID>(), Is.EqualTo(sizeof(CXFileUniqueID)));
+    }
 
-        /// <summary>Validates that the <see cref="CXFileUniqueID" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXFileUniqueID).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXFileUniqueID" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXFileUniqueID).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXFileUniqueID" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
-        {
-            Assert.That(sizeof(CXFileUniqueID), Is.EqualTo(24));
-        }
+    /// <summary>Validates that the <see cref="CXFileUniqueID" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        Assert.That(sizeof(CXFileUniqueID), Is.EqualTo(24));
     }
 }

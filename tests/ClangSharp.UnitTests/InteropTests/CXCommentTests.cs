@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXComment" /> struct.</summary>
+public static unsafe partial class CXCommentTests
 {
-    /// <summary>Provides validation of the <see cref="CXComment" /> struct.</summary>
-    public static unsafe partial class CXCommentTests
+    /// <summary>Validates that the <see cref="CXComment" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXComment" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXComment>(), Is.EqualTo(sizeof(CXComment)));
-        }
+        Assert.That(Marshal.SizeOf<CXComment>(), Is.EqualTo(sizeof(CXComment)));
+    }
 
-        /// <summary>Validates that the <see cref="CXComment" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXComment).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXComment" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXComment).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXComment" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXComment" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXComment), Is.EqualTo(16));
-            }
-            else
-            {
-                Assert.That(sizeof(CXComment), Is.EqualTo(8));
-            }
+            Assert.That(sizeof(CXComment), Is.EqualTo(16));
+        }
+        else
+        {
+            Assert.That(sizeof(CXComment), Is.EqualTo(8));
         }
     }
 }

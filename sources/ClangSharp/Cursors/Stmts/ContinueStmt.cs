@@ -3,13 +3,12 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ContinueStmt : Stmt
 {
-    public sealed class ContinueStmt : Stmt
+    internal ContinueStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ContinueStmt, CX_StmtClass.CX_StmtClass_ContinueStmt)
     {
-        internal ContinueStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ContinueStmt, CX_StmtClass.CX_StmtClass_ContinueStmt)
-        {
-            Debug.Assert(NumChildren is 0);
-        }
+        Debug.Assert(NumChildren is 0);
     }
 }

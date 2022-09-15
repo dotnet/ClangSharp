@@ -4,52 +4,51 @@
 #if NETSTANDARD2_0
 using System.Runtime.CompilerServices;
 
-namespace System
+namespace System;
+
+internal readonly struct Range : IEquatable<Range>
 {
-    internal readonly struct Range : IEquatable<Range>
+    public Index Start { get; }
+
+    public Index End { get; }
+
+    public Range(Index start, Index end)
     {
-        public Index Start { get; }
+        Start = start;
+        End = end;
+    }
 
-        public Index End { get; }
+    public override bool Equals(object value) =>
+        value is Range r &&
+        r.Start.Equals(Start) &&
+        r.End.Equals(End);
 
-        public Range(Index start, Index end)
-        {
-            Start = start;
-            End = end;
-        }
+    public bool Equals(Range other) => other.Start.Equals(Start) && other.End.Equals(End);
 
-        public override bool Equals(object value) =>
-            value is Range r &&
-            r.Start.Equals(Start) &&
-            r.End.Equals(End);
+    public override int GetHashCode() => HashCode.Combine(Start.GetHashCode(), End.GetHashCode());
 
-        public bool Equals(Range other) => other.Start.Equals(Start) && other.End.Equals(End);
+    public override string ToString() => Start.ToString() + ".." + End.ToString();
 
-        public override int GetHashCode() => HashCode.Combine(Start.GetHashCode(), End.GetHashCode());
+    public static Range StartAt(Index start) => new Range(start, Index.End);
 
-        public override string ToString() => Start.ToString() + ".." + End.ToString();
+    public static Range EndAt(Index end) => new Range(Index.Start, end);
 
-        public static Range StartAt(Index start) => new Range(start, Index.End);
+    public static Range All => new Range(Index.Start, Index.End);
 
-        public static Range EndAt(Index end) => new Range(Index.Start, end);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public (int Offset, int Length) GetOffsetAndLength(int length)
+    {
+        int start;
+        var startIndex = Start;
+        start = startIndex.IsFromEnd ? length - startIndex.Value : startIndex.Value;
 
-        public static Range All => new Range(Index.Start, Index.End);
+        int end;
+        var endIndex = End;
+        end = endIndex.IsFromEnd ? length - endIndex.Value : endIndex.Value;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public (int Offset, int Length) GetOffsetAndLength(int length)
-        {
-            int start;
-            var startIndex = Start;
-            start = startIndex.IsFromEnd ? length - startIndex.Value : startIndex.Value;
-
-            int end;
-            var endIndex = End;
-            end = endIndex.IsFromEnd ? length - endIndex.Value : endIndex.Value;
-
-            return (uint)end > (uint)length || (uint)start > (uint)end
-                ? throw new ArgumentOutOfRangeException(nameof(length))
-                : (start, end - start);
-        }
+        return (uint)end > (uint)length || (uint)start > (uint)end
+            ? throw new ArgumentOutOfRangeException(nameof(length))
+            : (start, end - start);
     }
 }
 #endif

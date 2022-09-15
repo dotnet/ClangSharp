@@ -5,114 +5,113 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 
-namespace ClangSharp.Abstractions
+namespace ClangSharp.Abstractions;
+
+internal struct StructDesc
 {
-    internal struct StructDesc
+    public AccessSpecifier AccessSpecifier { get; set; }
+    public string EscapedName { get; set; }
+    public string NativeType { get; set; }
+    public string NativeInheritance { get; set; }
+    public LayoutDesc Layout { get; set; }
+    public Guid? Uuid { get; set; }
+    public StructFlags Flags { get; set; }
+    public CXSourceLocation? Location { get; set; }
+
+    public bool IsNested
     {
-        public AccessSpecifier AccessSpecifier { get; set; }
-        public string EscapedName { get; set; }
-        public string NativeType { get; set; }
-        public string NativeInheritance { get; set; }
-        public LayoutDesc Layout { get; set; }
-        public Guid? Uuid { get; set; }
-        public StructFlags Flags { get; set; }
-        public CXSourceLocation? Location { get; set; }
-
-        public bool IsNested
+        get
         {
-            get
-            {
-                return (Flags & StructFlags.Nested) != 0;
-            }
-
-            set
-            {
-                Flags = value ? Flags | StructFlags.Nested : Flags & ~StructFlags.Nested;
-            }
+            return (Flags & StructFlags.Nested) != 0;
         }
 
-        public bool IsUnsafe
+        set
         {
-            get
-            {
-                return (Flags & StructFlags.Unsafe) != 0;
-            }
+            Flags = value ? Flags | StructFlags.Nested : Flags & ~StructFlags.Nested;
+        }
+    }
 
-            set
-            {
-                Flags = value ? Flags | StructFlags.Unsafe : Flags & ~StructFlags.Unsafe;
-            }
+    public bool IsUnsafe
+    {
+        get
+        {
+            return (Flags & StructFlags.Unsafe) != 0;
         }
 
-        public bool HasVtbl
+        set
         {
-            get
-            {
-                return (Flags & StructFlags.Vtbl) != 0;
-            }
+            Flags = value ? Flags | StructFlags.Unsafe : Flags & ~StructFlags.Unsafe;
+        }
+    }
 
-            set
-            {
-                Flags = value ? Flags | StructFlags.Vtbl : Flags & ~StructFlags.Vtbl;
-            }
+    public bool HasVtbl
+    {
+        get
+        {
+            return (Flags & StructFlags.Vtbl) != 0;
         }
 
-        public bool IsUnion
+        set
         {
-            get
-            {
-                return (Flags & StructFlags.Union) != 0;
-            }
+            Flags = value ? Flags | StructFlags.Vtbl : Flags & ~StructFlags.Vtbl;
+        }
+    }
 
-            set
-            {
-                Flags = value ? Flags | StructFlags.Union : Flags & ~StructFlags.Union;
-            }
+    public bool IsUnion
+    {
+        get
+        {
+            return (Flags & StructFlags.Union) != 0;
         }
 
-        public Action<object> WriteCustomAttrs { get; set; }
-        public object CustomAttrGeneratorData { get; set; }
-
-        public StructLayoutAttribute LayoutAttribute
+        set
         {
-            get
+            Flags = value ? Flags | StructFlags.Union : Flags & ~StructFlags.Union;
+        }
+    }
+
+    public Action<object> WriteCustomAttrs { get; set; }
+    public object CustomAttrGeneratorData { get; set; }
+
+    public StructLayoutAttribute LayoutAttribute
+    {
+        get
+        {
+            var layout = Layout;
+
+            if (IsUnion)
             {
-                var layout = Layout;
+                Debug.Assert(layout.Kind == LayoutKind.Explicit);
 
-                if (IsUnion)
-                {
-                    Debug.Assert(layout.Kind == LayoutKind.Explicit);
-
-                    var attribute = new StructLayoutAttribute(layout.Kind);
-
-                    if (layout.Pack != 0)
-                    {
-                        attribute.Pack = (int)layout.Pack;
-                    }
-
-                    return attribute;
-                }
+                var attribute = new StructLayoutAttribute(layout.Kind);
 
                 if (layout.Pack != 0)
                 {
-                    return new StructLayoutAttribute(layout.Kind) {
-                        Pack = (int)layout.Pack
-                    };
+                    attribute.Pack = (int)layout.Pack;
                 }
 
-                return null;
+                return attribute;
             }
-        }
 
-        public struct LayoutDesc
-        {
-            public long Alignment32 { get; set; }
-            public long Alignment64 { get; set; }
-            public long Size32 { get; set; }
-            public long Size64 { get; set; }
-            public long Pack { get; set; }
-            public long MaxFieldAlignment { get; set; }
-            public LayoutKind Kind { get; set; }
+            if (layout.Pack != 0)
+            {
+                return new StructLayoutAttribute(layout.Kind) {
+                    Pack = (int)layout.Pack
+                };
+            }
+
+            return null;
         }
+    }
+
+    public struct LayoutDesc
+    {
+        public long Alignment32 { get; set; }
+        public long Alignment64 { get; set; }
+        public long Size32 { get; set; }
+        public long Size64 { get; set; }
+        public long Pack { get; set; }
+        public long MaxFieldAlignment { get; set; }
+        public LayoutKind Kind { get; set; }
     }
 }

@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPIteratorExpr : Expr
 {
-    public sealed class OMPIteratorExpr : Expr
+    internal OMPIteratorExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPIteratorExpr, CX_StmtClass.CX_StmtClass_OMPIteratorExpr)
     {
-        internal OMPIteratorExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPIteratorExpr, CX_StmtClass.CX_StmtClass_OMPIteratorExpr)
-        {
-        }
     }
 }

@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXCompletionResult" /> struct.</summary>
+public static unsafe partial class CXCompletionResultTests
 {
-    /// <summary>Provides validation of the <see cref="CXCompletionResult" /> struct.</summary>
-    public static unsafe partial class CXCompletionResultTests
+    /// <summary>Validates that the <see cref="CXCompletionResult" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXCompletionResult" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXCompletionResult>(), Is.EqualTo(sizeof(CXCompletionResult)));
-        }
+        Assert.That(Marshal.SizeOf<CXCompletionResult>(), Is.EqualTo(sizeof(CXCompletionResult)));
+    }
 
-        /// <summary>Validates that the <see cref="CXCompletionResult" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXCompletionResult).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXCompletionResult" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXCompletionResult).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXCompletionResult" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXCompletionResult" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXCompletionResult), Is.EqualTo(16));
-            }
-            else
-            {
-                Assert.That(sizeof(CXCompletionResult), Is.EqualTo(8));
-            }
+            Assert.That(sizeof(CXCompletionResult), Is.EqualTo(16));
+        }
+        else
+        {
+            Assert.That(sizeof(CXCompletionResult), Is.EqualTo(8));
         }
     }
 }

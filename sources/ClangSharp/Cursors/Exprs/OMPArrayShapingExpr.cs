@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPArrayShapingExpr : Expr
 {
-    public sealed class OMPArrayShapingExpr : Expr
+    internal OMPArrayShapingExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPArrayShapingExpr, CX_StmtClass.CX_StmtClass_OMPArrayShapingExpr)
     {
-        internal OMPArrayShapingExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPArrayShapingExpr, CX_StmtClass.CX_StmtClass_OMPArrayShapingExpr)
-        {
-        }
     }
 }

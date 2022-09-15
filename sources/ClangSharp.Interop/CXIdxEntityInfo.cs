@@ -3,28 +3,27 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public unsafe partial struct CXIdxEntityInfo
 {
-    public unsafe partial struct CXIdxEntityInfo
-    {
-        public CXIdxEntityKind kind;
+    public CXIdxEntityKind kind;
 
-        public CXIdxEntityCXXTemplateKind templateKind;
+    public CXIdxEntityCXXTemplateKind templateKind;
 
-        public CXIdxEntityLanguage lang;
+    public CXIdxEntityLanguage lang;
 
-        [NativeTypeName("const char *")]
-        public sbyte* name;
+    [NativeTypeName("const char *")]
+    public sbyte* name;
 
-        [NativeTypeName("const char *")]
-        public sbyte* USR;
+    [NativeTypeName("const char *")]
+    public sbyte* USR;
 
-        public CXCursor cursor;
+    public CXCursor cursor;
 
-        [NativeTypeName("const CXIdxAttrInfo *const *")]
-        public CXIdxAttrInfo** attributes;
+    [NativeTypeName("const CXIdxAttrInfo *const *")]
+    public CXIdxAttrInfo** attributes;
 
-        [NativeTypeName("unsigned int")]
-        public uint numAttributes;
-    }
+    [NativeTypeName("unsigned int")]
+    public uint numAttributes;
 }

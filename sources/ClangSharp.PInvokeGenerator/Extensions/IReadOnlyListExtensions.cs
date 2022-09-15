@@ -2,23 +2,22 @@
 
 using System.Collections.Generic;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+internal static class IReadOnlyListExtensions
 {
-    internal static class IReadOnlyListExtensions
+    public static int IndexOf<T>(this IReadOnlyList<T> self, T value)
     {
-        public static int IndexOf<T>(this IReadOnlyList<T> self, T value)
+        var comparer = EqualityComparer<T>.Default;
+
+        for (var i = 0; i < self.Count; i++)
         {
-            var comparer = EqualityComparer<T>.Default;
-
-            for (var i = 0; i < self.Count; i++)
+            if (comparer.Equals(self[i], value))
             {
-                if (comparer.Equals(self[i], value))
-                {
-                    return i;
-                }
+                return i;
             }
-
-            return -1;
         }
+
+        return -1;
     }
 }

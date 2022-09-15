@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class GCCAsmStmt : AsmStmt
 {
-    public sealed class GCCAsmStmt : AsmStmt
+    internal GCCAsmStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GCCAsmStmt, CX_StmtClass.CX_StmtClass_GCCAsmStmt)
     {
-        internal GCCAsmStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GCCAsmStmt, CX_StmtClass.CX_StmtClass_GCCAsmStmt)
-        {
-        }
     }
 }

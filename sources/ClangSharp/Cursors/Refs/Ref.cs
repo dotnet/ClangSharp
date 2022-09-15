@@ -4,59 +4,58 @@ using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class Ref : Cursor
 {
-    public class Ref : Cursor
+    private readonly Lazy<NamedDecl> _referenced;
+    private readonly Lazy<Type> _type;
+
+    private protected Ref(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
     {
-        private readonly Lazy<NamedDecl> _referenced;
-        private readonly Lazy<Type> _type;
+        _referenced = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.Referenced));
+        _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
+    }
 
-        private protected Ref(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
+    public NamedDecl Referenced => _referenced.Value;
+
+    public Type Type => _type.Value;
+
+    internal static new Ref Create(CXCursor handle)
+    {
+        Ref result;
+
+        switch (handle.Kind)
         {
-            _referenced = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.Referenced));
-            _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
-        }
-
-        public NamedDecl Referenced => _referenced.Value;
-
-        public Type Type => _type.Value;
-
-        internal static new Ref Create(CXCursor handle)
-        {
-            Ref result;
-
-            switch (handle.Kind)
+            case CXCursorKind.CXCursor_CXXBaseSpecifier:
             {
-                case CXCursorKind.CXCursor_CXXBaseSpecifier:
-                {
-                    result = new CXXBaseSpecifier(handle);
-                    break;
-                }
-
-                case CXCursorKind.CXCursor_ObjCSuperClassRef:
-                case CXCursorKind.CXCursor_ObjCProtocolRef:
-                case CXCursorKind.CXCursor_ObjCClassRef:
-                case CXCursorKind.CXCursor_TypeRef:
-                case CXCursorKind.CXCursor_TemplateRef:
-                case CXCursorKind.CXCursor_NamespaceRef:
-                case CXCursorKind.CXCursor_MemberRef:
-                case CXCursorKind.CXCursor_LabelRef:
-                case CXCursorKind.CXCursor_OverloadedDeclRef:
-                case CXCursorKind.CXCursor_VariableRef:
-                {
-                    result = new Ref(handle, handle.Kind);
-                    break;
-                }
-
-                default:
-                {
-                    Debug.WriteLine($"Unhandled reference kind: {handle.KindSpelling}.");
-                    result = new Ref(handle, handle.Kind);
-                    break;
-                }
+                result = new CXXBaseSpecifier(handle);
+                break;
             }
 
-            return result;
+            case CXCursorKind.CXCursor_ObjCSuperClassRef:
+            case CXCursorKind.CXCursor_ObjCProtocolRef:
+            case CXCursorKind.CXCursor_ObjCClassRef:
+            case CXCursorKind.CXCursor_TypeRef:
+            case CXCursorKind.CXCursor_TemplateRef:
+            case CXCursorKind.CXCursor_NamespaceRef:
+            case CXCursorKind.CXCursor_MemberRef:
+            case CXCursorKind.CXCursor_LabelRef:
+            case CXCursorKind.CXCursor_OverloadedDeclRef:
+            case CXCursorKind.CXCursor_VariableRef:
+            {
+                result = new Ref(handle, handle.Kind);
+                break;
+            }
+
+            default:
+            {
+                Debug.WriteLine($"Unhandled reference kind: {handle.KindSpelling}.");
+                result = new Ref(handle, handle.Kind);
+                break;
+            }
         }
+
+        return result;
     }
 }

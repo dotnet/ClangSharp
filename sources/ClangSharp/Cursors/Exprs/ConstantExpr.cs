@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ConstantExpr : FullExpr
 {
-    public sealed class ConstantExpr : FullExpr
+    internal ConstantExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ConstantExpr)
     {
-        internal ConstantExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ConstantExpr)
-        {
-        }
     }
 }

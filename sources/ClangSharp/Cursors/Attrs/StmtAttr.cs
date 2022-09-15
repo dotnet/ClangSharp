@@ -3,16 +3,15 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class StmtAttr : Attr
 {
-    public sealed class StmtAttr : Attr
+    internal StmtAttr(CXCursor handle) : base(handle)
     {
-        internal StmtAttr(CXCursor handle) : base(handle)
+        if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastStmtAttr or < CX_AttrKind.CX_AttrKind_FirstStmtAttr)
         {
-            if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastStmtAttr or < CX_AttrKind.CX_AttrKind_FirstStmtAttr)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
     }
 }

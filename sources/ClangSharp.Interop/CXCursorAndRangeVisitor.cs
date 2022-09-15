@@ -5,13 +5,12 @@
 
 using System;
 
-namespace ClangSharp.Interop
-{
-    public unsafe partial struct CXCursorAndRangeVisitor
-    {
-        public void* context;
+namespace ClangSharp.Interop;
 
-        [NativeTypeName("enum CXVisitorResult (*)(void *, CXCursor, CXSourceRange)")]
-        public IntPtr visit;
-    }
+public unsafe partial struct CXCursorAndRangeVisitor
+{
+    public void* context;
+
+    [NativeTypeName("enum CXVisitorResult (*)(void *, CXCursor, CXSourceRange)")]
+    public IntPtr visit;
 }

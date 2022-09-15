@@ -2,18 +2,17 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class BitIntType : Type
 {
-    public sealed class BitIntType : Type
+    internal BitIntType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_BitInt)
     {
-        internal BitIntType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_BitInt)
-        {
-        }
-
-        public bool IsSigned => Handle.IsSigned;
-
-        public bool IsUnsigned => Handle.IsUnsigned;
-
-        public uint NumBits => unchecked((uint)Handle.NumBits);
     }
+
+    public bool IsSigned => Handle.IsSigned;
+
+    public bool IsUnsigned => Handle.IsUnsigned;
+
+    public uint NumBits => unchecked((uint)Handle.NumBits);
 }

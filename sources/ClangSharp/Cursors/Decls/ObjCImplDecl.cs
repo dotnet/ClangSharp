@@ -5,26 +5,25 @@ using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class ObjCImplDecl : ObjCContainerDecl
 {
-    public class ObjCImplDecl : ObjCContainerDecl
+    private readonly Lazy<ObjCInterfaceDecl> _classInterface;
+    private readonly Lazy<IReadOnlyList<ObjCPropertyImplDecl>> _propertyImpls;
+
+    private protected ObjCImplDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        private readonly Lazy<ObjCInterfaceDecl> _classInterface;
-        private readonly Lazy<IReadOnlyList<ObjCPropertyImplDecl>> _propertyImpls;
-
-        private protected ObjCImplDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastObjCImpl or < CX_DeclKind.CX_DeclKind_FirstObjCImpl)
         {
-            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastObjCImpl or < CX_DeclKind.CX_DeclKind_FirstObjCImpl)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
-
-            _classInterface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
-            _propertyImpls = new Lazy<IReadOnlyList<ObjCPropertyImplDecl>>(() => Decls.OfType<ObjCPropertyImplDecl>().ToList());
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        public ObjCInterfaceDecl ClassInterface => _classInterface.Value;
-
-        public IReadOnlyList<ObjCPropertyImplDecl> PropertyImpls => _propertyImpls.Value;
+        _classInterface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
+        _propertyImpls = new Lazy<IReadOnlyList<ObjCPropertyImplDecl>>(() => Decls.OfType<ObjCPropertyImplDecl>().ToList());
     }
+
+    public ObjCInterfaceDecl ClassInterface => _classInterface.Value;
+
+    public IReadOnlyList<ObjCPropertyImplDecl> PropertyImpls => _propertyImpls.Value;
 }

@@ -3,16 +3,15 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class InheritableAttr : Attr
 {
-    public class InheritableAttr : Attr
+    internal InheritableAttr(CXCursor handle) : base(handle)
     {
-        internal InheritableAttr(CXCursor handle) : base(handle)
+        if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastInheritableAttr or < CX_AttrKind.CX_AttrKind_FirstInheritableAttr)
         {
-            if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastInheritableAttr or < CX_AttrKind.CX_AttrKind_FirstInheritableAttr)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
     }
 }

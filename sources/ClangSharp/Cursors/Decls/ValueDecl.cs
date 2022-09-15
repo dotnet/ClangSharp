@@ -3,22 +3,21 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class ValueDecl : NamedDecl
 {
-    public class ValueDecl : NamedDecl
+    private readonly Lazy<Type> _type;
+
+    private protected ValueDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        private readonly Lazy<Type> _type;
-
-        private protected ValueDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastValue or < CX_DeclKind.CX_DeclKind_FirstValue)
         {
-            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastValue or < CX_DeclKind.CX_DeclKind_FirstValue)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
-
-            _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        public Type Type => _type.Value;
+        _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
     }
+
+    public Type Type => _type.Value;
 }

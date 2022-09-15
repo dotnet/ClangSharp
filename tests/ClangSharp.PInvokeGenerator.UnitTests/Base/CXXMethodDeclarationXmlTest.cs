@@ -3,14 +3,14 @@
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public abstract class CXXMethodDeclarationXmlTest: CXXMethodDeclarationTest
 {
-    public abstract class CXXMethodDeclarationXmlTest: CXXMethodDeclarationTest
+    [Test]
+    public override Task MacrosExpansionTest()
     {
-        [Test]
-        public override Task MacrosExpansionTest()
-        {
-            var inputContents = @"typedef struct
+        var inputContents = @"typedef struct
 {
 	unsigned char *buf;
 	int size;
@@ -23,7 +23,7 @@ int buf_close(void *pcontext)
 }
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""context_t"" access=""public"" unsafe=""true"">
@@ -48,7 +48,6 @@ int buf_close(void *pcontext)
 </bindings>
 ";
 
-            return ValidateBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateBindingsAsync(inputContents, expectedOutputContents);
     }
 }

@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPCancellationPointDirective : OMPExecutableDirective
 {
-    public sealed class OMPCancellationPointDirective : OMPExecutableDirective
+    internal OMPCancellationPointDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPCancellationPointDirective, CX_StmtClass.CX_StmtClass_OMPCancellationPointDirective)
     {
-        internal OMPCancellationPointDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPCancellationPointDirective, CX_StmtClass.CX_StmtClass_OMPCancellationPointDirective)
-        {
-        }
     }
 }

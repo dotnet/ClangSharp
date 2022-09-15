@@ -3,16 +3,15 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class BaseUsingDecl : NamedDecl
 {
-    public class BaseUsingDecl : NamedDecl
+    private protected BaseUsingDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        private protected BaseUsingDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastBaseUsing or < CX_DeclKind.CX_DeclKind_FirstBaseUsing)
         {
-            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastBaseUsing or < CX_DeclKind.CX_DeclKind_FirstBaseUsing)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
     }
 }

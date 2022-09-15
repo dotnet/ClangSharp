@@ -3,21 +3,20 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class DecltypeType : Type
 {
-    public sealed class DecltypeType : Type
+    private readonly Lazy<Expr> _underlyingExpr;
+    private readonly Lazy<Type> _underlyingType;
+
+    internal DecltypeType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_Decltype)
     {
-        private readonly Lazy<Expr> _underlyingExpr;
-        private readonly Lazy<Type> _underlyingType;
-
-        internal DecltypeType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_Decltype)
-        {
-            _underlyingExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.UnderlyingExpr));
-            _underlyingType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
-        }
-
-        public Expr UnderlyingExpr => _underlyingExpr.Value;
-
-        public Type UnderlyingType => _underlyingType.Value;
+        _underlyingExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.UnderlyingExpr));
+        _underlyingType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
     }
+
+    public Expr UnderlyingExpr => _underlyingExpr.Value;
+
+    public Type UnderlyingType => _underlyingType.Value;
 }

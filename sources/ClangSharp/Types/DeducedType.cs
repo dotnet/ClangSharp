@@ -3,17 +3,16 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class DeducedType : Type
 {
-    public class DeducedType : Type
+    private readonly Lazy<Type> _deducedType;
+
+    private protected DeducedType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        private readonly Lazy<Type> _deducedType;
-
-        private protected DeducedType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
-        {
-            _deducedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.DeducedType));
-        }
-
-        public Type GetDeducedType => _deducedType.Value;
+        _deducedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.DeducedType));
     }
+
+    public Type GetDeducedType => _deducedType.Value;
 }

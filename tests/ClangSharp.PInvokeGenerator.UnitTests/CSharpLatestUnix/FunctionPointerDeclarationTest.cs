@@ -2,20 +2,20 @@
 
 using System.Threading.Tasks;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class CSharpLatestUnix_FunctionPointerDeclarationTest : FunctionPointerDeclarationTest
 {
-    public sealed class CSharpLatestUnix_FunctionPointerDeclarationTest : FunctionPointerDeclarationTest
+    protected override Task BasicTestImpl()
     {
-        protected override Task BasicTestImpl()
-        {
-            var inputContents = @"typedef void (*Callback)();
+        var inputContents = @"typedef void (*Callback)();
 
 struct MyStruct {
     Callback _callback;
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public unsafe partial struct MyStruct
     {
@@ -25,19 +25,19 @@ struct MyStruct {
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CallconvTestImpl()
-        {
-            var inputContents = @"typedef void (*Callback)() __attribute__((stdcall));
+    protected override Task CallconvTestImpl()
+    {
+        var inputContents = @"typedef void (*Callback)() __attribute__((stdcall));
 
 struct MyStruct {
     Callback _callback;
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public unsafe partial struct MyStruct
     {
@@ -47,19 +47,19 @@ struct MyStruct {
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task PointerlessTypedefTestImpl()
-        {
-            var inputContents = @"typedef void (Callback)();
+    protected override Task PointerlessTypedefTestImpl()
+    {
+        var inputContents = @"typedef void (Callback)();
 
 struct MyStruct {
     Callback* _callback;
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public unsafe partial struct MyStruct
     {
@@ -69,7 +69,6 @@ struct MyStruct {
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 }

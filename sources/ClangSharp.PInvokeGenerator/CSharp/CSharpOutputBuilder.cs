@@ -5,363 +5,362 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace ClangSharp.CSharp
+namespace ClangSharp.CSharp;
+
+internal sealed partial class CSharpOutputBuilder
 {
-    internal sealed partial class CSharpOutputBuilder
+    public const string DefaultIndentationString = "    ";
+
+    private readonly string _name;
+    private readonly PInvokeGeneratorConfiguration _config;
+    private readonly List<string> _contents;
+    private readonly StringBuilder _currentLine;
+    private readonly SortedSet<string> _usingDirectives;
+    private readonly SortedSet<string> _staticUsingDirectives;
+    private readonly string _indentationString;
+    private readonly bool _isTestOutput;
+
+    private int _indentationLevel;
+    private bool _isInMarkerInterface;
+    private readonly MarkerMode _markerMode;
+    private readonly bool _writeSourceLocation;
+
+    public CSharpOutputBuilder(string name, PInvokeGeneratorConfiguration config, string indentationString = DefaultIndentationString,
+                               bool isTestOutput = false, MarkerMode markerMode = MarkerMode.None,
+                               bool writeSourceLocation = false)
     {
-        public const string DefaultIndentationString = "    ";
+        _name = name;
+        _config = config;
+        _contents = new List<string>();
+        _currentLine = new StringBuilder();
+        _usingDirectives = new SortedSet<string>();
+        _staticUsingDirectives = new SortedSet<string>();
+        _indentationString = indentationString;
+        _isTestOutput = isTestOutput;
+        _markerMode = markerMode;
+        _writeSourceLocation = writeSourceLocation;
+    }
 
-        private readonly string _name;
-        private readonly PInvokeGeneratorConfiguration _config;
-        private readonly List<string> _contents;
-        private readonly StringBuilder _currentLine;
-        private readonly SortedSet<string> _usingDirectives;
-        private readonly SortedSet<string> _staticUsingDirectives;
-        private readonly string _indentationString;
-        private readonly bool _isTestOutput;
+    public IEnumerable<string> Contents => _contents;
 
-        private int _indentationLevel;
-        private bool _isInMarkerInterface;
-        private readonly MarkerMode _markerMode;
-        private readonly bool _writeSourceLocation;
+    public bool HasPendingLine => _currentLine.Length > 0;
 
-        public CSharpOutputBuilder(string name, PInvokeGeneratorConfiguration config, string indentationString = DefaultIndentationString,
-                                   bool isTestOutput = false, MarkerMode markerMode = MarkerMode.None,
-                                   bool writeSourceLocation = false)
+    public string IndentationString => _indentationString;
+
+    public bool IsUncheckedContext { get; private set; }
+
+    public bool IsTestOutput => _isTestOutput;
+
+    public string Name => _name;
+
+    public string Extension { get; } = ".cs";
+
+    public bool NeedsNewline { get; set; }
+
+    public bool NeedsSemicolon { get; set; }
+
+    public IEnumerable<string> StaticUsingDirectives => _staticUsingDirectives;
+
+    public IEnumerable<string> UsingDirectives => _usingDirectives;
+
+    public void AddUsingDirective(string namespaceName) => _ = namespaceName.StartsWith("static ") ? _staticUsingDirectives.Add(namespaceName) : _usingDirectives.Add(namespaceName);
+
+    public void DecreaseIndentation()
+    {
+        Debug.Assert(_indentationLevel > 0);
+        _indentationLevel--;
+    }
+
+    public void IncreaseIndentation() => _indentationLevel++;
+
+    public void WriteBlockStart()
+    {
+        WriteIndentedLine('{');
+        IncreaseIndentation();
+    }
+
+    public void WriteBlockEnd()
+    {
+        // We don't need a newline if immediately closing the scope
+        NeedsNewline = false;
+
+        // We don't need a semicolon if immediately closing the scope
+        NeedsSemicolon = false;
+
+        DecreaseIndentation();
+        WriteIndentedLine('}');
+    }
+
+    public void Write<T>(T value) => _ = _currentLine.Append(value);
+
+    public void WriteIndentation()
+    {
+        WriteNewlineIfNeeded();
+
+        for (var i = 0; i < _indentationLevel; i++)
         {
-            _name = name;
-            _config = config;
-            _contents = new List<string>();
-            _currentLine = new StringBuilder();
-            _usingDirectives = new SortedSet<string>();
-            _staticUsingDirectives = new SortedSet<string>();
-            _indentationString = indentationString;
-            _isTestOutput = isTestOutput;
-            _markerMode = markerMode;
-            _writeSourceLocation = writeSourceLocation;
+            _ = _currentLine.Append(_indentationString);
         }
+    }
 
-        public IEnumerable<string> Contents => _contents;
+    public void WriteIndented<T>(T value)
+    {
+        WriteIndentation();
+        Write(value);
+    }
 
-        public bool HasPendingLine => _currentLine.Length > 0;
+    public void WriteIndentedLine<T>(T value)
+    {
+        WriteIndentation();
+        WriteLine(value);
+    }
 
-        public string IndentationString => _indentationString;
+    public void WriteLine<T>(T value)
+    {
+        Write(value);
+        WriteNewline();
+    }
 
-        public bool IsUncheckedContext { get; private set; }
+    public void WriteNewline()
+    {
+        _contents.Add(_currentLine.ToString());
+        _ = _currentLine.Clear();
+        NeedsNewline = false;
+    }
 
-        public bool IsTestOutput => _isTestOutput;
-
-        public string Name => _name;
-
-        public string Extension { get; } = ".cs";
-
-        public bool NeedsNewline { get; set; }
-
-        public bool NeedsSemicolon { get; set; }
-
-        public IEnumerable<string> StaticUsingDirectives => _staticUsingDirectives;
-
-        public IEnumerable<string> UsingDirectives => _usingDirectives;
-
-        public void AddUsingDirective(string namespaceName) => _ = namespaceName.StartsWith("static ") ? _staticUsingDirectives.Add(namespaceName) : _usingDirectives.Add(namespaceName);
-
-        public void DecreaseIndentation()
+    public void WriteNewlineIfNeeded()
+    {
+        if (NeedsNewline)
         {
-            Debug.Assert(_indentationLevel > 0);
-            _indentationLevel--;
-        }
-
-        public void IncreaseIndentation() => _indentationLevel++;
-
-        public void WriteBlockStart()
-        {
-            WriteIndentedLine('{');
-            IncreaseIndentation();
-        }
-
-        public void WriteBlockEnd()
-        {
-            // We don't need a newline if immediately closing the scope
-            NeedsNewline = false;
-
-            // We don't need a semicolon if immediately closing the scope
-            NeedsSemicolon = false;
-
-            DecreaseIndentation();
-            WriteIndentedLine('}');
-        }
-
-        public void Write<T>(T value) => _ = _currentLine.Append(value);
-
-        public void WriteIndentation()
-        {
-            WriteNewlineIfNeeded();
-
-            for (var i = 0; i < _indentationLevel; i++)
-            {
-                _ = _currentLine.Append(_indentationString);
-            }
-        }
-
-        public void WriteIndented<T>(T value)
-        {
-            WriteIndentation();
-            Write(value);
-        }
-
-        public void WriteIndentedLine<T>(T value)
-        {
-            WriteIndentation();
-            WriteLine(value);
-        }
-
-        public void WriteLine<T>(T value)
-        {
-            Write(value);
             WriteNewline();
         }
+    }
 
-        public void WriteNewline()
+    public void WritePendingLine()
+    {
+        if (HasPendingLine)
         {
-            _contents.Add(_currentLine.ToString());
-            _ = _currentLine.Clear();
-            NeedsNewline = false;
+            WriteNewline();
         }
+    }
 
-        public void WriteNewlineIfNeeded()
+    public void WriteSemicolon()
+    {
+        Write(';');
+        NeedsSemicolon = false;
+        NeedsNewline = true;
+    }
+
+    public void WriteSemicolonIfNeeded()
+    {
+        if (NeedsSemicolon)
         {
-            if (NeedsNewline)
-            {
-                WriteNewline();
-            }
+            WriteSemicolon();
         }
+    }
 
-        public void WritePendingLine()
-        {
-            if (HasPendingLine)
-            {
-                WriteNewline();
-            }
-        }
+    public void WriteValueAsBytes(ulong value, int sizeInChars)
+    {
+        Write("0x");
+        Write(((byte)value).ToString("X2"));
 
-        public void WriteSemicolon()
+        for (var i = 1; i < sizeInChars; i++)
         {
-            Write(';');
-            NeedsSemicolon = false;
-            NeedsNewline = true;
-        }
+            Write(", ");
+            value >>= 8;
 
-        public void WriteSemicolonIfNeeded()
-        {
-            if (NeedsSemicolon)
-            {
-                WriteSemicolon();
-            }
-        }
-
-        public void WriteValueAsBytes(ulong value, int sizeInChars)
-        {
             Write("0x");
             Write(((byte)value).ToString("X2"));
+        }
+    }
 
-            for (var i = 1; i < sizeInChars; i++)
-            {
-                Write(", ");
-                value >>= 8;
-
-                Write("0x");
-                Write(((byte)value).ToString("X2"));
-            }
+    public void BeginMarker(string kind, params KeyValuePair<string, object>[] attributes)
+    {
+        if (_markerMode != MarkerMode.Xml)
+        {
+            return;
         }
 
-        public void BeginMarker(string kind, params KeyValuePair<string, object>[] attributes)
+        Write("/*M*/<");
+        Write(kind);
+        foreach (var kvp in attributes)
         {
-            if (_markerMode != MarkerMode.Xml)
-            {
-                return;
-            }
-
-            Write("/*M*/<");
-            Write(kind);
-            foreach (var kvp in attributes)
-            {
-                Write(' ');
-                Write(kvp.Key);
-                Write('=');
-                Write('"');
-                Write(kvp.Value);
-                Write('"');
-            }
-
-            Write("/*M*/>");
-        }
-
-        public void EndMarker(string kind)
-        {
-            if (_markerMode != MarkerMode.Xml)
-            {
-                return;
-            }
-
-            Write("/*M*/</");
-            Write(kind);
-            Write("/*M*/>");
-        }
-
-        private void AddCppAttributes(IEnumerable<string> attrs, string prefix = null, string postfix = null)
-        {
-            var attributeList = string.Join("^", attrs);
-            if (string.IsNullOrWhiteSpace(attributeList))
-            {
-                return;
-            }
-
-            if (prefix is null)
-            {
-                WriteIndentation();
-            }
-            else
-            {
-                WriteNewlineIfNeeded();
-                Write(prefix);
-            }
-
-            Write("[CppAttributeList(\"");
-            Write(attributeList);
-            Write("\")]");
-
-            if (postfix is null)
-            {
-                NeedsNewline = true;
-            }
-            else
-            {
-                Write(postfix);
-            }
-        }
-
-        private void AddNativeInheritanceAttribute(string inheritedFromName, string prefix = null, string postfix = null, string attributePrefix = null)
-        {
-            if (prefix is null)
-            {
-                WriteIndentation();
-            }
-            else
-            {
-                WriteNewlineIfNeeded();
-                Write(prefix);
-            }
-
-            Write('[');
-
-            if (attributePrefix != null)
-            {
-                Write(attributePrefix);
-            }
-
-            Write("NativeInheritance");
-            Write('(');
+            Write(' ');
+            Write(kvp.Key);
+            Write('=');
             Write('"');
-            Write(PInvokeGenerator.EscapeString(inheritedFromName));
+            Write(kvp.Value);
             Write('"');
-            Write(')');
-            Write(']');
-
-            if (postfix is null)
-            {
-                NeedsNewline = true;
-            }
-            else
-            {
-                Write(postfix);
-            }
         }
 
-        private void AddVtblIndexAttribute(long vtblIndex, string prefix = null, string postfix = null, string attributePrefix = null)
+        Write("/*M*/>");
+    }
+
+    public void EndMarker(string kind)
+    {
+        if (_markerMode != MarkerMode.Xml)
         {
-            if (prefix is null)
-            {
-                WriteIndentation();
-            }
-            else
-            {
-                WriteNewlineIfNeeded();
-                Write(prefix);
-            }
-
-            Write('[');
-
-            if (attributePrefix != null)
-            {
-                Write(attributePrefix);
-            }
-
-            Write("VtblIndex");
-            Write('(');
-            Write(vtblIndex);
-            Write(')');
-            Write(']');
-
-            if (postfix is null)
-            {
-                NeedsNewline = true;
-            }
-            else
-            {
-                Write(postfix);
-            }
+            return;
         }
 
-        private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
+        Write("/*M*/</");
+        Write(kind);
+        Write("/*M*/>");
+    }
+
+    private void AddCppAttributes(IEnumerable<string> attrs, string prefix = null, string postfix = null)
+    {
+        var attributeList = string.Join("^", attrs);
+        if (string.IsNullOrWhiteSpace(attributeList))
         {
-            if (string.IsNullOrWhiteSpace(nativeTypeName))
-            {
-                return;
-            }
-
-            if (prefix is null)
-            {
-                WriteIndentation();
-            }
-            else
-            {
-                WriteNewlineIfNeeded();
-                Write(prefix);
-            }
-
-            Write('[');
-
-            if (attributePrefix != null)
-            {
-                Write(attributePrefix);
-            }
-
-            Write("NativeTypeName(\"");
-            Write(PInvokeGenerator.EscapeString(nativeTypeName));
-            Write("\")]");
-
-            if (postfix is null)
-            {
-                NeedsNewline = true;
-            }
-            else
-            {
-                Write(postfix);
-            }
+            return;
         }
 
-        public override string ToString()
+        if (prefix is null)
         {
-            var result = new StringBuilder();
-
-            foreach (var line in _contents)
-            {
-                _ = result.Append(line);
-                _ = result.Append('\n');
-            }
-
-            _ = result.Append(_currentLine);
-            return result.ToString();
+            WriteIndentation();
         }
+        else
+        {
+            WriteNewlineIfNeeded();
+            Write(prefix);
+        }
+
+        Write("[CppAttributeList(\"");
+        Write(attributeList);
+        Write("\")]");
+
+        if (postfix is null)
+        {
+            NeedsNewline = true;
+        }
+        else
+        {
+            Write(postfix);
+        }
+    }
+
+    private void AddNativeInheritanceAttribute(string inheritedFromName, string prefix = null, string postfix = null, string attributePrefix = null)
+    {
+        if (prefix is null)
+        {
+            WriteIndentation();
+        }
+        else
+        {
+            WriteNewlineIfNeeded();
+            Write(prefix);
+        }
+
+        Write('[');
+
+        if (attributePrefix != null)
+        {
+            Write(attributePrefix);
+        }
+
+        Write("NativeInheritance");
+        Write('(');
+        Write('"');
+        Write(PInvokeGenerator.EscapeString(inheritedFromName));
+        Write('"');
+        Write(')');
+        Write(']');
+
+        if (postfix is null)
+        {
+            NeedsNewline = true;
+        }
+        else
+        {
+            Write(postfix);
+        }
+    }
+
+    private void AddVtblIndexAttribute(long vtblIndex, string prefix = null, string postfix = null, string attributePrefix = null)
+    {
+        if (prefix is null)
+        {
+            WriteIndentation();
+        }
+        else
+        {
+            WriteNewlineIfNeeded();
+            Write(prefix);
+        }
+
+        Write('[');
+
+        if (attributePrefix != null)
+        {
+            Write(attributePrefix);
+        }
+
+        Write("VtblIndex");
+        Write('(');
+        Write(vtblIndex);
+        Write(')');
+        Write(']');
+
+        if (postfix is null)
+        {
+            NeedsNewline = true;
+        }
+        else
+        {
+            Write(postfix);
+        }
+    }
+
+    private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
+    {
+        if (string.IsNullOrWhiteSpace(nativeTypeName))
+        {
+            return;
+        }
+
+        if (prefix is null)
+        {
+            WriteIndentation();
+        }
+        else
+        {
+            WriteNewlineIfNeeded();
+            Write(prefix);
+        }
+
+        Write('[');
+
+        if (attributePrefix != null)
+        {
+            Write(attributePrefix);
+        }
+
+        Write("NativeTypeName(\"");
+        Write(PInvokeGenerator.EscapeString(nativeTypeName));
+        Write("\")]");
+
+        if (postfix is null)
+        {
+            NeedsNewline = true;
+        }
+        else
+        {
+            Write(postfix);
+        }
+    }
+
+    public override string ToString()
+    {
+        var result = new StringBuilder();
+
+        foreach (var line in _contents)
+        {
+            _ = result.Append(line);
+            _ = result.Append('\n');
+        }
+
+        _ = result.Append(_currentLine);
+        return result.ToString();
     }
 }

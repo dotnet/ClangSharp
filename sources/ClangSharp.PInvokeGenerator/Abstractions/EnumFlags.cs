@@ -2,12 +2,11 @@
 
 using System;
 
-namespace ClangSharp.Abstractions
+namespace ClangSharp.Abstractions;
+
+[Flags]
+public enum EnumFlags
 {
-    [Flags]
-    public enum EnumFlags
-    {
-        None = 0,
-        Nested = 1 << 0,
-    }
+    None = 0,
+    Nested = 1 << 0,
 }

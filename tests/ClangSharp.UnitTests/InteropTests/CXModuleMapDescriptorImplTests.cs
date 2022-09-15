@@ -6,30 +6,29 @@
 using NUnit.Framework;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXModuleMapDescriptorImpl" /> struct.</summary>
+public static unsafe partial class CXModuleMapDescriptorImplTests
 {
-    /// <summary>Provides validation of the <see cref="CXModuleMapDescriptorImpl" /> struct.</summary>
-    public static unsafe partial class CXModuleMapDescriptorImplTests
+    /// <summary>Validates that the <see cref="CXModuleMapDescriptorImpl" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXModuleMapDescriptorImpl" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXModuleMapDescriptorImpl>(), Is.EqualTo(sizeof(CXModuleMapDescriptorImpl)));
-        }
+        Assert.That(Marshal.SizeOf<CXModuleMapDescriptorImpl>(), Is.EqualTo(sizeof(CXModuleMapDescriptorImpl)));
+    }
 
-        /// <summary>Validates that the <see cref="CXModuleMapDescriptorImpl" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXModuleMapDescriptorImpl).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXModuleMapDescriptorImpl" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXModuleMapDescriptorImpl).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXModuleMapDescriptorImpl" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
-        {
-            Assert.That(sizeof(CXModuleMapDescriptorImpl), Is.EqualTo(1));
-        }
+    /// <summary>Validates that the <see cref="CXModuleMapDescriptorImpl" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        Assert.That(sizeof(CXModuleMapDescriptorImpl), Is.EqualTo(1));
     }
 }

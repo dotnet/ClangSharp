@@ -4,19 +4,19 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class CSharpCompatibleUnix_FunctionDeclarationBodyImportTest : FunctionDeclarationBodyImportTest
 {
-    public sealed class CSharpCompatibleUnix_FunctionDeclarationBodyImportTest : FunctionDeclarationBodyImportTest
+    protected override Task ArraySubscriptTestImpl()
     {
-        protected override Task ArraySubscriptTestImpl()
-        {
-            var inputContents = @"int MyFunction(int* pData, int index)
+        var inputContents = @"int MyFunction(int* pData, int index)
 {
     return pData[index];
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
@@ -28,17 +28,17 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BasicTestImpl()
-        {
-            var inputContents = @"void MyFunction()
+    protected override Task BasicTestImpl()
+    {
+        var inputContents = @"void MyFunction()
 {
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -49,18 +49,18 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BinaryOperatorBasicTestImpl(string opcode)
-        {
-            var inputContents = $@"int MyFunction(int x, int y)
+    protected override Task BinaryOperatorBasicTestImpl(string opcode)
+    {
+        var inputContents = $@"int MyFunction(int x, int y)
 {{
     return x {opcode} y;
 }}
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
@@ -72,18 +72,18 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BinaryOperatorCompareTestImpl(string opcode)
-        {
-            var inputContents = $@"bool MyFunction(int x, int y)
+    protected override Task BinaryOperatorCompareTestImpl(string opcode)
+    {
+        var inputContents = $@"bool MyFunction(int x, int y)
 {{
     return x {opcode} y;
 }}
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
@@ -95,18 +95,18 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BinaryOperatorBooleanTestImpl(string opcode)
-        {
-            var inputContents = $@"bool MyFunction(bool x, bool y)
+    protected override Task BinaryOperatorBooleanTestImpl(string opcode)
+    {
+        var inputContents = $@"bool MyFunction(bool x, bool y)
 {{
     return x {opcode} y;
 }}
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
@@ -118,12 +118,12 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BreakTestImpl()
-        {
-            var inputContents = @"int MyFunction(int value)
+    protected override Task BreakTestImpl()
+    {
+        var inputContents = @"int MyFunction(int value)
 {
     while (true)
     {
@@ -134,7 +134,7 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -151,12 +151,12 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CallFunctionTestImpl()
-        {
-            var inputContents = @"void MyCalledFunction()
+    protected override Task CallFunctionTestImpl()
+    {
+        var inputContents = @"void MyCalledFunction()
 {
 }
 
@@ -166,7 +166,7 @@ void MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -182,12 +182,12 @@ void MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CallFunctionWithArgsTestImpl()
-        {
-            var inputContents = @"void MyCalledFunction(int x, int y)
+    protected override Task CallFunctionWithArgsTestImpl()
+    {
+        var inputContents = @"void MyCalledFunction(int x, int y)
 {
 }
 
@@ -197,7 +197,7 @@ void MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -213,12 +213,12 @@ void MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CaseTestImpl()
-        {
-            var inputContents = @"int MyFunction(int value)
+    protected override Task CaseTestImpl()
+    {
+        var inputContents = @"int MyFunction(int value)
 {
     switch (value)
     {
@@ -238,7 +238,7 @@ void MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -264,12 +264,12 @@ void MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CaseNoCompoundTestImpl()
-        {
-            var inputContents = @"int MyFunction(int value)
+    protected override Task CaseNoCompoundTestImpl()
+    {
+        var inputContents = @"int MyFunction(int value)
 {
     switch (value)
     {
@@ -285,7 +285,7 @@ void MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -311,12 +311,12 @@ void MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CompareMultipleEnumTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task CompareMultipleEnumTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -331,7 +331,7 @@ static inline int MyFunction(MyEnum x)
 }
 ";
 
-            var expectedOutputContents = @"using static ClangSharp.Test.MyEnum;
+        var expectedOutputContents = @"using static ClangSharp.Test.MyEnum;
 
 namespace ClangSharp.Test
 {
@@ -352,18 +352,18 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ConditionalOperatorTestImpl()
-        {
-            var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
+    protected override Task ConditionalOperatorTestImpl()
+    {
+        var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
 {
     return condition ? lhs : rhs;
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -375,12 +375,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ContinueTestImpl()
-        {
-            var inputContents = @"int MyFunction(int value)
+    protected override Task ContinueTestImpl()
+    {
+        var inputContents = @"int MyFunction(int value)
 {
     while (true)
     {
@@ -391,7 +391,7 @@ namespace ClangSharp.Test
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -408,18 +408,18 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CStyleFunctionalCastTestImpl()
-        {
-            var inputContents = @"int MyFunction(float input)
+    protected override Task CStyleFunctionalCastTestImpl()
+    {
+        var inputContents = @"int MyFunction(float input)
 {
     return (int)input;
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -431,18 +431,18 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CxxFunctionalCastTestImpl()
-        {
-            var inputContents = @"int MyFunction(float input)
+    protected override Task CxxFunctionalCastTestImpl()
+    {
+        var inputContents = @"int MyFunction(float input)
 {
     return int(input);
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -454,18 +454,18 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CxxConstCastTestImpl()
-        {
-            var inputContents = @"void* MyFunction(const void* input)
+    protected override Task CxxConstCastTestImpl()
+    {
+        var inputContents = @"void* MyFunction(const void* input)
 {
     return const_cast<void*>(input);
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
@@ -477,12 +477,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CxxDynamicCastTestImpl()
-        {
-            var inputContents = @"struct MyStructA
+    protected override Task CxxDynamicCastTestImpl()
+    {
+        var inputContents = @"struct MyStructA
 {
     virtual void MyMethod() = 0;
 };
@@ -495,7 +495,7 @@ MyStructB* MyFunction(MyStructA* input)
 }
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -543,18 +543,18 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CxxReinterpretCastTestImpl()
-        {
-            var inputContents = @"int* MyFunction(void* input)
+    protected override Task CxxReinterpretCastTestImpl()
+    {
+        var inputContents = @"int* MyFunction(void* input)
 {
     return reinterpret_cast<int*>(input);
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
@@ -566,18 +566,18 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task CxxStaticCastTestImpl()
-        {
-            var inputContents = @"int* MyFunction(void* input)
+    protected override Task CxxStaticCastTestImpl()
+    {
+        var inputContents = @"int* MyFunction(void* input)
 {
     return static_cast<int*>(input);
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
@@ -589,12 +589,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task DeclTestImpl()
-        {
-            var inputContents = @"\
+    protected override Task DeclTestImpl()
+    {
+        var inputContents = @"\
 int MyFunction()
 {
     int x = 0;
@@ -603,7 +603,7 @@ int MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -618,12 +618,12 @@ int MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task DoTestImpl()
-        {
-            var inputContents = @"int MyFunction(int count)
+    protected override Task DoTestImpl()
+    {
+        var inputContents = @"int MyFunction(int count)
 {
     int i = 0;
 
@@ -637,7 +637,7 @@ int MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -657,12 +657,12 @@ int MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task DoNonCompoundTestImpl()
-        {
-            var inputContents = @"int MyFunction(int count)
+    protected override Task DoNonCompoundTestImpl()
+    {
+        var inputContents = @"int MyFunction(int count)
 {
     int i = 0;
 
@@ -673,7 +673,7 @@ int MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -692,12 +692,12 @@ int MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ForTestImpl()
-        {
-            var inputContents = @"int MyFunction(int count)
+    protected override Task ForTestImpl()
+    {
+        var inputContents = @"int MyFunction(int count)
 {
     for (int i = 0; i < count; i--)
     {
@@ -769,7 +769,7 @@ int MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -838,12 +838,12 @@ int MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ForNonCompoundTestImpl()
-        {
-            var inputContents = @"int MyFunction(int count)
+    protected override Task ForNonCompoundTestImpl()
+    {
+        var inputContents = @"int MyFunction(int count)
 {
     for (int i = 0; i < count; i--)
         i += 2;
@@ -891,7 +891,7 @@ int MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -960,12 +960,12 @@ int MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task IfTestImpl()
-        {
-            var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
+    protected override Task IfTestImpl()
+    {
+        var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
 {
     if (condition)
     {
@@ -976,7 +976,7 @@ int MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -993,12 +993,12 @@ int MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task IfElseTestImpl()
-        {
-            var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
+    protected override Task IfElseTestImpl()
+    {
+        var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
 {
     if (condition)
     {
@@ -1011,7 +1011,7 @@ int MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1030,12 +1030,12 @@ int MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task IfElseIfTestImpl()
-        {
-            var inputContents = @"int MyFunction(bool condition1, int a, int b, bool condition2, int c)
+    protected override Task IfElseIfTestImpl()
+    {
+        var inputContents = @"int MyFunction(bool condition1, int a, int b, bool condition2, int c)
 {
     if (condition1)
     {
@@ -1050,7 +1050,7 @@ int MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1071,12 +1071,12 @@ int MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task IfElseNonCompoundTestImpl()
-        {
-            var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
+    protected override Task IfElseNonCompoundTestImpl()
+    {
+        var inputContents = @"int MyFunction(bool condition, int lhs, int rhs)
 {
     if (condition)
         return lhs;
@@ -1085,7 +1085,7 @@ int MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1104,12 +1104,12 @@ int MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task InitListForArrayTestImpl()
-        {
-            var inputContents = @"
+    protected override Task InitListForArrayTestImpl()
+    {
+        var inputContents = @"
 void MyFunction()
 {
     int x[4] = { 1, 2, 3, 4 };
@@ -1118,7 +1118,7 @@ void MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1148,12 +1148,12 @@ void MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task InitListForRecordDeclTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task InitListForRecordDeclTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     float x;
     float y;
@@ -1172,7 +1172,7 @@ MyStruct MyFunction2()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -1211,12 +1211,12 @@ MyStruct MyFunction2()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task MemberTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task MemberTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int value;
 };
@@ -1232,7 +1232,7 @@ int MyFunction2(MyStruct* instance)
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -1254,12 +1254,12 @@ int MyFunction2(MyStruct* instance)
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task RefToPtrTestImpl()
-        {
-            var inputContents = @"struct MyStruct {
+    protected override Task RefToPtrTestImpl()
+    {
+        var inputContents = @"struct MyStruct {
     int value;
 };
 
@@ -1269,7 +1269,7 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -1286,18 +1286,18 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ReturnCXXNullPtrTestImpl()
-        {
-            var inputContents = @"void* MyFunction()
+    protected override Task ReturnCXXNullPtrTestImpl()
+    {
+        var inputContents = @"void* MyFunction()
 {
     return nullptr;
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
@@ -1309,18 +1309,18 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ReturnCXXBooleanLiteralTestImpl(string value)
-        {
-            var inputContents = $@"bool MyFunction()
+    protected override Task ReturnCXXBooleanLiteralTestImpl(string value)
+    {
+        var inputContents = $@"bool MyFunction()
 {{
     return {value};
 }}
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
@@ -1332,18 +1332,18 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ReturnFloatingLiteralDoubleTestImpl(string value)
-        {
-            var inputContents = $@"double MyFunction()
+    protected override Task ReturnFloatingLiteralDoubleTestImpl(string value)
+    {
+        var inputContents = $@"double MyFunction()
 {{
     return {value};
 }}
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
@@ -1355,18 +1355,18 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ReturnFloatingLiteralSingleTestImpl(string value)
-        {
-            var inputContents = $@"float MyFunction()
+    protected override Task ReturnFloatingLiteralSingleTestImpl(string value)
+    {
+        var inputContents = $@"float MyFunction()
 {{
     return {value};
 }}
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
@@ -1378,18 +1378,18 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ReturnEmptyTestImpl()
-        {
-            var inputContents = @"void MyFunction()
+    protected override Task ReturnEmptyTestImpl()
+    {
+        var inputContents = @"void MyFunction()
 {
     return;
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1401,18 +1401,18 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ReturnIntegerLiteralInt32TestImpl()
-        {
-            var inputContents = @"int MyFunction()
+    protected override Task ReturnIntegerLiteralInt32TestImpl()
+    {
+        var inputContents = @"int MyFunction()
 {
     return -1;
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1424,12 +1424,12 @@ bool MyFunction(const MyStruct& lhs, const MyStruct& rhs)
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task AccessUnionMemberTestImpl()
-        {
-            var inputContents = @"union MyUnion
+    protected override Task AccessUnionMemberTestImpl()
+    {
+        var inputContents = @"union MyUnion
 {
     struct { int a; };
 };
@@ -1441,7 +1441,7 @@ void MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -1481,12 +1481,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ReturnStructTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task ReturnStructTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     double r;
     double g;
@@ -1500,7 +1500,7 @@ MyStruct MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -1523,12 +1523,12 @@ MyStruct MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task SwitchTestImpl()
-        {
-            var inputContents = @"int MyFunction(int value)
+    protected override Task SwitchTestImpl()
+    {
+        var inputContents = @"int MyFunction(int value)
 {
     switch (value)
     {
@@ -1540,7 +1540,7 @@ MyStruct MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1558,12 +1558,12 @@ MyStruct MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task SwitchNonCompoundTestImpl()
-        {
-            var inputContents = @"int MyFunction(int value)
+    protected override Task SwitchNonCompoundTestImpl()
+    {
+        var inputContents = @"int MyFunction(int value)
 {
     switch (value)
         default:
@@ -1577,7 +1577,7 @@ MyStruct MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1603,18 +1603,18 @@ MyStruct MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task UnaryOperatorAddrOfTestImpl()
-        {
-            var inputContents = @"int* MyFunction(int value)
+    protected override Task UnaryOperatorAddrOfTestImpl()
+    {
+        var inputContents = @"int* MyFunction(int value)
 {
     return &value;
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
@@ -1626,18 +1626,18 @@ MyStruct MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task UnaryOperatorDerefTestImpl()
-        {
-            var inputContents = @"int MyFunction(int* value)
+    protected override Task UnaryOperatorDerefTestImpl()
+    {
+        var inputContents = @"int MyFunction(int* value)
 {
     return *value;
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
     {
@@ -1649,18 +1649,18 @@ MyStruct MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task UnaryOperatorLogicalNotTestImpl()
-        {
-            var inputContents = @"bool MyFunction(bool value)
+    protected override Task UnaryOperatorLogicalNotTestImpl()
+    {
+        var inputContents = @"bool MyFunction(bool value)
 {
     return !value;
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1672,18 +1672,18 @@ MyStruct MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task UnaryOperatorPostfixTestImpl(string opcode)
-        {
-            var inputContents = $@"int MyFunction(int value)
+    protected override Task UnaryOperatorPostfixTestImpl(string opcode)
+    {
+        var inputContents = $@"int MyFunction(int value)
 {{
     return value{opcode};
 }}
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
@@ -1695,18 +1695,18 @@ MyStruct MyFunction()
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task UnaryOperatorPrefixTestImpl(string opcode)
-        {
-            var inputContents = $@"int MyFunction(int value)
+    protected override Task UnaryOperatorPrefixTestImpl(string opcode)
+    {
+        var inputContents = $@"int MyFunction(int value)
 {{
     return {opcode}value;
 }}
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
@@ -1718,12 +1718,12 @@ MyStruct MyFunction()
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WhileTestImpl()
-        {
-            var inputContents = @"int MyFunction(int count)
+    protected override Task WhileTestImpl()
+    {
+        var inputContents = @"int MyFunction(int count)
 {
     int i = 0;
 
@@ -1736,7 +1736,7 @@ MyStruct MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1755,12 +1755,12 @@ MyStruct MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WhileNonCompoundTestImpl()
-        {
-            var inputContents = @"int MyFunction(int count)
+    protected override Task WhileNonCompoundTestImpl()
+    {
+        var inputContents = @"int MyFunction(int count)
 {
     int i = 0;
 
@@ -1771,7 +1771,7 @@ MyStruct MyFunction()
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
@@ -1790,7 +1790,6 @@ MyStruct MyFunction()
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 }

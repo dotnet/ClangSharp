@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPCanonicalLoop : Stmt
 {
-    public sealed class OMPCanonicalLoop : Stmt
+    internal OMPCanonicalLoop(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPCanonicalLoop, CX_StmtClass.CX_StmtClass_OMPCanonicalLoop)
     {
-        internal OMPCanonicalLoop(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPCanonicalLoop, CX_StmtClass.CX_StmtClass_OMPCanonicalLoop)
-        {
-        }
     }
 }

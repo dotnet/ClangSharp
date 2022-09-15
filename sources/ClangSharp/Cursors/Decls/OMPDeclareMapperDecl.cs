@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPDeclareMapperDecl : ValueDecl, IDeclContext
 {
-    public sealed class OMPDeclareMapperDecl : ValueDecl, IDeclContext
+    internal OMPDeclareMapperDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_OMPDeclareMapper)
     {
-        internal OMPDeclareMapperDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_OMPDeclareMapper)
-        {
-        }
     }
 }

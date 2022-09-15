@@ -6,19 +6,19 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ClangSharp.Abstractions;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class CSharpLatestUnix_StructDeclarationTest : StructDeclarationTest
 {
-    public sealed class CSharpLatestUnix_StructDeclarationTest : StructDeclarationTest
+    protected override Task IncompleteArraySizeTestImpl(string nativeType, string expectedManagedType)
     {
-        protected override Task IncompleteArraySizeTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} x[];
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public unsafe partial struct MyStruct
     {{
@@ -28,12 +28,12 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} r;
     {nativeType} g;
@@ -41,7 +41,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -54,12 +54,12 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef struct
+    protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef struct
 {{
     {nativeType} r;
     {nativeType} g;
@@ -67,7 +67,7 @@ namespace ClangSharp.UnitTests
 }}  MyStruct;
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -79,12 +79,12 @@ namespace ClangSharp.UnitTests
     }}
 }}
 ";
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
+    }
 
-        protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} r;
     {nativeType} g;
@@ -92,7 +92,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -108,12 +108,12 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BitfieldTestImpl()
-        {
-            var inputContents = @"struct MyStruct1
+    protected override Task BitfieldTestImpl()
+    {
+        var inputContents = @"struct MyStruct1
 {
     unsigned int o0_b0_24 : 24;
     unsigned int o4_b0_16 : 16;
@@ -138,7 +138,7 @@ struct MyStruct3
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct1
     {
@@ -317,21 +317,21 @@ struct MyStruct3
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ExcludeTestImpl()
-        {
-            var inputContents = "typedef struct MyStruct MyStruct;";
-            var expectedOutputContents = string.Empty;
+    protected override Task ExcludeTestImpl()
+    {
+        var inputContents = "typedef struct MyStruct MyStruct;";
+        var expectedOutputContents = string.Empty;
 
-            var excludedNames = new string[] { "MyStruct" };
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
-        }
+        var excludedNames = new string[] { "MyStruct" };
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} value;
 }};
@@ -342,7 +342,7 @@ struct MyOtherStruct
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -377,12 +377,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} value;
 }};
@@ -393,7 +393,7 @@ struct MyOtherStruct
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -460,12 +460,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} value;
 }};
@@ -478,7 +478,7 @@ struct MyOtherStruct
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -513,12 +513,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} value;
 }};
@@ -529,7 +529,7 @@ struct MyOtherStruct
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -565,18 +565,18 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} c[3];
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -604,18 +604,18 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} c[3];
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public unsafe partial struct MyStruct
     {{
@@ -625,18 +625,18 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} c[2][1][3][4];
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public unsafe partial struct MyStruct
     {{
@@ -646,12 +646,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef {nativeType} MyBuffer[3];
+    protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef {nativeType} MyBuffer[3];
 
 struct MyStruct
 {{
@@ -659,7 +659,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public unsafe partial struct MyStruct
     {{
@@ -669,18 +669,18 @@ struct MyStruct
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
+
+    protected override Task GuidTestImpl()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
         }
 
-        protected override Task GuidTestImpl()
-        {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // Non-Windows doesn't support __declspec(uuid(""))
-                return Task.CompletedTask;
-            }
-
-            var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+        var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
 
 struct __declspec(uuid(""00000000-0000-0000-C000-000000000046"")) MyStruct1
 {{
@@ -693,7 +693,7 @@ struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyStruct2
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -719,13 +719,13 @@ namespace ClangSharp.Test
 }}
 ";
 
-            var excludedNames = new string[] { "DECLSPEC_UUID" };
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
-        }
+        var excludedNames = new string[] { "DECLSPEC_UUID" };
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+    }
 
-        protected override Task InheritanceTestImpl()
-        {
-            var inputContents = @"struct MyStruct1A
+    protected override Task InheritanceTestImpl()
+    {
+        var inputContents = @"struct MyStruct1A
 {
     int x;
     int y;
@@ -744,7 +744,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct1A
     {
@@ -774,12 +774,12 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task InheritanceWithNativeInheritanceAttributeTestImpl()
-        {
-            var inputContents = @"struct MyStruct1A
+    protected override Task InheritanceWithNativeInheritanceAttributeTestImpl()
+    {
+        var inputContents = @"struct MyStruct1A
 {
     int x;
     int y;
@@ -798,7 +798,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct1A
     {
@@ -829,12 +829,12 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
+    }
 
-        protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
-        {
-            var inputContents = $@"typedef union {{
+    protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
+    {
+        var inputContents = $@"typedef union {{
     {nativeType} value;
 }} MyUnion;
 
@@ -874,7 +874,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -1027,12 +1027,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NestedAnonymousWithBitfieldTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NestedAnonymousWithBitfieldTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int x;
     int y;
@@ -1051,7 +1051,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -1152,12 +1152,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} r;
     {nativeType} g;
@@ -1173,7 +1173,7 @@ namespace ClangSharp.Test
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -1197,12 +1197,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} r;
     {nativeType} g;
@@ -1218,7 +1218,7 @@ namespace ClangSharp.Test
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -1249,12 +1249,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NewKeywordTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NewKeywordTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int Equals;
     int Dispose;
@@ -1265,7 +1265,7 @@ namespace ClangSharp.Test
     int ToString;
 };";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -1286,26 +1286,26 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NoDefinitionTestImpl()
-        {
-            var inputContents = "typedef struct MyStruct MyStruct;";
+    protected override Task NoDefinitionTestImpl()
+    {
+        var inputContents = "typedef struct MyStruct MyStruct;";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
     }}
 }}
 ";
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task PackTestImpl()
-        {
-            const string InputContents = @"struct MyStruct1 {
+    protected override Task PackTestImpl()
+    {
+        const string InputContents = @"struct MyStruct1 {
     unsigned Field1;
 
     void* Field2;
@@ -1324,16 +1324,16 @@ struct MyStruct2 {
 };
 ";
 
-            var usingStatement = "using System.Runtime.InteropServices;\n\n";
-            var packing = "    [StructLayout(LayoutKind.Sequential, Pack = 4)]\n";
+        var usingStatement = "using System.Runtime.InteropServices;\n\n";
+        var packing = "    [StructLayout(LayoutKind.Sequential, Pack = 4)]\n";
 
-            if (!Environment.Is64BitProcess)
-            {
-                usingStatement = string.Empty;
-                packing = string.Empty;
-            }
+        if (!Environment.Is64BitProcess)
+        {
+            usingStatement = string.Empty;
+            packing = string.Empty;
+        }
 
-            var expectedOutputContents = $@"{usingStatement}namespace ClangSharp.Test
+        var expectedOutputContents = $@"{usingStatement}namespace ClangSharp.Test
 {{
     public unsafe partial struct MyStruct1
     {{
@@ -1359,17 +1359,17 @@ struct MyStruct2 {
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(InputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(InputContents, expectedOutputContents);
+    }
 
-        protected override Task PointerToSelfTestImpl()
-        {
-            var inputContents = @"struct example_s {
+    protected override Task PointerToSelfTestImpl()
+    {
+        var inputContents = @"struct example_s {
    example_s* next;
    void* data;
 };";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public unsafe partial struct example_s
     {{
@@ -1380,19 +1380,19 @@ struct MyStruct2 {
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task PointerToSelfViaTypedefTestImpl()
-        {
-            var inputContents = @"typedef struct example_s example_t;
+    protected override Task PointerToSelfViaTypedefTestImpl()
+    {
+        var inputContents = @"typedef struct example_s example_t;
 
 struct example_s {
    example_t* next;
    void* data;
 };";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public unsafe partial struct example_s
     {{
@@ -1404,14 +1404,14 @@ struct example_s {
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task RemapTestImpl()
-        {
-            var inputContents = "typedef struct _MyStruct MyStruct;";
+    protected override Task RemapTestImpl()
+    {
+        var inputContents = "typedef struct _MyStruct MyStruct;";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -1419,13 +1419,13 @@ struct example_s {
 }}
 ";
 
-            var remappedNames = new Dictionary<string, string> { ["_MyStruct"] = "MyStruct" };
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
-        }
+        var remappedNames = new Dictionary<string, string> { ["_MyStruct"] = "MyStruct" };
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+    }
 
-        protected override Task RemapNestedAnonymousTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task RemapNestedAnonymousTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     double r;
     double g;
@@ -1437,7 +1437,7 @@ struct example_s {
     };
 };";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -1468,16 +1468,16 @@ namespace ClangSharp.Test
 }
 ";
 
-            var remappedNames = new Dictionary<string, string> {
-                ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
-                ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Struct"
-            };
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
-        }
+        var remappedNames = new Dictionary<string, string> {
+            ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
+            ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Struct"
+        };
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+    }
 
-        protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef struct MyStruct MyStruct;
+    protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef struct MyStruct MyStruct;
 
 struct MyStruct
 {{
@@ -1487,7 +1487,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -1500,16 +1500,16 @@ struct MyStruct
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task SkipNonDefinitionPointerTestImpl()
-        {
-            var inputContents = @"typedef struct MyStruct* MyStructPtr;
+    protected override Task SkipNonDefinitionPointerTestImpl()
+    {
+        var inputContents = @"typedef struct MyStruct* MyStructPtr;
 typedef struct MyStruct& MyStructRef;
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -1517,12 +1517,12 @@ typedef struct MyStruct& MyStructRef;
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef struct MyStruct MyStruct;
+    protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef struct MyStruct MyStruct;
 
 struct MyStruct
 {{
@@ -1532,7 +1532,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -1548,12 +1548,12 @@ struct MyStruct
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef {nativeType} MyTypedefAlias;
+    protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef {nativeType} MyTypedefAlias;
 
 struct MyStruct
 {{
@@ -1563,7 +1563,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public partial struct MyStruct
     {{
@@ -1579,12 +1579,12 @@ struct MyStruct
 }}
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task UsingDeclarationTestImpl()
-        {
-            var inputContents = @"struct MyStruct1A
+    protected override Task UsingDeclarationTestImpl()
+    {
+        var inputContents = @"struct MyStruct1A
 {
     void MyMethod() { }
 };
@@ -1595,7 +1595,7 @@ struct MyStruct1B : MyStruct1A
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct1A
     {
@@ -1614,12 +1614,12 @@ struct MyStruct1B : MyStruct1A
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WithAccessSpecifierTestImpl()
-        {
-            var inputContents = @"struct MyStruct1
+    protected override Task WithAccessSpecifierTestImpl()
+    {
+        var inputContents = @"struct MyStruct1
 {
     int Field1;
     int Field2;
@@ -1638,7 +1638,7 @@ struct MyStruct3
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     internal partial struct MyStruct1
     {
@@ -1663,18 +1663,18 @@ struct MyStruct3
 }
 ";
 
-            var withAccessSpecifiers = new Dictionary<string, AccessSpecifier> {
-                ["MyStruct1"] = AccessSpecifier.Private,
-                ["MyStruct2"] = AccessSpecifier.Internal,
-                ["Field1"] = AccessSpecifier.Private,
-                ["MyStruct3.Field2"] = AccessSpecifier.Internal,
-            };
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
-        }
+        var withAccessSpecifiers = new Dictionary<string, AccessSpecifier> {
+            ["MyStruct1"] = AccessSpecifier.Private,
+            ["MyStruct2"] = AccessSpecifier.Internal,
+            ["Field1"] = AccessSpecifier.Private,
+            ["MyStruct3.Field2"] = AccessSpecifier.Internal,
+        };
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
+    }
 
-        protected override Task SourceLocationAttributeTestImpl()
-        {
-            const string InputContents = @"struct MyStruct
+    protected override Task SourceLocationAttributeTestImpl()
+    {
+        const string InputContents = @"struct MyStruct
 {
     int r;
     int g;
@@ -1682,7 +1682,7 @@ struct MyStruct3
 };
 ";
 
-            const string ExpectedOutputContents = @"namespace ClangSharp.Test
+        const string ExpectedOutputContents = @"namespace ClangSharp.Test
 {
     [SourceLocation(""ClangUnsavedFile.h"", 1, 8)]
     public partial struct MyStruct
@@ -1699,7 +1699,6 @@ struct MyStruct3
 }
 ";
 
-            return ValidateGeneratedCSharpLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
-        }
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
     }
 }

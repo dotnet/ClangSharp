@@ -3,17 +3,16 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class CXXThrowExpr : Expr
 {
-    public sealed class CXXThrowExpr : Expr
+    internal CXXThrowExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXThrowExpr, CX_StmtClass.CX_StmtClass_CXXThrowExpr)
     {
-        internal CXXThrowExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXThrowExpr, CX_StmtClass.CX_StmtClass_CXXThrowExpr)
-        {
-            Debug.Assert(NumChildren is 1);
-        }
-
-        public bool IsThrownVariableInScope => Handle.IsThrownVariableInScope;
-
-        public Expr SubExpr => (Expr)Children[0];
+        Debug.Assert(NumChildren is 1);
     }
+
+    public bool IsThrownVariableInScope => Handle.IsThrownVariableInScope;
+
+    public Expr SubExpr => (Expr)Children[0];
 }

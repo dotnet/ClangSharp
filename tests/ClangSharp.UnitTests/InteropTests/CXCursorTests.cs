@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXCursor" /> struct.</summary>
+public static unsafe partial class CXCursorTests
 {
-    /// <summary>Provides validation of the <see cref="CXCursor" /> struct.</summary>
-    public static unsafe partial class CXCursorTests
+    /// <summary>Validates that the <see cref="CXCursor" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXCursor" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXCursor>(), Is.EqualTo(sizeof(CXCursor)));
-        }
+        Assert.That(Marshal.SizeOf<CXCursor>(), Is.EqualTo(sizeof(CXCursor)));
+    }
 
-        /// <summary>Validates that the <see cref="CXCursor" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXCursor).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXCursor" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXCursor).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXCursor" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXCursor" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXCursor), Is.EqualTo(32));
-            }
-            else
-            {
-                Assert.That(sizeof(CXCursor), Is.EqualTo(20));
-            }
+            Assert.That(sizeof(CXCursor), Is.EqualTo(32));
+        }
+        else
+        {
+            Assert.That(sizeof(CXCursor), Is.EqualTo(20));
         }
     }
 }

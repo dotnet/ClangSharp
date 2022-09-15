@@ -3,15 +3,14 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class CXXStdInitializerListExpr : Expr
-    {
-        internal CXXStdInitializerListExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr)
-        {
-            Debug.Assert(NumChildren is 1);
-        }
+namespace ClangSharp;
 
-        public Expr SubExpr => (Expr)Children[0];
+public sealed class CXXStdInitializerListExpr : Expr
+{
+    internal CXXStdInitializerListExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr)
+    {
+        Debug.Assert(NumChildren is 1);
     }
+
+    public Expr SubExpr => (Expr)Children[0];
 }

@@ -2,14 +2,13 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class ObjCBoolLiteralExpr : Expr
-    {
-        internal ObjCBoolLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCBoolLiteralExpr, CX_StmtClass.CX_StmtClass_ObjCBoolLiteralExpr)
-        {
-        }
+namespace ClangSharp;
 
-        public bool Value => Handle.BoolLiteralValue;
+public sealed class ObjCBoolLiteralExpr : Expr
+{
+    internal ObjCBoolLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCBoolLiteralExpr, CX_StmtClass.CX_StmtClass_ObjCBoolLiteralExpr)
+    {
     }
+
+    public bool Value => Handle.BoolLiteralValue;
 }

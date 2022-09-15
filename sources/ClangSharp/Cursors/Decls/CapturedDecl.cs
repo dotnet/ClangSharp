@@ -4,38 +4,37 @@ using ClangSharp.Interop;
 using System;
 using System.Collections.Generic;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class CapturedDecl : Decl, IDeclContext
 {
-    public sealed class CapturedDecl : Decl, IDeclContext
+    private readonly Lazy<ImplicitParamDecl> _contextParam;
+    private readonly Lazy<IReadOnlyList<ImplicitParamDecl>> _parameters;
+
+    internal CapturedDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_Captured)
     {
-        private readonly Lazy<ImplicitParamDecl> _contextParam;
-        private readonly Lazy<IReadOnlyList<ImplicitParamDecl>> _parameters;
+        _contextParam = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.ContextParam));
+        _parameters = new Lazy<IReadOnlyList<ImplicitParamDecl>>(() => {
+            var parameterCount = Handle.NumArguments;
+            var parameters = new List<ImplicitParamDecl>(parameterCount);
 
-        internal CapturedDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_Captured)
-        {
-            _contextParam = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.ContextParam));
-            _parameters = new Lazy<IReadOnlyList<ImplicitParamDecl>>(() => {
-                var parameterCount = Handle.NumArguments;
-                var parameters = new List<ImplicitParamDecl>(parameterCount);
+            for (var i = 0; i < parameterCount; i++)
+            {
+                var parameter = TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetArgument(unchecked((uint)i)));
+                parameters.Add(parameter);
+            }
 
-                for (var i = 0; i < parameterCount; i++)
-                {
-                    var parameter = TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetArgument(unchecked((uint)i)));
-                    parameters.Add(parameter);
-                }
-
-                return parameters;
-            });
-        }
-
-        public ImplicitParamDecl ContextParam => _contextParam.Value;
-
-        public uint ContextParamPosition => unchecked((uint)Handle.ContextParamPosition);
-
-        public bool IsNothrow => Handle.IsNothrow;
-
-        public uint NumParams => unchecked((uint)Handle.NumArguments);
-
-        public IReadOnlyList<ImplicitParamDecl> Parameters => _parameters.Value;
+            return parameters;
+        });
     }
+
+    public ImplicitParamDecl ContextParam => _contextParam.Value;
+
+    public uint ContextParamPosition => unchecked((uint)Handle.ContextParamPosition);
+
+    public bool IsNothrow => Handle.IsNothrow;
+
+    public uint NumParams => unchecked((uint)Handle.NumArguments);
+
+    public IReadOnlyList<ImplicitParamDecl> Parameters => _parameters.Value;
 }

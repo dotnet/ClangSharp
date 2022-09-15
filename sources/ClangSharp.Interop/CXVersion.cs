@@ -3,14 +3,13 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public partial struct CXVersion
 {
-    public partial struct CXVersion
-    {
-        public int Major;
+    public int Major;
 
-        public int Minor;
+    public int Minor;
 
-        public int Subminor;
-    }
+    public int Subminor;
 }

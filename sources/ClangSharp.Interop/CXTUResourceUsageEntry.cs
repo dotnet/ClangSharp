@@ -5,14 +5,13 @@
 
 using System;
 
-namespace ClangSharp.Interop
-{
-    public partial struct CXTUResourceUsageEntry
-    {
-        [NativeTypeName("enum CXTUResourceUsageKind")]
-        public CXTUResourceUsageKind kind;
+namespace ClangSharp.Interop;
 
-        [NativeTypeName("unsigned long")]
-        public UIntPtr amount;
-    }
+public partial struct CXTUResourceUsageEntry
+{
+    [NativeTypeName("enum CXTUResourceUsageKind")]
+    public CXTUResourceUsageKind kind;
+
+    [NativeTypeName("unsigned long")]
+    public UIntPtr amount;
 }

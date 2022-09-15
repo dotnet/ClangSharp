@@ -3,13 +3,12 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ArrayInitIndexExpr : Expr
 {
-    public sealed class ArrayInitIndexExpr : Expr
+    internal ArrayInitIndexExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr)
     {
-        internal ArrayInitIndexExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr)
-        {
-            Debug.Assert(NumChildren is 0);
-        }
+        Debug.Assert(NumChildren is 0);
     }
 }
