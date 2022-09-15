@@ -27,10 +27,10 @@ public unsafe class Cursor : IEquatable<Cursor>
         }
         Handle = handle;
 
-        _kindSpelling = new Lazy<string>(() => Handle.KindSpelling.ToString());
+        _kindSpelling = new Lazy<string>(Handle.KindSpelling.ToString);
         _lexicalParentCursor = new Lazy<Cursor>(() => TranslationUnit.GetOrCreate<Cursor>(Handle.LexicalParent));
         _semanticParentCursor = new Lazy<Cursor>(() => TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent));
-        _spelling = new Lazy<string>(() => Handle.Spelling.ToString());
+        _spelling = new Lazy<string>(Handle.Spelling.ToString);
         _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
     }
 
@@ -96,9 +96,9 @@ public unsafe class Cursor : IEquatable<Cursor>
 
     public TranslationUnit TranslationUnit => _translationUnit.Value;
 
-    public static bool operator ==(Cursor left, Cursor right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
+    public static bool operator ==(Cursor left, Cursor right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
 
-    public static bool operator !=(Cursor left, Cursor right) => (left is object) ? ((right is null) || (left.Handle != right.Handle)) : (right is object);
+    public static bool operator !=(Cursor left, Cursor right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
 
     internal static Cursor Create(CXCursor handle)
     {

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -44,7 +45,7 @@ public static unsafe partial class clang
         {
             var resolvers = resolveLibrary.GetInvocationList();
 
-            foreach (DllImportResolver resolver in resolvers)
+            foreach (DllImportResolver resolver in resolvers.Cast<DllImportResolver>())
             {
                 nativeLibrary = resolver(libraryName, assembly, searchPath);
 

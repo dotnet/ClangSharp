@@ -1165,9 +1165,9 @@ public partial class PInvokeGenerator
                             csharpOutputBuilder.Write(')');
                         });
                     }
-                    else if (csharpOutputBuilder is not null)
+                    else
                     {
-                        csharpOutputBuilder.WriteCustomAttribute("Optional", null);
+                        csharpOutputBuilder?.WriteCustomAttribute("Optional", null);
                     }
                 },
                 CustomAttrGeneratorData = (parmVarDecl, this, null as CSharp.CSharpOutputBuilder, null as Expr),

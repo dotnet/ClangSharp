@@ -445,3 +445,9 @@ csharp_style_var_when_type_is_apparent = true:error
 ###############################################################################
 [*.cs]
 csharp_using_directive_placement = outside_namespace:error
+
+###############################################################################
+# Set dotnet analyzer rules to:
+#    disable CA1401: P/Invoke method '*' should not be visible
+###############################################################################
+dotnet_diagnostic.CA1401.severity = silent

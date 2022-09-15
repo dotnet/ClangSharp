@@ -4006,9 +4006,9 @@ public sealed partial class PInvokeGenerator : IDisposable
         bool IsExcludedByName(Cursor cursor, ref uint isExcludedValue)
         {
             var isExcludedByConfigOption = false;
+            var qualifiedNameWithoutParameters = "";
 
             string qualifiedName;
-            string qualifiedNameWithoutParameters = "";
             string name;
             string kind;
 

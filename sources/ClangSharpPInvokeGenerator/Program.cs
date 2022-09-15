@@ -121,7 +121,6 @@ public class Program
         new TwoColumnHelpRow("log-visited-files", "A list of the visited files should be generated. This can help identify traversal issues."),
     };
 
-#pragma warning disable IDE1006
     public static async Task<int> Main(params string[] args)
     {
         s_addtionalOption = GetAdditionalOption();
@@ -210,7 +209,6 @@ public class Program
             .Build();
         return await parser.InvokeAsync(args);
     }
-#pragma warning restore IDE1006
 
     public static void Run(InvocationContext context)
     {

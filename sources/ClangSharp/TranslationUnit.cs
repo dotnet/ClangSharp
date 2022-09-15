@@ -43,9 +43,9 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
     public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.Value;
 
-    public static bool operator ==(TranslationUnit left, TranslationUnit right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
+    public static bool operator ==(TranslationUnit left, TranslationUnit right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
 
-    public static bool operator !=(TranslationUnit left, TranslationUnit right) => (left is object) ? ((right is null) || (left.Handle != right.Handle)) : (right is object);
+    public static bool operator !=(TranslationUnit left, TranslationUnit right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
 
     public static TranslationUnit GetOrCreate(CXTranslationUnit handle)
     {

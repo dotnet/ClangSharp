@@ -29,10 +29,10 @@ public unsafe class Type : IEquatable<Type>
         }
         Handle = handle;
 
-        _asString = new Lazy<string>(() => Handle.Spelling.ToString());
+        _asString = new Lazy<string>(Handle.Spelling.ToString);
         _canonicalType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CanonicalType));
         _desugar = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar));
-        _kindSpelling = new Lazy<string>(() => Handle.KindSpelling.ToString());
+        _kindSpelling = new Lazy<string>(Handle.KindSpelling.ToString);
         _pointeeType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
         _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate((CXTranslationUnit)Handle.data[1]));
     }
@@ -110,9 +110,9 @@ public unsafe class Type : IEquatable<Type>
         }
     }
 
-    public static bool operator ==(Type left, Type right) => (left is object) ? ((right is object) && (left.Handle == right.Handle)) : (right is null);
+    public static bool operator ==(Type left, Type right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
 
-    public static bool operator !=(Type left, Type right) => (left is object) ? ((right is null) || (left.Handle != right.Handle)) : (right is object);
+    public static bool operator !=(Type left, Type right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
 
     internal static Type Create(CXType handle) => handle.TypeClass switch {
         CX_TypeClass.CX_TypeClass_Invalid => new Type(handle, handle.kind, handle.TypeClass),
