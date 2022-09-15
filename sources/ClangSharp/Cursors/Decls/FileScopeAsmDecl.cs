@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class FileScopeAsmDecl : Decl
 {
-    public sealed class FileScopeAsmDecl : Decl
+    internal FileScopeAsmDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_FileScopeAsm)
     {
-        internal FileScopeAsmDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_FileScopeAsm)
-        {
-        }
     }
 }

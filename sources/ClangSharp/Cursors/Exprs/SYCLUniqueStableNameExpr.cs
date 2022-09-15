@@ -4,12 +4,11 @@ using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class SYCLUniqueStableNameExpr : Expr
 {
-    public sealed class SYCLUniqueStableNameExpr : Expr
+    internal SYCLUniqueStableNameExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_SYCLUniqueStableNameExpr)
     {
-        internal SYCLUniqueStableNameExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_SYCLUniqueStableNameExpr)
-        {
-        }
     }
 }

@@ -1,8 +1,7 @@
-namespace ClangSharp
+namespace ClangSharp;
+
+public enum PInvokeGeneratorOutputMode
 {
-    public enum PInvokeGeneratorOutputMode
-    {
-        CSharp,
-        Xml
-    }
+    CSharp,
+    Xml
 }

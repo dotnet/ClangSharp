@@ -5,15 +5,15 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace ClangSharp.UnitTests
-{
-    public sealed class CSharpCompatibleUnix_FunctionDeclarationDllImportTest : FunctionDeclarationDllImportTest
-    {
-        protected override Task BasicTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction();";
+namespace ClangSharp.UnitTests;
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+public sealed class CSharpCompatibleUnix_FunctionDeclarationDllImportTest : FunctionDeclarationDllImportTest
+{
+    protected override Task BasicTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction();";
+
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -25,14 +25,14 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ArrayParameterTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction(const float color[4]);";
+    protected override Task ArrayParameterTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction(const float color[4]);";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -44,14 +44,14 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FunctionPointerParameterTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction(void (*callback)());";
+    protected override Task FunctionPointerParameterTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction(void (*callback)());";
 
-            var expectedOutputContents = @"using System;
+        var expectedOutputContents = @"using System;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -64,24 +64,24 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NamespaceTestImpl()
-        {
-            var inputContents = @"namespace MyNamespace
+    protected override Task NamespaceTestImpl()
+    {
+        var inputContents = @"namespace MyNamespace
 {
     void MyFunction();
 }";
 
-            var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN11MyNamespace10MyFunctionEv" : "_ZN11MyNamespace10MyFunctionEv";
+        var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN11MyNamespace10MyFunctionEv" : "_ZN11MyNamespace10MyFunctionEv";
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                entryPoint = "?MyFunction@MyNamespace@@YAXXZ";
-            }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            entryPoint = "?MyFunction@MyNamespace@@YAXXZ";
+        }
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -93,16 +93,16 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task TemplateParameterTestImpl(string nativeType, bool expectedNativeTypeAttr, string expectedManagedType, string expectedUsingStatement)
-        {
-            var inputContents = @$"template <typename T> struct MyTemplate;
+    protected override Task TemplateParameterTestImpl(string nativeType, bool expectedNativeTypeAttr, string expectedManagedType, string expectedUsingStatement)
+    {
+        var inputContents = @$"template <typename T> struct MyTemplate;
 
 extern ""C"" void MyFunction(MyTemplate<{nativeType}> myStruct);";
 
-            var expectedOutputContents = $@"{expectedUsingStatement}using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"{expectedUsingStatement}using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -114,12 +114,12 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+    }
 
-        protected override Task TemplateMemberTestImpl()
-        {
-            var inputContents = @$"template <typename T> struct MyTemplate
+    protected override Task TemplateMemberTestImpl()
+    {
+        var inputContents = @$"template <typename T> struct MyTemplate
 {{
 }};
 
@@ -129,7 +129,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"using System;
+        var expectedOutputContents = $@"using System;
 
 namespace ClangSharp.Test
 {{
@@ -141,14 +141,14 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+    }
 
-        protected override Task NoLibraryPathTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction();";
+    protected override Task NoLibraryPathTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction();";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -160,14 +160,14 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty);
+    }
 
-        protected override Task WithLibraryPathTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction();";
+    protected override Task WithLibraryPathTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction();";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -179,18 +179,18 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withLibraryPaths = new Dictionary<string, string>
-            {
-                ["MyFunction"] = "ClangSharpPInvokeGenerator"
-            };
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
-        }
-
-        protected override Task WithLibraryPathStarTestImpl()
+        var withLibraryPaths = new Dictionary<string, string>
         {
-            var inputContents = @"extern ""C"" void MyFunction();";
+            ["MyFunction"] = "ClangSharpPInvokeGenerator"
+        };
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
+    }
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+    protected override Task WithLibraryPathStarTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction();";
+
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -202,18 +202,18 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withLibraryPaths = new Dictionary<string, string>
-            {
-                ["*"] = "ClangSharpPInvokeGenerator"
-            };
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
-        }
-
-        protected override Task OptionalParameterTestImpl(string nativeType, string nativeInit, bool expectedNativeTypeNameAttr, string expectedManagedType, string expectedManagedInit)
+        var withLibraryPaths = new Dictionary<string, string>
         {
-            var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
+            ["*"] = "ClangSharpPInvokeGenerator"
+        };
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, libraryPath: string.Empty, withLibraryPaths: withLibraryPaths);
+    }
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+    protected override Task OptionalParameterTestImpl(string nativeType, string nativeInit, bool expectedNativeTypeNameAttr, string expectedManagedType, string expectedManagedInit)
+    {
+        var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
+
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -225,14 +225,14 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task OptionalParameterUnsafeTestImpl(string nativeType, string nativeInit, string expectedManagedType, string expectedManagedInit)
-        {
-            var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
+    protected override Task OptionalParameterUnsafeTestImpl(string nativeType, string nativeInit, string expectedManagedType, string expectedManagedInit)
+    {
+        var inputContents = $@"extern ""C"" void MyFunction({nativeType} value = {nativeInit});";
 
-            var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
@@ -244,14 +244,14 @@ namespace ClangSharp.Test
 }}
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WithCallConvTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+    protected override Task WithCallConvTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -266,17 +266,17 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withCallConvs = new Dictionary<string, string> {
-                ["MyFunction1"] = "Winapi"
-            };
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
-        }
+        var withCallConvs = new Dictionary<string, string> {
+            ["MyFunction1"] = "Winapi"
+        };
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+    }
 
-        protected override Task WithCallConvStarTestImpl()
-        {
-            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+    protected override Task WithCallConvStarTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -291,18 +291,18 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withCallConvs = new Dictionary<string, string>
-            {
-                ["*"] = "Winapi"
-            };
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
-        }
-
-        protected override Task WithCallConvStarOverrideTestImpl()
+        var withCallConvs = new Dictionary<string, string>
         {
-            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+            ["*"] = "Winapi"
+        };
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+    }
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+    protected override Task WithCallConvStarOverrideTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -317,19 +317,19 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withCallConvs = new Dictionary<string, string>
-            {
-                ["*"] = "Winapi",
-                ["MyFunction2"] = "StdCall"
-            };
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
-        }
-
-        protected override Task WithSetLastErrorTestImpl()
+        var withCallConvs = new Dictionary<string, string>
         {
-            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+            ["*"] = "Winapi",
+            ["MyFunction2"] = "StdCall"
+        };
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withCallConvs: withCallConvs);
+    }
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+    protected override Task WithSetLastErrorTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -344,18 +344,18 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withSetLastErrors = new string[]
-            {
-                "MyFunction1"
-            };
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
-        }
-
-        protected override Task WithSetLastErrorStarTestImpl()
+        var withSetLastErrors = new string[]
         {
-            var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+            "MyFunction1"
+        };
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+    }
 
-            var expectedOutputContents = @"using System.Runtime.InteropServices;
+    protected override Task WithSetLastErrorStarTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction1(int value); extern ""C"" void MyFunction2(int value);";
+
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -370,18 +370,18 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withSetLastErrors = new string[]
-            {
-                "*"
-            };
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
-        }
-
-        protected override Task SourceLocationTestImpl()
+        var withSetLastErrors = new string[]
         {
-            const string InputContents = @"extern ""C"" void MyFunction(float value);";
+            "*"
+        };
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, withSetLastErrors: withSetLastErrors);
+    }
 
-            const string ExpectedOutputContents = @"using System.Runtime.InteropServices;
+    protected override Task SourceLocationTestImpl()
+    {
+        const string InputContents = @"extern ""C"" void MyFunction(float value);";
+
+        const string ExpectedOutputContents = @"using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -394,9 +394,8 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
-        }
-
-        protected override Task VarargsTestImpl() => Task.CompletedTask;
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
     }
+
+    protected override Task VarargsTestImpl() => Task.CompletedTask;
 }

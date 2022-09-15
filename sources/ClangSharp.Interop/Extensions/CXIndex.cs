@@ -2,52 +2,51 @@
 
 using System;
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public unsafe partial struct CXIndex : IDisposable, IEquatable<CXIndex>
 {
-    public unsafe partial struct CXIndex : IDisposable, IEquatable<CXIndex>
+    public CXIndex(IntPtr handle)
     {
-        public CXIndex(IntPtr handle)
+        Handle = handle;
+    }
+
+    public CXGlobalOptFlags GlobalOptions
+    {
+        get
         {
-            Handle = handle;
+            return (CXGlobalOptFlags)clang.CXIndex_getGlobalOptions(this);
         }
 
-        public CXGlobalOptFlags GlobalOptions
+        set
         {
-            get
-            {
-                return (CXGlobalOptFlags)clang.CXIndex_getGlobalOptions(this);
-            }
-
-            set
-            {
-                clang.CXIndex_setGlobalOptions(this, (uint)value);
-            }
+            clang.CXIndex_setGlobalOptions(this, (uint)value);
         }
+    }
 
-        public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; }
 
-        public static explicit operator CXIndex(void* value) => new CXIndex((IntPtr)value);
+    public static explicit operator CXIndex(void* value) => new CXIndex((IntPtr)value);
 
-        public static implicit operator void*(CXIndex value) => (void*)value.Handle;
+    public static implicit operator void*(CXIndex value) => (void*)value.Handle;
 
-        public static bool operator ==(CXIndex left, CXIndex right) => left.Handle == right.Handle;
+    public static bool operator ==(CXIndex left, CXIndex right) => left.Handle == right.Handle;
 
-        public static bool operator !=(CXIndex left, CXIndex right) => left.Handle != right.Handle;
+    public static bool operator !=(CXIndex left, CXIndex right) => left.Handle != right.Handle;
 
-        public static CXIndex Create(bool excludeDeclarationsFromPch = false, bool displayDiagnostics = false) => (CXIndex)clang.createIndex(excludeDeclarationsFromPch ? 1 : 0, displayDiagnostics ? 1 : 0);
+    public static CXIndex Create(bool excludeDeclarationsFromPch = false, bool displayDiagnostics = false) => (CXIndex)clang.createIndex(excludeDeclarationsFromPch ? 1 : 0, displayDiagnostics ? 1 : 0);
 
-        public void Dispose() => clang.disposeIndex(this);
+    public void Dispose() => clang.disposeIndex(this);
 
-        public override bool Equals(object obj) => (obj is CXIndex other) && Equals(other);
+    public override bool Equals(object obj) => (obj is CXIndex other) && Equals(other);
 
-        public bool Equals(CXIndex other) => this == other;
+    public bool Equals(CXIndex other) => this == other;
 
-        public override int GetHashCode() => Handle.GetHashCode();
+    public override int GetHashCode() => Handle.GetHashCode();
 
-        public void SetInvocationEmissionPathOption(string Path)
-        {
-            using var marshaledPath = new MarshaledString(Path);
-            clang.CXIndex_setInvocationEmissionPathOption(this, marshaledPath);
-        }
+    public void SetInvocationEmissionPathOption(string Path)
+    {
+        using var marshaledPath = new MarshaledString(Path);
+        clang.CXIndex_setInvocationEmissionPathOption(this, marshaledPath);
     }
 }

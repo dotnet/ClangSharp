@@ -4,28 +4,27 @@ using System;
 using ClangSharp.Interop;
 using NUnit.Framework;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public class CXModuleMapDescriptorTest
 {
-    public class CXModuleMapDescriptorTest
+    [Test]
+    public void Basic()
     {
-        [Test]
-        public void Basic()
-        {
-            var contents =
-                "framework module TestFrame {\n"
-                + "  umbrella header \"TestFrame.h\"\n"
-                + "\n"
-                + "  export *\n"
-                + "  module * { export * }\n"
-                + "}\n";
+        var contents =
+            "framework module TestFrame {\n"
+            + "  umbrella header \"TestFrame.h\"\n"
+            + "\n"
+            + "  export *\n"
+            + "  module * { export * }\n"
+            + "}\n";
 
-            using var mmd = CXModuleMapDescriptor.Create(options: 0);
-            _ = mmd.SetFrameworkModuleName("TestFrame");
-            _ = mmd.SetUmbrellaHeader("TestFrame.h");
+        using var mmd = CXModuleMapDescriptor.Create(options: 0);
+        _ = mmd.SetFrameworkModuleName("TestFrame");
+        _ = mmd.SetUmbrellaHeader("TestFrame.h");
 
-            var buffer = mmd.WriteToBuffer(options: 0, errorCode: out _);
-            Assert.AreEqual(contents, buffer.AsString());
-            buffer.ClangFree();
-        }
+        var buffer = mmd.WriteToBuffer(options: 0, errorCode: out _);
+        Assert.AreEqual(contents, buffer.AsString());
+        buffer.ClangFree();
     }
 }

@@ -4,18 +4,17 @@ using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ObjCEncodeExpr : Expr
 {
-    public sealed class ObjCEncodeExpr : Expr
+    private readonly Lazy<Type> _encodedType;
+
+    internal ObjCEncodeExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCEncodeExpr, CX_StmtClass.CX_StmtClass_ObjCEncodeExpr)
     {
-        private readonly Lazy<Type> _encodedType;
-
-        internal ObjCEncodeExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCEncodeExpr, CX_StmtClass.CX_StmtClass_ObjCEncodeExpr)
-        {
-            Debug.Assert(NumChildren is 0);
-            _encodedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        }
-
-        public Type EncodedType => _encodedType.Value;
+        Debug.Assert(NumChildren is 0);
+        _encodedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
+
+    public Type EncodedType => _encodedType.Value;
 }

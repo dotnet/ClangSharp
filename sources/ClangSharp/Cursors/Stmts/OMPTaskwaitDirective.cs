@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPTaskwaitDirective : OMPExecutableDirective
 {
-    public sealed class OMPTaskwaitDirective : OMPExecutableDirective
+    internal OMPTaskwaitDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPTaskwaitDirective, CX_StmtClass.CX_StmtClass_OMPTaskwaitDirective)
     {
-        internal OMPTaskwaitDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPTaskwaitDirective, CX_StmtClass.CX_StmtClass_OMPTaskwaitDirective)
-        {
-        }
     }
 }

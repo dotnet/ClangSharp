@@ -3,32 +3,31 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public partial struct CXCursor
 {
-    public partial struct CXCursor
+    [NativeTypeName("enum CXCursorKind")]
+    public CXCursorKind kind;
+
+    public int xdata;
+
+    [NativeTypeName("const void *[3]")]
+    public _data_e__FixedBuffer data;
+
+    public unsafe partial struct _data_e__FixedBuffer
     {
-        [NativeTypeName("enum CXCursorKind")]
-        public CXCursorKind kind;
+        public void* e0;
+        public void* e1;
+        public void* e2;
 
-        public int xdata;
-
-        [NativeTypeName("const void *[3]")]
-        public _data_e__FixedBuffer data;
-
-        public unsafe partial struct _data_e__FixedBuffer
+        public ref void* this[int index]
         {
-            public void* e0;
-            public void* e1;
-            public void* e2;
-
-            public ref void* this[int index]
+            get
             {
-                get
+                fixed (void** pThis = &e0)
                 {
-                    fixed (void** pThis = &e0)
-                    {
-                        return ref pThis[index];
-                    }
+                    return ref pThis[index];
                 }
             }
         }

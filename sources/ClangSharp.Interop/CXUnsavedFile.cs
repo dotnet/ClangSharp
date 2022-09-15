@@ -5,17 +5,16 @@
 
 using System;
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public unsafe partial struct CXUnsavedFile
 {
-    public unsafe partial struct CXUnsavedFile
-    {
-        [NativeTypeName("const char *")]
-        public sbyte* Filename;
+    [NativeTypeName("const char *")]
+    public sbyte* Filename;
 
-        [NativeTypeName("const char *")]
-        public sbyte* Contents;
+    [NativeTypeName("const char *")]
+    public sbyte* Contents;
 
-        [NativeTypeName("unsigned long")]
-        public UIntPtr Length;
-    }
+    [NativeTypeName("unsigned long")]
+    public UIntPtr Length;
 }

@@ -4,14 +4,14 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class CTest : PInvokeGeneratorTest
 {
-    public sealed class CTest : PInvokeGeneratorTest
+    [Test]
+    public Task BasicTest()
     {
-        [Test]
-        public Task BasicTest()
-        {
-            var inputContents = @"typedef enum MyEnum {
+        var inputContents = @"typedef enum MyEnum {
     MyEnum_Value0,
     MyEnum_Value1,
     MyEnum_Value2,
@@ -21,11 +21,11 @@ typedef struct MyStruct {
     enum_t _field;
 } struct_t;
 ";
-            string expectedOutputContents;
+        string expectedOutputContents;
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                expectedOutputContents = @"namespace ClangSharp.Test
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            expectedOutputContents = @"namespace ClangSharp.Test
 {
     public enum MyEnum
     {
@@ -41,10 +41,10 @@ typedef struct MyStruct {
     }
 }
 ";
-            }
-            else
-            {
-                expectedOutputContents = @"namespace ClangSharp.Test
+        }
+        else
+        {
+            expectedOutputContents = @"namespace ClangSharp.Test
 {
     [NativeTypeName(""unsigned int"")]
     public enum MyEnum : uint
@@ -61,9 +61,8 @@ typedef struct MyStruct {
     }
 }
 ";
-            }
-
-            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs);
         }
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs);
     }
 }

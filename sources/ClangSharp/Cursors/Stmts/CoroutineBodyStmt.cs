@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class CoroutineBodyStmt : Stmt
 {
-    public sealed class CoroutineBodyStmt : Stmt
+    internal CoroutineBodyStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedStmt, CX_StmtClass.CX_StmtClass_CoroutineBodyStmt)
     {
-        internal CoroutineBodyStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedStmt, CX_StmtClass.CX_StmtClass_CoroutineBodyStmt)
-        {
-        }
     }
 }

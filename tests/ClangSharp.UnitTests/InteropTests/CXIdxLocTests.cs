@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXIdxLoc" /> struct.</summary>
+public static unsafe partial class CXIdxLocTests
 {
-    /// <summary>Provides validation of the <see cref="CXIdxLoc" /> struct.</summary>
-    public static unsafe partial class CXIdxLocTests
+    /// <summary>Validates that the <see cref="CXIdxLoc" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXIdxLoc" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXIdxLoc>(), Is.EqualTo(sizeof(CXIdxLoc)));
-        }
+        Assert.That(Marshal.SizeOf<CXIdxLoc>(), Is.EqualTo(sizeof(CXIdxLoc)));
+    }
 
-        /// <summary>Validates that the <see cref="CXIdxLoc" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXIdxLoc).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXIdxLoc" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXIdxLoc).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXIdxLoc" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXIdxLoc" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXIdxLoc), Is.EqualTo(24));
-            }
-            else
-            {
-                Assert.That(sizeof(CXIdxLoc), Is.EqualTo(12));
-            }
+            Assert.That(sizeof(CXIdxLoc), Is.EqualTo(24));
+        }
+        else
+        {
+            Assert.That(sizeof(CXIdxLoc), Is.EqualTo(12));
         }
     }
 }

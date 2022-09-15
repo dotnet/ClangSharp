@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class BlockPointerType : Type
 {
-    public sealed class BlockPointerType : Type
+    internal BlockPointerType(CXType handle) : base(handle, CXTypeKind.CXType_BlockPointer, CX_TypeClass.CX_TypeClass_BlockPointer)
     {
-        internal BlockPointerType(CXType handle) : base(handle, CXTypeKind.CXType_BlockPointer, CX_TypeClass.CX_TypeClass_BlockPointer)
-        {
-        }
     }
 }

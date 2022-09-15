@@ -1,72 +1,71 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public unsafe partial struct CXIdxDeclInfo
 {
-    public unsafe partial struct CXIdxDeclInfo
+    public CXIdxCXXClassDeclInfo* CXXClassDeclInfo
     {
-        public CXIdxCXXClassDeclInfo* CXXClassDeclInfo
+        get
         {
-            get
+            fixed (CXIdxDeclInfo* pThis = &this)
             {
-                fixed (CXIdxDeclInfo* pThis = &this)
-                {
-                    return clang.index_getCXXClassDeclInfo(pThis);
-                }
+                return clang.index_getCXXClassDeclInfo(pThis);
             }
         }
+    }
 
-        public CXIdxObjCCategoryDeclInfo* ObjCCategoryDeclInfo
+    public CXIdxObjCCategoryDeclInfo* ObjCCategoryDeclInfo
+    {
+        get
         {
-            get
+            fixed (CXIdxDeclInfo* pThis = &this)
             {
-                fixed (CXIdxDeclInfo* pThis = &this)
-                {
-                    return clang.index_getObjCCategoryDeclInfo(pThis);
-                }
+                return clang.index_getObjCCategoryDeclInfo(pThis);
             }
         }
+    }
 
-        public CXIdxObjCContainerDeclInfo* ObjCContainerDeclInfo
+    public CXIdxObjCContainerDeclInfo* ObjCContainerDeclInfo
+    {
+        get
         {
-            get
+            fixed (CXIdxDeclInfo* pThis = &this)
             {
-                fixed (CXIdxDeclInfo* pThis = &this)
-                {
-                    return clang.index_getObjCContainerDeclInfo(pThis);
-                }
+                return clang.index_getObjCContainerDeclInfo(pThis);
             }
         }
+    }
 
-        public CXIdxObjCInterfaceDeclInfo* ObjCInterfaceDeclInfo
+    public CXIdxObjCInterfaceDeclInfo* ObjCInterfaceDeclInfo
+    {
+        get
         {
-            get
+            fixed (CXIdxDeclInfo* pThis = &this)
             {
-                fixed (CXIdxDeclInfo* pThis = &this)
-                {
-                    return clang.index_getObjCInterfaceDeclInfo(pThis);
-                }
+                return clang.index_getObjCInterfaceDeclInfo(pThis);
             }
         }
+    }
 
-        public CXIdxObjCPropertyDeclInfo* ObjCPropertyDeclInfo
+    public CXIdxObjCPropertyDeclInfo* ObjCPropertyDeclInfo
+    {
+        get
         {
-            get
+            fixed (CXIdxDeclInfo* pThis = &this)
             {
-                fixed (CXIdxDeclInfo* pThis = &this)
-                {
-                    return clang.index_getObjCPropertyDeclInfo(pThis);
-                }
+                return clang.index_getObjCPropertyDeclInfo(pThis);
             }
         }
+    }
 
-        public CXIdxObjCProtocolRefListInfo* ObjCProtocolRefListInfo
+    public CXIdxObjCProtocolRefListInfo* ObjCProtocolRefListInfo
+    {
+        get
         {
-            get
+            fixed (CXIdxDeclInfo* pThis = &this)
             {
-                fixed (CXIdxDeclInfo* pThis = &this)
-                {
-                    return clang.index_getObjCProtocolRefListInfo(pThis);
-                }
+                return clang.index_getObjCProtocolRefListInfo(pThis);
             }
         }
     }

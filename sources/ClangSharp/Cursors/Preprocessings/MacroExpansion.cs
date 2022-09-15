@@ -3,21 +3,20 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class MacroExpansion : PreprocessedEntity
 {
-    public sealed class MacroExpansion : PreprocessedEntity
+    private readonly Lazy<MacroDefinitionRecord> _definition;
+
+    internal MacroExpansion(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MacroExpansion)
     {
-        private readonly Lazy<MacroDefinitionRecord> _definition;
-
-        internal MacroExpansion(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MacroExpansion)
-        {
-            _definition = new Lazy<MacroDefinitionRecord>(() => TranslationUnit.GetOrCreate<MacroDefinitionRecord>(handle.Referenced));
-        }
-
-        public MacroDefinitionRecord Definition => _definition.Value;
-
-        public bool IsBuiltinMacro => Handle.IsMacroBuiltIn;
-
-        public string Name => Handle.Spelling.CString;
+        _definition = new Lazy<MacroDefinitionRecord>(() => TranslationUnit.GetOrCreate<MacroDefinitionRecord>(handle.Referenced));
     }
+
+    public MacroDefinitionRecord Definition => _definition.Value;
+
+    public bool IsBuiltinMacro => Handle.IsMacroBuiltIn;
+
+    public string Name => Handle.Spelling.CString;
 }

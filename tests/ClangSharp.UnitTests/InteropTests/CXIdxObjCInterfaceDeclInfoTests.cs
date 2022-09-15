@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct.</summary>
+public static unsafe partial class CXIdxObjCInterfaceDeclInfoTests
 {
-    /// <summary>Provides validation of the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct.</summary>
-    public static unsafe partial class CXIdxObjCInterfaceDeclInfoTests
+    /// <summary>Validates that the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXIdxObjCInterfaceDeclInfo>(), Is.EqualTo(sizeof(CXIdxObjCInterfaceDeclInfo)));
-        }
+        Assert.That(Marshal.SizeOf<CXIdxObjCInterfaceDeclInfo>(), Is.EqualTo(sizeof(CXIdxObjCInterfaceDeclInfo)));
+    }
 
-        /// <summary>Validates that the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXIdxObjCInterfaceDeclInfo).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXIdxObjCInterfaceDeclInfo).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXIdxObjCInterfaceDeclInfo" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXIdxObjCInterfaceDeclInfo), Is.EqualTo(24));
-            }
-            else
-            {
-                Assert.That(sizeof(CXIdxObjCInterfaceDeclInfo), Is.EqualTo(12));
-            }
+            Assert.That(sizeof(CXIdxObjCInterfaceDeclInfo), Is.EqualTo(24));
+        }
+        else
+        {
+            Assert.That(sizeof(CXIdxObjCInterfaceDeclInfo), Is.EqualTo(12));
         }
     }
 }

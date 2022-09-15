@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPThreadPrivateDecl : Decl
 {
-    public sealed class OMPThreadPrivateDecl : Decl
+    internal OMPThreadPrivateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_OMPThreadPrivate)
     {
-        internal OMPThreadPrivateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_OMPThreadPrivate)
-        {
-        }
     }
 }

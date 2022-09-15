@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class CoreturnStmt : Stmt
 {
-    public sealed class CoreturnStmt : Stmt
+    internal CoreturnStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedStmt, CX_StmtClass.CX_StmtClass_CoreturnStmt)
     {
-        internal CoreturnStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedStmt, CX_StmtClass.CX_StmtClass_CoreturnStmt)
-        {
-        }
     }
 }

@@ -2,29 +2,28 @@
 
 using System;
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public unsafe partial struct CXIdxClientEntity : IEquatable<CXIdxClientEntity>
 {
-    public unsafe partial struct CXIdxClientEntity : IEquatable<CXIdxClientEntity>
+    public CXIdxClientEntity(IntPtr handle)
     {
-        public CXIdxClientEntity(IntPtr handle)
-        {
-            Handle = handle;
-        }
-
-        public IntPtr Handle { get; set; }
-
-        public static explicit operator CXIdxClientEntity(void* value) => new CXIdxClientEntity((IntPtr)value);
-
-        public static implicit operator void*(CXIdxClientEntity value) => (void*)value.Handle;
-
-        public static bool operator ==(CXIdxClientEntity left, CXIdxClientEntity right) => left.Handle == right.Handle;
-
-        public static bool operator !=(CXIdxClientEntity left, CXIdxClientEntity right) => left.Handle != right.Handle;
-
-        public override bool Equals(object obj) => (obj is CXIdxClientEntity other) && Equals(other);
-
-        public bool Equals(CXIdxClientEntity other) => this == other;
-
-        public override int GetHashCode() => Handle.GetHashCode();
+        Handle = handle;
     }
+
+    public IntPtr Handle { get; set; }
+
+    public static explicit operator CXIdxClientEntity(void* value) => new CXIdxClientEntity((IntPtr)value);
+
+    public static implicit operator void*(CXIdxClientEntity value) => (void*)value.Handle;
+
+    public static bool operator ==(CXIdxClientEntity left, CXIdxClientEntity right) => left.Handle == right.Handle;
+
+    public static bool operator !=(CXIdxClientEntity left, CXIdxClientEntity right) => left.Handle != right.Handle;
+
+    public override bool Equals(object obj) => (obj is CXIdxClientEntity other) && Equals(other);
+
+    public bool Equals(CXIdxClientEntity other) => this == other;
+
+    public override int GetHashCode() => Handle.GetHashCode();
 }

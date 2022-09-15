@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class CoawaitExpr : CoroutineSuspendExpr
 {
-    public sealed class CoawaitExpr : CoroutineSuspendExpr
+    internal CoawaitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_CoawaitExpr)
     {
-        internal CoawaitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_CoawaitExpr)
-        {
-        }
     }
 }

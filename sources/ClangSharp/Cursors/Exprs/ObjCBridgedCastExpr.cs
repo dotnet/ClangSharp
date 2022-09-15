@@ -2,14 +2,13 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class ObjCBridgedCastExpr : ExplicitCastExpr
-    {
-        internal ObjCBridgedCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCBridgedCastExpr, CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr)
-        {
-        }
+namespace ClangSharp;
 
-        public string BridgeKindName => Handle.Name.CString;
+public sealed class ObjCBridgedCastExpr : ExplicitCastExpr
+{
+    internal ObjCBridgedCastExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCBridgedCastExpr, CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr)
+    {
     }
+
+    public string BridgeKindName => Handle.Name.CString;
 }

@@ -3,13 +3,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class CSharpPreviewUnix_EnumDeclarationTest : EnumDeclarationTest
 {
-    public sealed class CSharpPreviewUnix_EnumDeclarationTest : EnumDeclarationTest
+    protected override Task BasicTestImpl()
     {
-        protected override Task BasicTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -17,7 +17,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public enum MyEnum
     {
@@ -28,12 +28,12 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BasicValueTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task BasicValueTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value1 = 1,
     MyEnum_Value2,
@@ -41,7 +41,7 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public enum MyEnum
     {
@@ -52,12 +52,12 @@ namespace ClangSharp.UnitTests
 }
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ExcludeTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task ExcludeTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -65,15 +65,15 @@ namespace ClangSharp.UnitTests
 };
 ";
 
-            var expectedOutputContents = string.Empty;
+        var expectedOutputContents = string.Empty;
 
-            var excludedNames = new string[] { "MyEnum" };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
-        }
+        var excludedNames = new string[] { "MyEnum" };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+    }
 
-        protected override Task ExplicitTypedTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"enum MyEnum : {nativeType}
+    protected override Task ExplicitTypedTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"enum MyEnum : {nativeType}
 {{
     MyEnum_Value0,
     MyEnum_Value1,
@@ -81,7 +81,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     public enum MyEnum : {expectedManagedType}
     {{
@@ -92,12 +92,12 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ExplicitTypedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"enum MyEnum : {nativeType}
+    protected override Task ExplicitTypedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"enum MyEnum : {nativeType}
 {{
     MyEnum_Value0,
     MyEnum_Value1,
@@ -105,7 +105,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"namespace ClangSharp.Test
 {{
     [NativeTypeName(""{nativeType}"")]
     public enum MyEnum : {expectedManagedType}
@@ -117,12 +117,12 @@ namespace ClangSharp.UnitTests
 }}
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task RemapTestImpl()
-        {
-            var inputContents = @"typedef enum _MyEnum1 : int
+    protected override Task RemapTestImpl()
+    {
+        var inputContents = @"typedef enum _MyEnum1 : int
 {
     MyEnum1_Value1,
     MyEnum1_Value2,
@@ -157,7 +157,7 @@ namespace Namespace1
 }
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public enum MyEnum1
     {
@@ -189,13 +189,13 @@ namespace Namespace1
 }
 ";
 
-            var remappedNames = new Dictionary<string, string> { ["_MyEnum1"] = "MyEnum1", ["Namespace1.Namespace2._MyEnum2"] = "MyEnum2", ["_MyEnum3"] = "MyEnum3", ["Namespace1::Namespace2::_MyEnum4"] = "MyEnum4" };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
-        }
+        var remappedNames = new Dictionary<string, string> { ["_MyEnum1"] = "MyEnum1", ["Namespace1.Namespace2._MyEnum2"] = "MyEnum2", ["_MyEnum3"] = "MyEnum3", ["Namespace1::Namespace2::_MyEnum4"] = "MyEnum4" };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+    }
 
-        protected override Task WithAttributeTestImpl()
-        {
-            var inputContents = @"enum MyEnum1 : int
+    protected override Task WithAttributeTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value1 = 1,
 };
@@ -206,7 +206,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"using System;
+        var expectedOutputContents = @"using System;
 
 namespace ClangSharp.Test
 {
@@ -223,16 +223,16 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withAttributes = new Dictionary<string, IReadOnlyList<string>>
-            {
-                ["MyEnum1"] = new List<string>() { "Flags" }
-            };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
-        }
-
-        protected override Task WithNamespaceTestImpl()
+        var withAttributes = new Dictionary<string, IReadOnlyList<string>>
         {
-            var inputContents = @"enum MyEnum1 : int
+            ["MyEnum1"] = new List<string>() { "Flags" }
+        };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
+    }
+
+    protected override Task WithNamespaceTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value1 = 1,
 };
@@ -243,7 +243,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"using static ClangSharp.Test.MyEnum1;
+        var expectedOutputContents = @"using static ClangSharp.Test.MyEnum1;
 
 namespace ClangSharp.Test
 {
@@ -259,16 +259,16 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
-            {
-                ["MyEnum1"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
-            };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
-        }
-
-        protected override Task WithNamespaceStarTestImpl()
+        var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
         {
-            var inputContents = @"enum MyEnum1 : int
+            ["MyEnum1"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
+        };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
+    }
+
+    protected override Task WithNamespaceStarTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value1 = 1,
 };
@@ -279,7 +279,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"using static ClangSharp.Test.MyEnum1;
+        var expectedOutputContents = @"using static ClangSharp.Test.MyEnum1;
 
 namespace ClangSharp.Test
 {
@@ -295,16 +295,16 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
-            {
-                ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
-            };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
-        }
-
-        protected override Task WithNamespaceStarPlusTestImpl()
+        var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
         {
-            var inputContents = @"enum MyEnum1 : int
+            ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
+        };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
+    }
+
+    protected override Task WithNamespaceStarPlusTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value1 = 1,
 };
@@ -315,7 +315,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"using System;
+        var expectedOutputContents = @"using System;
 using static ClangSharp.Test.MyEnum1;
 
 namespace ClangSharp.Test
@@ -332,17 +332,17 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
-            {
-                ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" },
-                ["MyEnum2"] = new List<string>() { "System" }
-            };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
-        }
-
-        protected override Task WithCastToEnumTypeImpl()
+        var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
         {
-            var inputContents = @"enum MyEnum : int
+            ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" },
+            ["MyEnum2"] = new List<string>() { "System" }
+        };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
+    }
+
+    protected override Task WithCastToEnumTypeImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0 = (MyEnum) 10,
     MyEnum_Value1 = (MyEnum) MyEnum_Value0,
@@ -350,7 +350,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public enum MyEnum
     {
@@ -361,12 +361,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WithMultipleEnumsTestImpl()
-        {
-            var inputContents = @"enum MyEnum1 : int
+    protected override Task WithMultipleEnumsTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value0 = 10,
 };
@@ -378,7 +378,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"using static ClangSharp.Test.MyEnum1;
+        var expectedOutputContents = @"using static ClangSharp.Test.MyEnum1;
 
 namespace ClangSharp.Test
 {
@@ -395,12 +395,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WithImplicitConversionTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task WithImplicitConversionTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -408,7 +408,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public enum MyEnum
     {
@@ -419,12 +419,12 @@ namespace ClangSharp.Test
 }
 ";
 
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WithTypeTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task WithTypeTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -432,7 +432,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     [NativeTypeName(""int"")]
     public enum MyEnum : uint
@@ -444,15 +444,15 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withTypes = new Dictionary<string, string> {
-                ["MyEnum"] = "uint"
-            };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
-        }
+        var withTypes = new Dictionary<string, string> {
+            ["MyEnum"] = "uint"
+        };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+    }
 
-        protected override Task WithTypeAndImplicitConversionTestImpl()
-        {
-            var inputContents = @"enum MyEnum : int
+    protected override Task WithTypeAndImplicitConversionTestImpl()
+    {
+        var inputContents = @"enum MyEnum : int
 {
     MyEnum_Value0,
     MyEnum_Value1,
@@ -460,7 +460,7 @@ namespace ClangSharp.Test
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     [NativeTypeName(""int"")]
     public enum MyEnum : uint
@@ -472,16 +472,16 @@ namespace ClangSharp.Test
 }
 ";
 
-            var withTypes = new Dictionary<string, string>
-            {
-                ["MyEnum"] = "uint"
-            };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
-        }
-
-        protected override Task WithTypeStarTestImpl()
+        var withTypes = new Dictionary<string, string>
         {
-            var inputContents = @"enum MyEnum1 : int
+            ["MyEnum"] = "uint"
+        };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+    }
+
+    protected override Task WithTypeStarTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value0
 };
@@ -492,7 +492,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     [NativeTypeName(""int"")]
     public enum MyEnum1 : uint
@@ -508,16 +508,16 @@ enum MyEnum2 : int
 }
 ";
 
-            var withTypes = new Dictionary<string, string>
-            {
-                ["*"] = "uint"
-            };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
-        }
-
-        protected override Task WithTypeStarOverrideTestImpl()
+        var withTypes = new Dictionary<string, string>
         {
-            var inputContents = @"enum MyEnum1 : int
+            ["*"] = "uint"
+        };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
+    }
+
+    protected override Task WithTypeStarOverrideTestImpl()
+    {
+        var inputContents = @"enum MyEnum1 : int
 {
     MyEnum1_Value0
 };
@@ -528,7 +528,7 @@ enum MyEnum2 : int
 };
 ";
 
-            var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public enum MyEnum1
     {
@@ -543,12 +543,11 @@ enum MyEnum2 : int
 }
 ";
 
-            var withTypes = new Dictionary<string, string>
-            {
-                ["*"] = "uint",
-                ["MyEnum1"] = "int",
-            };
-            return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
-        }
+        var withTypes = new Dictionary<string, string>
+        {
+            ["*"] = "uint",
+            ["MyEnum1"] = "int",
+        };
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
     }
 }

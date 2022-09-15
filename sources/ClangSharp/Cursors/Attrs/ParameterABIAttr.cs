@@ -3,16 +3,15 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ParameterABIAttr : InheritableParamAttr
 {
-    public sealed class ParameterABIAttr : InheritableParamAttr
+    internal ParameterABIAttr(CXCursor handle) : base(handle)
     {
-        internal ParameterABIAttr(CXCursor handle) : base(handle)
+        if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastParameterABIAttr or < CX_AttrKind.CX_AttrKind_FirstParameterABIAttr)
         {
-            if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastParameterABIAttr or < CX_AttrKind.CX_AttrKind_FirstParameterABIAttr)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
     }
 }

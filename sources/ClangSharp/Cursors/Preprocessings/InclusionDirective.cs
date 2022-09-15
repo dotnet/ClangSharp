@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class InclusionDirective : PreprocessingDirective
 {
-    public sealed class InclusionDirective : PreprocessingDirective
+    internal InclusionDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_InclusionDirective)
     {
-        internal InclusionDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_InclusionDirective)
-        {
-        }
     }
 }

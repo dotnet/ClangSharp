@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPBarrierDirective : OMPExecutableDirective
 {
-    public sealed class OMPBarrierDirective : OMPExecutableDirective
+    internal OMPBarrierDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPBarrierDirective, CX_StmtClass.CX_StmtClass_OMPBarrierDirective)
     {
-        internal OMPBarrierDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPBarrierDirective, CX_StmtClass.CX_StmtClass_OMPBarrierDirective)
-        {
-        }
     }
 }

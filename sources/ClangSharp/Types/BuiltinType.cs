@@ -2,13 +2,12 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class BuiltinType : Type
-    {
+namespace ClangSharp;
 
-        internal BuiltinType(CXType handle) : base(handle, handle.kind, CX_TypeClass.CX_TypeClass_Builtin)
-        {
-        }
+public sealed class BuiltinType : Type
+{
+
+    internal BuiltinType(CXType handle) : base(handle, handle.kind, CX_TypeClass.CX_TypeClass_Builtin)
+    {
     }
 }

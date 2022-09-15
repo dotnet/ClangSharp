@@ -5,36 +5,35 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class FunctionParmPackExpr : Expr
 {
-    public sealed class FunctionParmPackExpr : Expr
+    private readonly Lazy<IReadOnlyList<VarDecl>> _expansions;
+    private readonly Lazy<VarDecl> _parameterPack;
+
+    internal FunctionParmPackExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclRefExpr, CX_StmtClass.CX_StmtClass_FunctionParmPackExpr)
     {
-        private readonly Lazy<IReadOnlyList<VarDecl>> _expansions;
-        private readonly Lazy<VarDecl> _parameterPack;
+        Debug.Assert(NumChildren is 0);
 
-        internal FunctionParmPackExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclRefExpr, CX_StmtClass.CX_StmtClass_FunctionParmPackExpr)
-        {
-            Debug.Assert(NumChildren is 0);
+        _expansions = new Lazy<IReadOnlyList<VarDecl>>(() => {
+            var numExpansions = Handle.NumDecls;
+            var expansions = new List<VarDecl>(numExpansions);
 
-            _expansions = new Lazy<IReadOnlyList<VarDecl>>(() => {
-                var numExpansions = Handle.NumDecls;
-                var expansions = new List<VarDecl>(numExpansions);
+            for (var i = 0; i < numExpansions; i++)
+            {
+                var expansion = TranslationUnit.GetOrCreate<VarDecl>(Handle.GetDecl(unchecked((uint)i)));
+                expansions.Add(expansion);
+            }
 
-                for (var i = 0; i < numExpansions; i++)
-                {
-                    var expansion = TranslationUnit.GetOrCreate<VarDecl>(Handle.GetDecl(unchecked((uint)i)));
-                    expansions.Add(expansion);
-                }
-
-                return expansions;
-            });
-            _parameterPack = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
-        }
-
-        public IReadOnlyList<VarDecl> Expansions => _expansions.Value;
-
-        public uint NumExpansions => unchecked((uint)Handle.NumDecls);
-
-        public VarDecl ParameterPack => _parameterPack.Value;
+            return expansions;
+        });
+        _parameterPack = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
     }
+
+    public IReadOnlyList<VarDecl> Expansions => _expansions.Value;
+
+    public uint NumExpansions => unchecked((uint)Handle.NumDecls);
+
+    public VarDecl ParameterPack => _parameterPack.Value;
 }

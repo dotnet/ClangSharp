@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct.</summary>
+public static unsafe partial class CXIdxIBOutletCollectionAttrInfoTests
 {
-    /// <summary>Provides validation of the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct.</summary>
-    public static unsafe partial class CXIdxIBOutletCollectionAttrInfoTests
+    /// <summary>Validates that the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXIdxIBOutletCollectionAttrInfo>(), Is.EqualTo(sizeof(CXIdxIBOutletCollectionAttrInfo)));
-        }
+        Assert.That(Marshal.SizeOf<CXIdxIBOutletCollectionAttrInfo>(), Is.EqualTo(sizeof(CXIdxIBOutletCollectionAttrInfo)));
+    }
 
-        /// <summary>Validates that the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXIdxIBOutletCollectionAttrInfo).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXIdxIBOutletCollectionAttrInfo).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXIdxIBOutletCollectionAttrInfo" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXIdxIBOutletCollectionAttrInfo), Is.EqualTo(72));
-            }
-            else
-            {
-                Assert.That(sizeof(CXIdxIBOutletCollectionAttrInfo), Is.EqualTo(40));
-            }
+            Assert.That(sizeof(CXIdxIBOutletCollectionAttrInfo), Is.EqualTo(72));
+        }
+        else
+        {
+            Assert.That(sizeof(CXIdxIBOutletCollectionAttrInfo), Is.EqualTo(40));
         }
     }
 }

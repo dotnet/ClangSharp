@@ -3,21 +3,20 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class SubstTemplateTypeParmPackType : Type
 {
-    public sealed class SubstTemplateTypeParmPackType : Type
+    private readonly Lazy<TemplateArgument> _argumentPack;
+    private readonly Lazy<TemplateTypeParmType> _replacedParameter;
+
+    internal SubstTemplateTypeParmPackType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_SubstTemplateTypeParmPack)
     {
-        private readonly Lazy<TemplateArgument> _argumentPack;
-        private readonly Lazy<TemplateTypeParmType> _replacedParameter;
-
-        internal SubstTemplateTypeParmPackType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_SubstTemplateTypeParmPack)
-        {
-            _argumentPack = new Lazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(0)));
-            _replacedParameter = new Lazy<TemplateTypeParmType>(() => TranslationUnit.GetOrCreate<TemplateTypeParmType>(Handle.OriginalType));
-        }
-
-        public TemplateArgument ArgumentPack => _argumentPack.Value;
-
-        public TemplateTypeParmType ReplacedParameter => _replacedParameter.Value;
+        _argumentPack = new Lazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(0)));
+        _replacedParameter = new Lazy<TemplateTypeParmType>(() => TranslationUnit.GetOrCreate<TemplateTypeParmType>(Handle.OriginalType));
     }
+
+    public TemplateArgument ArgumentPack => _argumentPack.Value;
+
+    public TemplateTypeParmType ReplacedParameter => _replacedParameter.Value;
 }

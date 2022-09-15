@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class TypoExpr : Expr
 {
-    public sealed class TypoExpr : Expr
+    internal TypoExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclRefExpr, CX_StmtClass.CX_StmtClass_TypoExpr)
     {
-        internal TypoExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclRefExpr, CX_StmtClass.CX_StmtClass_TypoExpr)
-        {
-        }
     }
 }

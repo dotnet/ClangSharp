@@ -3,29 +3,28 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public partial struct CXIdxLoc
 {
-    public partial struct CXIdxLoc
+    [NativeTypeName("void *[2]")]
+    public _ptr_data_e__FixedBuffer ptr_data;
+
+    [NativeTypeName("unsigned int")]
+    public uint int_data;
+
+    public unsafe partial struct _ptr_data_e__FixedBuffer
     {
-        [NativeTypeName("void *[2]")]
-        public _ptr_data_e__FixedBuffer ptr_data;
+        public void* e0;
+        public void* e1;
 
-        [NativeTypeName("unsigned int")]
-        public uint int_data;
-
-        public unsafe partial struct _ptr_data_e__FixedBuffer
+        public ref void* this[int index]
         {
-            public void* e0;
-            public void* e1;
-
-            public ref void* this[int index]
+            get
             {
-                get
+                fixed (void** pThis = &e0)
                 {
-                    fixed (void** pThis = &e0)
-                    {
-                        return ref pThis[index];
-                    }
+                    return ref pThis[index];
                 }
             }
         }

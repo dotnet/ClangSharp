@@ -3,22 +3,21 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public unsafe partial struct CXIdxIncludedFileInfo
 {
-    public unsafe partial struct CXIdxIncludedFileInfo
-    {
-        public CXIdxLoc hashLoc;
+    public CXIdxLoc hashLoc;
 
-        [NativeTypeName("const char *")]
-        public sbyte* filename;
+    [NativeTypeName("const char *")]
+    public sbyte* filename;
 
-        [NativeTypeName("CXFile")]
-        public void* file;
+    [NativeTypeName("CXFile")]
+    public void* file;
 
-        public int isImport;
+    public int isImport;
 
-        public int isAngled;
+    public int isAngled;
 
-        public int isModuleImport;
-    }
+    public int isModuleImport;
 }

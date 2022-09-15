@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class BuiltinTemplateDecl : TemplateDecl
 {
-    public sealed class BuiltinTemplateDecl : TemplateDecl
+    internal BuiltinTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_BuiltinTemplate)
     {
-        internal BuiltinTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_BuiltinTemplate)
-        {
-        }
     }
 }

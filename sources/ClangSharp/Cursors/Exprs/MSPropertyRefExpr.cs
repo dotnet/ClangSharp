@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class MSPropertyRefExpr : Expr
 {
-    public sealed class MSPropertyRefExpr : Expr
+    internal MSPropertyRefExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr, CX_StmtClass.CX_StmtClass_MSPropertyRefExpr)
     {
-        internal MSPropertyRefExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr, CX_StmtClass.CX_StmtClass_MSPropertyRefExpr)
-        {
-        }
     }
 }

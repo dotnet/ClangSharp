@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ShuffleVectorExpr : Expr
 {
-    public sealed class ShuffleVectorExpr : Expr
+    internal ShuffleVectorExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ShuffleVectorExpr)
     {
-        internal ShuffleVectorExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ShuffleVectorExpr)
-        {
-        }
     }
 }

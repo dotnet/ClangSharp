@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXString" /> struct.</summary>
+public static unsafe partial class CXStringTests
 {
-    /// <summary>Provides validation of the <see cref="CXString" /> struct.</summary>
-    public static unsafe partial class CXStringTests
+    /// <summary>Validates that the <see cref="CXString" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXString" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXString>(), Is.EqualTo(sizeof(CXString)));
-        }
+        Assert.That(Marshal.SizeOf<CXString>(), Is.EqualTo(sizeof(CXString)));
+    }
 
-        /// <summary>Validates that the <see cref="CXString" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXString).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXString" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXString).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXString" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXString" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXString), Is.EqualTo(16));
-            }
-            else
-            {
-                Assert.That(sizeof(CXString), Is.EqualTo(8));
-            }
+            Assert.That(sizeof(CXString), Is.EqualTo(16));
+        }
+        else
+        {
+            Assert.That(sizeof(CXString), Is.EqualTo(8));
         }
     }
 }

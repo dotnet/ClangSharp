@@ -3,17 +3,16 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ObjCAtSynchronizedStmt : Stmt
 {
-    public sealed class ObjCAtSynchronizedStmt : Stmt
+    internal ObjCAtSynchronizedStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtSynchronizedStmt, CX_StmtClass.CX_StmtClass_ObjCAtSynchronizedStmt)
     {
-        internal ObjCAtSynchronizedStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtSynchronizedStmt, CX_StmtClass.CX_StmtClass_ObjCAtSynchronizedStmt)
-        {
-            Debug.Assert(NumChildren is 2);
-        }
-
-        public CompoundStmt SynchBody => (CompoundStmt)Children[1];
-
-        public Expr SynchExpr => (Expr)Children[0];
+        Debug.Assert(NumChildren is 2);
     }
+
+    public CompoundStmt SynchBody => (CompoundStmt)Children[1];
+
+    public Expr SynchExpr => (Expr)Children[0];
 }

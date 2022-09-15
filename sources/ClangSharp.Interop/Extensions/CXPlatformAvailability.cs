@@ -2,16 +2,15 @@
 
 using System;
 
-namespace ClangSharp.Interop
+namespace ClangSharp.Interop;
+
+public unsafe partial struct CXPlatformAvailability : IDisposable
 {
-    public unsafe partial struct CXPlatformAvailability : IDisposable
+    public void Dispose()
     {
-        public void Dispose()
+        fixed (CXPlatformAvailability* pThis = &this)
         {
-            fixed (CXPlatformAvailability* pThis = &this)
-            {
-                clang.disposeCXPlatformAvailability(pThis);
-            }
+            clang.disposeCXPlatformAvailability(pThis);
         }
     }
 }

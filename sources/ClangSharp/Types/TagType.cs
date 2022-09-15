@@ -3,17 +3,16 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class TagType : Type
 {
-    public class TagType : Type
+    private readonly Lazy<TagDecl> _decl;
+
+    private protected TagType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        private readonly Lazy<TagDecl> _decl;
-
-        private protected TagType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
-        {
-            _decl = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Declaration));
-        }
-
-        public TagDecl Decl => _decl.Value;
+        _decl = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Declaration));
     }
+
+    public TagDecl Decl => _decl.Value;
 }

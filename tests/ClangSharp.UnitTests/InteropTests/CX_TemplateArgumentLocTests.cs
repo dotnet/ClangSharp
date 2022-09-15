@@ -5,37 +5,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CX_TemplateArgumentLoc" /> struct.</summary>
+public static unsafe partial class CX_TemplateArgumentLocTests
 {
-    /// <summary>Provides validation of the <see cref="CX_TemplateArgumentLoc" /> struct.</summary>
-    public static unsafe partial class CX_TemplateArgumentLocTests
+    /// <summary>Validates that the <see cref="CX_TemplateArgumentLoc" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CX_TemplateArgumentLoc" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CX_TemplateArgumentLoc>(), Is.EqualTo(sizeof(CX_TemplateArgumentLoc)));
-        }
+        Assert.That(Marshal.SizeOf<CX_TemplateArgumentLoc>(), Is.EqualTo(sizeof(CX_TemplateArgumentLoc)));
+    }
 
-        /// <summary>Validates that the <see cref="CX_TemplateArgumentLoc" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CX_TemplateArgumentLoc).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CX_TemplateArgumentLoc" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CX_TemplateArgumentLoc).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CX_TemplateArgumentLoc" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CX_TemplateArgumentLoc" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CX_TemplateArgumentLoc), Is.EqualTo(16));
-            }
-            else
-            {
-                Assert.That(sizeof(CX_TemplateArgumentLoc), Is.EqualTo(8));
-            }
+            Assert.That(sizeof(CX_TemplateArgumentLoc), Is.EqualTo(16));
+        }
+        else
+        {
+            Assert.That(sizeof(CX_TemplateArgumentLoc), Is.EqualTo(8));
         }
     }
 }

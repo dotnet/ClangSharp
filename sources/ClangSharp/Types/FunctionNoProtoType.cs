@@ -2,13 +2,12 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class FunctionNoProtoType : FunctionType
-    {
+namespace ClangSharp;
 
-        internal FunctionNoProtoType(CXType handle) : base(handle, CXTypeKind.CXType_FunctionNoProto, CX_TypeClass.CX_TypeClass_FunctionNoProto)
-        {
-        }
+public sealed class FunctionNoProtoType : FunctionType
+{
+
+    internal FunctionNoProtoType(CXType handle) : base(handle, CXTypeKind.CXType_FunctionNoProto, CX_TypeClass.CX_TypeClass_FunctionNoProto)
+    {
     }
 }

@@ -2,15 +2,14 @@
 
 using System;
 
-namespace ClangSharp.Abstractions
+namespace ClangSharp.Abstractions;
+
+[Flags]
+public enum StructFlags
 {
-    [Flags]
-    public enum StructFlags
-    {
-        None = 0,
-        Unsafe = 1 << 0,
-        Vtbl = 1 << 1,
-        Union = 1 << 2,
-        Nested = 1 << 3,
-    }
+    None = 0,
+    Unsafe = 1 << 0,
+    Vtbl = 1 << 1,
+    Union = 1 << 2,
+    Nested = 1 << 3,
 }

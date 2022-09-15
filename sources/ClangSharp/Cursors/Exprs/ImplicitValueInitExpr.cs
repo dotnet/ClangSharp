@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ImplicitValueInitExpr : Expr
 {
-    public sealed class ImplicitValueInitExpr : Expr
+    internal ImplicitValueInitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ImplicitValueInitExpr)
     {
-        internal ImplicitValueInitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ImplicitValueInitExpr)
-        {
-        }
     }
 }

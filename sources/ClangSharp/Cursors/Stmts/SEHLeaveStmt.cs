@@ -3,13 +3,12 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class SEHLeaveStmt : Stmt
 {
-    public sealed class SEHLeaveStmt : Stmt
+    internal SEHLeaveStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHLeaveStmt, CX_StmtClass.CX_StmtClass_SEHLeaveStmt)
     {
-        internal SEHLeaveStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHLeaveStmt, CX_StmtClass.CX_StmtClass_SEHLeaveStmt)
-        {
-            Debug.Assert(NumChildren is 0);
-        }
+        Debug.Assert(NumChildren is 0);
     }
 }

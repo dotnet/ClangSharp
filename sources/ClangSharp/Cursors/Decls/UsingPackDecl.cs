@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class UsingPackDecl : NamedDecl, IMergeable<UsingPackDecl>
 {
-    public sealed class UsingPackDecl : NamedDecl, IMergeable<UsingPackDecl>
+    internal UsingPackDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_UsingPack)
     {
-        internal UsingPackDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_UsingPack)
-        {
-        }
     }
 }

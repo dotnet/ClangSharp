@@ -3,17 +3,16 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ObjCIsaExpr : Expr
 {
-    public sealed class ObjCIsaExpr : Expr
+    internal ObjCIsaExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr, CX_StmtClass.CX_StmtClass_ObjCIsaExpr)
     {
-        internal ObjCIsaExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr, CX_StmtClass.CX_StmtClass_ObjCIsaExpr)
-        {
-            Debug.Assert(NumChildren is 1);
-        }
-
-        public Expr Base => (Expr)Children[0];
-
-        public bool IsArrow => Handle.IsArrow;
+        Debug.Assert(NumChildren is 1);
     }
+
+    public Expr Base => (Expr)Children[0];
+
+    public bool IsArrow => Handle.IsArrow;
 }

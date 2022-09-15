@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ArrayTypeTraitExpr : Expr
 {
-    public sealed class ArrayTypeTraitExpr : Expr
+    internal ArrayTypeTraitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ArrayTypeTraitExpr)
     {
-        internal ArrayTypeTraitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ArrayTypeTraitExpr)
-        {
-        }
     }
 }

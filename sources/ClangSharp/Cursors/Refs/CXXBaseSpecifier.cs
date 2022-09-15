@@ -2,16 +2,15 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class CXXBaseSpecifier : Ref
 {
-    public sealed class CXXBaseSpecifier : Ref
+    internal CXXBaseSpecifier(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXBaseSpecifier)
     {
-        internal CXXBaseSpecifier(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXBaseSpecifier)
-        {
-        }
-
-        public CX_CXXAccessSpecifier AccessSpecifier => Handle.CXXAccessSpecifier;
-
-        public bool IsVirtual => Handle.IsVirtualBase;
     }
+
+    public CX_CXXAccessSpecifier AccessSpecifier => Handle.CXXAccessSpecifier;
+
+    public bool IsVirtual => Handle.IsVirtualBase;
 }

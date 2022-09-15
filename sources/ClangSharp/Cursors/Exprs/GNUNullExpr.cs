@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class GNUNullExpr : Expr
 {
-    public sealed class GNUNullExpr : Expr
+    internal GNUNullExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GNUNullExpr, CX_StmtClass.CX_StmtClass_GNUNullExpr)
     {
-        internal GNUNullExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GNUNullExpr, CX_StmtClass.CX_StmtClass_GNUNullExpr)
-        {
-        }
     }
 }

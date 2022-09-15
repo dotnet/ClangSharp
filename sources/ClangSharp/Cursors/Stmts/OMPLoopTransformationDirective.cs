@@ -3,12 +3,11 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class OMPLoopTransformationDirective : OMPLoopBasedDirective
 {
-    public class OMPLoopTransformationDirective : OMPLoopBasedDirective
+    private protected OMPLoopTransformationDirective(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
-        private protected OMPLoopTransformationDirective(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
-        {
-        }
     }
 }

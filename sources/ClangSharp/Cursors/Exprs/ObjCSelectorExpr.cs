@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ObjCSelectorExpr : Expr
 {
-    public sealed class ObjCSelectorExpr : Expr
+    internal ObjCSelectorExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCSelectorExpr, CX_StmtClass.CX_StmtClass_ObjCSelectorExpr)
     {
-        internal ObjCSelectorExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCSelectorExpr, CX_StmtClass.CX_StmtClass_ObjCSelectorExpr)
-        {
-        }
     }
 }

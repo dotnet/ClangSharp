@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class UnresolvedLookupExpr : OverloadExpr
 {
-    public sealed class UnresolvedLookupExpr : OverloadExpr
+    internal UnresolvedLookupExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclRefExpr, CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr)
     {
-        internal UnresolvedLookupExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclRefExpr, CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr)
-        {
-        }
     }
 }

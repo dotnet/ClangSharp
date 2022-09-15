@@ -3,15 +3,14 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class NullStmt : Stmt
-    {
-        internal NullStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_NullStmt, CX_StmtClass.CX_StmtClass_NullStmt)
-        {
-            Debug.Assert(NumChildren is 0);
-        }
+namespace ClangSharp;
 
-        public bool HasLeadingEmptyMacro => Handle.HasLeadingEmptyMacro;
+public sealed class NullStmt : Stmt
+{
+    internal NullStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_NullStmt, CX_StmtClass.CX_StmtClass_NullStmt)
+    {
+        Debug.Assert(NumChildren is 0);
     }
+
+    public bool HasLeadingEmptyMacro => Handle.HasLeadingEmptyMacro;
 }

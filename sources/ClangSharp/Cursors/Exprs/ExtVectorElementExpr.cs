@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ExtVectorElementExpr : Expr
 {
-    public sealed class ExtVectorElementExpr : Expr
+    internal ExtVectorElementExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ExtVectorElementExpr)
     {
-        internal ExtVectorElementExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ExtVectorElementExpr)
-        {
-        }
     }
 }

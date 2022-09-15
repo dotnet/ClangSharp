@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class XmlCompatibleWindows_UnionDeclarationTest : UnionDeclarationTest
 {
-    public sealed class XmlCompatibleWindows_UnionDeclarationTest : UnionDeclarationTest
+    protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
     {
-        protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} r;
     {nativeType} g;
@@ -19,7 +19,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -37,12 +37,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef union
+    protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef union
 {{
     {nativeType} r;
     {nativeType} g;
@@ -50,7 +50,7 @@ namespace ClangSharp.UnitTests
 }}  MyUnion;
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -67,12 +67,12 @@ namespace ClangSharp.UnitTests
   </namespace>
 </bindings>
 ";
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
+    }
 
-        protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} r;
     {nativeType} g;
@@ -80,7 +80,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -98,12 +98,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BitfieldTestImpl()
-        {
-            var inputContents = @"union MyUnion1
+    protected override Task BitfieldTestImpl()
+    {
+        var inputContents = @"union MyUnion1
 {
     unsigned int o0_b0_24 : 24;
     unsigned int o4_b0_16 : 16;
@@ -128,9 +128,9 @@ union MyUnion3
 };
 ";
 
-            var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @" pack=""1""" : "";
+        var expectedPack = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @" pack=""1""" : "";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion1"" access=""public"" layout=""Explicit""{expectedPack}>
@@ -277,21 +277,21 @@ union MyUnion3
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ExcludeTestImpl()
-        {
-            var inputContents = "typedef union MyUnion MyUnion;";
-            var expectedOutputContents = string.Empty;
+    protected override Task ExcludeTestImpl()
+    {
+        var inputContents = "typedef union MyUnion MyUnion;";
+        var expectedOutputContents = string.Empty;
 
-            var excludedNames = new string[] { "MyUnion" };
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
-        }
+        var excludedNames = new string[] { "MyUnion" };
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} value;
 }};
@@ -302,7 +302,7 @@ union MyOtherUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -342,12 +342,12 @@ union MyOtherUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} value;
 }};
@@ -358,7 +358,7 @@ union MyOtherUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -461,12 +461,12 @@ union MyOtherUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} value;
 }};
@@ -479,7 +479,7 @@ union MyOtherUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -519,12 +519,12 @@ union MyOtherUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} value;
 }};
@@ -535,7 +535,7 @@ union MyOtherUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -575,18 +575,18 @@ union MyOtherUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} c[3];
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -621,18 +621,18 @@ union MyOtherUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} c[3];
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
@@ -644,18 +644,18 @@ union MyOtherUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} c[2][1][3][4];
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
@@ -667,12 +667,12 @@ union MyOtherUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef {nativeType} MyBuffer[3];
+    protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef {nativeType} MyBuffer[3];
 
 union MyUnion
 {{
@@ -680,7 +680,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
@@ -692,17 +692,17 @@ union MyUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
-        protected override Task GuidTestImpl()
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
+    protected override Task GuidTestImpl()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // Non-Windows doesn't support __declspec(uuid(""))
-                return Task.CompletedTask;
-            }
+            // Non-Windows doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
+        }
 
-            var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+        var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
 
 union __declspec(uuid(""00000000-0000-0000-C000-000000000046"")) MyUnion1
 {{
@@ -715,7 +715,7 @@ union DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyUnion2
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion1"" access=""public"" uuid=""00000000-0000-0000-c000-000000000046"" layout=""Explicit"">
@@ -736,13 +736,13 @@ union DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyUnion2
 </bindings>
 ";
 
-            var excludedNames = new string[] { "DECLSPEC_UUID" };
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
-        }
+        var excludedNames = new string[] { "DECLSPEC_UUID" };
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+    }
 
-        protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
-        {
-            var inputContents = $@"typedef struct {{
+    protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
+    {
+        var inputContents = $@"typedef struct {{
     {nativeType} value;
 }} MyStruct;
 
@@ -763,7 +763,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -827,12 +827,12 @@ union MyUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NestedAnonymousWithBitfieldTestImpl()
-        {
-            var inputContents = @"union MyUnion
+    protected override Task NestedAnonymousWithBitfieldTestImpl()
+    {
+        var inputContents = @"union MyUnion
 {
     int x;
     int y;
@@ -851,7 +851,7 @@ union MyUnion
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -941,13 +941,13 @@ union MyUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
 
-        protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} r;
     {nativeType} g;
@@ -963,7 +963,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -995,12 +995,12 @@ union MyUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"union MyUnion
+    protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"union MyUnion
 {{
     {nativeType} r;
     {nativeType} g;
@@ -1016,7 +1016,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -1048,12 +1048,12 @@ union MyUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NewKeywordTestImpl()
-        {
-            var inputContents = @"union MyUnion
+    protected override Task NewKeywordTestImpl()
+    {
+        var inputContents = @"union MyUnion
 {
     int Equals;
     int Dispose;
@@ -1064,7 +1064,7 @@ union MyUnion
     int ToString;
 };";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -1094,31 +1094,31 @@ union MyUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NoDefinitionTestImpl()
-        {
-            var inputContents = "typedef union MyUnion MyUnion;";
+    protected override Task NoDefinitionTestImpl()
+    {
+        var inputContents = "typedef union MyUnion MyUnion;";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit""></struct>
   </namespace>
 </bindings>
 ";
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task PointerToSelfTestImpl()
-        {
-            var inputContents = @"union example_s {
+    protected override Task PointerToSelfTestImpl()
+    {
+        var inputContents = @"union example_s {
    example_s* next;
    void* data;
 };";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""example_s"" access=""public"" unsafe=""true"" layout=""Explicit"">
@@ -1133,19 +1133,19 @@ union MyUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task PointerToSelfViaTypedefTestImpl()
-        {
-            var inputContents = @"typedef union example_s example_t;
+    protected override Task PointerToSelfViaTypedefTestImpl()
+    {
+        var inputContents = @"typedef union example_s example_t;
 
 union example_s {
    example_t* next;
    void* data;
 };";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""example_s"" access=""public"" unsafe=""true"" layout=""Explicit"">
@@ -1160,14 +1160,14 @@ union example_s {
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task RemapTestImpl()
-        {
-            var inputContents = "typedef union _MyUnion MyUnion;";
+    protected override Task RemapTestImpl()
+    {
+        var inputContents = "typedef union _MyUnion MyUnion;";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit""></struct>
@@ -1175,13 +1175,13 @@ union example_s {
 </bindings>
 ";
 
-            var remappedNames = new Dictionary<string, string> { ["_MyUnion"] = "MyUnion" };
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
-        }
+        var remappedNames = new Dictionary<string, string> { ["_MyUnion"] = "MyUnion" };
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+    }
 
-        protected override Task RemapNestedAnonymousTestImpl()
-        {
-            var inputContents = @"union MyUnion
+    protected override Task RemapNestedAnonymousTestImpl()
+    {
+        var inputContents = @"union MyUnion
 {
     double r;
     double g;
@@ -1193,7 +1193,7 @@ union example_s {
     };
 };";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -1228,16 +1228,16 @@ union example_s {
 </bindings>
 ";
 
-            var remappedNames = new Dictionary<string, string> {
-                ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
-                ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Union"
-            };
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
-        }
+        var remappedNames = new Dictionary<string, string> {
+            ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
+            ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Union"
+        };
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+    }
 
-        protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef union MyUnion MyUnion;
+    protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef union MyUnion MyUnion;
 
 union MyUnion
 {{
@@ -1247,7 +1247,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -1265,16 +1265,16 @@ union MyUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task SkipNonDefinitionPointerTestImpl()
-        {
-            var inputContents = @"typedef union MyUnion* MyUnionPtr;
+    protected override Task SkipNonDefinitionPointerTestImpl()
+    {
+        var inputContents = @"typedef union MyUnion* MyUnionPtr;
 typedef union MyUnion& MyUnionRef;
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit""></struct>
@@ -1282,12 +1282,12 @@ typedef union MyUnion& MyUnionRef;
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef union MyUnion MyUnion;
+    protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef union MyUnion MyUnion;
 
 union MyUnion
 {{
@@ -1297,7 +1297,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -1315,12 +1315,12 @@ union MyUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef {nativeType} MyTypedefAlias;
+    protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef {nativeType} MyTypedefAlias;
 
 union MyUnion
 {{
@@ -1330,7 +1330,7 @@ union MyUnion
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -1348,7 +1348,6 @@ union MyUnion
 </bindings>
 ";
 
-            return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
     }
 }

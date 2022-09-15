@@ -3,14 +3,13 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class MSGuidDecl : ValueDecl, IMergeable<MSGuidDecl>
-    {
-        internal MSGuidDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_MSGuid)
-        {
-        }
+namespace ClangSharp;
 
-        public Guid Value => Handle.GuidValue;
+public sealed class MSGuidDecl : ValueDecl, IMergeable<MSGuidDecl>
+{
+    internal MSGuidDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_MSGuid)
+    {
     }
+
+    public Guid Value => Handle.GuidValue;
 }

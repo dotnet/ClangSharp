@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXType" /> struct.</summary>
+public static unsafe partial class CXTypeTests
 {
-    /// <summary>Provides validation of the <see cref="CXType" /> struct.</summary>
-    public static unsafe partial class CXTypeTests
+    /// <summary>Validates that the <see cref="CXType" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXType" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXType>(), Is.EqualTo(sizeof(CXType)));
-        }
+        Assert.That(Marshal.SizeOf<CXType>(), Is.EqualTo(sizeof(CXType)));
+    }
 
-        /// <summary>Validates that the <see cref="CXType" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXType).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXType" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXType).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXType" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXType" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXType), Is.EqualTo(24));
-            }
-            else
-            {
-                Assert.That(sizeof(CXType), Is.EqualTo(12));
-            }
+            Assert.That(sizeof(CXType), Is.EqualTo(24));
+        }
+        else
+        {
+            Assert.That(sizeof(CXType), Is.EqualTo(12));
         }
     }
 }

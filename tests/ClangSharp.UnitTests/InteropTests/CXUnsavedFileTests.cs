@@ -7,37 +7,36 @@ using NUnit.Framework;
 using System;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXUnsavedFile" /> struct.</summary>
+public static unsafe partial class CXUnsavedFileTests
 {
-    /// <summary>Provides validation of the <see cref="CXUnsavedFile" /> struct.</summary>
-    public static unsafe partial class CXUnsavedFileTests
+    /// <summary>Validates that the <see cref="CXUnsavedFile" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXUnsavedFile" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXUnsavedFile>(), Is.EqualTo(sizeof(CXUnsavedFile)));
-        }
+        Assert.That(Marshal.SizeOf<CXUnsavedFile>(), Is.EqualTo(sizeof(CXUnsavedFile)));
+    }
 
-        /// <summary>Validates that the <see cref="CXUnsavedFile" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXUnsavedFile).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXUnsavedFile" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXUnsavedFile).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXUnsavedFile" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
+    /// <summary>Validates that the <see cref="CXUnsavedFile" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        if (Environment.Is64BitProcess)
         {
-            if (Environment.Is64BitProcess)
-            {
-                Assert.That(sizeof(CXUnsavedFile), Is.EqualTo(24));
-            }
-            else
-            {
-                Assert.That(sizeof(CXUnsavedFile), Is.EqualTo(12));
-            }
+            Assert.That(sizeof(CXUnsavedFile), Is.EqualTo(24));
+        }
+        else
+        {
+            Assert.That(sizeof(CXUnsavedFile), Is.EqualTo(12));
         }
     }
 }

@@ -3,19 +3,18 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ArrayInitLoopExpr : Expr
 {
-    public sealed class ArrayInitLoopExpr : Expr
+    internal ArrayInitLoopExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr)
     {
-        internal ArrayInitLoopExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr)
-        {
-            Debug.Assert(NumChildren is 2);
-        }
-
-        public long ArraySize => Handle.ArraySize;
-
-        public OpaqueValueExpr CommonExpr => (OpaqueValueExpr)Children[0];
-
-        public Expr SubExpr => (Expr)Children[1];
+        Debug.Assert(NumChildren is 2);
     }
+
+    public long ArraySize => Handle.ArraySize;
+
+    public OpaqueValueExpr CommonExpr => (OpaqueValueExpr)Children[0];
+
+    public Expr SubExpr => (Expr)Children[1];
 }

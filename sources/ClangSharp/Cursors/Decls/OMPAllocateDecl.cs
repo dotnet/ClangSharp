@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPAllocateDecl : Decl
 {
-    public sealed class OMPAllocateDecl : Decl
+    internal OMPAllocateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_OMPAllocate)
     {
-        internal OMPAllocateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_OMPAllocate)
-        {
-        }
     }
 }

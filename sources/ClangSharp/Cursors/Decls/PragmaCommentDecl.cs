@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class PragmaCommentDecl : Decl
 {
-    public sealed class PragmaCommentDecl : Decl
+    internal PragmaCommentDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_PragmaComment)
     {
-        internal PragmaCommentDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_PragmaComment)
-        {
-        }
     }
 }

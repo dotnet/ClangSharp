@@ -4,18 +4,17 @@ using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class GotoStmt : Stmt
 {
-    public sealed class GotoStmt : Stmt
+    private readonly Lazy<LabelDecl> _label;
+
+    internal GotoStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GotoStmt, CX_StmtClass.CX_StmtClass_GotoStmt)
     {
-        private readonly Lazy<LabelDecl> _label;
-
-        internal GotoStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GotoStmt, CX_StmtClass.CX_StmtClass_GotoStmt)
-        {
-            Debug.Assert(NumChildren is 0);
-            _label = new Lazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
-        }
-
-        public LabelDecl Label => _label.Value;
+        Debug.Assert(NumChildren is 0);
+        _label = new Lazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
     }
+
+    public LabelDecl Label => _label.Value;
 }

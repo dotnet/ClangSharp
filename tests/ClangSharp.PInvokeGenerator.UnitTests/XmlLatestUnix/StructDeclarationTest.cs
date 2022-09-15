@@ -6,19 +6,19 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ClangSharp.Abstractions;
 
-namespace ClangSharp.UnitTests
+namespace ClangSharp.UnitTests;
+
+public sealed class XmlLatestUnix_StructDeclarationTest : StructDeclarationTest
 {
-    public sealed class XmlLatestUnix_StructDeclarationTest : StructDeclarationTest
+    protected override Task IncompleteArraySizeTestImpl(string nativeType, string expectedManagedType)
     {
-        protected override Task IncompleteArraySizeTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} x[];
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" unsafe=""true"">
@@ -30,12 +30,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} r;
     {nativeType} g;
@@ -43,7 +43,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -61,12 +61,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef struct
+    protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef struct
 {{
     {nativeType} r;
     {nativeType} g;
@@ -74,7 +74,7 @@ namespace ClangSharp.UnitTests
 }}  MyStruct;
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -91,12 +91,12 @@ namespace ClangSharp.UnitTests
   </namespace>
 </bindings>
 ";
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
+    }
 
-        protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} r;
     {nativeType} g;
@@ -104,7 +104,7 @@ namespace ClangSharp.UnitTests
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -122,12 +122,12 @@ namespace ClangSharp.UnitTests
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task BitfieldTestImpl()
-        {
-            var inputContents = @"struct MyStruct1
+    protected override Task BitfieldTestImpl()
+    {
+        var inputContents = @"struct MyStruct1
 {
     unsigned int o0_b0_24 : 24;
     unsigned int o4_b0_16 : 16;
@@ -152,7 +152,7 @@ struct MyStruct3
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct1"" access=""public"">
@@ -293,21 +293,21 @@ struct MyStruct3
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task ExcludeTestImpl()
-        {
-            var inputContents = "typedef struct MyStruct MyStruct;";
-            var expectedOutputContents = string.Empty;
+    protected override Task ExcludeTestImpl()
+    {
+        var inputContents = "typedef struct MyStruct MyStruct;";
+        var expectedOutputContents = string.Empty;
 
-            var excludedNames = new string[] { "MyStruct" };
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
-        }
+        var excludedNames = new string[] { "MyStruct" };
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} value;
 }};
@@ -318,7 +318,7 @@ struct MyOtherStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -359,12 +359,12 @@ struct MyOtherStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} value;
 }};
@@ -375,7 +375,7 @@ struct MyOtherStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -479,12 +479,12 @@ struct MyOtherStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} value;
 }};
@@ -497,7 +497,7 @@ struct MyOtherStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -538,12 +538,12 @@ struct MyOtherStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} value;
 }};
@@ -554,7 +554,7 @@ struct MyOtherStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -595,18 +595,18 @@ struct MyOtherStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} c[3];
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -641,18 +641,18 @@ struct MyOtherStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} c[3];
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" unsafe=""true"">
@@ -664,18 +664,18 @@ struct MyOtherStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} c[2][1][3][4];
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" unsafe=""true"">
@@ -687,12 +687,12 @@ struct MyOtherStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef {nativeType} MyBuffer[3];
+    protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef {nativeType} MyBuffer[3];
 
 struct MyStruct
 {{
@@ -700,7 +700,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" unsafe=""true"">
@@ -712,18 +712,18 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
+
+    protected override Task GuidTestImpl()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // Non-Unix doesn't support __declspec(uuid(""))
+            return Task.CompletedTask;
         }
 
-        protected override Task GuidTestImpl()
-        {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // Non-Unix doesn't support __declspec(uuid(""))
-                return Task.CompletedTask;
-            }
-
-            var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
+        var inputContents = $@"#define DECLSPEC_UUID(x) __declspec(uuid(x))
 
 struct __declspec(uuid(""00000000-0000-0000-C000-000000000046"")) MyStruct1
 {{
@@ -736,7 +736,7 @@ struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyStruct2
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct1"" access=""public"" uuid=""00000000-0000-0000-c000-000000000046"">
@@ -757,13 +757,13 @@ struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyStruct2
 </bindings>
 ";
 
-            var excludedNames = new string[] { "DECLSPEC_UUID" };
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
-        }
+        var excludedNames = new string[] { "DECLSPEC_UUID" };
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+    }
 
-        protected override Task InheritanceTestImpl()
-        {
-            var inputContents = @"struct MyStruct1A
+    protected override Task InheritanceTestImpl()
+    {
+        var inputContents = @"struct MyStruct1A
 {
     int x;
     int y;
@@ -782,7 +782,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct1A"" access=""public"">
@@ -819,12 +819,12 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task InheritanceWithNativeInheritanceAttributeTestImpl()
-        {
-            var inputContents = @"struct MyStruct1A
+    protected override Task InheritanceWithNativeInheritanceAttributeTestImpl()
+    {
+        var inputContents = @"struct MyStruct1A
 {
     int x;
     int y;
@@ -843,7 +843,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct1A"" access=""public"">
@@ -880,12 +880,12 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
+    }
 
-        protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
-        {
-            var inputContents = $@"typedef union {{
+    protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
+    {
+        var inputContents = $@"typedef union {{
     {nativeType} value;
 }} MyUnion;
 
@@ -910,7 +910,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
@@ -1012,12 +1012,12 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NestedAnonymousWithBitfieldTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NestedAnonymousWithBitfieldTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int x;
     int y;
@@ -1036,7 +1036,7 @@ struct MyStruct
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -1120,12 +1120,12 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} r;
     {nativeType} g;
@@ -1141,7 +1141,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -1173,12 +1173,12 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"struct MyStruct
+    protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct MyStruct
 {{
     {nativeType} r;
     {nativeType} g;
@@ -1194,7 +1194,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -1226,12 +1226,12 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NewKeywordTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task NewKeywordTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     int Equals;
     int Dispose;
@@ -1242,7 +1242,7 @@ struct MyStruct
     int ToString;
 };";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -1272,25 +1272,25 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task NoDefinitionTestImpl()
-        {
-            var inputContents = "typedef struct MyStruct MyStruct;";
+    protected override Task NoDefinitionTestImpl()
+    {
+        var inputContents = "typedef struct MyStruct MyStruct;";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public""></struct>
   </namespace>
 </bindings>
 ";
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
-        protected override Task PackTestImpl()
-        {
-            const string InputContents = @"struct MyStruct1 {
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
+    protected override Task PackTestImpl()
+    {
+        const string InputContents = @"struct MyStruct1 {
     unsigned Field1;
 
     void* Field2;
@@ -1309,9 +1309,9 @@ struct MyStruct2 {
 };
 ";
 
-            var packing = Environment.Is64BitProcess ? " layout=\"Sequential\" pack=\"4\"" : string.Empty;
+        var packing = Environment.Is64BitProcess ? " layout=\"Sequential\" pack=\"4\"" : string.Empty;
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct1"" access=""public"" unsafe=""true"">
@@ -1340,17 +1340,17 @@ struct MyStruct2 {
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, expectedOutputContents);
+    }
 
-        protected override Task PointerToSelfTestImpl()
-        {
-            var inputContents = @"struct example_s {
+    protected override Task PointerToSelfTestImpl()
+    {
+        var inputContents = @"struct example_s {
    example_s* next;
    void* data;
 };";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""example_s"" access=""public"" unsafe=""true"">
@@ -1365,19 +1365,19 @@ struct MyStruct2 {
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task PointerToSelfViaTypedefTestImpl()
-        {
-            var inputContents = @"typedef struct example_s example_t;
+    protected override Task PointerToSelfViaTypedefTestImpl()
+    {
+        var inputContents = @"typedef struct example_s example_t;
 
 struct example_s {
    example_t* next;
    void* data;
 };";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""example_s"" access=""public"" unsafe=""true"">
@@ -1392,14 +1392,14 @@ struct example_s {
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task RemapTestImpl()
-        {
-            var inputContents = "typedef struct _MyStruct MyStruct;";
+    protected override Task RemapTestImpl()
+    {
+        var inputContents = "typedef struct _MyStruct MyStruct;";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public""></struct>
@@ -1407,13 +1407,13 @@ struct example_s {
 </bindings>
 ";
 
-            var remappedNames = new Dictionary<string, string> { ["_MyStruct"] = "MyStruct" };
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
-        }
+        var remappedNames = new Dictionary<string, string> { ["_MyStruct"] = "MyStruct" };
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+    }
 
-        protected override Task RemapNestedAnonymousTestImpl()
-        {
-            var inputContents = @"struct MyStruct
+    protected override Task RemapNestedAnonymousTestImpl()
+    {
+        var inputContents = @"struct MyStruct
 {
     double r;
     double g;
@@ -1425,7 +1425,7 @@ struct example_s {
     };
 };";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -1457,16 +1457,16 @@ struct example_s {
 </bindings>
 ";
 
-            var remappedNames = new Dictionary<string, string> {
-                ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
-                ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Struct"
-            };
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
-        }
+        var remappedNames = new Dictionary<string, string> {
+            ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
+            ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Struct"
+        };
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+    }
 
-        protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef struct MyStruct MyStruct;
+    protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef struct MyStruct MyStruct;
 
 struct MyStruct
 {{
@@ -1476,7 +1476,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -1494,16 +1494,16 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task SkipNonDefinitionPointerTestImpl()
-        {
-            var inputContents = @"typedef struct MyStruct* MyStructPtr;
+    protected override Task SkipNonDefinitionPointerTestImpl()
+    {
+        var inputContents = @"typedef struct MyStruct* MyStructPtr;
 typedef struct MyStruct& MyStructRef;
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public""></struct>
@@ -1511,12 +1511,12 @@ typedef struct MyStruct& MyStructRef;
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef struct MyStruct MyStruct;
+    protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef struct MyStruct MyStruct;
 
 struct MyStruct
 {{
@@ -1526,7 +1526,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -1544,12 +1544,12 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
-        {
-            var inputContents = $@"typedef {nativeType} MyTypedefAlias;
+    protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"typedef {nativeType} MyTypedefAlias;
 
 struct MyStruct
 {{
@@ -1559,7 +1559,7 @@ struct MyStruct
 }};
 ";
 
-            var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -1577,12 +1577,12 @@ struct MyStruct
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task UsingDeclarationTestImpl()
-        {
-            var inputContents = @"struct MyStruct1A
+    protected override Task UsingDeclarationTestImpl()
+    {
+        var inputContents = @"struct MyStruct1A
 {
     void MyMethod() { }
 };
@@ -1593,7 +1593,7 @@ struct MyStruct1B : MyStruct1A
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct1A"" access=""public"">
@@ -1612,12 +1612,12 @@ struct MyStruct1B : MyStruct1A
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 
-        protected override Task WithAccessSpecifierTestImpl()
-        {
-            var inputContents = @"struct MyStruct1
+    protected override Task WithAccessSpecifierTestImpl()
+    {
+        var inputContents = @"struct MyStruct1
 {
     int Field1;
     int Field2;
@@ -1636,7 +1636,7 @@ struct MyStruct3
 };
 ";
 
-            var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct1"" access=""private"">
@@ -1667,18 +1667,18 @@ struct MyStruct3
 </bindings>
 ";
 
-            var withAccessSpecifiers = new Dictionary<string, AccessSpecifier> {
-                ["MyStruct1"] = AccessSpecifier.Private,
-                ["MyStruct2"] = AccessSpecifier.Internal,
-                ["Field1"] = AccessSpecifier.Private,
-                ["MyStruct3.Field2"] = AccessSpecifier.Internal,
-            };
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
-        }
+        var withAccessSpecifiers = new Dictionary<string, AccessSpecifier> {
+            ["MyStruct1"] = AccessSpecifier.Private,
+            ["MyStruct2"] = AccessSpecifier.Internal,
+            ["Field1"] = AccessSpecifier.Private,
+            ["MyStruct3.Field2"] = AccessSpecifier.Internal,
+        };
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
+    }
 
-        protected override Task SourceLocationAttributeTestImpl()
-        {
-            const string InputContents = @"struct MyStruct
+    protected override Task SourceLocationAttributeTestImpl()
+    {
+        const string InputContents = @"struct MyStruct
 {
     int r;
     int g;
@@ -1686,7 +1686,7 @@ struct MyStruct3
 };
 ";
 
-            const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+        const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"">
@@ -1704,7 +1704,6 @@ struct MyStruct3
 </bindings>
 ";
 
-            return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
-        }
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
     }
 }

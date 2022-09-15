@@ -6,30 +6,29 @@
 using NUnit.Framework;
 using System.Runtime.InteropServices;
 
-namespace ClangSharp.Interop.UnitTests
+namespace ClangSharp.Interop.UnitTests;
+
+/// <summary>Provides validation of the <see cref="CXTargetInfoImpl" /> struct.</summary>
+public static unsafe partial class CXTargetInfoImplTests
 {
-    /// <summary>Provides validation of the <see cref="CXTargetInfoImpl" /> struct.</summary>
-    public static unsafe partial class CXTargetInfoImplTests
+    /// <summary>Validates that the <see cref="CXTargetInfoImpl" /> struct is blittable.</summary>
+    [Test]
+    public static void IsBlittableTest()
     {
-        /// <summary>Validates that the <see cref="CXTargetInfoImpl" /> struct is blittable.</summary>
-        [Test]
-        public static void IsBlittableTest()
-        {
-            Assert.That(Marshal.SizeOf<CXTargetInfoImpl>(), Is.EqualTo(sizeof(CXTargetInfoImpl)));
-        }
+        Assert.That(Marshal.SizeOf<CXTargetInfoImpl>(), Is.EqualTo(sizeof(CXTargetInfoImpl)));
+    }
 
-        /// <summary>Validates that the <see cref="CXTargetInfoImpl" /> struct has the right <see cref="LayoutKind" />.</summary>
-        [Test]
-        public static void IsLayoutSequentialTest()
-        {
-            Assert.That(typeof(CXTargetInfoImpl).IsLayoutSequential, Is.True);
-        }
+    /// <summary>Validates that the <see cref="CXTargetInfoImpl" /> struct has the right <see cref="LayoutKind" />.</summary>
+    [Test]
+    public static void IsLayoutSequentialTest()
+    {
+        Assert.That(typeof(CXTargetInfoImpl).IsLayoutSequential, Is.True);
+    }
 
-        /// <summary>Validates that the <see cref="CXTargetInfoImpl" /> struct has the correct size.</summary>
-        [Test]
-        public static void SizeOfTest()
-        {
-            Assert.That(sizeof(CXTargetInfoImpl), Is.EqualTo(1));
-        }
+    /// <summary>Validates that the <see cref="CXTargetInfoImpl" /> struct has the correct size.</summary>
+    [Test]
+    public static void SizeOfTest()
+    {
+        Assert.That(sizeof(CXTargetInfoImpl), Is.EqualTo(1));
     }
 }

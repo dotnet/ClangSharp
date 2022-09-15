@@ -2,15 +2,14 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class EnumType : TagType
 {
-    public sealed class EnumType : TagType
+
+    internal EnumType(CXType handle) : base(handle, CXTypeKind.CXType_Enum, CX_TypeClass.CX_TypeClass_Enum)
     {
-
-        internal EnumType(CXType handle) : base(handle, CXTypeKind.CXType_Enum, CX_TypeClass.CX_TypeClass_Enum)
-        {
-        }
-
-        public new EnumDecl Decl => (EnumDecl)base.Decl;
     }
+
+    public new EnumDecl Decl => (EnumDecl)base.Decl;
 }

@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class UserDefinedLiteral : CallExpr
 {
-    public sealed class UserDefinedLiteral : CallExpr
+    internal UserDefinedLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_UserDefinedLiteral)
     {
-        internal UserDefinedLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_UserDefinedLiteral)
-        {
-        }
     }
 }

@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ExternCContextDecl : Decl, IDeclContext
 {
-    public sealed class ExternCContextDecl : Decl, IDeclContext
+    internal ExternCContextDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_ExternCContext)
     {
-        internal ExternCContextDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_ExternCContext)
-        {
-        }
     }
 }

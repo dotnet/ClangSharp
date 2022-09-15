@@ -3,17 +3,16 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class TypeOfExprType : Type
 {
-    public sealed class TypeOfExprType : Type
+    private readonly Lazy<Expr> _underlyingExpr;
+
+    internal TypeOfExprType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_TypeOfExpr)
     {
-        private readonly Lazy<Expr> _underlyingExpr;
-
-        internal TypeOfExprType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_TypeOfExpr)
-        {
-            _underlyingExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.UnderlyingExpr));
-        }
-
-        public Expr UnderlyingExpr => _underlyingExpr.Value;
+        _underlyingExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.UnderlyingExpr));
     }
+
+    public Expr UnderlyingExpr => _underlyingExpr.Value;
 }

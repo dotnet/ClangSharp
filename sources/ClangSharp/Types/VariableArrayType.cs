@@ -3,17 +3,16 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class VariableArrayType : ArrayType
 {
-    public sealed class VariableArrayType : ArrayType
+    private readonly Lazy<Expr> _sizeExpr;
+
+    internal VariableArrayType(CXType handle) : base(handle, CXTypeKind.CXType_VariableArray, CX_TypeClass.CX_TypeClass_VariableArray)
     {
-        private readonly Lazy<Expr> _sizeExpr;
-
-        internal VariableArrayType(CXType handle) : base(handle, CXTypeKind.CXType_VariableArray, CX_TypeClass.CX_TypeClass_VariableArray)
-        {
-            _sizeExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.SizeExpr));
-        }
-
-        public Expr SizeExpr => _sizeExpr.Value;
+        _sizeExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.SizeExpr));
     }
+
+    public Expr SizeExpr => _sizeExpr.Value;
 }

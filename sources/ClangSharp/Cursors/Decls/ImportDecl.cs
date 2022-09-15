@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ImportDecl : Decl
 {
-    public sealed class ImportDecl : Decl
+    internal ImportDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ModuleImportDecl, CX_DeclKind.CX_DeclKind_Import)
     {
-        internal ImportDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ModuleImportDecl, CX_DeclKind.CX_DeclKind_Import)
-        {
-        }
     }
 }

@@ -4,35 +4,34 @@ using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class CompoundStmt : Stmt
 {
-    public sealed class CompoundStmt : Stmt
+    public CompoundStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundStmt, CX_StmtClass.CX_StmtClass_CompoundStmt)
     {
-        public CompoundStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundStmt, CX_StmtClass.CX_StmtClass_CompoundStmt)
+    }
+
+    public IReadOnlyList<Stmt> Body => Children;
+
+    public Stmt BodyBack => Children.LastOrDefault();
+
+    public Stmt BodyFront => Children.FirstOrDefault();
+
+    public uint Size => unchecked((uint)NumChildren);
+
+    public Stmt StmtExprResult
+    {
+        get
         {
-        }
-
-        public IReadOnlyList<Stmt> Body => Children;
-
-        public Stmt BodyBack => Children.LastOrDefault();
-
-        public Stmt BodyFront => Children.FirstOrDefault();
-
-        public uint Size => unchecked((uint)NumChildren);
-
-        public Stmt StmtExprResult
-        {
-            get
+            foreach (var b in Body.Reverse())
             {
-                foreach (var b in Body.Reverse())
+                if (b is not NullStmt)
                 {
-                    if (b is not NullStmt)
-                    {
-                        return b;
-                    }
+                    return b;
                 }
-                return BodyBack;
             }
+            return BodyBack;
         }
     }
 }

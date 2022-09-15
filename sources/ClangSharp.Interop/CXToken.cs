@@ -3,13 +3,12 @@
 // Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
-namespace ClangSharp.Interop
-{
-    public unsafe partial struct CXToken
-    {
-        [NativeTypeName("unsigned int [4]")]
-        public fixed uint int_data[4];
+namespace ClangSharp.Interop;
 
-        public void* ptr_data;
-    }
+public unsafe partial struct CXToken
+{
+    [NativeTypeName("unsigned int [4]")]
+    public fixed uint int_data[4];
+
+    public void* ptr_data;
 }

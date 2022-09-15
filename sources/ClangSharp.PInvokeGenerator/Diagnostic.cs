@@ -3,49 +3,48 @@
 using System;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class Diagnostic : IEquatable<Diagnostic>
 {
-    public sealed class Diagnostic : IEquatable<Diagnostic>
+    private readonly DiagnosticLevel _level;
+    private readonly string _message;
+    private readonly string _location;
+
+    public Diagnostic(DiagnosticLevel level, string message) : this(level, message, "")
     {
-        private readonly DiagnosticLevel _level;
-        private readonly string _message;
-        private readonly string _location;
-
-        public Diagnostic(DiagnosticLevel level, string message) : this(level, message, "")
-        {
-        }
-
-        public Diagnostic(DiagnosticLevel level, string message, CXSourceLocation location) : this(level, message, location.ToString().Replace('\\', '/'))
-        {
-        }
-
-        public Diagnostic(DiagnosticLevel level, string message, string location)
-        {
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            _level = level;
-            _message = message;
-            _location = location;
-        }
-
-        public DiagnosticLevel Level => _level;
-
-        public string Location => _location;
-
-        public string Message => _message;
-
-        public override bool Equals(object obj) => (obj is Diagnostic other) && Equals(other);
-
-        public bool Equals(Diagnostic other)
-        {
-            return (_level == other.Level)
-                && (_location == other.Location)
-                && (_message == other.Message);
-        }
-
-        public override string ToString() => string.IsNullOrWhiteSpace(_location) ? $"{_level}: {_message}" : $"{_level} ({_location}): {_message}";
     }
+
+    public Diagnostic(DiagnosticLevel level, string message, CXSourceLocation location) : this(level, message, location.ToString().Replace('\\', '/'))
+    {
+    }
+
+    public Diagnostic(DiagnosticLevel level, string message, string location)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            throw new ArgumentNullException(nameof(message));
+        }
+
+        _level = level;
+        _message = message;
+        _location = location;
+    }
+
+    public DiagnosticLevel Level => _level;
+
+    public string Location => _location;
+
+    public string Message => _message;
+
+    public override bool Equals(object obj) => (obj is Diagnostic other) && Equals(other);
+
+    public bool Equals(Diagnostic other)
+    {
+        return (_level == other.Level)
+            && (_location == other.Location)
+            && (_message == other.Message);
+    }
+
+    public override string ToString() => string.IsNullOrWhiteSpace(_location) ? $"{_level}: {_message}" : $"{_level} ({_location}): {_message}";
 }

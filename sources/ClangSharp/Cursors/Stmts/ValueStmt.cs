@@ -4,47 +4,46 @@ using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class ValueStmt : Stmt
 {
-    public class ValueStmt : Stmt
+    private protected ValueStmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
-        private protected ValueStmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
+        if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastValueStmt or < CX_StmtClass.CX_StmtClass_FirstValueStmt)
         {
-            if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastValueStmt or < CX_StmtClass.CX_StmtClass_FirstValueStmt)
-            {
-                throw new ArgumentOutOfRangeException(nameof(handle));
-            }
+            throw new ArgumentOutOfRangeException(nameof(handle));
         }
+    }
 
-        public Expr ExprStmt
+    public Expr ExprStmt
+    {
+        get
         {
-            get
+            Stmt s = this;
+
+            do
             {
-                Stmt s = this;
-
-                do
+                if (s is Expr e)
                 {
-                    if (s is Expr e)
-                    {
-                        return e;
-                    }
+                    return e;
+                }
 
-                    if (s is LabelStmt ls)
-                    {
-                        s = ls.SubStmt;
-                    }
-                    else if (s is AttributedStmt @as)
-                    {
-                        s = @as.SubStmt;
-                    }
-                    else
-                    {
-                        Debug.Fail("unknown kind of ValueStmt");
-                    }
-                } while (s is ValueStmt);
+                if (s is LabelStmt ls)
+                {
+                    s = ls.SubStmt;
+                }
+                else if (s is AttributedStmt @as)
+                {
+                    s = @as.SubStmt;
+                }
+                else
+                {
+                    Debug.Fail("unknown kind of ValueStmt");
+                }
+            } while (s is ValueStmt);
 
-                return null;
-            }
+            return null;
         }
     }
 }

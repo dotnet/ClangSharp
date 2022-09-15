@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPTargetTeamsDistributeDirective : OMPLoopDirective
 {
-    public sealed class OMPTargetTeamsDistributeDirective : OMPLoopDirective
+    internal OMPTargetTeamsDistributeDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPTargetTeamsDistributeDirective, CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeDirective)
     {
-        internal OMPTargetTeamsDistributeDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPTargetTeamsDistributeDirective, CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeDirective)
-        {
-        }
     }
 }

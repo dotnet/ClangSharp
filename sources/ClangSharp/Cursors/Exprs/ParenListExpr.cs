@@ -5,19 +5,18 @@ using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ParenListExpr : Expr
 {
-    public sealed class ParenListExpr : Expr
+    private readonly Lazy<IReadOnlyList<Expr>> _exprs;
+
+    internal ParenListExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ParenListExpr)
     {
-        private readonly Lazy<IReadOnlyList<Expr>> _exprs;
-
-        internal ParenListExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ParenListExpr)
-        {
-            _exprs = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());
-        }
-
-        public IReadOnlyList<Expr> Exprs => _exprs.Value;
-
-        public uint NumExprs => NumChildren;
+        _exprs = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());
     }
+
+    public IReadOnlyList<Expr> Exprs => _exprs.Value;
+
+    public uint NumExprs => NumChildren;
 }

@@ -4,17 +4,16 @@ using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
 
-namespace ClangSharp.Abstractions
+namespace ClangSharp.Abstractions;
+
+internal struct ParameterDesc
 {
-    internal struct ParameterDesc
-    {
-        public string Type { get; set; }
-        public string Name { get; set; }
-        public string NativeTypeName { get; set; }
-        public IEnumerable<string> CppAttributes { get; set; }
-        public Action<object> WriteCustomAttrs { get; set; }
-        public object CustomAttrGeneratorData { get; set; }
-        public CXSourceLocation? Location { get; set; }
-        public bool IsForManualImport { get; set; }
-    }
+    public string Type { get; set; }
+    public string Name { get; set; }
+    public string NativeTypeName { get; set; }
+    public IEnumerable<string> CppAttributes { get; set; }
+    public Action<object> WriteCustomAttrs { get; set; }
+    public object CustomAttrGeneratorData { get; set; }
+    public CXSourceLocation? Location { get; set; }
+    public bool IsForManualImport { get; set; }
 }

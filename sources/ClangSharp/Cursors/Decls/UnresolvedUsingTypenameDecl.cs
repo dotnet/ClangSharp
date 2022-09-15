@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class UnresolvedUsingTypenameDecl : TypeDecl, IMergeable<UnresolvedUsingTypenameDecl>
 {
-    public sealed class UnresolvedUsingTypenameDecl : TypeDecl, IMergeable<UnresolvedUsingTypenameDecl>
+    internal UnresolvedUsingTypenameDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration, CX_DeclKind.CX_DeclKind_UnresolvedUsingTypename)
     {
-        internal UnresolvedUsingTypenameDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UsingDeclaration, CX_DeclKind.CX_DeclKind_UnresolvedUsingTypename)
-        {
-        }
     }
 }

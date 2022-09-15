@@ -3,17 +3,16 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class DoStmt : Stmt
 {
-    public sealed class DoStmt : Stmt
+    internal DoStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DoStmt, CX_StmtClass.CX_StmtClass_DoStmt)
     {
-        internal DoStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DoStmt, CX_StmtClass.CX_StmtClass_DoStmt)
-        {
-            Debug.Assert(NumChildren is 2);
-        }
-
-        public Stmt Body => Children[0];
-
-        public Expr Cond => (Expr)Children[1];
+        Debug.Assert(NumChildren is 2);
     }
+
+    public Stmt Body => Children[0];
+
+    public Expr Cond => (Expr)Children[1];
 }

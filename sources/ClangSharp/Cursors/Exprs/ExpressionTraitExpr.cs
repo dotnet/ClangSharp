@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ExpressionTraitExpr : Expr
 {
-    public sealed class ExpressionTraitExpr : Expr
+    internal ExpressionTraitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ExpressionTraitExpr)
     {
-        internal ExpressionTraitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ExpressionTraitExpr)
-        {
-        }
     }
 }

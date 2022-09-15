@@ -5,87 +5,86 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public class ClassTemplateSpecializationDecl : CXXRecordDecl
 {
-    public class ClassTemplateSpecializationDecl : CXXRecordDecl
+    private readonly Lazy<ClassTemplateDecl> _specializedTemplate;
+    private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
+
+    internal ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ClassTemplateSpecialization)
     {
-        private readonly Lazy<ClassTemplateDecl> _specializedTemplate;
-        private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
+        _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
+        _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
+            var templateArgCount = Handle.NumTemplateArguments;
+            var templateArgs = new List<TemplateArgument>(templateArgCount);
 
-        internal ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ClassTemplateSpecialization)
-        {
-            _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
-            _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
-                var templateArgCount = Handle.NumTemplateArguments;
-                var templateArgs = new List<TemplateArgument>(templateArgCount);
-
-                for (var i = 0; i < templateArgCount; i++)
-                {
-                    var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
-                    templateArgs.Add(templateArg);
-                }
-
-                return templateArgs;
-            });
-        }
-
-        private protected ClassTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
-        {
-            if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastClassTemplateSpecialization or < CX_DeclKind.CX_DeclKind_FirstClassTemplateSpecialization)
+            for (var i = 0; i < templateArgCount; i++)
             {
-                throw new ArgumentOutOfRangeException(nameof(handle));
+                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
+                templateArgs.Add(templateArg);
             }
 
-            _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
-            _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
-                var templateArgCount = Handle.NumTemplateArguments;
-                var templateArgs = new List<TemplateArgument>(templateArgCount);
-
-                for (var i = 0; i < templateArgCount; i++)
-                {
-                    var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
-                    templateArgs.Add(templateArg);
-                }
-
-                return templateArgs;
-            });
-        }
-
-        public bool IsClassScopeExplicitSpecialization => IsExplicitSpecialization && (LexicalDeclContext is CXXRecordDecl);
-
-        public bool IsExplicitInstantiationOrSpecialization
-        {
-            get
-            {
-                switch (SpecializationKind)
-                {
-                    case CX_TemplateSpecializationKind.CX_TSK_ExplicitSpecialization:
-                    case CX_TemplateSpecializationKind.CX_TSK_ExplicitInstantiationDeclaration:
-                    case CX_TemplateSpecializationKind.CX_TSK_ExplicitInstantiationDefinition:
-                    {
-                        return true;
-                    }
-
-                    case CX_TemplateSpecializationKind.CX_TSK_Undeclared:
-                    case CX_TemplateSpecializationKind.CX_TSK_ImplicitInstantiation:
-                    {
-                        return false;
-                    }
-                }
-
-                Debug.Fail("bad template specialization kind");
-                return false;
-            }
-        }
-
-        public bool IsExplicitSpecialization => SpecializationKind == CX_TemplateSpecializationKind.CX_TSK_ExplicitSpecialization;
-
-        public new ClassTemplateSpecializationDecl MostRecentDecl => (ClassTemplateSpecializationDecl)base.MostRecentDecl;
-
-        public CX_TemplateSpecializationKind SpecializationKind => Handle.TemplateSpecializationKind;
-
-        public ClassTemplateDecl SpecializedTemplate => _specializedTemplate.Value;
-
-        public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs.Value;
+            return templateArgs;
+        });
     }
+
+    private protected ClassTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    {
+        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastClassTemplateSpecialization or < CX_DeclKind.CX_DeclKind_FirstClassTemplateSpecialization)
+        {
+            throw new ArgumentOutOfRangeException(nameof(handle));
+        }
+
+        _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
+        _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
+            var templateArgCount = Handle.NumTemplateArguments;
+            var templateArgs = new List<TemplateArgument>(templateArgCount);
+
+            for (var i = 0; i < templateArgCount; i++)
+            {
+                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
+                templateArgs.Add(templateArg);
+            }
+
+            return templateArgs;
+        });
+    }
+
+    public bool IsClassScopeExplicitSpecialization => IsExplicitSpecialization && (LexicalDeclContext is CXXRecordDecl);
+
+    public bool IsExplicitInstantiationOrSpecialization
+    {
+        get
+        {
+            switch (SpecializationKind)
+            {
+                case CX_TemplateSpecializationKind.CX_TSK_ExplicitSpecialization:
+                case CX_TemplateSpecializationKind.CX_TSK_ExplicitInstantiationDeclaration:
+                case CX_TemplateSpecializationKind.CX_TSK_ExplicitInstantiationDefinition:
+                {
+                    return true;
+                }
+
+                case CX_TemplateSpecializationKind.CX_TSK_Undeclared:
+                case CX_TemplateSpecializationKind.CX_TSK_ImplicitInstantiation:
+                {
+                    return false;
+                }
+            }
+
+            Debug.Fail("bad template specialization kind");
+            return false;
+        }
+    }
+
+    public bool IsExplicitSpecialization => SpecializationKind == CX_TemplateSpecializationKind.CX_TSK_ExplicitSpecialization;
+
+    public new ClassTemplateSpecializationDecl MostRecentDecl => (ClassTemplateSpecializationDecl)base.MostRecentDecl;
+
+    public CX_TemplateSpecializationKind SpecializationKind => Handle.TemplateSpecializationKind;
+
+    public ClassTemplateDecl SpecializedTemplate => _specializedTemplate.Value;
+
+    public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs.Value;
 }

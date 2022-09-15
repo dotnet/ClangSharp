@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ImplicitParamDecl : VarDecl
 {
-    public sealed class ImplicitParamDecl : VarDecl
+    internal ImplicitParamDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_ImplicitParam)
     {
-        internal ImplicitParamDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_ImplicitParam)
-        {
-        }
     }
 }

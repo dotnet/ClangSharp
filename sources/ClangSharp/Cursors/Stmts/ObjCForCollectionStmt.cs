@@ -3,19 +3,18 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ObjCForCollectionStmt : Stmt
 {
-    public sealed class ObjCForCollectionStmt : Stmt
+    internal ObjCForCollectionStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCForCollectionStmt, CX_StmtClass.CX_StmtClass_ObjCForCollectionStmt)
     {
-        internal ObjCForCollectionStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCForCollectionStmt, CX_StmtClass.CX_StmtClass_ObjCForCollectionStmt)
-        {
-            Debug.Assert(NumChildren is 3);
-        }
-
-        public Stmt Body => Children[2];
-
-        public Expr Collection => (Expr)Children[1];
-
-        public Stmt Element => Children[0];
+        Debug.Assert(NumChildren is 3);
     }
+
+    public Stmt Body => Children[2];
+
+    public Expr Collection => (Expr)Children[1];
+
+    public Stmt Element => Children[0];
 }

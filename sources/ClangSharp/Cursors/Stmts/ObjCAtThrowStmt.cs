@@ -3,15 +3,14 @@
 using System.Diagnostics;
 using ClangSharp.Interop;
 
-namespace ClangSharp
-{
-    public sealed class ObjCAtThrowStmt : Stmt
-    {
-        internal ObjCAtThrowStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtThrowStmt, CX_StmtClass.CX_StmtClass_ObjCAtThrowStmt)
-        {
-            Debug.Assert(NumChildren is 1);
-        }
+namespace ClangSharp;
 
-        public Expr ThrowExpr => (Expr)Children[0];
+public sealed class ObjCAtThrowStmt : Stmt
+{
+    internal ObjCAtThrowStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtThrowStmt, CX_StmtClass.CX_StmtClass_ObjCAtThrowStmt)
+    {
+        Debug.Assert(NumChildren is 1);
     }
+
+    public Expr ThrowExpr => (Expr)Children[0];
 }

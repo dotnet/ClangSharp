@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ObjCAvailabilityCheckExpr : Expr
 {
-    public sealed class ObjCAvailabilityCheckExpr : Expr
+    internal ObjCAvailabilityCheckExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAvailabilityCheckExpr, CX_StmtClass.CX_StmtClass_ObjCAvailabilityCheckExpr)
     {
-        internal ObjCAvailabilityCheckExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAvailabilityCheckExpr, CX_StmtClass.CX_StmtClass_ObjCAvailabilityCheckExpr)
-        {
-        }
     }
 }

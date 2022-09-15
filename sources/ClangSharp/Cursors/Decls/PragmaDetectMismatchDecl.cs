@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class PragmaDetectMismatchDecl : Decl
 {
-    public sealed class PragmaDetectMismatchDecl : Decl
+    internal PragmaDetectMismatchDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_PragmaDetectMismatch)
     {
-        internal PragmaDetectMismatchDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_PragmaDetectMismatch)
-        {
-        }
     }
 }

@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class ConvertVectorExpr : Expr
 {
-    public sealed class ConvertVectorExpr : Expr
+    internal ConvertVectorExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ConvertVectorExpr)
     {
-        internal ConvertVectorExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ConvertVectorExpr)
-        {
-        }
     }
 }

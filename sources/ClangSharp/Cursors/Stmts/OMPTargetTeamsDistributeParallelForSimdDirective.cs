@@ -2,12 +2,11 @@
 
 using ClangSharp.Interop;
 
-namespace ClangSharp
+namespace ClangSharp;
+
+public sealed class OMPTargetTeamsDistributeParallelForSimdDirective : OMPLoopDirective
 {
-    public sealed class OMPTargetTeamsDistributeParallelForSimdDirective : OMPLoopDirective
+    internal OMPTargetTeamsDistributeParallelForSimdDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective, CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeParallelForSimdDirective)
     {
-        internal OMPTargetTeamsDistributeParallelForSimdDirective(CXCursor handle) : base(handle, CXCursorKind.CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective, CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeParallelForSimdDirective)
-        {
-        }
     }
 }
