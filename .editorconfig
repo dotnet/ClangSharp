@@ -21,6 +21,7 @@ end_of_line = lf
 insert_final_newline = true
 indent_style = space
 indent_size = 4
+tab_width = 4
 trim_trailing_whitespace = true
 
 ###############################################################################
@@ -176,6 +177,7 @@ dotnet_sort_system_directives_first = true
 #   require null-coalescing expressions,
 #   require collection-initializers,
 #   require explicit tuple names,
+#   suggest namespace match folder names,
 #   require null-propogation
 #   require object-initializers,
 #
@@ -210,6 +212,7 @@ dotnet_sort_system_directives_first = true
 dotnet_style_coalesce_expression = true:error
 dotnet_style_collection_initializer = true:error
 dotnet_style_explicit_tuple_names = true:error
+dotnet_style_namespace_match_folder = true:suggestion
 dotnet_style_null_propagation = true:error
 dotnet_style_object_initializer = true:error
 
@@ -372,16 +375,18 @@ csharp_space_between_square_brackets = false
 #   require expression-bodied operators when on a single line,
 #   require expression-bodied properties when on a single line,
 #
-#   error on simplified new expression,
+#   error on new expressions when created type is apparent
 #
 #   require inlined variable declarations,
+#
+#   require file scoped namespace declarations,
 #
 #   require local over anonymous functions,
 #   require pattern-matching over "as" with "null" check,
 #   require pattern-matching over "is" with "cast" check,
 #
-#   require index operators where possible,
-#   require range operators where possible,
+#   error on index operators where possible,
+#   error on range operators where possible,
 #   require the "not" pattern where possible,
 #   require pattern-matching where possible,
 #   require switch expressions where possible,
@@ -412,14 +417,17 @@ csharp_style_implicit_object_creation_when_type_is_apparent = false:error
 
 csharp_style_inlined_variable_declaration = true:error
 
+csharp_style_namespace_declarations = file_scoped:error
+
 csharp_style_pattern_local_over_anonymous_function = true:error
 csharp_style_pattern_matching_over_as_with_null_check = true:error
 csharp_style_pattern_matching_over_is_with_cast_check = true:error
 
-csharp_style_prefer_index_operator = true:error
-csharp_style_prefer_range_operator = true:error
+csharp_style_prefer_index_operator = false:error
+csharp_style_prefer_method_group_conversion = true:suggestion
 csharp_style_prefer_not_pattern = true:error
 csharp_style_prefer_pattern_matching = true:error
+csharp_style_prefer_range_operator = false:error
 csharp_style_prefer_switch_expression = true:error
 
 csharp_style_throw_expression = true:error
@@ -437,10 +445,3 @@ csharp_style_var_when_type_is_apparent = true:error
 ###############################################################################
 [*.cs]
 csharp_using_directive_placement = outside_namespace:error
-
-###############################################################################
-# Supress diagnostics that don't apply to ClangSharp
-###############################################################################
-dotnet_diagnostic.CA1069.severity = none
-dotnet_diagnostic.CA1826.severity = none
-dotnet_diagnostic.IDE0060.severity = none
