@@ -3356,7 +3356,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             if (type is ConstantArrayType or IncompleteArrayType)
             {
                 var count = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1);
-                GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out var elementSize32, out var elementSize64);                   
+                GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out var elementSize32, out var elementSize64);
 
                 size32 = elementSize32 * Math.Max(count, 1);
                 size64 = elementSize64 * Math.Max(count, 1);

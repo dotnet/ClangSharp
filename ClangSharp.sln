@@ -165,9 +165,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.20.
 		packages\libclang\libclang.runtime.ubuntu.20.04-x64\libclang.runtime.ubuntu.20.04-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.20.04-x64\libclang.runtime.ubuntu.20.04-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.21.10-x64", "libclang.runtime.ubuntu.21.10-x64", "{F3254760-351E-4886-A243-FF3778837C40}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.ubuntu.22.04-x64", "libclang.runtime.ubuntu.22.04-x64", "{F3254760-351E-4886-A243-FF3778837C40}"
 	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.ubuntu.21.10-x64\libclang.runtime.ubuntu.21.10-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.21.10-x64\libclang.runtime.ubuntu.21.10-x64.nuspec
+		packages\libclang\libclang.runtime.ubuntu.22.04-x64\libclang.runtime.ubuntu.22.04-x64.nuspec = packages\libclang\libclang.runtime.ubuntu.22.04-x64\libclang.runtime.ubuntu.22.04-x64.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.win-arm64", "libclang.runtime.win-arm64", "{B3F3A831-DA09-40A2-A25C-DE47A58BB93B}"
@@ -175,9 +175,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.win-arm64"
 		packages\libclang\libclang.runtime.win-arm64\libclang.runtime.win-arm64.nuspec = packages\libclang\libclang.runtime.win-arm64\libclang.runtime.win-arm64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.ubuntu.21.10-x64", "libClangSharp.runtime.ubuntu.21.10-x64", "{D90C3C52-DA8D-44BB-B8B0-3E4EF4CBF4DC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.ubuntu.22.04-x64", "libClangSharp.runtime.ubuntu.22.04-x64", "{D90C3C52-DA8D-44BB-B8B0-3E4EF4CBF4DC}"
 	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.ubuntu.21.10-x64\libClangSharp.runtime.ubuntu.21.10-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.ubuntu.21.10-x64\libClangSharp.runtime.ubuntu.21.10-x64.nuspec
+		packages\libClangSharp\libClangSharp.runtime.ubuntu.22.04-x64\libClangSharp.runtime.ubuntu.22.04-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.ubuntu.22.04-x64\libClangSharp.runtime.ubuntu.22.04-x64.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.win-arm64", "libClangSharp.runtime.win-arm64", "{69B805C6-230D-49A2-A569-3CAC2EC9F293}"
@@ -202,6 +202,26 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{034EBD16-E96F-4530-B37D-30B16C4E9876}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\ci.yml = .github\workflows\ci.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.osx-arm64", "libclang.runtime.osx-arm64", "{7A12C7A3-3152-49C2-A831-3DA77922BF2A}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libclang\libclang.runtime.osx-arm64\libclang.runtime.osx-arm64.nuspec = packages\libclang\libclang.runtime.osx-arm64\libclang.runtime.osx-arm64.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.linux-x64", "libclang.runtime.linux-x64", "{1CA1A906-1A19-46D5-8AC4-87C13523899B}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libclang\libclang.runtime.linux-x64\libclang.runtime.linux-x64.nuspec = packages\libclang\libclang.runtime.linux-x64\libclang.runtime.linux-x64.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.linux-x64", "libClangSharp.runtime.linux-x64", "{3107B5D1-CB86-425E-B756-4FBCE9FB2A86}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libClangSharp\libClangSharp.runtime.linux-x64\libClangSharp.runtime.linux-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.linux-x64\libClangSharp.runtime.linux-x64.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.osx-arm64", "libClangSharp.runtime.osx-arm64", "{A693E897-FFB9-4621-A2B1-030EAC9D0810}"
+	ProjectSection(SolutionItems) = preProject
+		packages\libClangSharp\libClangSharp.runtime.osx-arm64\libClangSharp.runtime.osx-arm64.nuspec = packages\libClangSharp\libClangSharp.runtime.osx-arm64\libClangSharp.runtime.osx-arm64.nuspec
 	EndProjectSection
 EndProject
 Global
@@ -271,6 +291,10 @@ Global
 		{8FD0223B-88AD-4FA9-AE29-0B446FF17922} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{B3A22C21-0699-4963-B665-F9AA74F0AF08} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{034EBD16-E96F-4530-B37D-30B16C4E9876} = {FF42B475-5025-45BA-B278-60F29B53C023}
+		{7A12C7A3-3152-49C2-A831-3DA77922BF2A} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
+		{1CA1A906-1A19-46D5-8AC4-87C13523899B} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
+		{3107B5D1-CB86-425E-B756-4FBCE9FB2A86} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
+		{A693E897-FFB9-4621-A2B1-030EAC9D0810} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9D18E0B-5409-457D-B5F3-0E217136BB01}
