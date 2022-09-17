@@ -14,6 +14,7 @@ public enum CX_TypeClass
     CX_TypeClass_VariableArray,
     CX_TypeClass_Atomic,
     CX_TypeClass_Attributed,
+    CX_TypeClass_BTFTagAttributed,
     CX_TypeClass_BitInt,
     CX_TypeClass_BlockPointer,
     CX_TypeClass_Builtin,

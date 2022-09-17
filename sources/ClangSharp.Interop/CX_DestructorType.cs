@@ -8,5 +8,5 @@ public enum CX_DestructorType
     Deleting,
     Complete,
     Base,
-    Comdat
+    Comdat,
 }

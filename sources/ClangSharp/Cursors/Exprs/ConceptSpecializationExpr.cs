@@ -6,7 +6,7 @@ namespace ClangSharp;
 
 public sealed class ConceptSpecializationExpr : Expr
 {
-    internal ConceptSpecializationExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ConceptSpecializationExpr)
+    internal ConceptSpecializationExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ConceptSpecializationExpr, CX_StmtClass.CX_StmtClass_ConceptSpecializationExpr)
     {
     }
 }

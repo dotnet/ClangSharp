@@ -4,9 +4,9 @@ using ClangSharp.Interop;
 
 namespace ClangSharp;
 
-public sealed class RequiresExpr : Expr
+public sealed class BTFTagAttributedType : Type
 {
-    internal RequiresExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_RequiresExpr, CX_StmtClass.CX_StmtClass_RequiresExpr)
+    internal BTFTagAttributedType(CXType handle) : base(handle, CXTypeKind.CXType_BTFTagAttributed, CX_TypeClass.CX_TypeClass_BTFTagAttributed)
     {
     }
 }

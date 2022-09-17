@@ -449,6 +449,8 @@ csharp_using_directive_placement = outside_namespace:error
 ###############################################################################
 # Set dotnet analyzer rules to:
 #    disable CA1401: P/Invoke method '*' should not be visible
+#    disable SYSLIB1054: Mark the method '*' with 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
 ###############################################################################
 [*.cs]
 dotnet_diagnostic.CA1401.severity = silent
+dotnet_diagnostic.SYSLIB1054.severity = silent

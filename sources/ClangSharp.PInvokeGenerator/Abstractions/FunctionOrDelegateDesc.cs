@@ -212,7 +212,7 @@ internal struct FunctionOrDelegateDesc
                 // true - static, false - not static, null - infer
                 true => Flags | (FunctionOrDelegateFlags.IsStatic & ~FunctionOrDelegateFlags.IsNotStatic),
                 false => (Flags & ~FunctionOrDelegateFlags.IsStatic) | FunctionOrDelegateFlags.IsNotStatic,
-                null => Flags & ~FunctionOrDelegateFlags.IsStatic & ~FunctionOrDelegateFlags.IsNotStatic
+                null => Flags & ~FunctionOrDelegateFlags.IsStatic & ~FunctionOrDelegateFlags.IsNotStatic,
             };
         }
     }

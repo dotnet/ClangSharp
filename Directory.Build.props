@@ -25,7 +25,7 @@
     <DebugType>embedded</DebugType>
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <Nullable>enable</Nullable>
+    <!-- <Nullable>enable</Nullable> -->
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <SignAssembly>true</SignAssembly>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>

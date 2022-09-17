@@ -42,26 +42,25 @@ public unsafe class Cursor : IEquatable<Cursor>
             {
                 var cursorChildren = GCHandle.Alloc(new List<Cursor>());
 
-#if !NET5_0_OR_GREATER
-                var visitor = (CXCursorVisitor)Visitor;
-                var pVisitor = Marshal.GetFunctionPointerForDelegate(visitor);
-#else
-                var pVisitor = (delegate* unmanaged[Cdecl]<CXCursor, CXCursor, nint*, CXChildVisitResult>)&Visitor;
-#endif
-
                 var client_data = stackalloc nint[2] {
                     GCHandle.ToIntPtr(cursorChildren),
                     TranslationUnit.Handle.Handle
                 };
 
-                _ = clang.visitChildren(Handle, (IntPtr)pVisitor, client_data);
+#if NET5_0_OR_GREATER
+                _ = clang.visitChildren(Handle, &Visitor, client_data);
+#else
+                var visitor = (CXCursorVisitor)Visitor;
+                var pVisitor = (delegate* unmanaged[Cdecl]<CXCursor, CXCursor, void*, CXChildVisitResult>)Marshal.GetFunctionPointerForDelegate(visitor);
+
+                _ = clang.visitChildren(Handle, pVisitor, client_data);
+                GC.KeepAlive(visitor);
+#endif
 
                 _cursorChildren = (List<Cursor>)cursorChildren.Target;
                 cursorChildren.Free();
 
-#if !NET5_0_OR_GREATER
-                GC.KeepAlive(visitor);
-#else
+#if NET5_0_OR_GREATER
                 [UnmanagedCallersOnly(CallConvs = new System.Type[] { typeof(CallConvCdecl) })]
 #endif
                 static CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent, void* client_data)

@@ -9,5 +9,5 @@ public enum CX_ConstructionKind
     CX_CK_Complete,
     CX_CK_NonVirtualBase,
     CX_CK_VirtualBase,
-    CX_CK_Delegating
+    CX_CK_Delegating,
 }

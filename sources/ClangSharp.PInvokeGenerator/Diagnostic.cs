@@ -8,8 +8,8 @@ namespace ClangSharp;
 public sealed class Diagnostic : IEquatable<Diagnostic>
 {
     private readonly DiagnosticLevel _level;
-    private readonly string _message;
     private readonly string _location;
+    private readonly string _message;
 
     public Diagnostic(DiagnosticLevel level, string message) : this(level, message, "")
     {
@@ -44,6 +44,11 @@ public sealed class Diagnostic : IEquatable<Diagnostic>
         return (_level == other.Level)
             && (_location == other.Location)
             && (_message == other.Message);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(_level, _location, _message);
     }
 
     public override string ToString() => string.IsNullOrWhiteSpace(_location) ? $"{_level}: {_message}" : $"{_level} ({_location}): {_message}";

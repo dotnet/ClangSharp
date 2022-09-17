@@ -34,4 +34,5 @@ public enum CXIdxEntityKind
     CXIdxEntity_CXXConversionFunction = 24,
     CXIdxEntity_CXXTypeAlias = 25,
     CXIdxEntity_CXXInterface = 26,
+    CXIdxEntity_CXXConcept = 27,
 }

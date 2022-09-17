@@ -6,11 +6,11 @@ namespace ClangSharp.Interop;
 public enum CX_TemplateNameKind
 {
     CX_TNK_Invalid,
-    CX_TNK_Template = 1,
-    CX_TNK_OverloadedTemplate = 2,
-    CX_TNK_AssumedTemplate = 3,
-    CX_TNK_QualifiedTemplate = 4,
-    CX_TNK_DependentTemplate = 5,
-    CX_TNK_SubstTemplateTemplateParm = 6,
-    CX_TNK_SubstTemplateTemplateParmPack = 7
+    CX_TNK_Template,
+    CX_TNK_OverloadedTemplate,
+    CX_TNK_AssumedTemplate,
+    CX_TNK_QualifiedTemplate,
+    CX_TNK_DependentTemplate,
+    CX_TNK_SubstTemplateTemplateParm,
+    CX_TNK_SubstTemplateTemplateParmPack,
 }

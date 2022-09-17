@@ -11,8 +11,8 @@
     <InternalsVisibleTo Include="ClangSharp.PInvokeGenerator" Key="$(AssemblyOriginatorPublicKey)" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include=".editorconfig" />
+  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <Compile Remove="Shims/SkipLocalsInitAttribute.cs" />
   </ItemGroup>
 
   <ItemGroup>

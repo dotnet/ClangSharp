@@ -220,6 +220,7 @@ public class Decl : Cursor
         CX_DeclKind.CX_DeclKind_OMPDeclareMapper => new OMPDeclareMapperDecl(handle),
         CX_DeclKind.CX_DeclKind_OMPDeclareReduction => new OMPDeclareReductionDecl(handle),
         CX_DeclKind.CX_DeclKind_TemplateParamObject => new TemplateParamObjectDecl(handle),
+        CX_DeclKind.CX_DeclKind_UnnamedGlobalConstant => new UnnamedGlobalConstantDecl(handle),
         CX_DeclKind.CX_DeclKind_UnresolvedUsingValue => new UnresolvedUsingValueDecl(handle),
         CX_DeclKind.CX_DeclKind_OMPAllocate => new OMPAllocateDecl(handle),
         CX_DeclKind.CX_DeclKind_OMPRequires => new OMPRequiresDecl(handle),

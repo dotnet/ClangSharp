@@ -145,8 +145,7 @@ public unsafe partial struct CXType : IEquatable<CXType>
             Debug.Assert(CX_TypeClass.CX_TypeClass_TagFirst == CX_TypeClass.CX_TypeClass_Record);
             Debug.Assert(CX_TypeClass.CX_TypeClass_TagLast == CX_TypeClass.CX_TypeClass_Enum);
 
-            return TypeClass switch
-            {
+            return TypeClass switch {
                 CX_TypeClass.CX_TypeClass_Invalid => "Invalid",
                 CX_TypeClass.CX_TypeClass_Adjusted => "Adjusted",
                 CX_TypeClass.CX_TypeClass_Decayed => "Decayed",
@@ -156,6 +155,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
                 CX_TypeClass.CX_TypeClass_VariableArray => "VariableArray",
                 CX_TypeClass.CX_TypeClass_Atomic => "Atomic",
                 CX_TypeClass.CX_TypeClass_Attributed => "Attributed",
+                CX_TypeClass.CX_TypeClass_BTFTagAttributed => "BTFTagAttributed",
+                CX_TypeClass.CX_TypeClass_BitInt => "BitInt",
                 CX_TypeClass.CX_TypeClass_BlockPointer => "BlockPointer",
                 CX_TypeClass.CX_TypeClass_Builtin => "Builtin",
                 CX_TypeClass.CX_TypeClass_Complex => "Complex",
@@ -169,7 +170,6 @@ public unsafe partial struct CXType : IEquatable<CXType>
                 CX_TypeClass.CX_TypeClass_DependentTemplateSpecialization => "DependentTemplateSpecialization",
                 CX_TypeClass.CX_TypeClass_DependentVector => "DependentVector",
                 CX_TypeClass.CX_TypeClass_Elaborated => "Elaborated",
-                CX_TypeClass.CX_TypeClass_BitInt => "BitInt",
                 CX_TypeClass.CX_TypeClass_FunctionNoProto => "FunctionNoProto",
                 CX_TypeClass.CX_TypeClass_FunctionProto => "FunctionProto",
                 CX_TypeClass.CX_TypeClass_InjectedClassName => "InjectedClassName",
@@ -198,6 +198,7 @@ public unsafe partial struct CXType : IEquatable<CXType>
                 CX_TypeClass.CX_TypeClass_Typedef => "Typedef",
                 CX_TypeClass.CX_TypeClass_UnaryTransform => "UnaryTransform",
                 CX_TypeClass.CX_TypeClass_UnresolvedUsing => "UnresolvedUsing",
+                CX_TypeClass.CX_TypeClass_Using => "Using",
                 CX_TypeClass.CX_TypeClass_Vector => "Vector",
                 CX_TypeClass.CX_TypeClass_ExtVector => "ExtVector",
                 _ => TypeClass.ToString()[13..],
@@ -245,10 +246,15 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public CXVisitorResult VisitFields(CXFieldVisitor visitor, CXClientData clientData)
     {
-        var pVisitor = Marshal.GetFunctionPointerForDelegate(visitor);
-        var result = (CXVisitorResult)clang.Type_visitFields(this, pVisitor, clientData);
+        var pVisitor = (delegate* unmanaged[Cdecl]<CXCursor, void*, CXVisitorResult>)Marshal.GetFunctionPointerForDelegate(visitor);
+        var result = VisitFields(pVisitor, clientData);
 
         GC.KeepAlive(visitor);
         return result;
+    }
+
+    public CXVisitorResult VisitFields(delegate* unmanaged[Cdecl]<CXCursor, void*, CXVisitorResult> visitor, CXClientData clientData)
+    {
+        return (CXVisitorResult)clang.Type_visitFields(this, visitor, clientData);
     }
 }
