@@ -1525,10 +1525,20 @@ public partial class PInvokeGenerator
                     _ = withUsings.Add("System.Runtime.InteropServices");
                 }
 
-                if (desc.NativeType is not null)
+                var nativeTypeName = desc.NativeType;
+
+                if (nativeTypeName is not null)
                 {
-                    withAttributes.Add($"NativeTypeName(\"{EscapeString(desc.NativeType)}\")");
-                    _ = withUsings.Add(GetNamespace("NativeTypeNameAttribute"));
+                    foreach (var entry in _config.NativeTypeNamesToStrip)
+                    {
+                        nativeTypeName = nativeTypeName.Replace(entry, "");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(nativeTypeName))
+                    {
+                        withAttributes.Add($"NativeTypeName(\"{EscapeString(nativeTypeName)}\")");
+                        _ = withUsings.Add(GetNamespace("NativeTypeNameAttribute"));
+                    }
                 }
 
                 if (_config.GenerateNativeInheritanceAttribute && (desc.NativeInheritance is not null))

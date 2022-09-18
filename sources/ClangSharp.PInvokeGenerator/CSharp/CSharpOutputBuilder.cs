@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Xml.Linq;
 
 namespace ClangSharp.CSharp;
 
@@ -313,6 +314,11 @@ internal sealed partial class CSharpOutputBuilder
 
     private void AddNativeTypeNameAttribute(string nativeTypeName, string? prefix = null, string? postfix = null, string? attributePrefix = null)
     {
+        foreach (var entry in _config.NativeTypeNamesToStrip)
+        {
+            nativeTypeName = nativeTypeName.Replace(entry, "");
+        }
+
         if (string.IsNullOrWhiteSpace(nativeTypeName))
         {
             return;

@@ -36,6 +36,7 @@ public class Program
     private static readonly Option<string> s_libraryPath;
     private static readonly Option<string> s_methodClassName;
     private static readonly Option<string> s_methodPrefixToStrip;
+    private static readonly Option<string[]> s_nativeTypeNamesToStrip;
     private static readonly Option<string> s_namespaceName;
     private static readonly Option<string> s_outputLocation;
     private static readonly Option<PInvokeGeneratorOutputMode> s_outputMode;
@@ -141,6 +142,7 @@ public class Program
         s_outputMode = GetOutputModeOption();
         s_outputLocation = GetOutputOption();
         s_methodPrefixToStrip = GetPrefixStripOption();
+        s_nativeTypeNamesToStrip = GetNativeTypeNamesStripOption();
         s_remappedNameValuePairs = GetRemapOption();
         s_std = GetStdOption();
         s_testOutputLocation = GetTestOutputOption();
@@ -178,6 +180,7 @@ public class Program
             s_outputMode,
             s_outputLocation,
             s_methodPrefixToStrip,
+            s_nativeTypeNamesToStrip,
             s_remappedNameValuePairs,
             s_std,
             s_testOutputLocation,
@@ -231,6 +234,7 @@ public class Program
         var libraryPath = context.ParseResult.GetValueForOption(s_libraryPath) ?? "";
         var methodClassName = context.ParseResult.GetValueForOption(s_methodClassName) ?? "";
         var methodPrefixToStrip = context.ParseResult.GetValueForOption(s_methodPrefixToStrip) ?? "";
+        var nativeTypeNamesToStrip = context.ParseResult.GetValueForOption(s_nativeTypeNamesToStrip) ?? Array.Empty<string>();
         var namespaceName = context.ParseResult.GetValueForOption(s_namespaceName) ?? "";
         var outputLocation = context.ParseResult.GetValueForOption(s_outputLocation) ?? "";
         var outputMode = context.ParseResult.GetValueForOption(s_outputMode);
@@ -660,6 +664,7 @@ public class Program
             IncludedNames = includedNames,
             LibraryPath = libraryPath,
             MethodPrefixToStrip = methodPrefixToStrip,
+            NativeTypeNamesToStrip = nativeTypeNamesToStrip,
             RemappedNames = remappedNames,
             TraversalNames = traversalNames,
             TestOutputLocation = testOutputLocation,
@@ -1051,6 +1056,17 @@ public class Program
             description: "The namespace in which to place the generated bindings.",
             getDefaultValue: () => string.Empty
         );
+    }
+
+    private static Option<string[]> GetNativeTypeNamesStripOption()
+    {
+        return new Option<string[]>(
+            aliases: new string[] { "--nativeTypeNamesToStrip" },
+            description: "The contents to strip from the generated NativeTypeName attributes.",
+            getDefaultValue: Array.Empty<string>
+        ) {
+            AllowMultipleArgumentsPerToken = true
+        };
     }
 
     private static Option<PInvokeGeneratorOutputMode> GetOutputModeOption()

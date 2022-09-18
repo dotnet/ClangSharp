@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Xml.Linq;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 
@@ -110,12 +111,7 @@ internal partial class XmlOutputBuilder
         desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
         _ = _sb.Append("<type");
 
-        if (!string.IsNullOrWhiteSpace(desc.NativeTypeName))
-        {
-            _ = _sb.Append(" native=\"");
-            _ = _sb.Append(EscapeText(desc.NativeTypeName));
-            _ = _sb.Append('"');
-        }
+        AddNativeTypeNameAttribute(desc.NativeTypeName);
     }
 
     public void WriteFixedCountField(string typeName, string escapedName, string fixedName, string count)
@@ -182,12 +178,8 @@ internal partial class XmlOutputBuilder
         desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
 
         _ = _sb.Append("<type");
-        if (!string.IsNullOrWhiteSpace(desc.NativeTypeName))
-        {
-            _ = _sb.Append(" native=\"");
-            _ = _sb.Append(EscapeText(desc.NativeTypeName));
-            _ = _sb.Append('"');
-        }
+
+        AddNativeTypeNameAttribute(desc.NativeTypeName);
 
         _ = _sb.Append('>');
         _ = _sb.Append(EscapeText(desc.ReturnType));
@@ -265,12 +257,8 @@ internal partial class XmlOutputBuilder
         _ = _sb.Append("\" access=\"");
         _ = _sb.Append(info.AccessSpecifier.AsString());
         _ = _sb.Append('"');
-        if (info.NativeType is not null)
-        {
-            _ = _sb.Append(" native=\"");
-            _ = _sb.Append(info.NativeType);
-            _ = _sb.Append('"');
-        }
+
+        AddNativeTypeNameAttribute(info.NativeType);
 
         if (info.NativeInheritance is not null)
         {
@@ -418,4 +406,26 @@ internal partial class XmlOutputBuilder
     public void BeginDereference() => _sb.Append("<deref>");
 
     public void EndDereference() => _sb.Append("</deref>");
+
+    private void AddNativeTypeNameAttribute(string? nativeTypeName)
+    {
+        if (nativeTypeName is null)
+        {
+            return;
+        }
+
+        foreach (var entry in _config.NativeTypeNamesToStrip)
+        {
+            nativeTypeName = nativeTypeName.Replace(entry, "");
+        }
+
+        if (string.IsNullOrWhiteSpace(nativeTypeName))
+        {
+            return;
+        }
+
+        _ = _sb.Append(" native=\"");
+        _ = _sb.Append(EscapeText(nativeTypeName));
+        _ = _sb.Append('"');
+    }
 }
