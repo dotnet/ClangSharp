@@ -297,13 +297,22 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (_config.GenerateHelperTypes && (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp))
         {
-            _ = Directory.CreateDirectory(_config.OutputLocation);
+            if (_config.GenerateMultipleFiles)
+            {
+                Debug.Assert(stream is null);
+                Debug.Assert(leaveStreamOpen is false);
+            }
+            else
+            {
+                Debug.Assert(stream is not null);
+                Debug.Assert(leaveStreamOpen is true);
+            }
 
-            GenerateNativeInheritanceAttribute(this);
-            GenerateNativeTypeNameAttribute(this);
-            GenerateSetsLastSystemErrorAttribute(this);
-            GenerateVtblIndexAttribute(this);
-            GenerateTransparentStructs(this);
+            GenerateNativeInheritanceAttribute(this, stream, leaveStreamOpen);
+            GenerateNativeTypeNameAttribute(this, stream, leaveStreamOpen);
+            GenerateSetsLastSystemErrorAttribute(this, stream, leaveStreamOpen);
+            GenerateVtblIndexAttribute(this, stream, leaveStreamOpen);
+            GenerateTransparentStructs(this, stream, leaveStreamOpen);
         }
 
         if (leaveStreamOpen && _outputBuilderFactory.OutputBuilders.Any())
@@ -345,12 +354,17 @@ public sealed partial class PInvokeGenerator : IDisposable
         _uuidsToGenerate.Clear();
         _visitedFiles.Clear();
 
-        static void GenerateNativeInheritanceAttribute(PInvokeGenerator generator)
+        static void GenerateNativeInheritanceAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
         {
             var config = generator.Config;
-            var outputPath = Path.Combine(config.OutputLocation, "NativeInheritanceAttribute.cs");
 
-            using var sw = new StreamWriter(outputPath);
+            if (stream is null)
+            {
+                var outputPath = Path.Combine(config.OutputLocation, "NativeInheritanceAttribute.cs");
+                stream = generator._outputStreamFactory(outputPath);
+            }
+
+            using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
             if (config.HeaderText != string.Empty)
@@ -418,12 +432,17 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
 
-        static void GenerateNativeTypeNameAttribute(PInvokeGenerator generator)
+        static void GenerateNativeTypeNameAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
         {
             var config = generator.Config;
-            var outputPath = Path.Combine(config.OutputLocation, "NativeTypeNameAttribute.cs");
 
-            using var sw = new StreamWriter(outputPath);
+            if (stream is null)
+            {
+                var outputPath = Path.Combine(config.OutputLocation, "NativeTypeNameAttribute.cs");
+                stream = generator._outputStreamFactory(outputPath);
+            }
+
+            using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
             if (config.HeaderText != string.Empty)
@@ -491,12 +510,18 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
 
-        static void GenerateSetsLastSystemErrorAttribute(PInvokeGenerator generator)
+        static void GenerateSetsLastSystemErrorAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
         {
             var config = generator.Config;
-            var outputPath = Path.Combine(config.OutputLocation, "SetsLastSystemErrorAttribute.cs");
 
-            using var sw = new StreamWriter(outputPath);
+            if (stream is null)
+            {
+                Debug.Assert(stream is null);
+                var outputPath = Path.Combine(config.OutputLocation, "SetsLastSystemErrorAttribute.cs");
+                stream = generator._outputStreamFactory(outputPath);
+            }
+
+            using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
             if (config.HeaderText != string.Empty)
@@ -553,12 +578,18 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
 
-        static void GenerateVtblIndexAttribute(PInvokeGenerator generator)
+        static void GenerateVtblIndexAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
         {
             var config = generator.Config;
-            var outputPath = Path.Combine(config.OutputLocation, "VtblIndexAttribute.cs");
 
-            using var sw = new StreamWriter(outputPath);
+            if (stream is null)
+            {
+                Debug.Assert(stream is null);
+                var outputPath = Path.Combine(config.OutputLocation, "VtblIndexAttribute.cs");
+                stream = generator._outputStreamFactory(outputPath);
+            }
+
+            using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
             sw.NewLine = "\n";
 
             if (config.HeaderText != string.Empty)
@@ -626,7 +657,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
 
-        static void GenerateTransparentStructs(PInvokeGenerator generator)
+        static void GenerateTransparentStructs(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
         {
             var config = generator.Config;
 
@@ -637,9 +668,14 @@ public sealed partial class PInvokeGenerator : IDisposable
                 var kind = transparentStruct.Value.Kind;
 
                 var isTypePointer = type.Contains('*');
-                var outputPath = Path.Combine(config.OutputLocation, $"{name}.cs");
 
-                using var sw = new StreamWriter(outputPath);
+                if (stream is null)
+                {
+                    var outputPath = Path.Combine(config.OutputLocation, $"{name}.cs");
+                    stream = generator._outputStreamFactory(outputPath);
+                }
+
+                using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
                 sw.NewLine = "\n";
 
                 if (config.HeaderText != string.Empty)
