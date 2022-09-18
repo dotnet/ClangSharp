@@ -13,7 +13,7 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public CXCursor AddrSpaceExpr => clangsharp.Type_getAddrSpaceExpr(this);
 
-    public CXType AdjustedType => clangsharp.Type_getAdjustedType(this);
+    public CXType AdjustedType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getAdjustedType(this) : default;
 
     public long AlignOf => clang.Type_getAlignOf(this);
 
@@ -35,17 +35,17 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public CXType DecayedType => clangsharp.Type_getDecayedType(this);
 
-    public CXCursor Declaration => clangsharp.Type_getDeclaration(this);
+    public CXCursor Declaration => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getDeclaration(this) : default;
 
-    public CXType DeducedType => clangsharp.Type_getDeducedType(this);
+    public CXType DeducedType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getDeducedType(this) : default;
 
     public int Depth => clangsharp.Type_getDepth(this);
 
-    public CXType Desugar => clangsharp.Type_desugar(this);
+    public CXType Desugar => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_desugar(this) : default;
 
-    public CXType ElementType => clangsharp.Type_getElementType(this);
+    public CXType ElementType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getElementType(this) :default;
 
-    public CXType EquivalentType => clangsharp.Type_getEquivalentType(this);
+    public CXType EquivalentType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getEquivalentType(this) : default;
 
     public CXCursor_ExceptionSpecificationKind ExceptionSpecificationType => (CXCursor_ExceptionSpecificationKind)clang.getExceptionSpecificationType(this);
 
@@ -53,9 +53,9 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public int Index => clangsharp.Type_getIndex(this);
 
-    public CXType InjectedSpecializationType => clangsharp.Type_getInjectedSpecializationType(this);
+    public CXType InjectedSpecializationType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getInjectedSpecializationType(this) : default;
 
-    public CXType InjectedTST => clangsharp.Type_getInjectedTST(this);
+    public CXType InjectedTST => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getInjectedTST(this) : default;
 
     public bool IsCanonical => Equals(CanonicalType);
 
@@ -69,7 +69,7 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public bool IsSigned => clangsharp.Type_getIsSigned(this) != 0;
 
-    public bool IsSugared => clangsharp.Type_getIsSugared(this) != 0;
+    public bool IsSugared => (kind != CXTypeKind.CXType_Invalid) && clangsharp.Type_getIsSugared(this) != 0;
 
     public bool IsTransparentTagTypedef => clang.Type_isTransparentTagTypedef(this) != 0;
 
@@ -109,21 +109,21 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public CXType ObjCObjectBaseType => clang.Type_getObjCObjectBaseType(this);
 
-    public CXType OriginalType => clangsharp.Type_getOriginalType(this);
+    public CXType OriginalType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getOriginalType(this) : default;
 
-    public CXCursor OwnedTagDecl => clangsharp.Type_getOwnedTagDecl(this);
+    public CXCursor OwnedTagDecl => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getOwnedTagDecl(this) : default;
 
-    public CXType PointeeType => clangsharp.Type_getPointeeType(this);
+    public CXType PointeeType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getPointeeType(this) : default;
 
     public CXType ResultType => clang.getResultType(this);
 
-    public CXCursor RowExpr => clangsharp.Type_getRowExpr(this);
+    public CXCursor RowExpr => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getRowExpr(this) : default;
 
-    public CXCursor SizeExpr => clangsharp.Type_getSizeExpr(this);
+    public CXCursor SizeExpr => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getSizeExpr(this) : default;
 
     public long SizeOf => clang.Type_getSizeOf(this);
 
-    public CXString Spelling => clang.getTypeSpelling(this);
+    public CXString Spelling => (kind != CXTypeKind.CXType_Invalid) ? clang.getTypeSpelling(this) : default;
 
     public CX_TemplateName TemplateName
     {
@@ -206,11 +206,11 @@ public unsafe partial struct CXType : IEquatable<CXType>
         }
     }
 
-    public CXString TypedefName => clang.getTypedefName(this);
+    public CXString TypedefName => (kind != CXTypeKind.CXType_Invalid) ? clang.getTypedefName(this) : default; 
 
-    public CXCursor UnderlyingExpr => clangsharp.Type_getUnderlyingExpr(this);
+    public CXCursor UnderlyingExpr => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getUnderlyingExpr(this) : default;
 
-    public CXType UnderlyingType => clangsharp.Type_getUnderlyingType(this);
+    public CXType UnderlyingType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getUnderlyingType(this) : default;
 
     public CXType ValueType => clang.Type_getValueType(this);
 
