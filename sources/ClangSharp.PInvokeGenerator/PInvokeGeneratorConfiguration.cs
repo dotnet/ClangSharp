@@ -28,6 +28,7 @@ public sealed class PInvokeGeneratorConfiguration
     private readonly SortedSet<string> _excludedNames;
     private readonly SortedSet<string> _forceRemappedNames;
     private readonly SortedSet<string> _includedNames;
+    private readonly SortedSet<string> _nativeTypeNamesToStrip;
     private readonly SortedSet<string> _withManualImports;
     private readonly SortedSet<string> _traversalNames;
     private readonly SortedSet<string> _withSetLastErrors;
@@ -76,6 +77,7 @@ public sealed class PInvokeGeneratorConfiguration
         _excludedNames = new SortedSet<string>();
         _forceRemappedNames = new SortedSet<string>();
         _includedNames = new SortedSet<string>();
+        _nativeTypeNamesToStrip = new SortedSet<string>();
         _withManualImports = new SortedSet<string>();
         _traversalNames = new SortedSet<string>();
         _withSetLastErrors = new SortedSet<string>();
@@ -276,6 +278,20 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             _methodPrefixToStrip = string.IsNullOrWhiteSpace(value) ? DefaultMethodPrefixToStripValue : value;
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyCollection<string> NativeTypeNamesToStrip
+    {
+        get
+        {
+            return _nativeTypeNamesToStrip;
+        }
+
+        init
+        {
+            AddRange(_nativeTypeNamesToStrip, value, StringExtensions.NormalizePath);
         }
     }
 
