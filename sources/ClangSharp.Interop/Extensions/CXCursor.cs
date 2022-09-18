@@ -1611,7 +1611,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXCursor other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXCursor other) && Equals(other);
 
     public bool Equals(CXCursor other) => this == other;
 

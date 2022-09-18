@@ -1,6 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -208,7 +207,7 @@ internal sealed partial class CSharpOutputBuilder
         Write("/*M*/>");
     }
 
-    private void AddCppAttributes(IEnumerable<string> attrs, string prefix = null, string postfix = null)
+    private void AddCppAttributes(IEnumerable<string> attrs, string? prefix = null, string? postfix = null)
     {
         var attributeList = string.Join("^", attrs);
         if (string.IsNullOrWhiteSpace(attributeList))
@@ -240,7 +239,7 @@ internal sealed partial class CSharpOutputBuilder
         }
     }
 
-    private void AddNativeInheritanceAttribute(string inheritedFromName, string prefix = null, string postfix = null, string attributePrefix = null)
+    private void AddNativeInheritanceAttribute(string inheritedFromName, string? prefix = null, string? postfix = null, string? attributePrefix = null)
     {
         if (prefix is null)
         {
@@ -277,7 +276,7 @@ internal sealed partial class CSharpOutputBuilder
         }
     }
 
-    private void AddVtblIndexAttribute(long vtblIndex, string prefix = null, string postfix = null, string attributePrefix = null)
+    private void AddVtblIndexAttribute(long vtblIndex, string? prefix = null, string? postfix = null, string? attributePrefix = null)
     {
         if (prefix is null)
         {
@@ -312,7 +311,7 @@ internal sealed partial class CSharpOutputBuilder
         }
     }
 
-    private void AddNativeTypeNameAttribute(string nativeTypeName, string prefix = null, string postfix = null, string attributePrefix = null)
+    private void AddNativeTypeNameAttribute(string nativeTypeName, string? prefix = null, string? postfix = null, string? attributePrefix = null)
     {
         if (string.IsNullOrWhiteSpace(nativeTypeName))
         {

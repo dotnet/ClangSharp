@@ -10,7 +10,7 @@ internal struct ValueDesc
     public AccessSpecifier AccessSpecifier { get; set; }
     public string TypeName { get; set; }
     public string EscapedName { get; set; }
-    public string NativeTypeName { get; set; }
+    public string? NativeTypeName { get; set; }
 
     public string ParentName { get; set; }
     public ValueKind Kind { get; set; }

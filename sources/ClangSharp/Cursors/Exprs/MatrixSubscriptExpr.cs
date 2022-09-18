@@ -14,7 +14,7 @@ public sealed class MatrixSubscriptExpr : Expr
 
     public Expr Base => (Expr)Children[0];
 
-    public Expr ColumnIdx => IsIncomplete ? null : (Expr)Children[2];
+    public Expr? ColumnIdx => IsIncomplete ? null : (Expr)Children[2];
 
     public bool IsIncomplete => Handle.IsIncomplete;
 

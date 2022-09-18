@@ -14,8 +14,8 @@ public sealed unsafe class TemplateName
     {
         Handle = handle;
 
-        _asTemplateDecl = new Lazy<TemplateDecl>(() => _translationUnit.Value.GetOrCreate<TemplateDecl>(Handle.AsTemplateDecl));
         _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
+        _asTemplateDecl = new Lazy<TemplateDecl>(() => _translationUnit.Value.GetOrCreate<TemplateDecl>(Handle.AsTemplateDecl));
     }
 
     public TemplateDecl AsTemplateDecl => _asTemplateDecl.Value;

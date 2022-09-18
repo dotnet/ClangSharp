@@ -17,7 +17,7 @@ public sealed class UnresolvedMemberExpr : OverloadExpr
         _baseType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
-    public Expr Base => (Expr)Children.SingleOrDefault();
+    public Expr? Base => (Expr?)Children.SingleOrDefault();
 
     public Type BaseType => _baseType.Value;
 

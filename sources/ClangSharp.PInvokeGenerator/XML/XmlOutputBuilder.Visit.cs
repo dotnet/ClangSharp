@@ -6,7 +6,7 @@ namespace ClangSharp.XML;
 
 internal partial class XmlOutputBuilder
 {
-    public void WriteCustomAttribute(string attribute, Action callback = null)
+    public void WriteCustomAttribute(string attribute, Action? callback = null)
     {
         _ = _sb.Append($"<attribute>{attribute}");
         callback?.Invoke();

@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <Compile Remove="Shims/MemberNotNullWhenAttribute.cs" />
     <Compile Remove="Shims/SkipLocalsInitAttribute.cs" />
   </ItemGroup>
 

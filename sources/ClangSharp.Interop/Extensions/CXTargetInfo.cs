@@ -34,7 +34,7 @@ public unsafe partial struct CXTargetInfo : IDisposable, IEquatable<CXTargetInfo
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXTargetInfo other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXTargetInfo other) && Equals(other);
 
     public bool Equals(CXTargetInfo other) => this == other;
 

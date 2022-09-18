@@ -22,15 +22,15 @@ public sealed class CXXNewExpr : Expr
 
     public Type AllocatedType => ((PointerType)Type).PointeeType;
 
-    public Expr ArraySize => IsArray ? (Expr)Children[ArraySizeOffset] : null;
+    public Expr? ArraySize => IsArray ? (Expr)Children[ArraySizeOffset] : null;
 
-    public CXXConstructExpr ConstructExpr => Initializer as CXXConstructExpr;
+    public CXXConstructExpr? ConstructExpr => Initializer as CXXConstructExpr;
 
     public bool DoesUsualArrayDeleteWantSize => Handle.DoesUsualArrayDeleteWantSize;
 
     public bool HasInitializer => Handle.HasInit;
 
-    public Expr Initializer => HasInitializer ? (Expr)Children[InitExprOffset] : null;
+    public Expr? Initializer => HasInitializer ? (Expr)Children[InitExprOffset] : null;
 
     public bool IsArray => Handle.IsArrayForm;
 

@@ -148,7 +148,7 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXTranslationUnit other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXTranslationUnit other) && Equals(other);
 
     public bool Equals(CXTranslationUnit other) => this == other;
 

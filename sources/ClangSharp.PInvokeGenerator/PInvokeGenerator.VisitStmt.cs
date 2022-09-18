@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Abstractions;
+using ClangSharp.CSharp;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -157,7 +158,7 @@ public partial class PInvokeGenerator
 
                 case "memset":
                 {
-                    NamedDecl namedDecl = null;
+                    NamedDecl? namedDecl = null;
 
                     if (callExpr.NumArgs == 3)
                     {
@@ -528,15 +529,18 @@ public partial class PInvokeGenerator
     private void VisitCXXDependentScopeMemberExpr(CXXDependentScopeMemberExpr cxxDependentScopeMemberExpr)
     {
         var outputBuilder = StartCSharpCode();
+
         if (!cxxDependentScopeMemberExpr.IsImplicitAccess)
         {
-            Visit(cxxDependentScopeMemberExpr.Base);
+            var @base = cxxDependentScopeMemberExpr.Base;
+            Debug.Assert(@base is not null);
+            Visit(@base);
 
-            var type = cxxDependentScopeMemberExpr.Base is CXXThisExpr
+            var type = @base is CXXThisExpr
                      ? null
-                     : cxxDependentScopeMemberExpr.Base is DeclRefExpr declRefExpr
+                     : @base is DeclRefExpr declRefExpr
                          ? declRefExpr.Decl.Type.CanonicalType
-                         : cxxDependentScopeMemberExpr.Base.Type.CanonicalType;
+                         : @base.Type.CanonicalType;
 
             if (type is not null and (PointerType or ReferenceType))
             {
@@ -717,7 +721,19 @@ public partial class PInvokeGenerator
         var outputBuilder = StartCSharpCode();
         outputBuilder.Write("typeof(");
 
-        var type = cxxUuidofExpr.IsTypeOperand ? cxxUuidofExpr.TypeOperand : cxxUuidofExpr.ExprOperand.Type;
+        Type type;
+
+        if (cxxUuidofExpr.IsTypeOperand)
+        {
+            type = cxxUuidofExpr.TypeOperand;
+        }
+        else
+        {
+            var exprOperand = cxxUuidofExpr.ExprOperand;
+            Debug.Assert(exprOperand is not null);
+            type = exprOperand.Type;
+        }
+
         var typeName = GetRemappedTypeName(cxxUuidofExpr, context: null, type, out _);
         outputBuilder.Write(typeName);
 
@@ -790,9 +806,12 @@ public partial class PInvokeGenerator
     private void VisitDeclStmt(DeclStmt declStmt)
     {
         var outputBuilder = StartCSharpCode();
+
         if (declStmt.IsSingleDecl)
         {
-            Visit(declStmt.SingleDecl);
+            var singleDecl = declStmt.SingleDecl;
+            Debug.Assert(singleDecl is not null);
+            Visit(singleDecl);
         }
         else
         {
@@ -1101,11 +1120,16 @@ public partial class PInvokeGenerator
             }
             else if (IsPrevContextStmt<CaseStmt>(out _, out _))
             {
-                var previousContext = _context.Last.Previous;
+                var previousContext = _context.Last;
+                Debug.Assert(previousContext is not null);
+
+                previousContext = previousContext.Previous;
+                Debug.Assert(previousContext is not null);
 
                 do
                 {
                     previousContext = previousContext.Previous;
+                    Debug.Assert(previousContext is not null);
                 }
                 while (previousContext.Value.Cursor is ParenExpr or ImplicitCastExpr or CaseStmt or CompoundStmt);
 
@@ -1149,14 +1173,14 @@ public partial class PInvokeGenerator
     private void VisitInitListExpr(InitListExpr initListExpr)
     {
         var outputBuilder = StartCSharpCode();
-        ForType(initListExpr, initListExpr.Type);
+        ForType(outputBuilder, initListExpr, initListExpr.Type);
         StopCSharpCode();
 
-        long CalculateRootSize(InitListExpr initListExpr, ArrayType arrayType, bool isUnmanagedConstant)
+        long CalculateRootSize(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, ArrayType? arrayType, bool isUnmanagedConstant)
         {
             long rootSize = -1;
 
-            do
+            while (arrayType is not null)
             {
                 if (!isUnmanagedConstant)
                 {
@@ -1196,12 +1220,11 @@ public partial class PInvokeGenerator
                 }
                 arrayType = arrayType.ElementType as ArrayType;
             }
-            while (arrayType is not null);
 
             return rootSize;
         }
 
-        void ForArrayType(InitListExpr initListExpr, ArrayType arrayType)
+        void ForArrayType(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, ArrayType arrayType)
         {
             var type = initListExpr.Type;
             var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
@@ -1219,14 +1242,14 @@ public partial class PInvokeGenerator
 
             if (_config.GenerateUnmanagedConstants && isUnmanagedConstant && (_testStmtOutputBuilder is null))
             {
-                HandleUnmanagedConstant(initListExpr, arrayType, typeName, escapedName);
+                HandleUnmanagedConstant(outputBuilder, initListExpr, arrayType, typeName, escapedName);
             }
             else
             {
                 outputBuilder.Write("new ");
                 outputBuilder.Write(typeName);
 
-                var rootSize = CalculateRootSize(initListExpr, arrayType, isUnmanagedConstant: false);
+                var rootSize = CalculateRootSize(outputBuilder, initListExpr, arrayType, isUnmanagedConstant: false);
 
                 outputBuilder.WriteNewline();
                 outputBuilder.WriteBlockStart();
@@ -1249,7 +1272,7 @@ public partial class PInvokeGenerator
             }
         }
 
-        void ForBuiltinType(InitListExpr initListExpr, BuiltinType builtinType)
+        void ForBuiltinType(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, BuiltinType builtinType)
         {
             var inits = initListExpr.Inits;
 
@@ -1265,7 +1288,7 @@ public partial class PInvokeGenerator
             outputBuilder.NeedsSemicolon = true;
         }
 
-        void ForRecordType(InitListExpr initListExpr, RecordType recordType)
+        void ForRecordType(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, RecordType recordType)
         {
             var type = initListExpr.Type;
             var typeName = GetRemappedTypeName(initListExpr, context: null, type, out _);
@@ -1283,7 +1306,7 @@ public partial class PInvokeGenerator
 
             if (_config.GenerateUnmanagedConstants && isUnmanagedConstant && (_testStmtOutputBuilder is null))
             {
-                HandleUnmanagedConstant(initListExpr, recordType, typeName, escapedName);
+                HandleUnmanagedConstant(outputBuilder, initListExpr, recordType, typeName, escapedName);
             }
             else
             {
@@ -1343,7 +1366,7 @@ public partial class PInvokeGenerator
             }
         }
 
-        void ForPointerType(InitListExpr initListExpr, PointerType pointerType)
+        void ForPointerType(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, PointerType pointerType)
         {
             var inits = initListExpr.Inits;
 
@@ -1359,31 +1382,31 @@ public partial class PInvokeGenerator
             outputBuilder.NeedsSemicolon = true;
         }
 
-        void ForType(InitListExpr initListExpr, Type type)
+        void ForType(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, Type type)
         {
             if (type is ArrayType arrayType)
             {
-                ForArrayType(initListExpr, arrayType);
+                ForArrayType(outputBuilder, initListExpr, arrayType);
             }
             else if (type is BuiltinType builtinType)
             {
-                ForBuiltinType(initListExpr, builtinType);
+                ForBuiltinType(outputBuilder, initListExpr, builtinType);
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                ForType(initListExpr, elaboratedType.NamedType);
+                ForType(outputBuilder, initListExpr, elaboratedType.NamedType);
             }
             else if (type is PointerType pointerType)
             {
-                ForPointerType(initListExpr, pointerType);
+                ForPointerType(outputBuilder, initListExpr, pointerType);
             }
             else if (type is RecordType recordType)
             {
-                ForRecordType(initListExpr, recordType);
+                ForRecordType(outputBuilder, initListExpr, recordType);
             }
             else if (type is TypedefType typedefType)
             {
-                ForType(initListExpr, typedefType.Decl.UnderlyingType);
+                ForType(outputBuilder, initListExpr, typedefType.Decl.UnderlyingType);
             }
             else
             {
@@ -1391,27 +1414,27 @@ public partial class PInvokeGenerator
             }
         }
 
-        void HandleInitListExpr(InitListExpr initListExpr)
+        void HandleInitListExpr(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr)
         {
             var inits = initListExpr.Inits;
 
             if (initListExpr.NumInits > 0)
             {
-                HandleInitStmt(inits[0]);
+                HandleInitStmt(outputBuilder, inits[0]);
             }
 
             for (var i = 1; i < inits.Count; i++)
             {
                 outputBuilder.WriteLine(',');
-                HandleInitStmt(inits[i]);
+                HandleInitStmt(outputBuilder, inits[i]);
             }
         }
 
-        void HandleInitStmt(Stmt init)
+        void HandleInitStmt(CSharpOutputBuilder outputBuilder, Stmt init)
         {
             if (init is InitListExpr nestedInitListExpr)
             {
-                HandleInitListExpr(nestedInitListExpr);
+                HandleInitListExpr(outputBuilder, nestedInitListExpr);
             }
             else
             {
@@ -1467,7 +1490,7 @@ public partial class PInvokeGenerator
             }
         }
 
-        void HandleUnmanagedConstant(InitListExpr initListExpr, Type type, string typeName, string escapedName)
+        void HandleUnmanagedConstant(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, Type type, string typeName, string escapedName)
         {
             outputBuilder.AddUsingDirective("System");
             outputBuilder.AddUsingDirective("System.Diagnostics");
@@ -1477,7 +1500,7 @@ public partial class PInvokeGenerator
             outputBuilder.WriteIndentedLine("ReadOnlySpan<byte> data = new byte[] {");
             outputBuilder.IncreaseIndentation();
 
-            HandleInitListExpr(initListExpr);
+            HandleInitListExpr(outputBuilder, initListExpr);
 
             outputBuilder.WriteNewline();
             outputBuilder.DecreaseIndentation();
@@ -1488,7 +1511,7 @@ public partial class PInvokeGenerator
 
             if (type is ArrayType arrayType)
             {
-                rootSize = CalculateRootSize(initListExpr, arrayType, isUnmanagedConstant: true);
+                rootSize = CalculateRootSize(outputBuilder, initListExpr, arrayType, isUnmanagedConstant: true);
 
                 outputBuilder.WriteIndented("Debug.Assert(data.Length == (Unsafe.SizeOf<");
                 outputBuilder.Write(typeName);
@@ -1521,12 +1544,12 @@ public partial class PInvokeGenerator
             }
             outputBuilder.WriteLine(';');
 
-            StartUsingOutputBuilder(_outputBuilder.Name, includeTestOutput: true);
+            StartUsingOutputBuilder(outputBuilder.Name, includeTestOutput: true);
 
             if (_testOutputBuilder != null)
             {
                 _testOutputBuilder.AddUsingDirective("System");
-                _testOutputBuilder.AddUsingDirective($"static {GetNamespace(_outputBuilder.Name)}.{_outputBuilder.Name}");
+                _testOutputBuilder.AddUsingDirective($"static {GetNamespace(outputBuilder.Name)}.{outputBuilder.Name}");
 
                 _testOutputBuilder.WriteIndented("/// <summary>Validates that the value of the <see cref=\"");
                 _testOutputBuilder.Write(escapedName);
@@ -1726,9 +1749,12 @@ public partial class PInvokeGenerator
         {
             if (memberExpr.MemberDecl is CXXMethodDecl cxxMethodDecl)
             {
-                if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxMethodDecl.Parent) && HasField(cxxMethodDecl.Parent))
+                var parent = cxxMethodDecl.Parent;
+                Debug.Assert(parent is not null);
+
+                if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != parent) && HasField(parent))
                 {
-                    var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == cxxMethodDecl.Parent).SingleOrDefault();
+                    var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == parent).SingleOrDefault();
 
                     if (cxxBaseSpecifier is not null)
                     {
@@ -1739,9 +1765,12 @@ public partial class PInvokeGenerator
             }
             else if (memberExpr.MemberDecl is FieldDecl fieldDecl)
             {
-                if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != fieldDecl.Parent))
+                var parent = fieldDecl.Parent;
+                Debug.Assert(parent is not null);
+
+                if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != parent))
                 {
-                    var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == fieldDecl.Parent).SingleOrDefault();
+                    var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == parent).SingleOrDefault();
 
                     if (cxxBaseSpecifier is not null)
                     {
@@ -2561,9 +2590,9 @@ public partial class PInvokeGenerator
                 }
                 else
                 {
-                    if (_topLevelClassNames.Contains(_outputBuilder.Name))
+                    if (_topLevelClassNames.Contains(outputBuilder.Name))
                     {
-                        _topLevelClassIsUnsafe[_outputBuilder.Name] = true;
+                        _topLevelClassIsUnsafe[outputBuilder.Name] = true;
                     }
 
                     var parentType = null as Type;
@@ -2636,7 +2665,7 @@ public partial class PInvokeGenerator
                     var needsCast = false;
                     var typeName = GetRemappedTypeName(unaryExprOrTypeTraitExpr, context: null, argumentType, out _);
 
-                    if (parentType != null)
+                    if (parentType is not null)
                     {
                         if ((parentType.Handle.SizeOf == 8) && IsPrevContextDecl<VarDecl>(out var varDecl, out _))
                         {
@@ -2821,13 +2850,16 @@ public partial class PInvokeGenerator
     private void VisitUnresolvedMemberExpr(UnresolvedMemberExpr unresolvedMemberExpr)
     {
         var outputBuilder = StartCSharpCode();
+
         if (!unresolvedMemberExpr.IsImplicitAccess)
         {
-            Visit(unresolvedMemberExpr.Base);
+            var @base = unresolvedMemberExpr.Base;
+            Debug.Assert(@base is not null);
+            Visit(@base);
 
-            var type = unresolvedMemberExpr.Base is CXXThisExpr
+            var type = @base is CXXThisExpr
                      ? null
-                     : unresolvedMemberExpr.Base is DeclRefExpr declRefExpr ? declRefExpr.Decl.Type.CanonicalType : unresolvedMemberExpr.Base.Type.CanonicalType;
+                     : @base is DeclRefExpr declRefExpr ? declRefExpr.Decl.Type.CanonicalType : @base.Type.CanonicalType;
 
             if (type is not null and (PointerType or ReferenceType))
             {

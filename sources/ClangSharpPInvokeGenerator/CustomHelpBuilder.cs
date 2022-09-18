@@ -24,7 +24,7 @@ internal sealed class CustomHelpBuilder : HelpBuilder
     {
         Write(string.Join(", ", option.Aliases));
         Write("\t");
-        Write(option.Description);
+        Write(option.Description ?? "");
         WriteLine();
     }
 

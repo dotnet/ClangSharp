@@ -11,7 +11,7 @@ namespace ClangSharp;
 public sealed class ObjCAtTryStmt : Stmt
 {
     private readonly Lazy<IReadOnlyList<ObjCAtCatchStmt>> _catchStmts;
-    private readonly Lazy<ObjCAtFinallyStmt> _finallyStmt;
+    private readonly Lazy<ObjCAtFinallyStmt?> _finallyStmt;
 
     internal ObjCAtTryStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtTryStmt, CX_StmtClass.CX_StmtClass_ObjCAtTryStmt)
     {
@@ -28,10 +28,10 @@ public sealed class ObjCAtTryStmt : Stmt
             return children.Skip(1).Take((int)(NumChildren - 1 - skipLast)).Cast<ObjCAtCatchStmt>().ToList();
         });
 
-        _finallyStmt = new Lazy<ObjCAtFinallyStmt>(() => {
+        _finallyStmt = new Lazy<ObjCAtFinallyStmt?>(() => {
             var children = Children;
 
-            return children.Last() is ObjCAtFinallyStmt finallyStmt ? finallyStmt : null;
+            return (children.Last() is ObjCAtFinallyStmt finallyStmt) ? finallyStmt : null;
         });
     }
 
@@ -39,7 +39,7 @@ public sealed class ObjCAtTryStmt : Stmt
 
     public IReadOnlyList<ObjCAtCatchStmt> CatchStmts => _catchStmts.Value;
 
-    public ObjCAtFinallyStmt FinallyStmt => _finallyStmt.Value;
+    public ObjCAtFinallyStmt? FinallyStmt => _finallyStmt.Value;
 
     public uint NumCatchStmts => (uint)CatchStmts.Count;
 }

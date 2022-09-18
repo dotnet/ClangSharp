@@ -37,10 +37,15 @@ public sealed class Diagnostic : IEquatable<Diagnostic>
 
     public string Message => _message;
 
-    public override bool Equals(object obj) => (obj is Diagnostic other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is Diagnostic other) && Equals(other);
 
-    public bool Equals(Diagnostic other)
+    public bool Equals(Diagnostic? other)
     {
+        if (other is null)
+        {
+            return false;
+        }
+
         return (_level == other.Level)
             && (_location == other.Location)
             && (_message == other.Message);

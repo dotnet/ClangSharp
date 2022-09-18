@@ -22,7 +22,7 @@ public partial struct CXSourceRange : IEquatable<CXSourceRange>
 
     public static CXSourceRange Create(CXSourceLocation begin, CXSourceLocation end) => clang.getRange(begin, end);
 
-    public override bool Equals(object obj) => (obj is CXSourceRange other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXSourceRange other) && Equals(other);
 
     public bool Equals(CXSourceRange other) => this == other;
 

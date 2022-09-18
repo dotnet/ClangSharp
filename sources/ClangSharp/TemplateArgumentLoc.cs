@@ -18,12 +18,13 @@ public sealed unsafe class TemplateArgumentLoc
     {
         Handle = handle;
 
+        _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
+
         _argument = new Lazy<TemplateArgument>(() => _translationUnit.Value.GetOrCreate(Handle.Argument));
         _sourceDeclExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceDeclExpression));
         _sourceExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceExpression));
         _sourceIntegralExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceIntegralExpression));
         _sourceNullPtrExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceNullPtrExpression));
-        _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
     }
 
     public TemplateArgument Argument => _argument.Value;

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
 
@@ -14,9 +15,9 @@ public sealed class CompoundStmt : Stmt
 
     public IReadOnlyList<Stmt> Body => Children;
 
-    public Stmt BodyBack => Children.LastOrDefault();
+    public Stmt? BodyBack => Children.LastOrDefault();
 
-    public Stmt BodyFront => Children.FirstOrDefault();
+    public Stmt? BodyFront => Children.FirstOrDefault();
 
     public uint Size => unchecked((uint)NumChildren);
 
@@ -31,7 +32,10 @@ public sealed class CompoundStmt : Stmt
                     return b;
                 }
             }
-            return BodyBack;
+
+            var bodyBack = BodyBack;
+            Debug.Assert(bodyBack is not null);
+            return bodyBack!;
         }
     }
 }

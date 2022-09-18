@@ -31,5 +31,5 @@ public sealed class DeclStmt : Stmt
 
     public bool IsSingleDecl => Decls.Count == 1;
 
-    public Decl SingleDecl => Decls.SingleOrDefault();
+    public Decl? SingleDecl => Decls.SingleOrDefault();
 }

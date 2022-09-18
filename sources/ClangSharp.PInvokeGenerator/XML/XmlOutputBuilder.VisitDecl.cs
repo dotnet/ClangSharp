@@ -313,7 +313,7 @@ internal partial class XmlOutputBuilder
         _ = _sb.Append('>');
         info.WriteCustomAttrs?.Invoke(info.CustomAttrGeneratorData);
     }
-    public void BeginMarkerInterface(string[] baseTypeNames) => _sb.Append("<interface>");
+    public void BeginMarkerInterface(string[]? baseTypeNames) => _sb.Append("<interface>");
     public void EndMarkerInterface() => _sb.Append("</interface>");
     public void BeginExplicitVtbl() => _sb.Append("<vtbl>");
     public void EndExplicitVtbl() => _sb.Append("</vtbl>");

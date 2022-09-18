@@ -21,9 +21,9 @@ public sealed class Index : IDisposable, IEquatable<Index>
 
     public CXIndex Handle { get; }
 
-    public static bool operator ==(Index left, Index right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
+    public static bool operator ==(Index? left, Index? right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
 
-    public static bool operator !=(Index left, Index right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
+    public static bool operator !=(Index? left, Index? right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
 
     public static Index Create(bool excludeDeclarationsFromPch = false, bool displayDiagnostics = false)
     {
@@ -37,9 +37,9 @@ public sealed class Index : IDisposable, IEquatable<Index>
         GC.SuppressFinalize(this);
     }
 
-    public override bool Equals(object obj) => (obj is Index other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is Index other) && Equals(other);
 
-    public bool Equals(Index other) => this == other;
+    public bool Equals(Index? other) => this == other;
 
     public override int GetHashCode() => Handle.GetHashCode();
 

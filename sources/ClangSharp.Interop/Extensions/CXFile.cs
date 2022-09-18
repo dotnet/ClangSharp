@@ -25,7 +25,7 @@ public unsafe partial struct CXFile : IEquatable<CXFile>
 
     public static bool operator !=(CXFile left, CXFile right) => clang.File_isEqual(left, right) == 0;
 
-    public override bool Equals(object obj) => (obj is CXFile other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXFile other) && Equals(other);
 
     public bool Equals(CXFile other) => this == other;
 

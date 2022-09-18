@@ -22,7 +22,7 @@ public class SwitchCase : Stmt
 
     public SwitchCase NextSwitchCase => _nextSwitchCase.Value;
 
-    public Stmt SubStmt
+    public Stmt? SubStmt
     {
         get
         {

@@ -14,11 +14,11 @@ public sealed class IfStmt : Stmt
 
     public Expr Cond => (Expr)Children[CondOffset];
 
-    public VarDecl ConditionVariable => (VarDecl)ConditionVariableDeclStmt?.SingleDecl;
+    public VarDecl? ConditionVariable => (VarDecl?)ConditionVariableDeclStmt?.SingleDecl;
 
-    public DeclStmt ConditionVariableDeclStmt => HasVarStorage ? (DeclStmt)Children[VarOffset] : null;
+    public DeclStmt? ConditionVariableDeclStmt => HasVarStorage ? (DeclStmt)Children[VarOffset] : null;
 
-    public Stmt Else => HasElseStorage ? Children[ElseOffset] : null;
+    public Stmt? Else => HasElseStorage ? Children[ElseOffset] : null;
 
     public bool HasElseStorage => Handle.HasElseStorage;
 
@@ -26,7 +26,7 @@ public sealed class IfStmt : Stmt
 
     public bool HasVarStorage => Handle.HasVarStorage;
 
-    public Stmt Init => HasInitStorage ? Children[InitOffset] : null;
+    public Stmt? Init => HasInitStorage ? Children[InitOffset] : null;
 
     public bool IsConstexpr => Handle.IsConstexpr;
 

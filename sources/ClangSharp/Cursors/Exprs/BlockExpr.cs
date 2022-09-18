@@ -18,7 +18,7 @@ public sealed class BlockExpr : Expr
 
     public BlockDecl BlockDecl => _blockDecl.Value;
 
-    public Stmt Body => BlockDecl.Body;
+    public Stmt? Body => BlockDecl.Body;
 
     public FunctionProtoType FunctionType => (FunctionProtoType)((BlockPointerType)Type).PointeeType;
 }

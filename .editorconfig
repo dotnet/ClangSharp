@@ -454,3 +454,16 @@ csharp_using_directive_placement = outside_namespace:error
 [*.cs]
 dotnet_diagnostic.CA1401.severity = silent
 dotnet_diagnostic.SYSLIB1054.severity = silent
+
+###############################################################################
+# Set dotnet analyzer rules to:
+#    disable various SYSLIB analyzers
+# due to unexpected exceptions thrown in the IDE
+###############################################################################
+[*.cs]
+dotnet_diagnostic.SYSLIB1055.severity = silent
+dotnet_diagnostic.SYSLIB1056.severity = silent
+dotnet_diagnostic.SYSLIB1057.severity = silent
+dotnet_diagnostic.SYSLIB1058.severity = silent
+dotnet_diagnostic.SYSLIB1060.severity = silent
+dotnet_diagnostic.SYSLIB1061.severity = silent

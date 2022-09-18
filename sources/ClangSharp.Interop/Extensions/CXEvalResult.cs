@@ -58,7 +58,7 @@ public unsafe partial struct CXEvalResult : IDisposable, IEquatable<CXEvalResult
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXEvalResult other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXEvalResult other) && Equals(other);
 
     public bool Equals(CXEvalResult other) => this == other;
 

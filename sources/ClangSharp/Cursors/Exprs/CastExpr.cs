@@ -40,7 +40,7 @@ public class CastExpr : Expr
 
     public string CastKindName => Handle.CastKindSpelling;
 
-    public NamedDecl ConversionFunction
+    public NamedDecl? ConversionFunction
     {
         get
         {
@@ -80,7 +80,7 @@ public class CastExpr : Expr
     {
         get
         {
-            Expr subExpr;
+            Expr? subExpr;
             var e = this;
 
             do
@@ -99,6 +99,7 @@ public class CastExpr : Expr
                     if (subExpr is CXXMemberCallExpr mce)
                     {
                         subExpr = mce.ImplicitObjectArgument;
+                        Debug.Assert(subExpr is not null);
                     }
                 }
 
@@ -106,7 +107,8 @@ public class CastExpr : Expr
                 // through that, too.
             } while ((e = subExpr as ImplicitCastExpr) is not null);
 
-            return subExpr;
+            Debug.Assert(subExpr is not null);
+            return subExpr!;
         }
     }
 

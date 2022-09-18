@@ -20,7 +20,7 @@ public sealed class CXXUuidofExpr : Expr
         _guidDecl = new Lazy<MSGuidDecl>(() => TranslationUnit.GetOrCreate<MSGuidDecl>(Handle.Referenced));
     }
 
-    public Expr ExprOperand => (Expr)Children.SingleOrDefault();
+    public Expr? ExprOperand => (Expr?)Children.SingleOrDefault();
 
     public MSGuidDecl GuidDecl => _guidDecl.Value;
 

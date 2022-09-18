@@ -38,7 +38,7 @@ public unsafe partial struct CXIndex : IDisposable, IEquatable<CXIndex>
 
     public void Dispose() => clang.disposeIndex(this);
 
-    public override bool Equals(object obj) => (obj is CXIndex other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXIndex other) && Equals(other);
 
     public bool Equals(CXIndex other) => this == other;
 

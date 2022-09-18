@@ -12,7 +12,7 @@
 
   <!-- Settings that append the existing setting value -->
   <PropertyGroup>
-    <NoWarn>$(NoWarn)</NoWarn>
+    <NoWarn>$(NoWarn);AD0001</NoWarn>
   </PropertyGroup>
 
   <!-- Settings that are only set for CI builds -->

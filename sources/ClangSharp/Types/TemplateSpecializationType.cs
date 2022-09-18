@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -29,10 +30,11 @@ public sealed class TemplateSpecializationType : Type
         _templateName = new Lazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.TemplateName));
     }
 
-    public Type AliasedType => IsTypeAlias ? Desugar : null;
+    public Type? AliasedType => IsTypeAlias ? Desugar : null;
 
     public IReadOnlyList<TemplateArgument> Args => _templateArgs.Value;
 
+    [MemberNotNullWhen(true, nameof(AliasedType))]
     public bool IsTypeAlias => Handle.IsTypeAlias;
 
     public TemplateName TemplateName => _templateName.Value;

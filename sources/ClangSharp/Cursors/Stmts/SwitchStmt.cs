@@ -20,15 +20,15 @@ public sealed class SwitchStmt : Stmt
 
     public Expr Cond => (Expr)Children[CondOffset];
 
-    public VarDecl ConditionVariable => (VarDecl)ConditionVariableDeclStmt?.SingleDecl;
+    public VarDecl? ConditionVariable => (VarDecl?)ConditionVariableDeclStmt?.SingleDecl;
 
-    public DeclStmt ConditionVariableDeclStmt => HasVarStorage ? (DeclStmt)Children[VarOffset] : null;
+    public DeclStmt? ConditionVariableDeclStmt => HasVarStorage ? (DeclStmt)Children[VarOffset] : null;
 
     public bool HasInitStorage => Handle.HasInit;
 
     public bool HasVarStorage => Handle.HasVarStorage;
 
-    public Stmt Init => HasInitStorage ? Children[InitOffset] : null;
+    public Stmt? Init => HasInitStorage ? Children[InitOffset] : null;
 
     public bool IsAllEnumCasesCovered => Handle.IsAllEnumCasesCovered;
 

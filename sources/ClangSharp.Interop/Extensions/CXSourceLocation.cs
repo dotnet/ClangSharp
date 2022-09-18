@@ -16,7 +16,7 @@ public unsafe partial struct CXSourceLocation : IEquatable<CXSourceLocation>
 
     public static bool operator !=(CXSourceLocation left, CXSourceLocation right) => clang.equalLocations(left, right) == 0;
 
-    public override bool Equals(object obj) => (obj is CXSourceLocation other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXSourceLocation other) && Equals(other);
 
     public bool Equals(CXSourceLocation other) => this == other;
 

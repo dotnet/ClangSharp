@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -39,7 +40,8 @@ public class Stmt : Cursor
                 semanticParent = TranslationUnit.GetOrCreate<Cursor>(semanticParent.Handle.SemanticParent);
             }
 
-            return (IDeclContext)semanticParent;
+            Debug.Assert(semanticParent is not null);
+            return (IDeclContext)semanticParent!;
         });
     }
 
@@ -79,13 +81,16 @@ public class Stmt : Cursor
                 }
 
                 s = cs.BodyBack;
+                Debug.Assert(s is not null);
             }
             else
             {
                 break;
             }
         }
-        return s;
+
+        Debug.Assert(s is not null);
+        return s!;
     }
 
     public Stmt StripLabelLikeStatements()
@@ -101,6 +106,7 @@ public class Stmt : Cursor
             else if (s is SwitchCase sc)
             {
                 s = sc.SubStmt;
+                Debug.Assert(s is not null);
             }
             else if (s is AttributedStmt @as)
             {
@@ -108,7 +114,8 @@ public class Stmt : Cursor
             }
             else
             {
-                return s;
+                Debug.Assert(s is not null);
+                return s!;
             }
         }
     }

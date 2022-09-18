@@ -24,7 +24,7 @@ public sealed class GenericSelectionExpr : Expr
 
     public uint NumAssocs => unchecked((uint)Handle.NumAssocs);
 
-    public Expr ResultExpr => IsResultDependent ? null : (Expr)Children[(int)ResultIndex];
+    public Expr? ResultExpr => IsResultDependent ? null : (Expr)Children[(int)ResultIndex];
 
     public uint ResultIndex => unchecked((uint)Handle.ResultIndex);
 }

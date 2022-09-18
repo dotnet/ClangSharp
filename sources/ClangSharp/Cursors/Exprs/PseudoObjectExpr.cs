@@ -20,7 +20,7 @@ public sealed class PseudoObjectExpr : Expr
 
     public uint NumSemanticExprs => NumChildren - 1;
 
-    public Expr ResultExpr => (ResultExprIndex == 0) ? null : (Expr)Children[unchecked((int)ResultExprIndex)];
+    public Expr? ResultExpr => (ResultExprIndex == 0) ? null : (Expr)Children[unchecked((int)ResultExprIndex)];
 
     public uint ResultExprIndex => unchecked((uint)Handle.ResultIndex);
 

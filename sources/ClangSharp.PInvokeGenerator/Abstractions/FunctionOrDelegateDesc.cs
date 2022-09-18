@@ -13,7 +13,7 @@ internal struct FunctionOrDelegateDesc
     public string EscapedName { get; set; }
     public string EntryPoint { get; set; }
     public string ParentName { get; set; }
-    public string LibraryPath { get; set; }
+    public string? LibraryPath { get; set; }
     public string ReturnType { get; set; }
     public CallingConvention CallingConvention { get; set; }
     public FunctionOrDelegateFlags Flags { get; set; }

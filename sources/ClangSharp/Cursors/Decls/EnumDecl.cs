@@ -37,7 +37,7 @@ public sealed class EnumDecl : TagDecl
 
     public new EnumDecl CanonicalDecl => (EnumDecl)base.CanonicalDecl;
 
-    public new EnumDecl Definition => (EnumDecl)base.Definition;
+    public new EnumDecl? Definition => (EnumDecl?)base.Definition;
 
     public IReadOnlyList<EnumConstantDecl> Enumerators => _enumerators.Value;
 

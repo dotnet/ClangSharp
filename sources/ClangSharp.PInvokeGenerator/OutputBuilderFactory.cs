@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 using ClangSharp.XML;
@@ -67,7 +68,7 @@ internal sealed class OutputBuilderFactory
             : throw new ArgumentException("A test output builder was not found with the given name", nameof(name));
     }
 
-    public bool TryGetOutputBuilder(string name, out IOutputBuilder outputBuilder)
+    public bool TryGetOutputBuilder(string name, [MaybeNullWhen(false)] out IOutputBuilder outputBuilder)
     {
         return string.IsNullOrWhiteSpace(name)
             ? throw new ArgumentNullException(nameof(name))

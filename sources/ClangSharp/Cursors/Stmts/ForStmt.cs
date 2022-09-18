@@ -16,7 +16,15 @@ public sealed class ForStmt : Stmt
 
     public Expr Cond => (Expr)Children[2];
 
-    public VarDecl ConditionVariable => (VarDecl)ConditionVariableDeclStmt?.SingleDecl;
+    public VarDecl ConditionVariable
+    {
+        get
+        {
+            var conditionVariable = (VarDecl?)ConditionVariableDeclStmt.SingleDecl;
+            Debug.Assert(conditionVariable is not null);
+            return conditionVariable!;
+        }
+    }
 
     public DeclStmt ConditionVariableDeclStmt => (DeclStmt)Children[1];
 

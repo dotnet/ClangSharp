@@ -6,7 +6,7 @@ namespace ClangSharp.Interop;
 
 public unsafe ref struct MarshaledStringArray
 {
-    private MarshaledString[] _values;
+    private MarshaledString[]? _values;
 
     public MarshaledStringArray(ReadOnlySpan<string> inputs)
     {

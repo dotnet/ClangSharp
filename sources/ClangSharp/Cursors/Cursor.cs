@@ -13,11 +13,11 @@ namespace ClangSharp;
 public unsafe class Cursor : IEquatable<Cursor>
 {
     private readonly Lazy<string> _kindSpelling;
-    private readonly Lazy<Cursor> _lexicalParentCursor;
-    private readonly Lazy<Cursor> _semanticParentCursor;
+    private readonly Lazy<Cursor?> _lexicalParentCursor;
+    private readonly Lazy<Cursor?> _semanticParentCursor;
     private readonly Lazy<string> _spelling;
     private readonly Lazy<TranslationUnit> _translationUnit;
-    private List<Cursor> _cursorChildren;
+    private List<Cursor>? _cursorChildren;
 
     private protected Cursor(CXCursor handle, CXCursorKind expectedCursorKind)
     {
@@ -28,8 +28,8 @@ public unsafe class Cursor : IEquatable<Cursor>
         Handle = handle;
 
         _kindSpelling = new Lazy<string>(Handle.KindSpelling.ToString);
-        _lexicalParentCursor = new Lazy<Cursor>(() => TranslationUnit.GetOrCreate<Cursor>(Handle.LexicalParent));
-        _semanticParentCursor = new Lazy<Cursor>(() => TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent));
+        _lexicalParentCursor = new Lazy<Cursor?>(() => !Handle.LexicalParent.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.LexicalParent) : null);
+        _semanticParentCursor = new Lazy<Cursor?>(() => !Handle.SemanticParent.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent) : null);
         _spelling = new Lazy<string>(Handle.Spelling.ToString);
         _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
     }
@@ -40,14 +40,14 @@ public unsafe class Cursor : IEquatable<Cursor>
         {
             if (_cursorChildren is null)
             {
-                var cursorChildren = GCHandle.Alloc(new List<Cursor>());
+                var cursorChildrenHandle = GCHandle.Alloc(new List<Cursor>());
 
                 var client_data = stackalloc nint[2] {
-                    GCHandle.ToIntPtr(cursorChildren),
+                    GCHandle.ToIntPtr(cursorChildrenHandle),
                     TranslationUnit.Handle.Handle
                 };
 
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
                 _ = clang.visitChildren(Handle, &Visitor, client_data);
 #else
                 var visitor = (CXCursorVisitor)Visitor;
@@ -57,23 +57,30 @@ public unsafe class Cursor : IEquatable<Cursor>
                 GC.KeepAlive(visitor);
 #endif
 
-                _cursorChildren = (List<Cursor>)cursorChildren.Target;
-                cursorChildren.Free();
+                var cursorChildren = (List<Cursor>?)cursorChildrenHandle.Target;
+                Debug.Assert(cursorChildren is not null);
 
-#if NET5_0_OR_GREATER
+                _cursorChildren = cursorChildren;
+                cursorChildrenHandle.Free();
+
+#if NET6_0_OR_GREATER
                 [UnmanagedCallersOnly(CallConvs = new System.Type[] { typeof(CallConvCdecl) })]
 #endif
                 static CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent, void* client_data)
                 {
-                    var cursorChildren = (List<Cursor>)GCHandle.FromIntPtr(((nint*)client_data)[0]).Target;
-                    var translationUnit = TranslationUnit.GetOrCreate((CXTranslationUnitImpl*)((nint*)client_data)[1]);
+                    var cursorChildren = (List<Cursor>?)GCHandle.FromIntPtr(((nint*)client_data)[0]).Target;
+                    Debug.Assert(cursorChildren is not null);
 
+                    var translationUnit = TranslationUnit.GetOrCreate((CXTranslationUnitImpl*)((nint*)client_data)[1]);
                     var cursorChild = translationUnit.GetOrCreate<Cursor>(cursor);
-                    cursorChildren.Add(cursorChild);
+
+                    cursorChildren!.Add(cursorChild);
                     return CXChildVisitResult.CXChildVisit_Continue;
                 }
             }
-            return _cursorChildren;
+
+            Debug.Assert(_cursorChildren is not null);
+            return _cursorChildren!;
         }
     }
 
@@ -85,19 +92,19 @@ public unsafe class Cursor : IEquatable<Cursor>
 
     public CXCursor Handle { get; }
 
-    public Cursor LexicalParentCursor => _lexicalParentCursor.Value;
+    public Cursor? LexicalParentCursor => _lexicalParentCursor.Value;
 
     public CXSourceLocation Location => Handle.Location;
 
-    public Cursor SemanticParentCursor => _semanticParentCursor.Value;
+    public Cursor? SemanticParentCursor => _semanticParentCursor.Value;
 
     public string Spelling => _spelling.Value;
 
     public TranslationUnit TranslationUnit => _translationUnit.Value;
 
-    public static bool operator ==(Cursor left, Cursor right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
+    public static bool operator ==(Cursor? left, Cursor? right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
 
-    public static bool operator !=(Cursor left, Cursor right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
+    public static bool operator !=(Cursor? left, Cursor? right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
 
     internal static Cursor Create(CXCursor handle)
     {
@@ -132,9 +139,9 @@ public unsafe class Cursor : IEquatable<Cursor>
         return result;
     }
 
-    public override bool Equals(object obj) => (obj is Cursor other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is Cursor other) && Equals(other);
 
-    public bool Equals(Cursor other) => this == other;
+    public bool Equals(Cursor? other) => this == other;
 
     public override int GetHashCode() => Handle.GetHashCode();
 

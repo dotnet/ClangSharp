@@ -47,7 +47,7 @@ public unsafe partial struct CXRemapping : IDisposable, IEquatable<CXRemapping>
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXRemapping other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXRemapping other) && Equals(other);
 
     public bool Equals(CXRemapping other) => this == other;
 

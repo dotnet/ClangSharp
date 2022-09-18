@@ -12,7 +12,7 @@ public sealed class ChooseExpr : Expr
         Debug.Assert(NumChildren is 3);
     }
 
-    public Expr ChosenSubExpr => IsConditionDependent ? (IsConditionTrue ? LHS : RHS) : null;
+    public Expr? ChosenSubExpr => IsConditionDependent ? (IsConditionTrue ? LHS : RHS) : null;
 
     public Expr Cond => (Expr)Children[0];
 

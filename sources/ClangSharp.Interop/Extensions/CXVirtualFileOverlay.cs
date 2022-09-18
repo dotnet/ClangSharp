@@ -23,7 +23,7 @@ public unsafe partial struct CXVirtualFileOverlay : IDisposable, IEquatable<CXVi
 
     public static CXVirtualFileOverlay Create(uint options) => clang.VirtualFileOverlay_create(options);
 
-    public CXErrorCode AddFileMapping(string virtualPath, string realPath)
+    public CXErrorCode AddFileMapping(string? virtualPath, string? realPath)
     {
         using var marshaledVirtualPath = new MarshaledString(virtualPath);
         using var marshaledRealPath = new MarshaledString(realPath);
@@ -39,7 +39,7 @@ public unsafe partial struct CXVirtualFileOverlay : IDisposable, IEquatable<CXVi
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXVirtualFileOverlay other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXVirtualFileOverlay other) && Equals(other);
 
     public bool Equals(CXVirtualFileOverlay other) => this == other;
 

@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -10,7 +11,7 @@ public sealed class CXXMemberCallExpr : CallExpr
     {
     }
 
-    public Expr ImplicitObjectArgument
+    public Expr? ImplicitObjectArgument
     {
         get
         {
@@ -33,15 +34,15 @@ public sealed class CXXMemberCallExpr : CallExpr
         }
     }
 
-    public CXXMethodDecl MethodDecl => Callee.IgnoreParens is MemberExpr memExpr ? (CXXMethodDecl)memExpr.MemberDecl : null;
+    public CXXMethodDecl? MethodDecl => Callee.IgnoreParens is MemberExpr memExpr ? (CXXMethodDecl)memExpr.MemberDecl : null;
 
-    public Type ObjectType
+    public Type? ObjectType
     {
         get
         {
-            var ty = ImplicitObjectArgument.Type;
+            var ty = ImplicitObjectArgument?.Type;
 
-            if (ty.IsPointerType)
+            if ((ty is not null) && ty.IsPointerType)
             {
                 ty = ty.PointeeType;
             }
@@ -49,13 +50,13 @@ public sealed class CXXMemberCallExpr : CallExpr
         }
     }
 
-    public CXXRecordDecl RecordDecl
+    public CXXRecordDecl? RecordDecl
     {
         get
         {
             var thisArg = ImplicitObjectArgument;
 
-            return thisArg is null
+            return (thisArg is null)
                 ? null
                 : thisArg.Type.IsAnyPointerType ? thisArg.Type.PointeeType.AsCXXRecordDecl : thisArg.Type.AsCXXRecordDecl;
         }

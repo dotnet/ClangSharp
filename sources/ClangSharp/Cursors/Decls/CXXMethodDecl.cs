@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
 
@@ -51,7 +52,7 @@ public class CXXMethodDecl : FunctionDecl
 
     public IReadOnlyList<CXXMethodDecl> OverriddenMethods => _overriddenMethods.Value;
 
-    public new CXXRecordDecl Parent => (CXXRecordDecl)(base.Parent ?? ThisObjectType.AsCXXRecordDecl);
+    public new CXXRecordDecl? Parent => (CXXRecordDecl?)(base.Parent ?? ThisObjectType.AsCXXRecordDecl);
 
     public uint SizeOverriddenMethods => unchecked((uint)Handle.NumMethods);
 

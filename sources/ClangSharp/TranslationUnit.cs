@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -43,18 +44,19 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
     public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.Value;
 
-    public static bool operator ==(TranslationUnit left, TranslationUnit right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
+    public static bool operator ==(TranslationUnit? left, TranslationUnit? right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
 
-    public static bool operator !=(TranslationUnit left, TranslationUnit right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
+    public static bool operator !=(TranslationUnit? left, TranslationUnit? right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
 
     public static TranslationUnit GetOrCreate(CXTranslationUnit handle)
     {
         if (handle == null)
         {
-            return null;
+            Debug.Assert(handle != null);
+            return null!;
         }
 
-        var translationUnitRef = s_createdTranslationUnits.GetOrAdd(handle, (handle) => new WeakReference<TranslationUnit>(null));
+        var translationUnitRef = s_createdTranslationUnits.GetOrAdd(handle, (handle) => new WeakReference<TranslationUnit>(null!));
 
         if (!translationUnitRef.TryGetTarget(out var translationUnit))
         {
@@ -76,24 +78,25 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
         GC.SuppressFinalize(this);
     }
 
-    public override bool Equals(object obj) => (obj is TranslationUnit other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is TranslationUnit other) && Equals(other);
 
-    public bool Equals(TranslationUnit other) => this == other;
+    public bool Equals(TranslationUnit? other) => this == other;
 
     public override int GetHashCode() => Handle.GetHashCode();
 
     internal TCursor GetOrCreate<TCursor>(CXCursor handle)
         where TCursor : Cursor
     {
-        WeakReference<Cursor> cursorRef;
+        WeakReference<Cursor>? cursorRef;
 
         if (handle.IsNull)
         {
-            return null;
+            Debug.Assert(!handle.IsNull);
+            return null!;
         }
         else if (!_createdCursors.TryGetValue(handle, out cursorRef))
         {
-            cursorRef = new WeakReference<Cursor>(null);
+            cursorRef = new WeakReference<Cursor>(null!);
             _createdCursors.Add(handle, cursorRef);
         }
 
@@ -102,20 +105,23 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
             cursor = Cursor.Create(handle);
             cursorRef.SetTarget(cursor);
         }
-        return (TCursor)cursor;
+
+        Debug.Assert(cursor is not null);
+        return (TCursor)cursor!;
     }
 
     internal TemplateArgument GetOrCreate(CX_TemplateArgument handle)
     {
-        WeakReference<TemplateArgument> templateArgumentRef;
+        WeakReference<TemplateArgument>? templateArgumentRef;
 
         if (handle.kind == CXTemplateArgumentKind.CXTemplateArgumentKind_Invalid)
         {
-            return null;
+            Debug.Assert(handle.kind != CXTemplateArgumentKind.CXTemplateArgumentKind_Invalid);
+            return null!;
         }
         else if (!_createdTemplateArguments.TryGetValue(handle, out templateArgumentRef))
         {
-            templateArgumentRef = new WeakReference<TemplateArgument>(null);
+            templateArgumentRef = new WeakReference<TemplateArgument>(null!);
             _createdTemplateArguments.Add(handle, templateArgumentRef);
         }
 
@@ -129,15 +135,16 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
     internal TemplateArgumentLoc GetOrCreate(CX_TemplateArgumentLoc handle)
     {
-        WeakReference<TemplateArgumentLoc> templateArgumentLocRef;
+        WeakReference<TemplateArgumentLoc>? templateArgumentLocRef;
 
         if (handle.value == null)
         {
-            return null;
+            Debug.Assert(handle.value != null);
+            return null!;
         }
         else if (!_createdTemplateArgumentLocs.TryGetValue(handle, out templateArgumentLocRef))
         {
-            templateArgumentLocRef = new WeakReference<TemplateArgumentLoc>(null);
+            templateArgumentLocRef = new WeakReference<TemplateArgumentLoc>(null!);
             _createdTemplateArgumentLocs.Add(handle, templateArgumentLocRef);
         }
 
@@ -151,15 +158,16 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
     internal TemplateName GetOrCreate(CX_TemplateName handle)
     {
-        WeakReference<TemplateName> templateNameRef;
+        WeakReference<TemplateName>? templateNameRef;
 
         if (handle.kind == CX_TemplateNameKind.CX_TNK_Invalid)
         {
-            return null;
+            Debug.Assert(handle.kind != CX_TemplateNameKind.CX_TNK_Invalid);
+            return null!;
         }
         else if (!_createdTemplateNames.TryGetValue(handle, out templateNameRef))
         {
-            templateNameRef = new WeakReference<TemplateName>(null);
+            templateNameRef = new WeakReference<TemplateName>(null!);
             _createdTemplateNames.Add(handle, templateNameRef);
         }
 
@@ -174,15 +182,16 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
     internal TType GetOrCreate<TType>(CXType handle)
         where TType : Type
     {
-        WeakReference<Type> typeRef;
+        WeakReference<Type>? typeRef;
 
         if (handle.kind == CXTypeKind.CXType_Invalid)
         {
-            return null;
+            Debug.Assert(handle.kind != CXTypeKind.CXType_Invalid);
+            return null!;
         }
         else if (!_createdTypes.TryGetValue(handle, out typeRef))
         {
-            typeRef = new WeakReference<Type>(null);
+            typeRef = new WeakReference<Type>(null!);
             _createdTypes.Add(handle, typeRef);
         }
 

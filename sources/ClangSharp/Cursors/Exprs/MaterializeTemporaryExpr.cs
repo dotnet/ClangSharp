@@ -14,7 +14,7 @@ public sealed class MaterializeTemporaryExpr : Expr
         _lifetimeExtendedTemporaryDecl = new Lazy<LifetimeExtendedTemporaryDecl>(() => TranslationUnit.GetOrCreate<LifetimeExtendedTemporaryDecl>(Handle.Referenced));
     }
 
-    public ValueDecl ExtendingDecl => LifetimeExtendedTemporaryDecl?.ExtendingDecl;
+    public ValueDecl ExtendingDecl => LifetimeExtendedTemporaryDecl.ExtendingDecl;
 
     public LifetimeExtendedTemporaryDecl LifetimeExtendedTemporaryDecl => _lifetimeExtendedTemporaryDecl.Value;
 

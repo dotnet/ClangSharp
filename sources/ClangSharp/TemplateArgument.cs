@@ -26,6 +26,8 @@ public sealed unsafe class TemplateArgument : IDisposable
     {
         Handle = handle;
 
+        _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
+
         _asDecl = new Lazy<ValueDecl>(() =>  _translationUnit.Value.GetOrCreate<ValueDecl>(Handle.AsDecl));
         _asExpr = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.AsExpr));
         _asTemplate = new Lazy<TemplateName>(() => _translationUnit.Value.GetOrCreate(Handle.AsTemplate));
@@ -50,7 +52,6 @@ public sealed unsafe class TemplateArgument : IDisposable
         });
 
         _paramTypeForDecl = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.ParamTypeForDecl));
-        _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
     }
 
     ~TemplateArgument() => Dispose(isDisposing: false);

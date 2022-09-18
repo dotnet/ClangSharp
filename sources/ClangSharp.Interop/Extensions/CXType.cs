@@ -220,7 +220,7 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public static bool operator !=(CXType left, CXType right) => clang.equalTypes(left, right) == 0;
 
-    public override bool Equals(object obj) => (obj is CXType other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXType other) && Equals(other);
 
     public bool Equals(CXType other) => this == other;
 
