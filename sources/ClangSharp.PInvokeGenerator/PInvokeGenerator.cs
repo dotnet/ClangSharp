@@ -1137,6 +1137,11 @@ public sealed partial class PInvokeGenerator : IDisposable
                 {
                     sw.WriteLine('}');
                 }
+
+                if (!leaveStreamOpen)
+                {
+                    stream = null;
+                }
             }
 
             static (int srcSize, int dstSize, int sign) GetSizeAndSignOf(string type)
