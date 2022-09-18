@@ -115,7 +115,6 @@ jobs:
         if-no-files-found: error
   build-nuget-release:
     runs-on: windows-latest
-    if: false
     steps:
     - uses: actions/checkout@v3
     - run: ./scripts/cibuild.cmd -configuration release -architecture x64
