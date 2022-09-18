@@ -10,13 +10,13 @@ namespace ClangSharp;
 public sealed class OffsetOfExpr : Expr
 {
     private readonly Lazy<IReadOnlyList<Expr>> _indexExprs;
-    private readonly Lazy<Cursor> _referenced;
+    private readonly Lazy<Cursor?> _referenced;
     private readonly Lazy<Type> _typeSourceInfoType;
 
     internal OffsetOfExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_OffsetOfExpr)
     {
         _indexExprs = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());
-        _referenced = new Lazy<Cursor>(() => TranslationUnit.GetOrCreate<Cursor>(Handle.Referenced));
+        _referenced = new Lazy<Cursor?>(() => !Handle.Referenced.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.Referenced) : null);
         _typeSourceInfoType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
@@ -24,7 +24,7 @@ public sealed class OffsetOfExpr : Expr
 
     public uint NumExpressions => NumChildren;
 
-    public Cursor Referenced => _referenced.Value;
+    public Cursor? Referenced => _referenced.Value;
 
     public Type TypeSourceInfoType => _typeSourceInfoType.Value;
 }

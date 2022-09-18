@@ -13,8 +13,7 @@ internal sealed class CustomHelpBuilder : HelpBuilder
 {
     private IConsole Console { get; }
 
-    public CustomHelpBuilder(IConsole console, LocalizationResources localizationResources,
-        int maxWidth = int.MaxValue)
+    public CustomHelpBuilder(IConsole console, LocalizationResources localizationResources, int maxWidth = int.MaxValue)
         : base(localizationResources, maxWidth)
     {
         Console = console;

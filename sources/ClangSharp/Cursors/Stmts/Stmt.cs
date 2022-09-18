@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public class Stmt : Cursor
 {
-    private readonly Lazy<IReadOnlyList<Stmt>> _children;
+    private readonly Lazy<IReadOnlyList<Stmt?>> _children;
     private readonly Lazy<IDeclContext> _declContext;
 
     private protected Stmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind)
@@ -19,13 +19,14 @@ public class Stmt : Cursor
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _children = new Lazy<IReadOnlyList<Stmt>>(() => {
+        _children = new Lazy<IReadOnlyList<Stmt?>>(() => {
             var numChildren = Handle.NumChildren;
-            var children = new List<Stmt>(numChildren);
+            var children = new List<Stmt?>(numChildren);
 
             for (var i = 0; i < numChildren; i++)
             {
-                var child = TranslationUnit.GetOrCreate<Stmt>(Handle.GetChild(unchecked((uint)i)));
+                var childHandle = Handle.GetChild(unchecked((uint)i));
+                var child = !childHandle.IsNull ? TranslationUnit.GetOrCreate<Stmt>(childHandle) : null;
                 children.Add(child);
             }
 
@@ -45,7 +46,7 @@ public class Stmt : Cursor
         });
     }
 
-    public IReadOnlyList<Stmt> Children => _children.Value;
+    public IReadOnlyList<Stmt> Children => _children.Value!;
 
     public IDeclContext DeclContext => _declContext.Value;
 

@@ -197,7 +197,7 @@ public class Program
             s_withTypeNameValuePairs,
             s_withUsingNameValuePairs
         };
-        s_rootCommand.SetHandler<InvocationContext>(Run);
+        Handler.SetHandler(s_rootCommand, (Action<InvocationContext>)Run);
     }
 
     public static async Task<int> Main(params string[] args)

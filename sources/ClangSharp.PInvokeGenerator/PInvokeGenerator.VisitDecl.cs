@@ -3,13 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Abstractions;
-using ClangSharp.CSharp;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -3251,6 +3249,10 @@ public partial class PInvokeGenerator
                     {
                         return;
                     }
+                }
+                else if (IsStmtAsWritten<RecoveryExpr>(varDecl.Init, out var recoveryExpr, removeParens: true))
+                {
+                    return;
                 }
             }
 

@@ -326,7 +326,7 @@ public sealed class PInvokeGeneratorConfiguration
 
         init
         {
-            AddRange(_traversalNames, value, NormalizePathSeparators);
+            AddRange(_traversalNames, value, StringExtensions.NormalizePath);
         }
     }
 
@@ -605,8 +605,6 @@ public sealed class PInvokeGeneratorConfiguration
             }
         }
     }
-
-    private static string NormalizePathSeparators(string value) => value.Replace('\\', '/');
 
     private static string RemoveAtPrefix(string value) => ValueStartsWithAt(value) ? value[1..] : value;
 

@@ -77,8 +77,7 @@ public unsafe partial struct CXUnsavedFile : IDisposable
                 return string.Empty;
             }
 
-            var span = new ReadOnlySpan<byte>(pFilename, int.MaxValue);
-            return span.Slice(0, span.IndexOf((byte)'\0')).AsString();
+            return SpanExtensions.AsString(pFilename);
         }
     }
 }

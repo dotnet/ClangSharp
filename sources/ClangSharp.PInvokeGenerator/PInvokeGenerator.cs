@@ -2154,7 +2154,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         if (!_cursorNames.TryGetValue(namedDecl, out var name))
         {
-            name = namedDecl.Name.Replace('\\', '/');
+            name = namedDecl.Name.NormalizePath();
 
             if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
             {
@@ -2864,7 +2864,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         if (!_typeNames.TryGetValue((cursor, context, type), out var result))
         {
-            result.typeName = type.AsString.Replace('\\', '/');
+            result.typeName = type.AsString.NormalizePath();
 
             if (result.typeName.Contains("unnamed struct at"))
             {
@@ -4224,7 +4224,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
 
             // Normalize paths to be '/' for comparison
-            var fileName = file.Name.ToString().Replace('\\', '/');
+            var fileName = file.Name.ToString().NormalizePath();
 
             if (_visitedFiles.Add(fileName) && _config.LogVisitedFiles)
             {

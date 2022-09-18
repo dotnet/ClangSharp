@@ -1,7 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System;
-
 namespace ClangSharp.Interop;
 
 public unsafe partial struct CXTUResourceUsageEntry
@@ -17,8 +15,7 @@ public unsafe partial struct CXTUResourceUsageEntry
                 return string.Empty;
             }
 
-            var span = new ReadOnlySpan<byte>(pName, int.MaxValue);
-            return span.Slice(0, span.IndexOf((byte)'\0')).AsString();
+            return SpanExtensions.AsString(pName);
         }
     }
 

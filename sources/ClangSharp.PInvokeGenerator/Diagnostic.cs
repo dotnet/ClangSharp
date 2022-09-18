@@ -15,7 +15,7 @@ public sealed class Diagnostic : IEquatable<Diagnostic>
     {
     }
 
-    public Diagnostic(DiagnosticLevel level, string message, CXSourceLocation location) : this(level, message, location.ToString().Replace('\\', '/'))
+    public Diagnostic(DiagnosticLevel level, string message, CXSourceLocation location) : this(level, message, location.ToString().NormalizePath())
     {
     }
 

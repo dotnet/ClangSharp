@@ -54,8 +54,7 @@ public unsafe partial struct CXString : IDisposable
                 return string.Empty;
             }
 
-            var span = new ReadOnlySpan<byte>(pCString, int.MaxValue);
-            return span.Slice(0, span.IndexOf((byte)'\0')).AsString();
+            return SpanExtensions.AsString(pCString);
         }
     }
 
