@@ -12,7 +12,7 @@
 
   <!-- Settings that append the existing setting value -->
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants);$(OS)</DefineConstants>
+    <NoWarn>$(NoWarn);AD0001</NoWarn>
   </PropertyGroup>
 
   <!-- Settings that are only set for CI builds -->
@@ -20,28 +20,21 @@
     <PackageVersion Condition="'$(EXCLUDE_RUN_ID_FROM_PACKAGE)' != 'true'">$(Version).$(GITHUB_RUN_ID)</PackageVersion>
   </PropertyGroup>
 
+  <!-- Settings that are only set for executables -->
+  <PropertyGroup Condition="'$(OutputType)' != 'Library' AND '$(UseWindowsForms)' != 'true' AND '$(PackAsTool)' != 'true'">
+    <PublishTrimmed>true</PublishTrimmed>
+  </PropertyGroup>
+
+  <!-- Settings that are only set for libraries -->
+  <PropertyGroup Condition="'$(OutputType)' == 'Library'">
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+
   <!-- Settings that allow testing and packing to work by default -->
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
     <RuntimeIdentifier>$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(OVERRIDE_RUNTIME_IDENTIFIER)' != ''">$(OVERRIDE_RUNTIME_IDENTIFIER)</RuntimeIdentifier>
   </PropertyGroup>
-
-  <!-- Tool versions for tool references across all projects -->
-  <ItemGroup>
-    <DotNetCliToolReference Update="dotnet-xunit" Version="2.3.1" />
-  </ItemGroup>
-
-  <!-- Package versions for package references across all projects -->
-  <ItemGroup>
-    <PackageReference Update="libClang" Version="14.0.0" />
-    <PackageReference Update="libClangSharp" Version="14.0.0-beta1" />
-    <PackageReference Update="Microsoft.Bcl.HashCode" Version="1.1.1" />
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.1.0" />
-    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.1.1" />
-    <PackageReference Update="NUnit" Version="3.13.3" />
-    <PackageReference Update="NUnit3TestAdapter" Version="4.2.1" />
-    <PackageReference Update="System.CommandLine" Version="2.0.0-beta3.22114.1" />
-    <PackageReference Update="System.Memory" Version="4.5.4" />
-  </ItemGroup>
 
 </Project>

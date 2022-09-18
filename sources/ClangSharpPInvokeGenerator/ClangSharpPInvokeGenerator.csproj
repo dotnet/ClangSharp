@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == 'true'">
@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" GeneratePathProperty="true" />
+    <PackageReference Include="System.CommandLine" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,7 +38,7 @@
   <!-- Auto-detect LLVM... more or less -->
   <PropertyGroup Condition="'$(LLVMIncludePath)' == ''">
     <LLVMIncludePath Condition="'$(OS)' == 'Windows_NT'">C:\Program Files\LLVM\include</LLVMIncludePath>
-    <LLVMIncludePath Condition="'$(OS)' != 'Windows_NT'">/usr/lib/llvm-13/include</LLVMIncludePath>
+    <LLVMIncludePath Condition="'$(OS)' != 'Windows_NT'">/usr/lib/llvm-15/include</LLVMIncludePath>
   </PropertyGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-15.0.0/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 namespace ClangSharp.Interop;
@@ -121,7 +121,9 @@ public enum CXCursorKind
     CXCursor_OMPArrayShapingExpr = 150,
     CXCursor_OMPIteratorExpr = 151,
     CXCursor_CXXAddrspaceCastExpr = 152,
-    CXCursor_LastExpr = CXCursor_CXXAddrspaceCastExpr,
+    CXCursor_ConceptSpecializationExpr = 153,
+    CXCursor_RequiresExpr = 154,
+    CXCursor_LastExpr = CXCursor_RequiresExpr,
     CXCursor_FirstStmt = 200,
     CXCursor_UnexposedStmt = 200,
     CXCursor_LabelStmt = 201,
@@ -220,8 +222,17 @@ public enum CXCursorKind
     CXCursor_OMPUnrollDirective = 293,
     CXCursor_OMPMetaDirective = 294,
     CXCursor_OMPGenericLoopDirective = 295,
-    CXCursor_LastStmt = CXCursor_OMPGenericLoopDirective,
-    CXCursor_TranslationUnit = 300,
+    CXCursor_OMPTeamsGenericLoopDirective = 296,
+    CXCursor_OMPTargetTeamsGenericLoopDirective = 297,
+    CXCursor_OMPParallelGenericLoopDirective = 298,
+    CXCursor_OMPTargetParallelGenericLoopDirective = 299,
+    CXCursor_OMPParallelMaskedDirective = 300,
+    CXCursor_OMPMaskedTaskLoopDirective = 301,
+    CXCursor_OMPMaskedTaskLoopSimdDirective = 302,
+    CXCursor_OMPParallelMaskedTaskLoopDirective = 303,
+    CXCursor_OMPParallelMaskedTaskLoopSimdDirective = 304,
+    CXCursor_LastStmt = CXCursor_OMPParallelMaskedTaskLoopSimdDirective,
+    CXCursor_TranslationUnit = 350,
     CXCursor_FirstAttr = 400,
     CXCursor_UnexposedAttr = 400,
     CXCursor_IBActionAttr = 401,
@@ -277,7 +288,8 @@ public enum CXCursorKind
     CXCursor_TypeAliasTemplateDecl = 601,
     CXCursor_StaticAssert = 602,
     CXCursor_FriendDecl = 603,
+    CXCursor_ConceptDecl = 604,
     CXCursor_FirstExtraDecl = CXCursor_ModuleImportDecl,
-    CXCursor_LastExtraDecl = CXCursor_FriendDecl,
+    CXCursor_LastExtraDecl = CXCursor_ConceptDecl,
     CXCursor_OverloadCandidate = 700,
 }

@@ -21,7 +21,7 @@ public unsafe partial struct CXIdxClientASTFile : IEquatable<CXIdxClientASTFile>
 
     public static bool operator !=(CXIdxClientASTFile left, CXIdxClientASTFile right) => left.Handle != right.Handle;
 
-    public override bool Equals(object obj) => (obj is CXIdxClientASTFile other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXIdxClientASTFile other) && Equals(other);
 
     public bool Equals(CXIdxClientASTFile other) => this == other;
 

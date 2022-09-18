@@ -22,13 +22,29 @@ public sealed class CXXForRangeStmt : Stmt
 
     public Expr Inc => (Expr)Children[5];
 
-    public VarDecl LoopVariable => (VarDecl)LoopVarStmt.SingleDecl;
+    public VarDecl LoopVariable
+    {
+        get
+        {
+            var loopVariable = (VarDecl?)LoopVarStmt.SingleDecl;
+            Debug.Assert(loopVariable is not null);
+            return loopVariable!;
+        }
+    }
 
     public DeclStmt LoopVarStmt => (DeclStmt)Children[6];
 
     public Stmt Init => Children[0];
 
-    public Expr RangeInit => ((VarDecl)RangeStmt.SingleDecl).Init;
+    public Expr RangeInit
+    {
+        get
+        {
+            var rangeDecl = (VarDecl?)RangeStmt.SingleDecl;
+            Debug.Assert(rangeDecl is not null);
+            return rangeDecl!.Init;
+        }
+    }
 
     public DeclStmt RangeStmt => (DeclStmt)Children[1];
 }

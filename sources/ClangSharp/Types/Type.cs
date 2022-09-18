@@ -37,17 +37,17 @@ public unsafe class Type : IEquatable<Type>
         _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate((CXTranslationUnit)Handle.data[1]));
     }
 
-    public CXXRecordDecl AsCXXRecordDecl => AsTagDecl as CXXRecordDecl;
+    public CXXRecordDecl? AsCXXRecordDecl => AsTagDecl as CXXRecordDecl;
 
     public string AsString => _asString.Value;
 
-    public TagDecl AsTagDecl
+    public TagDecl? AsTagDecl
     {
         get
         {
-            return GetAs<TagType>() is TagType tt
+            return (GetAs<TagType>() is TagType tt)
                 ? tt.Decl
-                : (global::ClangSharp.TagDecl)(GetAs<InjectedClassNameType>() is InjectedClassNameType injected ? injected.Decl : null);
+                : (ClangSharp.TagDecl?)((GetAs<InjectedClassNameType>() is InjectedClassNameType injected) ? injected.Decl : null);
         }
     }
 
@@ -110,9 +110,9 @@ public unsafe class Type : IEquatable<Type>
         }
     }
 
-    public static bool operator ==(Type left, Type right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
+    public static bool operator ==(Type? left, Type? right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
 
-    public static bool operator !=(Type left, Type right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
+    public static bool operator !=(Type? left, Type? right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
 
     internal static Type Create(CXType handle) => handle.TypeClass switch {
         CX_TypeClass.CX_TypeClass_Invalid => new Type(handle, handle.kind, handle.TypeClass),
@@ -124,6 +124,8 @@ public unsafe class Type : IEquatable<Type>
         CX_TypeClass.CX_TypeClass_VariableArray => new VariableArrayType(handle),
         CX_TypeClass.CX_TypeClass_Atomic => new AtomicType(handle),
         CX_TypeClass.CX_TypeClass_Attributed => new AttributedType(handle),
+        CX_TypeClass.CX_TypeClass_BTFTagAttributed => new BTFTagAttributedType(handle),
+        CX_TypeClass.CX_TypeClass_BitInt => new BitIntType(handle),
         CX_TypeClass.CX_TypeClass_BlockPointer => new BlockPointerType(handle),
         CX_TypeClass.CX_TypeClass_Builtin => new BuiltinType(handle),
         CX_TypeClass.CX_TypeClass_Complex => new ComplexType(handle),
@@ -137,7 +139,6 @@ public unsafe class Type : IEquatable<Type>
         CX_TypeClass.CX_TypeClass_DependentTemplateSpecialization => new DependentTemplateSpecializationType(handle),
         CX_TypeClass.CX_TypeClass_DependentVector => new DependentVectorType(handle),
         CX_TypeClass.CX_TypeClass_Elaborated => new ElaboratedType(handle),
-        CX_TypeClass.CX_TypeClass_BitInt => new BitIntType(handle),
         CX_TypeClass.CX_TypeClass_FunctionNoProto => new FunctionNoProtoType(handle),
         CX_TypeClass.CX_TypeClass_FunctionProto => new FunctionProtoType(handle),
         CX_TypeClass.CX_TypeClass_InjectedClassName => new InjectedClassNameType(handle),
@@ -172,9 +173,9 @@ public unsafe class Type : IEquatable<Type>
         _ => new Type(handle, handle.kind, handle.TypeClass),
     };
 
-    public override bool Equals(object obj) => (obj is Type other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is Type other) && Equals(other);
 
-    public bool Equals(Type other) => this == other;
+    public bool Equals(Type? other) => this == other;
 
     public T CastAs<T>()
         where T : Type
@@ -190,12 +191,12 @@ public unsafe class Type : IEquatable<Type>
         return (T)UnqualifiedDesugaredType;
     }
 
-    public T GetAs<T>()
+    public T? GetAs<T>()
         where T : Type
     {
         Debug.Assert(!typeof(ArrayType).IsAssignableFrom(typeof(T)), "ArrayType cannot be used with getAs!");
 
-        return this is T ty ? ty : CanonicalType is not T ? null : (T)UnqualifiedDesugaredType;
+        return (this is T ty) ? ty : (CanonicalType is not T) ? null : (T)UnqualifiedDesugaredType;
     }
 
     public override int GetHashCode() => Handle.GetHashCode();

@@ -14,9 +14,9 @@ public interface IDeclContext
 
     bool IsTranslationUnit { get; }
 
-    IDeclContext LexicalParent { get; }
+    IDeclContext? LexicalParent { get; }
 
-    IDeclContext Parent { get; }
+    IDeclContext? Parent { get; }
 
-    IDeclContext RedeclContext { get; }
+    IDeclContext? RedeclContext { get; }
 }

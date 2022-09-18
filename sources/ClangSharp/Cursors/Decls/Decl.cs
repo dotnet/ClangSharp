@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -10,16 +11,16 @@ public class Decl : Cursor
 {
     private readonly Lazy<FunctionDecl> _asFunction;
     private readonly Lazy<IReadOnlyList<Attr>> _attrs;
-    private readonly Lazy<Stmt> _body;
+    private readonly Lazy<Stmt?> _body;
     private readonly Lazy<Decl> _canonicalDecl;
     private readonly Lazy<IReadOnlyList<Decl>> _decls;
     private readonly Lazy<TemplateDecl> _describedTemplate;
     private readonly Lazy<Decl> _mostRecentDecl;
     private readonly Lazy<Decl> _nextDeclInContext;
     private readonly Lazy<Decl> _nonClosureContext;
-    private readonly Lazy<IDeclContext> _parentFunctionOrMethod;
+    private readonly Lazy<IDeclContext?> _parentFunctionOrMethod;
     private readonly Lazy<Decl> _previousDecl;
-    private readonly Lazy<IDeclContext> _redeclContext;
+    private readonly Lazy<IDeclContext?> _redeclContext;
     private readonly Lazy<TranslationUnitDecl> _translationUnitDecl;
 
     private protected Decl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind)
@@ -44,7 +45,7 @@ public class Decl : Cursor
             return attrs;
         });
 
-        _body = new Lazy<Stmt>(() => TranslationUnit.GetOrCreate<Stmt>(Handle.Body));
+        _body = new Lazy<Stmt?>(() => !Handle.Body.IsNull ? TranslationUnit.GetOrCreate<Stmt>(Handle.Body) : null);
         _canonicalDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
 
         _decls = new Lazy<IReadOnlyList<Decl>>(() => {
@@ -64,9 +65,9 @@ public class Decl : Cursor
         _mostRecentDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.MostRecentDecl));
         _nextDeclInContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NextDeclInContext));
         _nonClosureContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NonClosureContext));
-        _parentFunctionOrMethod = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.ParentFunctionOrMethod) as IDeclContext);
+        _parentFunctionOrMethod = new Lazy<IDeclContext?>(() => TranslationUnit.GetOrCreate<Decl>(Handle.ParentFunctionOrMethod) as IDeclContext);
         _previousDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.PreviousDecl));
-        _redeclContext = new Lazy<IDeclContext>(() => TranslationUnit.GetOrCreate<Decl>(Handle.RedeclContext) as IDeclContext);
+        _redeclContext = new Lazy<IDeclContext?>(() => TranslationUnit.GetOrCreate<Decl>(Handle.RedeclContext) as IDeclContext);
         _translationUnitDecl = new Lazy<TranslationUnitDecl>(() => TranslationUnit.GetOrCreate<TranslationUnitDecl>(Handle.TranslationUnit.Cursor));
     }
 
@@ -78,11 +79,11 @@ public class Decl : Cursor
 
     public CXAvailabilityKind Availability => Handle.Availability;
 
-    public Stmt Body => _body.Value;
+    public Stmt? Body => _body.Value;
 
     public Decl CanonicalDecl => _canonicalDecl.Value;
 
-    public IDeclContext DeclContext => SemanticParentCursor as IDeclContext;
+    public IDeclContext? DeclContext => SemanticParentCursor as IDeclContext;
 
     public string DeclKindName => Handle.DeclKindSpelling;
 
@@ -106,8 +107,24 @@ public class Decl : Cursor
     {
         get
         {
-            return this is NamespaceDecl nd
-                && (nd.IsInline ? nd.Parent.IsStdNamespace : nd.Parent.RedeclContext.IsTranslationUnit && nd.Name == "std");
+            if (this is NamespaceDecl nd)
+            {
+                var parent = nd.Parent;
+                Debug.Assert(parent is not null);
+
+                if (nd.IsInline)
+                {
+                    return parent!.IsStdNamespace;
+                }
+                else
+                {
+                    var redeclContext = parent!.RedeclContext;
+                    Debug.Assert(redeclContext is not null);
+                    return redeclContext!.IsTranslationUnit && (nd.Name == "std");
+                }
+            }
+
+            return false;
         }
     }
 
@@ -121,9 +138,9 @@ public class Decl : Cursor
 
     public CX_DeclKind Kind => Handle.DeclKind;
 
-    public IDeclContext LexicalDeclContext => LexicalParentCursor as IDeclContext;
+    public IDeclContext? LexicalDeclContext => LexicalParentCursor as IDeclContext;
 
-    public IDeclContext LexicalParent => (this is IDeclContext) ? LexicalDeclContext : null;
+    public IDeclContext? LexicalParent => (this is IDeclContext) ? LexicalDeclContext : null;
 
     public uint MaxAlignment => Handle.MaxAlignment;
 
@@ -133,13 +150,13 @@ public class Decl : Cursor
 
     public Decl NonClosureContext => _nonClosureContext.Value;
 
-    public IDeclContext Parent => (this is IDeclContext) ? DeclContext : null;
+    public IDeclContext? Parent => (this is IDeclContext) ? DeclContext : null;
 
-    public IDeclContext ParentFunctionOrMethod => _parentFunctionOrMethod.Value;
+    public IDeclContext? ParentFunctionOrMethod => _parentFunctionOrMethod.Value;
 
     public Decl PreviousDecl => _previousDecl.Value;
 
-    public IDeclContext RedeclContext => _redeclContext.Value;
+    public IDeclContext? RedeclContext => _redeclContext.Value;
 
     public CXSourceRange SourceRange => clangsharp.Cursor_getSourceRange(Handle);
 
@@ -220,6 +237,7 @@ public class Decl : Cursor
         CX_DeclKind.CX_DeclKind_OMPDeclareMapper => new OMPDeclareMapperDecl(handle),
         CX_DeclKind.CX_DeclKind_OMPDeclareReduction => new OMPDeclareReductionDecl(handle),
         CX_DeclKind.CX_DeclKind_TemplateParamObject => new TemplateParamObjectDecl(handle),
+        CX_DeclKind.CX_DeclKind_UnnamedGlobalConstant => new UnnamedGlobalConstantDecl(handle),
         CX_DeclKind.CX_DeclKind_UnresolvedUsingValue => new UnresolvedUsingValueDecl(handle),
         CX_DeclKind.CX_DeclKind_OMPAllocate => new OMPAllocateDecl(handle),
         CX_DeclKind.CX_DeclKind_OMPRequires => new OMPRequiresDecl(handle),

@@ -9,7 +9,7 @@ public sealed class ConceptDecl : TemplateDecl, IMergeable<ConceptDecl>
 {
     private readonly Lazy<Expr> _constraintExpr;
 
-    internal ConceptDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_Concept)
+    internal ConceptDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ConceptDecl, CX_DeclKind.CX_DeclKind_Concept)
     {
         _constraintExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.ConstraintExpr));
     }

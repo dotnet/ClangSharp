@@ -38,7 +38,7 @@ public unsafe partial struct CXCompileCommands : IDisposable, IEquatable<CXCompi
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXCompileCommands other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXCompileCommands other) && Equals(other);
 
     public bool Equals(CXCompileCommands other) => this == other;
 

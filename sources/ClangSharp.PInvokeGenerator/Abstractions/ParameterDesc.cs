@@ -11,7 +11,7 @@ internal struct ParameterDesc
     public string Type { get; set; }
     public string Name { get; set; }
     public string NativeTypeName { get; set; }
-    public IEnumerable<string> CppAttributes { get; set; }
+    public IEnumerable<string>? CppAttributes { get; set; }
     public Action<object> WriteCustomAttrs { get; set; }
     public object CustomAttrGeneratorData { get; set; }
     public CXSourceLocation? Location { get; set; }

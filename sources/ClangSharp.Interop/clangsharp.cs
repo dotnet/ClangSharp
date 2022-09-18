@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp.Interop;
 
-public static partial class clangsharp
+public static partial class @clangsharp
 {
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getArgument", ExactSpelling = true)]
     public static extern CXCursor Cursor_getArgument(CXCursor C, [NativeTypeName("unsigned int")] uint i);

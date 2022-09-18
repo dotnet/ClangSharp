@@ -34,7 +34,7 @@ public unsafe partial struct CXCursorSet : IDisposable, IEquatable<CXCursorSet>
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXCursorSet other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXCursorSet other) && Equals(other);
 
     public bool Equals(CXCursorSet other) => this == other;
 

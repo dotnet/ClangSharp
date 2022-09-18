@@ -11,7 +11,7 @@ A convenience package which provides the native libClang library for several pla
 
 A helper package which exposes many Clang APIs missing from libClang is provided here: https://www.nuget.org/packages/libClangSharp
 
-NOTE: libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/14.0.0-beta1); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
+NOTE: libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/15.0.0); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
 
 Nightly packages are available via the NuGet Feed URL: https://pkgs.clangsharp.dev/index.json
 
@@ -71,7 +71,7 @@ Building this requires [CMake 3.13 or later](https://cmake.org/download/) as wel
 
 To succesfully build `libClangSharp` you must first build Clang (https://clang.llvm.org/get_started.html). The process done on Windows is roughly:
 ```cmd
-git clone --single-branch --branch llvmorg-14.0.0 https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-15.0.0 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir artifacts/bin
 cd artifacts/bin
@@ -116,7 +116,7 @@ This program will take a given set of C or C++ header files and generate C# bind
 
 The simplest and recommended setup is to install the generator as a .NET tool and then use response files:
 ```
-dotnet tool install --global ClangSharpPInvokeGenerator --version 14.0.0-beta3
+dotnet tool install --global ClangSharpPInvokeGenerator --version 15.0.0
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 

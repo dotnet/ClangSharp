@@ -45,5 +45,5 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
 
     public bool IsUnnamedBitfield => Handle.IsUnnamedBitfield;
 
-    public new RecordDecl Parent => (RecordDecl)DeclContext ?? ((SemanticParentCursor is ClassTemplateDecl classTemplateDecl) ? (RecordDecl)classTemplateDecl.TemplatedDecl : null);
+    public new RecordDecl? Parent => (DeclContext as RecordDecl) ?? ((SemanticParentCursor is ClassTemplateDecl classTemplateDecl) ? (RecordDecl)classTemplateDecl.TemplatedDecl : null);
 }

@@ -12,9 +12,9 @@ public sealed class SEHTryStmt : Stmt
         Debug.Assert(NumChildren is 2);
     }
 
-    public SEHExceptStmt ExceptHandler => Handler as SEHExceptStmt;
+    public SEHExceptStmt? ExceptHandler => Handler as SEHExceptStmt;
 
-    public SEHFinallyStmt FinallyHandler => Handler as SEHFinallyStmt;
+    public SEHFinallyStmt? FinallyHandler => Handler as SEHFinallyStmt;
 
     public bool IsCXXTry => Handle.IsCXXTry;
 

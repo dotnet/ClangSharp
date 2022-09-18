@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
 {
-    private readonly Lazy<TagDecl> _definition;
+    private readonly Lazy<TagDecl?> _definition;
     private readonly Lazy<IReadOnlyList<IReadOnlyList<NamedDecl>>> _templateParameterLists;
     private readonly Lazy<TypedefNameDecl> _typedefNameForAnonDecl;
 
@@ -19,7 +19,7 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _definition = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition));
+        _definition = new Lazy<TagDecl?>(() => !Handle.Definition.IsNull ? TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition) : null);
 
         _templateParameterLists = new Lazy<IReadOnlyList<IReadOnlyList<NamedDecl>>>(() => {
             var numTemplateParameterLists = Handle.NumTemplateParameterLists;
@@ -47,7 +47,7 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
 
     public new TagDecl CanonicalDecl => (TagDecl)base.CanonicalDecl;
 
-    public TagDecl Definition => _definition.Value;
+    public TagDecl? Definition => _definition.Value;
 
     public bool IsClass => CursorKind == CXCursorKind.CXCursor_ClassDecl;
 

@@ -18,9 +18,9 @@ public sealed class WhileStmt : Stmt
 
     public bool HasVarStorage => Handle.HasVarStorage;
 
-    public VarDecl ConditionVariable => (VarDecl)ConditionVariableDeclStmt?.SingleDecl;
+    public VarDecl? ConditionVariable => (VarDecl?)ConditionVariableDeclStmt?.SingleDecl;
 
-    public DeclStmt ConditionVariableDeclStmt => HasVarStorage ? (DeclStmt)Children[VarOffset] : null;
+    public DeclStmt? ConditionVariableDeclStmt => HasVarStorage ? (DeclStmt)Children[VarOffset] : null;
 
     private int BodyOffset => CondOffset + 1;
 

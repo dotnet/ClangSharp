@@ -9,5 +9,5 @@ public enum CX_VariableCaptureKind
     CX_VCK_This,
     CX_VCK_ByRef,
     CX_VCK_ByCopy,
-    CX_VCK_VLAType
+    CX_VCK_VLAType,
 }

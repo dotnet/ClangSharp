@@ -29,7 +29,7 @@ public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInt
 
             var category = TranslationUnit.GetOrCreate<ObjCCategoryDecl>(handle.GetSubDecl(0));
 
-            while (category != null)
+            while (category is not null)
             {
                 categories.Add(category);
                 category = category.NextClassCategoryRaw;

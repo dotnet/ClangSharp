@@ -31,7 +31,7 @@ public unsafe partial struct CXModule : IEquatable<CXModule>
 
     public static bool operator !=(CXModule left, CXModule right) => left.Handle != right.Handle;
 
-    public override bool Equals(object obj) => (obj is CXModule other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXModule other) && Equals(other);
 
     public bool Equals(CXModule other) => this == other;
 

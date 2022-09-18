@@ -2,13 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
 
 public class Stmt : Cursor
 {
-    private readonly Lazy<IReadOnlyList<Stmt>> _children;
+    private readonly Lazy<IReadOnlyList<Stmt?>> _children;
     private readonly Lazy<IDeclContext> _declContext;
 
     private protected Stmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind)
@@ -18,13 +19,14 @@ public class Stmt : Cursor
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _children = new Lazy<IReadOnlyList<Stmt>>(() => {
+        _children = new Lazy<IReadOnlyList<Stmt?>>(() => {
             var numChildren = Handle.NumChildren;
-            var children = new List<Stmt>(numChildren);
+            var children = new List<Stmt?>(numChildren);
 
             for (var i = 0; i < numChildren; i++)
             {
-                var child = TranslationUnit.GetOrCreate<Stmt>(Handle.GetChild(unchecked((uint)i)));
+                var childHandle = Handle.GetChild(unchecked((uint)i));
+                var child = !childHandle.IsNull ? TranslationUnit.GetOrCreate<Stmt>(childHandle) : null;
                 children.Add(child);
             }
 
@@ -39,11 +41,12 @@ public class Stmt : Cursor
                 semanticParent = TranslationUnit.GetOrCreate<Cursor>(semanticParent.Handle.SemanticParent);
             }
 
-            return (IDeclContext)semanticParent;
+            Debug.Assert(semanticParent is not null);
+            return (IDeclContext)semanticParent!;
         });
     }
 
-    public IReadOnlyList<Stmt> Children => _children.Value;
+    public IReadOnlyList<Stmt> Children => _children.Value!;
 
     public IDeclContext DeclContext => _declContext.Value;
 
@@ -79,13 +82,16 @@ public class Stmt : Cursor
                 }
 
                 s = cs.BodyBack;
+                Debug.Assert(s is not null);
             }
             else
             {
                 break;
             }
         }
-        return s;
+
+        Debug.Assert(s is not null);
+        return s!;
     }
 
     public Stmt StripLabelLikeStatements()
@@ -101,6 +107,7 @@ public class Stmt : Cursor
             else if (s is SwitchCase sc)
             {
                 s = sc.SubStmt;
+                Debug.Assert(s is not null);
             }
             else if (s is AttributedStmt @as)
             {
@@ -108,7 +115,8 @@ public class Stmt : Cursor
             }
             else
             {
-                return s;
+                Debug.Assert(s is not null);
+                return s!;
             }
         }
     }
@@ -151,25 +159,33 @@ public class Stmt : Cursor
         CX_StmtClass.CX_StmtClass_OMPForDirective => new OMPForDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPForSimdDirective => new OMPForSimdDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPGenericLoopDirective => new OMPGenericLoopDirective(handle),
+        CX_StmtClass.CX_StmtClass_OMPMaskedTaskLoopDirective => new OMPMaskedTaskLoopDirective(handle),
+        CX_StmtClass.CX_StmtClass_OMPMaskedTaskLoopSimdDirective => new OMPMaskedTaskLoopSimdDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPMasterTaskLoopDirective => new OMPMasterTaskLoopDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPMasterTaskLoopSimdDirective => new OMPMasterTaskLoopSimdDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPParallelForDirective => new OMPParallelForDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPParallelForSimdDirective => new OMPParallelForSimdDirective(handle),
+        CX_StmtClass.CX_StmtClass_OMPParallelGenericLoopDirective => new OMPParallelGenericLoopDirective(handle),
+        CX_StmtClass.CX_StmtClass_OMPParallelMaskedTaskLoopDirective => new OMPParallelMaskedTaskLoopDirective(handle),
+        CX_StmtClass.CX_StmtClass_OMPParallelMaskedTaskLoopSimdDirective => new OMPParallelMaskedTaskLoopSimdDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPParallelMasterTaskLoopDirective => new OMPParallelMasterTaskLoopDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPParallelMasterTaskLoopSimdDirective => new OMPParallelMasterTaskLoopSimdDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPSimdDirective => new OMPSimdDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTargetParallelForSimdDirective => new OMPTargetParallelForSimdDirective(handle),
+        CX_StmtClass.CX_StmtClass_OMPTargetParallelGenericLoopDirective => new OMPTargetParallelGenericLoopDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTargetSimdDirective => new OMPTargetSimdDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeDirective => new OMPTargetTeamsDistributeDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeParallelForDirective => new OMPTargetTeamsDistributeParallelForDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeParallelForSimdDirective => new OMPTargetTeamsDistributeParallelForSimdDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeSimdDirective => new OMPTargetTeamsDistributeSimdDirective(handle),
+        CX_StmtClass.CX_StmtClass_OMPTargetTeamsGenericLoopDirective => new OMPTargetTeamsGenericLoopDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTaskLoopDirective => new OMPTaskLoopDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTaskLoopSimdDirective => new OMPTaskLoopSimdDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTeamsDistributeDirective => new OMPTeamsDistributeDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTeamsDistributeParallelForDirective => new OMPTeamsDistributeParallelForDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTeamsDistributeParallelForSimdDirective => new OMPTeamsDistributeParallelForSimdDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTeamsDistributeSimdDirective => new OMPTeamsDistributeSimdDirective(handle),
+        CX_StmtClass.CX_StmtClass_OMPTeamsGenericLoopDirective => new OMPTeamsGenericLoopDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPTileDirective => new OMPTileDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPUnrollDirective => new OMPUnrollDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPMaskedDirective => new OMPMaskedDirective(handle),
@@ -177,6 +193,7 @@ public class Stmt : Cursor
         CX_StmtClass.CX_StmtClass_OMPMetaDirective => new OMPMetaDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPOrderedDirective => new OMPOrderedDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPParallelDirective => new OMPParallelDirective(handle),
+        CX_StmtClass.CX_StmtClass_OMPParallelMaskedDirective => new OMPParallelMaskedDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPParallelMasterDirective => new OMPParallelMasterDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPParallelSectionsDirective => new OMPParallelSectionsDirective(handle),
         CX_StmtClass.CX_StmtClass_OMPScanDirective => new OMPScanDirective(handle),

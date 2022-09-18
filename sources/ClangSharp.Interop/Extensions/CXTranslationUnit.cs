@@ -148,7 +148,7 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXTranslationUnit other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXTranslationUnit other) && Equals(other);
 
     public bool Equals(CXTranslationUnit other) => this == other;
 
@@ -185,9 +185,14 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
 
     public void GetInclusions(CXInclusionVisitor visitor, CXClientData clientData)
     {
-        var pVisitor = Marshal.GetFunctionPointerForDelegate(visitor);
-        clang.getInclusions(this, pVisitor, clientData);
+        var pVisitor = (delegate* unmanaged[Cdecl]<void*, CXSourceLocation*, uint, void*, void>)Marshal.GetFunctionPointerForDelegate(visitor);
+        GetInclusions(pVisitor, clientData);
         GC.KeepAlive(visitor);
+    }
+
+    public void GetInclusions(delegate* unmanaged[Cdecl]<void*, CXSourceLocation*, uint, void*, void> visitor, CXClientData clientData)
+    {
+        clang.getInclusions(this, visitor, clientData);
     }
 
     public CXSourceLocation GetLocation(CXFile file, uint line, uint column) => clang.getLocation(this, file, line, column);

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -118,7 +119,7 @@ public class CXXRecordDecl : RecordDecl
 
     public IReadOnlyList<CXXConstructorDecl> Ctors => _ctors.Value;
 
-    public new CXXRecordDecl Definition => (CXXRecordDecl)base.Definition;
+    public new CXXRecordDecl? Definition => (CXXRecordDecl?)base.Definition;
 
     public FunctionTemplateDecl DependentLambdaCallOperator => _dependentLambdaCallOperator.Value;
 
@@ -164,11 +165,13 @@ public class CXXRecordDecl : RecordDecl
         {
             var recent = MostRecentDecl;
 
-            while ((recent != null) && recent.IsInjectedClassName)
+            while ((recent is not null) && recent.IsInjectedClassName)
             {
                 recent = recent.PreviousDecl;
             }
-            return recent;
+
+            Debug.Assert(recent is not null);
+            return recent!;
         }
     }
 

@@ -8,7 +8,7 @@ namespace ClangSharp.CSharp;
 internal partial class CSharpOutputBuilder
 {
     private bool _customAttrIsForParameter = false;
-    public void WriteCustomAttribute(string attribute, Action callback = null)
+    public void WriteCustomAttribute(string attribute, Action? callback = null)
     {
         if (attribute.Equals("Flags") || attribute.Equals("Obsolete"))
         {

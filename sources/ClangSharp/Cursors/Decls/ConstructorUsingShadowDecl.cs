@@ -30,5 +30,5 @@ public sealed class ConstructorUsingShadowDecl : UsingShadowDecl
 
     public ConstructorUsingShadowDecl NominatedBaseClassShadowDecl => _nominatedBaseClassShadowDecl.Value;
 
-    public new CXXRecordDecl Parent => (CXXRecordDecl)DeclContext;
+    public new CXXRecordDecl? Parent => (CXXRecordDecl?)DeclContext;
 }

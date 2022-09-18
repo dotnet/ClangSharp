@@ -53,7 +53,7 @@ public sealed class CXXConstructorDecl : CXXMethodDecl
 
     public uint NumCtorInitializers => unchecked((uint)Handle.NumExprs);
 
-    public CXXConstructorDecl TargetConstructor
+    public CXXConstructorDecl? TargetConstructor
     {
         get
         {
@@ -64,7 +64,7 @@ public sealed class CXXConstructorDecl : CXXMethodDecl
 
             var e = InitExprs.FirstOrDefault()?.IgnoreImplicit;
 
-            return e is CXXConstructExpr construct ? construct.Constructor : null;
+            return (e is CXXConstructExpr construct) ? construct.Constructor : null;
         }
     }
 }

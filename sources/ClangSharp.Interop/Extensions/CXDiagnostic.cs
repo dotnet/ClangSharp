@@ -48,7 +48,7 @@ public unsafe partial struct CXDiagnostic : IDisposable, IEquatable<CXDiagnostic
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXDiagnostic other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXDiagnostic other) && Equals(other);
 
     public bool Equals(CXDiagnostic other) => this == other;
 

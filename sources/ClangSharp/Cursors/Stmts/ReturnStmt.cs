@@ -19,5 +19,5 @@ public sealed class ReturnStmt : Stmt
 
     public VarDecl NRVOCandidate => _nrvoCandidate.Value;
 
-    public Expr RetValue => NumChildren != 0 ? (Expr)Children[0] : null;
+    public Expr? RetValue => NumChildren != 0 ? (Expr)Children[0] : null;
 }

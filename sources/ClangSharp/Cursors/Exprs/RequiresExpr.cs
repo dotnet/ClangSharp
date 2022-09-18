@@ -6,7 +6,7 @@ namespace ClangSharp;
 
 public sealed class RequiresExpr : Expr
 {
-    internal RequiresExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_RequiresExpr)
+    internal RequiresExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_RequiresExpr, CX_StmtClass.CX_StmtClass_RequiresExpr)
     {
     }
 }

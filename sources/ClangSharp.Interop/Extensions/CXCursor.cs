@@ -25,25 +25,36 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     {
         get
         {
-            Debug.Assert(CX_AttrKind.CX_AttrKind_FirstDeclOrTypeAttr == CX_AttrKind.CX_AttrKind_AArch64VectorPcs);
-            Debug.Assert(CX_AttrKind.CX_AttrKind_LastDeclOrTypeAttr == CX_AttrKind.CX_AttrKind_VectorCall);
-            Debug.Assert(CX_AttrKind.CX_AttrKind_FirstInheritableParamAttr == CX_AttrKind.CX_AttrKind_SwiftAsyncContext);
-            Debug.Assert(CX_AttrKind.CX_AttrKind_LastInheritableParamAttr == CX_AttrKind.CX_AttrKind_UseHandle);
-            Debug.Assert(CX_AttrKind.CX_AttrKind_FirstParameterABIAttr == CX_AttrKind.CX_AttrKind_SwiftAsyncContext);
-            Debug.Assert(CX_AttrKind.CX_AttrKind_LastParameterABIAttr == CX_AttrKind.CX_AttrKind_SwiftIndirectResult);
+            Debug.Assert(CX_AttrKind.CX_AttrKind_FirstAttr == CX_AttrKind.CX_AttrKind_AddressSpace);
             Debug.Assert(CX_AttrKind.CX_AttrKind_LastAttr == CX_AttrKind.CX_AttrKind_Thread);
+
             Debug.Assert(CX_AttrKind.CX_AttrKind_FirstTypeAttr == CX_AttrKind.CX_AttrKind_AddressSpace);
             Debug.Assert(CX_AttrKind.CX_AttrKind_LastTypeAttr == CX_AttrKind.CX_AttrKind_UPtr);
+
             Debug.Assert(CX_AttrKind.CX_AttrKind_FirstStmtAttr == CX_AttrKind.CX_AttrKind_FallThrough);
             Debug.Assert(CX_AttrKind.CX_AttrKind_LastStmtAttr == CX_AttrKind.CX_AttrKind_Unlikely);
-            Debug.Assert(CX_AttrKind.CX_AttrKind_FirstInheritableAttr == CX_AttrKind.CX_AttrKind_NoMerge);
-            Debug.Assert(CX_AttrKind.CX_AttrKind_LastInheritableAttr == CX_AttrKind.CX_AttrKind_XRayLogArgs);
 
-            return AttrKind switch
-            {
+            Debug.Assert(CX_AttrKind.CX_AttrKind_FirstDeclOrStmtAttr == CX_AttrKind.CX_AttrKind_AlwaysInline);
+            Debug.Assert(CX_AttrKind.CX_AttrKind_LastDeclOrStmtAttr == CX_AttrKind.CX_AttrKind_NoMerge);
+
+            Debug.Assert(CX_AttrKind.CX_AttrKind_FirstInheritableAttr == CX_AttrKind.CX_AttrKind_AlwaysInline);
+            Debug.Assert(CX_AttrKind.CX_AttrKind_LastInheritableAttr == CX_AttrKind.CX_AttrKind_ZeroCallUsedRegs);
+
+            Debug.Assert(CX_AttrKind.CX_AttrKind_FirstDeclOrTypeAttr == CX_AttrKind.CX_AttrKind_AArch64SVEPcs);
+            Debug.Assert(CX_AttrKind.CX_AttrKind_LastDeclOrTypeAttr == CX_AttrKind.CX_AttrKind_VectorCall);
+
+            Debug.Assert(CX_AttrKind.CX_AttrKind_FirstInheritableParamAttr == CX_AttrKind.CX_AttrKind_SwiftAsyncContext);
+            Debug.Assert(CX_AttrKind.CX_AttrKind_LastInheritableParamAttr == CX_AttrKind.CX_AttrKind_UseHandle);
+
+            Debug.Assert(CX_AttrKind.CX_AttrKind_FirstParameterABIAttr == CX_AttrKind.CX_AttrKind_SwiftAsyncContext);
+            Debug.Assert(CX_AttrKind.CX_AttrKind_LastParameterABIAttr == CX_AttrKind.CX_AttrKind_SwiftIndirectResult);
+
+            return AttrKind switch {
                 CX_AttrKind.CX_AttrKind_Invalid => "Invalid",
                 CX_AttrKind.CX_AttrKind_AddressSpace => "AddressSpace",
+                CX_AttrKind.CX_AttrKind_AnnotateType => "AnnotateType",
                 CX_AttrKind.CX_AttrKind_ArmMveStrictPolymorphism => "ArmMveStrictPolymorphism",
+                CX_AttrKind.CX_AttrKind_BTFTypeTag => "BTFTypeTag",
                 CX_AttrKind.CX_AttrKind_CmseNSCall => "CmseNSCall",
                 CX_AttrKind.CX_AttrKind_NoDeref => "NoDeref",
                 CX_AttrKind.CX_AttrKind_ObjCGC => "ObjCGC",
@@ -52,6 +63,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_OpenCLConstantAddressSpace => "OpenCLConstantAddressSpace",
                 CX_AttrKind.CX_AttrKind_OpenCLGenericAddressSpace => "OpenCLGenericAddressSpace",
                 CX_AttrKind.CX_AttrKind_OpenCLGlobalAddressSpace => "OpenCLGlobalAddressSpace",
+                CX_AttrKind.CX_AttrKind_OpenCLGlobalDeviceAddressSpace => "OpenCLGlobalDeviceAddressSpace",
+                CX_AttrKind.CX_AttrKind_OpenCLGlobalHostAddressSpace => "OpenCLGlobalHostAddressSpace",
                 CX_AttrKind.CX_AttrKind_OpenCLLocalAddressSpace => "OpenCLLocalAddressSpace",
                 CX_AttrKind.CX_AttrKind_OpenCLPrivateAddressSpace => "OpenCLPrivateAddressSpace",
                 CX_AttrKind.CX_AttrKind_Ptr32 => "Ptr32",
@@ -60,11 +73,20 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_TypeNonNull => "TypeNonNull",
                 CX_AttrKind.CX_AttrKind_TypeNullUnspecified => "TypeNullUnspecified",
                 CX_AttrKind.CX_AttrKind_TypeNullable => "TypeNullable",
+                CX_AttrKind.CX_AttrKind_TypeNullableResult => "TypeNullableResult",
                 CX_AttrKind.CX_AttrKind_UPtr => "UPtr",
                 CX_AttrKind.CX_AttrKind_FallThrough => "FallThrough",
-                CX_AttrKind.CX_AttrKind_NoMerge => "NoMerge",
+                CX_AttrKind.CX_AttrKind_Likely => "Likely",
+                CX_AttrKind.CX_AttrKind_MustTail => "MustTail",
+                CX_AttrKind.CX_AttrKind_OpenCLUnrollHint => "OpenCLUnrollHint",
                 CX_AttrKind.CX_AttrKind_Suppress => "Suppress",
+                CX_AttrKind.CX_AttrKind_Unlikely => "Unlikely",
+                CX_AttrKind.CX_AttrKind_AlwaysInline => "AlwaysInline",
+                CX_AttrKind.CX_AttrKind_NoInline => "NoInline",
+                CX_AttrKind.CX_AttrKind_NoMerge => "NoMerge",
+                CX_AttrKind.CX_AttrKind_AArch64SVEPcs => "AArch64SVEPcs",
                 CX_AttrKind.CX_AttrKind_AArch64VectorPcs => "AArch64VectorPcs",
+                CX_AttrKind.CX_AttrKind_AMDGPUKernelCall => "AMDGPUKernelCall",
                 CX_AttrKind.CX_AttrKind_AcquireHandle => "AcquireHandle",
                 CX_AttrKind.CX_AttrKind_AnyX86NoCfCheck => "AnyX86NoCfCheck",
                 CX_AttrKind.CX_AttrKind_CDecl => "CDecl",
@@ -80,10 +102,12 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_PreserveMost => "PreserveMost",
                 CX_AttrKind.CX_AttrKind_RegCall => "RegCall",
                 CX_AttrKind.CX_AttrKind_StdCall => "StdCall",
+                CX_AttrKind.CX_AttrKind_SwiftAsyncCall => "SwiftAsyncCall",
                 CX_AttrKind.CX_AttrKind_SwiftCall => "SwiftCall",
                 CX_AttrKind.CX_AttrKind_SysVABI => "SysVABI",
                 CX_AttrKind.CX_AttrKind_ThisCall => "ThisCall",
                 CX_AttrKind.CX_AttrKind_VectorCall => "VectorCall",
+                CX_AttrKind.CX_AttrKind_SwiftAsyncContext => "SwiftAsyncContext",
                 CX_AttrKind.CX_AttrKind_SwiftContext => "SwiftContext",
                 CX_AttrKind.CX_AttrKind_SwiftErrorResult => "SwiftErrorResult",
                 CX_AttrKind.CX_AttrKind_SwiftIndirectResult => "SwiftIndirectResult",
@@ -107,11 +131,11 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_AcquiredAfter => "AcquiredAfter",
                 CX_AttrKind.CX_AttrKind_AcquiredBefore => "AcquiredBefore",
                 CX_AttrKind.CX_AttrKind_AlignMac68k => "AlignMac68k",
+                CX_AttrKind.CX_AttrKind_AlignNatural => "AlignNatural",
                 CX_AttrKind.CX_AttrKind_Aligned => "Aligned",
                 CX_AttrKind.CX_AttrKind_AllocAlign => "AllocAlign",
                 CX_AttrKind.CX_AttrKind_AllocSize => "AllocSize",
                 CX_AttrKind.CX_AttrKind_AlwaysDestroy => "AlwaysDestroy",
-                CX_AttrKind.CX_AttrKind_AlwaysInline => "AlwaysInline",
                 CX_AttrKind.CX_AttrKind_AnalyzerNoReturn => "AnalyzerNoReturn",
                 CX_AttrKind.CX_AttrKind_AnyX86Interrupt => "AnyX86Interrupt",
                 CX_AttrKind.CX_AttrKind_AnyX86NoCallerSavedRegisters => "AnyX86NoCallerSavedRegisters",
@@ -124,9 +148,12 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_AssertExclusiveLock => "AssertExclusiveLock",
                 CX_AttrKind.CX_AttrKind_AssertSharedLock => "AssertSharedLock",
                 CX_AttrKind.CX_AttrKind_AssumeAligned => "AssumeAligned",
+                CX_AttrKind.CX_AttrKind_Assumption => "Assumption",
                 CX_AttrKind.CX_AttrKind_Availability => "Availability",
                 CX_AttrKind.CX_AttrKind_BPFPreserveAccessIndex => "BPFPreserveAccessIndex",
+                CX_AttrKind.CX_AttrKind_BTFDeclTag => "BTFDeclTag",
                 CX_AttrKind.CX_AttrKind_Blocks => "Blocks",
+                CX_AttrKind.CX_AttrKind_Builtin => "Builtin",
                 CX_AttrKind.CX_AttrKind_C11NoReturn => "C11NoReturn",
                 CX_AttrKind.CX_AttrKind_CFAuditedTransfer => "CFAuditedTransfer",
                 CX_AttrKind.CX_AttrKind_CFGuard => "CFGuard",
@@ -168,11 +195,16 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_DLLImportStaticLocal => "DLLImportStaticLocal",
                 CX_AttrKind.CX_AttrKind_Deprecated => "Deprecated",
                 CX_AttrKind.CX_AttrKind_Destructor => "Destructor",
+                CX_AttrKind.CX_AttrKind_DiagnoseAsBuiltin => "DiagnoseAsBuiltin",
                 CX_AttrKind.CX_AttrKind_DiagnoseIf => "DiagnoseIf",
+                CX_AttrKind.CX_AttrKind_DisableSanitizerInstrumentation => "DisableSanitizerInstrumentation",
                 CX_AttrKind.CX_AttrKind_DisableTailCalls => "DisableTailCalls",
                 CX_AttrKind.CX_AttrKind_EmptyBases => "EmptyBases",
                 CX_AttrKind.CX_AttrKind_EnableIf => "EnableIf",
+                CX_AttrKind.CX_AttrKind_EnforceTCB => "EnforceTCB",
+                CX_AttrKind.CX_AttrKind_EnforceTCBLeaf => "EnforceTCBLeaf",
                 CX_AttrKind.CX_AttrKind_EnumExtensibility => "EnumExtensibility",
+                CX_AttrKind.CX_AttrKind_Error => "Error",
                 CX_AttrKind.CX_AttrKind_ExcludeFromExplicitInstantiation => "ExcludeFromExplicitInstantiation",
                 CX_AttrKind.CX_AttrKind_ExclusiveTrylockFunction => "ExclusiveTrylockFunction",
                 CX_AttrKind.CX_AttrKind_ExternalSourceSymbol => "ExternalSourceSymbol",
@@ -181,9 +213,14 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_Flatten => "Flatten",
                 CX_AttrKind.CX_AttrKind_Format => "Format",
                 CX_AttrKind.CX_AttrKind_FormatArg => "FormatArg",
+                CX_AttrKind.CX_AttrKind_FunctionReturnThunks => "FunctionReturnThunks",
                 CX_AttrKind.CX_AttrKind_GNUInline => "GNUInline",
                 CX_AttrKind.CX_AttrKind_GuardedBy => "GuardedBy",
                 CX_AttrKind.CX_AttrKind_GuardedVar => "GuardedVar",
+                CX_AttrKind.CX_AttrKind_HIPManaged => "HIPManaged",
+                CX_AttrKind.CX_AttrKind_HLSLNumThreads => "HLSLNumThreads",
+                CX_AttrKind.CX_AttrKind_HLSLSV_GroupIndex => "HLSLSV_GroupIndex",
+                CX_AttrKind.CX_AttrKind_HLSLShader => "HLSLShader",
                 CX_AttrKind.CX_AttrKind_Hot => "Hot",
                 CX_AttrKind.CX_AttrKind_IBAction => "IBAction",
                 CX_AttrKind.CX_AttrKind_IBOutlet => "IBOutlet",
@@ -192,8 +229,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_InternalLinkage => "InternalLinkage",
                 CX_AttrKind.CX_AttrKind_LTOVisibilityPublic => "LTOVisibilityPublic",
                 CX_AttrKind.CX_AttrKind_LayoutVersion => "LayoutVersion",
+                CX_AttrKind.CX_AttrKind_Leaf => "Leaf",
                 CX_AttrKind.CX_AttrKind_LockReturned => "LockReturned",
                 CX_AttrKind.CX_AttrKind_LocksExcluded => "LocksExcluded",
+                CX_AttrKind.CX_AttrKind_M68kInterrupt => "M68kInterrupt",
                 CX_AttrKind.CX_AttrKind_MIGServerRoutine => "MIGServerRoutine",
                 CX_AttrKind.CX_AttrKind_MSAllocator => "MSAllocator",
                 CX_AttrKind.CX_AttrKind_MSInheritance => "MSInheritance",
@@ -211,6 +250,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_MipsLongCall => "MipsLongCall",
                 CX_AttrKind.CX_AttrKind_MipsShortCall => "MipsShortCall",
                 CX_AttrKind.CX_AttrKind_NSConsumesSelf => "NSConsumesSelf",
+                CX_AttrKind.CX_AttrKind_NSErrorDomain => "NSErrorDomain",
                 CX_AttrKind.CX_AttrKind_NSReturnsAutoreleased => "NSReturnsAutoreleased",
                 CX_AttrKind.CX_AttrKind_NSReturnsNotRetained => "NSReturnsNotRetained",
                 CX_AttrKind.CX_AttrKind_Naked => "Naked",
@@ -219,10 +259,11 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_NoDebug => "NoDebug",
                 CX_AttrKind.CX_AttrKind_NoDestroy => "NoDestroy",
                 CX_AttrKind.CX_AttrKind_NoDuplicate => "NoDuplicate",
-                CX_AttrKind.CX_AttrKind_NoInline => "NoInline",
                 CX_AttrKind.CX_AttrKind_NoInstrumentFunction => "NoInstrumentFunction",
                 CX_AttrKind.CX_AttrKind_NoMicroMips => "NoMicroMips",
                 CX_AttrKind.CX_AttrKind_NoMips16 => "NoMips16",
+                CX_AttrKind.CX_AttrKind_NoProfileFunction => "NoProfileFunction",
+                CX_AttrKind.CX_AttrKind_NoRandomizeLayout => "NoRandomizeLayout",
                 CX_AttrKind.CX_AttrKind_NoReturn => "NoReturn",
                 CX_AttrKind.CX_AttrKind_NoSanitize => "NoSanitize",
                 CX_AttrKind.CX_AttrKind_NoSpeculativeLoadHardening => "NoSpeculativeLoadHardening",
@@ -259,7 +300,6 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_ObjCSubclassingRestricted => "ObjCSubclassingRestricted",
                 CX_AttrKind.CX_AttrKind_OpenCLIntelReqdSubGroupSize => "OpenCLIntelReqdSubGroupSize",
                 CX_AttrKind.CX_AttrKind_OpenCLKernel => "OpenCLKernel",
-                CX_AttrKind.CX_AttrKind_OpenCLUnrollHint => "OpenCLUnrollHint",
                 CX_AttrKind.CX_AttrKind_OptimizeNone => "OptimizeNone",
                 CX_AttrKind.CX_AttrKind_Override => "Override",
                 CX_AttrKind.CX_AttrKind_Owner => "Owner",
@@ -273,19 +313,23 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_PragmaClangRelroSection => "PragmaClangRelroSection",
                 CX_AttrKind.CX_AttrKind_PragmaClangRodataSection => "PragmaClangRodataSection",
                 CX_AttrKind.CX_AttrKind_PragmaClangTextSection => "PragmaClangTextSection",
+                CX_AttrKind.CX_AttrKind_PreferredName => "PreferredName",
                 CX_AttrKind.CX_AttrKind_PtGuardedBy => "PtGuardedBy",
                 CX_AttrKind.CX_AttrKind_PtGuardedVar => "PtGuardedVar",
                 CX_AttrKind.CX_AttrKind_Pure => "Pure",
                 CX_AttrKind.CX_AttrKind_RISCVInterrupt => "RISCVInterrupt",
+                CX_AttrKind.CX_AttrKind_RandomizeLayout => "RandomizeLayout",
                 CX_AttrKind.CX_AttrKind_Reinitializes => "Reinitializes",
                 CX_AttrKind.CX_AttrKind_ReleaseCapability => "ReleaseCapability",
                 CX_AttrKind.CX_AttrKind_ReqdWorkGroupSize => "ReqdWorkGroupSize",
                 CX_AttrKind.CX_AttrKind_RequiresCapability => "RequiresCapability",
                 CX_AttrKind.CX_AttrKind_Restrict => "Restrict",
+                CX_AttrKind.CX_AttrKind_Retain => "Retain",
                 CX_AttrKind.CX_AttrKind_ReturnTypestate => "ReturnTypestate",
                 CX_AttrKind.CX_AttrKind_ReturnsNonNull => "ReturnsNonNull",
                 CX_AttrKind.CX_AttrKind_ReturnsTwice => "ReturnsTwice",
                 CX_AttrKind.CX_AttrKind_SYCLKernel => "SYCLKernel",
+                CX_AttrKind.CX_AttrKind_SYCLSpecialClass => "SYCLSpecialClass",
                 CX_AttrKind.CX_AttrKind_ScopedLockable => "ScopedLockable",
                 CX_AttrKind.CX_AttrKind_Section => "Section",
                 CX_AttrKind.CX_AttrKind_SelectAny => "SelectAny",
@@ -293,8 +337,21 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_SetTypestate => "SetTypestate",
                 CX_AttrKind.CX_AttrKind_SharedTrylockFunction => "SharedTrylockFunction",
                 CX_AttrKind.CX_AttrKind_SpeculativeLoadHardening => "SpeculativeLoadHardening",
+                CX_AttrKind.CX_AttrKind_StandaloneDebug => "StandaloneDebug",
+                CX_AttrKind.CX_AttrKind_StrictFP => "StrictFP",
+                CX_AttrKind.CX_AttrKind_SwiftAsync => "SwiftAsync",
+                CX_AttrKind.CX_AttrKind_SwiftAsyncError => "SwiftAsyncError",
+                CX_AttrKind.CX_AttrKind_SwiftAsyncName => "SwiftAsyncName",
+                CX_AttrKind.CX_AttrKind_SwiftAttr => "SwiftAttr",
+                CX_AttrKind.CX_AttrKind_SwiftBridge => "SwiftBridge",
+                CX_AttrKind.CX_AttrKind_SwiftBridgedTypedef => "SwiftBridgedTypedef",
+                CX_AttrKind.CX_AttrKind_SwiftError => "SwiftError",
+                CX_AttrKind.CX_AttrKind_SwiftName => "SwiftName",
+                CX_AttrKind.CX_AttrKind_SwiftNewType => "SwiftNewType",
+                CX_AttrKind.CX_AttrKind_SwiftPrivate => "SwiftPrivate",
                 CX_AttrKind.CX_AttrKind_TLSModel => "TLSModel",
                 CX_AttrKind.CX_AttrKind_Target => "Target",
+                CX_AttrKind.CX_AttrKind_TargetClones => "TargetClones",
                 CX_AttrKind.CX_AttrKind_TestTypestate => "TestTypestate",
                 CX_AttrKind.CX_AttrKind_TransparentUnion => "TransparentUnion",
                 CX_AttrKind.CX_AttrKind_TrivialABI => "TrivialABI",
@@ -305,6 +362,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_Uninitialized => "Uninitialized",
                 CX_AttrKind.CX_AttrKind_Unused => "Unused",
                 CX_AttrKind.CX_AttrKind_Used => "Used",
+                CX_AttrKind.CX_AttrKind_UsingIfExists => "UsingIfExists",
                 CX_AttrKind.CX_AttrKind_Uuid => "Uuid",
                 CX_AttrKind.CX_AttrKind_VecReturn => "VecReturn",
                 CX_AttrKind.CX_AttrKind_VecTypeHint => "VecTypeHint",
@@ -321,9 +379,12 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_X86ForceAlignArgPointer => "X86ForceAlignArgPointer",
                 CX_AttrKind.CX_AttrKind_XRayInstrument => "XRayInstrument",
                 CX_AttrKind.CX_AttrKind_XRayLogArgs => "XRayLogArgs",
+                CX_AttrKind.CX_AttrKind_ZeroCallUsedRegs => "ZeroCallUsedRegs",
                 CX_AttrKind.CX_AttrKind_AbiTag => "AbiTag",
                 CX_AttrKind.CX_AttrKind_Alias => "Alias",
                 CX_AttrKind.CX_AttrKind_AlignValue => "AlignValue",
+                CX_AttrKind.CX_AttrKind_BuiltinAlias => "BuiltinAlias",
+                CX_AttrKind.CX_AttrKind_CalledOnce => "CalledOnce",
                 CX_AttrKind.CX_AttrKind_IFunc => "IFunc",
                 CX_AttrKind.CX_AttrKind_InitSeg => "InitSeg",
                 CX_AttrKind.CX_AttrKind_LoaderUninitialized => "LoaderUninitialized",
@@ -340,11 +401,13 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind.CX_AttrKind_ObjCDirect => "ObjCDirect",
                 CX_AttrKind.CX_AttrKind_ObjCDirectMembers => "ObjCDirectMembers",
                 CX_AttrKind.CX_AttrKind_ObjCNonLazyClass => "ObjCNonLazyClass",
+                CX_AttrKind.CX_AttrKind_ObjCNonRuntimeProtocol => "ObjCNonRuntimeProtocol",
                 CX_AttrKind.CX_AttrKind_ObjCRuntimeName => "ObjCRuntimeName",
                 CX_AttrKind.CX_AttrKind_ObjCRuntimeVisible => "ObjCRuntimeVisible",
                 CX_AttrKind.CX_AttrKind_OpenCLAccess => "OpenCLAccess",
                 CX_AttrKind.CX_AttrKind_Overloadable => "Overloadable",
                 CX_AttrKind.CX_AttrKind_RenderScriptKernel => "RenderScriptKernel",
+                CX_AttrKind.CX_AttrKind_SwiftObjCMembers => "SwiftObjCMembers",
                 CX_AttrKind.CX_AttrKind_Thread => "Thread",
                 _ => Kind.ToString()[12..],
             };
@@ -393,8 +456,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     {
         get
         {
-            return CastKind switch
-            {
+            return CastKind switch {
                 CX_CastKind.CX_CK_Invalid => "Invalid",
                 CX_CastKind.CX_CK_Dependent => "Dependent",
                 CX_CastKind.CX_CK_BitCast => "BitCast",
@@ -426,6 +488,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_CastKind.CX_CK_IntegralCast => "IntegralCast",
                 CX_CastKind.CX_CK_IntegralToBoolean => "IntegralToBoolean",
                 CX_CastKind.CX_CK_IntegralToFloating => "IntegralToFloating",
+                CX_CastKind.CX_CK_FloatingToFixedPoint => "FloatingToFixedPoint",
+                CX_CastKind.CX_CK_FixedPointToFloating => "FixedPointToFloating",
                 CX_CastKind.CX_CK_FixedPointCast => "FixedPointCast",
                 CX_CastKind.CX_CK_FixedPointToIntegral => "FixedPointToIntegral",
                 CX_CastKind.CX_CK_IntegralToFixedPoint => "IntegralToFixedPoint",
@@ -526,49 +590,70 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     {
         get
         {
+            Debug.Assert(CX_DeclKind.CX_DeclKind_FirstBaseUsing == CX_DeclKind.CX_DeclKind_Using);
+            Debug.Assert(CX_DeclKind.CX_DeclKind_LastBaseUsing == CX_DeclKind.CX_DeclKind_UsingEnum);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstObjCImpl == CX_DeclKind.CX_DeclKind_ObjCCategoryImpl);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastObjCImpl == CX_DeclKind.CX_DeclKind_ObjCImplementation);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstObjCContainer == CX_DeclKind.CX_DeclKind_ObjCCategory);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastObjCContainer == CX_DeclKind.CX_DeclKind_ObjCProtocol);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstRedeclarableTemplate == CX_DeclKind.CX_DeclKind_ClassTemplate);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastRedeclarableTemplate == CX_DeclKind.CX_DeclKind_VarTemplate);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstTemplate == CX_DeclKind.CX_DeclKind_BuiltinTemplate);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastTemplate == CX_DeclKind.CX_DeclKind_TemplateTemplateParm);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstClassTemplateSpecialization == CX_DeclKind.CX_DeclKind_ClassTemplateSpecialization);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastClassTemplateSpecialization == CX_DeclKind.CX_DeclKind_ClassTemplatePartialSpecialization);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstCXXRecord == CX_DeclKind.CX_DeclKind_CXXRecord);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastCXXRecord == CX_DeclKind.CX_DeclKind_ClassTemplatePartialSpecialization);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstRecord == CX_DeclKind.CX_DeclKind_Record);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastRecord == CX_DeclKind.CX_DeclKind_ClassTemplatePartialSpecialization);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstTag == CX_DeclKind.CX_DeclKind_Enum);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastTag == CX_DeclKind.CX_DeclKind_ClassTemplatePartialSpecialization);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstTypedefName == CX_DeclKind.CX_DeclKind_ObjCTypeParam);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastTypedefName == CX_DeclKind.CX_DeclKind_Typedef);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstType == CX_DeclKind.CX_DeclKind_Enum);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastType == CX_DeclKind.CX_DeclKind_UnresolvedUsingTypename);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstUsingShadow == CX_DeclKind.CX_DeclKind_UsingShadow);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastUsingShadow == CX_DeclKind.CX_DeclKind_ConstructorUsingShadow);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstField == CX_DeclKind.CX_DeclKind_Field);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastField == CX_DeclKind.CX_DeclKind_ObjCIvar);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstCXXMethod == CX_DeclKind.CX_DeclKind_CXXMethod);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastCXXMethod == CX_DeclKind.CX_DeclKind_CXXDestructor);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstFunction == CX_DeclKind.CX_DeclKind_Function);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastFunction == CX_DeclKind.CX_DeclKind_CXXDestructor);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstVarTemplateSpecialization == CX_DeclKind.CX_DeclKind_VarTemplateSpecialization);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastVarTemplateSpecialization == CX_DeclKind.CX_DeclKind_VarTemplatePartialSpecialization);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstVar == CX_DeclKind.CX_DeclKind_Var);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastVar == CX_DeclKind.CX_DeclKind_VarTemplatePartialSpecialization);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstDeclarator == CX_DeclKind.CX_DeclKind_Field);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastDeclarator == CX_DeclKind.CX_DeclKind_VarTemplatePartialSpecialization);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstValue == CX_DeclKind.CX_DeclKind_Binding);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastValue == CX_DeclKind.CX_DeclKind_UnresolvedUsingValue);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstNamed == CX_DeclKind.CX_DeclKind_Using);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastNamed == CX_DeclKind.CX_DeclKind_UnresolvedUsingValue);
+
             Debug.Assert(CX_DeclKind.CX_DeclKind_FirstDecl == CX_DeclKind.CX_DeclKind_AccessSpec);
             Debug.Assert(CX_DeclKind.CX_DeclKind_LastDecl == CX_DeclKind.CX_DeclKind_TranslationUnit);
 
-            return DeclKind switch
-            {
+            return DeclKind switch {
                 CX_DeclKind.CX_DeclKind_Invalid => "Invalid",
                 CX_DeclKind.CX_DeclKind_AccessSpec => "AccessSpec",
                 CX_DeclKind.CX_DeclKind_Block => "Block",
@@ -583,6 +668,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_DeclKind.CX_DeclKind_Import => "Import",
                 CX_DeclKind.CX_DeclKind_LifetimeExtendedTemporary => "LifetimeExtendedTemporary",
                 CX_DeclKind.CX_DeclKind_LinkageSpec => "LinkageSpec",
+                CX_DeclKind.CX_DeclKind_Using => "Using",
+                CX_DeclKind.CX_DeclKind_UsingEnum => "UsingEnum",
                 CX_DeclKind.CX_DeclKind_Label => "Label",
                 CX_DeclKind.CX_DeclKind_Namespace => "Namespace",
                 CX_DeclKind.CX_DeclKind_NamespaceAlias => "NamespaceAlias",
@@ -611,7 +698,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_DeclKind.CX_DeclKind_TypeAlias => "TypeAlias",
                 CX_DeclKind.CX_DeclKind_Typedef => "Typedef",
                 CX_DeclKind.CX_DeclKind_UnresolvedUsingTypename => "UnresolvedUsingTypename",
-                CX_DeclKind.CX_DeclKind_Using => "Using",
+                CX_DeclKind.CX_DeclKind_UnresolvedUsingIfExists => "UnresolvedUsingIfExists",
                 CX_DeclKind.CX_DeclKind_UsingDirective => "UsingDirective",
                 CX_DeclKind.CX_DeclKind_UsingPack => "UsingPack",
                 CX_DeclKind.CX_DeclKind_UsingShadow => "UsingShadow",
@@ -640,6 +727,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_DeclKind.CX_DeclKind_MSGuid => "MSGuid",
                 CX_DeclKind.CX_DeclKind_OMPDeclareMapper => "OMPDeclareMapper",
                 CX_DeclKind.CX_DeclKind_OMPDeclareReduction => "OMPDeclareReduction",
+                CX_DeclKind.CX_DeclKind_TemplateParamObject => "TemplateParamObject",
+                CX_DeclKind.CX_DeclKind_UnnamedGlobalConstant => "UnnamedGlobalConstant",
                 CX_DeclKind.CX_DeclKind_UnresolvedUsingValue => "UnresolvedUsingValue",
                 CX_DeclKind.CX_DeclKind_OMPAllocate => "OMPAllocate",
                 CX_DeclKind.CX_DeclKind_OMPRequires => "OMPRequires",
@@ -1115,41 +1204,62 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
         {
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstAsmStmt == CX_StmtClass.CX_StmtClass_GCCAsmStmt);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastAsmStmt == CX_StmtClass.CX_StmtClass_MSAsmStmt);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstOMPLoopDirective == CX_StmtClass.CX_StmtClass_OMPDistributeDirective);
-            Debug.Assert(CX_StmtClass.CX_StmtClass_LastOMPLoopDirective == CX_StmtClass.CX_StmtClass_OMPTeamsDistributeSimdDirective);
+            Debug.Assert(CX_StmtClass.CX_StmtClass_LastOMPLoopDirective == CX_StmtClass.CX_StmtClass_OMPTeamsGenericLoopDirective);
+
+            Debug.Assert(CX_StmtClass.CX_StmtClass_FirstOMPLoopTransformationDirective == CX_StmtClass.CX_StmtClass_OMPTileDirective);
+            Debug.Assert(CX_StmtClass.CX_StmtClass_LastOMPLoopTransformationDirective == CX_StmtClass.CX_StmtClass_OMPUnrollDirective);
+
+            Debug.Assert(CX_StmtClass.CX_StmtClass_FirstOMPLoopBasedDirective == CX_StmtClass.CX_StmtClass_OMPDistributeDirective);
+            Debug.Assert(CX_StmtClass.CX_StmtClass_LastOMPLoopBasedDirective == CX_StmtClass.CX_StmtClass_OMPUnrollDirective);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstOMPExecutableDirective == CX_StmtClass.CX_StmtClass_OMPAtomicDirective);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastOMPExecutableDirective == CX_StmtClass.CX_StmtClass_OMPTeamsDirective);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstSwitchCase == CX_StmtClass.CX_StmtClass_CaseStmt);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastSwitchCase == CX_StmtClass.CX_StmtClass_DefaultStmt);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstAbstractConditionalOperator == CX_StmtClass.CX_StmtClass_BinaryConditionalOperator);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastAbstractConditionalOperator == CX_StmtClass.CX_StmtClass_ConditionalOperator);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstBinaryOperator == CX_StmtClass.CX_StmtClass_BinaryOperator);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastBinaryOperator == CX_StmtClass.CX_StmtClass_CompoundAssignOperator);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstCXXConstructExpr == CX_StmtClass.CX_StmtClass_CXXConstructExpr);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastCXXConstructExpr == CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstCallExpr == CX_StmtClass.CX_StmtClass_CallExpr);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastCallExpr == CX_StmtClass.CX_StmtClass_UserDefinedLiteral);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstCXXNamedCastExpr == CX_StmtClass.CX_StmtClass_CXXAddrspaceCastExpr);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastCXXNamedCastExpr == CX_StmtClass.CX_StmtClass_CXXStaticCastExpr);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstExplicitCastExpr == CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastExplicitCastExpr == CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstCastExpr == CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastCastExpr == CX_StmtClass.CX_StmtClass_ImplicitCastExpr);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstCoroutineSuspendExpr == CX_StmtClass.CX_StmtClass_CoawaitExpr);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastCoroutineSuspendExpr == CX_StmtClass.CX_StmtClass_CoyieldExpr);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstFullExpr == CX_StmtClass.CX_StmtClass_ConstantExpr);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastFullExpr == CX_StmtClass.CX_StmtClass_ExprWithCleanups);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstOverloadExpr == CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastOverloadExpr == CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstExpr == CX_StmtClass.CX_StmtClass_BinaryConditionalOperator);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastExpr == CX_StmtClass.CX_StmtClass_VAArgExpr);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstValueStmt == CX_StmtClass.CX_StmtClass_AttributedStmt);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastValueStmt == CX_StmtClass.CX_StmtClass_LabelStmt);
+
             Debug.Assert(CX_StmtClass.CX_StmtClass_FirstStmt == CX_StmtClass.CX_StmtClass_GCCAsmStmt);
             Debug.Assert(CX_StmtClass.CX_StmtClass_LastStmt == CX_StmtClass.CX_StmtClass_WhileStmt);
 
-            return StmtClass switch
-            {
+            return StmtClass switch {
                 CX_StmtClass.CX_StmtClass_Invalid => "Invalid",
                 CX_StmtClass.CX_StmtClass_GCCAsmStmt => "GCCAsmStmt",
                 CX_StmtClass.CX_StmtClass_MSAsmStmt => "MSAsmStmt",
@@ -1170,41 +1280,58 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_StmtClass.CX_StmtClass_IndirectGotoStmt => "IndirectGotoStmt",
                 CX_StmtClass.CX_StmtClass_MSDependentExistsStmt => "MSDependentExistsStmt",
                 CX_StmtClass.CX_StmtClass_NullStmt => "NullStmt",
+                CX_StmtClass.CX_StmtClass_OMPCanonicalLoop => "OMPCanonicalLoop",
                 CX_StmtClass.CX_StmtClass_OMPAtomicDirective => "OMPAtomicDirective",
                 CX_StmtClass.CX_StmtClass_OMPBarrierDirective => "OMPBarrierDirective",
                 CX_StmtClass.CX_StmtClass_OMPCancelDirective => "OMPCancelDirective",
                 CX_StmtClass.CX_StmtClass_OMPCancellationPointDirective => "OMPCancellationPointDirective",
                 CX_StmtClass.CX_StmtClass_OMPCriticalDirective => "OMPCriticalDirective",
                 CX_StmtClass.CX_StmtClass_OMPDepobjDirective => "OMPDepobjDirective",
+                CX_StmtClass.CX_StmtClass_OMPDispatchDirective => "OMPDispatchDirective",
                 CX_StmtClass.CX_StmtClass_OMPFlushDirective => "OMPFlushDirective",
+                CX_StmtClass.CX_StmtClass_OMPInteropDirective => "OMPInteropDirective",
                 CX_StmtClass.CX_StmtClass_OMPDistributeDirective => "OMPDistributeDirective",
                 CX_StmtClass.CX_StmtClass_OMPDistributeParallelForDirective => "OMPDistributeParallelForDirective",
                 CX_StmtClass.CX_StmtClass_OMPDistributeParallelForSimdDirective => "OMPDistributeParallelForSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPDistributeSimdDirective => "OMPDistributeSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPForDirective => "OMPForDirective",
                 CX_StmtClass.CX_StmtClass_OMPForSimdDirective => "OMPForSimdDirective",
+                CX_StmtClass.CX_StmtClass_OMPGenericLoopDirective => "OMPGenericLoopDirective",
+                CX_StmtClass.CX_StmtClass_OMPMaskedTaskLoopDirective => "OMPMaskedTaskLoopDirective",
+                CX_StmtClass.CX_StmtClass_OMPMaskedTaskLoopSimdDirective => "OMPMaskedTaskLoopSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPMasterTaskLoopDirective => "OMPMasterTaskLoopDirective",
                 CX_StmtClass.CX_StmtClass_OMPMasterTaskLoopSimdDirective => "OMPMasterTaskLoopSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPParallelForDirective => "OMPParallelForDirective",
                 CX_StmtClass.CX_StmtClass_OMPParallelForSimdDirective => "OMPParallelForSimdDirective",
+                CX_StmtClass.CX_StmtClass_OMPParallelGenericLoopDirective => "OMPParallelGenericLoopDirective",
+                CX_StmtClass.CX_StmtClass_OMPParallelMaskedTaskLoopDirective => "OMPParallelMaskedTaskLoopDirective",
+                CX_StmtClass.CX_StmtClass_OMPParallelMaskedTaskLoopSimdDirective => "OMPParallelMaskedTaskLoopSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPParallelMasterTaskLoopDirective => "OMPParallelMasterTaskLoopDirective",
                 CX_StmtClass.CX_StmtClass_OMPParallelMasterTaskLoopSimdDirective => "OMPParallelMasterTaskLoopSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPSimdDirective => "OMPSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPTargetParallelForSimdDirective => "OMPTargetParallelForSimdDirective",
+                CX_StmtClass.CX_StmtClass_OMPTargetParallelGenericLoopDirective => "OMPTargetParallelGenericLoopDirective",
                 CX_StmtClass.CX_StmtClass_OMPTargetSimdDirective => "OMPTargetSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeDirective => "OMPTargetTeamsDistributeDirective",
                 CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeParallelForDirective => "OMPTargetTeamsDistributeParallelForDirective",
                 CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeParallelForSimdDirective => "OMPTargetTeamsDistributeParallelForSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeSimdDirective => "OMPTargetTeamsDistributeSimdDirective",
+                CX_StmtClass.CX_StmtClass_OMPTargetTeamsGenericLoopDirective => "OMPTargetTeamsGenericLoopDirective",
                 CX_StmtClass.CX_StmtClass_OMPTaskLoopDirective => "OMPTaskLoopDirective",
                 CX_StmtClass.CX_StmtClass_OMPTaskLoopSimdDirective => "OMPTaskLoopSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPTeamsDistributeDirective => "OMPTeamsDistributeDirective",
                 CX_StmtClass.CX_StmtClass_OMPTeamsDistributeParallelForDirective => "OMPTeamsDistributeParallelForDirective",
                 CX_StmtClass.CX_StmtClass_OMPTeamsDistributeParallelForSimdDirective => "OMPTeamsDistributeParallelForSimdDirective",
                 CX_StmtClass.CX_StmtClass_OMPTeamsDistributeSimdDirective => "OMPTeamsDistributeSimdDirective",
+                CX_StmtClass.CX_StmtClass_OMPTeamsGenericLoopDirective => "OMPTeamsGenericLoopDirective",
+                CX_StmtClass.CX_StmtClass_OMPTileDirective => "OMPTileDirective",
+                CX_StmtClass.CX_StmtClass_OMPUnrollDirective => "OMPUnrollDirective",
+                CX_StmtClass.CX_StmtClass_OMPMaskedDirective => "OMPMaskedDirective",
                 CX_StmtClass.CX_StmtClass_OMPMasterDirective => "OMPMasterDirective",
+                CX_StmtClass.CX_StmtClass_OMPMetaDirective => "OMPMetaDirective",
                 CX_StmtClass.CX_StmtClass_OMPOrderedDirective => "OMPOrderedDirective",
                 CX_StmtClass.CX_StmtClass_OMPParallelDirective => "OMPParallelDirective",
+                CX_StmtClass.CX_StmtClass_OMPParallelMaskedDirective => "OMPParallelMaskedDirective",
                 CX_StmtClass.CX_StmtClass_OMPParallelMasterDirective => "OMPParallelMasterDirective",
                 CX_StmtClass.CX_StmtClass_OMPParallelSectionsDirective => "OMPParallelSectionsDirective",
                 CX_StmtClass.CX_StmtClass_OMPScanDirective => "OMPScanDirective",
@@ -1350,6 +1477,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_StmtClass.CX_StmtClass_PseudoObjectExpr => "PseudoObjectExpr",
                 CX_StmtClass.CX_StmtClass_RecoveryExpr => "RecoveryExpr",
                 CX_StmtClass.CX_StmtClass_RequiresExpr => "RequiresExpr",
+                CX_StmtClass.CX_StmtClass_SYCLUniqueStableNameExpr => "SYCLUniqueStableNameExpr",
                 CX_StmtClass.CX_StmtClass_ShuffleVectorExpr => "ShuffleVectorExpr",
                 CX_StmtClass.CX_StmtClass_SizeOfPackExpr => "SizeOfPackExpr",
                 CX_StmtClass.CX_StmtClass_SourceLocExpr => "SourceLocExpr",
@@ -1483,7 +1611,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXCursor other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXCursor other) && Equals(other);
 
     public bool Equals(CXCursor other) => this == other;
 
@@ -1614,10 +1742,15 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public CXChildVisitResult VisitChildren(CXCursorVisitor visitor, CXClientData clientData)
     {
-        var pVisitor = Marshal.GetFunctionPointerForDelegate(visitor);
-        var result = (CXChildVisitResult)clang.visitChildren(this, pVisitor, clientData);
+        var pVisitor = (delegate* unmanaged[Cdecl]<CXCursor, CXCursor, void*, CXChildVisitResult>)Marshal.GetFunctionPointerForDelegate(visitor);
+        var result = VisitChildren(pVisitor, clientData);
 
         GC.KeepAlive(visitor);
         return result;
+    }
+
+    public CXChildVisitResult VisitChildren(delegate* unmanaged[Cdecl]<CXCursor, CXCursor, void*, CXChildVisitResult> visitor, CXClientData clientData)
+    {
+        return (CXChildVisitResult)clang.visitChildren(this, visitor, clientData);
     }
 }

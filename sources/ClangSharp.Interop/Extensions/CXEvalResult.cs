@@ -28,8 +28,7 @@ public unsafe partial struct CXEvalResult : IDisposable, IEquatable<CXEvalResult
                 return string.Empty;
             }
 
-            var span = new ReadOnlySpan<byte>(pStr, int.MaxValue);
-            return span.Slice(0, span.IndexOf((byte)'\0')).AsString();
+            return SpanExtensions.AsString(pStr);
         }
     }
 
@@ -58,7 +57,7 @@ public unsafe partial struct CXEvalResult : IDisposable, IEquatable<CXEvalResult
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXEvalResult other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXEvalResult other) && Equals(other);
 
     public bool Equals(CXEvalResult other) => this == other;
 

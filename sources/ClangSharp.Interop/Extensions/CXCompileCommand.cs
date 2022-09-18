@@ -29,7 +29,7 @@ public unsafe partial struct CXCompileCommand : IEquatable<CXCompileCommand>
 
     public static bool operator !=(CXCompileCommand left, CXCompileCommand right) => left.Handle != right.Handle;
 
-    public override bool Equals(object obj) => (obj is CXCompileCommand other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXCompileCommand other) && Equals(other);
 
     public bool Equals(CXCompileCommand other) => this == other;
 

@@ -34,7 +34,7 @@ public sealed class CXXDependentScopeMemberExpr : Expr
         });
     }
 
-    public Expr Base => (Expr)Children.SingleOrDefault();
+    public Expr? Base => (Expr?)Children.SingleOrDefault();
 
     public Type BaseType => _baseType.Value;
 

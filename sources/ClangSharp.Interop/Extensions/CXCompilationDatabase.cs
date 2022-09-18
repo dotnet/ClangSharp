@@ -42,7 +42,7 @@ public unsafe partial struct CXCompilationDatabase : IDisposable, IEquatable<CXC
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXCompilationDatabase other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXCompilationDatabase other) && Equals(other);
 
     public bool Equals(CXCompilationDatabase other) => this == other;
 

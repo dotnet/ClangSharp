@@ -18,7 +18,7 @@ public sealed class CXXFoldExpr : Expr
 
     public bool IsLeftFold => !IsRightFold;
 
-    public bool IsRightFold => (LHS != null) && LHS.ContainsUnexpandedParameterPack;
+    public bool IsRightFold => (LHS is not null) && LHS.ContainsUnexpandedParameterPack;
 
     public Expr LHS => (Expr)Children[1];
 

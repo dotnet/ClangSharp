@@ -2,52 +2,62 @@
   "runtimes": {
     "freebsd.12-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.freebsd.12-x64": "14.0.0-beta1"
+        "libClangSharp.runtime.freebsd.12-x64": "15.0.0"
       }
     },
     "freebsd.13-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.freebsd.13-x64": "14.0.0-beta1"
+        "libClangSharp.runtime.freebsd.13-x64": "15.0.0"
       }
     },
     "linux-arm64": {
       "libClangSharp": {
-        "libClangSharp.runtime.linux-arm64": "14.0.0-beta1"
+        "libClangSharp.runtime.linux-arm64": "15.0.0"
+      }
+    },
+    "linux-x64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.linux-x64": "15.0.0"
+      }
+    },
+    "osx-arm64": {
+      "libClangSharp": {
+        "libClangSharp.runtime.osx-arm64": "15.0.0"
       }
     },
     "osx-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.osx-x64": "14.0.0-beta1"
+        "libClangSharp.runtime.osx-x64": "15.0.0"
       }
     },
     "ubuntu.18.04-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.ubuntu.18.04-x64": "14.0.0-beta1"
+        "libClangSharp.runtime.ubuntu.18.04-x64": "15.0.0"
       }
     },
     "ubuntu.20.04-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.ubuntu.20.04-x64": "14.0.0-beta1"
+        "libClangSharp.runtime.ubuntu.20.04-x64": "15.0.0"
       }
     },
-    "ubuntu.21.10-x64": {
+    "ubuntu.22.04-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.ubuntu.21.10-x64": "14.0.0-beta1"
+        "libClangSharp.runtime.ubuntu.22.04-x64": "15.0.0"
       }
     },
     "win-arm64": {
       "libClangSharp": {
-        "libClangSharp.runtime.win-arm64": "14.0.0-beta1"
+        "libClangSharp.runtime.win-arm64": "15.0.0"
       }
     },
     "win-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.win-x64": "14.0.0-beta1"
+        "libClangSharp.runtime.win-x64": "15.0.0"
       }
     },
     "win-x86": {
       "libClangSharp": {
-        "libClangSharp.runtime.win-x86": "14.0.0-beta1"
+        "libClangSharp.runtime.win-x86": "15.0.0"
       }
     }
   }

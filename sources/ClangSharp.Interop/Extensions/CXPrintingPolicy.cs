@@ -30,7 +30,7 @@ public unsafe partial struct CXPrintingPolicy : IDisposable, IEquatable<CXPrinti
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXPrintingPolicy other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXPrintingPolicy other) && Equals(other);
 
     public bool Equals(CXPrintingPolicy other) => this == other;
 

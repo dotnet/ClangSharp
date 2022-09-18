@@ -31,7 +31,7 @@ public unsafe partial struct CXCompletionString : IEquatable<CXCompletionString>
 
     public static bool operator !=(CXCompletionString left, CXCompletionString right) => left.Handle != right.Handle;
 
-    public override bool Equals(object obj) => (obj is CXCompletionString other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXCompletionString other) && Equals(other);
 
     public bool Equals(CXCompletionString other) => this == other;
 

@@ -32,7 +32,7 @@ public unsafe partial struct CXModuleMapDescriptor : IDisposable, IEquatable<CXM
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXModuleMapDescriptor other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXModuleMapDescriptor other) && Equals(other);
 
     public bool Equals(CXModuleMapDescriptor other) => this == other;
 

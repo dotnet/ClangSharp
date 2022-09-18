@@ -812,7 +812,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
         WriteBlockStart();
     }
 
-    public void BeginMarkerInterface(string[] baseTypeNames)
+    public void BeginMarkerInterface(string[]? baseTypeNames)
     {
         WriteIndented("public interface Interface");
 

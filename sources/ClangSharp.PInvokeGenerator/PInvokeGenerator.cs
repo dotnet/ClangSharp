@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -22,8 +22,8 @@ public sealed partial class PInvokeGenerator : IDisposable
     private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
     private static readonly Regex s_needsSystemSupportRegex = new Regex(@"\b(?:Guid|IntPtr|UIntPtr)\b", RegexOptions.Compiled);
 
-    private const string ExpectedClangVersion = "version 14.0";
-    private const string ExpectedClangSharpVersion = "version 14.0";
+    private const string ExpectedClangVersion = "version 15.0";
+    private const string ExpectedClangSharpVersion = "version 15.0";
 
     private readonly CXIndex _index;
     private readonly OutputBuilderFactory _outputBuilderFactory;
@@ -31,13 +31,13 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly StringBuilder _fileContentsBuilder;
     private readonly HashSet<string> _visitedFiles;
     private readonly List<Diagnostic> _diagnostics;
-    private readonly LinkedList<(Cursor Cursor, object UserData)> _context;
+    private readonly LinkedList<(Cursor Cursor, object? UserData)> _context;
     private readonly Dictionary<string, Guid> _uuidsToGenerate;
     private readonly HashSet<string> _generatedUuids;
     private readonly PInvokeGeneratorConfiguration _config;
     private readonly Dictionary<NamedDecl, string> _cursorNames;
     private readonly Dictionary<(NamedDecl namedDecl, bool truncateForFunctionParameters), string> _cursorQualifiedNames;
-    private readonly Dictionary<(Cursor cursor, Cursor context, Type type), (string typeName, string nativeTypeName)> _typeNames;
+    private readonly Dictionary<(Cursor? cursor, Cursor? context, Type type), (string typeName, string nativeTypeName)> _typeNames;
     private readonly Dictionary<string, HashSet<string>> _allValidNameRemappings;
     private readonly Dictionary<string, HashSet<string>> _traversedValidNameRemappings;
     private readonly Dictionary<CXXMethodDecl, uint> _overloadIndices;
@@ -52,20 +52,20 @@ public sealed partial class PInvokeGenerator : IDisposable
     private string _filePath;
     private string[] _clangCommandLineArgs;
     private CXTranslationUnit_Flags _translationFlags;
-    private string _currentClass;
-    private string _currentNamespace;
+    private string? _currentClass;
+    private string? _currentNamespace;
 
-    private IOutputBuilder _outputBuilder;
-    private CSharpOutputBuilder _testOutputBuilder;
-    private CSharpOutputBuilder _stmtOutputBuilder;
-    private CSharpOutputBuilder _testStmtOutputBuilder;
+    private IOutputBuilder? _outputBuilder;
+    private CSharpOutputBuilder? _testOutputBuilder;
+    private CSharpOutputBuilder? _stmtOutputBuilder;
+    private CSharpOutputBuilder? _testStmtOutputBuilder;
     private int _stmtOutputBuilderUsers;
     private int _testStmtOutputBuilderUsers;
     private int _outputBuilderUsers;
-    private CXXRecordDecl _cxxRecordDeclContext;
+    private CXXRecordDecl? _cxxRecordDeclContext;
     private bool _disposed;
 
-    public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream> outputStreamFactory = null)
+    public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream>? outputStreamFactory = null)
     {
         if (config is null)
         {
@@ -89,20 +89,20 @@ public sealed partial class PInvokeGenerator : IDisposable
         _index = CXIndex.Create();
         _outputBuilderFactory = new OutputBuilderFactory(config);
         _outputStreamFactory = outputStreamFactory ?? ((path) => {
-            var directoryPath = Path.GetDirectoryName(path);
+            var directoryPath = Path.GetDirectoryName(path) ?? "";
             _ = Directory.CreateDirectory(directoryPath);
             return new FileStream(path, FileMode.Create);
         });
         _fileContentsBuilder = new StringBuilder();
         _visitedFiles = new HashSet<string>();
         _diagnostics = new List<Diagnostic>();
-        _context = new LinkedList<(Cursor, object)>();
+        _context = new LinkedList<(Cursor, object?)>();
         _config = config;
         _uuidsToGenerate = new Dictionary<string, Guid>();
         _generatedUuids = new HashSet<string>();
         _cursorNames = new Dictionary<NamedDecl, string>();
         _cursorQualifiedNames = new Dictionary<(NamedDecl, bool), string>();
-        _typeNames = new Dictionary<(Cursor, Cursor, Type), (string, string)>();
+        _typeNames = new Dictionary<(Cursor?, Cursor?, Type), (string, string)>();
         _allValidNameRemappings = new Dictionary<string, HashSet<string>>() {
             ["intptr_t"] = new HashSet<string>() { "IntPtr", "nint" },
             ["ptrdiff_t"] = new HashSet<string>() { "IntPtr", "nint" },
@@ -119,6 +119,8 @@ public sealed partial class PInvokeGenerator : IDisposable
         _topLevelClassAttributes = new Dictionary<string, List<string>>();
         _topLevelClassUsings = new Dictionary<string, HashSet<string>>();
         _usedRemappings = new HashSet<string>();
+        _filePath = "";
+        _clangCommandLineArgs = Array.Empty<string>();
     }
 
     ~PInvokeGenerator()
@@ -128,7 +130,15 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     public PInvokeGeneratorConfiguration Config => _config;
 
-    public (Cursor Cursor, object UserData) CurrentContext => _context.Last.Value;
+    public (Cursor Cursor, object? UserData) CurrentContext
+    {
+        get
+        {
+            var currentContext = _context.Last;
+            Debug.Assert(currentContext is not null);
+            return currentContext.Value;
+        }
+    }
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
 
@@ -136,11 +146,24 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     public CXIndex IndexHandle => _index;
 
-    public (Cursor Cursor, object UserData) PreviousContext => _context.Last.Previous.Value;
+    public (Cursor Cursor, object? UserData) PreviousContext
+    {
+        get
+        {
+            var previousContext = _context.Last;
+            Debug.Assert(previousContext is not null);
+
+            previousContext = previousContext.Previous;
+            Debug.Assert(previousContext is not null);
+
+            return previousContext.Value;
+        }
+    }
 
     public void Close()
     {
-        Stream stream = null;
+        Stream? stream = null;
+
         var methodClassOutputBuilders = new Dictionary<string, IOutputBuilder>();
         var methodClassTestOutputBuilders = new Dictionary<string, IOutputBuilder>();
         var emitNamespaceDeclaration = true;
@@ -156,7 +179,10 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
 
             StartUsingOutputBuilder(GetClass(iidName));
+
+            Debug.Assert(_outputBuilder is not null);
             _outputBuilder.WriteIid(iidName, foundUuid.Value);
+
             StopUsingOutputBuilder();
         }
 
@@ -264,6 +290,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 continue;
             }
 
+            Debug.Assert(stream is not null);
             CloseOutputBuilder(stream, outputBuilder, isMethodClass, leaveStreamOpen, emitNamespaceDeclaration);
             emitNamespaceDeclaration = false;
         }
@@ -281,6 +308,8 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (leaveStreamOpen && _outputBuilderFactory.OutputBuilders.Any())
         {
+            Debug.Assert(stream is not null);
+
             foreach (var entry in methodClassOutputBuilders)
             {
                 var hasGuidMember = _config.GenerateGuidMember && _config.GeneratePreviewCode;
@@ -1406,7 +1435,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         _diagnostics.Add(diagnostic);
     }
 
-    private void AddDiagnostic(DiagnosticLevel level, string message, Cursor cursor)
+    private void AddDiagnostic(DiagnosticLevel level, string message, Cursor? cursor)
     {
         var diagnostic = new Diagnostic(level, message, (cursor?.Location).GetValueOrDefault());
 
@@ -1969,7 +1998,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return types.ToArray();
     }
 
-    private CallingConvention GetCallingConvention(Cursor cursor, Cursor context, Type type)
+    private CallingConvention GetCallingConvention(Cursor? cursor, Cursor? context, Type type)
     {
         if (cursor is FunctionDecl functionDecl)
         {
@@ -1995,7 +2024,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return GetCallingConvention(cursor, context, type, ref wasRemapped);
     }
 
-    private CallingConvention GetCallingConvention(Cursor cursor, Cursor context, Type type, ref bool wasRemapped)
+    private CallingConvention GetCallingConvention(Cursor? cursor, Cursor? context, Type type, ref bool wasRemapped)
     {
         var remappedName = GetRemappedTypeName(cursor, context, type, out _, ignoreTransparentStructsWhereRequired: false, skipUsing: true);
 
@@ -2125,11 +2154,13 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         if (!_cursorNames.TryGetValue(namedDecl, out var name))
         {
-            name = namedDecl.Name.Replace('\\', '/');
+            name = namedDecl.Name.NormalizePath();
 
             if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
             {
-                name = GetCursorName(cxxConstructorDecl.Parent);
+                var parent = cxxConstructorDecl.Parent;
+                Debug.Assert(parent is not null);
+                name = GetCursorName(parent);
             }
             else if (namedDecl is CXXDestructorDecl)
             {
@@ -2169,7 +2200,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         if (!_cursorQualifiedNames.TryGetValue((namedDecl, truncateParameters), out var qualifiedName))
         {
             var parts = new Stack<NamedDecl>();
-            Decl decl = namedDecl;
+            Decl? decl = namedDecl;
 
             do
             {
@@ -2178,11 +2209,18 @@ public sealed partial class PInvokeGenerator : IDisposable
                     parts.Push(parentNamedDecl);
                 }
 
-                decl = (decl.DeclContext is null) && (decl is CXXMethodDecl cxxMethodDecl)
-                    ? cxxMethodDecl.ThisObjectType.AsCXXRecordDecl
-                    : (Decl)decl.DeclContext;
+                if ((decl.DeclContext is null) && (decl is CXXMethodDecl cxxMethodDecl))
+                {
+                    var cxxRecordDecl = cxxMethodDecl.ThisObjectType.AsCXXRecordDecl;
+                    Debug.Assert(cxxRecordDecl is not null);
+                    decl = cxxRecordDecl;
+                }
+                else
+                {
+                    decl = (Decl?)decl.DeclContext;
+                }
             }
-            while (decl != null);
+            while (decl is not null);
 
             var qualifiedNameBuilder = new StringBuilder();
 
@@ -2361,7 +2399,10 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         if (!_overloadIndices.TryGetValue(cxxMethodDeclToMatch, out var index))
         {
-            index = GetOverloadIndex(cxxMethodDeclToMatch, cxxMethodDeclToMatch.Parent, baseIndex: 0);
+            var parent = cxxMethodDeclToMatch.Parent;
+            Debug.Assert(parent is not null);
+
+            index = GetOverloadIndex(cxxMethodDeclToMatch, parent, baseIndex: 0);
             _overloadIndices.Add(cxxMethodDeclToMatch, index);
         }
         return index;
@@ -2480,7 +2521,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
         {
-            remappedName = GetRemappedCursorName(cxxConstructorDecl.Parent);
+            var parent = cxxConstructorDecl.Parent;
+            Debug.Assert(parent is not null);
+            remappedName = GetRemappedCursorName(parent);
         }
         else if (namedDecl is FieldDecl fieldDecl)
         {
@@ -2488,9 +2531,12 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 remappedName = "Anonymous";
 
-                if (fieldDecl.Parent.AnonymousFields.Count > 1)
+                var parent = fieldDecl.Parent;
+                Debug.Assert(parent is not null);
+
+                if (parent.AnonymousFields.Count > 1)
                 {
-                    var index = fieldDecl.Parent.AnonymousFields.IndexOf(fieldDecl) + 1;
+                    var index = parent.AnonymousFields.IndexOf(fieldDecl) + 1;
                     remappedName += index.ToString();
                 }
             }
@@ -2503,7 +2549,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordDecl.TypeForDecl.CanonicalType).FirstOrDefault();
 
-                if (matchingField != null)
+                if (matchingField is not null)
                 {
                     remappedName = "_";
                     remappedName += GetRemappedCursorName(matchingField);
@@ -2521,12 +2567,12 @@ public sealed partial class PInvokeGenerator : IDisposable
         return remappedName;
     }
 
-    private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
+    private string GetRemappedName(string name, Cursor? cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
     {
         return GetRemappedName(name, cursor, tryRemapOperatorName, out wasRemapped, skipUsing, skipUsingIfNotRemapped: skipUsing);
     }
 
-    private string GetRemappedName(string name, Cursor cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing, bool skipUsingIfNotRemapped)
+    private string GetRemappedName(string name, Cursor? cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing, bool skipUsingIfNotRemapped)
     {
         if (_config.RemappedNames.TryGetValue(name, out var remappedName))
         {
@@ -2559,6 +2605,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if ((cursor is CXXBaseSpecifier cxxBaseSpecifier) && remappedName.StartsWith("__AnonymousBase_"))
         {
+            Debug.Assert(_cxxRecordDeclContext is not null);
             remappedName = "Base";
 
             if (_cxxRecordDeclContext.Bases.Count > 1)
@@ -2574,7 +2621,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         wasRemapped = false;
         return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsingIfNotRemapped);
 
-        string AddUsingDirectiveIfNeeded(IOutputBuilder outputBuilder, string remappedName, bool skipUsing)
+        string AddUsingDirectiveIfNeeded(IOutputBuilder? outputBuilder, string remappedName, bool skipUsing)
         {
             if (!skipUsing)
             {
@@ -2608,7 +2655,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private string GetRemappedTypeName(Cursor cursor, Cursor context, Type type, out string nativeTypeName, bool skipUsing = false, bool ignoreTransparentStructsWhereRequired = false)
+    private string GetRemappedTypeName(Cursor? cursor, Cursor? context, Type type, out string nativeTypeName, bool skipUsing = false, bool ignoreTransparentStructsWhereRequired = false)
     {
         var name = GetTypeName(cursor, context, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
 
@@ -2658,7 +2705,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 {
                     var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordType).FirstOrDefault();
 
-                    if (matchingField != null)
+                    if (matchingField is not null)
                     {
                         remappedName = "_";
                         remappedName += GetRemappedCursorName(matchingField);
@@ -2810,14 +2857,14 @@ public sealed partial class PInvokeGenerator : IDisposable
         return targetTypeName;
     }
 
-    private string GetTypeName(Cursor cursor, Cursor context, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
+    private string GetTypeName(Cursor? cursor, Cursor? context, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
         => GetTypeName(cursor, context, type, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
 
-    private string GetTypeName(Cursor cursor, Cursor context, Type rootType, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
+    private string GetTypeName(Cursor? cursor, Cursor? context, Type rootType, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
     {
         if (!_typeNames.TryGetValue((cursor, context, type), out var result))
         {
-            result.typeName = type.AsString.Replace('\\', '/');
+            result.typeName = type.AsString.NormalizePath();
 
             if (result.typeName.Contains("unnamed struct at"))
             {
@@ -3099,7 +3146,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                             _outputBuilder = new CSharpOutputBuilder("ClangSharp_TemplateSpecializationType_AsExpr", _config);
 
                             Visit(arg.AsExpr);
-                            typeName = _outputBuilder.ToString();
+                            typeName = _outputBuilder.ToString() ?? "";
 
                             _outputBuilder = oldOutputBuilder;
                             break;
@@ -3123,7 +3170,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     {
                         // Pointers are not yet supported as generic arguments; remap to IntPtr
                         typeName = "IntPtr";
-                        _outputBuilder.EmitSystemSupport();
+                        _outputBuilder?.EmitSystemSupport();
                     }
 
                     _ = nameBuilder.Append(typeName);
@@ -3182,7 +3229,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return result.typeName;
     }
 
-    private string GetTypeNameForPointeeType(Cursor cursor, Cursor context, Type rootType, Type pointeeType, bool ignoreTransparentStructsWhereRequired, out string nativePointeeTypeName)
+    private string GetTypeNameForPointeeType(Cursor? cursor, Cursor? context, Type rootType, Type pointeeType, bool ignoreTransparentStructsWhereRequired, out string nativePointeeTypeName)
     {
         var name = pointeeType.AsString;
         nativePointeeTypeName = name;
@@ -3265,9 +3312,10 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 if (isMacroDefinitionRecord)
                 {
+                    Debug.Assert(cursor is not null);
                     varDecl = (VarDecl)cursor;
 
-                    if (IsStmtAsWritten(varDecl.Init, out DeclRefExpr declRefExpr, removeParens: true) && (declRefExpr.Decl is FunctionDecl functionDecl))
+                    if (IsStmtAsWritten<DeclRefExpr>(varDecl.Init, out var declRefExpr, removeParens: true) && (declRefExpr.Decl is FunctionDecl functionDecl))
                     {
                         cursor = functionDecl;
                         paramTypes = functionDecl.Parameters.Select((param) => param.Type);
@@ -3356,7 +3404,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             if (type is ConstantArrayType or IncompleteArrayType)
             {
                 var count = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1);
-                GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out var elementSize32, out var elementSize64);                   
+                GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out var elementSize32, out var elementSize64);
 
                 size32 = elementSize32 * Math.Max(count, 1);
                 size64 = elementSize64 * Math.Max(count, 1);
@@ -3811,7 +3859,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private bool HasSuppressGCTransition(Cursor cursor)
+    private bool HasSuppressGCTransition(Cursor? cursor)
     {
         if (cursor is not NamedDecl namedDecl)
         {
@@ -4080,9 +4128,15 @@ public sealed partial class PInvokeGenerator : IDisposable
                 {
                     isExcludedByConfigOption = true;
                 }
-                else if ((functionDecl is CXXMethodDecl cxxMethodDecl) && IsConflictingMethodDecl(cxxMethodDecl, cxxMethodDecl.Parent))
+                else if (functionDecl is CXXMethodDecl cxxMethodDecl)
                 {
-                    isExcludedValue |= 0b10;
+                    var parent = cxxMethodDecl.Parent;
+                    Debug.Assert(parent is not null);
+
+                    if (IsConflictingMethodDecl(cxxMethodDecl, parent))
+                    {
+                        isExcludedValue |= 0b10;
+                    }
                 }
             }
 
@@ -4170,7 +4224,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
 
             // Normalize paths to be '/' for comparison
-            var fileName = file.Name.ToString().Replace('\\', '/');
+            var fileName = file.Name.ToString().NormalizePath();
 
             if (_visitedFiles.Add(fileName) && _config.LogVisitedFiles)
             {
@@ -4205,7 +4259,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 parmVarDecl = functionDecl.Parameters.FirstOrDefault();
             }
 
-            if ((parmVarDecl != null) && (parmVarDecl.Type is PointerType pointerType))
+            if ((parmVarDecl is not null) && (parmVarDecl.Type is PointerType pointerType))
             {
                 var typeName = GetTypeName(parmVarDecl, context: null, pointerType.PointeeType, ignoreTransparentStructsWhereRequired: false, out var nativeTypeName);
                 return name.StartsWith($"{nativeTypeName}_") || name.StartsWith($"{typeName}_") || (typeName == "IRpcStubBuffer");
@@ -4475,15 +4529,18 @@ public sealed partial class PInvokeGenerator : IDisposable
         return false;
     }
 
-    private bool IsPrevContextDecl<T>(out T cursor, out object userData)
+    private bool IsPrevContextDecl<T>([MaybeNullWhen(false)] out T cursor, out object? userData)
         where T : Decl
     {
-        var previousContext = _context.Last.Previous;
+        var previousContext = _context.Last;
+        Debug.Assert(previousContext != null);
 
-        while (previousContext.Value.Cursor is not Decl)
+        do
         {
             previousContext = previousContext.Previous;
+            Debug.Assert(previousContext != null);
         }
+        while (previousContext.Value.Cursor is not Decl);
 
         var value = previousContext.Value;
 
@@ -4501,15 +4558,18 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private bool IsPrevContextStmt<T>(out T cursor, out object userData, bool preserveParen = false, bool preserveImplicitCast = false)
+    private bool IsPrevContextStmt<T>([MaybeNullWhen(false)] out T cursor, out object? userData, bool preserveParen = false, bool preserveImplicitCast = false)
         where T : Stmt
     {
-        var previousContext = _context.Last.Previous;
+        var previousContext = _context.Last;
+        Debug.Assert(previousContext != null);
 
-        while ((!preserveParen && (previousContext.Value.Cursor is ParenExpr)) || (!preserveImplicitCast && (previousContext.Value.Cursor is ImplicitCastExpr)))
+        do
         {
             previousContext = previousContext.Previous;
+            Debug.Assert(previousContext is not null);
         }
+        while ((!preserveParen && (previousContext.Value.Cursor is ParenExpr)) || (!preserveImplicitCast && (previousContext.Value.Cursor is ImplicitCastExpr)));
 
         var value = previousContext.Value;
 
@@ -4527,7 +4587,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private static bool IsStmtAsWritten<T>(Cursor cursor, out T value, bool removeParens = false)
+    private static bool IsStmtAsWritten<T>(Cursor cursor, [MaybeNullWhen(false)] out T value, bool removeParens = false)
         where T : Stmt
     {
         if (cursor is Expr expr)
@@ -5374,6 +5434,8 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             if (_stmtOutputBuilderUsers > 0)
             {
+                Debug.Assert(_stmtOutputBuilder is not null);
+
                 _stmtOutputBuilder.Write('(');
                 _stmtOutputBuilder.BeginMarker("value");
                 Visit(stmt);
@@ -5382,6 +5444,8 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else
             {
+                Debug.Assert(_outputBuilder is not null);
+
                 _outputBuilder.BeginInnerValue();
                 Visit(stmt);
                 _outputBuilder.EndInnerValue();
@@ -5427,6 +5491,8 @@ public sealed partial class PInvokeGenerator : IDisposable
                         _testOutputBuilder = (CSharpOutputBuilder)testOutputBuilder;
                     }
                 }
+
+                Debug.Assert(_testOutputBuilder is not null);
                 _testOutputBuilder.NeedsNewline = true;
             }
             return;
@@ -5458,7 +5524,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     _testOutputBuilder = (CSharpOutputBuilder)testOutputBuilder;
                 }
 
-                Debug.Assert(_testOutputBuilder.IsTestOutput);
+                Debug.Assert(_testOutputBuilder is not null);
                 _testOutputBuilder.NeedsNewline = true;
             }
         }
@@ -5679,6 +5745,8 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private void UncheckStmt(string targetTypeName, Stmt stmt)
     {
+        Debug.Assert(_outputBuilder is not null);
+
         if (!_outputBuilder.IsUncheckedContext && IsUnchecked(targetTypeName, stmt))
         {
             _outputBuilder.BeginUnchecked();
@@ -5792,6 +5860,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private void WithAttributes(NamedDecl namedDecl, bool onlySupportedOSPlatform = false, bool isTestOutput = false)
     {
         var outputBuilder = isTestOutput ? _testOutputBuilder : _outputBuilder;
+        Debug.Assert(outputBuilder is not null);
 
         if (TryGetRemappedValue(namedDecl, _config.WithAttributes, out var attributes))
         {
@@ -5873,7 +5942,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return className;
     }
 
-    private bool TryGetClass(string remappedName, out string className, bool disallowPrefixMatch = false)
+    private bool TryGetClass(string remappedName, [MaybeNullWhen(false)] out string className, bool disallowPrefixMatch = false)
     {
         var index = remappedName.IndexOf('*');
 
@@ -5914,7 +5983,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return false;
     }
 
-    private string GetNamespace(string remappedName, NamedDecl namedDecl = null)
+    private string GetNamespace(string remappedName, NamedDecl? namedDecl = null)
     {
         if (!TryGetNamespace(remappedName, out var namespaceName))
         {
@@ -5935,7 +6004,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return namespaceName;
     }
 
-    private bool TryGetNamespace(string remappedName, out string namespaceName)
+    private bool TryGetNamespace(string remappedName, [MaybeNullWhen(false)] out string namespaceName)
     {
         var index = remappedName.IndexOf('*');
 
@@ -6009,7 +6078,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return false;
     }
 
-    private bool TryGetRemappedValue<T>(NamedDecl namedDecl, IReadOnlyDictionary<string, T> remappings, out T value, bool matchStar = false)
+    private bool TryGetRemappedValue<T>(NamedDecl namedDecl, IReadOnlyDictionary<string, T> remappings, [MaybeNullWhen(false)] out T value, bool matchStar = false)
     {
         var name = GetCursorQualifiedName(namedDecl);
 
@@ -6074,10 +6143,12 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         if (_config.GenerateTestsNUnit)
         {
+            Debug.Assert(_testOutputBuilder is not null);
             _testOutputBuilder.WriteIndentedLine("[Test]");
         }
         else if (_config.GenerateTestsXUnit)
         {
+            Debug.Assert(_testOutputBuilder is not null);
             _testOutputBuilder.WriteIndentedLine("[Fact]");
         }
     }
@@ -6086,6 +6157,8 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         if (_config.GenerateTestsNUnit)
         {
+            Debug.Assert(_testOutputBuilder is not null);
+
             _testOutputBuilder.WriteIndented("Assert.That");
             _testOutputBuilder.Write('(');
             _testOutputBuilder.Write(actual);
@@ -6097,6 +6170,8 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
         else if (_config.GenerateTestsXUnit)
         {
+            Debug.Assert(_testOutputBuilder is not null);
+
             _testOutputBuilder.WriteIndented("Assert.Equal");
             _testOutputBuilder.Write('(');
             _testOutputBuilder.Write(expected);
@@ -6112,6 +6187,8 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         if (_config.GenerateTestsNUnit)
         {
+            Debug.Assert(_testOutputBuilder is not null);
+
             _testOutputBuilder.WriteIndented("Assert.That");
             _testOutputBuilder.Write('(');
             _testOutputBuilder.Write(actual);
@@ -6121,6 +6198,8 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
         else if (_config.GenerateTestsXUnit)
         {
+            Debug.Assert(_testOutputBuilder is not null);
+
             _testOutputBuilder.WriteIndented("Assert.True");
             _testOutputBuilder.Write('(');
             _testOutputBuilder.Write(actual);
@@ -6150,6 +6229,8 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private void WithUsings(NamedDecl namedDecl)
     {
+        Debug.Assert(_outputBuilder is not null);
+
         if (TryGetRemappedValue(namedDecl, _config.WithUsings, out var usings))
         {
             foreach (var @using in usings)
@@ -6172,6 +6253,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (_stmtOutputBuilder is null)
         {
+            Debug.Assert(_outputBuilder is not null);
             _stmtOutputBuilder = _outputBuilder.BeginCSharpCode();
             _stmtOutputBuilderUsers = 1;
         }
@@ -6188,6 +6270,9 @@ public sealed partial class PInvokeGenerator : IDisposable
         _stmtOutputBuilderUsers--;
         if (_stmtOutputBuilderUsers <= 0)
         {
+            Debug.Assert(_outputBuilder is not null);
+            Debug.Assert(_stmtOutputBuilder is not null);
+
             _outputBuilder.EndCSharpCode(_stmtOutputBuilder);
 
             if (_testStmtOutputBuilder is not null)

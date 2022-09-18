@@ -13,14 +13,17 @@ internal static class StringExtensions
             ? str[1..^1]
             : str;
 
-    public static string AsString(this AccessSpecifier value) => value switch
-    {
+    public static string NormalizePath(this string str)
+        => str.Replace('\\', '/').Replace("//", "/");
+
+    public static string AsString(this AccessSpecifier value) => value switch {
         AccessSpecifier.Public => "public",
         AccessSpecifier.Protected => "protected",
         AccessSpecifier.ProtectedInternal => "protected internal",
         AccessSpecifier.Internal => "internal",
         AccessSpecifier.PrivateProtected => "private protected",
         AccessSpecifier.Private => "private",
+        AccessSpecifier.None => "public",
         _ => "public"
     };
 

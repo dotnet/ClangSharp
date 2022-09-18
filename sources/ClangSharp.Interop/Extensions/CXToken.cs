@@ -26,7 +26,7 @@ public unsafe partial struct CXToken : IEquatable<CXToken>
                (left.ptr_data != right.ptr_data);
     }
 
-    public override bool Equals(object obj) => (obj is CXSourceRange other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXSourceRange other) && Equals(other);
 
     public bool Equals(CXToken other) => this == other;
 

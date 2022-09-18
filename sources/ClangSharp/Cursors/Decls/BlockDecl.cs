@@ -53,7 +53,7 @@ public sealed partial class BlockDecl : Decl, IDeclContext
 
     public bool CapturesCXXThis => Handle.CapturesCXXThis;
 
-    public CompoundStmt CompoundBody => (CompoundStmt)Body;
+    public CompoundStmt? CompoundBody => (CompoundStmt?)Body;
 
     public bool DoesNotEscape => Handle.DoesNotEscape;
 

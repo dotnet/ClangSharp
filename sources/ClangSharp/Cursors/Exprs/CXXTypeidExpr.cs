@@ -17,7 +17,7 @@ public sealed class CXXTypeidExpr : Expr
         _typeOperand = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(handle.TypeOperand));
     }
 
-    public Expr ExprOperand => (Expr)Children.SingleOrDefault();
+    public Expr? ExprOperand => (Expr?)Children.SingleOrDefault();
 
     public bool IsPotentiallyEvaluated => Handle.IsPotentiallyEvaluated;
 

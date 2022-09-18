@@ -16,7 +16,7 @@ public sealed class CaseStmt : SwitchCase
 
     public Expr LHS => (Expr)Children[LHSOffset];
 
-    public Expr RHS => CaseStmtIsGNURange ? (Expr)Children[RHSOffset] : null;
+    public Expr? RHS => CaseStmtIsGNURange ? (Expr)Children[RHSOffset] : null;
 
     public new Stmt SubStmt => Children[SubStmtOffset];
 

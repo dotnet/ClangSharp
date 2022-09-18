@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.Diagnostics;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -34,14 +35,18 @@ public class Expr : ValueStmt
         {
             if (!gse.IsResultDependent)
             {
-                return gse.ResultExpr;
+                var resultExpr = gse.ResultExpr;
+                Debug.Assert(resultExpr is not null);
+                return resultExpr!;
             }
         }
         else if (e is ChooseExpr ce)
         {
             if (!ce.IsConditionDependent)
             {
-                return ce.ChosenSubExpr;
+                var chosenSubExpr = ce.ChosenSubExpr;
+                Debug.Assert(chosenSubExpr is not null);
+                return chosenSubExpr!;
             }
         }
 
@@ -125,7 +130,7 @@ public class Expr : ValueStmt
 
     private static Expr IgnoreExprNodes(Expr e, Func<Expr, Expr> fn)
     {
-        Expr lastE = null;
+        Expr? lastE = null;
 
         while (e != lastE)
         {

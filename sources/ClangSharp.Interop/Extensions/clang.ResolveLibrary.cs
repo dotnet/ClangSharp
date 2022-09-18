@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp.Interop;
 
-public static unsafe partial class clang
+public static unsafe partial class @clang
 {
-    public static event DllImportResolver ResolveLibrary;
+    public static event DllImportResolver? ResolveLibrary;
 
-    static clang()
+    static @clang()
     {
         NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), OnDllImport);
     }

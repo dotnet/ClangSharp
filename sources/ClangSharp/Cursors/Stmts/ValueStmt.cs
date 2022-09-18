@@ -16,7 +16,7 @@ public class ValueStmt : Stmt
         }
     }
 
-    public Expr ExprStmt
+    public Expr? ExprStmt
     {
         get
         {

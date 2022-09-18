@@ -13,5 +13,5 @@ public sealed class PredefinedExpr : Expr
         Debug.Assert(NumChildren is 0 or 1);
     }
 
-    public StringLiteral FunctionName => (StringLiteral)Children.SingleOrDefault();
+    public StringLiteral? FunctionName => (StringLiteral?)Children.SingleOrDefault();
 }

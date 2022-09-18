@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Abstractions;
-using ClangSharp.CSharp;
 using ClangSharp.Interop;
 
 namespace ClangSharp;
@@ -259,6 +258,8 @@ public partial class PInvokeGenerator
 
     private void VisitEnumConstantDecl(EnumConstantDecl enumConstantDecl)
     {
+        Debug.Assert(_outputBuilder is not null);
+
         var accessSpecifier = AccessSpecifier.None;
         var name = GetRemappedCursorName(enumConstantDecl);
         var escapedName = EscapeName(name);
@@ -354,6 +355,7 @@ public partial class PInvokeGenerator
 
         StartUsingOutputBuilder(name);
         {
+            Debug.Assert(_outputBuilder is not null);
             EnumDesc desc = default;
 
             if (!isAnonymousEnum)
@@ -393,6 +395,8 @@ public partial class PInvokeGenerator
 
     private void VisitFieldDecl(FieldDecl fieldDecl)
     {
+        Debug.Assert(_outputBuilder is not null);
+
         if (fieldDecl.IsBitField)
         {
             return;
@@ -419,8 +423,11 @@ public partial class PInvokeGenerator
             nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? typeName.Replace("byte*", "bool *") : nativeTypeName;
         }
 
+        var parent = fieldDecl.Parent;
+        Debug.Assert(parent is not null);
+
         int? offset = null;
-        if (fieldDecl.Parent.IsUnion)
+        if (parent.IsUnion)
         {
             offset = 0;
         }
@@ -429,7 +436,7 @@ public partial class PInvokeGenerator
             AccessSpecifier = accessSpecifier,
             NativeTypeName = nativeTypeName,
             EscapedName = escapedName,
-            ParentName = GetRemappedCursorName(fieldDecl.Parent),
+            ParentName = GetRemappedCursorName(parent),
             Offset = offset,
             NeedsNewKeyword = NeedsNewKeyword(name),
             Location = fieldDecl.Location,
@@ -484,11 +491,12 @@ public partial class PInvokeGenerator
         var name = GetRemappedCursorName(functionDecl);
 
         var cxxMethodDecl = functionDecl as CXXMethodDecl;
-        var isCxxMethodDecl = cxxMethodDecl is not null;
 
-        if (isCxxMethodDecl && (cxxMethodDecl is CXXConstructorDecl))
+        if (cxxMethodDecl is not null and CXXConstructorDecl)
         {
-            name = GetRemappedCursorName(cxxMethodDecl.Parent);
+            var parent = cxxMethodDecl.Parent;
+            Debug.Assert(parent is not null);
+            name = GetRemappedCursorName(parent);
         }
 
         var isManualImport = _config.WithManualImports.Contains(name);
@@ -496,26 +504,36 @@ public partial class PInvokeGenerator
         var className = name;
         var parentName = "";
 
-        if (functionDecl.DeclContext is not CXXRecordDecl cxxRecordDecl)
+        var cxxRecordDecl = functionDecl.DeclContext as CXXRecordDecl;
+
+        if (cxxRecordDecl is null)
         {
-            cxxRecordDecl = null;
             className = GetClass(name);
             parentName = className;
             StartUsingOutputBuilder(className);
         }
-        else if ((Cursor)functionDecl.LexicalDeclContext != cxxRecordDecl)
+        else if ((Cursor?)functionDecl.LexicalDeclContext != cxxRecordDecl)
         {
             // We shouldn't reprocess C++ functions outside the declaration
             return;
         }
 
         var accessSpecifier = GetAccessSpecifier(functionDecl, matchStar: false);
-
         var body = functionDecl.Body;
-        var hasBody = body is not null;
 
-        var isVirtual = isCxxMethodDecl && cxxMethodDecl.IsVirtual;
-        var escapedName = isVirtual ? PrefixAndStripName(name, GetOverloadIndex(cxxMethodDecl)) : EscapeAndStripName(name);
+        bool isVirtual;
+        string escapedName;
+
+        if ((cxxMethodDecl is not null) && cxxMethodDecl.IsVirtual)
+        {
+            isVirtual = true;
+            escapedName = PrefixAndStripName(name, GetOverloadIndex(cxxMethodDecl));
+        }
+        else
+        {
+            isVirtual = false;
+            escapedName = EscapeAndStripName(name);
+        }
 
         var returnType = functionDecl.ReturnType;
         var returnTypeName = GetRemappedTypeName(functionDecl, cxxRecordDecl, returnType, out var nativeTypeName);
@@ -527,7 +545,7 @@ public partial class PInvokeGenerator
             AddDiagnostic(DiagnosticLevel.Warning, $"Found manual import for {name} with no class remapping. First Parameter Type: {firstParameterTypeName}; Return Type: {returnTypeName}", functionDecl);
         }
 
-        if (isVirtual || !hasBody)
+        if (isVirtual || (body is null))
         {
             if (returnTypeName == "bool")
             {
@@ -547,7 +565,7 @@ public partial class PInvokeGenerator
         var type = functionDecl.Type;
         var callingConventionName = GetCallingConvention(functionDecl, cxxRecordDecl, type);
 
-        var isDllImport = !hasBody && !isVirtual;
+        var isDllImport = (body is null) && !isVirtual;
         var entryPoint = "";
 
         if (isDllImport)
@@ -555,7 +573,7 @@ public partial class PInvokeGenerator
             entryPoint = functionDecl.IsExternC ? GetCursorName(functionDecl) : functionDecl.Handle.Mangling.CString;
         }
 
-        var needsReturnFixup = isCxxMethodDecl && NeedsReturnFixup(cxxMethodDecl);
+        var needsReturnFixup = (cxxMethodDecl is not null) && NeedsReturnFixup(cxxMethodDecl);
 
         var desc = new FunctionOrDelegateDesc {
             AccessSpecifier = accessSpecifier,
@@ -570,8 +588,8 @@ public partial class PInvokeGenerator
             IsManualImport = isManualImport,
             HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
             SetLastError = GetSetLastError(functionDecl),
-            IsCxx = isCxxMethodDecl,
-            IsStatic = isDllImport || !isCxxMethodDecl || cxxMethodDecl.IsStatic,
+            IsCxx = cxxMethodDecl is not null,
+            IsStatic = isDllImport || (cxxMethodDecl is null) || cxxMethodDecl.IsStatic,
             NeedsNewKeyword = NeedsNewKeyword(escapedName, functionDecl.Parameters),
             IsUnsafe = IsUnsafe(functionDecl),
             IsCtxCxxRecord = cxxRecordDecl is not null,
@@ -580,7 +598,7 @@ public partial class PInvokeGenerator
             ReturnType = needsReturnFixup ? $"{returnTypeName}*" : returnTypeName,
             IsCxxConstructor = functionDecl is CXXConstructorDecl,
             Location = functionDecl.Location,
-            HasBody = hasBody,
+            HasBody = body is not null,
             WriteCustomAttrs = static context => {
                 (var functionDecl, var outputBuilder, var generator) = ((FunctionDecl, IOutputBuilder, PInvokeGenerator))context;
 
@@ -594,6 +612,7 @@ public partial class PInvokeGenerator
             },
             CustomAttrGeneratorData = (functionDecl, _outputBuilder, this),
         };
+        Debug.Assert(_outputBuilder is not null);
 
         _ = _topLevelClassIsUnsafe.TryGetValue(className, out var isUnsafe);
         _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
@@ -601,11 +620,11 @@ public partial class PInvokeGenerator
 
         _outputBuilder.BeginFunctionInnerPrototype(in desc);
 
-        var needsThis = isVirtual || (isCxxMethodDecl && !hasBody && cxxMethodDecl.IsInstance);
+        var needsThis = isVirtual || ((cxxMethodDecl is not null) && (body is null) && cxxMethodDecl.IsInstance);
 
         if (needsThis)
         {
-            Debug.Assert(cxxRecordDecl != null);
+            Debug.Assert(cxxRecordDecl is not null);
 
             if (!IsPrevContextDecl<CXXRecordDecl>(out var thisCursor, out _))
             {
@@ -659,12 +678,14 @@ public partial class PInvokeGenerator
 
         _outputBuilder.EndFunctionInnerPrototype(in desc);
 
-        if (hasBody && !isVirtual)
+        if ((body is not null) && !isVirtual)
         {
             _outputBuilder.BeginBody();
 
-            if ((_cxxRecordDeclContext is not null) && (_cxxRecordDeclContext != cxxRecordDecl) && HasField(cxxRecordDecl))
+            if ((_cxxRecordDeclContext is not null) && (cxxRecordDecl is not null) && (_cxxRecordDeclContext != cxxRecordDecl) && HasField(cxxRecordDecl))
             {
+                Debug.Assert(cxxMethodDecl is not null);
+
                 var outputBuilder = StartCSharpCode();
                 outputBuilder.WriteIndentation();
 
@@ -673,9 +694,12 @@ public partial class PInvokeGenerator
                     outputBuilder.Write("return ");
                 }
 
-                var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == cxxMethodDecl.Parent).SingleOrDefault();
+                var parent = cxxMethodDecl.Parent;
+                Debug.Assert(parent is not null);
 
-                if (cxxBaseSpecifier != null)
+                var cxxBaseSpecifier = _cxxRecordDeclContext.Bases.Where((baseSpecifier) => baseSpecifier.Referenced == parent).SingleOrDefault();
+
+                if (cxxBaseSpecifier is not null)
                 {
                     var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
                     baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
@@ -727,7 +751,7 @@ public partial class PInvokeGenerator
             else
             {
                 var firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
-                var lastCtorInitializer = (functionDecl.Body != null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
+                var lastCtorInitializer = (functionDecl.Body is not null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
 
                 if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
                 {
@@ -817,8 +841,9 @@ public partial class PInvokeGenerator
         }
 
         var fieldDecl = indirectFieldDecl.AnonField;
-        var anonymousRecordDecl = fieldDecl.Parent;
 
+        var anonymousRecordDecl = fieldDecl.Parent;
+        Debug.Assert(anonymousRecordDecl is not null);
         var rootRecordDecl = anonymousRecordDecl;
 
         var contextNameParts = new Stack<string>();
@@ -884,11 +909,14 @@ public partial class PInvokeGenerator
             return;
         }
 
+        var parent = fieldDecl.Parent;
+        Debug.Assert(parent is not null);
+
         var desc = new FieldDesc {
             AccessSpecifier = accessSpecifier,
             NativeTypeName = null,
             EscapedName = escapedName,
-            ParentName = GetRemappedCursorName(fieldDecl.Parent),
+            ParentName = GetRemappedCursorName(parent),
             Offset = null,
             NeedsNewKeyword = false,
             NeedsUnscopedRef = _config.GeneratePreviewCode && !fieldDecl.IsBitField,
@@ -902,6 +930,8 @@ public partial class PInvokeGenerator
             },
             CustomAttrGeneratorData = (fieldDecl, this),
         };
+
+        Debug.Assert(_outputBuilder is not null);
 
         _outputBuilder.WriteDivider(true);
         _outputBuilder.BeginField(in desc);
@@ -1105,6 +1135,8 @@ public partial class PInvokeGenerator
 
     private void VisitParmVarDecl(ParmVarDecl parmVarDecl)
     {
+        Debug.Assert(_outputBuilder is not null);
+
         if (IsExcluded(parmVarDecl))
         {
             return;
@@ -1121,7 +1153,7 @@ public partial class PInvokeGenerator
         else
         {
             _ = IsPrevContextDecl<Decl>(out var previousContext, out _);
-            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.", previousContext);
+            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported parameter variable declaration parent: '{previousContext?.CursorKindSpelling}'. Generated bindings may be incomplete.", previousContext);
         }
 
         void ForFunctionDecl(ParmVarDecl parmVarDecl, FunctionDecl functionDecl)
@@ -1307,7 +1339,7 @@ public partial class PInvokeGenerator
             var hasVtbl = false;
             var hasBaseVtbl = false;
 
-            if (cxxRecordDecl != null)
+            if (cxxRecordDecl is not null)
             {
                 hasVtbl = HasVtbl(cxxRecordDecl, out hasBaseVtbl);
             }
@@ -1316,10 +1348,12 @@ public partial class PInvokeGenerator
             var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
             var isTopLevelStruct = _config.WithTypes.TryGetValue(name, out var withType) && (withType == "struct");
-            var generateTestsClass = _testOutputBuilder != null && !recordDecl.IsAnonymousStructOrUnion && recordDecl.DeclContext is not RecordDecl;
+            var generateTestsClass = !recordDecl.IsAnonymousStructOrUnion && recordDecl.DeclContext is not RecordDecl;
 
-            if (generateTestsClass && !isTopLevelStruct)
+            if ((_testOutputBuilder is not null) && generateTestsClass && !isTopLevelStruct)
             {
+                Debug.Assert(_testOutputBuilder is not null);
+
                 _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=\"");
                 _testOutputBuilder.Write(escapedName);
                 _testOutputBuilder.WriteLine("\" /> struct.</summary>");
@@ -1342,7 +1376,7 @@ public partial class PInvokeGenerator
 
                 _uuidsToGenerate.Add(uuidName, uuid);
 
-                if (_testOutputBuilder != null)
+                if (_testOutputBuilder is not null)
                 {
                     var className = GetClass(uuidName);
 
@@ -1402,10 +1436,10 @@ public partial class PInvokeGenerator
 
             GetTypeSize(recordDecl, recordDecl.TypeForDecl, ref alignment32, ref alignment64, out var size32, out var size64);
 
-            string[] baseTypeNames = null;
+            string[]? baseTypeNames = null;
 
-            string nativeNameWithExtras = null, nativeInheritance = null;
-            if ((cxxRecordDecl != null) && cxxRecordDecl.Bases.Any())
+            string? nativeNameWithExtras = null, nativeInheritance = null;
+            if ((cxxRecordDecl is not null) && cxxRecordDecl.Bases.Any())
             {
                 var nativeTypeNameBuilder = new StringBuilder();
                 var baseTypeNamesBuilder = new List<string>();
@@ -1461,6 +1495,7 @@ public partial class PInvokeGenerator
                 },
                 CustomAttrGeneratorData = (recordDecl, this),
             };
+            Debug.Assert(_outputBuilder is not null);
 
             if (!isTopLevelStruct)
             {
@@ -1484,9 +1519,9 @@ public partial class PInvokeGenerator
                     _ = withUsings.Add("System.Runtime.InteropServices");
                 }
 
-                if (desc.Uuid is not null)
+                if (desc.Uuid.HasValue)
                 {
-                    withAttributes.Add($"Guid(\"{nullableUuid.Value.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant()}\")");
+                    withAttributes.Add($"Guid(\"{nullableUuid.GetValueOrDefault().ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant()}\")");
                     _ = withUsings.Add("System.Runtime.InteropServices");
                 }
 
@@ -1558,7 +1593,7 @@ public partial class PInvokeGenerator
                 _outputBuilder.EndValue(in valueDesc);
             }
 
-            if (hasVtbl || (hasBaseVtbl && !HasBaseField(cxxRecordDecl)))
+            if (hasVtbl || (hasBaseVtbl && (cxxRecordDecl is not null) && !HasBaseField(cxxRecordDecl)))
             {
                 var fieldDesc = new FieldDesc {
                     AccessSpecifier = AccessSpecifier.Public,
@@ -1567,7 +1602,6 @@ public partial class PInvokeGenerator
                     Offset = null,
                     NeedsNewKeyword = false,
                 };
-
                 _outputBuilder.BeginField(in fieldDesc);
 
                 if (_config.GenerateExplicitVtbls)
@@ -1589,7 +1623,7 @@ public partial class PInvokeGenerator
                 _outputBuilder.EndField(in fieldDesc);
             }
 
-            if (cxxRecordDecl != null)
+            if (cxxRecordDecl is not null)
             {
                 for (var index = 0; index < cxxRecordDecl.Bases.Count; index++)
                 {
@@ -1619,7 +1653,7 @@ public partial class PInvokeGenerator
                 }
             }
 
-            if (generateTestsClass)
+            if ((_testOutputBuilder is not null) && generateTestsClass)
             {
                 _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"");
                 _testOutputBuilder.Write(escapedName);
@@ -1722,7 +1756,7 @@ public partial class PInvokeGenerator
 
             Visit(recordDecl.IndirectFields);
 
-            if (cxxRecordDecl != null)
+            if (cxxRecordDecl is not null)
             {
                 foreach (var cxxConstructorDecl in cxxRecordDecl.Ctors)
                 {
@@ -1744,7 +1778,7 @@ public partial class PInvokeGenerator
 
             var excludedCursors = recordDecl.Fields.AsEnumerable<Cursor>().Concat(recordDecl.IndirectFields);
 
-            if (cxxRecordDecl != null)
+            if (cxxRecordDecl is not null)
             {
                 OutputMethods(cxxRecordDecl, cxxRecordDecl);
                 excludedCursors = excludedCursors.Concat(cxxRecordDecl.Methods);
@@ -1759,6 +1793,8 @@ public partial class PInvokeGenerator
 
             if (hasVtbl || hasBaseVtbl)
             {
+                Debug.Assert(cxxRecordDecl is not null);
+
                 if (!_config.GenerateCompatibleCode)
                 {
                     _outputBuilder.EmitCompatibleCodeSupport();
@@ -1800,7 +1836,7 @@ public partial class PInvokeGenerator
             {
                 _outputBuilder.EndStruct(in desc);
 
-                if (generateTestsClass)
+                if ((_testOutputBuilder is not null) && generateTestsClass)
                 {
                     _testOutputBuilder.WriteBlockEnd();
                 }
@@ -2066,9 +2102,12 @@ public partial class PInvokeGenerator
             var parentName = cxxRecordDeclName;
             var isInherited = false;
 
-            if (cxxMethodDecl.Parent != cxxRecordDecl)
+            var parent = cxxMethodDecl.Parent;
+            Debug.Assert(parent is not null);
+
+            if (parent != cxxRecordDecl)
             {
-                parentName = GetRemappedCursorName(cxxMethodDecl.Parent);
+                parentName = GetRemappedCursorName(parent);
                 isInherited = true;
             }
 
@@ -2311,6 +2350,9 @@ public partial class PInvokeGenerator
             Type typeBacking;
             string typeNameBacking;
 
+            var parent = fieldDecl.Parent;
+            Debug.Assert(parent is not null);
+
             if ((!_config.GenerateUnixTypes && (currentSize != previousSize)) || (fieldDecl.BitWidthValue > remainingBits))
             {
                 if (index >= 0)
@@ -2325,13 +2367,13 @@ public partial class PInvokeGenerator
                 typeBacking = (index > 0) ? types[index - 1] : types[0];
                 typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
 
-                if (fieldDecl.Parent == recordDecl)
+                if (parent == recordDecl)
                 {
                     var fieldDesc = new FieldDesc {
                         AccessSpecifier = AccessSpecifier.Public,
                         NativeTypeName = null,
                         EscapedName = bitfieldName,
-                        Offset = fieldDecl.Parent.IsUnion ? 0 : null,
+                        Offset = parent.IsUnion ? 0 : null,
                         NeedsNewKeyword = false,
                         Location = fieldDecl.Location,
                     };
@@ -2518,7 +2560,7 @@ public partial class PInvokeGenerator
                 AccessSpecifier = accessSpecifier,
                 NativeTypeName = nativeTypeName,
                 EscapedName = escapedName,
-                ParentName = GetRemappedCursorName(fieldDecl.Parent),
+                ParentName = GetRemappedCursorName(parent),
                 Offset = null,
                 NeedsNewKeyword = false,
                 Location = fieldDecl.Location,
@@ -2984,7 +3026,7 @@ public partial class PInvokeGenerator
     {
         ForUnderlyingType(typedefDecl, typedefDecl.UnderlyingType, onlyHandleRemappings);
 
-        void ForFunctionProtoType(TypedefDecl typedefDecl, FunctionProtoType functionProtoType, Type parentType, bool onlyHandleRemappings)
+        void ForFunctionProtoType(TypedefDecl typedefDecl, FunctionProtoType functionProtoType, Type? parentType, bool onlyHandleRemappings)
         {
             if (!_config.ExcludeFnptrCodegen || onlyHandleRemappings)
             {
@@ -3001,6 +3043,8 @@ public partial class PInvokeGenerator
 
             StartUsingOutputBuilder(name);
             {
+                Debug.Assert(_outputBuilder is not null);
+
                 var desc = new FunctionOrDelegateDesc {
                     AccessSpecifier = GetAccessSpecifier(typedefDecl, matchStar: true),
                     CallingConvention = callingConventionName,
@@ -3033,7 +3077,7 @@ public partial class PInvokeGenerator
             StopUsingOutputBuilder();
         }
 
-        void ForPointeeType(TypedefDecl typedefDecl, Type parentType, Type pointeeType, bool onlyHandleRemappings)
+        void ForPointeeType(TypedefDecl typedefDecl, Type? parentType, Type pointeeType, bool onlyHandleRemappings)
         {
             if (pointeeType is AttributedType attributedType)
             {
@@ -3101,7 +3145,10 @@ public partial class PInvokeGenerator
             }
             else if (underlyingType is TagType underlyingTagType)
             {
-                var underlyingName = GetCursorName(underlyingTagType.AsTagDecl);
+                var tagDecl = underlyingTagType.AsTagDecl;
+                Debug.Assert(tagDecl is not null);
+
+                var underlyingName = GetCursorName(tagDecl);
                 var typedefName = GetCursorName(typedefDecl);
 
                 if (underlyingName != typedefName)
@@ -3202,6 +3249,10 @@ public partial class PInvokeGenerator
                     {
                         return;
                     }
+                }
+                else if (IsStmtAsWritten<RecoveryExpr>(varDecl.Init, out var recoveryExpr, removeParens: true))
+                {
+                    return;
                 }
             }
 
@@ -3336,8 +3387,11 @@ public partial class PInvokeGenerator
                     }
                 }
 
-                if (type is ArrayType arrayType)
+                if (type is ArrayType)
                 {
+                    var arrayType = type as ArrayType;
+                    Debug.Assert(arrayType is not null);
+
                     flags |= ValueFlags.Array;
 
                     if (!_config.GenerateUnmanagedConstants)
@@ -3377,6 +3431,7 @@ public partial class PInvokeGenerator
             if (openedOutputBuilder)
             {
                 StartUsingOutputBuilder(className);
+                Debug.Assert(_outputBuilder is not null);
 
                 if ((kind == ValueKind.String) && typeName.StartsWith("ReadOnlySpan<"))
                 {
@@ -3384,8 +3439,13 @@ public partial class PInvokeGenerator
                 }
             }
 
+            Debug.Assert(_outputBuilder is not null);
+
             _outputBuilder.BeginValue(in desc);
-            _context.Last.Value = (_context.Last.Value.Cursor, desc);
+
+            var currentContext = _context.Last;
+            Debug.Assert(currentContext is not null);
+            currentContext.Value = (currentContext.Value.Cursor, desc);
 
             if (varDecl.HasInit)
             {
@@ -3424,7 +3484,7 @@ public partial class PInvokeGenerator
         else
         {
             _ = IsPrevContextDecl<Decl>(out var previousContext, out _);
-            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration parent: '{previousContext.CursorKindSpelling}'. Generated bindings may be incomplete.", previousContext);
+            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported variable declaration parent: '{previousContext?.CursorKindSpelling}'. Generated bindings may be incomplete.", previousContext);
         }
 
         void ForDeclStmt(VarDecl varDecl, DeclStmt declStmt)
@@ -3563,7 +3623,10 @@ public partial class PInvokeGenerator
             {
                 var callExpr = (CallExpr)initExpr;
 
-                if (callExpr.DirectCallee.IsInlined)
+                var directCallee = callExpr.DirectCallee;
+                Debug.Assert(directCallee is not null);
+
+                if (directCallee.IsInlined)
                 {
                     var evaluateResult = callExpr.Handle.Evaluate;
 

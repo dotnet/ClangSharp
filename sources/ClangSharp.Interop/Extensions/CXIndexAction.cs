@@ -32,7 +32,7 @@ public unsafe partial struct CXIndexAction : IDisposable, IEquatable<CXIndexActi
         }
     }
 
-    public override bool Equals(object obj) => (obj is CXIndexAction other) && Equals(other);
+    public override bool Equals(object? obj) => (obj is CXIndexAction other) && Equals(other);
 
     public bool Equals(CXIndexAction other) => this == other;
 

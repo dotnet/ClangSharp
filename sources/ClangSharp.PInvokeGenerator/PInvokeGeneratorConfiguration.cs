@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using ClangSharp.Abstractions;
 
@@ -46,7 +47,7 @@ public sealed class PInvokeGeneratorConfiguration
 
     private PInvokeGeneratorConfigurationOptions _options;
 
-    public PInvokeGeneratorConfiguration(string defaultNamespace, string outputLocation, string headerFile, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions options)
+    public PInvokeGeneratorConfiguration(string defaultNamespace, string outputLocation, string? headerFile, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions options)
     {
         if (string.IsNullOrWhiteSpace(defaultNamespace))
         {
@@ -122,6 +123,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public string DefaultClass
     {
         get
@@ -167,6 +169,7 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool ExcludeFunctionsWithBody => _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeFunctionsWithBody);
 
+    [AllowNull]
     public IReadOnlyCollection<string> ExcludedNames
     {
         get
@@ -228,6 +231,7 @@ public sealed class PInvokeGeneratorConfiguration
 
     public string HeaderText => _headerText;
 
+    [AllowNull]
     public IReadOnlyCollection<string> IncludedNames
     {
         get
@@ -241,6 +245,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public string LibraryPath
     {
         get
@@ -260,6 +265,7 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool LogVisitedFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.LogVisitedFiles);
 
+    [AllowNull]
     public string MethodPrefixToStrip
     {
         get
@@ -279,6 +285,7 @@ public sealed class PInvokeGeneratorConfiguration
 
     public string OutputLocation => _outputLocation;
 
+    [AllowNull]
     public IReadOnlyDictionary<string, string> RemappedNames
     {
         get
@@ -295,6 +302,7 @@ public sealed class PInvokeGeneratorConfiguration
 
     public IReadOnlyCollection<string> ForceRemappedNames => _forceRemappedNames;
 
+    [AllowNull]
     public string TestOutputLocation
     {
         get
@@ -308,6 +316,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyCollection<string> TraversalNames
     {
         get
@@ -317,10 +326,11 @@ public sealed class PInvokeGeneratorConfiguration
 
         init
         {
-            AddRange(_traversalNames, value, NormalizePathSeparators);
+            AddRange(_traversalNames, value, StringExtensions.NormalizePath);
         }
     }
 
+    [AllowNull]
     public IReadOnlyDictionary<string, AccessSpecifier> WithAccessSpecifiers
     {
         get
@@ -334,6 +344,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyDictionary<string, IReadOnlyList<string>> WithAttributes
     {
         get
@@ -347,6 +358,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyDictionary<string, string> WithCallConvs
     {
         get
@@ -360,6 +372,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyDictionary<string, string> WithClasses
     {
         get
@@ -373,6 +386,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyDictionary<string, Guid> WithGuids
     {
         get
@@ -386,6 +400,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyDictionary<string, string> WithLibraryPaths
     {
         get
@@ -399,6 +414,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyCollection<string> WithManualImports
     {
         get
@@ -412,6 +428,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyDictionary<string, string> WithNamespaces
     {
         get
@@ -425,6 +442,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyCollection<string> WithSetLastErrors
     {
         get
@@ -438,6 +456,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyCollection<string> WithSuppressGCTransitions
     {
         get
@@ -451,6 +470,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyDictionary<string, (string Name, PInvokeGeneratorTransparentStructKind Kind)> WithTransparentStructs
     {
         get
@@ -464,6 +484,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyDictionary<string, string> WithTypes
     {
         get
@@ -477,6 +498,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
     public IReadOnlyDictionary<string, IReadOnlyList<string>> WithUsings
     {
         get
@@ -522,7 +544,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    private static void AddRange<TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>> keyValuePairs)
+    private static void AddRange<TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>>? keyValuePairs)
     {
         if (keyValuePairs != null)
         {
@@ -535,7 +557,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    private static void AddRange<TInput, TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TInput>> keyValuePairs, Func<TInput, TValue> convert)
+    private static void AddRange<TInput, TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TInput>>? keyValuePairs, Func<TInput, TValue> convert)
     {
         if (keyValuePairs != null)
         {
@@ -548,7 +570,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    private static void AddRange<TInput>(SortedSet<TInput> hashSet, IEnumerable<TInput> keys)
+    private static void AddRange<TInput>(SortedSet<TInput> hashSet, IEnumerable<TInput>? keys)
     {
         if (keys != null)
         {
@@ -559,7 +581,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    private static void AddRange<TInput, TValue>(SortedSet<TValue> hashSet, IEnumerable<TInput> keys, Func<TInput, TValue> convert)
+    private static void AddRange<TInput, TValue>(SortedSet<TValue> hashSet, IEnumerable<TInput>? keys, Func<TInput, TValue> convert)
     {
         if (keys != null)
         {
@@ -570,7 +592,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    private static void AddRange<TInput>(SortedSet<string> hashSet, IEnumerable<KeyValuePair<string, TInput>> keyValuePairs, Func<TInput, bool> shouldAdd)
+    private static void AddRange<TInput>(SortedSet<string> hashSet, IEnumerable<KeyValuePair<string, TInput>>? keyValuePairs, Func<TInput, bool> shouldAdd)
     {
         if (keyValuePairs != null)
         {
@@ -583,8 +605,6 @@ public sealed class PInvokeGeneratorConfiguration
             }
         }
     }
-
-    private static string NormalizePathSeparators(string value) => value.Replace('\\', '/');
 
     private static string RemoveAtPrefix(string value) => ValueStartsWithAt(value) ? value[1..] : value;
 

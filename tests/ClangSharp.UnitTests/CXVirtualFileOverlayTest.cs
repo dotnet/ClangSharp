@@ -18,10 +18,10 @@ public class CXVirtualFileOverlayTest
     {
         public CXVirtualFileOverlay VFO;
 
-        private readonly string _contents;
+        private readonly string? _contents;
         private bool _isDisposed = false;
 
-        public TestVFO(string contents)
+        public TestVFO(string? contents)
         {
             VFO = CXVirtualFileOverlay.Create(options: 0);
             _contents = Fix(contents);
@@ -32,7 +32,7 @@ public class CXVirtualFileOverlayTest
             Dispose(isDisposing: false);
         }
 
-        public void Map(string vPath, string rPath)
+        public void Map(string? vPath, string? rPath)
         {
             vPath = Fix(vPath);
             rPath = Fix(rPath);
@@ -41,7 +41,7 @@ public class CXVirtualFileOverlayTest
             Assert.AreEqual(CXErrorCode.CXError_Success, err);
         }
 
-        public void MapError(string vPath, string rPath, CXErrorCode expErr)
+        public void MapError(string? vPath, string? rPath, CXErrorCode expErr)
         {
             vPath = Fix(vPath);
             rPath = Fix(rPath);
@@ -50,7 +50,7 @@ public class CXVirtualFileOverlayTest
             Assert.AreEqual(expErr, err);
         }
 
-        private static string Fix(string text)
+        private static string? Fix(string? text)
         {
             if (text is null)
             {

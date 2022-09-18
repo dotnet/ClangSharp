@@ -9,7 +9,7 @@ internal partial interface IOutputBuilder
     void WriteDivider(bool force = false);
     void SuppressDivider();
 
-    void WriteCustomAttribute(string attribute, Action callback = null);
+    void WriteCustomAttribute(string attribute, Action? callback = null);
     void WriteIid(string name, Guid value);
     void EmitUsingDirective(string directive);
 }
