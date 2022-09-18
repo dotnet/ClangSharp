@@ -2092,6 +2092,10 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
         }
+        else if (type is DecltypeType decltypeType)
+        {
+            return GetCallingConvention(cursor, context, decltypeType.UnderlyingType, ref wasRemapped);
+        }
         else if (type is FunctionType functionType)
         {
             var callingConv = functionType.CallConv;
@@ -3021,6 +3025,10 @@ public sealed partial class PInvokeGenerator : IDisposable
                     }
                 }
             }
+            else if (type is DecltypeType decltypeType)
+            {
+                result.typeName = GetTypeName(cursor, context, rootType, decltypeType.UnderlyingType, ignoreTransparentStructsWhereRequired, out _);
+            }
             else if (type is DeducedType deducedType)
             {
                 result.typeName = GetTypeName(cursor, context, rootType, deducedType.CanonicalType, ignoreTransparentStructsWhereRequired, out _);
@@ -3535,6 +3543,10 @@ public sealed partial class PInvokeGenerator : IDisposable
                     break;
                 }
             }
+        }
+        else if (type is DecltypeType decltypeType)
+        {
+            GetTypeSize(cursor, decltypeType.UnderlyingType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out size32, out size64);
         }
         else if (type is ElaboratedType elaboratedType)
         {
@@ -4464,6 +4476,10 @@ public sealed partial class PInvokeGenerator : IDisposable
         else if (type is BuiltinType)
         {
             return true;
+        }
+        else if (type is DecltypeType decltypeType)
+        {
+            return IsFixedSize(cursor, decltypeType.UnderlyingType);
         }
         else if (type is ElaboratedType elaboratedType)
         {
