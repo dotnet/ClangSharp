@@ -3094,6 +3094,10 @@ public sealed partial class PInvokeGenerator : IDisposable
                     {
                         result.typeName = result.typeName[7..];
                     }
+                    else if (result.typeName.StartsWith("union "))
+                    {
+                        result.typeName = result.typeName[6..];
+                    }
                 }
 
                 if (result.typeName.Contains("::"))
