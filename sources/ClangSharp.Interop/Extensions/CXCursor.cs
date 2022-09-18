@@ -1042,7 +1042,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public CXCursorKind Kind => clang.getCursorKind(this);
 
-    public CXString KindSpelling => clang.getCursorKindSpelling(Kind);
+    public CXString KindSpelling => (kind != default) ? clang.getCursorKindSpelling(Kind) : default;
 
     public CXCursor LambdaCallOperator => clangsharp.Cursor_getLambdaCallOperator(this);
 
@@ -1166,7 +1166,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public CXCursor PrimaryTemplate => clangsharp.Cursor_getPrimaryTemplate(this);
 
-    public CXPrintingPolicy PrintingPolicy => (CXPrintingPolicy)clang.getCursorPrintingPolicy(this);
+    public CXPrintingPolicy PrintingPolicy => (kind != default) ? (CXPrintingPolicy)clang.getCursorPrintingPolicy(this) : default;
 
     public CXString RawCommentText => clang.Cursor_getRawCommentText(this);
 
@@ -1563,34 +1563,34 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     {
         get
         {
-            if (AttrKind != CX_AttrKind.CX_AttrKind_Invalid)
-            {
-                return $"{AttrKindSpelling}: {this}";
-            }
-            else if (DeclKind != CX_DeclKind.CX_DeclKind_Invalid)
-            {
-                return $"{DeclKindSpelling}: {this}";
-            }
-            else if (StmtClass != CX_StmtClass.CX_StmtClass_Invalid)
-            {
-                var additionalInfo = string.Empty;
-
-                if (BinaryOperatorKind != CX_BinaryOperatorKind.CX_BO_Invalid)
-                {
-                    additionalInfo = $" ({BinaryOperatorKindSpelling})";
-                }
-                else if (CastKind != CX_CastKind.CX_CK_Invalid)
-                {
-                    additionalInfo = $" ({CastKindSpelling})";
-                }
-                else if (UnaryOperatorKind != CX_UnaryOperatorKind.CX_UO_Invalid)
-                {
-                    additionalInfo = $" ({UnaryOperatorKindSpelling})";
-                }
-
-                return $"{StmtClassSpelling}: {this}{additionalInfo}";
-            }
-            else
+            // if (AttrKind != CX_AttrKind.CX_AttrKind_Invalid)
+            // {
+            //     return $"{AttrKindSpelling}: {this}";
+            // }
+            // else if (DeclKind != CX_DeclKind.CX_DeclKind_Invalid)
+            // {
+            //     return $"{DeclKindSpelling}: {this}";
+            // }
+            // else if (StmtClass != CX_StmtClass.CX_StmtClass_Invalid)
+            // {
+            //     var additionalInfo = string.Empty;
+            // 
+            //     if (BinaryOperatorKind != CX_BinaryOperatorKind.CX_BO_Invalid)
+            //     {
+            //         additionalInfo = $" ({BinaryOperatorKindSpelling})";
+            //     }
+            //     else if (CastKind != CX_CastKind.CX_CK_Invalid)
+            //     {
+            //         additionalInfo = $" ({CastKindSpelling})";
+            //     }
+            //     else if (UnaryOperatorKind != CX_UnaryOperatorKind.CX_UO_Invalid)
+            //     {
+            //         additionalInfo = $" ({UnaryOperatorKindSpelling})";
+            //     }
+            // 
+            //     return $"{StmtClassSpelling}: {this}{additionalInfo}";
+            // }
+            // else
             {
                 return $"{KindSpelling}: {this}";
             }
