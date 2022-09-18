@@ -65,4 +65,79 @@ typedef struct MyStruct {
 
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs);
     }
+
+    [Test]
+    public Task StructTest()
+    {
+        var inputContents = @"typedef struct _MyStruct
+{
+    int _field;
+} MyStruct;
+
+typedef struct _MyOtherStruct
+{
+    MyStruct _field1;
+    MyStruct* _field2;
+} MyOtherStruct;
+";
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct _MyStruct
+    {
+        public int _field;
+    }
+
+    public unsafe partial struct _MyOtherStruct
+    {
+        [NativeTypeName(""MyStruct"")]
+        public _MyStruct _field1;
+
+        [NativeTypeName(""MyStruct *"")]
+        public _MyStruct* _field2;
+    }
+}
+";
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs);
+    }
+
+    [Test]
+    public Task UnionTest()
+    {
+        var inputContents = @"typedef union _MyUnion
+{
+    int _field;
+} MyUnion;
+
+typedef union _MyOtherUnion
+{
+    MyUnion _field1;
+    MyUnion* _field2;
+} MyOtherUnion;
+";
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    [StructLayout(LayoutKind.Explicit)]
+    public partial struct _MyUnion
+    {
+        [FieldOffset(0)]
+        public int _field;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public unsafe partial struct _MyOtherUnion
+    {
+        [FieldOffset(0)]
+        [NativeTypeName(""MyUnion"")]
+        public _MyUnion _field1;
+
+        [FieldOffset(0)]
+        [NativeTypeName(""MyUnion *"")]
+        public _MyUnion* _field2;
+    }
+}
+";
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs);
+    }
 }
