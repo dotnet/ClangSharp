@@ -296,6 +296,35 @@ struct MyStruct3
         return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
+    protected override Task DeclTypeTestImpl()
+    {
+        var inputContents = @"extern ""C"" void MyFunction();
+
+typedef struct
+{
+    decltype(&MyFunction) _callback;
+} MyStruct;
+";
+
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"">
+      <field name=""_callback"" access=""public"">
+        <type native=""decltype(&amp;MyFunction)"">IntPtr</type>
+      </field>
+    </struct>
+    <class name=""Methods"" access=""public"" static=""true"">
+      <function name=""MyFunction"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""Cdecl"" static=""true"">
+        <type>void</type>
+      </function>
+    </class>
+  </namespace>
+</bindings>
+";
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
+
     protected override Task ExcludeTestImpl()
     {
         var inputContents = "typedef struct MyStruct MyStruct;";
