@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <!-- Settings that are only set for executables -->
-  <PropertyGroup Condition="'$(OutputType)' != 'Library' AND '$(UseWindowsForms)' != 'true'">
+  <PropertyGroup Condition="'$(OutputType)' != 'Library' AND '$(UseWindowsForms)' != 'true' AND '$(PackAsTool)' != 'true'">
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
