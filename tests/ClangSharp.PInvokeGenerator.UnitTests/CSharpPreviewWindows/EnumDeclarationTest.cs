@@ -550,4 +550,62 @@ enum MyEnum2 : int
         };
         return ValidateGeneratedCSharpPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
     }
+
+    protected override Task WithAnonymousEnumTestImpl()
+    {
+        var inputContents = @"enum
+{
+    MyEnum1_Value1 = 1,
+};
+
+enum MyEnum2 : int
+{
+    MyEnum2_Value1 = MyEnum1_Value1,
+};
+";
+
+        var expectedOutputContents = @"using static ClangSharp.Test.Methods;
+
+namespace ClangSharp.Test
+{
+    public enum MyEnum2
+    {
+        MyEnum2_Value1 = MyEnum1_Value1,
+    }
+
+    public static partial class Methods
+    {
+        public const int MyEnum1_Value1 = 1;
+    }
+}
+";
+
+        var diagnostics = new[] { new Diagnostic(DiagnosticLevel.Info, "Found anonymous enum: __AnonymousEnum_ClangUnsavedFile_L1_C1. Mapping values as constants in: Methods", "Line 1, Column 1 in ClangUnsavedFile.h") };
+        return ValidateGeneratedCSharpPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
+    }
+
+    protected override Task WithReferenceToAnonymousEnumEnumeratorTestImpl()
+    {
+        var inputContents = @"enum
+{
+    MyEnum1_Value1 = 1,
+};
+
+const int MyEnum2_Value1 = MyEnum1_Value1 + 1;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        public const int MyEnum1_Value1 = 1;
+
+        [NativeTypeName(""const int"")]
+        public const int MyEnum2_Value1 = (int)(MyEnum1_Value1) + 1;
+    }
+}
+";
+        var diagnostics = new[] { new Diagnostic(DiagnosticLevel.Info, "Found anonymous enum: __AnonymousEnum_ClangUnsavedFile_L1_C1. Mapping values as constants in: Methods", "Line 1, Column 1 in ClangUnsavedFile.h") };
+        return ValidateGeneratedCSharpPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
+    }
 }

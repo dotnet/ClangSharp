@@ -63,6 +63,12 @@ public abstract class EnumDeclarationTest : PInvokeGeneratorTest
     [Test]
     public Task WithTypeStarOverrideTest() => WithTypeStarOverrideTestImpl();
 
+    [Test]
+    public Task WithAnonymousEnumTest() => WithAnonymousEnumTestImpl();
+
+    [Test]
+    public Task WithReferenceToAnonymousEnumEnumeratorTest() => WithReferenceToAnonymousEnumEnumeratorTestImpl();
+
     protected abstract Task BasicTestImpl();
 
     protected abstract Task BasicValueTestImpl();
@@ -72,6 +78,7 @@ public abstract class EnumDeclarationTest : PInvokeGeneratorTest
     protected abstract Task ExplicitTypedTestImpl(string nativeType, string expectedManagedType);
 
     protected abstract Task ExplicitTypedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType);
+
 
     protected abstract Task RemapTestImpl();
 
@@ -96,4 +103,8 @@ public abstract class EnumDeclarationTest : PInvokeGeneratorTest
     protected abstract Task WithTypeStarTestImpl();
 
     protected abstract Task WithTypeStarOverrideTestImpl();
+
+    protected abstract Task WithAnonymousEnumTestImpl();
+
+    protected abstract Task WithReferenceToAnonymousEnumEnumeratorTestImpl();
 }
