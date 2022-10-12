@@ -652,4 +652,79 @@ enum MyEnum2 : int
         };
         return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
     }
+
+    protected override Task WithAnonymousEnumTestImpl()
+    {
+        var inputContents = @"enum
+{
+    MyEnum1_Value1 = 1,
+};
+
+enum MyEnum2 : int
+{
+    MyEnum2_Value1 = MyEnum1_Value1,
+};
+";
+
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <enumeration name=""MyEnum2"" access=""public"">
+      <type>int</type>
+      <enumerator name=""MyEnum2_Value1"" access=""public"">
+        <type primitive=""False"">int</type>
+        <value>
+          <code>MyEnum1_Value1</code>
+        </value>
+      </enumerator>
+    </enumeration>
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""MyEnum1_Value1"" access=""public"">
+        <type primitive=""True"">int</type>
+        <value>
+          <code>1</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+
+        var diagnostics = new[] { new Diagnostic(DiagnosticLevel.Info, "Found anonymous enum: __AnonymousEnum_ClangUnsavedFile_L1_C1. Mapping values as constants in: Methods", "Line 1, Column 1 in ClangUnsavedFile.h") };
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
+    }
+
+    protected override Task WithReferenceToAnonymousEnumEnumeratorTestImpl()
+    {
+        var inputContents = @"enum
+{
+    MyEnum1_Value1 = 1,
+};
+
+const int MyEnum2_Value1 = MyEnum1_Value1 + 1;
+";
+
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <class name=""Methods"" access=""public"" static=""true"">
+      <constant name=""MyEnum1_Value1"" access=""public"">
+        <type primitive=""True"">int</type>
+        <value>
+          <code>1</code>
+        </value>
+      </constant>
+      <constant name=""MyEnum2_Value1"" access=""public"">
+        <type primitive=""True"">int</type>
+        <value>
+          <code>(int)(<value>MyEnum1_Value1</value>) + 1</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>
+";
+        var diagnostics = new[] { new Diagnostic(DiagnosticLevel.Info, "Found anonymous enum: __AnonymousEnum_ClangUnsavedFile_L1_C1. Mapping values as constants in: Methods", "Line 1, Column 1 in ClangUnsavedFile.h") };
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
+    }
 }
