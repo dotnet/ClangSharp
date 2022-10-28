@@ -740,13 +740,18 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             WriteLine("\"]/*' />");
         }
 
-        if (desc.LayoutAttribute is not null)
+        if (desc.LayoutAttribute is not null || desc.Layout.PackOverride is not null)
         {
             AddUsingDirective("System.Runtime.InteropServices");
             WriteIndented("[StructLayout(LayoutKind.");
-            Write(desc.LayoutAttribute.Value);
+            Write(desc.LayoutAttribute?.Value ?? LayoutKind.Sequential);
 
-            if (desc.LayoutAttribute.Pack != 0)
+            if (desc.Layout.PackOverride is { } packOverride)
+            {
+                Write(", Pack = ");
+                Write(packOverride);
+            }
+            else if (desc.LayoutAttribute!.Pack != 0)
             {
                 Write(", Pack = ");
                 Write(desc.LayoutAttribute.Pack);

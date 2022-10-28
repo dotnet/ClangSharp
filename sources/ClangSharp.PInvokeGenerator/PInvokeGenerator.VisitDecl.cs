@@ -1479,6 +1479,7 @@ public partial class PInvokeGenerator
                     Size32 = size32,
                     Size64 = size64,
                     Pack = alignment < maxAlignm ? alignment : 0,
+                    PackOverride = TryGetRemappedValue(recordDecl, _config.WithPackOverrides, out var packOverride) ? packOverride : null,
                     MaxFieldAlignment = maxAlignm,
                     Kind = layoutKind
                 },

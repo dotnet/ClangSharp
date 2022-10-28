@@ -111,6 +111,7 @@ internal struct StructDesc
         public long Size32 { get; set; }
         public long Size64 { get; set; }
         public long Pack { get; set; }
+        public string? PackOverride { get; set; }
         public long MaxFieldAlignment { get; set; }
         public LayoutKind Kind { get; set; }
     }

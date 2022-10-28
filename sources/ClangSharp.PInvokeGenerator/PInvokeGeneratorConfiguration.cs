@@ -45,6 +45,7 @@ public sealed class PInvokeGeneratorConfiguration
     private readonly SortedDictionary<string, (string, PInvokeGeneratorTransparentStructKind)> _withTransparentStructs;
     private readonly SortedDictionary<string, string> _withTypes;
     private readonly SortedDictionary<string, IReadOnlyList<string>> _withUsings;
+    private readonly SortedDictionary<string, string> _withPackOverrides;
 
     private PInvokeGeneratorConfigurationOptions _options;
 
@@ -94,6 +95,7 @@ public sealed class PInvokeGeneratorConfiguration
         _withTransparentStructs = new SortedDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>();
         _withTypes = new SortedDictionary<string, string>();
         _withUsings = new SortedDictionary<string, IReadOnlyList<string>>();
+        _withPackOverrides = new SortedDictionary<string, string>();
 
         if ((outputMode == PInvokeGeneratorOutputMode.Xml) && !options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles) && (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) || options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit)))
         {
@@ -525,6 +527,20 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_withUsings, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyDictionary<string, string> WithPackOverrides
+    {
+        get
+        {
+            return _withPackOverrides;
+        }
+
+        init
+        {
+            AddRange(_withPackOverrides, value);
         }
     }
 
