@@ -746,15 +746,10 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             WriteIndented("[StructLayout(LayoutKind.");
             Write(desc.LayoutAttribute.Value);
 
-            if (desc.Layout.PackOverride is { } packOverride)
+            if (desc.Layout.Pack != null)
             {
                 Write(", Pack = ");
-                Write(packOverride);
-            }
-            else if (desc.LayoutAttribute.Pack != 0)
-            {
-                Write(", Pack = ");
-                Write(desc.LayoutAttribute.Pack);
+                Write(desc.Layout.Pack);
             }
 
             WriteLine(")]");

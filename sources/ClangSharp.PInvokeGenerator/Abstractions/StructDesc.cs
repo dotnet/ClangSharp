@@ -83,21 +83,12 @@ internal struct StructDesc
             {
                 Debug.Assert(layout.Kind == LayoutKind.Explicit);
 
-                var attribute = new StructLayoutAttribute(layout.Kind);
-
-                if (layout.Pack != 0)
-                {
-                    attribute.Pack = (int)layout.Pack;
-                }
-
-                return attribute;
+                return new StructLayoutAttribute(layout.Kind);
             }
 
-            if (layout.Pack != 0 || layout.PackOverride is not null)
+            if (layout.Pack is not null)
             {
-                return new StructLayoutAttribute(layout.Kind) {
-                    Pack = (int)layout.Pack
-                };
+                return new StructLayoutAttribute(layout.Kind);
             }
 
             return null;
@@ -110,8 +101,7 @@ internal struct StructDesc
         public long Alignment64 { get; set; }
         public long Size32 { get; set; }
         public long Size64 { get; set; }
-        public long Pack { get; set; }
-        public string? PackOverride { get; set; }
+        public string? Pack { get; set; }
         public long MaxFieldAlignment { get; set; }
         public LayoutKind Kind { get; set; }
     }
