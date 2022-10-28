@@ -93,7 +93,7 @@ internal struct StructDesc
                 return attribute;
             }
 
-            if (layout.Pack != 0)
+            if (layout.Pack != 0 || layout.PackOverride is not null)
             {
                 return new StructLayoutAttribute(layout.Kind) {
                     Pack = (int)layout.Pack
