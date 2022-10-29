@@ -290,7 +290,7 @@ internal partial class XmlOutputBuilder
             _ = _sb.Append(info.LayoutAttribute.Value);
             _ = _sb.Append('"');
 
-            if (info.Layout.Pack != null)
+            if (info.Layout.Pack is not null)
             {
                 _ = _sb.Append(" pack=\"");
                 _ = _sb.Append(info.Layout.Pack);

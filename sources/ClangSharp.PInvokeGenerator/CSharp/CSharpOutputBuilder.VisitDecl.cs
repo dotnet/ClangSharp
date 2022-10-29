@@ -746,7 +746,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             WriteIndented("[StructLayout(LayoutKind.");
             Write(desc.LayoutAttribute.Value);
 
-            if (desc.Layout.Pack != null)
+            if (desc.Layout.Pack is not null)
             {
                 Write(", Pack = ");
                 Write(desc.Layout.Pack);

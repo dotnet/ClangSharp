@@ -1520,7 +1520,7 @@ public partial class PInvokeGenerator
 
                 if (desc.LayoutAttribute is not null)
                 {
-                    withAttributes.Add($"StructLayout(LayoutKind.{desc.LayoutAttribute.Value}{((desc.Layout.Pack != null) ? $", Pack = {desc.Layout.Pack}" : "")})");
+                    withAttributes.Add($"StructLayout(LayoutKind.{desc.LayoutAttribute.Value}{((desc.Layout.Pack is not null) ? $", Pack = {desc.Layout.Pack}" : "")})");
                     _ = withUsings.Add("System.Runtime.InteropServices");
                 }
 
