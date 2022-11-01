@@ -1467,6 +1467,11 @@ public partial class PInvokeGenerator
                 baseTypeNames = baseTypeNamesBuilder.ToArray();
             }
 
+            if (!TryGetRemappedValue(recordDecl, _config.WithPackings, out var pack))
+            {
+                pack = alignment < maxAlignm ? alignment.ToString(CultureInfo.InvariantCulture) : null;
+            }
+
             var desc = new StructDesc {
                 AccessSpecifier = GetAccessSpecifier(recordDecl, matchStar: true),
                 EscapedName = escapedName,
@@ -1478,7 +1483,7 @@ public partial class PInvokeGenerator
                     Alignment64 = alignment64,
                     Size32 = size32,
                     Size64 = size64,
-                    Pack = alignment < maxAlignm ? alignment : 0,
+                    Pack = pack,
                     MaxFieldAlignment = maxAlignm,
                     Kind = layoutKind
                 },
@@ -1515,7 +1520,7 @@ public partial class PInvokeGenerator
 
                 if (desc.LayoutAttribute is not null)
                 {
-                    withAttributes.Add($"StructLayout(LayoutKind.{desc.LayoutAttribute.Value}{((desc.LayoutAttribute.Pack != 0) ? $", Pack = {desc.LayoutAttribute.Pack}" : "")})");
+                    withAttributes.Add($"StructLayout(LayoutKind.{desc.LayoutAttribute.Value}{((desc.Layout.Pack is not null) ? $", Pack = {desc.Layout.Pack}" : "")})");
                     _ = withUsings.Add("System.Runtime.InteropServices");
                 }
 
@@ -2817,6 +2822,11 @@ public partial class PInvokeGenerator
                 AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} (constant array field) has a size of 0", constantOrIncompleteArray);
             }
 
+            if (!TryGetRemappedValue(recordDecl, _config.WithPackings, out var pack))
+            {
+                pack = alignment < maxAlignm ? alignment.ToString(CultureInfo.InvariantCulture) : null;
+            }
+
             var desc = new StructDesc {
                 AccessSpecifier = accessSpecifier,
                 EscapedName = escapedName,
@@ -2826,7 +2836,7 @@ public partial class PInvokeGenerator
                     Alignment64 = alignment64,
                     Size32 = size32,
                     Size64 = size64,
-                    Pack = alignment < maxAlignm ? alignment : 0,
+                    Pack = pack,
                     MaxFieldAlignment = maxAlignm,
                     Kind = LayoutKind.Sequential
                 },

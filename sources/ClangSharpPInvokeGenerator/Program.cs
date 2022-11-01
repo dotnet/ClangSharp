@@ -57,6 +57,7 @@ public class Program
     private static readonly Option<string[]> s_withTransparentStructNameValuePairs;
     private static readonly Option<string[]> s_withTypeNameValuePairs;
     private static readonly Option<string[]> s_withUsingNameValuePairs;
+    private static readonly Option<string[]> s_withPackingNameValuePairs;
 
 
     private static readonly TwoColumnHelpRow[] s_configOptions = new TwoColumnHelpRow[]
@@ -161,6 +162,7 @@ public class Program
         s_withTransparentStructNameValuePairs = GetWithTransparentStructOption();
         s_withTypeNameValuePairs = GetWithTypeOption();
         s_withUsingNameValuePairs = GetWithUsingOption();
+        s_withPackingNameValuePairs = GetWithPackingOption();
 
         s_rootCommand = new RootCommand("ClangSharp P/Invoke Binding Generator")
         {
@@ -198,7 +200,8 @@ public class Program
             s_withSuppressGCTransitions,
             s_withTransparentStructNameValuePairs,
             s_withTypeNameValuePairs,
-            s_withUsingNameValuePairs
+            s_withUsingNameValuePairs,
+            s_withPackingNameValuePairs
         };
         Handler.SetHandler(s_rootCommand, (Action<InvocationContext>)Run);
     }
@@ -255,6 +258,7 @@ public class Program
         var withTransparentStructNameValuePairs = context.ParseResult.GetValueForOption(s_withTransparentStructNameValuePairs) ?? Array.Empty<string>();
         var withTypeNameValuePairs = context.ParseResult.GetValueForOption(s_withTypeNameValuePairs) ?? Array.Empty<string>();
         var withUsingNameValuePairs = context.ParseResult.GetValueForOption(s_withUsingNameValuePairs) ?? Array.Empty<string>();
+        var withPackingNameValuePairs = context.ParseResult.GetValueForOption(s_withPackingNameValuePairs) ?? Array.Empty<string>();
 
         var versionResult = context.ParseResult.FindResultFor(s_versionOption);
 
@@ -295,6 +299,7 @@ public class Program
         ParseKeyValuePairs(withTransparentStructNameValuePairs, errorList, out Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> withTransparentStructs);
         ParseKeyValuePairs(withTypeNameValuePairs, errorList, out Dictionary<string, string> withTypes);
         ParseKeyValuePairs(withUsingNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withUsings);
+        ParseKeyValuePairs(withPackingNameValuePairs, errorList, out Dictionary<string, string> withPackings);
 
         foreach (var key in withTransparentStructs.Keys)
         {
@@ -681,6 +686,7 @@ public class Program
             WithTransparentStructs = withTransparentStructs,
             WithTypes = withTypes,
             WithUsings = withUsings,
+            WithPackings = withPackings,
         };
 
         if (config.GenerateMacroBindings)
@@ -1283,6 +1289,17 @@ public class Program
         return new Option<string[]>(
             aliases: new string[] { "--with-using", "-wu" },
             description: "A using directive to be included for the given remapped declaration name during binding generation.",
+            getDefaultValue: Array.Empty<string>
+        ) {
+            AllowMultipleArgumentsPerToken = true
+        };
+    }
+
+    private static Option<string[]> GetWithPackingOption()
+    {
+        return new Option<string[]>(
+            aliases: new string[] { "--with-packing", "-wp" },
+            description: "Overrides the StructLayoutAttribute.Pack property for the given type.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true

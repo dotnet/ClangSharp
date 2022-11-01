@@ -106,6 +106,7 @@ public abstract class PInvokeGeneratorTest
             WithTransparentStructs = withTransparentStructs,
             WithTypes = withTypes,
             WithUsings = withUsings,
+            WithPackings = null,
         };
 
         using (var pinvokeGenerator = new PInvokeGenerator(config, (path) => outputStream))
