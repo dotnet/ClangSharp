@@ -1730,6 +1730,24 @@ struct MyStruct3
         return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
     }
 
+    protected override Task WithPackingTestImpl()
+    {
+        const string InputContents = @"struct MyStruct {};";
+
+        const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" layout=""Sequential"" pack=""CustomPackValue""></struct>
+  </namespace>
+</bindings>
+";
+
+        var withPackings = new Dictionary<string, string> {
+            ["MyStruct"] = "CustomPackValue"
+        };
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents, withPackings: withPackings);
+    }
+
     protected override Task SourceLocationAttributeTestImpl()
     {
         const string InputContents = @"struct MyStruct
