@@ -4,6 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
+    <PackAsToolShimRuntimeIdentifiers>win-x64</PackAsToolShimRuntimeIdentifiers>
     <RuntimeIdentifier></RuntimeIdentifier>
     <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
   </PropertyGroup>

@@ -18,13 +18,17 @@ public static unsafe partial class @clang
 
     private static IntPtr OnDllImport(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
-        return TryResolveLibrary(libraryName, assembly, searchPath, out var nativeLibrary)
-            ? nativeLibrary
-            : libraryName.Equals("libclang") && TryResolveClang(assembly, searchPath, out nativeLibrary)
-            ? nativeLibrary
-            : libraryName.Equals("libClangSharp") && TryResolveClangSharp(assembly, searchPath, out nativeLibrary)
-            ? nativeLibrary
-            : IntPtr.Zero;
+        var result = TryResolveLibrary(libraryName, assembly, searchPath, out var nativeLibrary) ? nativeLibrary
+                   : libraryName.Equals("libclang") && TryResolveClang(assembly, searchPath, out nativeLibrary) ? nativeLibrary
+                   : libraryName.Equals("libClangSharp") && TryResolveClangSharp(assembly, searchPath, out nativeLibrary) ? nativeLibrary
+                   : IntPtr.Zero;
+
+        if (result == IntPtr.Zero)
+        {
+            Console.WriteLine("Failed to resolve libClang or libClangSharp.");
+            Console.WriteLine("If you are running as a dotnet tool, you may need to manually copy the appropriate DLLs from NuGet due to limitations in the dotnet tool support.");
+        }
+        return result;
     }
 
     private static bool TryResolveClang(Assembly assembly, DllImportSearchPath? searchPath, out IntPtr nativeLibrary)
@@ -47,7 +51,14 @@ public static unsafe partial class @clang
 
             foreach (DllImportResolver resolver in resolvers.Cast<DllImportResolver>())
             {
-                nativeLibrary = resolver(libraryName, assembly, searchPath);
+                try
+                {
+                    nativeLibrary = resolver(libraryName, assembly, searchPath);
+                }
+                catch
+                {
+                    nativeLibrary = IntPtr.Zero;
+                }
 
                 if (nativeLibrary != IntPtr.Zero)
                 {
