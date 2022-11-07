@@ -1730,6 +1730,49 @@ struct MyStruct3
         return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
     }
 
+    protected override Task WithPackingTestImpl()
+    {
+        const string InputContents = @"struct MyStruct
+{
+    size_t FixedBuffer[1];
+};
+";
+
+        const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" layout=""Sequential"" pack=""CustomPackValue"">
+      <field name=""FixedBuffer"" access=""public"">
+        <type native=""size_t[1]"" count=""1"" fixed=""_FixedBuffer_e__FixedBuffer"">UIntPtr</type>
+      </field>
+      <struct name=""_FixedBuffer_e__FixedBuffer"" access=""public"">
+        <field name=""e0"" access=""public"">
+          <type>UIntPtr</type>
+        </field>
+        <indexer access=""public"" unsafe=""true"">
+          <type>ref UIntPtr</type>
+          <param name=""index"">
+            <type>int</type>
+          </param>
+          <get>
+            <code>fixed (UIntPtr* pThis = &amp;e0)
+    {
+        return ref pThis[index];
+    }</code>
+          </get>
+        </indexer>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+        var withPackings = new Dictionary<string, string> {
+            ["MyStruct"] = "CustomPackValue"
+        };
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents, withPackings: withPackings);
+    }
+
     protected override Task SourceLocationAttributeTestImpl()
     {
         const string InputContents = @"struct MyStruct

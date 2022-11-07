@@ -207,6 +207,9 @@ public abstract class StructDeclarationTest : PInvokeGeneratorTest
     public Task WithAccessSpecifierTest() => WithAccessSpecifierTestImpl();
 
     [Test]
+    public Task WithPackingTest() => WithPackingTestImpl();
+
+    [Test]
     public Task SourceLocationAttributeTest() => SourceLocationAttributeTestImpl();
 
     protected abstract Task IncompleteArraySizeTestImpl(string nativeType, string expectedManagedType);
@@ -278,6 +281,8 @@ public abstract class StructDeclarationTest : PInvokeGeneratorTest
     protected abstract Task UsingDeclarationTestImpl();
 
     protected abstract Task WithAccessSpecifierTestImpl();
+
+    protected abstract Task WithPackingTestImpl();
 
     protected abstract Task SourceLocationAttributeTestImpl();
 }

@@ -1705,6 +1705,53 @@ struct MyStruct3
         return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
     }
 
+    protected override Task WithPackingTestImpl()
+    {
+        const string InputContents = @"struct MyStruct
+{
+    size_t FixedBuffer[1];
+};
+";
+
+        const string ExpectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" layout=""Sequential"" pack=""CustomPackValue"">
+      <field name=""FixedBuffer"" access=""public"">
+        <type native=""size_t[1]"" count=""1"" fixed=""_FixedBuffer_e__FixedBuffer"">nuint</type>
+      </field>
+      <struct name=""_FixedBuffer_e__FixedBuffer"" access=""public"">
+        <field name=""e0"" access=""public"">
+          <type>nuint</type>
+        </field>
+        <indexer access=""public"">
+          <type>ref nuint</type>
+          <param name=""index"">
+            <type>int</type>
+          </param>
+          <get>
+            <code>return ref AsSpan(int.MaxValue)[index];</code>
+          </get>
+        </indexer>
+        <function name=""AsSpan"" access=""public"">
+          <type>Span&lt;nuint&gt;</type>
+          <param name=""length"">
+            <type>int</type>
+          </param>
+          <code>MemoryMarshal.CreateSpan(ref e0, length);</code>
+        </function>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+        var withPackings = new Dictionary<string, string> {
+            ["MyStruct"] = "CustomPackValue"
+        };
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, withPackings: withPackings);
+    }
+
     protected override Task SourceLocationAttributeTestImpl()
     {
         const string InputContents = @"struct MyStruct

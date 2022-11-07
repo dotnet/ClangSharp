@@ -1706,6 +1706,49 @@ struct MyStruct3
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
     }
 
+    protected override Task WithPackingTestImpl()
+    {
+        const string InputContents = @"struct MyStruct
+{
+    size_t FixedBuffer[1];
+};
+";
+
+        const string ExpectedOutputContents = @"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    [StructLayout(LayoutKind.Sequential, Pack = CustomPackValue)]
+    public partial struct MyStruct
+    {
+        [NativeTypeName(""size_t[1]"")]
+        public _FixedBuffer_e__FixedBuffer FixedBuffer;
+
+        public partial struct _FixedBuffer_e__FixedBuffer
+        {
+            public nuint e0;
+
+            public ref nuint this[int index]
+            {
+                get
+                {
+                    return ref AsSpan(int.MaxValue)[index];
+                }
+            }
+
+            public Span<nuint> AsSpan(int length) => MemoryMarshal.CreateSpan(ref e0, length);
+        }
+    }
+}
+";
+
+        var withPackings = new Dictionary<string, string> {
+            ["MyStruct"] = "CustomPackValue"
+        };
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(InputContents, ExpectedOutputContents, withPackings: withPackings);
+    }
+
     protected override Task SourceLocationAttributeTestImpl()
     {
         const string InputContents = @"struct MyStruct
