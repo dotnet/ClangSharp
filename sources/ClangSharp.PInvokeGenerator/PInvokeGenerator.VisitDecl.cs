@@ -2822,11 +2822,6 @@ public partial class PInvokeGenerator
                 AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} (constant array field) has a size of 0", constantOrIncompleteArray);
             }
 
-            if (!TryGetRemappedValue(recordDecl, _config.WithPackings, out var pack))
-            {
-                pack = alignment < maxAlignm ? alignment.ToString(CultureInfo.InvariantCulture) : null;
-            }
-
             var desc = new StructDesc {
                 AccessSpecifier = accessSpecifier,
                 EscapedName = escapedName,
@@ -2836,7 +2831,7 @@ public partial class PInvokeGenerator
                     Alignment64 = alignment64,
                     Size32 = size32,
                     Size64 = size64,
-                    Pack = pack,
+                    Pack = alignment < maxAlignm ? alignment.ToString(CultureInfo.InvariantCulture) : null,
                     MaxFieldAlignment = maxAlignm,
                     Kind = LayoutKind.Sequential
                 },
