@@ -293,6 +293,11 @@ public sealed partial class PInvokeGenerator : IDisposable
             Debug.Assert(stream is not null);
             CloseOutputBuilder(stream, outputBuilder, isMethodClass, leaveStreamOpen, emitNamespaceDeclaration);
             emitNamespaceDeclaration = false;
+
+            if (_config.GenerateMultipleFiles)
+            {
+                stream = null;
+            }
         }
 
         if (_config.GenerateHelperTypes && (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp))
