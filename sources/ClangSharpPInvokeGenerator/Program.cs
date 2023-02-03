@@ -1156,7 +1156,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-access-specifier", "-was" },
-            description: "An access specifier to be used with the given qualified or remapped declaration name during binding generation. You can use wildcards like this --with-access-specifier *=Internal",
+            description: "An access specifier to be used with the given qualified or remapped declaration name during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1167,7 +1167,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-attribute", "-wa" },
-            description: "An attribute to be added to the given remapped declaration name during binding generation.",
+            description: "An attribute to be added to the given remapped declaration name during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1178,7 +1178,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-callconv", "-wcc" },
-            description: "A calling convention to be used for the given declaration during binding generation.",
+            description: "A calling convention to be used for the given declaration during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1189,7 +1189,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-class", "-wc" },
-            description: "A class to be used for the given remapped constant or function declaration name during binding generation.",
+            description: "A class to be used for the given remapped constant or function declaration name during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1200,7 +1200,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-guid", "-wg" },
-            description: "A GUID to be used for the given declaration during binding generation.",
+            description: "A GUID to be used for the given declaration during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1211,7 +1211,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-librarypath", "-wlb" },
-            description: "A library path to be used for the given declaration during binding generation.",
+            description: "A library path to be used for the given declaration during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1222,7 +1222,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-manual-import", "-wmi" },
-            description: "A remapped function name to be treated as a manual import during binding generation.",
+            description: "A remapped function name to be treated as a manual import during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1233,7 +1233,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-namespace", "-wn" },
-            description: "A namespace to be used for the given remapped declaration name during binding generation.",
+            description: "A namespace to be used for the given remapped declaration name during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1244,7 +1244,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-setlasterror", "-wsle" },
-            description: "Add the SetLastError=true modifier or SetsSystemLastError attribute to a given DllImport or UnmanagedFunctionPointer.",
+            description: "Add the SetLastError=true modifier or SetsSystemLastError attribute to a given DllImport or UnmanagedFunctionPointer. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1255,7 +1255,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-suppressgctransition", "-wsgct" },
-            description: "Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer.",
+            description: "Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1266,7 +1266,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-transparent-struct", "-wts" },
-            description: "A remapped type name to be treated as a transparent wrapper during binding generation.",
+            description: "A remapped type name to be treated as a transparent wrapper during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1277,7 +1277,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-type", "-wt" },
-            description: "A type to be used for the given enum declaration during binding generation.",
+            description: "A type to be used for the given enum declaration during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1288,7 +1288,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-using", "-wu" },
-            description: "A using directive to be included for the given remapped declaration name during binding generation.",
+            description: "A using directive to be included for the given remapped declaration name during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
@@ -1299,7 +1299,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-packing", "-wp" },
-            description: "Overrides the StructLayoutAttribute.Pack property for the given type.",
+            description: "Overrides the StructLayoutAttribute.Pack property for the given type. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
