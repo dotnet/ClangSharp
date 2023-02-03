@@ -167,6 +167,9 @@ Options:
   -wt, --with-type <with-type>                               A type to be used for the given enum declaration during binding generation. []
   -wu, --with-using <with-using>                             A using directive to be included for the given remapped declaration name during binding generation. []
   -?, -h, --help                                             Show help and usage information
+
+Wildcards:
+You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.
 ```
 
 The available configuration options (visible with `-c help`) are:

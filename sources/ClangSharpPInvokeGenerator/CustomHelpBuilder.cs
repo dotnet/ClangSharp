@@ -35,12 +35,9 @@ internal sealed class CustomHelpBuilder : HelpBuilder
         var _ = new Command("unused");
         WriteColumns(helpItems, new HelpContext(this, _, Console.Out.CreateTextWriter()));
         WriteLine();
-        WriteLine("Wildcards:");
-        WriteLine();
-        WriteLine("You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.");
     }
 
     public void WriteLine() => Console.Out.WriteLine();
-    
+
     public void WriteLine(string value) => Console.Out.WriteLine(value);
 }

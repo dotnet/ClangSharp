@@ -206,10 +206,23 @@ public class Program
         Handler.SetHandler(s_rootCommand, (Action<InvocationContext>)Run);
     }
 
+    public static IEnumerable<HelpSectionDelegate> GetExtendedHelp(HelpContext context)
+    {
+        foreach (var sectionDelegate in HelpBuilder.Default.GetLayout())
+            yield return sectionDelegate;
+
+        yield return _ =>
+        {
+            Console.WriteLine(
+@"Wildcards:
+You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.");
+        };
+    }
+
     public static async Task<int> Main(params string[] args)
     {
         var parser = new CommandLineBuilder(s_rootCommand)
-            .UseHelp()
+            .UseHelp(context => context.HelpBuilder.CustomizeLayout(GetExtendedHelp))
             .UseEnvironmentVariableDirective()
             .UseParseDirective()
             .UseSuggestDirective()
