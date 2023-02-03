@@ -1156,7 +1156,7 @@ public class Program
     {
         return new Option<string[]>(
             aliases: new string[] { "--with-access-specifier", "-was" },
-            description: "An access specifier to be used with the given qualified or remapped declaration name during binding generation.",
+            description: "An access specifier to be used with the given qualified or remapped declaration name during binding generation. You can use wildcards like this --with-access-specifier *=Internal",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
