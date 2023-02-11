@@ -5958,9 +5958,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                         var textStart = attrText.IndexOf('"');
                         var textLength = attrText.LastIndexOf('"') - textStart;
 
-                        if (textLength > 2)
+                        if (textLength > 1)
                         {
-                            var text = attrText.AsSpan(textStart + 1, textLength - 2);
+                            var text = attrText.AsSpan(textStart + 1, textLength - 1);
                             outputBuilder.WriteCustomAttribute($"Obsolete(\"{text}\")");
                         }
                         else
