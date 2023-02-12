@@ -38,6 +38,6 @@ internal sealed class CustomHelpBuilder : HelpBuilder
     }
 
     public void WriteLine() => Console.Out.WriteLine();
-    
+
     public void WriteLine(string value) => Console.Out.WriteLine(value);
 }
