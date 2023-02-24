@@ -5936,9 +5936,22 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
 
-        if (!isTestOutput && namedDecl.HasAttrs)
+        if (!isTestOutput)
         {
-            foreach (var attr in namedDecl.Attrs)
+            var declAttrs = namedDecl.HasAttrs
+                ? namedDecl.Attrs
+                : Enumerable.Empty<Attr>();
+
+            if (namedDecl is RecordDecl recordDecl)
+            {
+                var typedefName = recordDecl.TypedefNameForAnonDecl;
+                if (typedefName != null && typedefName.HasAttrs)
+                {
+                    declAttrs = declAttrs.Concat(typedefName.Attrs);
+                }
+            }
+
+            foreach (var attr in declAttrs)
             {
                 switch (attr.Kind)
                 {
@@ -6241,7 +6254,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             _testOutputBuilder.WriteIndented("Assert.Equal");
             _testOutputBuilder.Write('(');
             _testOutputBuilder.Write(expected);
-            _testOutputBuilder.Write(", ");;
+            _testOutputBuilder.Write(", ");
             _testOutputBuilder.Write(actual);
             _testOutputBuilder.Write(')');
             _testOutputBuilder.WriteSemicolon();
