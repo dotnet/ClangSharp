@@ -308,4 +308,210 @@ namespace ClangSharp.Test
 
         return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
     }
+
+    protected override Task FuncDeclImpl()
+    {
+        var inputContents = @"
+void MyFunction0()
+{
+}
+
+[[deprecated]]
+void MyFunction1()
+{
+}
+
+[[deprecated(""This is obsolete."")]]
+void MyFunction2()
+{
+}
+
+void MyFunction3()
+{
+}
+";
+
+        var expectedOutputContents = @"using System;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        public static void MyFunction0()
+        {
+        }
+
+        [Obsolete]
+        public static void MyFunction1()
+        {
+        }
+
+        [Obsolete(""This is obsolete."")]
+        public static void MyFunction2()
+        {
+        }
+
+        public static void MyFunction3()
+        {
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
+
+    protected override Task InstanceFuncImpl()
+    {
+        var inputContents = @"struct MyStruct
+{
+    int MyFunction0() { return 0; }
+
+    [[deprecated]]
+    int MyFunction1() { return 0; }
+
+    [[deprecated(""This is obsolete."")]]
+    int MyFunction2() { return 0; }
+
+    int MyFunction3() { return 0; }
+};";
+
+        var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
+{{
+    public partial struct MyStruct
+    {{
+        public int MyFunction0()
+        {{
+            return 0;
+        }}
+
+        [Obsolete]
+        public int MyFunction1()
+        {{
+            return 0;
+        }}
+
+        [Obsolete(""This is obsolete."")]
+        public int MyFunction2()
+        {{
+            return 0;
+        }}
+
+        public int MyFunction3()
+        {{
+            return 0;
+        }}
+    }}
+}}
+";
+
+        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
+
+    protected override Task FuncPtrDeclImpl()
+    {
+        var inputContents = @"
+typedef void (*Callback0)();
+[[deprecated]] typedef void (*Callback1)();
+[[deprecated(""This is obsolete."")]] typedef void (*Callback2)();
+typedef void (*Callback3)();
+
+struct MyStruct0 {
+    Callback0 _callback;
+};
+struct MyStruct1 {
+    Callback1 _callback;
+};
+struct MyStruct2 {
+    Callback2 _callback;
+};
+struct MyStruct3 {
+    Callback3 _callback;
+};
+";
+
+        var expectedOutputContents = @"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void Callback0();
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    [Obsolete]
+    public delegate void Callback1();
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    [Obsolete(""This is obsolete."")]
+    public delegate void Callback2();
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void Callback3();
+
+    public partial struct MyStruct0
+    {
+        [NativeTypeName(""Callback0"")]
+        public IntPtr _callback;
+    }
+
+    public partial struct MyStruct1
+    {
+        [NativeTypeName(""Callback1"")]
+        public IntPtr _callback;
+    }
+
+    public partial struct MyStruct2
+    {
+        [NativeTypeName(""Callback2"")]
+        public IntPtr _callback;
+    }
+
+    public partial struct MyStruct3
+    {
+        [NativeTypeName(""Callback3"")]
+        public IntPtr _callback;
+    }
+}
+";
+
+        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
+
+    protected override Task FuncDllImportImpl()
+    {
+        var inputContents = @"
+extern ""C"" void MyFunction0();
+extern ""C"" [[deprecated]] void MyFunction1();
+extern ""C"" [[deprecated(""This is obsolete."")]] void MyFunction2();
+extern ""C"" void MyFunction3();";
+
+        var expectedOutputContents = @"using System;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void MyFunction0();
+
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [Obsolete]
+        public static extern void MyFunction1();
+
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [Obsolete(""This is obsolete."")]
+        public static extern void MyFunction2();
+
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void MyFunction3();
+    }
+}
+";
+
+        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 }

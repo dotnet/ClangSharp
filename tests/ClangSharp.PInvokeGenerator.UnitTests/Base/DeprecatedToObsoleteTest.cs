@@ -28,6 +28,18 @@ public abstract class DeprecatedToObsoleteTest : PInvokeGeneratorTest
     [TestCase("int", "int")]
     public Task SimpleVarDecl(string nativeType, string expectedManagedType) => SimpleVarDeclImpl(nativeType, expectedManagedType);
 
+    [Test]
+    public Task FuncDecl() => FuncDeclImpl();
+
+    [Test]
+    public Task InstanceFunc() => InstanceFuncImpl();
+
+    [Test]
+    public Task FuncPtrDecl() => FuncPtrDeclImpl();
+
+    [Test]
+    public Task FuncDeclDllImport() => FuncDllImportImpl();
+
     protected abstract Task SimpleStructMembersImpl(string nativeType, string expectedManagedType);
 
     protected abstract Task StructDeclImpl();
@@ -41,4 +53,12 @@ public abstract class DeprecatedToObsoleteTest : PInvokeGeneratorTest
     protected abstract Task EnumDeclImpl();
 
     protected abstract Task SimpleVarDeclImpl(string nativeType, string expectedManagedType);
+
+    protected abstract Task FuncDeclImpl();
+
+    protected abstract Task InstanceFuncImpl();
+
+    protected abstract Task FuncPtrDeclImpl();
+
+    protected abstract Task FuncDllImportImpl();
 }
