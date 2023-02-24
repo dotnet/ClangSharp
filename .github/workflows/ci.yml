@@ -2,9 +2,10 @@ name: ci
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, v* ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, v* ]
+  workflow_dispatch:
 
 jobs:
   windows-x64:
@@ -40,7 +41,7 @@ jobs:
       shell: cmd
     - uses: actions/upload-artifact@v3
       with:
-        name: ${{ matrix.os }}_${{ matrix.configuration }}_x86
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
           ./artifacts/bin/**/*
           ./artifacts/log/**/*
@@ -96,14 +97,6 @@ jobs:
       env:
         EXCLUDE_RUN_ID_FROM_PACKAGE: true
         EXCLUDE_SUFFIX_FROM_VERSION: false
-    - uses: actions/setup-dotnet@v2
-      if: ${{ github.event_name == 'push' }}
-      with:
-        dotnet-version: '6.0.x'
-    - run: dotnet tool install --tool-path ./artifacts/tools SignClient
-      if: ${{ github.event_name == 'push' }}
-    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "${{ github.workspace }}/artifacts/pkg" --input "**/*.nupkg" --config "${{ github.workspace }}/scripts/SignClientSettings.json" --filelist "${{ github.workspace }}/scripts/SignClientFileList.txt" --user "${{ secrets.SC_USER }}" --secret "${{ secrets.SC_PASS }}" --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
-      if: ${{ github.event_name == 'push' }}
     - uses: actions/upload-artifact@v3
       with:
         name: nuget_preview
@@ -112,6 +105,29 @@ jobs:
           ./artifacts/log/**/*
           ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
+        if-no-files-found: error
+  sign-nuget-preview:
+    runs-on: windows-latest
+    if: ${{ github.event_name == 'push' }}
+    needs: [ build-nuget-preview ]
+    permissions:
+      id-token: write
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nuget_preview
+        path: ./artifacts
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '6.0.x'
+    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.0-beta.23063.3
+    - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --timestamp-url "http://timestamp.digicert.com" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileList.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-key-vault-certificate "${{ secrets.SC_KEY_VAULT_CERTIFICATE_ID }}" --azure-key-vault-client-id "${{ secrets.SC_AZURE_CLIENT_ID }}" --azure-key-vault-client-secret "${{ secrets.SC_AZURE_CLIENT_SECRET }}" --azure-key-vault-tenant-id "${{ secrets.SC_AZURE_TENANT_ID }}" --azure-key-vault-url "${{ secrets.SC_KEY_VAULT_URL }}"
+    - uses: actions/upload-artifact@v3
+      with:
+        name: sign_nuget_preview
+        path: |
+          ./artifacts/pkg/**/*
         if-no-files-found: error
   build-nuget-release:
     runs-on: windows-latest
@@ -122,14 +138,6 @@ jobs:
       env:
         EXCLUDE_RUN_ID_FROM_PACKAGE: true
         EXCLUDE_SUFFIX_FROM_VERSION: true
-    - uses: actions/setup-dotnet@v2
-      if: ${{ github.event_name == 'push' }}
-      with:
-        dotnet-version: '6.0.x'
-    - run: dotnet tool install --tool-path ./artifacts/tools SignClient
-      if: ${{ github.event_name == 'push' }}
-    - run: ./artifacts/tools/SignClient "Sign" --baseDirectory "${{ github.workspace }}/artifacts/pkg" --input "**/*.nupkg" --config "${{ github.workspace }}/scripts/SignClientSettings.json" --filelist "${{ github.workspace }}/scripts/SignClientFileList.txt" --user "${{ secrets.SC_USER }}" --secret "${{ secrets.SC_PASS }}" --name "ClangSharp" --description "ClangSharp" --descriptionUrl "https://github.com/dotnet/clangsharp"
-      if: ${{ github.event_name == 'push' }}
     - uses: actions/upload-artifact@v3
       with:
         name: nuget_release
@@ -139,12 +147,35 @@ jobs:
           ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
         if-no-files-found: error
+  sign-nuget-release:
+    runs-on: windows-latest
+    if: ${{ github.event_name == 'push' }}
+    needs: [ build-nuget-release ]
+    permissions:
+      id-token: write
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nuget_release
+        path: ./artifacts
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '6.0.x'
+    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.0-beta.23063.3
+    - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --timestamp-url "http://timestamp.digicert.com" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileList.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-key-vault-certificate "${{ secrets.SC_KEY_VAULT_CERTIFICATE_ID }}" --azure-key-vault-client-id "${{ secrets.SC_AZURE_CLIENT_ID }}" --azure-key-vault-client-secret "${{ secrets.SC_AZURE_CLIENT_SECRET }}" --azure-key-vault-tenant-id "${{ secrets.SC_AZURE_TENANT_ID }}" --azure-key-vault-url "${{ secrets.SC_KEY_VAULT_URL }}"
+    - uses: actions/upload-artifact@v3
+      with:
+        name: sign_nuget_release
+        path: |
+          ./artifacts/pkg/**/*
+        if-no-files-found: error
   publish-nightlies-azure:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
-    needs: [ windows-x64, windows-x86, linux-x64, macos-x64, build-nuget-preview ]
+    needs: [ windows-x64, windows-x86, linux-x64, macos-x64, sign-nuget-preview, sign-nuget-release ]
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: windows_release_x64
         path: ./artifacts
@@ -158,9 +189,9 @@ jobs:
   publish-nightlies-github:
     runs-on: ubuntu-latest
     if: false
-    needs: [ windows-x64, windows-x86, linux-x64, macos-x64, build-nuget-preview ]
+    needs: [ windows-x64, windows-x86, linux-x64, macos-x64, sign-nuget-preview, sign-nuget-release ]
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: windows_release_x64
         path: ./artifacts
