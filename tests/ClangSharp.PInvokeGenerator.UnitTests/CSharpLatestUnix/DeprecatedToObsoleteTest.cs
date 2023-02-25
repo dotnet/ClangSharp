@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace ClangSharp.UnitTests;
 
-public sealed class CSharpCompatibleWindows_DeprecatedToObsoleteTest : DeprecatedToObsoleteTest
+public sealed class CSharpLatestUnix_DeprecatedToObsoleteTest : DeprecatedToObsoleteTest
 {
     protected override Task SimpleStructMembersImpl(string nativeType, string expectedManagedType)
     {
@@ -41,7 +41,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task StructDeclImpl()
@@ -95,7 +95,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task SimpleTypedefStructMembersImpl(string nativeType, string expectedManagedType)
@@ -132,7 +132,7 @@ namespace ClangSharp.Test
     }}
 }}
 ";
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task TypedefStructDeclImpl()
@@ -186,7 +186,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task SimpleEnumMembersImpl()
@@ -216,7 +216,7 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task EnumDeclImpl()
@@ -271,7 +271,7 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task SimpleVarDeclImpl(string nativeType, string expectedManagedType)
@@ -306,7 +306,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FuncDeclImpl()
@@ -358,7 +358,7 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task InstanceFuncImpl()
@@ -407,7 +407,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FuncPtrDeclImpl()
@@ -433,53 +433,38 @@ struct MyStruct3 {
 ";
 
         var expectedOutputContents = @"using System;
-using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void Callback0();
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    [Obsolete]
-    public delegate void Callback1();
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    [Obsolete(""This is obsolete."")]
-    public delegate void Callback2();
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void Callback3();
-
-    public partial struct MyStruct0
+    public unsafe partial struct MyStruct0
     {
         [NativeTypeName(""Callback0"")]
-        public IntPtr _callback;
+        public delegate* unmanaged[Cdecl]<void> _callback;
     }
 
-    public partial struct MyStruct1
+    public unsafe partial struct MyStruct1
     {
         [NativeTypeName(""Callback1"")]
         [Obsolete]
-        public IntPtr _callback;
+        public delegate* unmanaged[Cdecl]<void> _callback;
     }
 
-    public partial struct MyStruct2
+    public unsafe partial struct MyStruct2
     {
         [NativeTypeName(""Callback2"")]
         [Obsolete(""This is obsolete."")]
-        public IntPtr _callback;
+        public delegate* unmanaged[Cdecl]<void> _callback;
     }
 
-    public partial struct MyStruct3
+    public unsafe partial struct MyStruct3
     {
         [NativeTypeName(""Callback3"")]
-        public IntPtr _callback;
+        public delegate* unmanaged[Cdecl]<void> _callback;
     }
 }
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FuncDllImportImpl()
@@ -514,6 +499,6 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 }

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace ClangSharp.UnitTests;
 
-public sealed class CSharpCompatibleWindows_DeprecatedToObsoleteTest : DeprecatedToObsoleteTest
+public sealed class CSharpCompatibleUnix_DeprecatedToObsoleteTest : DeprecatedToObsoleteTest
 {
     protected override Task SimpleStructMembersImpl(string nativeType, string expectedManagedType)
     {
@@ -41,7 +41,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task StructDeclImpl()
@@ -95,7 +95,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task SimpleTypedefStructMembersImpl(string nativeType, string expectedManagedType)
@@ -132,7 +132,7 @@ namespace ClangSharp.Test
     }}
 }}
 ";
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task TypedefStructDeclImpl()
@@ -186,7 +186,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task SimpleEnumMembersImpl()
@@ -216,7 +216,7 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task EnumDeclImpl()
@@ -271,7 +271,7 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task SimpleVarDeclImpl(string nativeType, string expectedManagedType)
@@ -306,7 +306,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FuncDeclImpl()
@@ -358,7 +358,7 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task InstanceFuncImpl()
@@ -407,7 +407,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FuncPtrDeclImpl()
@@ -479,7 +479,7 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FuncDllImportImpl()
@@ -514,6 +514,6 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 }
