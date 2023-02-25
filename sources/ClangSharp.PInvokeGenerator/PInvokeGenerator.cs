@@ -5942,7 +5942,14 @@ public sealed partial class PInvokeGenerator : IDisposable
                 ? namedDecl.Attrs
                 : Enumerable.Empty<Attr>();
 
-            if (namedDecl is RecordDecl recordDecl)
+            if (namedDecl is FieldDecl fieldDecl)
+            {
+                if (fieldDecl.Type is TypedefType defType && defType.Decl.HasAttrs)
+                {
+                    declAttrs = declAttrs.Concat(defType.Decl.Attrs);
+                }
+            }
+            else if (namedDecl is RecordDecl recordDecl)
             {
                 var typedefName = recordDecl.TypedefNameForAnonDecl;
                 if (typedefName != null && typedefName.HasAttrs)
@@ -5950,6 +5957,8 @@ public sealed partial class PInvokeGenerator : IDisposable
                     declAttrs = declAttrs.Concat(typedefName.Attrs);
                 }
             }
+
+            var obsoleteEmitted = false;
 
             foreach (var attr in declAttrs)
             {
@@ -5966,6 +5975,11 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                     case CX_AttrKind.CX_AttrKind_Deprecated:
                     {
+                        if (obsoleteEmitted)
+                        {
+                            break;
+                        }
+
                         var attrText = GetSourceRangeContents(namedDecl.TranslationUnit.Handle, attr.Extent);
 
                         var textStart = attrText.IndexOf('"');
@@ -5980,6 +5994,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         {
                             outputBuilder.WriteCustomAttribute($"Obsolete");
                         }
+                        obsoleteEmitted = true;
                         break;
                     }
 
