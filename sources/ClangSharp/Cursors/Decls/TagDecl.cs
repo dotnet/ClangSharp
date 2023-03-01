@@ -10,7 +10,7 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
 {
     private readonly Lazy<TagDecl?> _definition;
     private readonly Lazy<IReadOnlyList<IReadOnlyList<NamedDecl>>> _templateParameterLists;
-    private readonly Lazy<TypedefNameDecl> _typedefNameForAnonDecl;
+    private readonly Lazy<TypedefNameDecl?> _typedefNameForAnonDecl;
 
     private protected TagDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -42,7 +42,7 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
             return templateParameterLists;
         });
 
-        _typedefNameForAnonDecl = new Lazy<TypedefNameDecl>(() => TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.TypedefNameForAnonDecl));
+        _typedefNameForAnonDecl = new Lazy<TypedefNameDecl?>(() => !Handle.TypedefNameForAnonDecl.IsNull ? TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.TypedefNameForAnonDecl) : null);
     }
 
     public new TagDecl CanonicalDecl => (TagDecl)base.CanonicalDecl;
@@ -65,5 +65,5 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
 
     public IReadOnlyList<IReadOnlyList<NamedDecl>> TemplateParameterLists => _templateParameterLists.Value;
 
-    public TypedefNameDecl TypedefNameForAnonDecl => _typedefNameForAnonDecl.Value;
+    public TypedefNameDecl? TypedefNameForAnonDecl => _typedefNameForAnonDecl.Value;
 }

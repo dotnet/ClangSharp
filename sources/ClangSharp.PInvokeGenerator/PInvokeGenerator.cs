@@ -5936,9 +5936,31 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
 
-        if (!isTestOutput && namedDecl.HasAttrs)
+        if (!isTestOutput)
         {
-            foreach (var attr in namedDecl.Attrs)
+            var declAttrs = namedDecl.HasAttrs
+                ? namedDecl.Attrs
+                : Enumerable.Empty<Attr>();
+
+            if (namedDecl is FieldDecl fieldDecl)
+            {
+                if (fieldDecl.Type is TypedefType defType && defType.Decl.HasAttrs)
+                {
+                    declAttrs = declAttrs.Concat(defType.Decl.Attrs);
+                }
+            }
+            else if (namedDecl is RecordDecl recordDecl)
+            {
+                var typedefName = recordDecl.TypedefNameForAnonDecl;
+                if (typedefName != null && typedefName.HasAttrs)
+                {
+                    declAttrs = declAttrs.Concat(typedefName.Attrs);
+                }
+            }
+
+            var obsoleteEmitted = false;
+
+            foreach (var attr in declAttrs)
             {
                 switch (attr.Kind)
                 {
@@ -5953,20 +5975,26 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                     case CX_AttrKind.CX_AttrKind_Deprecated:
                     {
+                        if (obsoleteEmitted)
+                        {
+                            break;
+                        }
+
                         var attrText = GetSourceRangeContents(namedDecl.TranslationUnit.Handle, attr.Extent);
 
                         var textStart = attrText.IndexOf('"');
                         var textLength = attrText.LastIndexOf('"') - textStart;
 
-                        if (textLength > 2)
+                        if (textLength > 1)
                         {
-                            var text = attrText.AsSpan(textStart + 1, textLength - 2);
+                            var text = attrText.AsSpan(textStart + 1, textLength - 1);
                             outputBuilder.WriteCustomAttribute($"Obsolete(\"{text}\")");
                         }
                         else
                         {
                             outputBuilder.WriteCustomAttribute($"Obsolete");
                         }
+                        obsoleteEmitted = true;
                         break;
                     }
 
@@ -6241,7 +6269,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             _testOutputBuilder.WriteIndented("Assert.Equal");
             _testOutputBuilder.Write('(');
             _testOutputBuilder.Write(expected);
-            _testOutputBuilder.Write(", ");;
+            _testOutputBuilder.Write(", ");
             _testOutputBuilder.Write(actual);
             _testOutputBuilder.Write(')');
             _testOutputBuilder.WriteSemicolon();
