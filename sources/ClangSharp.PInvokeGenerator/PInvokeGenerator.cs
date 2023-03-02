@@ -435,6 +435,11 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 sw.WriteLine('}');
             }
+
+            if (!leaveStreamOpen)
+            {
+                stream = null;
+            }
         }
 
         static void GenerateNativeTypeNameAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
@@ -513,6 +518,11 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 sw.WriteLine('}');
             }
+
+            if (!leaveStreamOpen)
+            {
+                stream = null;
+            }
         }
 
         static void GenerateSetsLastSystemErrorAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
@@ -580,6 +590,11 @@ public sealed partial class PInvokeGenerator : IDisposable
             if (!generator.Config.GenerateFileScopedNamespaces)
             {
                 sw.WriteLine('}');
+            }
+
+            if (!leaveStreamOpen)
+            {
+                stream = null;
             }
         }
 
@@ -659,6 +674,11 @@ public sealed partial class PInvokeGenerator : IDisposable
             if (!generator.Config.GenerateFileScopedNamespaces)
             {
                 sw.WriteLine('}');
+            }
+
+            if (!leaveStreamOpen)
+            {
+                stream = null;
             }
         }
 
