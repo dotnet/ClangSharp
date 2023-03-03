@@ -106,6 +106,21 @@ public sealed class PInvokeGeneratorConfiguration
         {
             throw new ArgumentOutOfRangeException(nameof(options));
         }
+        else if (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode) && options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateLatestCode))
+        {
+            throw new ArgumentOutOfRangeException(nameof(options));
+        }
+        else if (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateLatestCode) && options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode))
+        {
+            throw new ArgumentOutOfRangeException(nameof(options));
+        }
+
+        if (options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode))
+        {
+            // While users shouldn't have passed it in like this, we can simplify
+            // our own downstream checks be having preview also opt into "latest".
+            options |= PInvokeGeneratorConfigurationOptions.GenerateLatestCode;
+        }
         _options = options;
 
         if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
@@ -204,6 +219,8 @@ public sealed class PInvokeGeneratorConfiguration
     public bool GenerateGuidMember => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateGuidMember);
 
     public bool GenerateHelperTypes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateHelperTypes);
+
+    public bool GenerateLatestCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateLatestCode);
 
     public bool GenerateMacroBindings => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMacroBindings);
 

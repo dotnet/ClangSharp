@@ -550,6 +550,7 @@ enum MyEnum2 : int
         };
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, withTypes: withTypes);
     }
+
     protected override Task WithAnonymousEnumTestImpl()
     {
         var inputContents = @"enum

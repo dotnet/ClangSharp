@@ -1426,7 +1426,8 @@ void MyFunction()
 }
 ";
 
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -1437,11 +1438,12 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyUnion::(anonymous struct at ClangUnsavedFile.h:3:5)"")]
         public _Anonymous_e__Struct Anonymous;
 
+        [UnscopedRef]
         public ref int a
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+                return ref Anonymous.a;
             }
         }
 

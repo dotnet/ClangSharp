@@ -2472,7 +2472,7 @@ public partial class PInvokeGenerator
             case CX_CharacterKind.CX_CLK_Ascii:
             case CX_CharacterKind.CX_CLK_UTF8:
             {
-                if (Config.GeneratePreviewCode)
+                if (Config.GenerateLatestCode)
                 {
                     outputBuilder.Write('"');
                     outputBuilder.Write(EscapeString(stringLiteral.String));

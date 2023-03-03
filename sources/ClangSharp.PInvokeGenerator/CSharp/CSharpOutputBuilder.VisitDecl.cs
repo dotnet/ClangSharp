@@ -801,7 +801,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
                 Write(".Interface");
             }
 
-            if ((desc.Uuid is not null) && _config.GenerateGuidMember && _config.GeneratePreviewCode)
+            if ((desc.Uuid is not null) && _config.GenerateGuidMember && _config.GenerateLatestCode)
             {
                 Write(desc.HasVtbl ? ", " : " : ");
                 Write("INativeGuid");
