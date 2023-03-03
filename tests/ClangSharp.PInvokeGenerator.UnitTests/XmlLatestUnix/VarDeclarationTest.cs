@@ -153,7 +153,7 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
       <constant name=""MyMacro1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8</code>
         </value>
       </constant>
     </class>
@@ -197,7 +197,7 @@ const wchar_t* const MyConst3 = L""Test"";";
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <constant name=""MyConst1"" access=""public"">
-        <type primitive=""False"">uint[]</type>
+        <type primitive=""False"">ReadOnlySpan&lt;uint&gt;</type>
         <value>
           <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
         </value>
@@ -209,7 +209,7 @@ const wchar_t* const MyConst3 = L""Test"";";
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
-        <type primitive=""False"">uint[]</type>
+        <type primitive=""False"">ReadOnlySpan&lt;uint&gt;</type>
         <value>
           <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
         </value>
@@ -235,19 +235,19 @@ const char* const MyConst3 = ""Test"";";
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8</code>
         </value>
       </constant>
       <field name=""MyConst2"" access=""public"">
         <type primitive=""False"">byte[]</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8.ToArray()</code>
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8</code>
         </value>
       </constant>
     </class>
@@ -269,7 +269,7 @@ static const wchar_t* const MyConst3 = L""Test"";";
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <constant name=""MyConst1"" access=""public"">
-        <type primitive=""False"">uint[]</type>
+        <type primitive=""False"">ReadOnlySpan&lt;uint&gt;</type>
         <value>
           <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
         </value>
@@ -281,7 +281,7 @@ static const wchar_t* const MyConst3 = L""Test"";";
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
-        <type primitive=""False"">uint[]</type>
+        <type primitive=""False"">ReadOnlySpan&lt;uint&gt;</type>
         <value>
           <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
         </value>
@@ -307,19 +307,19 @@ static const char* const MyConst3 = ""Test"";";
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8</code>
         </value>
       </constant>
       <field name=""MyConst2"" access=""public"">
         <type primitive=""False"">byte[]</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8.ToArray()</code>
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00 }}</code>
+          <code>""Test""u8</code>
         </value>
       </constant>
     </class>

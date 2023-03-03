@@ -919,7 +919,7 @@ public partial class PInvokeGenerator
             ParentName = GetRemappedCursorName(parent),
             Offset = null,
             NeedsNewKeyword = false,
-            NeedsUnscopedRef = _config.GeneratePreviewCode && !fieldDecl.IsBitField,
+            NeedsUnscopedRef = _config.GenerateLatestCode && !fieldDecl.IsBitField,
             Location = fieldDecl.Location,
             HasBody = true,
             WriteCustomAttrs = static context => {
@@ -2937,7 +2937,7 @@ public partial class PInvokeGenerator
             }
             else
             {
-                _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: false, needsUnscopedRef: _config.GeneratePreviewCode);
+                _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: false, needsUnscopedRef: _config.GenerateLatestCode);
                 _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
                 _outputBuilder.BeginIndexerParameters();
                 var param = new ParameterDesc {
@@ -2979,7 +2979,7 @@ public partial class PInvokeGenerator
                     ReturnType = $"Span<{arrayTypeName}>",
                     Location = constantOrIncompleteArray.Location,
                     HasBody = true,
-                    NeedsUnscopedRef = _config.GeneratePreviewCode,
+                    NeedsUnscopedRef = _config.GenerateLatestCode,
                 };
 
                 var isUnsafe = false;
@@ -3354,7 +3354,7 @@ public partial class PInvokeGenerator
 
                     case CX_CharacterKind.CX_CLK_UTF32:
                     {
-                        if (_config.GeneratePreviewCode && flags.HasFlag(ValueFlags.Constant))
+                        if (_config.GenerateLatestCode && flags.HasFlag(ValueFlags.Constant))
                         {
                             typeName = "ReadOnlySpan<uint>";
                         }

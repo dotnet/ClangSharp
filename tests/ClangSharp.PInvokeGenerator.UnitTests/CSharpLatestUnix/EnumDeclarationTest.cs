@@ -224,7 +224,7 @@ namespace ClangSharp.Test
 ";
 
         var withAttributes = new Dictionary<string, IReadOnlyList<string>>
-        {
+        { 
             ["MyEnum1"] = new List<string>() { "Flags" }
         };
         return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);

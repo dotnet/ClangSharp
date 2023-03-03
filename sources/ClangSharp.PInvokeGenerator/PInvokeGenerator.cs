@@ -326,7 +326,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             foreach (var entry in methodClassOutputBuilders)
             {
-                var hasGuidMember = _config.GenerateGuidMember && _config.GeneratePreviewCode;
+                var hasGuidMember = _config.GenerateGuidMember && _config.GenerateLatestCode;
                 hasGuidMember &= _uuidsToGenerate.ContainsKey(entry.Value.Name) || _generatedUuids.Contains(entry.Value.Name);
 
                 CloseOutputBuilder(stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);

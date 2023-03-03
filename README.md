@@ -7,11 +7,13 @@ ClangSharp provides Clang bindings written in C#. It is self-hosted and auto-gen
 A nuget package for the project is provided here: https://www.nuget.org/packages/clangsharp.
 A .NET tool for the P/Invoke generator project is provided here: https://www.nuget.org/packages/ClangSharpPInvokeGenerator
 
+**NOTE:** If you are running as a dotnet tool, you may need to manually copy the appropriate DLLs from NuGet due to limitations in the dotnet tool support.
+
 A convenience package which provides the native libClang library for several platforms is provided here: https://www.nuget.org/packages/libclang
 
 A helper package which exposes many Clang APIs missing from libClang is provided here: https://www.nuget.org/packages/libClangSharp
 
-NOTE: libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/15.0.0); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
+**NOTE:** libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/15.0.0); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
 
 Nightly packages are available via the NuGet Feed URL: https://pkgs.clangsharp.dev/index.json
 
@@ -179,8 +181,9 @@ The available configuration options (visible with `-c help`) are:
 Options:
   ?, h, help                             Show help and usage information for -c, --config
   compatible-codegen                     Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation.
-  latest-codegen                         Bindings should be generated for the latest stable version of .NET/C#. This is currently .NET 6/C# 10.
-  preview-codegen                        Bindings should be generated for the latest preview version of .NET/C#. This is currently .NET 7/C# 11.
+  default-codegen                        Bindings should be generated for the current LTS version of .NET/C#. This is currently .NET 6/C# 10.
+  latest-codegen                         Bindings should be generated for the current STS version of .NET/C#. This is currently .NET 7/C# 11.
+  preview-codegen                        Bindings should be generated for the preview version of .NET/C#. This is currently .NET 8/C# 12.
   single-file                            Bindings should be generated to a single output file. This is the default.
   multi-file                             Bindings should be generated so there is approximately one type per file.
   unix-types                             Bindings should be generated assuming Unix defaults. This is the default on Unix platforms.

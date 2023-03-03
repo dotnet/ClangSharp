@@ -960,19 +960,19 @@ struct MyStruct
       <field name=""z"" access=""public"">
         <type>ref {expectedManagedType}</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));</code>
+          <code>return ref Anonymous.z;</code>
         </get>
       </field>
       <field name=""w"" access=""public"">
         <type>ref _Anonymous_e__Struct._w_e__Struct</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));</code>
+          <code>return ref Anonymous.w;</code>
         </get>
       </field>
       <field name=""u"" access=""public"">
         <type>ref MyUnion</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));</code>
+          <code>return ref Anonymous.u;</code>
         </get>
       </field>
       <field name=""buffer1"" access=""public"">
@@ -1081,13 +1081,13 @@ struct MyStruct
       <field name=""z"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));</code>
+          <code>return ref Anonymous.z;</code>
         </get>
       </field>
       <field name=""w"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));</code>
+          <code>return ref Anonymous.Anonymous.w;</code>
         </get>
       </field>
       <field name=""o0_b0_16"" access=""public"">
@@ -1473,7 +1473,7 @@ struct example_s {
       <field name=""a"" access=""public"">
         <type>ref double</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));</code>
+          <code>return ref Anonymous.a;</code>
         </get>
       </field>
       <struct name=""_Anonymous_e__Struct"" access=""public"">

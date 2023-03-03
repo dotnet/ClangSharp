@@ -67,8 +67,9 @@ public class Program
         // Codegen Options
 
         new TwoColumnHelpRow("compatible-codegen", "Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation."),
-        new TwoColumnHelpRow("latest-codegen", "Bindings should be generated for the latest stable version of .NET/C#. This is currently .NET 6/C# 10."),
-        new TwoColumnHelpRow("preview-codegen", "Bindings should be generated for the latest preview version of .NET/C#. This is currently .NET 7/C# 11."),
+        new TwoColumnHelpRow("default-codegen", "Bindings should be generated for the current LTS version of .NET/C#. This is currently .NET 6/C# 10."),
+        new TwoColumnHelpRow("latest-codegen", "Bindings should be generated for the current STS version of .NET/C#. This is currently .NET 7/C# 11."),
+        new TwoColumnHelpRow("preview-codegen", "Bindings should be generated for the preview version of .NET/C#. This is currently .NET 8/C# 12."),
 
         // File Options
 
@@ -209,13 +210,13 @@ public class Program
     public static IEnumerable<HelpSectionDelegate> GetExtendedHelp(HelpContext context)
     {
         foreach (var sectionDelegate in HelpBuilder.Default.GetLayout())
-            yield return sectionDelegate;
-
-        yield return _ =>
         {
-            Console.WriteLine(
-@"Wildcards:
-You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.");
+            yield return sectionDelegate;
+        }
+
+        yield return _ => {
+            Console.WriteLine("Wildcards:");
+            Console.WriteLine("You can use * as catch-all rule for remapping procedures. For example if you want make all of your generated code internal you can use --with-access-specifier *=Internal.");
         };
     }
 
@@ -339,6 +340,15 @@ You can use * as catch-all rule for remapping procedures. For example if you wan
                 case "compatible-codegen":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateLatestCode;
+                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
+                    break;
+                }
+
+                case "default-codegen":
+                {
+                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateLatestCode;
                     configOptions &= ~PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
                     break;
                 }
@@ -346,6 +356,7 @@ You can use * as catch-all rule for remapping procedures. For example if you wan
                 case "latest-codegen":
                 {
                     configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateLatestCode;
                     configOptions &= ~PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
                     break;
                 }
@@ -353,6 +364,7 @@ You can use * as catch-all rule for remapping procedures. For example if you wan
                 case "preview-codegen":
                 {
                     configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode;
+                    configOptions &= ~PInvokeGeneratorConfigurationOptions.GenerateLatestCode;
                     configOptions |= PInvokeGeneratorConfigurationOptions.GeneratePreviewCode;
                     break;
                 }

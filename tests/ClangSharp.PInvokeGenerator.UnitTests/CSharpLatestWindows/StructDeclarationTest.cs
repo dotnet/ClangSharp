@@ -377,6 +377,7 @@ struct MyOtherStruct
 ";
 
         var expectedOutputContents = $@"using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -397,6 +398,7 @@ namespace ClangSharp.Test
             public MyStruct e1;
             public MyStruct e2;
 
+            [UnscopedRef]
             public ref MyStruct this[int index]
             {{
                 get
@@ -405,6 +407,7 @@ namespace ClangSharp.Test
                 }}
             }}
 
+            [UnscopedRef]
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
@@ -428,6 +431,7 @@ struct MyOtherStruct
 ";
 
         var expectedOutputContents = $@"using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -480,6 +484,7 @@ namespace ClangSharp.Test
             public MyStruct e0_0_2_3;
             public MyStruct e1_0_2_3;
 
+            [UnscopedRef]
             public ref MyStruct this[int index]
             {{
                 get
@@ -488,6 +493,7 @@ namespace ClangSharp.Test
                 }}
             }}
 
+            [UnscopedRef]
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0_0_0_0, 24);
         }}
     }}
@@ -513,6 +519,7 @@ struct MyOtherStruct
 ";
 
         var expectedOutputContents = $@"using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -533,6 +540,7 @@ namespace ClangSharp.Test
             public MyStruct e1;
             public MyStruct e2;
 
+            [UnscopedRef]
             public ref MyStruct this[int index]
             {{
                 get
@@ -541,6 +549,7 @@ namespace ClangSharp.Test
                 }}
             }}
 
+            [UnscopedRef]
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
@@ -564,6 +573,7 @@ struct MyOtherStruct
 ";
 
         var expectedOutputContents = $@"using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -585,6 +595,7 @@ namespace ClangSharp.Test
             public MyStruct e1;
             public MyStruct e2;
 
+            [UnscopedRef]
             public ref MyStruct this[int index]
             {{
                 get
@@ -593,6 +604,7 @@ namespace ClangSharp.Test
                 }}
             }}
 
+            [UnscopedRef]
             public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
@@ -909,6 +921,7 @@ struct MyStruct
 ";
 
         var expectedOutputContents = $@"using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -929,54 +942,61 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
         public _Anonymous_e__Struct Anonymous;
 
+        [UnscopedRef]
         public ref {expectedManagedType} z
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+                return ref Anonymous.z;
             }}
         }}
 
+        [UnscopedRef]
         public ref _Anonymous_e__Struct._w_e__Struct w
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));
+                return ref Anonymous.w;
             }}
         }}
 
+        [UnscopedRef]
         public ref {expectedManagedType} value1
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous1.value1, 1));
+                return ref Anonymous.Anonymous1.value1;
             }}
         }}
 
+        [UnscopedRef]
         public ref {expectedManagedType} value
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous1.Anonymous.value, 1));
+                return ref Anonymous.Anonymous1.Anonymous.value;
             }}
         }}
 
+        [UnscopedRef]
         public ref {expectedManagedType} value2
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous2.value2, 1));
+                return ref Anonymous.Anonymous2.value2;
             }}
         }}
 
+        [UnscopedRef]
         public ref MyUnion u
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));
+                return ref Anonymous.u;
             }}
         }}
 
+        [UnscopedRef]
         public Span<{expectedManagedType}> buffer1
         {{
             get
@@ -985,6 +1005,7 @@ namespace ClangSharp.Test
             }}
         }}
 
+        [UnscopedRef]
         public Span<MyUnion> buffer2
         {{
             get
@@ -1046,6 +1067,7 @@ namespace ClangSharp.Test
                 public MyUnion e2;
                 public MyUnion e3;
 
+                [UnscopedRef]
                 public ref MyUnion this[int index]
                 {{
                     get
@@ -1054,6 +1076,7 @@ namespace ClangSharp.Test
                     }}
                 }}
 
+                [UnscopedRef]
                 public Span<MyUnion> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 4);
             }}
         }}
@@ -1085,7 +1108,7 @@ namespace ClangSharp.Test
 };
 ";
 
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
 
 namespace ClangSharp.Test
 {
@@ -1098,19 +1121,21 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:6:5)"")]
         public _Anonymous_e__Struct Anonymous;
 
+        [UnscopedRef]
         public ref int z
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+                return ref Anonymous.z;
             }
         }
 
+        [UnscopedRef]
         public ref int w
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));
+                return ref Anonymous.Anonymous.w;
             }
         }
 
@@ -1471,7 +1496,7 @@ struct example_s {
     };
 };";
 
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
 
 namespace ClangSharp.Test
 {
@@ -1486,11 +1511,12 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:7:5)"")]
         public _Anonymous_e__Struct Anonymous;
 
+        [UnscopedRef]
         public ref double a
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+                return ref Anonymous.a;
             }
         }
 
@@ -1715,6 +1741,7 @@ struct MyStruct3
 ";
 
         const string ExpectedOutputContents = @"using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -1729,6 +1756,7 @@ namespace ClangSharp.Test
         {
             public nuint e0;
 
+            [UnscopedRef]
             public ref nuint this[int index]
             {
                 get
@@ -1737,6 +1765,7 @@ namespace ClangSharp.Test
                 }
             }
 
+            [UnscopedRef]
             public Span<nuint> AsSpan(int length) => MemoryMarshal.CreateSpan(ref e0, length);
         }
     }
