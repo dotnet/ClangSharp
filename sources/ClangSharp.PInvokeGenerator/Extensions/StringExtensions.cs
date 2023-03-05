@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using ClangSharp.Abstractions;
 
@@ -15,6 +16,9 @@ internal static class StringExtensions
 
     public static string NormalizePath(this string str)
         => str.Replace('\\', '/').Replace("//", "/");
+
+    public static string NormalizeFullPath(this string str)
+        => Path.GetFullPath(str).NormalizePath();
 
     public static string AsString(this AccessSpecifier value) => value switch {
         AccessSpecifier.Public => "public",
