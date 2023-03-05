@@ -311,6 +311,7 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_nativeTypeNamesToStrip, value, StringExtensions.NormalizePath);
+            AddRange(_nativeTypeNamesToStrip, value, StringExtensions.NormalizeFullPath);
         }
     }
 
@@ -362,6 +363,7 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_traversalNames, value, StringExtensions.NormalizePath);
+            AddRange(_traversalNames, value, StringExtensions.NormalizeFullPath);
         }
     }
 

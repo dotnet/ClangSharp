@@ -2934,17 +2934,9 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         if (!_typeNames.TryGetValue((cursor, context, type), out var result))
         {
-            result.typeName = type.AsString.NormalizePath();
-
-            if (result.typeName.Contains("unnamed struct at"))
-            {
-                result.typeName = result.typeName.Replace("unnamed struct at", "anonymous struct at");
-            }
-
-            if (result.typeName.Contains("unnamed union at"))
-            {
-                result.typeName = result.typeName.Replace("unnamed union at", "anonymous union at");
-            }
+            result.typeName = type.AsString.NormalizePath()
+                                           .Replace("unnamed struct at", "anonymous struct at")
+                                           .Replace("unnamed union at", "anonymous union at");
 
             result.nativeTypeName = result.typeName;
 
@@ -4314,6 +4306,10 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
 
             if (_config.TraversalNames.Contains(fileName, equalityComparer))
+            {
+                return true;
+            }
+            else if (_config.TraversalNames.Contains(fileName.NormalizeFullPath(), equalityComparer))
             {
                 return true;
             }
