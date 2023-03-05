@@ -4309,7 +4309,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 return true;
             }
-            else if (_config.TraversalNames.Contains(Path.GetFullPath(fileName), equalityComparer))
+            else if (_config.TraversalNames.Contains(fileName.NormalizeFullPath(), equalityComparer))
             {
                 return true;
             }

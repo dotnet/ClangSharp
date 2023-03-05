@@ -18,7 +18,7 @@ internal static class StringExtensions
         => str.Replace('\\', '/').Replace("//", "/");
 
     public static string NormalizeFullPath(this string str)
-        => Path.GetFullPath(str).NormalizePath();
+        => string.IsNullOrWhiteSpace(str) ? str : Path.GetFullPath(str).NormalizePath();
 
     public static string AsString(this AccessSpecifier value) => value switch {
         AccessSpecifier.Public => "public",
