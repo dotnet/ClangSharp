@@ -1,15 +1,5 @@
 {
   "runtimes": {
-    "freebsd.12-x64": {
-      "libClangSharp": {
-        "libClangSharp.runtime.freebsd.12-x64": "15.0.0"
-      }
-    },
-    "freebsd.13-x64": {
-      "libClangSharp": {
-        "libClangSharp.runtime.freebsd.13-x64": "15.0.0"
-      }
-    },
     "linux-arm64": {
       "libClangSharp": {
         "libClangSharp.runtime.linux-arm64": "15.0.0"
@@ -28,21 +18,6 @@
     "osx-x64": {
       "libClangSharp": {
         "libClangSharp.runtime.osx-x64": "15.0.0"
-      }
-    },
-    "ubuntu.18.04-x64": {
-      "libClangSharp": {
-        "libClangSharp.runtime.ubuntu.18.04-x64": "15.0.0"
-      }
-    },
-    "ubuntu.20.04-x64": {
-      "libClangSharp": {
-        "libClangSharp.runtime.ubuntu.20.04-x64": "15.0.0"
-      }
-    },
-    "ubuntu.22.04-x64": {
-      "libClangSharp": {
-        "libClangSharp.runtime.ubuntu.22.04-x64": "15.0.0"
       }
     },
     "win-arm64": {
