@@ -912,7 +912,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public bool IsConversionFromLambda => clangsharp.Cursor_getIsConversionFromLambda(this) != 0;
 
-    public bool IsCopyOrMoveConstructor => clangsharp.Cursor_getIsCopyOrMoveConstructor(this) == 0;
+    public bool IsCopyOrMoveConstructor => clangsharp.Cursor_getIsCopyOrMoveConstructor(this) != 0;
 
     public bool IsCXXTry => clangsharp.Cursor_getIsCXXTry(this) != 0;
 
@@ -922,9 +922,9 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public bool IsDefinition => clang.isCursorDefinition(this) != 0;
 
-    public bool IsDelegatingConstructor => clangsharp.Cursor_getIsDelegatingConstructor(this) == 0;
+    public bool IsDelegatingConstructor => clangsharp.Cursor_getIsDelegatingConstructor(this) != 0;
 
-    public bool IsDeleted => clangsharp.Cursor_getIsDeleted(this) == 0;
+    public bool IsDeleted => clangsharp.Cursor_getIsDeleted(this) != 0;
 
     public bool IsDeprecated => clangsharp.Cursor_getIsDeprecated(this) != 0;
 
@@ -932,7 +932,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public bool IsElidable => clangsharp.Cursor_getIsElidable(this) != 0;
 
-    public bool IsExplicitlyDefaulted => clangsharp.Cursor_getIsExplicitlyDefaulted(this) == 0;
+    public bool IsExplicitlyDefaulted => clangsharp.Cursor_getIsExplicitlyDefaulted(this) != 0;
 
     public bool IsExpression => clang.isExpression(Kind) != 0;
 
@@ -956,7 +956,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public bool IsIncomplete => clangsharp.Cursor_getIsIncomplete(this) != 0;
 
-    public bool IsInheritingConstructor => clangsharp.Cursor_getIsInheritingConstructor(this) == 0;
+    public bool IsInheritingConstructor => clangsharp.Cursor_getIsInheritingConstructor(this) != 0;
 
     public bool IsInvalid => clang.isInvalid(Kind) != 0;
 

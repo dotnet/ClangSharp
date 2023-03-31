@@ -2041,7 +2041,7 @@ unsigned clangsharp_Cursor_getIsCopyOrMoveConstructor(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
-            return !CXXCD->isCopyOrMoveConstructor();
+            return CXXCD->isCopyOrMoveConstructor();
         }
     }
 
@@ -2077,7 +2077,7 @@ unsigned clangsharp_Cursor_getIsDelegatingConstructor(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
-            return !CXXCD->isDelegatingConstructor();
+            return CXXCD->isDelegatingConstructor();
         }
     }
 
@@ -2089,7 +2089,7 @@ unsigned clangsharp_Cursor_getIsDeleted(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
-            return !FD->isDeleted();
+            return FD->isDeleted();
         }
     }
 
@@ -2122,7 +2122,7 @@ unsigned clangsharp_Cursor_getIsExplicitlyDefaulted(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
-            return !FD->isExplicitlyDefaulted();
+            return FD->isExplicitlyDefaulted();
         }
     }
 
@@ -2287,7 +2287,7 @@ unsigned clangsharp_Cursor_getIsInheritingConstructor(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXConstructorDecl* CXXCD = dyn_cast<CXXConstructorDecl>(D)) {
-            return !CXXCD->isInheritingConstructor();
+            return CXXCD->isInheritingConstructor();
         }
     }
 
