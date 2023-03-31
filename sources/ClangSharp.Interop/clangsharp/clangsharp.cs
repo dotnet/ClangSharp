@@ -698,6 +698,9 @@ public static partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumExprs", ExactSpelling = true)]
     public static extern int Cursor_getNumExprs(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumExprsOther", ExactSpelling = true)]
+    public static extern int Cursor_getNumExprsOther(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumFields", ExactSpelling = true)]
     public static extern int Cursor_getNumFields(CXCursor C);
 
