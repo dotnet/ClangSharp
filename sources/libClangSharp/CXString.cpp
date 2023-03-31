@@ -31,8 +31,9 @@ namespace clang::cxstring {
     }
 
     CXString createRef(const char* String) {
-        if (String && String[0] == '\0')
+        if (String && String[0] == '\0') {
             return createEmpty();
+        }
 
         CXString Str;
         Str.data = String;

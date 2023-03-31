@@ -19,7 +19,10 @@ namespace clang {
     class CXLoadedDiagnostic : public CXDiagnosticImpl {
     public:
         CXLoadedDiagnostic()
-            : CXDiagnosticImpl(LoadedDiagnosticKind), severity(0), category(0) { }
+            : CXDiagnosticImpl(LoadedDiagnosticKind)
+            , severity(0)
+            , category(0) {
+        }
 
         ~CXLoadedDiagnostic() override;
 
@@ -66,7 +69,11 @@ namespace clang {
             unsigned column;
             unsigned offset;
 
-            Location() : line(0), column(0), offset(0) { }
+            Location()
+                : line(0)
+                , column(0)
+                , offset(0) {
+            }
         };
 
         Location DiagLoc;

@@ -9,10 +9,10 @@
 #pragma warning(push)
 #pragma warning(disable : 4146 4244 4267 4291 4624 4996)
 
-#include <clang/Basic/Diagnostic.h>
-#include <clang/Basic/SourceLocation.h>
-#include <clang/Basic/SourceManager.h>
 #include <clang-c/Index.h>
+#include <clang/AST/ASTContext.h>
+#include <clang/Basic/LangOptions.h>
+#include <clang/Basic/SourceLocation.h>
 
 #pragma warning(pop)
 
@@ -27,7 +27,7 @@ namespace clang::cxloc {
     CXSourceLocation translateSourceLocation(const SourceManager& SM, const LangOptions& LangOpts, SourceLocation Loc);
 
     CXSourceRange translateSourceRange(ASTContext& Context, SourceRange R);
-    CXSourceRange translateSourceRange(const SourceManager& SM, const LangOptions& LangOpts, SourceRange R);
+    CXSourceRange translateSourceRange(const SourceManager& SM, const LangOptions& LangOpts, const CharSourceRange& R);
 }
 
 #endif

@@ -53,6 +53,7 @@ namespace clang::cxtype {
             BTCASE(ULongAccum);
             BTCASE(Float16);
             BTCASE(Float128);
+            BTCASE(Ibm128);
             BTCASE(NullPtr);
             BTCASE(Overload);
             BTCASE(Dependent);
@@ -76,8 +77,10 @@ namespace clang::cxtype {
 
     static CXTypeKind GetTypeKind(QualType T) {
         const Type* TP = T.getTypePtrOrNull();
-        if (!TP)
+
+        if (!TP) {
             return CXType_Invalid;
+        }
 
 #define TKCASE(K) case Type::K: return CXType_##K
         switch (TP->getTypeClass()) {
@@ -108,6 +111,7 @@ namespace clang::cxtype {
             TKCASE(Elaborated);
             TKCASE(Pipe);
             TKCASE(Attributed);
+            TKCASE(BTFTagAttributed);
             TKCASE(Atomic);
         default:
             return CXType_Unexposed;
@@ -127,20 +131,30 @@ namespace clang::cxtype {
                     return MakeCXType(ATT->getEquivalentType(), TU);
                 }
             }
+
+            if (auto* ATT = T->getAs<BTFTagAttributedType>()) {
+                if (!(TU->ParsingOptions & CXTranslationUnit_IncludeAttributedTypes))
+                    return MakeCXType(ATT->getWrappedType(), TU);
+            }
+
             // Handle paren types as the original type
             if (auto* PTT = T->getAs<ParenType>()) {
                 return MakeCXType(PTT->getInnerType(), TU);
             }
 
             ASTContext& Ctx = cxtu::getASTUnit(TU)->getASTContext();
+
             if (Ctx.getLangOpts().ObjC) {
                 QualType UnqualT = T.getUnqualifiedType();
-                if (Ctx.isObjCIdType(UnqualT))
+                if (Ctx.isObjCIdType(UnqualT)) {
                     TK = CXType_ObjCId;
-                else if (Ctx.isObjCClassType(UnqualT))
+                }
+                else if (Ctx.isObjCClassType(UnqualT)) {
                     TK = CXType_ObjCClass;
-                else if (Ctx.isObjCSelType(UnqualT))
+                }
+                else if (Ctx.isObjCSelType(UnqualT)) {
                     TK = CXType_ObjCSel;
+                }
             }
 
             /* Handle decayed types as the original type */
@@ -148,11 +162,18 @@ namespace clang::cxtype {
                 return MakeCXType(DT->getOriginalType(), TU);
             }
         }
-        if (TK == CXType_Invalid)
-            TK = GetTypeKind(T);
 
-        CXType CT = { TK, { TK == CXType_Invalid ? nullptr
-                                                 : T.getAsOpaquePtr(), TU } };
+        if (TK == CXType_Invalid) {
+            TK = GetTypeKind(T);
+        }
+
+        CXType CT = {
+            TK,
+            {
+                TK == CXType_Invalid ? nullptr : T.getAsOpaquePtr(),
+                TU
+            }
+        };
         return CT;
     }
 }

@@ -6,7 +6,8 @@
 #include "CIndexDiagnostic.h"
 
 namespace clang {
-    CXDiagnosticSetImpl::~CXDiagnosticSetImpl() { }
+    CXDiagnosticSetImpl::~CXDiagnosticSetImpl() {
+    }
 
     void CXDiagnosticSetImpl::appendDiagnostic(std::unique_ptr<CXDiagnosticImpl> D) {
         Diagnostics.push_back(std::move(D));

@@ -11,27 +11,32 @@ using namespace clang::cxtu;
 
 namespace clang::cxcursor {
     const IdentifierInfo* MacroExpansionCursor::getName() const {
-        if (isPseudo())
+        if (isPseudo()) {
             return getAsMacroDefinition()->getName();
+        }
         return getAsMacroExpansion()->getName();
     }
 
     const MacroDefinitionRecord* MacroExpansionCursor::getDefinition() const {
-        if (isPseudo())
+        if (isPseudo()) {
             return getAsMacroDefinition();
+        }
         return getAsMacroExpansion()->getDefinition();
     }
 
     SourceRange MacroExpansionCursor::getSourceRange() const {
-        if (isPseudo())
+        if (isPseudo()) {
             return getPseudoLoc();
+        }
         return getAsMacroExpansion()->getSourceRange();
     }
 
     ASTUnit* getCursorASTUnit(CXCursor Cursor) {
         CXTranslationUnit TU = getCursorTU(Cursor);
-        if (!TU)
+
+        if (!TU) {
             return nullptr;
+        }
         return getASTUnit(TU);
     }
 
@@ -60,10 +65,11 @@ namespace clang::cxcursor {
     }
 
     const Stmt* getCursorStmt(CXCursor Cursor) {
-        if (Cursor.kind == CXCursor_ObjCSuperClassRef ||
-            Cursor.kind == CXCursor_ObjCProtocolRef ||
-            Cursor.kind == CXCursor_ObjCClassRef)
+        if ((Cursor.kind == CXCursor_ObjCSuperClassRef) ||
+            (Cursor.kind == CXCursor_ObjCProtocolRef) ||
+            (Cursor.kind == CXCursor_ObjCClassRef)) {
             return nullptr;
+        }
 
         return static_cast<const Stmt*>(Cursor.data[1]);
     }
@@ -152,48 +158,90 @@ namespace clang::cxcursor {
     static CXCursorKind GetCursorKind(const Attr* A) {
         assert(A && "Invalid arguments!");
         switch (A->getKind()) {
-        default: break;
-        case attr::IBAction: return CXCursor_IBActionAttr;
-        case attr::IBOutlet: return CXCursor_IBOutletAttr;
-        case attr::IBOutletCollection: return CXCursor_IBOutletCollectionAttr;
-        case attr::Final: return CXCursor_CXXFinalAttr;
-        case attr::Override: return CXCursor_CXXOverrideAttr;
-        case attr::Annotate: return CXCursor_AnnotateAttr;
-        case attr::AsmLabel: return CXCursor_AsmLabelAttr;
-        case attr::Packed: return CXCursor_PackedAttr;
-        case attr::Pure: return CXCursor_PureAttr;
-        case attr::Const: return CXCursor_ConstAttr;
-        case attr::NoDuplicate: return CXCursor_NoDuplicateAttr;
-        case attr::CUDAConstant: return CXCursor_CUDAConstantAttr;
-        case attr::CUDADevice: return CXCursor_CUDADeviceAttr;
-        case attr::CUDAGlobal: return CXCursor_CUDAGlobalAttr;
-        case attr::CUDAHost: return CXCursor_CUDAHostAttr;
-        case attr::CUDAShared: return CXCursor_CUDASharedAttr;
-        case attr::Visibility: return CXCursor_VisibilityAttr;
-        case attr::DLLExport: return CXCursor_DLLExport;
-        case attr::DLLImport: return CXCursor_DLLImport;
-        case attr::NSReturnsRetained: return CXCursor_NSReturnsRetained;
-        case attr::NSReturnsNotRetained: return CXCursor_NSReturnsNotRetained;
-        case attr::NSReturnsAutoreleased: return CXCursor_NSReturnsAutoreleased;
-        case attr::NSConsumesSelf: return CXCursor_NSConsumesSelf;
-        case attr::NSConsumed: return CXCursor_NSConsumed;
-        case attr::ObjCException: return CXCursor_ObjCException;
-        case attr::ObjCNSObject: return CXCursor_ObjCNSObject;
-        case attr::ObjCIndependentClass: return CXCursor_ObjCIndependentClass;
-        case attr::ObjCPreciseLifetime: return CXCursor_ObjCPreciseLifetime;
-        case attr::ObjCReturnsInnerPointer: return CXCursor_ObjCReturnsInnerPointer;
-        case attr::ObjCRequiresSuper: return CXCursor_ObjCRequiresSuper;
-        case attr::ObjCRootClass: return CXCursor_ObjCRootClass;
-        case attr::ObjCSubclassingRestricted: return CXCursor_ObjCSubclassingRestricted;
-        case attr::ObjCExplicitProtocolImpl: return CXCursor_ObjCExplicitProtocolImpl;
-        case attr::ObjCDesignatedInitializer: return CXCursor_ObjCDesignatedInitializer;
-        case attr::ObjCRuntimeVisible: return CXCursor_ObjCRuntimeVisible;
-        case attr::ObjCBoxable: return CXCursor_ObjCBoxable;
-        case attr::FlagEnum: return CXCursor_FlagEnum;
-        case attr::Convergent: return CXCursor_ConvergentAttr;
-        case attr::WarnUnused: return CXCursor_WarnUnusedAttr;
-        case attr::WarnUnusedResult: return CXCursor_WarnUnusedResultAttr;
-        case attr::Aligned: return CXCursor_AlignedAttr;
+        default:
+            break;
+        case attr::IBAction:
+            return CXCursor_IBActionAttr;
+        case attr::IBOutlet:
+            return CXCursor_IBOutletAttr;
+        case attr::IBOutletCollection:
+            return CXCursor_IBOutletCollectionAttr;
+        case attr::Final:
+            return CXCursor_CXXFinalAttr;
+        case attr::Override:
+            return CXCursor_CXXOverrideAttr;
+        case attr::Annotate:
+            return CXCursor_AnnotateAttr;
+        case attr::AsmLabel:
+            return CXCursor_AsmLabelAttr;
+        case attr::Packed:
+            return CXCursor_PackedAttr;
+        case attr::Pure:
+            return CXCursor_PureAttr;
+        case attr::Const:
+            return CXCursor_ConstAttr;
+        case attr::NoDuplicate:
+            return CXCursor_NoDuplicateAttr;
+        case attr::CUDAConstant:
+            return CXCursor_CUDAConstantAttr;
+        case attr::CUDADevice:
+            return CXCursor_CUDADeviceAttr;
+        case attr::CUDAGlobal:
+            return CXCursor_CUDAGlobalAttr;
+        case attr::CUDAHost:
+            return CXCursor_CUDAHostAttr;
+        case attr::CUDAShared:
+            return CXCursor_CUDASharedAttr;
+        case attr::Visibility:
+            return CXCursor_VisibilityAttr;
+        case attr::DLLExport:
+            return CXCursor_DLLExport;
+        case attr::DLLImport:
+            return CXCursor_DLLImport;
+        case attr::NSReturnsRetained:
+            return CXCursor_NSReturnsRetained;
+        case attr::NSReturnsNotRetained:
+            return CXCursor_NSReturnsNotRetained;
+        case attr::NSReturnsAutoreleased:
+            return CXCursor_NSReturnsAutoreleased;
+        case attr::NSConsumesSelf:
+            return CXCursor_NSConsumesSelf;
+        case attr::NSConsumed:
+            return CXCursor_NSConsumed;
+        case attr::ObjCException:
+            return CXCursor_ObjCException;
+        case attr::ObjCNSObject:
+            return CXCursor_ObjCNSObject;
+        case attr::ObjCIndependentClass:
+            return CXCursor_ObjCIndependentClass;
+        case attr::ObjCPreciseLifetime:
+            return CXCursor_ObjCPreciseLifetime;
+        case attr::ObjCReturnsInnerPointer:
+            return CXCursor_ObjCReturnsInnerPointer;
+        case attr::ObjCRequiresSuper:
+            return CXCursor_ObjCRequiresSuper;
+        case attr::ObjCRootClass:
+            return CXCursor_ObjCRootClass;
+        case attr::ObjCSubclassingRestricted:
+            return CXCursor_ObjCSubclassingRestricted;
+        case attr::ObjCExplicitProtocolImpl:
+            return CXCursor_ObjCExplicitProtocolImpl;
+        case attr::ObjCDesignatedInitializer:
+            return CXCursor_ObjCDesignatedInitializer;
+        case attr::ObjCRuntimeVisible:
+            return CXCursor_ObjCRuntimeVisible;
+        case attr::ObjCBoxable:
+            return CXCursor_ObjCBoxable;
+        case attr::FlagEnum:
+            return CXCursor_FlagEnum;
+        case attr::Convergent:
+            return CXCursor_ConvergentAttr;
+        case attr::WarnUnused:
+            return CXCursor_WarnUnusedAttr;
+        case attr::WarnUnusedResult:
+            return CXCursor_WarnUnusedResultAttr;
+        case attr::Aligned:
+            return CXCursor_AlignedAttr;
         }
 
         return CXCursor_UnexposedAttr;
@@ -205,7 +253,16 @@ namespace clang::cxcursor {
         }
 
         assert(A && Parent && TU && "Invalid arguments!");
-        CXCursor C = { GetCursorKind(A), 0, { Parent, A, TU } };
+
+        CXCursor C = {
+            GetCursorKind(A),
+            0,
+            {
+                Parent,
+                A,
+                TU
+            }
+        };
         return C;
     }
 
@@ -218,25 +275,43 @@ namespace clang::cxcursor {
 
         CXCursorKind K = getCursorKindForDecl(D);
 
-        if (K == CXCursor_ObjCClassMethodDecl ||
-            K == CXCursor_ObjCInstanceMethodDecl) {
+        if ((K == CXCursor_ObjCClassMethodDecl) ||
+            (K == CXCursor_ObjCInstanceMethodDecl)) {
             int SelectorIdIndex = -1;
+
             // Check if cursor points to a selector id.
             if (RegionOfInterest.isValid() &&
-                RegionOfInterest.getBegin() == RegionOfInterest.getEnd()) {
+                (RegionOfInterest.getBegin() == RegionOfInterest.getEnd())) {
                 SmallVector<SourceLocation, 16> SelLocs;
                 cast<ObjCMethodDecl>(D)->getSelectorLocs(SelLocs);
-                SmallVectorImpl<SourceLocation>::iterator I =
-                    llvm::find(SelLocs, RegionOfInterest.getBegin());
-                if (I != SelLocs.end())
+                SmallVectorImpl<SourceLocation>::iterator I = llvm::find(SelLocs, RegionOfInterest.getBegin());
+
+                if (I != SelLocs.end()) {
                     SelectorIdIndex = I - SelLocs.begin();
+                }
             }
-            CXCursor C = { K, SelectorIdIndex,
-                           { D, (void*)(intptr_t)(FirstInDeclGroup ? 1 : 0), TU } };
+
+            CXCursor C = {
+                K,
+                SelectorIdIndex,
+                {
+                    D,
+                    (void*)(intptr_t)(FirstInDeclGroup ? 1 : 0),
+                    TU
+                }
+            };
             return C;
         }
 
-        CXCursor C = { K, 0, { D, (void*)(intptr_t)(FirstInDeclGroup ? 1 : 0), TU } };
+        CXCursor C = {
+            K,
+            0,
+            {
+                D,
+                (void*)(intptr_t)(FirstInDeclGroup ? 1 : 0),
+                TU
+            }
+        };
         return C;
     }
 
@@ -244,21 +319,23 @@ namespace clang::cxcursor {
         CXCursor newCursor = cursor;
 
         if (cursor.kind == CXCursor_ObjCMessageExpr) {
-            if (SelIdx == -1 ||
-                unsigned(SelIdx) >= cast<ObjCMessageExpr>(getCursorExpr(cursor))
-                ->getNumSelectorLocs())
+            if ((SelIdx == -1) ||
+                (unsigned(SelIdx) >= cast<ObjCMessageExpr>(getCursorExpr(cursor))->getNumSelectorLocs())) {
                 newCursor.xdata = -1;
-            else
+            }
+            else {
                 newCursor.xdata = SelIdx;
+            }
         }
-        else if (cursor.kind == CXCursor_ObjCClassMethodDecl ||
-            cursor.kind == CXCursor_ObjCInstanceMethodDecl) {
-            if (SelIdx == -1 ||
-                unsigned(SelIdx) >= cast<ObjCMethodDecl>(getCursorDecl(cursor))
-                ->getNumSelectorLocs())
+        else if ((cursor.kind == CXCursor_ObjCClassMethodDecl) ||
+                 (cursor.kind == CXCursor_ObjCInstanceMethodDecl)) {
+            if ((SelIdx == -1) ||
+                (unsigned(SelIdx) >= cast<ObjCMethodDecl>(getCursorDecl(cursor))->getNumSelectorLocs())) {
                 newCursor.xdata = -1;
-            else
+            }
+            else {
                 newCursor.xdata = SelIdx;
+            }
         }
 
         return newCursor;
@@ -399,8 +476,6 @@ namespace clang::cxcursor {
         case Stmt::BinaryConditionalOperatorClass:
         case Stmt::TypeTraitExprClass:
         case Stmt::CoawaitExprClass:
-        case Stmt::ConceptSpecializationExprClass:
-        case Stmt::RequiresExprClass:
         case Stmt::DependentCoawaitExprClass:
         case Stmt::CoyieldExprClass:
         case Stmt::CXXBindTemporaryExprClass:
@@ -441,14 +516,15 @@ namespace clang::cxcursor {
             break;
 
         case Stmt::OpaqueValueExprClass:
-            if (Expr* Src = cast<OpaqueValueExpr>(S)->getSourceExpr())
+            if (Expr* Src = cast<OpaqueValueExpr>(S)->getSourceExpr()) {
                 return MakeCXCursor(Src, Parent, TU, RegionOfInterest);
+            }
+
             K = CXCursor_UnexposedExpr;
             break;
 
         case Stmt::PseudoObjectExprClass:
-            return MakeCXCursor(cast<PseudoObjectExpr>(S)->getSyntacticForm(),
-                Parent, TU, RegionOfInterest);
+            return MakeCXCursor(cast<PseudoObjectExpr>(S)->getSyntacticForm(), Parent, TU, RegionOfInterest);
 
         case Stmt::CompoundStmtClass:
             K = CXCursor_CompoundStmt;
@@ -499,8 +575,7 @@ namespace clang::cxcursor {
             break;
 
         case Stmt::ConstantExprClass:
-            return MakeCXCursor(cast<ConstantExpr>(S)->getSubExpr(),
-                Parent, TU, RegionOfInterest);
+            return MakeCXCursor(cast<ConstantExpr>(S)->getSubExpr(), Parent, TU, RegionOfInterest);
 
         case Stmt::ParenExprClass:
             K = CXCursor_ParenExpr;
@@ -670,10 +745,8 @@ namespace clang::cxcursor {
             break;
 
         case Stmt::DeclRefExprClass:
-            if (const ImplicitParamDecl* IPD =
-                dyn_cast_or_null<ImplicitParamDecl>(cast<DeclRefExpr>(S)->getDecl())) {
-                if (const ObjCMethodDecl* MD =
-                    dyn_cast<ObjCMethodDecl>(IPD->getDeclContext())) {
+            if (const ImplicitParamDecl* IPD = dyn_cast_or_null<ImplicitParamDecl>(cast<DeclRefExpr>(S)->getDecl())) {
+                if (const ObjCMethodDecl* MD = dyn_cast<ObjCMethodDecl>(IPD->getDeclContext())) {
                     if (MD->getSelfDecl() == IPD) {
                         K = CXCursor_ObjCSelfExpr;
                         break;
@@ -723,25 +796,51 @@ namespace clang::cxcursor {
         case Stmt::ObjCMessageExprClass: {
             K = CXCursor_ObjCMessageExpr;
             int SelectorIdIndex = -1;
+
             // Check if cursor points to a selector id.
             if (RegionOfInterest.isValid() &&
-                RegionOfInterest.getBegin() == RegionOfInterest.getEnd()) {
+                (RegionOfInterest.getBegin() == RegionOfInterest.getEnd())) {
                 SmallVector<SourceLocation, 16> SelLocs;
                 cast<ObjCMessageExpr>(S)->getSelectorLocs(SelLocs);
-                SmallVectorImpl<SourceLocation>::iterator I =
-                    llvm::find(SelLocs, RegionOfInterest.getBegin());
-                if (I != SelLocs.end())
+                SmallVectorImpl<SourceLocation>::iterator I = llvm::find(SelLocs, RegionOfInterest.getBegin());
+
+                if (I != SelLocs.end()) {
                     SelectorIdIndex = I - SelLocs.begin();
+                }
             }
-            CXCursor C = { K, 0, { Parent, S, TU } };
+
+            CXCursor C = {
+                K,
+                0,
+                {
+                    Parent,
+                    S,
+                    TU
+                }
+            };
             return getSelectorIdentifierCursor(SelectorIdIndex, C);
         }
+
+        case Stmt::ConceptSpecializationExprClass:
+            K = CXCursor_ConceptSpecializationExpr;
+            break;
+
+        case Stmt::RequiresExprClass:
+            K = CXCursor_RequiresExpr;
+            break;
+
+        case Stmt::CXXParenListInitExprClass:
+            K = CXCursor_CXXParenListInitExpr;
+            break;
 
         case Stmt::MSDependentExistsStmtClass:
             K = CXCursor_UnexposedStmt;
             break;
         case Stmt::OMPCanonicalLoopClass:
             K = CXCursor_OMPCanonicalLoop;
+            break;
+        case Stmt::OMPMetaDirectiveClass:
+            K = CXCursor_OMPMetaDirective;
             break;
         case Stmt::OMPParallelDirectiveClass:
             K = CXCursor_OMPParallelDirective;
@@ -785,6 +884,9 @@ namespace clang::cxcursor {
         case Stmt::OMPParallelMasterDirectiveClass:
             K = CXCursor_OMPParallelMasterDirective;
             break;
+        case Stmt::OMPParallelMaskedDirectiveClass:
+            K = CXCursor_OMPParallelMaskedDirective;
+            break;
         case Stmt::OMPParallelSectionsDirectiveClass:
             K = CXCursor_OMPParallelSectionsDirective;
             break;
@@ -799,6 +901,9 @@ namespace clang::cxcursor {
             break;
         case Stmt::OMPTaskwaitDirectiveClass:
             K = CXCursor_OMPTaskwaitDirective;
+            break;
+        case Stmt::OMPErrorDirectiveClass:
+            K = CXCursor_OMPErrorDirective;
             break;
         case Stmt::OMPTaskgroupDirectiveClass:
             K = CXCursor_OMPTaskgroupDirective;
@@ -857,14 +962,26 @@ namespace clang::cxcursor {
         case Stmt::OMPMasterTaskLoopDirectiveClass:
             K = CXCursor_OMPMasterTaskLoopDirective;
             break;
+        case Stmt::OMPMaskedTaskLoopDirectiveClass:
+            K = CXCursor_OMPMaskedTaskLoopDirective;
+            break;
         case Stmt::OMPMasterTaskLoopSimdDirectiveClass:
             K = CXCursor_OMPMasterTaskLoopSimdDirective;
+            break;
+        case Stmt::OMPMaskedTaskLoopSimdDirectiveClass:
+            K = CXCursor_OMPMaskedTaskLoopSimdDirective;
             break;
         case Stmt::OMPParallelMasterTaskLoopDirectiveClass:
             K = CXCursor_OMPParallelMasterTaskLoopDirective;
             break;
+        case Stmt::OMPParallelMaskedTaskLoopDirectiveClass:
+            K = CXCursor_OMPParallelMaskedTaskLoopDirective;
+            break;
         case Stmt::OMPParallelMasterTaskLoopSimdDirectiveClass:
             K = CXCursor_OMPParallelMasterTaskLoopSimdDirective;
+            break;
+        case Stmt::OMPParallelMaskedTaskLoopSimdDirectiveClass:
+            K = CXCursor_OMPParallelMaskedTaskLoopSimdDirective;
             break;
         case Stmt::OMPDistributeDirectiveClass:
             K = CXCursor_OMPDistributeDirective;
@@ -920,11 +1037,34 @@ namespace clang::cxcursor {
         case Stmt::OMPMaskedDirectiveClass:
             K = CXCursor_OMPMaskedDirective;
             break;
+        case Stmt::OMPGenericLoopDirectiveClass:
+            K = CXCursor_OMPGenericLoopDirective;
+            break;
+        case Stmt::OMPTeamsGenericLoopDirectiveClass:
+            K = CXCursor_OMPTeamsGenericLoopDirective;
+            break;
+        case Stmt::OMPTargetTeamsGenericLoopDirectiveClass:
+            K = CXCursor_OMPTargetTeamsGenericLoopDirective;
+            break;
+        case Stmt::OMPParallelGenericLoopDirectiveClass:
+            K = CXCursor_OMPParallelGenericLoopDirective;
+            break;
+        case Stmt::OMPTargetParallelGenericLoopDirectiveClass:
+            K = CXCursor_OMPTargetParallelGenericLoopDirective;
+            break;
         case Stmt::BuiltinBitCastExprClass:
             K = CXCursor_BuiltinBitCastExpr;
         }
 
-        CXCursor C = { K, 0, { Parent, S, TU } };
+        CXCursor C = {
+            K,
+            0,
+            {
+                Parent,
+                S,
+                TU
+            }
+        };
         return C;
     }
 

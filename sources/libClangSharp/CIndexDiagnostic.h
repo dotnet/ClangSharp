@@ -25,9 +25,11 @@ namespace clang {
     class CXDiagnosticSetImpl {
         std::vector<std::unique_ptr<CXDiagnosticImpl>> Diagnostics;
         const bool IsExternallyManaged;
+
     public:
         CXDiagnosticSetImpl(bool isManaged = false)
-            : IsExternallyManaged(isManaged) { }
+            : IsExternallyManaged(isManaged) {
+        }
 
         virtual ~CXDiagnosticSetImpl();
 
@@ -46,7 +48,9 @@ namespace clang {
             return Diagnostics.empty();
         }
 
-        bool isExternallyManaged() const { return IsExternallyManaged; }
+        bool isExternallyManaged() const {
+            return IsExternallyManaged;
+        }
     };
 
     class CXDiagnosticImpl {
@@ -88,7 +92,9 @@ namespace clang {
         /// Return the FixIt information (source range and inserted text).
         virtual CXString getFixIt(unsigned FixIt, CXSourceRange* ReplacementRange) const = 0;
 
-        Kind getKind() const { return K; }
+        Kind getKind() const {
+            return K;
+        }
 
         CXDiagnosticSetImpl& getChildDiagnostics() {
             return ChildDiags;

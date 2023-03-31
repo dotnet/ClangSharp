@@ -15,7 +15,8 @@
 #pragma warning(pop)
 
 namespace clang {
-    CXLoadedDiagnostic::~CXLoadedDiagnostic() { }
+    CXLoadedDiagnostic::~CXLoadedDiagnostic() {
+    }
 
     CXDiagnosticSeverity CXLoadedDiagnostic::getSeverity() const {
         // FIXME: Fail more softly if the diagnostic level is unknown?
@@ -42,7 +43,13 @@ namespace clang {
         // is a persistent diagnostic.
         uintptr_t V = (uintptr_t)DLoc;
         V |= 0x1;
-        CXSourceLocation Loc = { {  (void*)V, nullptr }, 0 };
+        CXSourceLocation Loc = {
+            {
+                (void*)V,
+                nullptr
+            },
+            0
+        };
         return Loc;
     }
 
@@ -57,12 +64,15 @@ namespace clang {
     }
 
     CXString CXLoadedDiagnostic::getDiagnosticOption(CXString* Disable) const {
-        if (DiagOption.empty())
+        if (DiagOption.empty()) {
             return cxstring::createEmpty();
+        }
 
         // FIXME: possibly refactor with logic in CXStoredDiagnostic.
-        if (Disable)
+        if (Disable) {
             *Disable = cxstring::createDup((llvm::Twine("-Wno-") + DiagOption).str());
+        }
+
         return cxstring::createDup((llvm::Twine("-W") + DiagOption).str());
     }
 
@@ -89,8 +99,10 @@ namespace clang {
 
     CXString CXLoadedDiagnostic::getFixIt(unsigned FixIt, CXSourceRange* ReplacementRange) const {
         assert(FixIt < FixIts.size());
-        if (ReplacementRange)
+
+        if (ReplacementRange) {
             *ReplacementRange = FixIts[FixIt].first;
+        }
         return cxstring::createRef(FixIts[FixIt].second);
     }
 
@@ -112,13 +124,20 @@ namespace clang {
 
         const Location& Loc = *((Location*)V);
 
-        if (file)
+        if (file) {
             *file = Loc.file;
-        if (line)
+        }
+
+        if (line) {
             *line = Loc.line;
-        if (column)
+        }
+
+        if (column) {
             *column = Loc.column;
-        if (offset)
+        }
+
+        if (offset) {
             *offset = Loc.offset;
+        }
     }
 }

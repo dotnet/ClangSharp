@@ -612,6 +612,8 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumExpansionTypes(CXCursor C);
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumExprs(CXCursor C);
 
+CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumExprsOther(CXCursor C);
+
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumFields(CXCursor C);
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumFriends(CXCursor C);

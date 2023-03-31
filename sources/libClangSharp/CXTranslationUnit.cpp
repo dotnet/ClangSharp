@@ -7,8 +7,9 @@
 
 namespace clang::cxtu {
     ASTUnit* getASTUnit(CXTranslationUnit TU) {
-        if (!TU)
+        if (!TU) {
             return nullptr;
+        }
         return TU->TheASTUnit;
     }
 }
