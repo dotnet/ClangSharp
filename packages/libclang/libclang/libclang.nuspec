@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata minClientVersion="2.12">
     <id>libclang</id>
-    <version>15.0.0</version>
+    <version>16.0.6</version>
     <authors>.NET Foundation and Contributors</authors>
     <owners>.NET Foundation and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/dotnet/clangsharp</projectUrl>
     <description>Multi-platform native library for libclang.</description>
     <copyright>Copyright © LLVM Project</copyright>
-    <repository type="git" url="https://github.com/llvm/llvm-project" branch="llvmorg-15.0.0" />
+    <repository type="git" url="https://github.com/llvm/llvm-project" branch="llvmorg-16.0.6" />
     <dependencies>
       <group targetFramework=".NETStandard2.0" />
     </dependencies>

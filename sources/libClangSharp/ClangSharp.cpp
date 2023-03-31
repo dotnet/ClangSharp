@@ -4744,7 +4744,7 @@ int64_t clangsharp_Cursor_getVtblIdx(CXCursor C) {
 }
 
 CXString clangsharp_getVersion() {
-    return cxstring::createDup("clangsharp version 15.0.0");
+    return cxstring::createDup("clangsharp version 16.0.6");
 }
 
 void clangsharp_TemplateArgument_dispose(CX_TemplateArgument T) {

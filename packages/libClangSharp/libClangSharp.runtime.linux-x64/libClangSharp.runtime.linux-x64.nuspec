@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata minClientVersion="2.12">
     <id>libClangSharp.runtime.linux-x64</id>
-    <version>15.0.0</version>
+    <version>16.0.6</version>
     <authors>.NET Foundation and Contributors</authors>
     <owners>.NET Foundation and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -13,8 +13,8 @@
     <repository type="git" url="https://github.com/dotnet/clangsharp" branch="main" />
   </metadata>
   <files>
-    <file src="..\..\..\LICENSE.md" target="LICENSE.TXT" />
-    <file src="..\..\..\NOTICE.md" target="NOTICE.TXT" />
+    <file src="..\..\..\LICENSE.md" target="LICENSE.md" />
+    <file src="..\..\..\NOTICE.md" target="NOTICE.md" />
     <file src="libClangSharp.so" target="runtimes\linux-x64\native\libClangSharp.so" />
   </files>
 </package>
