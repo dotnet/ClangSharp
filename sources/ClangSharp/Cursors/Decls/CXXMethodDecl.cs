@@ -46,6 +46,10 @@ public class CXXMethodDecl : FunctionDecl
 
     public bool IsConst => Handle.CXXMethod_IsConst;
 
+    public bool IsCopyAssignmentOperator => Handle.CXXMethod_IsCopyAssignmentOperator;
+
+    public bool IsMoveAssignmentOperator => Handle.CXXMethod_IsMoveAssignmentOperator;
+
     public bool IsVirtual => Handle.CXXMethod_IsVirtual;
 
     public new CXXMethodDecl MostRecentDecl => (CXXMethodDecl)base.MostRecentDecl;

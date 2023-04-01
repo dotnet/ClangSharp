@@ -1241,6 +1241,12 @@ CXCursor clangsharp_Cursor_getExpr(CXCursor C, unsigned i) {
                 return MakeCXCursor(SAD->getMessage(), D, getCursorTU(C));
             }
         }
+
+        if (const TopLevelStmtDecl* TLSD = dyn_cast<TopLevelStmtDecl>(D)) {
+            if (i == 0) {
+                return MakeCXCursor(TLSD->getStmt(), D, getCursorTU(C));
+            }
+        }
     }
 
     if (isStmtOrExpr(C.kind)) {
@@ -1975,6 +1981,18 @@ unsigned clangsharp_Cursor_getIsArrow(CXCursor C) {
 
         if (const UnresolvedMemberExpr* UME = dyn_cast<UnresolvedMemberExpr>(S)) {
             return UME->isArrow();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getIsCBuffer(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const HLSLBufferDecl* HLSLBD = dyn_cast<HLSLBufferDecl>(D)) {
+            return HLSLBD->isCBuffer();
         }
     }
 
@@ -3411,6 +3429,10 @@ int clangsharp_Cursor_getNumTemplateArguments(CXCursor C) {
             return FTD->getInjectedTemplateArgs().size();
         }
 
+        if (const ImplicitConceptSpecializationDecl* ICSD = const_cast<ImplicitConceptSpecializationDecl*>(dyn_cast<ImplicitConceptSpecializationDecl>(D))) {
+            return ICSD->getTemplateArguments().size();
+        }
+
         if (const VarTemplateSpecializationDecl* VTSD = dyn_cast<VarTemplateSpecializationDecl>(D)) {
             return VTSD->getTemplateArgs().size();
         }
@@ -3895,6 +3917,15 @@ CXSourceRange clangsharp_Cursor_getSourceRange(CXCursor C) {
     return translateSourceRange(getCursorContext(C), R);
 }
 
+CXSourceRange clangsharp_Cursor_getSourceRangeRaw(CXCursor C) {
+    SourceRange R = getCursorSourceRange(C);
+
+    if (R.isInvalid())
+        return clang_getNullRange();
+
+    return translateSourceRangeRaw(getCursorContext(C), R);
+}
+
 CXCursor clangsharp_Cursor_getSpecialization(CXCursor C, unsigned i) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -4201,6 +4232,13 @@ CX_TemplateArgument clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i
         if (FunctionTemplateDecl* FTD = const_cast<FunctionTemplateDecl*>(dyn_cast<FunctionTemplateDecl>(D))) {
             if (i < FTD->getInjectedTemplateArgs().size()) {
                 const TemplateArgument* TA = &FTD->getInjectedTemplateArgs()[i];
+                return MakeCXTemplateArgument(TA, getCursorTU(C));
+            }
+        }
+
+        if (const ImplicitConceptSpecializationDecl* ICSD = const_cast<ImplicitConceptSpecializationDecl*>(dyn_cast<ImplicitConceptSpecializationDecl>(D))) {
+            if (i < ICSD->getTemplateArguments().size()) {
+                const TemplateArgument* TA = &ICSD->getTemplateArguments()[i];
                 return MakeCXTemplateArgument(TA, getCursorTU(C));
             }
         }
@@ -4977,6 +5015,20 @@ CXSourceRange clangsharp_TemplateArgumentLoc_getSourceRange(CX_TemplateArgumentL
     }
 
     return translateSourceRange(getASTUnit(T.tu)->getASTContext(), R);
+}
+
+CXSourceRange clangsharp_TemplateArgumentLoc_getSourceRangeRaw(CX_TemplateArgumentLoc T) {
+    if (!T.value) {
+        return clang_getNullRange();
+    }
+
+    SourceRange R = T.value->getSourceRange();
+
+    if (R.isInvalid()) {
+        return clang_getNullRange();
+    }
+
+    return translateSourceRangeRaw(getASTUnit(T.tu)->getASTContext(), R);
 }
 
 CXCursor clangsharp_TemplateName_getAsTemplateDecl(CX_TemplateName T) {

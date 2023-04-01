@@ -90,6 +90,10 @@ namespace clang::cxloc {
         return translateSourceRange(Context.getSourceManager(), Context.getLangOpts(), CharSourceRange::getTokenRange(R));
     }
 
+    CXSourceRange translateSourceRangeRaw(ASTContext& Context, SourceRange R) {
+        return translateSourceRangeRaw(Context.getSourceManager(), Context.getLangOpts(), CharSourceRange::getTokenRange(R));
+    }
+
     /// Translate a Clang source range into a CIndex source range.
     ///
     /// Clang internally represents ranges where the end location points to the
@@ -121,6 +125,18 @@ namespace clang::cxloc {
             },
             R.getBegin().getRawEncoding(),
             EndLoc.getRawEncoding()
+        };
+        return Result;
+    }
+
+    CXSourceRange translateSourceRangeRaw(const SourceManager& SM, const LangOptions& LangOpts, const CharSourceRange& R) {
+        CXSourceRange Result = {
+            {
+                &SM,
+                &LangOpts
+            },
+            R.getBegin().getRawEncoding(),
+            R.getEnd().getRawEncoding()
         };
         return Result;
     }

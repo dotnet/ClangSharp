@@ -27,7 +27,10 @@ namespace clang::cxloc {
     CXSourceLocation translateSourceLocation(const SourceManager& SM, const LangOptions& LangOpts, SourceLocation Loc);
 
     CXSourceRange translateSourceRange(ASTContext& Context, SourceRange R);
+    CXSourceRange translateSourceRangeRaw(ASTContext& Context, SourceRange R);
+
     CXSourceRange translateSourceRange(const SourceManager& SM, const LangOptions& LangOpts, const CharSourceRange& R);
+    CXSourceRange translateSourceRangeRaw(const SourceManager& SM, const LangOptions& LangOpts, const CharSourceRange& R);
 }
 
 #endif

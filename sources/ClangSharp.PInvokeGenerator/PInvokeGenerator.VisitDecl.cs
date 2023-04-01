@@ -3165,7 +3165,7 @@ public partial class PInvokeGenerator
                 var tagDecl = tagType.AsTagDecl;
                 Debug.Assert(tagDecl is not null);
 
-                var underlyingName = GetCursorName(tagDecl);
+                var underlyingName = GetCursorQualifiedName(tagDecl);
                 var typedefName = GetCursorName(typedefDecl);
 
                 if (underlyingName != typedefName)

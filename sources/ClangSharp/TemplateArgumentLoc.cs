@@ -43,5 +43,7 @@ public sealed unsafe class TemplateArgumentLoc
 
     public CXSourceRange SourceRange => Handle.SourceRange;
 
+    public CXSourceRange SourceRangeRaw => Handle.SourceRangeRaw;
+
     public TranslationUnit TranslationUnit => _translationUnit.Value;
 }
