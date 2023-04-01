@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class ObjCAtCatchStmt : Stmt
 {
     private readonly Lazy<VarDecl?> _catchParamDecl;
 
-    internal ObjCAtCatchStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtCatchStmt, CX_StmtClass.CX_StmtClass_ObjCAtCatchStmt)
+    internal ObjCAtCatchStmt(CXCursor handle) : base(handle, CXCursor_ObjCAtCatchStmt, CX_StmtClass_ObjCAtCatchStmt)
     {
         Debug.Assert(NumChildren is 1);
         _catchParamDecl = new Lazy<VarDecl?>(() => !Handle.Referenced.IsNull ? TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced) : null);

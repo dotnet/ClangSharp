@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -14,7 +16,7 @@ public sealed class ObjCPropertyRefExpr : Expr
     private readonly Lazy<ObjCMethodDecl> _implicitPropertySetter;
     private readonly Lazy<Type> _superReceiverType;
 
-    internal ObjCPropertyRefExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr, CX_StmtClass.CX_StmtClass_ObjCPropertyRefExpr)
+    internal ObjCPropertyRefExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_ObjCPropertyRefExpr)
     {
         _base = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
         _classReceiver = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetDecl(0)));

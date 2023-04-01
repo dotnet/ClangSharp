@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class CXXCatchStmt : Stmt
     private readonly Lazy<Type> _caughtType;
     private readonly Lazy<VarDecl> _exceptionDecl;
 
-    internal CXXCatchStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXCatchStmt, CX_StmtClass.CX_StmtClass_CXXCatchStmt)
+    internal CXXCatchStmt(CXCursor handle) : base(handle, CXCursor_CXXCatchStmt, CX_StmtClass_CXXCatchStmt)
     {
         Debug.Assert(NumChildren is 1);
 

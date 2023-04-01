@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class IndirectFieldDecl : ValueDecl, IMergeable<IndirectFieldDecl>
     private readonly Lazy<FieldDecl> _anonField;
     private readonly Lazy<VarDecl> _varDecl;
 
-    internal IndirectFieldDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_IndirectField)
+    internal IndirectFieldDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_IndirectField)
     {
         _anonField = new Lazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.GetSubDecl(0)));
         _varDecl = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.GetSubDecl(1)));

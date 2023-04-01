@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class MaterializeTemporaryExpr : Expr
 {
     private readonly Lazy<LifetimeExtendedTemporaryDecl> _lifetimeExtendedTemporaryDecl;
 
-    internal MaterializeTemporaryExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr)
+    internal MaterializeTemporaryExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_MaterializeTemporaryExpr)
     {
         _lifetimeExtendedTemporaryDecl = new Lazy<LifetimeExtendedTemporaryDecl>(() => TranslationUnit.GetOrCreate<LifetimeExtendedTemporaryDecl>(Handle.Referenced));
     }

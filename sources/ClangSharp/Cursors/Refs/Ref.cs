@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
@@ -27,22 +28,22 @@ public class Ref : Cursor
 
         switch (handle.Kind)
         {
-            case CXCursorKind.CXCursor_CXXBaseSpecifier:
+            case CXCursor_CXXBaseSpecifier:
             {
                 result = new CXXBaseSpecifier(handle);
                 break;
             }
 
-            case CXCursorKind.CXCursor_ObjCSuperClassRef:
-            case CXCursorKind.CXCursor_ObjCProtocolRef:
-            case CXCursorKind.CXCursor_ObjCClassRef:
-            case CXCursorKind.CXCursor_TypeRef:
-            case CXCursorKind.CXCursor_TemplateRef:
-            case CXCursorKind.CXCursor_NamespaceRef:
-            case CXCursorKind.CXCursor_MemberRef:
-            case CXCursorKind.CXCursor_LabelRef:
-            case CXCursorKind.CXCursor_OverloadedDeclRef:
-            case CXCursorKind.CXCursor_VariableRef:
+            case CXCursor_ObjCSuperClassRef:
+            case CXCursor_ObjCProtocolRef:
+            case CXCursor_ObjCClassRef:
+            case CXCursor_TypeRef:
+            case CXCursor_TemplateRef:
+            case CXCursor_NamespaceRef:
+            case CXCursor_MemberRef:
+            case CXCursor_LabelRef:
+            case CXCursor_OverloadedDeclRef:
+            case CXCursor_VariableRef:
             {
                 result = new Ref(handle, handle.Kind);
                 break;

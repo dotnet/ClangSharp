@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public sealed class CXXUnresolvedConstructExpr : Expr
     private readonly Lazy<IReadOnlyList<Expr>> _args;
     private readonly Lazy<Type> _typeAsWritten;
 
-    internal CXXUnresolvedConstructExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr)
+    internal CXXUnresolvedConstructExpr(CXCursor handle) : base(handle, CXCursor_CallExpr, CX_StmtClass_CXXUnresolvedConstructExpr)
     {
         _args = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());
         _typeAsWritten = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));

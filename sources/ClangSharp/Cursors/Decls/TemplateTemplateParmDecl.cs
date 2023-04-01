@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class TemplateTemplateParmDecl : TemplateDecl, ITemplateParmPositi
 {
     private readonly Lazy<TemplateArgumentLoc> _defaultArgument;
 
-    internal TemplateTemplateParmDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TemplateTemplateParameter, CX_DeclKind.CX_DeclKind_TemplateTemplateParm)
+    internal TemplateTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTemplateParameter, CX_DeclKind_TemplateTemplateParm)
     {
         _defaultArgument = new Lazy<TemplateArgumentLoc>(() => TranslationUnit.GetOrCreate(handle.GetTemplateArgumentLoc(0)));
     }

@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class DecayedType : AdjustedType
 {
     private readonly Lazy<Type> _decayedType;
 
-    internal DecayedType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_Decayed)
+    internal DecayedType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_Decayed)
     {
         _decayedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.DecayedType));
     }

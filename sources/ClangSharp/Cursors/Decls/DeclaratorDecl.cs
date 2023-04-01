@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -13,7 +14,7 @@ public class DeclaratorDecl : ValueDecl
 
     private protected DeclaratorDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastDeclarator or < CX_DeclKind.CX_DeclKind_FirstDeclarator)
+        if (handle.DeclKind is > CX_DeclKind_LastDeclarator or < CX_DeclKind_FirstDeclarator)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

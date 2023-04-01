@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using static ClangSharp.Interop.CXEvalResultKind;
 
 namespace ClangSharp.Interop;
 
@@ -11,17 +12,17 @@ public unsafe partial struct CXEvalResult : IDisposable, IEquatable<CXEvalResult
         Handle = handle;
     }
 
-    public double AsDouble => (Kind == CXEvalResultKind.CXEval_Float) ? clang.EvalResult_getAsDouble(this) : 0;
+    public double AsDouble => (Kind == CXEval_Float) ? clang.EvalResult_getAsDouble(this) : 0;
 
-    public int AsInt => (Kind == CXEvalResultKind.CXEval_Int) ? clang.EvalResult_getAsInt(this) : 0;
+    public int AsInt => (Kind == CXEval_Int) ? clang.EvalResult_getAsInt(this) : 0;
 
-    public long AsLongLong => (Kind == CXEvalResultKind.CXEval_Int) ? clang.EvalResult_getAsLongLong(this) : 0;
+    public long AsLongLong => (Kind == CXEval_Int) ? clang.EvalResult_getAsLongLong(this) : 0;
 
     public string AsStr
     {
         get
         {
-            var pStr = Kind == CXEvalResultKind.CXEval_StrLiteral ? clang.EvalResult_getAsStr(this) : null;
+            var pStr = Kind == CXEval_StrLiteral ? clang.EvalResult_getAsStr(this) : null;
 
             if (pStr is null)
             {
@@ -32,11 +33,11 @@ public unsafe partial struct CXEvalResult : IDisposable, IEquatable<CXEvalResult
         }
     }
 
-    public ulong AsUnsigned => (Kind == CXEvalResultKind.CXEval_Int) ? clang.EvalResult_getAsUnsigned(this) : 0;
+    public ulong AsUnsigned => (Kind == CXEval_Int) ? clang.EvalResult_getAsUnsigned(this) : 0;
 
     public IntPtr Handle { get; set; }
 
-    public bool IsUnsignedInt => (Kind == CXEvalResultKind.CXEval_Int) && (clang.EvalResult_isUnsignedInt(this) != 0);
+    public bool IsUnsignedInt => (Kind == CXEval_Int) && (clang.EvalResult_isUnsignedInt(this) != 0);
 
     public CXEvalResultKind Kind => clang.EvalResult_getKind(this);
 

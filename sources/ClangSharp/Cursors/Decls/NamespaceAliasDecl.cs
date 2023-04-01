@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class NamespaceAliasDecl : NamedDecl, IRedeclarable<NamespaceDecl>
     private readonly Lazy<NamedDecl> _aliasedNamespace;
     private readonly Lazy<NamespaceDecl> _namespace;
 
-    internal NamespaceAliasDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_NamespaceAlias, CX_DeclKind.CX_DeclKind_NamespaceAlias)
+    internal NamespaceAliasDecl(CXCursor handle) : base(handle, CXCursor_NamespaceAlias, CX_DeclKind_NamespaceAlias)
     {
         _aliasedNamespace = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetSubDecl(0)));
         _namespace = new Lazy<NamespaceDecl>(() => TranslationUnit.GetOrCreate<NamespaceDecl>(Handle.GetSubDecl(1)));

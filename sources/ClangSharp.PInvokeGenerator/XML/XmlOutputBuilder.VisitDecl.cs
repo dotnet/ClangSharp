@@ -3,7 +3,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Xml.Linq;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 

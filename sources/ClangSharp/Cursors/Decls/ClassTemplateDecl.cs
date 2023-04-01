@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class ClassTemplateDecl : RedeclarableTemplateDecl
     private readonly Lazy<Type> _injectedClassNameSpecialization;
     private readonly Lazy<IReadOnlyList<ClassTemplateSpecializationDecl>> _specializations;
 
-    internal ClassTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ClassTemplate, CX_DeclKind.CX_DeclKind_ClassTemplate)
+    internal ClassTemplateDecl(CXCursor handle) : base(handle, CXCursor_ClassTemplate, CX_DeclKind_ClassTemplate)
     {
         _injectedClassNameSpecialization = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.InjectedSpecializationType));
 

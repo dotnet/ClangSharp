@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class DecompositionDecl : VarDecl
 {
     private readonly Lazy<IReadOnlyList<BindingDecl>> _bindings;
 
-    internal DecompositionDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_Decomposition)
+    internal DecompositionDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Decomposition)
     {
         _bindings = new Lazy<IReadOnlyList<BindingDecl>>(() => {
             var numBindings = Handle.NumBindings;

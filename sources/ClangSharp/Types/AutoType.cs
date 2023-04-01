@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class AutoType : DeducedType
 {
     private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
 
-    internal AutoType(CXType handle) : base(handle, CXTypeKind.CXType_Auto, CX_TypeClass.CX_TypeClass_Auto)
+    internal AutoType(CXType handle) : base(handle, CXType_Auto, CX_TypeClass_Auto)
     {
         _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
             var templateArgCount = Handle.NumTemplateArguments;

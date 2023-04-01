@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class DependentTemplateSpecializationType : TypeWithKeyword
 {
     private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
 
-    internal DependentTemplateSpecializationType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_DependentTemplateSpecialization)
+    internal DependentTemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentTemplateSpecialization)
     {
         _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
             var templateArgCount = Handle.NumTemplateArguments;

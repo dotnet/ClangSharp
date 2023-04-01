@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public sealed class InjectedClassNameType : Type
     private readonly Lazy<TemplateSpecializationType> _injectedTST;
     private readonly Lazy<TemplateName> _templateName;
 
-    internal InjectedClassNameType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_InjectedClassName)
+    internal InjectedClassNameType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_InjectedClassName)
     {
         _decl = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(handle.Declaration));
         _injectedSpecializationType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.InjectedSpecializationType));

@@ -2,6 +2,7 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
@@ -9,7 +10,7 @@ public sealed class MacroExpansion : PreprocessedEntity
 {
     private readonly Lazy<MacroDefinitionRecord> _definition;
 
-    internal MacroExpansion(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MacroExpansion)
+    internal MacroExpansion(CXCursor handle) : base(handle, CXCursor_MacroExpansion)
     {
         _definition = new Lazy<MacroDefinitionRecord>(() => TranslationUnit.GetOrCreate<MacroDefinitionRecord>(handle.Referenced));
     }

@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class CXXDeductionGuideDecl : FunctionDecl
 {
     private readonly Lazy<TemplateDecl> _deducedTemplate;
 
-    internal CXXDeductionGuideDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_CXXDeductionGuide)
+    internal CXXDeductionGuideDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_CXXDeductionGuide)
     {
         _deducedTemplate = new Lazy<TemplateDecl>(() => TranslationUnit.GetOrCreate<TemplateDecl>(handle.TemplatedDecl));
     }

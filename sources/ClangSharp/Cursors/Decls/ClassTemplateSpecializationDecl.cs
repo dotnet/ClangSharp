@@ -1,9 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using ClangSharp.Interop;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CX_TemplateSpecializationKind;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
     private readonly Lazy<ClassTemplateDecl> _specializedTemplate;
     private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
 
-    internal ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ClassTemplateSpecialization)
+    internal ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_ClassTemplateSpecialization)
     {
         _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
         _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
@@ -31,7 +33,7 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
 
     private protected ClassTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastClassTemplateSpecialization or < CX_DeclKind.CX_DeclKind_FirstClassTemplateSpecialization)
+        if (handle.DeclKind is > CX_DeclKind_LastClassTemplateSpecialization or < CX_DeclKind_FirstClassTemplateSpecialization)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
@@ -59,15 +61,15 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
         {
             switch (SpecializationKind)
             {
-                case CX_TemplateSpecializationKind.CX_TSK_ExplicitSpecialization:
-                case CX_TemplateSpecializationKind.CX_TSK_ExplicitInstantiationDeclaration:
-                case CX_TemplateSpecializationKind.CX_TSK_ExplicitInstantiationDefinition:
+                case CX_TSK_ExplicitSpecialization:
+                case CX_TSK_ExplicitInstantiationDeclaration:
+                case CX_TSK_ExplicitInstantiationDefinition:
                 {
                     return true;
                 }
 
-                case CX_TemplateSpecializationKind.CX_TSK_Undeclared:
-                case CX_TemplateSpecializationKind.CX_TSK_ImplicitInstantiation:
+                case CX_TSK_Undeclared:
+                case CX_TSK_ImplicitInstantiation:
                 {
                     return false;
                 }
@@ -78,7 +80,7 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
         }
     }
 
-    public bool IsExplicitSpecialization => SpecializationKind == CX_TemplateSpecializationKind.CX_TSK_ExplicitSpecialization;
+    public bool IsExplicitSpecialization => SpecializationKind == CX_TSK_ExplicitSpecialization;
 
     public new ClassTemplateSpecializationDecl MostRecentDecl => (ClassTemplateSpecializationDecl)base.MostRecentDecl;
 

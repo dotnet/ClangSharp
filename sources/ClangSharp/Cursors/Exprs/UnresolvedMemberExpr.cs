@@ -4,6 +4,8 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class UnresolvedMemberExpr : OverloadExpr
 {
     private readonly Lazy<Type> _baseType;
 
-    internal UnresolvedMemberExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr, CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr)
+    internal UnresolvedMemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_UnresolvedMemberExpr)
     {
         Debug.Assert(NumChildren is 0 or 1);
         _baseType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));

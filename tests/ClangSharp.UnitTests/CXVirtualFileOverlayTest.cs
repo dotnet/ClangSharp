@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 using NUnit.Framework;
+using static ClangSharp.Interop.CXErrorCode;
 
 namespace ClangSharp.UnitTests;
 
@@ -38,7 +39,7 @@ public class CXVirtualFileOverlayTest
             rPath = Fix(rPath);
 
             var err = VFO.AddFileMapping(vPath, rPath);
-            Assert.AreEqual(CXErrorCode.CXError_Success, err);
+            Assert.AreEqual(CXError_Success, err);
         }
 
         public void MapError(string? vPath, string? rPath, CXErrorCode expErr)
@@ -140,8 +141,7 @@ public class CXVirtualFileOverlayTest
     public void InvalidArgs()
     {
         using var t = new TestVFO(null);
-        t.MapError("$ROOT$/path/./virtual/../foo.h", "$ROOT$/real/foo.h",
-                   CXErrorCode.CXError_InvalidArguments);
+        t.MapError("$ROOT$/path/./virtual/../foo.h", "$ROOT$/real/foo.h", CXError_InvalidArguments);
     }
 
     [Test]

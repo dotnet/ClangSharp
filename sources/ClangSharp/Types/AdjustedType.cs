@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public class AdjustedType : Type
     private readonly Lazy<Type> _adjustedType;
     private readonly Lazy<Type> _originalType;
 
-    internal AdjustedType(CXType handle) : this(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_Adjusted)
+    internal AdjustedType(CXType handle) : this(handle, CXType_Unexposed, CX_TypeClass_Adjusted)
     {
     }
 

@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public class UnaryTransformType : Type
     private readonly Lazy<Type> _baseType;
     private readonly Lazy<Type> _underlyingType;
 
-    internal UnaryTransformType(CXType handle) : this(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_UnaryTransform)
+    internal UnaryTransformType(CXType handle) : this(handle, CXType_Unexposed, CX_TypeClass_UnaryTransform)
     {
     }
 

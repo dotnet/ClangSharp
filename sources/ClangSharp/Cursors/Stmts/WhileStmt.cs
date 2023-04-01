@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class WhileStmt : Stmt
 {
-    internal WhileStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_WhileStmt, CX_StmtClass.CX_StmtClass_WhileStmt)
+    internal WhileStmt(CXCursor handle) : base(handle, CXCursor_WhileStmt, CX_StmtClass_WhileStmt)
     {
         Debug.Assert(NumChildren is 2 or 3);
     }

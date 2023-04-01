@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -14,9 +16,9 @@ public sealed class ObjCPropertyImplDecl : Decl
     private readonly Lazy<ObjCMethodDecl> _setterMethodDecl;
     private readonly Lazy<Expr> _setterCXXAssignment;
 
-    internal ObjCPropertyImplDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ObjCPropertyImpl)
+    internal ObjCPropertyImplDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind_ObjCPropertyImpl)
     {
-        if (handle.Kind is not CXCursorKind.CXCursor_ObjCSynthesizeDecl and not CXCursorKind.CXCursor_ObjCDynamicDecl)
+        if (handle.Kind is not CXCursor_ObjCSynthesizeDecl and not CXCursor_ObjCDynamicDecl)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

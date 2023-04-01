@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 using System;
 using System.Collections.Generic;
 
@@ -13,7 +15,7 @@ public sealed class ClassTemplatePartialSpecializationDecl : ClassTemplateSpecia
     private readonly Lazy<ClassTemplatePartialSpecializationDecl> _instantiatedFromMember;
     private readonly Lazy<IReadOnlyList<NamedDecl>> _templateParameters;
 
-    internal ClassTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ClassTemplatePartialSpecialization, CX_DeclKind.CX_DeclKind_ClassTemplatePartialSpecialization)
+    internal ClassTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursor_ClassTemplatePartialSpecialization, CX_DeclKind_ClassTemplatePartialSpecialization)
     {
         _associatedConstraints = new Lazy<IReadOnlyList<Expr>>(() => {
             var associatedConstraintCount = Handle.NumAssociatedConstraints;

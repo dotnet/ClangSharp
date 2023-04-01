@@ -9,7 +9,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
-using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_BinaryOperatorKind;
+using static ClangSharp.Interop.CX_CastKind;
+using static ClangSharp.Interop.CX_CharacterKind;
+using static ClangSharp.Interop.CX_StmtClass;
+using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
+using static ClangSharp.Interop.CX_UnaryOperatorKind;
+using static ClangSharp.Interop.CXEvalResultKind;
+using static ClangSharp.Interop.CXTypeKind;
 
 namespace ClangSharp;
 
@@ -78,7 +85,7 @@ public partial class PInvokeGenerator
 
             switch (evalResult.Kind)
             {
-                case CXEvalResultKind.CXEval_Int:
+                case CXEval_Int:
                 {
                     if (canonicalType.Handle.IsUnsigned)
                     {
@@ -93,9 +100,9 @@ public partial class PInvokeGenerator
                     return;
                 }
 
-                case CXEvalResultKind.CXEval_Float:
+                case CXEval_Float:
                 {
-                    if (canonicalType.Kind == CXTypeKind.CXType_Float)
+                    if (canonicalType.Kind == CXType_Float)
                     {
                         outputBuilder.Write((float)evalResult.AsDouble);
                     }
@@ -108,7 +115,7 @@ public partial class PInvokeGenerator
                     return;
                 }
 
-                case CXEvalResultKind.CXEval_StrLiteral:
+                case CXEval_StrLiteral:
                 {
                     AddDiagnostic(DiagnosticLevel.Info, "Possible string constant");
                     break;
@@ -118,7 +125,7 @@ public partial class PInvokeGenerator
 
         var isUnusedValue = false;
 
-        if (callExpr.Type.CanonicalType.Kind != CXTypeKind.CXType_Void)
+        if (callExpr.Type.CanonicalType.Kind != CXType_Void)
         {
             isUnusedValue = IsPrevContextStmt<CompoundStmt>(out _, out _)
                          || IsPrevContextStmt<IfStmt>(out _, out _);
@@ -163,12 +170,12 @@ public partial class PInvokeGenerator
                     if (callExpr.NumArgs == 3)
                     {
                         if (IsStmtAsWritten<IntegerLiteral>(callExpr.Args[1], out var integerLiteralExpr, removeParens: true) && (integerLiteralExpr.Value == 0) &&
-                            IsStmtAsWritten<UnaryExprOrTypeTraitExpr>(callExpr.Args[2], out var unaryExprOrTypeTraitExpr, removeParens: true) && (unaryExprOrTypeTraitExpr.Kind == CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf))
+                            IsStmtAsWritten<UnaryExprOrTypeTraitExpr>(callExpr.Args[2], out var unaryExprOrTypeTraitExpr, removeParens: true) && (unaryExprOrTypeTraitExpr.Kind == CX_UETT_SizeOf))
                         {
                             var typeOfArgument = unaryExprOrTypeTraitExpr.TypeOfArgument.CanonicalType;
                             var expr = callExpr.Args[0];
 
-                            if (IsStmtAsWritten<UnaryOperator>(expr, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_AddrOf))
+                            if (IsStmtAsWritten<UnaryOperator>(expr, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UO_AddrOf))
                             {
                                 expr = unaryOperator.SubExpr;
                             }
@@ -266,7 +273,7 @@ public partial class PInvokeGenerator
 
                     if (paramType is ReferenceType)
                     {
-                        if (IsStmtAsWritten<UnaryOperator>(arg, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_Deref))
+                        if (IsStmtAsWritten<UnaryOperator>(arg, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UO_Deref))
                         {
                             arg = unaryOperator.SubExpr;
                         }
@@ -323,8 +330,8 @@ public partial class PInvokeGenerator
         var outputBuilder = StartCSharpCode();
         switch (characterLiteral.Kind)
         {
-            case CX_CharacterKind.CX_CLK_Ascii:
-            case CX_CharacterKind.CX_CLK_UTF8:
+            case CX_CLK_Ascii:
+            case CX_CLK_UTF8:
             {
                 if (characterLiteral.Value > ushort.MaxValue)
                 {
@@ -387,17 +394,17 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_CharacterKind.CX_CLK_Wide:
+            case CX_CLK_Wide:
             {
                 if (_config.GenerateUnixTypes)
                 {
                     goto default;
                 }
 
-                goto case CX_CharacterKind.CX_CLK_UTF16;
+                goto case CX_CLK_UTF16;
             }
 
-            case CX_CharacterKind.CX_CLK_UTF16:
+            case CX_CLK_UTF16:
             {
                 if (characterLiteral.Value > ushort.MaxValue)
                 {
@@ -413,7 +420,7 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_CharacterKind.CX_CLK_UTF32:
+            case CX_CLK_UTF32:
             {
                 outputBuilder.Write("0x");
                 outputBuilder.Write(characterLiteral.Value.ToString("X8"));
@@ -1029,15 +1036,15 @@ public partial class PInvokeGenerator
 
         switch (implicitCastExpr.CastKind)
         {
-            case CX_CastKind.CX_CK_NullToPointer:
+            case CX_CK_NullToPointer:
             {
                 outputBuilder.Write("null");
                 break;
             }
 
-            case CX_CastKind.CX_CK_PointerToBoolean:
+            case CX_CK_PointerToBoolean:
             {
-                if ((subExpr is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_LNot))
+                if ((subExpr is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CX_UO_LNot))
                 {
                     Visit(subExpr);
                 }
@@ -1049,11 +1056,11 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_CastKind.CX_CK_IntegralCast:
+            case CX_CK_IntegralCast:
             {
-                if (subExpr.Type.CanonicalType.Kind == CXTypeKind.CXType_Bool)
+                if (subExpr.Type.CanonicalType.Kind == CXType_Bool)
                 {
-                    goto case CX_CastKind.CX_CK_BooleanToSignedIntegral;
+                    goto case CX_CK_BooleanToSignedIntegral;
                 }
                 else
                 {
@@ -1061,9 +1068,9 @@ public partial class PInvokeGenerator
                 }
             }
 
-            case CX_CastKind.CX_CK_IntegralToBoolean:
+            case CX_CK_IntegralToBoolean:
             {
-                if ((subExpr is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CX_UnaryOperatorKind.CX_UO_LNot))
+                if ((subExpr is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CX_UO_LNot))
                 {
                     Visit(subExpr);
                 }
@@ -1075,7 +1082,7 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_CastKind.CX_CK_BooleanToSignedIntegral:
+            case CX_CK_BooleanToSignedIntegral:
             {
                 var needsCast = implicitCastExpr.Type.Handle.SizeOf < 4;
 
@@ -1113,7 +1120,7 @@ public partial class PInvokeGenerator
         {
             var subExpr = implicitCastExpr.SubExprAsWritten;
 
-            if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator, out _) && ((binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_EQ) || (binaryOperator.Opcode == CX_BinaryOperatorKind.CX_BO_NE)))
+            if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator, out _) && ((binaryOperator.Opcode == CX_BO_EQ) || (binaryOperator.Opcode == CX_BO_NE)))
             {
                 Visit(subExpr);
                 subExpr = null;
@@ -1444,14 +1451,14 @@ public partial class PInvokeGenerator
 
                 switch (evaluation.Kind)
                 {
-                    case CXEvalResultKind.CXEval_Int:
+                    case CXEval_Int:
                     {
                         var sizeInChars = ((Expr)init).Type.Handle.SizeOf;
                         outputBuilder.WriteValueAsBytes(evaluation.AsUnsigned, (int)sizeInChars);
                         break;
                     }
 
-                    case CXEvalResultKind.CXEval_Float:
+                    case CXEval_Float:
                     {
                         var sizeInChars = ((Expr)init).Type.Handle.SizeOf;
 
@@ -1473,7 +1480,7 @@ public partial class PInvokeGenerator
                         break;
                     }
 
-                    case CXEvalResultKind.CXEval_StrLiteral:
+                    case CXEval_StrLiteral:
                     {
                         outputBuilder.Write('"');
                         outputBuilder.Write(evaluation.AsStr);
@@ -1745,7 +1752,7 @@ public partial class PInvokeGenerator
         var outputBuilder = StartCSharpCode();
         var baseFieldName = "";
 
-        if ((memberExpr.Base is ImplicitCastExpr implicitCastExpr) && (implicitCastExpr.CastKind is CX_CastKind.CX_CK_DerivedToBase or CX_CastKind.CX_CK_DerivedToBaseMemberPointer or CX_CastKind.CX_CK_UncheckedDerivedToBase))
+        if ((memberExpr.Base is ImplicitCastExpr implicitCastExpr) && (implicitCastExpr.CastKind is CX_CK_DerivedToBase or CX_CK_DerivedToBaseMemberPointer or CX_CK_UncheckedDerivedToBase))
         {
             if (memberExpr.MemberDecl is CXXMethodDecl cxxMethodDecl)
             {
@@ -1863,7 +1870,7 @@ public partial class PInvokeGenerator
     private void VisitReturnStmt(ReturnStmt returnStmt)
     {
         var outputBuilder = StartCSharpCode();
-        if (IsPrevContextDecl<FunctionDecl>(out var functionDecl, out _) && (functionDecl.ReturnType.CanonicalType.Kind != CXTypeKind.CXType_Void))
+        if (IsPrevContextDecl<FunctionDecl>(out var functionDecl, out _) && (functionDecl.ReturnType.CanonicalType.Kind != CXType_Void))
         {
             outputBuilder.Write("return");
 
@@ -1898,503 +1905,503 @@ public partial class PInvokeGenerator
     {
         switch (stmt.StmtClass)
         {
-            // case CX_StmtClass.CX_StmtClass_GCCAsmStmt:
-            // case CX_StmtClass.CX_StmtClass_MSAsmStmt:
+            // case CX_StmtClass_GCCAsmStmt:
+            // case CX_StmtClass_MSAsmStmt:
 
-            case CX_StmtClass.CX_StmtClass_BreakStmt:
+            case CX_StmtClass_BreakStmt:
             {
                 VisitBreakStmt((BreakStmt)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXCatchStmt:
-            // case CX_StmtClass.CX_StmtClass_CXXForRangeStmt:
-            // case CX_StmtClass.CX_StmtClass_CXXTryStmt:
-            // case CX_StmtClass.CX_StmtClass_CapturedStmt:
+            // case CX_StmtClass_CXXCatchStmt:
+            // case CX_StmtClass_CXXForRangeStmt:
+            // case CX_StmtClass_CXXTryStmt:
+            // case CX_StmtClass_CapturedStmt:
 
-            case CX_StmtClass.CX_StmtClass_CompoundStmt:
+            case CX_StmtClass_CompoundStmt:
             {
                 VisitCompoundStmt((CompoundStmt)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_ContinueStmt:
+            case CX_StmtClass_ContinueStmt:
             {
                 VisitContinueStmt((ContinueStmt)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CoreturnStmt:
-            // case CX_StmtClass.CX_StmtClass_CoroutineBodyStmt:
+            // case CX_StmtClass_CoreturnStmt:
+            // case CX_StmtClass_CoroutineBodyStmt:
 
-            case CX_StmtClass.CX_StmtClass_DeclStmt:
+            case CX_StmtClass_DeclStmt:
             {
                 VisitDeclStmt((DeclStmt)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_DoStmt:
+            case CX_StmtClass_DoStmt:
             {
                 VisitDoStmt((DoStmt)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_ForStmt:
+            case CX_StmtClass_ForStmt:
             {
                 VisitForStmt((ForStmt)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_GotoStmt:
+            case CX_StmtClass_GotoStmt:
             {
                 VisitGotoStmt((GotoStmt)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_IfStmt:
+            case CX_StmtClass_IfStmt:
             {
                 VisitIfStmt((IfStmt)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_IndirectGotoStmt:
-            // case CX_StmtClass.CX_StmtClass_MSDependentExistsStmt:
+            // case CX_StmtClass_IndirectGotoStmt:
+            // case CX_StmtClass_MSDependentExistsStmt:
 
-            case CX_StmtClass.CX_StmtClass_NullStmt:
+            case CX_StmtClass_NullStmt:
             {
                 VisitNullStmt((NullStmt)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_OMPAtomicDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPBarrierDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPCancelDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPCancellationPointDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPCriticalDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPFlushDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPDistributeDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPDistributeParallelForDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPDistributeParallelForSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPDistributeSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPForDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPForSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPParallelForDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPParallelForSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetParallelForSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeParallelForDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeParallelForSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetTeamsDistributeSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTaskLoopDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTaskLoopSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTeamsDistributeDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTeamsDistributeParallelForDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTeamsDistributeParallelForSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTeamsDistributeSimdDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPMasterDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPOrderedDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPParallelDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPParallelSectionsDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPSectionDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPSectionsDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPSingleDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetDataDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetEnterDataDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetExitDataDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetParallelDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetParallelForDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetTeamsDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTargetUpdateDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTaskDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTaskgroupDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTaskwaitDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTaskyieldDirective:
-            // case CX_StmtClass.CX_StmtClass_OMPTeamsDirective:
-            // case CX_StmtClass.CX_StmtClass_ObjCAtCatchStmt:
-            // case CX_StmtClass.CX_StmtClass_ObjCAtFinallyStmt:
-            // case CX_StmtClass.CX_StmtClass_ObjCAtSynchronizedStmt:
-            // case CX_StmtClass.CX_StmtClass_ObjCAtThrowStmt:
-            // case CX_StmtClass.CX_StmtClass_ObjCAtTryStmt:
-            // case CX_StmtClass.CX_StmtClass_ObjCAutoreleasePoolStmt:
-            // case CX_StmtClass.CX_StmtClass_ObjCForCollectionStmt:
+            // case CX_StmtClass_OMPAtomicDirective:
+            // case CX_StmtClass_OMPBarrierDirective:
+            // case CX_StmtClass_OMPCancelDirective:
+            // case CX_StmtClass_OMPCancellationPointDirective:
+            // case CX_StmtClass_OMPCriticalDirective:
+            // case CX_StmtClass_OMPFlushDirective:
+            // case CX_StmtClass_OMPDistributeDirective:
+            // case CX_StmtClass_OMPDistributeParallelForDirective:
+            // case CX_StmtClass_OMPDistributeParallelForSimdDirective:
+            // case CX_StmtClass_OMPDistributeSimdDirective:
+            // case CX_StmtClass_OMPForDirective:
+            // case CX_StmtClass_OMPForSimdDirective:
+            // case CX_StmtClass_OMPParallelForDirective:
+            // case CX_StmtClass_OMPParallelForSimdDirective:
+            // case CX_StmtClass_OMPSimdDirective:
+            // case CX_StmtClass_OMPTargetParallelForSimdDirective:
+            // case CX_StmtClass_OMPTargetSimdDirective:
+            // case CX_StmtClass_OMPTargetTeamsDistributeDirective:
+            // case CX_StmtClass_OMPTargetTeamsDistributeParallelForDirective:
+            // case CX_StmtClass_OMPTargetTeamsDistributeParallelForSimdDirective:
+            // case CX_StmtClass_OMPTargetTeamsDistributeSimdDirective:
+            // case CX_StmtClass_OMPTaskLoopDirective:
+            // case CX_StmtClass_OMPTaskLoopSimdDirective:
+            // case CX_StmtClass_OMPTeamsDistributeDirective:
+            // case CX_StmtClass_OMPTeamsDistributeParallelForDirective:
+            // case CX_StmtClass_OMPTeamsDistributeParallelForSimdDirective:
+            // case CX_StmtClass_OMPTeamsDistributeSimdDirective:
+            // case CX_StmtClass_OMPMasterDirective:
+            // case CX_StmtClass_OMPOrderedDirective:
+            // case CX_StmtClass_OMPParallelDirective:
+            // case CX_StmtClass_OMPParallelSectionsDirective:
+            // case CX_StmtClass_OMPSectionDirective:
+            // case CX_StmtClass_OMPSectionsDirective:
+            // case CX_StmtClass_OMPSingleDirective:
+            // case CX_StmtClass_OMPTargetDataDirective:
+            // case CX_StmtClass_OMPTargetDirective:
+            // case CX_StmtClass_OMPTargetEnterDataDirective:
+            // case CX_StmtClass_OMPTargetExitDataDirective:
+            // case CX_StmtClass_OMPTargetParallelDirective:
+            // case CX_StmtClass_OMPTargetParallelForDirective:
+            // case CX_StmtClass_OMPTargetTeamsDirective:
+            // case CX_StmtClass_OMPTargetUpdateDirective:
+            // case CX_StmtClass_OMPTaskDirective:
+            // case CX_StmtClass_OMPTaskgroupDirective:
+            // case CX_StmtClass_OMPTaskwaitDirective:
+            // case CX_StmtClass_OMPTaskyieldDirective:
+            // case CX_StmtClass_OMPTeamsDirective:
+            // case CX_StmtClass_ObjCAtCatchStmt:
+            // case CX_StmtClass_ObjCAtFinallyStmt:
+            // case CX_StmtClass_ObjCAtSynchronizedStmt:
+            // case CX_StmtClass_ObjCAtThrowStmt:
+            // case CX_StmtClass_ObjCAtTryStmt:
+            // case CX_StmtClass_ObjCAutoreleasePoolStmt:
+            // case CX_StmtClass_ObjCForCollectionStmt:
 
-            case CX_StmtClass.CX_StmtClass_ReturnStmt:
+            case CX_StmtClass_ReturnStmt:
             {
                 VisitReturnStmt((ReturnStmt)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_SEHExceptStmt:
-            // case CX_StmtClass.CX_StmtClass_SEHFinallyStmt:
-            // case CX_StmtClass.CX_StmtClass_SEHLeaveStmt:
-            // case CX_StmtClass.CX_StmtClass_SEHTryStmt:
+            // case CX_StmtClass_SEHExceptStmt:
+            // case CX_StmtClass_SEHFinallyStmt:
+            // case CX_StmtClass_SEHLeaveStmt:
+            // case CX_StmtClass_SEHTryStmt:
 
-            case CX_StmtClass.CX_StmtClass_CaseStmt:
+            case CX_StmtClass_CaseStmt:
             {
                 VisitCaseStmt((CaseStmt)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_DefaultStmt:
+            case CX_StmtClass_DefaultStmt:
             {
                 VisitDefaultStmt((DefaultStmt)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_SwitchStmt:
+            case CX_StmtClass_SwitchStmt:
             {
                 VisitSwitchStmt((SwitchStmt)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_AttributedStmt:
-            // case CX_StmtClass.CX_StmtClass_BinaryConditionalOperator:
+            // case CX_StmtClass_AttributedStmt:
+            // case CX_StmtClass_BinaryConditionalOperator:
 
-            case CX_StmtClass.CX_StmtClass_ConditionalOperator:
+            case CX_StmtClass_ConditionalOperator:
             {
                 VisitConditionalOperator((ConditionalOperator)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:
-            // case CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr:
-            // case CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr:
+            // case CX_StmtClass_AddrLabelExpr:
+            // case CX_StmtClass_ArrayInitIndexExpr:
+            // case CX_StmtClass_ArrayInitLoopExpr:
 
-            case CX_StmtClass.CX_StmtClass_ArraySubscriptExpr:
+            case CX_StmtClass_ArraySubscriptExpr:
             {
                 VisitArraySubscriptExpr((ArraySubscriptExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_ArrayTypeTraitExpr:
-            // case CX_StmtClass.CX_StmtClass_AsTypeExpr:
-            // case CX_StmtClass.CX_StmtClass_AtomicExpr:
+            // case CX_StmtClass_ArrayTypeTraitExpr:
+            // case CX_StmtClass_AsTypeExpr:
+            // case CX_StmtClass_AtomicExpr:
 
-            case CX_StmtClass.CX_StmtClass_BinaryOperator:
-            case CX_StmtClass.CX_StmtClass_CompoundAssignOperator:
+            case CX_StmtClass_BinaryOperator:
+            case CX_StmtClass_CompoundAssignOperator:
             {
                 VisitBinaryOperator((BinaryOperator)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_BlockExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXBindTemporaryExpr:
+            // case CX_StmtClass_BlockExpr:
+            // case CX_StmtClass_CXXBindTemporaryExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr:
+            case CX_StmtClass_CXXBoolLiteralExpr:
             {
                 VisitCXXBoolLiteralExpr((CXXBoolLiteralExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXConstructExpr:
+            case CX_StmtClass_CXXConstructExpr:
             {
                 VisitCXXConstructExpr((CXXConstructExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
+            case CX_StmtClass_CXXTemporaryObjectExpr:
             {
                 VisitCXXTemporaryObjectExpr((CXXTemporaryObjectExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
+            case CX_StmtClass_CXXDefaultArgExpr:
             {
                 VisitCXXDefaultArgExpr((CXXDefaultArgExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
+            // case CX_StmtClass_CXXDefaultInitExpr:
+            // case CX_StmtClass_CXXDeleteExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
+            case CX_StmtClass_CXXDependentScopeMemberExpr:
             {
                 VisitCXXDependentScopeMemberExpr((CXXDependentScopeMemberExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXFoldExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr:
+            // case CX_StmtClass_CXXFoldExpr:
+            // case CX_StmtClass_CXXInheritedCtorInitExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXNewExpr:
+            case CX_StmtClass_CXXNewExpr:
             {
                 VisitCXXNewExpr((CXXNewExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXNoexceptExpr:
+            // case CX_StmtClass_CXXNoexceptExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXNullPtrLiteralExpr:
+            case CX_StmtClass_CXXNullPtrLiteralExpr:
             {
                 VisitCXXNullPtrLiteralExpr((CXXNullPtrLiteralExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXPseudoDestructorExpr:
+            case CX_StmtClass_CXXPseudoDestructorExpr:
             {
                 VisitCXXPseudoDestructorExpr((CXXPseudoDestructorExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXScalarValueInitExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr:
+            // case CX_StmtClass_CXXScalarValueInitExpr:
+            // case CX_StmtClass_CXXStdInitializerListExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXThisExpr:
+            case CX_StmtClass_CXXThisExpr:
             {
                 VisitCXXThisExpr((CXXThisExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
+            // case CX_StmtClass_CXXThrowExpr:
+            // case CX_StmtClass_CXXTypeidExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:
+            case CX_StmtClass_CXXUnresolvedConstructExpr:
             {
                 VisitCXXUnresolvedConstructExpr((CXXUnresolvedConstructExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
+            case CX_StmtClass_CXXUuidofExpr:
             {
                 VisitCXXUuidofExpr((CXXUuidofExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_CallExpr:
-            case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
+            case CX_StmtClass_CallExpr:
+            case CX_StmtClass_CXXMemberCallExpr:
             {
                 VisitCallExpr((CallExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr:
+            // case CX_StmtClass_CUDAKernelCallExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
+            case CX_StmtClass_CXXOperatorCallExpr:
             {
                 VisitCXXOperatorCallExpr((CXXOperatorCallExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_UserDefinedLiteral:
-            // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
+            // case CX_StmtClass_UserDefinedLiteral:
+            // case CX_StmtClass_BuiltinBitCastExpr:
 
-            case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
-            case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
-            case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
-            case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
+            case CX_StmtClass_CStyleCastExpr:
+            case CX_StmtClass_CXXDynamicCastExpr:
+            case CX_StmtClass_CXXReinterpretCastExpr:
+            case CX_StmtClass_CXXStaticCastExpr:
             {
                 VisitExplicitCastExpr((ExplicitCastExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
+            case CX_StmtClass_CXXFunctionalCastExpr:
             {
                 VisitCXXFunctionalCastExpr((CXXFunctionalCastExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
+            case CX_StmtClass_CXXConstCastExpr:
             {
                 VisitCXXConstCastExpr((CXXConstCastExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr:
+            // case CX_StmtClass_ObjCBridgedCastExpr:
 
-            case CX_StmtClass.CX_StmtClass_ImplicitCastExpr:
+            case CX_StmtClass_ImplicitCastExpr:
             {
                 VisitImplicitCastExpr((ImplicitCastExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_CharacterLiteral:
+            case CX_StmtClass_CharacterLiteral:
             {
                 VisitCharacterLiteral((CharacterLiteral)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_ChooseExpr:
-            // case CX_StmtClass.CX_StmtClass_CompoundLiteralExpr:
-            // case CX_StmtClass.CX_StmtClass_ConvertVectorExpr:
-            // case CX_StmtClass.CX_StmtClass_CoawaitExpr:
-            // case CX_StmtClass.CX_StmtClass_CoyieldExpr:
+            // case CX_StmtClass_ChooseExpr:
+            // case CX_StmtClass_CompoundLiteralExpr:
+            // case CX_StmtClass_ConvertVectorExpr:
+            // case CX_StmtClass_CoawaitExpr:
+            // case CX_StmtClass_CoyieldExpr:
 
-            case CX_StmtClass.CX_StmtClass_DeclRefExpr:
+            case CX_StmtClass_DeclRefExpr:
             {
                 VisitDeclRefExpr((DeclRefExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_DependentCoawaitExpr:
+            // case CX_StmtClass_DependentCoawaitExpr:
 
-            case CX_StmtClass.CX_StmtClass_DependentScopeDeclRefExpr:
+            case CX_StmtClass_DependentScopeDeclRefExpr:
             {
                 VisitDependentScopeDeclRefExpr((DependentScopeDeclRefExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_DesignatedInitExpr:
-            // case CX_StmtClass.CX_StmtClass_DesignatedInitUpdateExpr:
-            // case CX_StmtClass.CX_StmtClass_ExpressionTraitExpr:
-            // case CX_StmtClass.CX_StmtClass_ExtVectorElementExpr:
-            // case CX_StmtClass.CX_StmtClass_FixedPointLiteral:
+            // case CX_StmtClass_DesignatedInitExpr:
+            // case CX_StmtClass_DesignatedInitUpdateExpr:
+            // case CX_StmtClass_ExpressionTraitExpr:
+            // case CX_StmtClass_ExtVectorElementExpr:
+            // case CX_StmtClass_FixedPointLiteral:
 
-            case CX_StmtClass.CX_StmtClass_FloatingLiteral:
+            case CX_StmtClass_FloatingLiteral:
             {
                 VisitFloatingLiteral((FloatingLiteral)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_ConstantExpr:
+            // case CX_StmtClass_ConstantExpr:
 
-            case CX_StmtClass.CX_StmtClass_ExprWithCleanups:
+            case CX_StmtClass_ExprWithCleanups:
             {
                 VisitExprWithCleanups((ExprWithCleanups)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_FunctionParmPackExpr:
-            // case CX_StmtClass.CX_StmtClass_GNUNullExpr:
-            // case CX_StmtClass.CX_StmtClass_GenericSelectionExpr:
-            // case CX_StmtClass.CX_StmtClass_ImaginaryLiteral:
+            // case CX_StmtClass_FunctionParmPackExpr:
+            // case CX_StmtClass_GNUNullExpr:
+            // case CX_StmtClass_GenericSelectionExpr:
+            // case CX_StmtClass_ImaginaryLiteral:
 
-            case CX_StmtClass.CX_StmtClass_ImplicitValueInitExpr:
+            case CX_StmtClass_ImplicitValueInitExpr:
             {
                 VisitImplicitValueInitExpr((ImplicitValueInitExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_InitListExpr:
+            case CX_StmtClass_InitListExpr:
             {
                 VisitInitListExpr((InitListExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_IntegerLiteral:
+            case CX_StmtClass_IntegerLiteral:
             {
                 VisitIntegerLiteral((IntegerLiteral)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_LambdaExpr:
-            // case CX_StmtClass.CX_StmtClass_MSPropertyRefExpr:
-            // case CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr:
+            // case CX_StmtClass_LambdaExpr:
+            // case CX_StmtClass_MSPropertyRefExpr:
+            // case CX_StmtClass_MSPropertySubscriptExpr:
 
-            case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
+            case CX_StmtClass_MaterializeTemporaryExpr:
             {
                 VisitMaterializeTemporaryExpr((MaterializeTemporaryExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_MemberExpr:
+            case CX_StmtClass_MemberExpr:
             {
                 VisitMemberExpr((MemberExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_NoInitExpr:
-            // case CX_StmtClass.CX_StmtClass_OMPArraySectionExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCArrayLiteral:
-            // case CX_StmtClass.CX_StmtClass_ObjCAvailabilityCheckExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCBoolLiteralExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCBoxedExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCDictionaryLiteral:
-            // case CX_StmtClass.CX_StmtClass_ObjCEncodeExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCIndirectCopyRestoreExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCIsaExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCIvarRefExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCMessageExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCPropertyRefExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCProtocolExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCSelectorExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCStringLiteral:
-            // case CX_StmtClass.CX_StmtClass_ObjCSubscriptRefExpr:
+            // case CX_StmtClass_NoInitExpr:
+            // case CX_StmtClass_OMPArraySectionExpr:
+            // case CX_StmtClass_ObjCArrayLiteral:
+            // case CX_StmtClass_ObjCAvailabilityCheckExpr:
+            // case CX_StmtClass_ObjCBoolLiteralExpr:
+            // case CX_StmtClass_ObjCBoxedExpr:
+            // case CX_StmtClass_ObjCDictionaryLiteral:
+            // case CX_StmtClass_ObjCEncodeExpr:
+            // case CX_StmtClass_ObjCIndirectCopyRestoreExpr:
+            // case CX_StmtClass_ObjCIsaExpr:
+            // case CX_StmtClass_ObjCIvarRefExpr:
+            // case CX_StmtClass_ObjCMessageExpr:
+            // case CX_StmtClass_ObjCPropertyRefExpr:
+            // case CX_StmtClass_ObjCProtocolExpr:
+            // case CX_StmtClass_ObjCSelectorExpr:
+            // case CX_StmtClass_ObjCStringLiteral:
+            // case CX_StmtClass_ObjCSubscriptRefExpr:
 
-            case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+            case CX_StmtClass_OffsetOfExpr:
             {
                 VisitOffsetOfExpr((OffsetOfExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_OpaqueValueExpr:
+            // case CX_StmtClass_OpaqueValueExpr:
 
-            case CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr:
+            case CX_StmtClass_UnresolvedLookupExpr:
             {
                 VisitUnresolvedLookupExpr((UnresolvedLookupExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr:
+            case CX_StmtClass_UnresolvedMemberExpr:
             {
                 VisitUnresolvedMemberExpr((UnresolvedMemberExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_PackExpansionExpr:
+            case CX_StmtClass_PackExpansionExpr:
             {
                 VisitPackExpansionExpr((PackExpansionExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_ParenExpr:
+            case CX_StmtClass_ParenExpr:
             {
                 VisitParenExpr((ParenExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_ParenListExpr:
+            case CX_StmtClass_ParenListExpr:
             {
                 VisitParenListExpr((ParenListExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_PredefinedExpr:
-            // case CX_StmtClass.CX_StmtClass_PseudoObjectExpr:
-            // case CX_StmtClass.CX_StmtClass_ShuffleVectorExpr:
-            // case CX_StmtClass.CX_StmtClass_SizeOfPackExpr:
-            // case CX_StmtClass.CX_StmtClass_SourceLocExpr:
-            // case CX_StmtClass.CX_StmtClass_StmtExpr:
+            // case CX_StmtClass_PredefinedExpr:
+            // case CX_StmtClass_PseudoObjectExpr:
+            // case CX_StmtClass_ShuffleVectorExpr:
+            // case CX_StmtClass_SizeOfPackExpr:
+            // case CX_StmtClass_SourceLocExpr:
+            // case CX_StmtClass_StmtExpr:
 
-            case CX_StmtClass.CX_StmtClass_StringLiteral:
+            case CX_StmtClass_StringLiteral:
             {
                 VisitStringLiteral((StringLiteral)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
+            case CX_StmtClass_SubstNonTypeTemplateParmExpr:
             {
                 VisitSubstNonTypeTemplateParmExpr((SubstNonTypeTemplateParmExpr)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
-            // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
-            // case CX_StmtClass.CX_StmtClass_TypoExpr:
+            // case CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
+            // case CX_StmtClass_TypeTraitExpr:
+            // case CX_StmtClass_TypoExpr:
 
-            case CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr:
+            case CX_StmtClass_UnaryExprOrTypeTraitExpr:
             {
                 VisitUnaryExprOrTypeTraitExpr((UnaryExprOrTypeTraitExpr)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_UnaryOperator:
+            case CX_StmtClass_UnaryOperator:
             {
                 VisitUnaryOperator((UnaryOperator)stmt);
                 break;
             }
 
-            // case CX_StmtClass.CX_StmtClass_VAArgExpr:
+            // case CX_StmtClass_VAArgExpr:
 
-            case CX_StmtClass.CX_StmtClass_LabelStmt:
+            case CX_StmtClass_LabelStmt:
             {
                 VisitLabelStmt((LabelStmt)stmt);
                 break;
             }
 
-            case CX_StmtClass.CX_StmtClass_WhileStmt:
+            case CX_StmtClass_WhileStmt:
             {
                 VisitWhileStmt((WhileStmt)stmt);
                 break;
@@ -2469,8 +2476,8 @@ public partial class PInvokeGenerator
         var outputBuilder = StartCSharpCode();
         switch (stringLiteral.Kind)
         {
-            case CX_CharacterKind.CX_CLK_Ascii:
-            case CX_CharacterKind.CX_CLK_UTF8:
+            case CX_CLK_Ascii:
+            case CX_CLK_UTF8:
             {
                 if (Config.GenerateLatestCode)
                 {
@@ -2508,19 +2515,19 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_CharacterKind.CX_CLK_Wide:
+            case CX_CLK_Wide:
             {
                 if (_config.GenerateUnixTypes)
                 {
-                    goto case CX_CharacterKind.CX_CLK_UTF32;
+                    goto case CX_CLK_UTF32;
                 }
                 else
                 {
-                    goto case CX_CharacterKind.CX_CLK_UTF16;
+                    goto case CX_CLK_UTF16;
                 }
             }
 
-            case CX_CharacterKind.CX_CLK_UTF16:
+            case CX_CLK_UTF16:
             {
                 outputBuilder.Write('"');
                 outputBuilder.Write(EscapeString(stringLiteral.String));
@@ -2528,7 +2535,7 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_CharacterKind.CX_CLK_UTF32:
+            case CX_CLK_UTF32:
             {
                 outputBuilder.Write("new uint[] { ");
 
@@ -2582,7 +2589,7 @@ public partial class PInvokeGenerator
 
         switch (unaryExprOrTypeTraitExpr.Kind)
         {
-            case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
+            case CX_UETT_SizeOf:
             {
                 if ((size32 == size64) && IsPrevContextDecl<VarDecl>(out _, out _))
                 {
@@ -2678,10 +2685,10 @@ public partial class PInvokeGenerator
                             }
                         }
 
-                        needsCast = parentType.Kind == CXTypeKind.CXType_UInt;
-                        needsCast |= parentType.Kind == CXTypeKind.CXType_ULong;
+                        needsCast = parentType.Kind == CXType_UInt;
+                        needsCast |= parentType.Kind == CXType_ULong;
                         needsCast &= !IsSupportedFixedSizedBufferType(typeName);
-                        needsCast &= argumentType.CanonicalType.Kind != CXTypeKind.CXType_Enum;
+                        needsCast &= argumentType.CanonicalType.Kind != CXType_Enum;
                         needsCast |= parentTypeIsVariableSized;
                     }
 
@@ -2702,8 +2709,8 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_UnaryExprOrTypeTrait.CX_UETT_AlignOf:
-            case CX_UnaryExprOrTypeTrait.CX_UETT_PreferredAlignOf:
+            case CX_UETT_AlignOf:
+            case CX_UETT_PreferredAlignOf:
             {
                 if (alignment32 == alignment64)
                 {
@@ -2735,32 +2742,32 @@ public partial class PInvokeGenerator
         var outputBuilder = StartCSharpCode();
         switch (unaryOperator.Opcode)
         {
-            case CX_UnaryOperatorKind.CX_UO_PostInc:
-            case CX_UnaryOperatorKind.CX_UO_PostDec:
+            case CX_UO_PostInc:
+            case CX_UO_PostDec:
             {
                 Visit(unaryOperator.SubExpr);
                 outputBuilder.Write(unaryOperator.OpcodeStr);
                 break;
             }
 
-            case CX_UnaryOperatorKind.CX_UO_PreInc:
-            case CX_UnaryOperatorKind.CX_UO_PreDec:
-            case CX_UnaryOperatorKind.CX_UO_Deref:
-            case CX_UnaryOperatorKind.CX_UO_Plus:
-            case CX_UnaryOperatorKind.CX_UO_Minus:
-            case CX_UnaryOperatorKind.CX_UO_Not:
+            case CX_UO_PreInc:
+            case CX_UO_PreDec:
+            case CX_UO_Deref:
+            case CX_UO_Plus:
+            case CX_UO_Minus:
+            case CX_UO_Not:
             {
                 outputBuilder.Write(unaryOperator.OpcodeStr);
                 Visit(unaryOperator.SubExpr);
                 break;
             }
 
-            case CX_UnaryOperatorKind.CX_UO_LNot:
+            case CX_UO_LNot:
             {
                 var subExpr = GetExprAsWritten(unaryOperator.SubExpr, removeParens: true);
                 var canonicalType = subExpr.Type.CanonicalType;
 
-                if (canonicalType.IsIntegerType && (canonicalType.Kind != CXTypeKind.CXType_Bool))
+                if (canonicalType.IsIntegerType && (canonicalType.Kind != CXType_Bool))
                 {
                     var needsParens = IsStmtAsWritten<BinaryOperator>(subExpr, out _);
 
@@ -2802,7 +2809,7 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_UnaryOperatorKind.CX_UO_AddrOf:
+            case CX_UO_AddrOf:
             {
                 if ((unaryOperator.SubExpr is DeclRefExpr declRefExpr) && (declRefExpr.Decl.Type is LValueReferenceType))
                 {

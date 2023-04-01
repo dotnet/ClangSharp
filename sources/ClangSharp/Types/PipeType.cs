@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class PipeType : Type
 {
     private readonly Lazy<Type> _elementType;
 
-    internal PipeType(CXType handle) : base(handle, CXTypeKind.CXType_Pipe, CX_TypeClass.CX_TypeClass_Pipe)
+    internal PipeType(CXType handle) : base(handle, CXType_Pipe, CX_TypeClass_Pipe)
     {
         _elementType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
     }

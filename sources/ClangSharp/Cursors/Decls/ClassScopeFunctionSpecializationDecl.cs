@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class ClassScopeFunctionSpecializationDecl : Decl
     private readonly Lazy<CXXMethodDecl> _specialization;
     private readonly Lazy<IReadOnlyList<TemplateArgumentLoc>> _templateArgs;
 
-    internal ClassScopeFunctionSpecializationDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_ClassScopeFunctionSpecialization)
+    internal ClassScopeFunctionSpecializationDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ClassScopeFunctionSpecialization)
     {
         _specialization = new Lazy<CXXMethodDecl>(() => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.GetSpecialization(0)));
         _templateArgs = new Lazy<IReadOnlyList<TemplateArgumentLoc>>(() => {

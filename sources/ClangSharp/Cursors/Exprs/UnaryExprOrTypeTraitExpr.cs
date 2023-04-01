@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class UnaryExprOrTypeTraitExpr : Expr
     private readonly Lazy<Expr> _argumentExpr;
     private readonly Lazy<Type> _argumentType;
 
-    internal UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryExpr, CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr)
+    internal UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursor_UnaryExpr, CX_StmtClass_UnaryExprOrTypeTraitExpr)
     {
         _argumentExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
         _argumentType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ArgumentType));

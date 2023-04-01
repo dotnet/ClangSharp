@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTokenKind;
 
 namespace ClangSharp;
 
@@ -22,7 +23,7 @@ public partial class PInvokeGenerator
         var translationUnitHandle = macroDefinitionRecord.TranslationUnit.Handle;
         var tokens = translationUnitHandle.Tokenize(macroDefinitionRecord.Extent).ToArray();
 
-        if ((tokens[0].Kind == CXTokenKind.CXToken_Identifier) && (tokens[0].GetSpelling(translationUnitHandle).CString == macroDefinitionRecord.Spelling))
+        if ((tokens[0].Kind == CXToken_Identifier) && (tokens[0].GetSpelling(translationUnitHandle).CString == macroDefinitionRecord.Spelling))
         {
             if (tokens.Length == 1)
             {

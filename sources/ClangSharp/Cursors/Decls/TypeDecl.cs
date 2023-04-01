@@ -2,6 +2,7 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,7 +12,7 @@ public class TypeDecl : NamedDecl
 
     private protected TypeDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastType or < CX_DeclKind.CX_DeclKind_FirstType)
+        if (handle.DeclKind is > CX_DeclKind_LastType or < CX_DeclKind_FirstType)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

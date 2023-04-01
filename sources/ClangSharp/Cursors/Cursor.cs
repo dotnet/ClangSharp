@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXChildVisitResult;
 
 namespace ClangSharp;
 
@@ -75,7 +76,7 @@ public unsafe class Cursor : IEquatable<Cursor>
                     var cursorChild = translationUnit.GetOrCreate<Cursor>(cursor);
 
                     cursorChildren!.Add(cursorChild);
-                    return CXChildVisitResult.CXChildVisit_Continue;
+                    return CXChildVisit_Continue;
                 }
             }
 

@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class ObjCObjectPointerType : Type
     private readonly Lazy<ObjCInterfaceType> _interfaceType;
     private readonly Lazy<Type> _superClassType;
 
-    internal ObjCObjectPointerType(CXType handle) : base(handle, CXTypeKind.CXType_ObjCObjectPointer, CX_TypeClass.CX_TypeClass_ObjCObjectPointer)
+    internal ObjCObjectPointerType(CXType handle) : base(handle, CXType_ObjCObjectPointer, CX_TypeClass_ObjCObjectPointer)
     {
         _interfaceType = new Lazy<ObjCInterfaceType>(() => TranslationUnit.GetOrCreate<ObjCInterfaceType>(Handle.OriginalType));
         _superClassType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));

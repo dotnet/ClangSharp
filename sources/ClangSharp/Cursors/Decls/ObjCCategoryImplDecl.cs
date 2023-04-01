@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class ObjCCategoryImplDecl : ObjCImplDecl
 {
     private readonly Lazy<ObjCCategoryDecl> _categoryDecl;
 
-    internal ObjCCategoryImplDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCCategoryImplDecl, CX_DeclKind.CX_DeclKind_ObjCCategoryImpl)
+    internal ObjCCategoryImplDecl(CXCursor handle) : base(handle, CXCursor_ObjCCategoryImplDecl, CX_DeclKind_ObjCCategoryImpl)
     {
         _categoryDecl = new Lazy<ObjCCategoryDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryDecl>(Handle.GetSubDecl(1)));
     }

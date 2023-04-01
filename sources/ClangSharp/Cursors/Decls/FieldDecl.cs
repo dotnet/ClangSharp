@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -10,13 +12,13 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
     private readonly Lazy<Expr> _bitWidth;
     private readonly Lazy<Expr> _inClassInitializer;
 
-    internal FieldDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_FieldDecl, CX_DeclKind.CX_DeclKind_Field)
+    internal FieldDecl(CXCursor handle) : this(handle, CXCursor_FieldDecl, CX_DeclKind_Field)
     {
     }
 
     private protected FieldDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastField or < CX_DeclKind.CX_DeclKind_FirstField)
+        if (handle.DeclKind is > CX_DeclKind_LastField or < CX_DeclKind_FirstField)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

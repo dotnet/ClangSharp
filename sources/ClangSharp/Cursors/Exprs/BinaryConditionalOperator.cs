@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class BinaryConditionalOperator : AbstractConditionalOperator
 {
     private readonly Lazy<OpaqueValueExpr> _opaqueValue;
 
-    internal BinaryConditionalOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_BinaryConditionalOperator)
+    internal BinaryConditionalOperator(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_BinaryConditionalOperator)
     {
         Debug.Assert(NumChildren is 4);
         _opaqueValue = new Lazy<OpaqueValueExpr>(() => TranslationUnit.GetOrCreate<OpaqueValueExpr>(Handle.OpaqueValue));

@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class PackExpansionType : Type
 {
     private readonly Lazy<Type> _pattern;
 
-    internal PackExpansionType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_PackExpansion)
+    internal PackExpansionType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_PackExpansion)
     {
         _pattern = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
     }

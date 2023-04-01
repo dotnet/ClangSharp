@@ -3,6 +3,9 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CXTokenKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -10,7 +13,7 @@ public sealed class CXXBoolLiteralExpr : Expr
 {
     private readonly Lazy<string> _valueString;
 
-    internal CXXBoolLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXBoolLiteralExpr, CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr)
+    internal CXXBoolLiteralExpr(CXCursor handle) : base(handle, CXCursor_CXXBoolLiteralExpr, CX_StmtClass_CXXBoolLiteralExpr)
     {
         Debug.Assert(NumChildren is 0);
 
@@ -18,7 +21,7 @@ public sealed class CXXBoolLiteralExpr : Expr
             var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
             Debug.Assert(tokens.Length == 1);
-            Debug.Assert(tokens[0].Kind == CXTokenKind.CXToken_Keyword);
+            Debug.Assert(tokens[0].Kind == CXToken_Keyword);
 
             var spelling = tokens[0].GetSpelling(Handle.TranslationUnit).ToString();
             spelling = spelling.Trim('\\', '\r', '\n');

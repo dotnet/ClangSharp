@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class VAArgExpr : Expr
 {
-    internal VAArgExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_VAArgExpr)
+    internal VAArgExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_VAArgExpr)
     {
         Debug.Assert(NumChildren is 1);
     }

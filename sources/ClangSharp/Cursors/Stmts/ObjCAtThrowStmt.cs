@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class ObjCAtThrowStmt : Stmt
 {
-    internal ObjCAtThrowStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtThrowStmt, CX_StmtClass.CX_StmtClass_ObjCAtThrowStmt)
+    internal ObjCAtThrowStmt(CXCursor handle) : base(handle, CXCursor_ObjCAtThrowStmt, CX_StmtClass_ObjCAtThrowStmt)
     {
         Debug.Assert(NumChildren is 1);
     }

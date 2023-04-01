@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -13,13 +15,13 @@ public class CallExpr : Expr
     private readonly Lazy<IReadOnlyList<Expr>> _args;
     private readonly Lazy<Decl> _calleeDecl;
 
-    internal CallExpr(CXCursor handle) : this(handle, CXCursorKind.CXCursor_CallExpr, CX_StmtClass.CX_StmtClass_CallExpr)
+    internal CallExpr(CXCursor handle) : this(handle, CXCursor_CallExpr, CX_StmtClass_CallExpr)
     {
     }
 
     private protected CallExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
-        if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastCallExpr or < CX_StmtClass.CX_StmtClass_FirstCallExpr)
+        if (handle.StmtClass is > CX_StmtClass_LastCallExpr or < CX_StmtClass_FirstCallExpr)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

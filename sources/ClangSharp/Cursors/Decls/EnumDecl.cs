@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -14,7 +16,7 @@ public sealed class EnumDecl : TagDecl
     private readonly Lazy<Type> _promotionType;
     private readonly Lazy<EnumDecl> _templateInstantiationPattern;
 
-    internal EnumDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_EnumDecl, CX_DeclKind.CX_DeclKind_Enum)
+    internal EnumDecl(CXCursor handle) : base(handle, CXCursor_EnumDecl, CX_DeclKind_Enum)
     {
         _enumerators = new Lazy<IReadOnlyList<EnumConstantDecl>>(() => {
             var numEnumerators = Handle.NumEnumerators;

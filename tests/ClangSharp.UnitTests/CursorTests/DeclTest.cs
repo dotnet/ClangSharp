@@ -3,14 +3,15 @@
 using System.Linq;
 using ClangSharp.Interop;
 using NUnit.Framework;
+using static ClangSharp.Interop.CX_CXXAccessSpecifier;
 
 namespace ClangSharp.UnitTests;
 
 public sealed class DeclTest : TranslationUnitTest
 {
-    [TestCase("private", CX_CXXAccessSpecifier.CX_CXXPrivate)]
-    [TestCase("protected", CX_CXXAccessSpecifier.CX_CXXProtected)]
-    [TestCase("public", CX_CXXAccessSpecifier.CX_CXXPublic)]
+    [TestCase("private", CX_CXXPrivate)]
+    [TestCase("protected", CX_CXXProtected)]
+    [TestCase("public", CX_CXXPublic)]
     public void AccessSpecDeclTest(string accessSpecifier, CX_CXXAccessSpecifier expectedAccessSpecifier)
     {
         var inputContents = $@"struct MyStruct

@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class FunctionTemplateDecl : RedeclarableTemplateDecl
     private readonly Lazy<IReadOnlyList<TemplateArgument>> _injectedTemplateArgs;
     private readonly Lazy<IReadOnlyList<FunctionDecl>> _specializations;
 
-    internal FunctionTemplateDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_FunctionTemplate, CX_DeclKind.CX_DeclKind_FunctionTemplate)
+    internal FunctionTemplateDecl(CXCursor handle) : base(handle, CXCursor_FunctionTemplate, CX_DeclKind_FunctionTemplate)
     {
         _injectedTemplateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
             var templateArgCount = Handle.NumTemplateArguments;

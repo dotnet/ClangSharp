@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class TemplateTypeParmDecl : TypeDecl
     private readonly Lazy<IReadOnlyList<Expr>> _associatedConstraints;
     private readonly Lazy<Type> _defaultArgument;
 
-    internal TemplateTypeParmDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_TemplateTypeParameter, CX_DeclKind.CX_DeclKind_TemplateTypeParm)
+    internal TemplateTypeParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTypeParameter, CX_DeclKind_TemplateTypeParm)
     {
         _associatedConstraints = new Lazy<IReadOnlyList<Expr>>(() => {
             var associatedConstraintCount = Handle.NumAssociatedConstraints;

@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class CompoundStmt : Stmt
 {
-    public CompoundStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundStmt, CX_StmtClass.CX_StmtClass_CompoundStmt)
+    public CompoundStmt(CXCursor handle) : base(handle, CXCursor_CompoundStmt, CX_StmtClass_CompoundStmt)
     {
     }
 

@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -14,7 +16,7 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
 
     private protected TagDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastTag or < CX_DeclKind.CX_DeclKind_FirstTag)
+        if (handle.DeclKind is > CX_DeclKind_LastTag or < CX_DeclKind_FirstTag)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
@@ -49,17 +51,17 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
 
     public TagDecl? Definition => _definition.Value;
 
-    public bool IsClass => CursorKind == CXCursorKind.CXCursor_ClassDecl;
+    public bool IsClass => CursorKind == CXCursor_ClassDecl;
 
     public bool IsCompleteDefinition => Handle.IsCompleteDefinition;
 
-    public bool IsEnum => CursorKind == CXCursorKind.CXCursor_EnumDecl;
+    public bool IsEnum => CursorKind == CXCursor_EnumDecl;
 
-    public bool IsStruct => CursorKind == CXCursorKind.CXCursor_StructDecl;
+    public bool IsStruct => CursorKind == CXCursor_StructDecl;
 
     public bool IsThisDeclarationADefinition => Handle.IsThisDeclarationADefinition;
 
-    public bool IsUnion => CursorKind == CXCursorKind.CXCursor_UnionDecl;
+    public bool IsUnion => CursorKind == CXCursor_UnionDecl;
 
     public uint NumTemplateParameterLists => unchecked((uint)Handle.NumTemplateParameterLists);
 

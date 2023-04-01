@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,13 +13,13 @@ public class VarDecl : DeclaratorDecl, IRedeclarable<VarDecl>
     private readonly Lazy<Expr> _init;
     private readonly Lazy<VarDecl> _instantiatedFromStaticDataMember;
 
-    internal VarDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_VarDecl, CX_DeclKind.CX_DeclKind_Var)
+    internal VarDecl(CXCursor handle) : this(handle, CXCursor_VarDecl, CX_DeclKind_Var)
     {
     }
 
     private protected VarDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastVar or < CX_DeclKind.CX_DeclKind_FirstVar)
+        if (handle.DeclKind is > CX_DeclKind_LastVar or < CX_DeclKind_FirstVar)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

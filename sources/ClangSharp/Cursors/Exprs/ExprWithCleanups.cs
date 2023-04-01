@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class ExprWithCleanups : FullExpr
 {
     private readonly Lazy<IReadOnlyList<Cursor>> _objects;
 
-    internal ExprWithCleanups(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ExprWithCleanups)
+    internal ExprWithCleanups(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ExprWithCleanups)
     {
         _objects = new Lazy<IReadOnlyList<Cursor>>(() => {
             var numObjects = Handle.NumArguments;

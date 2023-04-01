@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class FunctionProtoType : FunctionType
 {
     private readonly Lazy<IReadOnlyList<Type>> _paramTypes;
 
-    internal FunctionProtoType(CXType handle) : base(handle, CXTypeKind.CXType_FunctionProto, CX_TypeClass.CX_TypeClass_FunctionProto)
+    internal FunctionProtoType(CXType handle) : base(handle, CXType_FunctionProto, CX_TypeClass_FunctionProto)
     {
         _paramTypes = new Lazy<IReadOnlyList<Type>>(() => {
             var paramTypeCount = Handle.NumArgTypes;

@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class CXXDeleteExpr : Expr
     private readonly Lazy<Type> _destroyedType;
     private readonly Lazy<FunctionDecl> _operatorDelete;
 
-    internal CXXDeleteExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXDeleteExpr, CX_StmtClass.CX_StmtClass_CXXDeleteExpr)
+    internal CXXDeleteExpr(CXCursor handle) : base(handle, CXCursor_CXXDeleteExpr, CX_StmtClass_CXXDeleteExpr)
     {
         Debug.Assert(NumChildren is 1);
 

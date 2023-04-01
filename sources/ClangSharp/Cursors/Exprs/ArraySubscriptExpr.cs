@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class ArraySubscriptExpr : Expr
 {
-    internal ArraySubscriptExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ArraySubscriptExpr, CX_StmtClass.CX_StmtClass_ArraySubscriptExpr)
+    internal ArraySubscriptExpr(CXCursor handle) : base(handle, CXCursor_ArraySubscriptExpr, CX_StmtClass_ArraySubscriptExpr)
     {
         Debug.Assert(NumChildren is 2);
     }

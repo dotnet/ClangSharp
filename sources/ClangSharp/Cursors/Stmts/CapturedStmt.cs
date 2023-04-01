@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -15,7 +17,7 @@ public sealed partial class CapturedStmt : Stmt
     private readonly Lazy<IReadOnlyList<Capture>> _captures;
     private readonly Lazy<IReadOnlyList<Expr>> _captureInits;
 
-    internal CapturedStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedStmt, CX_StmtClass.CX_StmtClass_CapturedStmt)
+    internal CapturedStmt(CXCursor handle) : base(handle, CXCursor_UnexposedStmt, CX_StmtClass_CapturedStmt)
     {
         _capturedDecl = new Lazy<CapturedDecl>(() => TranslationUnit.GetOrCreate<CapturedDecl>(Handle.CapturedDecl));
         _capturedRecordDecl = new Lazy<RecordDecl>(() => TranslationUnit.GetOrCreate<RecordDecl>(Handle.CapturedRecordDecl));

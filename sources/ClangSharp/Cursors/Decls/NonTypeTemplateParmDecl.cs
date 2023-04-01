@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -13,7 +15,7 @@ public sealed class NonTypeTemplateParmDecl : DeclaratorDecl, ITemplateParmPosit
     private readonly Lazy<IReadOnlyList<Type>> _expansionTypes;
     private readonly Lazy<Expr> _placeholderTypeConstraint;
 
-    internal NonTypeTemplateParmDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_NonTypeTemplateParameter, CX_DeclKind.CX_DeclKind_NonTypeTemplateParm)
+    internal NonTypeTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_NonTypeTemplateParameter, CX_DeclKind_NonTypeTemplateParm)
     {
         _associatedConstraints = new Lazy<IReadOnlyList<Expr>>(() => {
             var associatedConstraintCount = Handle.NumAssociatedConstraints;

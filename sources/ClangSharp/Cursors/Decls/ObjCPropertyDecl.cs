@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public sealed class ObjCPropertyDecl : NamedDecl
     private readonly Lazy<ObjCMethodDecl> _setterMethodDecl;
     private readonly Lazy<Type> _type;
 
-    internal ObjCPropertyDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCPropertyDecl, CX_DeclKind.CX_DeclKind_ObjCProperty)
+    internal ObjCPropertyDecl(CXCursor handle) : base(handle, CXCursor_ObjCPropertyDecl, CX_DeclKind_ObjCProperty)
     {
         _getterMethodDecl = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(0)));
         _propertyIvarDecl = new Lazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.GetSubDecl(1)));

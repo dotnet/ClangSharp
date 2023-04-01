@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -12,7 +13,7 @@ public class SwitchCase : Stmt
 
     private protected SwitchCase(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
-        if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastSwitchCase or < CX_StmtClass.CX_StmtClass_FirstSwitchCase)
+        if (handle.StmtClass is > CX_StmtClass_LastSwitchCase or < CX_StmtClass_FirstSwitchCase)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

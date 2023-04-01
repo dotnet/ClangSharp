@@ -2,12 +2,14 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
 public sealed class MSGuidDecl : ValueDecl, IMergeable<MSGuidDecl>
 {
-    internal MSGuidDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_MSGuid)
+    internal MSGuidDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_MSGuid)
     {
     }
 

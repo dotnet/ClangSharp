@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class ObjCForCollectionStmt : Stmt
 {
-    internal ObjCForCollectionStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCForCollectionStmt, CX_StmtClass.CX_StmtClass_ObjCForCollectionStmt)
+    internal ObjCForCollectionStmt(CXCursor handle) : base(handle, CXCursor_ObjCForCollectionStmt, CX_StmtClass_ObjCForCollectionStmt)
     {
         Debug.Assert(NumChildren is 3);
     }

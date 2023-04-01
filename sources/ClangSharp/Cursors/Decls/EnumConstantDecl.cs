@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class EnumConstantDecl : ValueDecl, IMergeable<EnumConstantDecl>
 {
     private readonly Lazy<Expr?> _initExpr;
 
-    internal EnumConstantDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_EnumConstantDecl, CX_DeclKind.CX_DeclKind_EnumConstant)
+    internal EnumConstantDecl(CXCursor handle) : base(handle, CXCursor_EnumConstantDecl, CX_DeclKind_EnumConstant)
     {
         _initExpr = new Lazy<Expr?>(() => !Handle.InitExpr.IsNull ? TranslationUnit.GetOrCreate<Expr>(Handle.InitExpr) : null);
     }

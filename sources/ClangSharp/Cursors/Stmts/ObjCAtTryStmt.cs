@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -13,7 +15,7 @@ public sealed class ObjCAtTryStmt : Stmt
     private readonly Lazy<IReadOnlyList<ObjCAtCatchStmt>> _catchStmts;
     private readonly Lazy<ObjCAtFinallyStmt?> _finallyStmt;
 
-    internal ObjCAtTryStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtTryStmt, CX_StmtClass.CX_StmtClass_ObjCAtTryStmt)
+    internal ObjCAtTryStmt(CXCursor handle) : base(handle, CXCursor_ObjCAtTryStmt, CX_StmtClass_ObjCAtTryStmt)
     {
         Debug.Assert(NumChildren is >= 1);
 

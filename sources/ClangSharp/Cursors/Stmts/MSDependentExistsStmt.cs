@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class MSDependentExistsStmt : Stmt
 {
-    internal MSDependentExistsStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedStmt, CX_StmtClass.CX_StmtClass_MSDependentExistsStmt)
+    internal MSDependentExistsStmt(CXCursor handle) : base(handle, CXCursor_UnexposedStmt, CX_StmtClass_MSDependentExistsStmt)
     {
         Debug.Assert(NumChildren is 1);
     }

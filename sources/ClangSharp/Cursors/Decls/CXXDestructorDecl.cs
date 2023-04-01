@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class CXXDestructorDecl : CXXMethodDecl
     private readonly Lazy<FunctionDecl> _operatorDelete;
     private readonly Lazy<Expr> _operatorDeleteThisArg;
 
-    internal CXXDestructorDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_Destructor, CX_DeclKind.CX_DeclKind_CXXDestructor)
+    internal CXXDestructorDecl(CXCursor handle) : base(handle, CXCursor_Destructor, CX_DeclKind_CXXDestructor)
     {
         _operatorDelete = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetSubDecl(0)));
         _operatorDeleteThisArg = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));

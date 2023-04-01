@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class CXXNullPtrLiteralExpr : Expr
 {
-    internal CXXNullPtrLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXNullPtrLiteralExpr, CX_StmtClass.CX_StmtClass_CXXNullPtrLiteralExpr)
+    internal CXXNullPtrLiteralExpr(CXCursor handle) : base(handle, CXCursor_CXXNullPtrLiteralExpr, CX_StmtClass_CXXNullPtrLiteralExpr)
     {
         Debug.Assert(NumChildren is 0);
     }

@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public sealed class FunctionParmPackExpr : Expr
     private readonly Lazy<IReadOnlyList<VarDecl>> _expansions;
     private readonly Lazy<VarDecl> _parameterPack;
 
-    internal FunctionParmPackExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclRefExpr, CX_StmtClass.CX_StmtClass_FunctionParmPackExpr)
+    internal FunctionParmPackExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_FunctionParmPackExpr)
     {
         Debug.Assert(NumChildren is 0);
 

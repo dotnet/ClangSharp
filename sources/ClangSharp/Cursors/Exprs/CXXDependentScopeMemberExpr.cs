@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -14,7 +16,7 @@ public sealed class CXXDependentScopeMemberExpr : Expr
     private readonly Lazy<NamedDecl> _firstQualifierFoundInScope;
     private readonly Lazy<IReadOnlyList<TemplateArgumentLoc>> _templateArgs;
 
-    internal CXXDependentScopeMemberExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr, CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr)
+    internal CXXDependentScopeMemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_CXXDependentScopeMemberExpr)
     {
         Debug.Assert(NumChildren is 0 or 1);
 

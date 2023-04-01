@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class DefaultStmt : SwitchCase
 {
-    internal DefaultStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DefaultStmt, CX_StmtClass.CX_StmtClass_DefaultStmt)
+    internal DefaultStmt(CXCursor handle) : base(handle, CXCursor_DefaultStmt, CX_StmtClass_DefaultStmt)
     {
         Debug.Assert(NumChildren is 1);
     }

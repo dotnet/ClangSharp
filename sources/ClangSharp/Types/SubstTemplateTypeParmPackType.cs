@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class SubstTemplateTypeParmPackType : Type
     private readonly Lazy<TemplateArgument> _argumentPack;
     private readonly Lazy<TemplateTypeParmType> _replacedParameter;
 
-    internal SubstTemplateTypeParmPackType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_SubstTemplateTypeParmPack)
+    internal SubstTemplateTypeParmPackType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_SubstTemplateTypeParmPack)
     {
         _argumentPack = new Lazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(0)));
         _replacedParameter = new Lazy<TemplateTypeParmType>(() => TranslationUnit.GetOrCreate<TemplateTypeParmType>(Handle.OriginalType));

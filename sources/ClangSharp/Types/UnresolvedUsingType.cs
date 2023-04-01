@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class UnresolvedUsingType : Type
 {
     private readonly Lazy<UnresolvedUsingTypenameDecl> _decl;
 
-    internal UnresolvedUsingType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_UnresolvedUsing)
+    internal UnresolvedUsingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_UnresolvedUsing)
     {
         _decl = new Lazy<UnresolvedUsingTypenameDecl>(() => TranslationUnit.GetOrCreate<UnresolvedUsingTypenameDecl>(Handle.Declaration));
     }

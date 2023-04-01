@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using System.Xml.Linq;
 
 namespace ClangSharp.CSharp;
 

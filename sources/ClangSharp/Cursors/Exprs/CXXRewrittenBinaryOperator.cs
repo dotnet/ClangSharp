@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class CXXRewrittenBinaryOperator : Expr
     private readonly Lazy<Expr> _lhs;
     private readonly Lazy<Expr> _rhs;
 
-    internal CXXRewrittenBinaryOperator(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_CXXRewrittenBinaryOperator)
+    internal CXXRewrittenBinaryOperator(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXRewrittenBinaryOperator)
     {
         Debug.Assert(NumChildren is 1);
 

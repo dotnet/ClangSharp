@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public sealed class ConstructorUsingShadowDecl : UsingShadowDecl
     private readonly Lazy<CXXRecordDecl> _nominatedBaseClass;
     private readonly Lazy<ConstructorUsingShadowDecl> _nominatedBaseClassShadowDecl;
 
-    internal ConstructorUsingShadowDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_ConstructorUsingShadow)
+    internal ConstructorUsingShadowDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ConstructorUsingShadow)
     {
         _constructedBaseClass = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.ConstructedBaseClass));
         _constructedBaseClassShadowDecl = new Lazy<ConstructorUsingShadowDecl>(() => TranslationUnit.GetOrCreate<ConstructorUsingShadowDecl>(Handle.ConstructedBaseClassShadowDecl));

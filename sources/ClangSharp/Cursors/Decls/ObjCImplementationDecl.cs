@@ -3,6 +3,8 @@
 using System.Collections.Generic;
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 using System.Linq;
 
 namespace ClangSharp;
@@ -13,7 +15,7 @@ public sealed class ObjCImplementationDecl : ObjCImplDecl
     private readonly Lazy<IReadOnlyList<ObjCIvarDecl>> _ivars;
     private readonly Lazy<ObjCInterfaceDecl> _superClass;
 
-    internal ObjCImplementationDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCImplementationDecl, CX_DeclKind.CX_DeclKind_ObjCImplementation)
+    internal ObjCImplementationDecl(CXCursor handle) : base(handle, CXCursor_ObjCImplementationDecl, CX_DeclKind_ObjCImplementation)
     {
         _initExprs = new Lazy<IReadOnlyList<Expr>>(() => {
             var numInitExprs = Handle.NumExprs;

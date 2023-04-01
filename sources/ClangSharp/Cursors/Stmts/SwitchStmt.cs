@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class SwitchStmt : Stmt
 {
     private readonly Lazy<SwitchCase> _switchCaseList;
 
-    internal SwitchStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SwitchStmt, CX_StmtClass.CX_StmtClass_SwitchStmt)
+    internal SwitchStmt(CXCursor handle) : base(handle, CXCursor_SwitchStmt, CX_StmtClass_SwitchStmt)
     {
         Debug.Assert(NumChildren is >= 2 and <= 4);
         _switchCaseList = new Lazy<SwitchCase>(() => TranslationUnit.GetOrCreate<SwitchCase>(Handle.SubStmt));
