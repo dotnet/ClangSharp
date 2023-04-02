@@ -15,6 +15,9 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ClangSharp.Abstractions;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXDiagnosticSeverity;
+using static ClangSharp.Interop.CXErrorCode;
+using static ClangSharp.Interop.CXTranslationUnit_Flags;
 
 namespace ClangSharp;
 
@@ -683,10 +686,10 @@ public class Program
         clangCommandLineArgs = clangCommandLineArgs.Concat(defineMacros.Select(x => "--define-macro=" + x)).ToArray();
         clangCommandLineArgs = clangCommandLineArgs.Concat(additionalArgs).ToArray();
 
-        var translationFlags = CXTranslationUnit_Flags.CXTranslationUnit_None;
+        var translationFlags = CXTranslationUnit_None;
 
-        translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
-        translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
+        translationFlags |= CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
+        translationFlags |= CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
         var config = new PInvokeGeneratorConfiguration(namespaceName, outputLocation, headerFile, outputMode, configOptions) {
             DefaultClass = methodClassName,
@@ -716,7 +719,7 @@ public class Program
 
         if (config.GenerateMacroBindings)
         {
-            translationFlags |= CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
+            translationFlags |= CXTranslationUnit_DetailedPreprocessingRecord;
         }
 
         var exitCode = 0;
@@ -730,7 +733,7 @@ public class Program
                 var translationUnitError = CXTranslationUnit.TryParse(pinvokeGenerator.IndexHandle, filePath, clangCommandLineArgs, Array.Empty<CXUnsavedFile>(), translationFlags, out var handle);
                 var skipProcessing = false;
 
-                if (translationUnitError != CXErrorCode.CXError_Success)
+                if (translationUnitError != CXError_Success)
                 {
                     context.Console.WriteLine($"Error: Parsing failed for '{filePath}' due to '{translationUnitError}'.");
                     skipProcessing = true;
@@ -746,8 +749,8 @@ public class Program
                         context.Console.Write("    ");
                         context.Console.WriteLine(diagnostic.Format(CXDiagnostic.DefaultDisplayOptions).ToString());
 
-                        skipProcessing |= diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Error;
-                        skipProcessing |= diagnostic.Severity == CXDiagnosticSeverity.CXDiagnostic_Fatal;
+                        skipProcessing |= diagnostic.Severity == CXDiagnostic_Error;
+                        skipProcessing |= diagnostic.Severity == CXDiagnostic_Fatal;
                     }
                 }
 

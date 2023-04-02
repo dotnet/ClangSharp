@@ -4,6 +4,8 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class CXXTypeidExpr : Expr
 {
     private readonly Lazy<Type> _typeOperand;
 
-    internal CXXTypeidExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXTypeidExpr, CX_StmtClass.CX_StmtClass_CXXTypeidExpr)
+    internal CXXTypeidExpr(CXCursor handle) : base(handle, CXCursor_CXXTypeidExpr, CX_StmtClass_CXXTypeidExpr)
     {
         Debug.Assert(NumChildren is 0 or 1);
         _typeOperand = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(handle.TypeOperand));

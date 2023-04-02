@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class IndirectGotoStmt : Stmt
 {
     private readonly Lazy<LabelDecl> _constantTarget;
 
-    internal IndirectGotoStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IndirectGotoStmt, CX_StmtClass.CX_StmtClass_IndirectGotoStmt)
+    internal IndirectGotoStmt(CXCursor handle) : base(handle, CXCursor_IndirectGotoStmt, CX_StmtClass_IndirectGotoStmt)
     {
         Debug.Assert(NumChildren is 1);
         _constantTarget = new Lazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));

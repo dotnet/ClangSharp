@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class AttributedType : Type
     private readonly Lazy<Type> _equivalentType;
     private readonly Lazy<Type> _modifiedType;
 
-    internal AttributedType(CXType handle) : base(handle, CXTypeKind.CXType_Attributed, CX_TypeClass.CX_TypeClass_Attributed)
+    internal AttributedType(CXType handle) : base(handle, CXType_Attributed, CX_TypeClass_Attributed)
     {
         _equivalentType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EquivalentType));
         _modifiedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ModifiedType));

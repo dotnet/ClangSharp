@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class MacroQualifiedType : Type
     private readonly Lazy<Type> _modifiedType;
     private readonly Lazy<Type> _underlyingType;
 
-    internal MacroQualifiedType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_MacroQualified)
+    internal MacroQualifiedType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_MacroQualified)
     {
         _modifiedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ModifiedType));
         _underlyingType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));

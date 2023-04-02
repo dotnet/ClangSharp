@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_DeclKind;
 using System;
 using System.Collections.Generic;
 
@@ -14,7 +15,7 @@ public class TemplateDecl : NamedDecl
 
     private protected TemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastTemplate or < CX_DeclKind.CX_DeclKind_FirstTemplate)
+        if (handle.DeclKind is > CX_DeclKind_LastTemplate or < CX_DeclKind_FirstTemplate)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

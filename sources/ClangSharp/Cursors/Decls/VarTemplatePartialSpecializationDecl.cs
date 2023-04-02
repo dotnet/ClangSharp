@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public class VarTemplatePartialSpecializationDecl : VarDecl
     private readonly Lazy<VarTemplatePartialSpecializationDecl> _instantiatedFromMember;
     private readonly Lazy<IReadOnlyList<NamedDecl>> _templateParameters;
 
-    internal VarTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_VarTemplatePartialSpecialization)
+    internal VarTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplatePartialSpecialization)
     {
         _associatedConstraints = new Lazy<IReadOnlyList<Expr>>(() => {
             var associatedConstraintCount = Handle.NumAssociatedConstraints;

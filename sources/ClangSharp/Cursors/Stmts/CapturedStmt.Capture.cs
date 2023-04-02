@@ -2,6 +2,7 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_VariableCaptureKind;
 
 namespace ClangSharp;
 
@@ -25,12 +26,12 @@ public partial class CapturedStmt
 
         public CX_VariableCaptureKind CaptureKind => _parentStmt.Handle.GetCaptureKind(_index);
 
-        public bool CapturesThis => CaptureKind == CX_VariableCaptureKind.CX_VCK_This;
+        public bool CapturesThis => CaptureKind == CX_VCK_This;
 
-        public bool CapturesVariable => CaptureKind == CX_VariableCaptureKind.CX_VCK_ByRef;
+        public bool CapturesVariable => CaptureKind == CX_VCK_ByRef;
 
-        public bool CapturesVariableByCopy => CaptureKind == CX_VariableCaptureKind.CX_VCK_ByCopy;
+        public bool CapturesVariableByCopy => CaptureKind == CX_VCK_ByCopy;
 
-        public bool CapturesVariableArrayType => CaptureKind == CX_VariableCaptureKind.CX_VCK_VLAType;
+        public bool CapturesVariableArrayType => CaptureKind == CX_VCK_VLAType;
     }
 }

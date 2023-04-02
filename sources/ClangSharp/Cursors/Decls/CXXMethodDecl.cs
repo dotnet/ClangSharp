@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -12,13 +14,13 @@ public class CXXMethodDecl : FunctionDecl
     private readonly Lazy<Type> _thisType;
     private readonly Lazy<Type> _thisObjectType;
 
-    internal CXXMethodDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_CXXMethod, CX_DeclKind.CX_DeclKind_CXXMethod)
+    internal CXXMethodDecl(CXCursor handle) : this(handle, CXCursor_CXXMethod, CX_DeclKind_CXXMethod)
     {
     }
 
     private protected CXXMethodDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastCXXMethod or < CX_DeclKind.CX_DeclKind_FirstCXXMethod)
+        if (handle.DeclKind is > CX_DeclKind_LastCXXMethod or < CX_DeclKind_FirstCXXMethod)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

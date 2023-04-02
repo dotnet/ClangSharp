@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class ForStmt : Stmt
 {
-    internal ForStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ForStmt, CX_StmtClass.CX_StmtClass_ForStmt)
+    internal ForStmt(CXCursor handle) : base(handle, CXCursor_ForStmt, CX_StmtClass_ForStmt)
     {
         Debug.Assert(NumChildren is 5);
     }

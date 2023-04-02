@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class AtomicType : Type
 {
     private readonly Lazy<Type> _valueType;
 
-    internal AtomicType(CXType handle) : base(handle, CXTypeKind.CXType_Atomic, CX_TypeClass.CX_TypeClass_Atomic)
+    internal AtomicType(CXType handle) : base(handle, CXType_Atomic, CX_TypeClass_Atomic)
     {
         _valueType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ValueType));
     }

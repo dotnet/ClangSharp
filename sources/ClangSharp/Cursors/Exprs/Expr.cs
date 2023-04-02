@@ -3,6 +3,10 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_CastKind;
+using static ClangSharp.Interop.CX_ExprDependence;
+using static ClangSharp.Interop.CX_StmtClass;
+using static ClangSharp.Interop.CX_UnaryOperatorKind;
 
 namespace ClangSharp;
 
@@ -26,7 +30,7 @@ public class Expr : ValueStmt
 
         if (e is UnaryOperator uo)
         {
-            if (uo.Opcode == CX_UnaryOperatorKind.CX_UO_Extension)
+            if (uo.Opcode == CX_UO_Extension)
             {
                 return uo.SubExpr;
             }
@@ -57,7 +61,7 @@ public class Expr : ValueStmt
 
     private protected Expr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
-        if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastExpr or < CX_StmtClass.CX_StmtClass_FirstExpr)
+        if (handle.StmtClass is > CX_StmtClass_LastExpr or < CX_StmtClass_FirstExpr)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
@@ -65,9 +69,9 @@ public class Expr : ValueStmt
         _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
     }
 
-    public bool ContainsErrors => (Dependence & CX_ExprDependence.CX_ED_Error) != 0;
+    public bool ContainsErrors => (Dependence & CX_ED_Error) != 0;
 
-    public bool ContainsUnexpandedParameterPack => (Dependence & CX_ExprDependence.CX_ED_UnexpandedPack) != 0;
+    public bool ContainsUnexpandedParameterPack => (Dependence & CX_ED_UnexpandedPack) != 0;
 
     public CX_ExprDependence Dependence => Handle.ExprDependence;
 
@@ -91,7 +95,7 @@ public class Expr : ValueStmt
 
                 if (e is ImplicitCastExpr ice)
                 {
-                    if (ice.CastKind is CX_CastKind.CX_CK_NoOp or CX_CastKind.CX_CK_LValueToRValue or CX_CastKind.CX_CK_DerivedToBase or CX_CastKind.CX_CK_UncheckedDerivedToBase)
+                    if (ice.CastKind is CX_CK_NoOp or CX_CK_LValueToRValue or CX_CK_DerivedToBase or CX_CK_UncheckedDerivedToBase)
                     {
                         e = ice.SubExpr;
                         continue;
@@ -100,7 +104,7 @@ public class Expr : ValueStmt
 
                 if (e is UnaryOperator unOp)
                 {
-                    if (unOp.Opcode == CX_UnaryOperatorKind.CX_UO_Extension)
+                    if (unOp.Opcode == CX_UO_Extension)
                     {
                         e = unOp.SubExpr;
                         continue;
@@ -120,11 +124,11 @@ public class Expr : ValueStmt
         }
     }
 
-    public bool IsInstantiationDependent => (Dependence & CX_ExprDependence.CX_ED_Instantiation) != 0;
+    public bool IsInstantiationDependent => (Dependence & CX_ED_Instantiation) != 0;
 
-    public bool IsTypeDependent => (Dependence & CX_ExprDependence.CX_ED_Type) != 0;
+    public bool IsTypeDependent => (Dependence & CX_ED_Type) != 0;
 
-    public bool IsValueDependent => (Dependence & CX_ExprDependence.CX_ED_Value) != 0;
+    public bool IsValueDependent => (Dependence & CX_ED_Value) != 0;
 
     public Type Type => _type.Value;
 

@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -15,9 +17,9 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
     private readonly Lazy<ImplicitParamDecl> _selfDecl;
     private readonly Lazy<Type> _sendResultType;
 
-    internal ObjCMethodDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind.CX_DeclKind_ObjCMethod)
+    internal ObjCMethodDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind_ObjCMethod)
     {
-        if (handle.Kind is not CXCursorKind.CXCursor_ObjCInstanceMethodDecl and not CXCursorKind.CXCursor_ObjCClassMethodDecl)
+        if (handle.Kind is not CXCursor_ObjCInstanceMethodDecl and not CXCursor_ObjCClassMethodDecl)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
@@ -49,9 +51,9 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
 
     public ImplicitParamDecl CmdDecl => _cmdDecl.Value;
 
-    public bool IsClassMethod => CursorKind == CXCursorKind.CXCursor_ObjCClassMethodDecl;
+    public bool IsClassMethod => CursorKind == CXCursor_ObjCClassMethodDecl;
 
-    public bool IsInstanceMethod => CursorKind == CXCursorKind.CXCursor_ObjCInstanceMethodDecl;
+    public bool IsInstanceMethod => CursorKind == CXCursor_ObjCInstanceMethodDecl;
 
     public bool IsThisDeclarationADefinition => Handle.IsThisDeclarationADefinition;
 

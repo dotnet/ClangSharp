@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class DependentBitIntType : Type
 {
     private readonly Lazy<Expr> _numBitsExpr;
 
-    internal DependentBitIntType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_DependentBitInt)
+    internal DependentBitIntType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentBitInt)
     {
         _numBitsExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.NumBitsExpr));
     }

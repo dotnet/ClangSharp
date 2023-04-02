@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,13 +13,13 @@ public class VarTemplateSpecializationDecl : VarDecl
     private readonly Lazy<VarTemplateDecl> _specializedTemplate;
     private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
 
-    internal VarTemplateSpecializationDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_VarTemplateSpecialization)
+    internal VarTemplateSpecializationDecl(CXCursor handle) : this(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplateSpecialization)
     {
     }
 
     private protected VarTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastVarTemplateSpecialization or < CX_DeclKind.CX_DeclKind_FirstVarTemplateSpecialization)
+        if (handle.DeclKind is > CX_DeclKind_LastVarTemplateSpecialization or < CX_DeclKind_FirstVarTemplateSpecialization)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

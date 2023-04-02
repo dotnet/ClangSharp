@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -23,13 +24,13 @@ public class CXXRecordDecl : RecordDecl
     private readonly Lazy<CXXRecordDecl> _templateInstantiationPattern;
     private readonly Lazy<IReadOnlyList<CXXBaseSpecifier>> _vbases;
 
-    internal CXXRecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind.CX_DeclKind_CXXRecord)
+    internal CXXRecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_CXXRecord)
     {
     }
 
     private protected CXXRecordDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastCXXRecord or < CX_DeclKind.CX_DeclKind_FirstCXXRecord)
+        if (handle.DeclKind is > CX_DeclKind_LastCXXRecord or < CX_DeclKind_FirstCXXRecord)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

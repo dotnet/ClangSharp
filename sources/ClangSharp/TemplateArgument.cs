@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTemplateArgumentKind;
+using static ClangSharp.Interop.CX_TemplateArgumentDependence;
 
 namespace ClangSharp;
 
@@ -68,17 +70,17 @@ public sealed unsafe class TemplateArgument : IDisposable
 
     public Type AsType => _asType.Value;
 
-    public bool ContainsUnexpandedParameterPack => (Dependence & CX_TemplateArgumentDependence.CX_TAD_UnexpandedPack) != 0;
+    public bool ContainsUnexpandedParameterPack => (Dependence & CX_TAD_UnexpandedPack) != 0;
 
     public CX_TemplateArgumentDependence Dependence => Handle.Dependence;
 
     public Type IntegralType => _integralType.Value;
 
-    public bool IsDependent => (Dependence & CX_TemplateArgumentDependence.CX_TAD_Dependent) != 0;
+    public bool IsDependent => (Dependence & CX_TAD_Dependent) != 0;
 
-    public bool IsInstantiationDependent => (Dependence & CX_TemplateArgumentDependence.CX_TAD_Instantiation) != 0;
+    public bool IsInstantiationDependent => (Dependence & CX_TAD_Instantiation) != 0;
 
-    public bool IsNull => Kind == CXTemplateArgumentKind.CXTemplateArgumentKind_Null;
+    public bool IsNull => Kind == CXTemplateArgumentKind_Null;
 
     public bool IsPackExpansion
     {
@@ -86,27 +88,27 @@ public sealed unsafe class TemplateArgument : IDisposable
         {
             switch (Kind)
 {
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_Null:
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_Declaration:
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_Integral:
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_Pack:
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_Template:
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_NullPtr:
+                case CXTemplateArgumentKind_Null:
+                case CXTemplateArgumentKind_Declaration:
+                case CXTemplateArgumentKind_Integral:
+                case CXTemplateArgumentKind_Pack:
+                case CXTemplateArgumentKind_Template:
+                case CXTemplateArgumentKind_NullPtr:
                 {
                     return false;
                 }
 
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_TemplateExpansion:
+                case CXTemplateArgumentKind_TemplateExpansion:
                 {
                     return true;
                 }
 
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_Type:
+                case CXTemplateArgumentKind_Type:
                 {
                     return AsType is PackExpansionType;
                 }
 
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_Expression:
+                case CXTemplateArgumentKind_Expression:
                 {
                     return AsExpr is PackExpansionExpr;
                 }

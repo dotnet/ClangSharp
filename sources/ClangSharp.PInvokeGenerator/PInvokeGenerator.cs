@@ -13,6 +13,19 @@ using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 using ClangSharp.Interop;
 using ClangSharp.XML;
+using static ClangSharp.Interop.CX_AttrKind;
+using static ClangSharp.Interop.CX_BinaryOperatorKind;
+using static ClangSharp.Interop.CX_CXXAccessSpecifier;
+using static ClangSharp.Interop.CX_StmtClass;
+using static ClangSharp.Interop.CX_TypeClass;
+using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
+using static ClangSharp.Interop.CX_UnaryOperatorKind;
+using static ClangSharp.Interop.CXCallingConv;
+using static ClangSharp.Interop.CXDiagnosticSeverity;
+using static ClangSharp.Interop.CXEvalResultKind;
+using static ClangSharp.Interop.CXTemplateArgumentKind;
+using static ClangSharp.Interop.CXTranslationUnit_Flags;
+using static ClangSharp.Interop.CXTypeKind;
 
 namespace ClangSharp;
 
@@ -1304,7 +1317,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 using var diagnostic = translationUnit.Handle.GetDiagnostic(i);
 
-                if (diagnostic.Severity is CXDiagnosticSeverity.CXDiagnostic_Error or CXDiagnosticSeverity.CXDiagnostic_Fatal)
+                if (diagnostic.Severity is CXDiagnostic_Error or CXDiagnostic_Fatal)
                 {
                     invalidTranslationUnitHandle = true;
                     errorDiagnostics.Append(' ', 4);
@@ -1347,7 +1360,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 using var unsavedFile = CXUnsavedFile.Create(_filePath, unsavedFileContents);
                 var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
 
-                translationFlags = _translationFlags & ~CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
+                translationFlags = _translationFlags & ~CXTranslationUnit_DetailedPreprocessingRecord;
                 var handle = CXTranslationUnit.Parse(IndexHandle, _filePath, _clangCommandLineArgs, unsavedFiles, translationFlags);
 
                 using var nestedTranslationUnit = TranslationUnit.GetOrCreate(handle);
@@ -1942,26 +1955,26 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             switch (namedDecl.Access)
             {
-                case CX_CXXAccessSpecifier.CX_CXXInvalidAccessSpecifier:
+                case CX_CXXInvalidAccessSpecifier:
                 {
                     // Top level declarations will have an invalid access specifier
                     accessSpecifier = AccessSpecifier.Public;
                     break;
                 }
 
-                case CX_CXXAccessSpecifier.CX_CXXPublic:
+                case CX_CXXPublic:
                 {
                     accessSpecifier = AccessSpecifier.Public;
                     break;
                 }
 
-                case CX_CXXAccessSpecifier.CX_CXXProtected:
+                case CX_CXXProtected:
                 {
                     accessSpecifier = AccessSpecifier.Protected;
                     break;
                 }
 
-                case CX_CXXAccessSpecifier.CX_CXXPrivate:
+                case CX_CXXPrivate:
                 {
                     accessSpecifier = AccessSpecifier.Private;
                     break;
@@ -2115,38 +2128,38 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             switch (attributedType.AttrKind)
             {
-                case CX_AttrKind.CX_AttrKind_MSABI:
-                case CX_AttrKind.CX_AttrKind_SysVABI:
+                case CX_AttrKind_MSABI:
+                case CX_AttrKind_SysVABI:
                 {
                     return CallingConvention.Winapi;
                 }
 
-                case CX_AttrKind.CX_AttrKind_CDecl:
+                case CX_AttrKind_CDecl:
                 {
                     return CallingConvention.Cdecl;
                 }
 
-                case CX_AttrKind.CX_AttrKind_FastCall:
+                case CX_AttrKind_FastCall:
                 {
                     return CallingConvention.FastCall;
                 }
 
-                case CX_AttrKind.CX_AttrKind_StdCall:
+                case CX_AttrKind_StdCall:
                 {
                     return CallingConvention.StdCall;
                 }
 
-                case CX_AttrKind.CX_AttrKind_ThisCall:
+                case CX_AttrKind_ThisCall:
                 {
                     return CallingConvention.ThisCall;
                 }
 
-                case CX_AttrKind.CX_AttrKind_AArch64VectorPcs:
-                case CX_AttrKind.CX_AttrKind_Pcs:
-                case CX_AttrKind.CX_AttrKind_PreserveAll:
-                case CX_AttrKind.CX_AttrKind_PreserveMost:
-                case CX_AttrKind.CX_AttrKind_RegCall:
-                case CX_AttrKind.CX_AttrKind_VectorCall:
+                case CX_AttrKind_AArch64VectorPcs:
+                case CX_AttrKind_Pcs:
+                case CX_AttrKind_PreserveAll:
+                case CX_AttrKind_PreserveMost:
+                case CX_AttrKind_RegCall:
+                case CX_AttrKind_VectorCall:
                 {
                     AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported calling convention: '{attributedType.AttrKind}'.", cursor);
                     return callingConvention;
@@ -2168,7 +2181,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             switch (callingConv)
             {
-                case CXCallingConv.CXCallingConv_C:
+                case CXCallingConv_C:
                 {
                     if ((cursor is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsInstance)
                     {
@@ -2177,22 +2190,22 @@ public sealed partial class PInvokeGenerator : IDisposable
                     return CallingConvention.Cdecl;
                 }
 
-                case CXCallingConv.CXCallingConv_X86StdCall:
+                case CXCallingConv_X86StdCall:
                 {
                     return CallingConvention.StdCall;
                 }
 
-                case CXCallingConv.CXCallingConv_X86FastCall:
+                case CXCallingConv_X86FastCall:
                 {
                     return CallingConvention.FastCall;
                 }
 
-                case CXCallingConv.CXCallingConv_X86ThisCall:
+                case CXCallingConv_X86ThisCall:
                 {
                     return CallingConvention.ThisCall;
                 }
 
-                case CXCallingConv.CXCallingConv_Win64:
+                case CXCallingConv_Win64:
                 {
                     return CallingConvention.Winapi;
                 }
@@ -2372,13 +2385,13 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             switch (templateArgument.Kind)
             {
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_Type:
+                case CXTemplateArgumentKind_Type:
                 {
                     _ = qualifiedName.Append(templateArgument.AsType.AsString);
                     break;
                 }
 
-                case CXTemplateArgumentKind.CXTemplateArgumentKind_Integral:
+                case CXTemplateArgumentKind_Integral:
                 {
                     _ = qualifiedName.Append(templateArgument.AsIntegral);
                     break;
@@ -2957,39 +2970,39 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 switch (type.Kind)
                 {
-                    case CXTypeKind.CXType_Void:
+                    case CXType_Void:
                     {
                         result.typeName = (cursor is null) ? "Void" : "void";
                         break;
                     }
 
-                    case CXTypeKind.CXType_Bool:
+                    case CXType_Bool:
                     {
                         result.typeName = (cursor is null) ? "Boolean" : "bool";
                         break;
                     }
 
-                    case CXTypeKind.CXType_Char_U:
-                    case CXTypeKind.CXType_UChar:
+                    case CXType_Char_U:
+                    case CXType_UChar:
                     {
                         result.typeName = (cursor is null) ? "Byte" : "byte";
                         break;
                     }
 
-                    case CXTypeKind.CXType_Char16:
-                    case CXTypeKind.CXType_UShort:
+                    case CXType_Char16:
+                    case CXType_UShort:
                     {
                         result.typeName = (cursor is null) ? "UInt16" : "ushort";
                         break;
                     }
 
-                    case CXTypeKind.CXType_UInt:
+                    case CXType_UInt:
                     {
                         result.typeName = (cursor is null) ? "UInt32" : "uint";
                         break;
                     }
 
-                    case CXTypeKind.CXType_ULong:
+                    case CXType_ULong:
                     {
                         if (_config.GenerateUnixTypes)
                         {
@@ -2997,49 +3010,49 @@ public sealed partial class PInvokeGenerator : IDisposable
                         }
                         else
                         {
-                            goto case CXTypeKind.CXType_UInt;
+                            goto case CXType_UInt;
                         }
                         break;
                     }
 
-                    case CXTypeKind.CXType_ULongLong:
+                    case CXType_ULongLong:
                     {
                         result.typeName = (cursor is null) ? "UInt64" : "ulong";
                         break;
                     }
 
-                    case CXTypeKind.CXType_Char_S:
-                    case CXTypeKind.CXType_SChar:
+                    case CXType_Char_S:
+                    case CXType_SChar:
                     {
                         result.typeName = (cursor is null) ? "SByte" : "sbyte";
                         break;
                     }
 
-                    case CXTypeKind.CXType_WChar:
+                    case CXType_WChar:
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            goto case CXTypeKind.CXType_UInt;
+                            goto case CXType_UInt;
                         }
                         else
                         {
-                            goto case CXTypeKind.CXType_UShort;
+                            goto case CXType_UShort;
                         }
                     }
 
-                    case CXTypeKind.CXType_Short:
+                    case CXType_Short:
                     {
                         result.typeName = (cursor is null) ? "Int16" : "short";
                         break;
                     }
 
-                    case CXTypeKind.CXType_Int:
+                    case CXType_Int:
                     {
                         result.typeName = (cursor is null) ? "Int32" : "int";
                         break;
                     }
 
-                    case CXTypeKind.CXType_Long:
+                    case CXType_Long:
                     {
                         if (_config.GenerateUnixTypes)
                         {
@@ -3047,30 +3060,30 @@ public sealed partial class PInvokeGenerator : IDisposable
                         }
                         else
                         {
-                            goto case CXTypeKind.CXType_Int;
+                            goto case CXType_Int;
                         }
                         break;
                     }
 
-                    case CXTypeKind.CXType_LongLong:
+                    case CXType_LongLong:
                     {
                         result.typeName = (cursor is null) ? "Int64" : "long";
                         break;
                     }
 
-                    case CXTypeKind.CXType_Float:
+                    case CXType_Float:
                     {
                         result.typeName = (cursor is null) ? "Single" : "float";
                         break;
                     }
 
-                    case CXTypeKind.CXType_Double:
+                    case CXType_Double:
                     {
                         result.typeName = (cursor is null) ? "Double" : "double";
                         break;
                     }
 
-                    case CXTypeKind.CXType_NullPtr:
+                    case CXType_NullPtr:
                     {
                         result.typeName = "null";
                         break;
@@ -3204,13 +3217,13 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                     switch (arg.Kind)
                     {
-                        case CXTemplateArgumentKind.CXTemplateArgumentKind_Type:
+                        case CXTemplateArgumentKind_Type:
                         {
                             typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out var nativeAsTypeName, skipUsing: true);
                             break;
                         }
 
-                        case CXTemplateArgumentKind.CXTemplateArgumentKind_Expression:
+                        case CXTemplateArgumentKind_Expression:
                         {
                             var oldOutputBuilder = _outputBuilder;
                             _outputBuilder = new CSharpOutputBuilder("ClangSharp_TemplateSpecializationType_AsExpr", _config);
@@ -3513,36 +3526,36 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             switch (type.Kind)
             {
-                case CXTypeKind.CXType_Bool:
-                case CXTypeKind.CXType_Char_U:
-                case CXTypeKind.CXType_UChar:
-                case CXTypeKind.CXType_Char_S:
-                case CXTypeKind.CXType_SChar:
+                case CXType_Bool:
+                case CXType_Char_U:
+                case CXType_UChar:
+                case CXType_Char_S:
+                case CXType_SChar:
                 {
                     size32 = 1;
                     size64 = 1;
                     break;
                 }
 
-                case CXTypeKind.CXType_UShort:
-                case CXTypeKind.CXType_Short:
+                case CXType_UShort:
+                case CXType_Short:
                 {
                     size32 = 2;
                     size64 = 2;
                     break;
                 }
 
-                case CXTypeKind.CXType_UInt:
-                case CXTypeKind.CXType_Int:
-                case CXTypeKind.CXType_Float:
+                case CXType_UInt:
+                case CXType_Int:
+                case CXType_Float:
                 {
                     size32 = 4;
                     size64 = 4;
                     break;
                 }
 
-                case CXTypeKind.CXType_ULong:
-                case CXTypeKind.CXType_Long:
+                case CXType_ULong:
+                case CXType_Long:
                 {
                     if (_config.GenerateUnixTypes)
                     {
@@ -3561,14 +3574,14 @@ public sealed partial class PInvokeGenerator : IDisposable
                     }
                     else
                     {
-                        goto case CXTypeKind.CXType_UInt;
+                        goto case CXType_UInt;
                     }
                     break;
                 }
 
-                case CXTypeKind.CXType_ULongLong:
-                case CXTypeKind.CXType_LongLong:
-                case CXTypeKind.CXType_Double:
+                case CXType_ULongLong:
+                case CXType_LongLong:
+                case CXType_Double:
                 {
                     size32 = 8;
                     size64 = 8;
@@ -3587,15 +3600,15 @@ public sealed partial class PInvokeGenerator : IDisposable
                     break;
                 }
 
-                case CXTypeKind.CXType_WChar:
+                case CXType_WChar:
                 {
                     if (_config.GenerateUnixTypes)
                     {
-                        goto case CXTypeKind.CXType_Int;
+                        goto case CXType_Int;
                     }
                     else
                     {
-                        goto case CXTypeKind.CXType_UShort;
+                        goto case CXType_UShort;
                     }
                 }
 
@@ -4041,7 +4054,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (functionDecl.Parameters.Count == 1)
             {
-                return parmVarDecl1Type.Kind == CXTypeKind.CXType_Enum;
+                return parmVarDecl1Type.Kind == CXType_Enum;
             }
 
             var parmVarDecl2 = functionDecl.Parameters[1];
@@ -4056,7 +4069,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 parmVarDecl2Type = referenceType2.PointeeType.CanonicalType;
             }
 
-            if ((parmVarDecl1Type == parmVarDecl2Type) && (parmVarDecl2Type.Kind == CXTypeKind.CXType_Enum))
+            if ((parmVarDecl1Type == parmVarDecl2Type) && (parmVarDecl2Type.Kind == CXType_Enum))
             {
                 return true;
             }
@@ -4493,7 +4506,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 var field = recordDecl.Fields.First();
 
-                if ((GetCursorName(field) != "unused") || (field.Type.CanonicalType.Kind != CXTypeKind.CXType_Int))
+                if ((GetCursorName(field) != "unused") || (field.Type.CanonicalType.Kind != CXType_Int))
                 {
                     return false;
                 }
@@ -4763,9 +4776,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         switch (stmt.StmtClass)
         {
-            // case CX_StmtClass.CX_StmtClass_BinaryConditionalOperator:
+            // case CX_StmtClass_BinaryConditionalOperator:
 
-            case CX_StmtClass.CX_StmtClass_ConditionalOperator:
+            case CX_StmtClass_ConditionalOperator:
             {
                 var conditionalOperator = (ConditionalOperator)stmt;
                 return IsUnchecked(targetTypeName, conditionalOperator.LHS)
@@ -4773,22 +4786,22 @@ public sealed partial class PInvokeGenerator : IDisposable
                     || IsUnchecked(targetTypeName, conditionalOperator.Handle.Evaluate);
             }
 
-            // case CX_StmtClass.CX_StmtClass_AddrLabelExpr:
-            // case CX_StmtClass.CX_StmtClass_ArrayInitIndexExpr:
-            // case CX_StmtClass.CX_StmtClass_ArrayInitLoopExpr:
+            // case CX_StmtClass_AddrLabelExpr:
+            // case CX_StmtClass_ArrayInitIndexExpr:
+            // case CX_StmtClass_ArrayInitLoopExpr:
 
-            case CX_StmtClass.CX_StmtClass_ArraySubscriptExpr:
+            case CX_StmtClass_ArraySubscriptExpr:
             {
                 var arraySubscriptExpr = (ArraySubscriptExpr)stmt;
                 return IsUnchecked(targetTypeName, arraySubscriptExpr.LHS)
                     || IsUnchecked(targetTypeName, arraySubscriptExpr.RHS);
             }
 
-            // case CX_StmtClass.CX_StmtClass_ArrayTypeTraitExpr:
-            // case CX_StmtClass.CX_StmtClass_AsTypeExpr:
-            // case CX_StmtClass.CX_StmtClass_AtomicExpr:
+            // case CX_StmtClass_ArrayTypeTraitExpr:
+            // case CX_StmtClass_AsTypeExpr:
+            // case CX_StmtClass_AtomicExpr:
 
-            case CX_StmtClass.CX_StmtClass_BinaryOperator:
+            case CX_StmtClass_BinaryOperator:
             {
                 var binaryOperator = (BinaryOperator)stmt;
                 return IsUnchecked(targetTypeName, binaryOperator.LHS)
@@ -4797,99 +4810,99 @@ public sealed partial class PInvokeGenerator : IDisposable
                     || IsOverflow(binaryOperator);
             }
 
-            // case CX_StmtClass.CX_StmtClass_CompoundAssignOperator:
-            // case CX_StmtClass.CX_StmtClass_BlockExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXBindTemporaryExpr:
+            // case CX_StmtClass_CompoundAssignOperator:
+            // case CX_StmtClass_BlockExpr:
+            // case CX_StmtClass_CXXBindTemporaryExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXBoolLiteralExpr:
+            case CX_StmtClass_CXXBoolLiteralExpr:
             {
                 return false;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXConstructExpr:
+            case CX_StmtClass_CXXConstructExpr:
             {
                 return false;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXTemporaryObjectExpr:
+            case CX_StmtClass_CXXTemporaryObjectExpr:
             {
                 return false;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXDefaultArgExpr:
+            case CX_StmtClass_CXXDefaultArgExpr:
             {
                 return false;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXDefaultInitExpr:
+            case CX_StmtClass_CXXDefaultInitExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXDeleteExpr:
+            // case CX_StmtClass_CXXDeleteExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXDependentScopeMemberExpr:
+            case CX_StmtClass_CXXDependentScopeMemberExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXFoldExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXInheritedCtorInitExpr:
+            // case CX_StmtClass_CXXFoldExpr:
+            // case CX_StmtClass_CXXInheritedCtorInitExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXNewExpr:
+            case CX_StmtClass_CXXNewExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXNoexceptExpr:
+            // case CX_StmtClass_CXXNoexceptExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXNullPtrLiteralExpr:
+            case CX_StmtClass_CXXNullPtrLiteralExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXPseudoDestructorExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXRewrittenBinaryOperator:
-            // case CX_StmtClass.CX_StmtClass_CXXScalarValueInitExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXStdInitializerListExpr:
+            // case CX_StmtClass_CXXPseudoDestructorExpr:
+            // case CX_StmtClass_CXXRewrittenBinaryOperator:
+            // case CX_StmtClass_CXXScalarValueInitExpr:
+            // case CX_StmtClass_CXXStdInitializerListExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXThisExpr:
+            case CX_StmtClass_CXXThisExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXThrowExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXTypeidExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXUnresolvedConstructExpr:
+            // case CX_StmtClass_CXXThrowExpr:
+            // case CX_StmtClass_CXXTypeidExpr:
+            // case CX_StmtClass_CXXUnresolvedConstructExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXUuidofExpr:
+            case CX_StmtClass_CXXUuidofExpr:
             {
                 return false;
             }
 
-            case CX_StmtClass.CX_StmtClass_CallExpr:
+            case CX_StmtClass_CallExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_CUDAKernelCallExpr:
+            // case CX_StmtClass_CUDAKernelCallExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXMemberCallExpr:
+            case CX_StmtClass_CXXMemberCallExpr:
             {
                 return false;
             }
 
-            case CX_StmtClass.CX_StmtClass_CXXOperatorCallExpr:
+            case CX_StmtClass_CXXOperatorCallExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_UserDefinedLiteral:
-            // case CX_StmtClass.CX_StmtClass_BuiltinBitCastExpr:
+            // case CX_StmtClass_UserDefinedLiteral:
+            // case CX_StmtClass_BuiltinBitCastExpr:
 
-            case CX_StmtClass.CX_StmtClass_CStyleCastExpr:
-            case CX_StmtClass.CX_StmtClass_CXXStaticCastExpr:
-            case CX_StmtClass.CX_StmtClass_CXXFunctionalCastExpr:
+            case CX_StmtClass_CStyleCastExpr:
+            case CX_StmtClass_CXXStaticCastExpr:
+            case CX_StmtClass_CXXFunctionalCastExpr:
             {
                 var explicitCastExpr = (ExplicitCastExpr)stmt;
                 var explicitCastExprTypeName = GetRemappedTypeName(explicitCastExpr, context: null, explicitCastExpr.Type, out _);
@@ -4899,10 +4912,10 @@ public sealed partial class PInvokeGenerator : IDisposable
                     || (IsUnsigned(targetTypeName) != IsUnsigned(explicitCastExprTypeName));
             }
 
-            // case CX_StmtClass.CX_StmtClass_CXXConstCastExpr:
-            // case CX_StmtClass.CX_StmtClass_CXXDynamicCastExpr:
+            // case CX_StmtClass_CXXConstCastExpr:
+            // case CX_StmtClass_CXXDynamicCastExpr:
 
-            case CX_StmtClass.CX_StmtClass_CXXReinterpretCastExpr:
+            case CX_StmtClass_CXXReinterpretCastExpr:
             {
                 var reinterpretCastExpr = (CXXReinterpretCastExpr)stmt;
 
@@ -4910,9 +4923,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                     || IsUnchecked(targetTypeName, reinterpretCastExpr.Handle.Evaluate);
             }
 
-            // case CX_StmtClass.CX_StmtClass_ObjCBridgedCastExpr:
+            // case CX_StmtClass_ObjCBridgedCastExpr:
 
-            case CX_StmtClass.CX_StmtClass_ImplicitCastExpr:
+            case CX_StmtClass_ImplicitCastExpr:
             {
                 var implicitCastExpr = (ImplicitCastExpr)stmt;
 
@@ -4920,117 +4933,117 @@ public sealed partial class PInvokeGenerator : IDisposable
                     || IsUnchecked(targetTypeName, implicitCastExpr.Handle.Evaluate);
             }
 
-            case CX_StmtClass.CX_StmtClass_CharacterLiteral:
+            case CX_StmtClass_CharacterLiteral:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_ChooseExpr:
-            // case CX_StmtClass.CX_StmtClass_CompoundLiteralExpr:
-            // case CX_StmtClass.CX_StmtClass_ConceptSpecializationExpr:
-            // case CX_StmtClass.CX_StmtClass_ConvertVectorExpr:
-            // case CX_StmtClass.CX_StmtClass_CoawaitExpr:
-            // case CX_StmtClass.CX_StmtClass_CoyieldExpr:
+            // case CX_StmtClass_ChooseExpr:
+            // case CX_StmtClass_CompoundLiteralExpr:
+            // case CX_StmtClass_ConceptSpecializationExpr:
+            // case CX_StmtClass_ConvertVectorExpr:
+            // case CX_StmtClass_CoawaitExpr:
+            // case CX_StmtClass_CoyieldExpr:
 
-            case CX_StmtClass.CX_StmtClass_DeclRefExpr:
+            case CX_StmtClass_DeclRefExpr:
             {
                 var declRefExpr = (DeclRefExpr)stmt;
                 return (declRefExpr.Decl is VarDecl varDecl) && varDecl.HasInit && IsUnchecked(targetTypeName, varDecl.Init);
             }
 
-            // case CX_StmtClass.CX_StmtClass_DependentCoawaitExpr:
-            // case CX_StmtClass.CX_StmtClass_DependentScopeDeclRefExpr:
-            // case CX_StmtClass.CX_StmtClass_DesignatedInitExpr:
-            // case CX_StmtClass.CX_StmtClass_DesignatedInitUpdateExpr:
-            // case CX_StmtClass.CX_StmtClass_ExpressionTraitExpr:
-            // case CX_StmtClass.CX_StmtClass_ExtVectorElementExpr:
-            // case CX_StmtClass.CX_StmtClass_FixedPointLiteral:
+            // case CX_StmtClass_DependentCoawaitExpr:
+            // case CX_StmtClass_DependentScopeDeclRefExpr:
+            // case CX_StmtClass_DesignatedInitExpr:
+            // case CX_StmtClass_DesignatedInitUpdateExpr:
+            // case CX_StmtClass_ExpressionTraitExpr:
+            // case CX_StmtClass_ExtVectorElementExpr:
+            // case CX_StmtClass_FixedPointLiteral:
 
-            case CX_StmtClass.CX_StmtClass_FloatingLiteral:
+            case CX_StmtClass_FloatingLiteral:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_ConstantExpr:
+            // case CX_StmtClass_ConstantExpr:
 
-            case CX_StmtClass.CX_StmtClass_ExprWithCleanups:
+            case CX_StmtClass_ExprWithCleanups:
             {
                 var exprWithCleanups = (ExprWithCleanups)stmt;
                 return IsUnchecked(targetTypeName, exprWithCleanups.SubExpr);
             }
 
-            // case CX_StmtClass.CX_StmtClass_FunctionParmPackExpr:
-            // case CX_StmtClass.CX_StmtClass_GNUNullExpr:
-            // case CX_StmtClass.CX_StmtClass_GenericSelectionExpr:
-            // case CX_StmtClass.CX_StmtClass_ImaginaryLiteral:
-            // case CX_StmtClass.CX_StmtClass_ImplicitValueInitExpr:
+            // case CX_StmtClass_FunctionParmPackExpr:
+            // case CX_StmtClass_GNUNullExpr:
+            // case CX_StmtClass_GenericSelectionExpr:
+            // case CX_StmtClass_ImaginaryLiteral:
+            // case CX_StmtClass_ImplicitValueInitExpr:
 
-            case CX_StmtClass.CX_StmtClass_InitListExpr:
+            case CX_StmtClass_InitListExpr:
             {
                 return false;
             }
 
-            case CX_StmtClass.CX_StmtClass_IntegerLiteral:
+            case CX_StmtClass_IntegerLiteral:
             {
                 var integerLiteral = (IntegerLiteral)stmt;
                 var signedValue = integerLiteral.Value;
                 return IsUnchecked(targetTypeName, signedValue, integerLiteral.IsNegative, isHex: integerLiteral.ValueString.StartsWith("0x"));
             }
 
-            case CX_StmtClass.CX_StmtClass_LambdaExpr:
+            case CX_StmtClass_LambdaExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_MSPropertyRefExpr:
-            // case CX_StmtClass.CX_StmtClass_MSPropertySubscriptExpr:
+            // case CX_StmtClass_MSPropertyRefExpr:
+            // case CX_StmtClass_MSPropertySubscriptExpr:
 
-            case CX_StmtClass.CX_StmtClass_MaterializeTemporaryExpr:
+            case CX_StmtClass_MaterializeTemporaryExpr:
             {
                 return false;
             }
 
-            case CX_StmtClass.CX_StmtClass_MemberExpr:
+            case CX_StmtClass_MemberExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_NoInitExpr:
-            // case CX_StmtClass.CX_StmtClass_OMPArraySectionExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCArrayLiteral:
-            // case CX_StmtClass.CX_StmtClass_ObjCAvailabilityCheckExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCBoolLiteralExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCBoxedExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCDictionaryLiteral:
-            // case CX_StmtClass.CX_StmtClass_ObjCEncodeExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCIndirectCopyRestoreExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCIsaExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCIvarRefExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCMessageExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCPropertyRefExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCProtocolExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCSelectorExpr:
-            // case CX_StmtClass.CX_StmtClass_ObjCStringLiteral:
-            // case CX_StmtClass.CX_StmtClass_ObjCSubscriptRefExpr:
+            // case CX_StmtClass_NoInitExpr:
+            // case CX_StmtClass_OMPArraySectionExpr:
+            // case CX_StmtClass_ObjCArrayLiteral:
+            // case CX_StmtClass_ObjCAvailabilityCheckExpr:
+            // case CX_StmtClass_ObjCBoolLiteralExpr:
+            // case CX_StmtClass_ObjCBoxedExpr:
+            // case CX_StmtClass_ObjCDictionaryLiteral:
+            // case CX_StmtClass_ObjCEncodeExpr:
+            // case CX_StmtClass_ObjCIndirectCopyRestoreExpr:
+            // case CX_StmtClass_ObjCIsaExpr:
+            // case CX_StmtClass_ObjCIvarRefExpr:
+            // case CX_StmtClass_ObjCMessageExpr:
+            // case CX_StmtClass_ObjCPropertyRefExpr:
+            // case CX_StmtClass_ObjCProtocolExpr:
+            // case CX_StmtClass_ObjCSelectorExpr:
+            // case CX_StmtClass_ObjCStringLiteral:
+            // case CX_StmtClass_ObjCSubscriptRefExpr:
 
-            case CX_StmtClass.CX_StmtClass_OffsetOfExpr:
+            case CX_StmtClass_OffsetOfExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_OpaqueValueExpr:
-            // case CX_StmtClass.CX_StmtClass_UnresolvedLookupExpr:
-            // case CX_StmtClass.CX_StmtClass_UnresolvedMemberExpr:
-            // case CX_StmtClass.CX_StmtClass_PackExpansionExpr:
+            // case CX_StmtClass_OpaqueValueExpr:
+            // case CX_StmtClass_UnresolvedLookupExpr:
+            // case CX_StmtClass_UnresolvedMemberExpr:
+            // case CX_StmtClass_PackExpansionExpr:
 
-            case CX_StmtClass.CX_StmtClass_ParenExpr:
+            case CX_StmtClass_ParenExpr:
             {
                 var parenExpr = (ParenExpr)stmt;
                 return IsUnchecked(targetTypeName, parenExpr.SubExpr)
                     || IsUnchecked(targetTypeName, parenExpr.Handle.Evaluate);
             }
 
-            case CX_StmtClass.CX_StmtClass_ParenListExpr:
+            case CX_StmtClass_ParenListExpr:
             {
                 var parenListExpr = (ParenListExpr)stmt;
 
@@ -5045,29 +5058,29 @@ public sealed partial class PInvokeGenerator : IDisposable
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_PredefinedExpr:
-            // case CX_StmtClass.CX_StmtClass_PseudoObjectExpr:
-            // case CX_StmtClass.CX_StmtClass_RequiresExpr:
-            // case CX_StmtClass.CX_StmtClass_ShuffleVectorExpr:
-            // case CX_StmtClass.CX_StmtClass_SizeOfPackExpr:
-            // case CX_StmtClass.CX_StmtClass_SourceLocExpr:
-            // case CX_StmtClass.CX_StmtClass_StmtExpr:
+            // case CX_StmtClass_PredefinedExpr:
+            // case CX_StmtClass_PseudoObjectExpr:
+            // case CX_StmtClass_RequiresExpr:
+            // case CX_StmtClass_ShuffleVectorExpr:
+            // case CX_StmtClass_SizeOfPackExpr:
+            // case CX_StmtClass_SourceLocExpr:
+            // case CX_StmtClass_StmtExpr:
 
-            case CX_StmtClass.CX_StmtClass_StringLiteral:
+            case CX_StmtClass_StringLiteral:
             {
                 return false;
             }
 
-            case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmExpr:
+            case CX_StmtClass_SubstNonTypeTemplateParmExpr:
             {
                 return false;
             }
 
-            // case CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
-            // case CX_StmtClass.CX_StmtClass_TypeTraitExpr:
-            // case CX_StmtClass.CX_StmtClass_TypoExpr:
+            // case CX_StmtClass_SubstNonTypeTemplateParmPackExpr:
+            // case CX_StmtClass_TypeTraitExpr:
+            // case CX_StmtClass_TypoExpr:
 
-            case CX_StmtClass.CX_StmtClass_UnaryExprOrTypeTraitExpr:
+            case CX_StmtClass_UnaryExprOrTypeTraitExpr:
             {
                 var unaryExprOrTypeTraitExpr = (UnaryExprOrTypeTraitExpr)stmt;
 
@@ -5080,7 +5093,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 switch (unaryExprOrTypeTraitExpr.Kind)
                 {
-                    case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
+                    case CX_UETT_SizeOf:
                     {
                         switch (targetTypeName)
                         {
@@ -5124,7 +5137,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
 
-            case CX_StmtClass.CX_StmtClass_UnaryOperator:
+            case CX_StmtClass_UnaryOperator:
             {
                 var unaryOperator = (UnaryOperator)stmt;
 
@@ -5144,12 +5157,12 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 switch (unaryOperator.Opcode)
                 {
-                    case CX_UnaryOperatorKind.CX_UO_Minus:
+                    case CX_UO_Minus:
                     {
                         return IsUnsigned(targetTypeName);
                     }
 
-                    case CX_UnaryOperatorKind.CX_UO_Not:
+                    case CX_UO_Not:
                     {
                         return IsUnsigned(targetTypeName) != IsUnsigned(sourceTypeName);
                     }
@@ -5161,7 +5174,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
 
-            // case CX_StmtClass.CX_StmtClass_VAArgExpr:
+            // case CX_StmtClass_VAArgExpr:
 
             default:
             {
@@ -5185,7 +5198,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 var lhsEvaluation = lhs.Handle.Evaluate;
 
-                if (lhsEvaluation.Kind == CXEvalResultKind.CXEval_Int)
+                if (lhsEvaluation.Kind == CXEval_Int)
                 {
                     lhsValue = lhsEvaluation.AsInt;
                 }
@@ -5203,7 +5216,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 var rhsEvaluation = rhs.Handle.Evaluate;
 
-                if (rhsEvaluation.Kind == CXEvalResultKind.CXEval_Int)
+                if (rhsEvaluation.Kind == CXEval_Int)
                 {
                     rhsValue = rhsEvaluation.AsInt;
                 }
@@ -5218,14 +5231,14 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             switch (binaryOperator.Opcode)
             {
-                case CX_BinaryOperatorKind.CX_BO_Add:
+                case CX_BO_Add:
                 {
                     return isUnsigned
                         ? (ulong)lhsValue + (ulong)rhsValue < (ulong)lhsValue
                         : lhsValue + rhsValue < lhsValue;
                 }
 
-                case CX_BinaryOperatorKind.CX_BO_Sub:
+                case CX_BO_Sub:
                 {
                     return isUnsigned
                         ? (ulong)lhsValue - (ulong)rhsValue > (ulong)lhsValue
@@ -5242,7 +5255,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool IsUnchecked(string typeName, CXEvalResult evalResult)
     {
-        if (evalResult.Kind != CXEvalResultKind.CXEval_Int)
+        if (evalResult.Kind != CXEval_Int)
         {
             return false;
         }
@@ -5464,14 +5477,14 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             switch (canonicalReturnType.TypeClass)
             {
-                case CX_TypeClass.CX_TypeClass_Builtin:
-                case CX_TypeClass.CX_TypeClass_Enum:
-                case CX_TypeClass.CX_TypeClass_Pointer:
+                case CX_TypeClass_Builtin:
+                case CX_TypeClass_Enum:
+                case CX_TypeClass_Pointer:
                 {
                     break;
                 }
 
-                case CX_TypeClass.CX_TypeClass_Record:
+                case CX_TypeClass_Record:
                 {
                     needsReturnFixup = true;
                     break;
@@ -5654,7 +5667,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             return true;
         }
 
-        var uuidAttrs = recordDecl.Attrs.Where((attr) => attr.Kind == CX_AttrKind.CX_AttrKind_Uuid);
+        var uuidAttrs = recordDecl.Attrs.Where((attr) => attr.Kind == CX_AttrKind_Uuid);
 
         if (!uuidAttrs.Any())
         {
@@ -5846,14 +5859,14 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 switch (unaryExprOrTypeTraitExpr.Kind)
                 {
-                    case CX_UnaryExprOrTypeTrait.CX_UETT_SizeOf:
+                    case CX_UETT_SizeOf:
                     {
                         needsCast |= size32 != size64;
                         break;
                     }
 
-                    case CX_UnaryExprOrTypeTrait.CX_UETT_AlignOf:
-                    case CX_UnaryExprOrTypeTrait.CX_UETT_PreferredAlignOf:
+                    case CX_UETT_AlignOf:
+                    case CX_UETT_PreferredAlignOf:
                     {
                         needsCast |= alignment32 != alignment64;
                         break;
@@ -5980,16 +5993,16 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 switch (attr.Kind)
                 {
-                    case CX_AttrKind.CX_AttrKind_Aligned:
-                    case CX_AttrKind.CX_AttrKind_AlwaysInline:
-                    case CX_AttrKind.CX_AttrKind_DLLExport:
-                    case CX_AttrKind.CX_AttrKind_DLLImport:
+                    case CX_AttrKind_Aligned:
+                    case CX_AttrKind_AlwaysInline:
+                    case CX_AttrKind_DLLExport:
+                    case CX_AttrKind_DLLImport:
                     {
                         // Nothing to handle
                         break;
                     }
 
-                    case CX_AttrKind.CX_AttrKind_Deprecated:
+                    case CX_AttrKind_Deprecated:
                     {
                         if (obsoleteEmitted)
                         {
@@ -6014,11 +6027,11 @@ public sealed partial class PInvokeGenerator : IDisposable
                         break;
                     }
 
-                    case CX_AttrKind.CX_AttrKind_MSNoVTable:
-                    case CX_AttrKind.CX_AttrKind_MSAllocator:
-                    case CX_AttrKind.CX_AttrKind_MaxFieldAlignment:
-                    case CX_AttrKind.CX_AttrKind_SelectAny:
-                    case CX_AttrKind.CX_AttrKind_Uuid:
+                    case CX_AttrKind_MSNoVTable:
+                    case CX_AttrKind_MSAllocator:
+                    case CX_AttrKind_MaxFieldAlignment:
+                    case CX_AttrKind_SelectAny:
+                    case CX_AttrKind_Uuid:
                     {
                         // Nothing to handle
                         break;

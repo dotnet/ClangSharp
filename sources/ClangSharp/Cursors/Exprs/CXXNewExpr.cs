@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -13,7 +15,7 @@ public sealed class CXXNewExpr : Expr
     private readonly Lazy<FunctionDecl> _operatorNew;
     private readonly Lazy<IReadOnlyList<Expr>> _placementArgs;
 
-    internal CXXNewExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXNewExpr, CX_StmtClass.CX_StmtClass_CXXNewExpr)
+    internal CXXNewExpr(CXCursor handle) : base(handle, CXCursor_CXXNewExpr, CX_StmtClass_CXXNewExpr)
     {
         _operatorDelete = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(0)));
         _operatorNew = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(1)));

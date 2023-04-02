@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class SEHFinallyStmt : Stmt
 {
-    internal SEHFinallyStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHFinallyStmt, CX_StmtClass.CX_StmtClass_SEHFinallyStmt)
+    internal SEHFinallyStmt(CXCursor handle) : base(handle, CXCursor_SEHFinallyStmt, CX_StmtClass_SEHFinallyStmt)
     {
         Debug.Assert(NumChildren is 1);
     }

@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public sealed class TemplateSpecializationType : Type
     private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
     private readonly Lazy<TemplateName> _templateName;
 
-    internal TemplateSpecializationType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_TemplateSpecialization)
+    internal TemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TemplateSpecialization)
     {
         _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
             var templateArgCount = Handle.NumTemplateArguments;

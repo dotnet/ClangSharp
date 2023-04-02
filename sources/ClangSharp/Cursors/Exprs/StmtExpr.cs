@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class StmtExpr : Expr
 {
-    internal StmtExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_StmtExpr, CX_StmtClass.CX_StmtClass_StmtExpr)
+    internal StmtExpr(CXCursor handle) : base(handle, CXCursor_StmtExpr, CX_StmtClass_StmtExpr)
     {
         Debug.Assert(NumChildren is 1);
     }

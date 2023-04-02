@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class ObjCAtFinallyStmt : Stmt
 {
-    internal ObjCAtFinallyStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCAtFinallyStmt, CX_StmtClass.CX_StmtClass_ObjCAtFinallyStmt)
+    internal ObjCAtFinallyStmt(CXCursor handle) : base(handle, CXCursor_ObjCAtFinallyStmt, CX_StmtClass_ObjCAtFinallyStmt)
     {
         Debug.Assert(NumChildren is 1);
     }

@@ -2,6 +2,7 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -9,7 +10,7 @@ public class OMPExecutableDirective : Stmt
 {
     private protected OMPExecutableDirective(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
-        if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastOMPExecutableDirective or < CX_StmtClass.CX_StmtClass_FirstOMPExecutableDirective)
+        if (handle.StmtClass is > CX_StmtClass_LastOMPExecutableDirective or < CX_StmtClass_FirstOMPExecutableDirective)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

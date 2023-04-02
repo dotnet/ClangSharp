@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class CXXThrowExpr : Expr
 {
-    internal CXXThrowExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXThrowExpr, CX_StmtClass.CX_StmtClass_CXXThrowExpr)
+    internal CXXThrowExpr(CXCursor handle) : base(handle, CXCursor_CXXThrowExpr, CX_StmtClass_CXXThrowExpr)
     {
         Debug.Assert(NumChildren is 1);
     }

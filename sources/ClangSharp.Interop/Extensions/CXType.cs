@@ -3,17 +3,19 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp.Interop;
 
 [DebuggerDisplay("{DebuggerDisplayString,nq}")]
 public unsafe partial struct CXType : IEquatable<CXType>
 {
-    public uint AddressSpace => (kind != CXTypeKind.CXType_Invalid) ? clang.getAddressSpace(this) : default;
+    public uint AddressSpace => (kind != CXType_Invalid) ? clang.getAddressSpace(this) : default;
 
     public CXCursor AddrSpaceExpr => clangsharp.Type_getAddrSpaceExpr(this);
 
-    public CXType AdjustedType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getAdjustedType(this) : default;
+    public CXType AdjustedType => (kind != CXType_Invalid) ? clangsharp.Type_getAdjustedType(this) : default;
 
     public long AlignOf => clang.Type_getAlignOf(this);
 
@@ -35,17 +37,17 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public CXType DecayedType => clangsharp.Type_getDecayedType(this);
 
-    public CXCursor Declaration => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getDeclaration(this) : default;
+    public CXCursor Declaration => (kind != CXType_Invalid) ? clangsharp.Type_getDeclaration(this) : default;
 
-    public CXType DeducedType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getDeducedType(this) : default;
+    public CXType DeducedType => (kind != CXType_Invalid) ? clangsharp.Type_getDeducedType(this) : default;
 
     public int Depth => clangsharp.Type_getDepth(this);
 
-    public CXType Desugar => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_desugar(this) : default;
+    public CXType Desugar => (kind != CXType_Invalid) ? clangsharp.Type_desugar(this) : default;
 
-    public CXType ElementType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getElementType(this) :default;
+    public CXType ElementType => (kind != CXType_Invalid) ? clangsharp.Type_getElementType(this) :default;
 
-    public CXType EquivalentType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getEquivalentType(this) : default;
+    public CXType EquivalentType => (kind != CXType_Invalid) ? clangsharp.Type_getEquivalentType(this) : default;
 
     public CXCursor_ExceptionSpecificationKind ExceptionSpecificationType => (CXCursor_ExceptionSpecificationKind)clang.getExceptionSpecificationType(this);
 
@@ -53,9 +55,9 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public int Index => clangsharp.Type_getIndex(this);
 
-    public CXType InjectedSpecializationType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getInjectedSpecializationType(this) : default;
+    public CXType InjectedSpecializationType => (kind != CXType_Invalid) ? clangsharp.Type_getInjectedSpecializationType(this) : default;
 
-    public CXType InjectedTST => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getInjectedTST(this) : default;
+    public CXType InjectedTST => (kind != CXType_Invalid) ? clangsharp.Type_getInjectedTST(this) : default;
 
     public bool IsCanonical => Equals(CanonicalType);
 
@@ -69,7 +71,7 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public bool IsSigned => clangsharp.Type_getIsSigned(this) != 0;
 
-    public bool IsSugared => (kind != CXTypeKind.CXType_Invalid) && clangsharp.Type_getIsSugared(this) != 0;
+    public bool IsSugared => (kind != CXType_Invalid) && clangsharp.Type_getIsSugared(this) != 0;
 
     public bool IsTransparentTagTypedef => clang.Type_isTransparentTagTypedef(this) != 0;
 
@@ -109,21 +111,21 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public CXType ObjCObjectBaseType => clang.Type_getObjCObjectBaseType(this);
 
-    public CXType OriginalType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getOriginalType(this) : default;
+    public CXType OriginalType => (kind != CXType_Invalid) ? clangsharp.Type_getOriginalType(this) : default;
 
-    public CXCursor OwnedTagDecl => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getOwnedTagDecl(this) : default;
+    public CXCursor OwnedTagDecl => (kind != CXType_Invalid) ? clangsharp.Type_getOwnedTagDecl(this) : default;
 
-    public CXType PointeeType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getPointeeType(this) : default;
+    public CXType PointeeType => (kind != CXType_Invalid) ? clangsharp.Type_getPointeeType(this) : default;
 
     public CXType ResultType => clang.getResultType(this);
 
-    public CXCursor RowExpr => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getRowExpr(this) : default;
+    public CXCursor RowExpr => (kind != CXType_Invalid) ? clangsharp.Type_getRowExpr(this) : default;
 
-    public CXCursor SizeExpr => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getSizeExpr(this) : default;
+    public CXCursor SizeExpr => (kind != CXType_Invalid) ? clangsharp.Type_getSizeExpr(this) : default;
 
     public long SizeOf => clang.Type_getSizeOf(this);
 
-    public CXString Spelling => (kind != CXTypeKind.CXType_Invalid) ? clang.getTypeSpelling(this) : default;
+    public CXString Spelling => (kind != CXType_Invalid) ? clang.getTypeSpelling(this) : default;
 
     public CX_TemplateName TemplateName
     {
@@ -141,76 +143,76 @@ public unsafe partial struct CXType : IEquatable<CXType>
     {
         get
         {
-            Debug.Assert(CX_TypeClass.CX_TypeClass_TypeLast == CX_TypeClass.CX_TypeClass_ExtVector);
-            Debug.Assert(CX_TypeClass.CX_TypeClass_TagFirst == CX_TypeClass.CX_TypeClass_Record);
-            Debug.Assert(CX_TypeClass.CX_TypeClass_TagLast == CX_TypeClass.CX_TypeClass_Enum);
+            Debug.Assert(CX_TypeClass_TypeLast == CX_TypeClass_ExtVector);
+            Debug.Assert(CX_TypeClass_TagFirst == CX_TypeClass_Record);
+            Debug.Assert(CX_TypeClass_TagLast == CX_TypeClass_Enum);
 
             return TypeClass switch {
-                CX_TypeClass.CX_TypeClass_Invalid => "Invalid",
-                CX_TypeClass.CX_TypeClass_Adjusted => "Adjusted",
-                CX_TypeClass.CX_TypeClass_Decayed => "Decayed",
-                CX_TypeClass.CX_TypeClass_ConstantArray => "ConstantArray",
-                CX_TypeClass.CX_TypeClass_DependentSizedArray => "DependentSizedArray",
-                CX_TypeClass.CX_TypeClass_IncompleteArray => "IncompleteArray",
-                CX_TypeClass.CX_TypeClass_VariableArray => "VariableArray",
-                CX_TypeClass.CX_TypeClass_Atomic => "Atomic",
-                CX_TypeClass.CX_TypeClass_Attributed => "Attributed",
-                CX_TypeClass.CX_TypeClass_BTFTagAttributed => "BTFTagAttributed",
-                CX_TypeClass.CX_TypeClass_BitInt => "BitInt",
-                CX_TypeClass.CX_TypeClass_BlockPointer => "BlockPointer",
-                CX_TypeClass.CX_TypeClass_Builtin => "Builtin",
-                CX_TypeClass.CX_TypeClass_Complex => "Complex",
-                CX_TypeClass.CX_TypeClass_Decltype => "Decltype",
-                CX_TypeClass.CX_TypeClass_Auto => "Auto",
-                CX_TypeClass.CX_TypeClass_DeducedTemplateSpecialization => "DeducedTemplateSpecialization",
-                CX_TypeClass.CX_TypeClass_DependentAddressSpace => "DependentAddressSpace",
-                CX_TypeClass.CX_TypeClass_DependentBitInt => "DependentBitInt",
-                CX_TypeClass.CX_TypeClass_DependentName => "DependentName",
-                CX_TypeClass.CX_TypeClass_DependentSizedExtVector => "DependentSizedExtVector",
-                CX_TypeClass.CX_TypeClass_DependentTemplateSpecialization => "DependentTemplateSpecialization",
-                CX_TypeClass.CX_TypeClass_DependentVector => "DependentVector",
-                CX_TypeClass.CX_TypeClass_Elaborated => "Elaborated",
-                CX_TypeClass.CX_TypeClass_FunctionNoProto => "FunctionNoProto",
-                CX_TypeClass.CX_TypeClass_FunctionProto => "FunctionProto",
-                CX_TypeClass.CX_TypeClass_InjectedClassName => "InjectedClassName",
-                CX_TypeClass.CX_TypeClass_MacroQualified => "MacroQualified",
-                CX_TypeClass.CX_TypeClass_ConstantMatrix => "ConstantMatrix",
-                CX_TypeClass.CX_TypeClass_DependentSizedMatrix => "DependentSizedMatrix",
-                CX_TypeClass.CX_TypeClass_MemberPointer => "MemberPointer",
-                CX_TypeClass.CX_TypeClass_ObjCObjectPointer => "ObjCObjectPointer",
-                CX_TypeClass.CX_TypeClass_ObjCObject => "ObjCObject",
-                CX_TypeClass.CX_TypeClass_ObjCInterface => "ObjCInterface",
-                CX_TypeClass.CX_TypeClass_ObjCTypeParam => "ObjCTypeParam",
-                CX_TypeClass.CX_TypeClass_PackExpansion => "PackExpansion",
-                CX_TypeClass.CX_TypeClass_Paren => "Paren",
-                CX_TypeClass.CX_TypeClass_Pipe => "Pipe",
-                CX_TypeClass.CX_TypeClass_Pointer => "Pointer",
-                CX_TypeClass.CX_TypeClass_LValueReference => "LValueReference",
-                CX_TypeClass.CX_TypeClass_RValueReference => "RValueReference",
-                CX_TypeClass.CX_TypeClass_SubstTemplateTypeParmPack => "SubstTemplateTypeParmPack",
-                CX_TypeClass.CX_TypeClass_SubstTemplateTypeParm => "SubstTemplateTypeParm",
-                CX_TypeClass.CX_TypeClass_Enum => "Enum",
-                CX_TypeClass.CX_TypeClass_Record => "Record",
-                CX_TypeClass.CX_TypeClass_TemplateSpecialization => "TemplateSpecialization",
-                CX_TypeClass.CX_TypeClass_TemplateTypeParm => "TemplateTypeParm",
-                CX_TypeClass.CX_TypeClass_TypeOfExpr => "TypeOfExpr",
-                CX_TypeClass.CX_TypeClass_TypeOf => "TypeOf",
-                CX_TypeClass.CX_TypeClass_Typedef => "Typedef",
-                CX_TypeClass.CX_TypeClass_UnaryTransform => "UnaryTransform",
-                CX_TypeClass.CX_TypeClass_UnresolvedUsing => "UnresolvedUsing",
-                CX_TypeClass.CX_TypeClass_Using => "Using",
-                CX_TypeClass.CX_TypeClass_Vector => "Vector",
-                CX_TypeClass.CX_TypeClass_ExtVector => "ExtVector",
+                CX_TypeClass_Invalid => "Invalid",
+                CX_TypeClass_Adjusted => "Adjusted",
+                CX_TypeClass_Decayed => "Decayed",
+                CX_TypeClass_ConstantArray => "ConstantArray",
+                CX_TypeClass_DependentSizedArray => "DependentSizedArray",
+                CX_TypeClass_IncompleteArray => "IncompleteArray",
+                CX_TypeClass_VariableArray => "VariableArray",
+                CX_TypeClass_Atomic => "Atomic",
+                CX_TypeClass_Attributed => "Attributed",
+                CX_TypeClass_BTFTagAttributed => "BTFTagAttributed",
+                CX_TypeClass_BitInt => "BitInt",
+                CX_TypeClass_BlockPointer => "BlockPointer",
+                CX_TypeClass_Builtin => "Builtin",
+                CX_TypeClass_Complex => "Complex",
+                CX_TypeClass_Decltype => "Decltype",
+                CX_TypeClass_Auto => "Auto",
+                CX_TypeClass_DeducedTemplateSpecialization => "DeducedTemplateSpecialization",
+                CX_TypeClass_DependentAddressSpace => "DependentAddressSpace",
+                CX_TypeClass_DependentBitInt => "DependentBitInt",
+                CX_TypeClass_DependentName => "DependentName",
+                CX_TypeClass_DependentSizedExtVector => "DependentSizedExtVector",
+                CX_TypeClass_DependentTemplateSpecialization => "DependentTemplateSpecialization",
+                CX_TypeClass_DependentVector => "DependentVector",
+                CX_TypeClass_Elaborated => "Elaborated",
+                CX_TypeClass_FunctionNoProto => "FunctionNoProto",
+                CX_TypeClass_FunctionProto => "FunctionProto",
+                CX_TypeClass_InjectedClassName => "InjectedClassName",
+                CX_TypeClass_MacroQualified => "MacroQualified",
+                CX_TypeClass_ConstantMatrix => "ConstantMatrix",
+                CX_TypeClass_DependentSizedMatrix => "DependentSizedMatrix",
+                CX_TypeClass_MemberPointer => "MemberPointer",
+                CX_TypeClass_ObjCObjectPointer => "ObjCObjectPointer",
+                CX_TypeClass_ObjCObject => "ObjCObject",
+                CX_TypeClass_ObjCInterface => "ObjCInterface",
+                CX_TypeClass_ObjCTypeParam => "ObjCTypeParam",
+                CX_TypeClass_PackExpansion => "PackExpansion",
+                CX_TypeClass_Paren => "Paren",
+                CX_TypeClass_Pipe => "Pipe",
+                CX_TypeClass_Pointer => "Pointer",
+                CX_TypeClass_LValueReference => "LValueReference",
+                CX_TypeClass_RValueReference => "RValueReference",
+                CX_TypeClass_SubstTemplateTypeParmPack => "SubstTemplateTypeParmPack",
+                CX_TypeClass_SubstTemplateTypeParm => "SubstTemplateTypeParm",
+                CX_TypeClass_Enum => "Enum",
+                CX_TypeClass_Record => "Record",
+                CX_TypeClass_TemplateSpecialization => "TemplateSpecialization",
+                CX_TypeClass_TemplateTypeParm => "TemplateTypeParm",
+                CX_TypeClass_TypeOfExpr => "TypeOfExpr",
+                CX_TypeClass_TypeOf => "TypeOf",
+                CX_TypeClass_Typedef => "Typedef",
+                CX_TypeClass_UnaryTransform => "UnaryTransform",
+                CX_TypeClass_UnresolvedUsing => "UnresolvedUsing",
+                CX_TypeClass_Using => "Using",
+                CX_TypeClass_Vector => "Vector",
+                CX_TypeClass_ExtVector => "ExtVector",
                 _ => TypeClass.ToString()[13..],
             };
         }
     }
 
-    public CXString TypedefName => (kind != CXTypeKind.CXType_Invalid) ? clang.getTypedefName(this) : default; 
+    public CXString TypedefName => (kind != CXType_Invalid) ? clang.getTypedefName(this) : default;
 
-    public CXCursor UnderlyingExpr => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getUnderlyingExpr(this) : default;
+    public CXCursor UnderlyingExpr => (kind != CXType_Invalid) ? clangsharp.Type_getUnderlyingExpr(this) : default;
 
-    public CXType UnderlyingType => (kind != CXTypeKind.CXType_Invalid) ? clangsharp.Type_getUnderlyingType(this) : default;
+    public CXType UnderlyingType => (kind != CXType_Invalid) ? clangsharp.Type_getUnderlyingType(this) : default;
 
     public CXType ValueType => clang.Type_getValueType(this);
 

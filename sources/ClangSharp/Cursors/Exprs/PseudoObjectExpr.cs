@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public sealed class PseudoObjectExpr : Expr
 {
     private readonly Lazy<IReadOnlyList<Expr>> _semantics;
 
-    internal PseudoObjectExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_PseudoObjectExpr)
+    internal PseudoObjectExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_PseudoObjectExpr)
     {
         Debug.Assert(NumChildren >= 1);
         _semantics = new Lazy<IReadOnlyList<Expr>>(() => Children.Skip(1).Cast<Expr>().ToList());

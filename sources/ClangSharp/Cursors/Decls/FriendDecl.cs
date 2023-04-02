@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class FriendDecl : Decl
     private readonly Lazy<NamedDecl> _friendNamedDecl;
     private readonly Lazy<IReadOnlyList<IReadOnlyList<NamedDecl>>> _friendTypeTemplateParameterLists;
 
-    internal FriendDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_FriendDecl, CX_DeclKind.CX_DeclKind_Friend)
+    internal FriendDecl(CXCursor handle) : base(handle, CXCursor_FriendDecl, CX_DeclKind_Friend)
     {
         _friendNamedDecl = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.FriendDecl));
 

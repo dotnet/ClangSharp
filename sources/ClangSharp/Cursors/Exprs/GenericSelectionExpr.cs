@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class GenericSelectionExpr : Expr
 {
     private readonly Lazy<IReadOnlyList<Expr>> _assocExprs;
 
-    internal GenericSelectionExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_GenericSelectionExpr, CX_StmtClass.CX_StmtClass_GenericSelectionExpr)
+    internal GenericSelectionExpr(CXCursor handle) : base(handle, CXCursor_GenericSelectionExpr, CX_StmtClass_GenericSelectionExpr)
     {
         _assocExprs = new Lazy<IReadOnlyList<Expr>>(() => Children.Skip(1).Take((int)NumAssocs).Cast<Expr>().ToList());
     }

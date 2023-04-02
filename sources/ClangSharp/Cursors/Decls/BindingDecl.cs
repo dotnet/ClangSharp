@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class BindingDecl : ValueDecl
     private readonly Lazy<ValueDecl> _decomposedDecl;
     private readonly Lazy<VarDecl> _holdingVar;
 
-    internal BindingDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_Binding)
+    internal BindingDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Binding)
     {
         _binding = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.BindingExpr));
         _decomposedDecl = new Lazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.DecomposedDecl));

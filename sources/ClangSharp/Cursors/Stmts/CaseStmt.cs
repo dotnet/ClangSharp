@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class CaseStmt : SwitchCase
 {
-    internal CaseStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CaseStmt, CX_StmtClass.CX_StmtClass_CaseStmt)
+    internal CaseStmt(CXCursor handle) : base(handle, CXCursor_CaseStmt, CX_StmtClass_CaseStmt)
     {
         Debug.Assert(NumChildren is 2 or 3);
     }

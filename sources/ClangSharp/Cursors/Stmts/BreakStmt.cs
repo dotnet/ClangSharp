@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class BreakStmt : Stmt
 {
-    internal BreakStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_BreakStmt, CX_StmtClass.CX_StmtClass_BreakStmt)
+    internal BreakStmt(CXCursor handle) : base(handle, CXCursor_BreakStmt, CX_StmtClass_BreakStmt)
     {
         Debug.Assert(NumChildren is 0);
     }

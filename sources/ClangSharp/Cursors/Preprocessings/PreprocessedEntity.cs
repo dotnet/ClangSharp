@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
@@ -17,25 +18,25 @@ public class PreprocessedEntity : Cursor
 
         switch (handle.Kind)
         {
-            case CXCursorKind.CXCursor_PreprocessingDirective:
+            case CXCursor_PreprocessingDirective:
             {
                 result = new PreprocessingDirective(handle);
                 break;
             }
 
-            case CXCursorKind.CXCursor_MacroDefinition:
+            case CXCursor_MacroDefinition:
             {
                 result = new MacroDefinitionRecord(handle);
                 break;
             }
 
-            case CXCursorKind.CXCursor_MacroExpansion:
+            case CXCursor_MacroExpansion:
             {
                 result = new MacroExpansion(handle);
                 break;
             }
 
-            case CXCursorKind.CXCursor_InclusionDirective:
+            case CXCursor_InclusionDirective:
             {
                 result = new InclusionDirective(handle);
                 break;

@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public class VectorType : Type
 {
     private readonly Lazy<Type> _elementType;
 
-    internal VectorType(CXType handle) : this(handle, CXTypeKind.CXType_Vector, CX_TypeClass.CX_TypeClass_Vector)
+    internal VectorType(CXType handle) : this(handle, CXType_Vector, CX_TypeClass_Vector)
     {
     }
 

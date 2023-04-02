@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class UsingType : Type
 {
     private readonly Lazy<UsingShadowDecl> _foundDecl;
 
-    internal UsingType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_Using)
+    internal UsingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_Using)
     {
         _foundDecl = new Lazy<UsingShadowDecl>(() => TranslationUnit.GetOrCreate<UsingShadowDecl>(Handle.Declaration));
     }

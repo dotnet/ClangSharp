@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public sealed class ObjCArrayLiteral : Expr
     private readonly Lazy<ObjCMethodDecl> _arrayWithObjectsMethod;
     private readonly Lazy<IReadOnlyList<Expr>> _elements;
 
-    internal ObjCArrayLiteral(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_ObjCArrayLiteral)
+    internal ObjCArrayLiteral(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCArrayLiteral)
     {
         _arrayWithObjectsMethod = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
         _elements = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());

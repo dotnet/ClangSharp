@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class MatrixSubscriptExpr : Expr
 {
-    internal MatrixSubscriptExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnexposedExpr, CX_StmtClass.CX_StmtClass_MatrixSubscriptExpr)
+    internal MatrixSubscriptExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_MatrixSubscriptExpr)
     {
         Debug.Assert(NumChildren is 3);
     }

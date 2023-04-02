@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class IfStmt : Stmt
 {
-    internal IfStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_IfStmt, CX_StmtClass.CX_StmtClass_IfStmt)
+    internal IfStmt(CXCursor handle) : base(handle, CXCursor_IfStmt, CX_StmtClass_IfStmt)
     {
         Debug.Assert(NumChildren is >= 2 and <= 4);
     }

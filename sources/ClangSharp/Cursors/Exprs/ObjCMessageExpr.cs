@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -15,7 +17,7 @@ public sealed class ObjCMessageExpr : Expr
     private readonly Lazy<Type> _receiverType;
     private readonly Lazy<Type> _superType;
 
-    internal ObjCMessageExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCMessageExpr, CX_StmtClass.CX_StmtClass_ObjCMessageExpr)
+    internal ObjCMessageExpr(CXCursor handle) : base(handle, CXCursor_ObjCMessageExpr, CX_StmtClass_ObjCMessageExpr)
     {
         _args = new Lazy<IReadOnlyList<Expr>>(() => {
             var numArgs = Handle.NumArguments;

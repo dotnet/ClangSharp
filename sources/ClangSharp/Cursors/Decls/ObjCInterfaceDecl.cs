@@ -3,6 +3,8 @@
 using System.Collections.Generic;
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 using System.Linq;
 
 namespace ClangSharp;
@@ -22,7 +24,7 @@ public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInt
     private readonly Lazy<IReadOnlyList<ObjCCategoryDecl>> _visibleCategories;
     private readonly Lazy<IReadOnlyList<ObjCCategoryDecl>> _visibleExtensions;
 
-    internal ObjCInterfaceDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCInterfaceDecl, CX_DeclKind.CX_DeclKind_ObjCInterface)
+    internal ObjCInterfaceDecl(CXCursor handle) : base(handle, CXCursor_ObjCInterfaceDecl, CX_DeclKind_ObjCInterface)
     {
         _categoryList = new Lazy<IReadOnlyList<ObjCCategoryDecl>>(() => {
             var categories = new List<ObjCCategoryDecl>();

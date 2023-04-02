@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class ElaboratedType : TypeWithKeyword
     private readonly Lazy<Type> _namedType;
     private readonly Lazy<TagDecl> _ownedTagDecl;
 
-    internal ElaboratedType(CXType handle) : base(handle, CXTypeKind.CXType_Elaborated, CX_TypeClass.CX_TypeClass_Elaborated)
+    internal ElaboratedType(CXType handle) : base(handle, CXType_Elaborated, CX_TypeClass_Elaborated)
     {
         _namedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NamedType));
         _ownedTagDecl = new Lazy<TagDecl>(() => TranslationUnit.GetOrCreate<TagDecl>(Handle.OwnedTagDecl));

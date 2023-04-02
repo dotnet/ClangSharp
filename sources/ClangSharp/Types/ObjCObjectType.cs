@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -14,7 +16,7 @@ public class ObjCObjectType : Type
     private readonly Lazy<Type> _superClassType;
     private readonly Lazy<IReadOnlyList<Type>> _typeArgs;
 
-    internal ObjCObjectType(CXType handle) : this(handle, CXTypeKind.CXType_ObjCObject, CX_TypeClass.CX_TypeClass_ObjCObject)
+    internal ObjCObjectType(CXType handle) : this(handle, CXType_ObjCObject, CX_TypeClass_ObjCObject)
     {
     }
 

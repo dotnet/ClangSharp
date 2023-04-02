@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class ObjCInterfaceType : ObjCObjectType
 {
     private readonly Lazy<ObjCInterfaceDecl> _decl;
 
-    internal ObjCInterfaceType(CXType handle) : base(handle, CXTypeKind.CXType_ObjCObject, CX_TypeClass.CX_TypeClass_ObjCInterface)
+    internal ObjCInterfaceType(CXType handle) : base(handle, CXType_ObjCObject, CX_TypeClass_ObjCInterface)
     {
         _decl = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.Declaration));
     }

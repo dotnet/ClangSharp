@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class CXXNoexceptExpr : Expr
 {
-    internal CXXNoexceptExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_UnaryExpr, CX_StmtClass.CX_StmtClass_CXXNoexceptExpr)
+    internal CXXNoexceptExpr(CXCursor handle) : base(handle, CXCursor_UnaryExpr, CX_StmtClass_CXXNoexceptExpr)
     {
         Debug.Assert(NumChildren is 1);
     }

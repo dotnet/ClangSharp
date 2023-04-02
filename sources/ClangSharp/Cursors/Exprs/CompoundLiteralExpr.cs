@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class CompoundLiteralExpr : Expr
 {
     private readonly Lazy<Type> _typeSourceinfoType;
 
-    internal CompoundLiteralExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CompoundLiteralExpr, CX_StmtClass.CX_StmtClass_CompoundLiteralExpr)
+    internal CompoundLiteralExpr(CXCursor handle) : base(handle, CXCursor_CompoundLiteralExpr, CX_StmtClass_CompoundLiteralExpr)
     {
         Debug.Assert(NumChildren is 1);
         _typeSourceinfoType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));

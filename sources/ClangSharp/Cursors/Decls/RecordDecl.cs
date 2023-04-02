@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -16,18 +18,18 @@ public class RecordDecl : TagDecl
     private readonly Lazy<RecordDecl?> _injectedClassName;
     
 
-    internal RecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind.CX_DeclKind_Record)
+    internal RecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_Record)
     {
     }
 
     private protected RecordDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastRecord or < CX_DeclKind.CX_DeclKind_FirstRecord)
+        if (handle.DeclKind is > CX_DeclKind_LastRecord or < CX_DeclKind_FirstRecord)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        if (handle.Kind is not CXCursorKind.CXCursor_StructDecl and not CXCursorKind.CXCursor_UnionDecl and not CXCursorKind.CXCursor_ClassDecl and not CXCursorKind.CXCursor_ClassTemplatePartialSpecialization)
+        if (handle.Kind is not CXCursor_StructDecl and not CXCursor_UnionDecl and not CXCursor_ClassDecl and not CXCursor_ClassTemplatePartialSpecialization)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

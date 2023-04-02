@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_CastKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -14,7 +16,7 @@ public class CastExpr : Expr
 
     private protected CastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
-        if (handle.StmtClass is > CX_StmtClass.CX_StmtClass_LastCastExpr or < CX_StmtClass.CX_StmtClass_FirstCastExpr)
+        if (handle.StmtClass is > CX_StmtClass_LastCastExpr or < CX_StmtClass_FirstCastExpr)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
@@ -50,12 +52,12 @@ public class CastExpr : Expr
             {
                 subExpr = SkipImplicitTemporary(e.SubExpr);
 
-                if (e.CastKind == CX_CastKind.CX_CK_ConstructorConversion)
+                if (e.CastKind == CX_CK_ConstructorConversion)
                 {
                     return ((CXXConstructExpr)subExpr).Constructor;
                 }
 
-                if (e.CastKind == CX_CastKind.CX_CK_UserDefinedConversion)
+                if (e.CastKind == CX_CK_UserDefinedConversion)
                 {
                     if (subExpr is CXXMemberCallExpr mce)
                     {
@@ -88,11 +90,11 @@ public class CastExpr : Expr
                 subExpr = SkipImplicitTemporary(e.SubExpr);
 
                 // Conversions by constructor and conversion functions have a subexpression describing the call; strip it off.
-                if (e.CastKind == CX_CastKind.CX_CK_ConstructorConversion)
+                if (e.CastKind == CX_CK_ConstructorConversion)
                 {
                     subExpr = SkipImplicitTemporary(((CXXConstructExpr)subExpr).Args[0]);
                 }
-                else if (e.CastKind == CX_CastKind.CX_CK_UserDefinedConversion)
+                else if (e.CastKind == CX_CK_UserDefinedConversion)
                 {
                     Debug.Assert(subExpr is CXXMemberCallExpr or BlockExpr, "Unexpected SubExpr for CK_UserDefinedConversion.");
 

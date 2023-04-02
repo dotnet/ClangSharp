@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class SEHExceptStmt : Stmt
 {
-    internal SEHExceptStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHExceptStmt, CX_StmtClass.CX_StmtClass_SEHExceptStmt)
+    internal SEHExceptStmt(CXCursor handle) : base(handle, CXCursor_SEHExceptStmt, CX_StmtClass_SEHExceptStmt)
     {
         Debug.Assert(NumChildren is 2);
     }

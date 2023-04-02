@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class SEHLeaveStmt : Stmt
 {
-    internal SEHLeaveStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_SEHLeaveStmt, CX_StmtClass.CX_StmtClass_SEHLeaveStmt)
+    internal SEHLeaveStmt(CXCursor handle) : base(handle, CXCursor_SEHLeaveStmt, CX_StmtClass_SEHLeaveStmt)
     {
         Debug.Assert(NumChildren is 0);
     }

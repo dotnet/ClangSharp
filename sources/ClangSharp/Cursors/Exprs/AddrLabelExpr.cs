@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class AddrLabelExpr : Expr
 {
     private readonly Lazy<LabelDecl> _label;
 
-    internal AddrLabelExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_AddrLabelExpr, CX_StmtClass.CX_StmtClass_AddrLabelExpr)
+    internal AddrLabelExpr(CXCursor handle) : base(handle, CXCursor_AddrLabelExpr, CX_StmtClass_AddrLabelExpr)
     {
         Debug.Assert(NumChildren is 0);
         _label = new Lazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));

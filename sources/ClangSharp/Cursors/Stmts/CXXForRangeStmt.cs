@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class CXXForRangeStmt : Stmt
 {
-    internal CXXForRangeStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_CXXForRangeStmt, CX_StmtClass.CX_StmtClass_CXXForRangeStmt)
+    internal CXXForRangeStmt(CXCursor handle) : base(handle, CXCursor_CXXForRangeStmt, CX_StmtClass_CXXForRangeStmt)
     {
         Debug.Assert(NumChildren is 8);
     }

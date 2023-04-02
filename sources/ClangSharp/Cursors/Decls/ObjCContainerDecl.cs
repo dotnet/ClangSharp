@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -18,7 +19,7 @@ public class ObjCContainerDecl : NamedDecl, IDeclContext
 
     private protected ObjCContainerDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastObjCContainer or < CX_DeclKind.CX_DeclKind_FirstObjCContainer)
+        if (handle.DeclKind is > CX_DeclKind_LastObjCContainer or < CX_DeclKind_FirstObjCContainer)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

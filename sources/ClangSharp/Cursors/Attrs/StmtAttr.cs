@@ -2,6 +2,7 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_AttrKind;
 
 namespace ClangSharp;
 
@@ -9,7 +10,7 @@ public sealed class StmtAttr : Attr
 {
     internal StmtAttr(CXCursor handle) : base(handle)
     {
-        if (handle.AttrKind is > CX_AttrKind.CX_AttrKind_LastStmtAttr or < CX_AttrKind.CX_AttrKind_FirstStmtAttr)
+        if (handle.AttrKind is > CX_AttrKind_LastStmtAttr or < CX_AttrKind_FirstStmtAttr)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

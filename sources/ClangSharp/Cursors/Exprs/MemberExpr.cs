@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public sealed class MemberExpr : Expr
     private readonly Lazy<ValueDecl> _memberDecl;
     private readonly Lazy<IReadOnlyList<TemplateArgumentLoc>> _templateArgs;
 
-    internal MemberExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_MemberRefExpr, CX_StmtClass.CX_StmtClass_MemberExpr)
+    internal MemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_MemberExpr)
     {
         Debug.Assert(NumChildren is 1);
 

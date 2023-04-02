@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class ParenExpr : Expr
 {
-    internal ParenExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ParenExpr, CX_StmtClass.CX_StmtClass_ParenExpr)
+    internal ParenExpr(CXCursor handle) : base(handle, CXCursor_ParenExpr, CX_StmtClass_ParenExpr)
     {
         Debug.Assert(NumChildren is 1);
     }

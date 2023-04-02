@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -10,7 +12,7 @@ public sealed class DependentSizedMatrixType : MatrixType
     private readonly Lazy<Expr> _rowExpr;
     private readonly Lazy<Expr> _columnExpr;
 
-    internal DependentSizedMatrixType(CXType handle) : base(handle, CXTypeKind.CXType_Unexposed, CX_TypeClass.CX_TypeClass_DependentSizedMatrix)
+    internal DependentSizedMatrixType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentSizedMatrix)
     {
         _rowExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.RowExpr));
         _columnExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.ColumnExpr));

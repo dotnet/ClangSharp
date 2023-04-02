@@ -3,6 +3,8 @@
 using System.Diagnostics;
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class SubstNonTypeTemplateParmPackExpr : Expr
     private readonly Lazy<TemplateArgument> _argumentPack;
     private readonly Lazy<NonTypeTemplateParmDecl> _parameterPack;
 
-    internal SubstNonTypeTemplateParmPackExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclRefExpr, CX_StmtClass.CX_StmtClass_SubstNonTypeTemplateParmPackExpr)
+    internal SubstNonTypeTemplateParmPackExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_SubstNonTypeTemplateParmPackExpr)
     {
         Debug.Assert(NumChildren is 0);
 

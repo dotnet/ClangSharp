@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -23,7 +25,7 @@ public unsafe class Type : IEquatable<Type>
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        if ((handle.TypeClass == CX_TypeClass.CX_TypeClass_Invalid) || (handle.TypeClass != expectedTypeClass))
+        if ((handle.TypeClass == CX_TypeClass_Invalid) || (handle.TypeClass != expectedTypeClass))
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
@@ -61,14 +63,14 @@ public unsafe class Type : IEquatable<Type>
 
     public bool IsBitIntType => CanonicalType is BitIntType;
 
-    public bool IsIntegerType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind is >= CXTypeKind.CXType_Bool and <= CXTypeKind.CXType_Int128;
+    public bool IsIntegerType => (CanonicalType is BuiltinType builtinType) && builtinType.Kind is >= CXType_Bool and <= CXType_Int128;
 
     public bool IsIntegralOrEnumerationType
     {
         get
         {
             return CanonicalType is BuiltinType bt
-                ? bt.Kind is >= CXTypeKind.CXType_Bool and <= CXTypeKind.CXType_Int128
+                ? bt.Kind is >= CXType_Bool and <= CXType_Int128
                 : CanonicalType is EnumType et ? et.Decl.IsComplete : IsBitIntType;
         }
     }
@@ -115,61 +117,61 @@ public unsafe class Type : IEquatable<Type>
     public static bool operator !=(Type? left, Type? right) => (left is not null) ? ((right is null) || (left.Handle != right.Handle)) : (right is not null);
 
     internal static Type Create(CXType handle) => handle.TypeClass switch {
-        CX_TypeClass.CX_TypeClass_Invalid => new Type(handle, handle.kind, handle.TypeClass),
-        CX_TypeClass.CX_TypeClass_Adjusted => new AdjustedType(handle),
-        CX_TypeClass.CX_TypeClass_Decayed => new DecayedType(handle),
-        CX_TypeClass.CX_TypeClass_ConstantArray => new ConstantArrayType(handle),
-        CX_TypeClass.CX_TypeClass_DependentSizedArray => new DependentSizedArrayType(handle),
-        CX_TypeClass.CX_TypeClass_IncompleteArray => new IncompleteArrayType(handle),
-        CX_TypeClass.CX_TypeClass_VariableArray => new VariableArrayType(handle),
-        CX_TypeClass.CX_TypeClass_Atomic => new AtomicType(handle),
-        CX_TypeClass.CX_TypeClass_Attributed => new AttributedType(handle),
-        CX_TypeClass.CX_TypeClass_BTFTagAttributed => new BTFTagAttributedType(handle),
-        CX_TypeClass.CX_TypeClass_BitInt => new BitIntType(handle),
-        CX_TypeClass.CX_TypeClass_BlockPointer => new BlockPointerType(handle),
-        CX_TypeClass.CX_TypeClass_Builtin => new BuiltinType(handle),
-        CX_TypeClass.CX_TypeClass_Complex => new ComplexType(handle),
-        CX_TypeClass.CX_TypeClass_Decltype => new DecltypeType(handle),
-        CX_TypeClass.CX_TypeClass_Auto => new AutoType(handle),
-        CX_TypeClass.CX_TypeClass_DeducedTemplateSpecialization => new DeducedTemplateSpecializationType(handle),
-        CX_TypeClass.CX_TypeClass_DependentAddressSpace => new DependentAddressSpaceType(handle),
-        CX_TypeClass.CX_TypeClass_DependentBitInt => new DependentBitIntType(handle),
-        CX_TypeClass.CX_TypeClass_DependentName => new DependentNameType(handle),
-        CX_TypeClass.CX_TypeClass_DependentSizedExtVector => new DependentSizedExtVectorType(handle),
-        CX_TypeClass.CX_TypeClass_DependentTemplateSpecialization => new DependentTemplateSpecializationType(handle),
-        CX_TypeClass.CX_TypeClass_DependentVector => new DependentVectorType(handle),
-        CX_TypeClass.CX_TypeClass_Elaborated => new ElaboratedType(handle),
-        CX_TypeClass.CX_TypeClass_FunctionNoProto => new FunctionNoProtoType(handle),
-        CX_TypeClass.CX_TypeClass_FunctionProto => new FunctionProtoType(handle),
-        CX_TypeClass.CX_TypeClass_InjectedClassName => new InjectedClassNameType(handle),
-        CX_TypeClass.CX_TypeClass_MacroQualified => new MacroQualifiedType(handle),
-        CX_TypeClass.CX_TypeClass_ConstantMatrix => new ConstantMatrixType(handle),
-        CX_TypeClass.CX_TypeClass_DependentSizedMatrix => new DependentSizedMatrixType(handle),
-        CX_TypeClass.CX_TypeClass_MemberPointer => new MemberPointerType(handle),
-        CX_TypeClass.CX_TypeClass_ObjCObjectPointer => new ObjCObjectPointerType(handle),
-        CX_TypeClass.CX_TypeClass_ObjCObject => new ObjCObjectType(handle),
-        CX_TypeClass.CX_TypeClass_ObjCInterface => new ObjCInterfaceType(handle),
-        CX_TypeClass.CX_TypeClass_ObjCTypeParam => new ObjCTypeParamType(handle),
-        CX_TypeClass.CX_TypeClass_PackExpansion => new PackExpansionType(handle),
-        CX_TypeClass.CX_TypeClass_Paren => new ParenType(handle),
-        CX_TypeClass.CX_TypeClass_Pipe => new PipeType(handle),
-        CX_TypeClass.CX_TypeClass_Pointer => new PointerType(handle),
-        CX_TypeClass.CX_TypeClass_LValueReference => new LValueReferenceType(handle),
-        CX_TypeClass.CX_TypeClass_RValueReference => new RValueReferenceType(handle),
-        CX_TypeClass.CX_TypeClass_SubstTemplateTypeParmPack => new SubstTemplateTypeParmPackType(handle),
-        CX_TypeClass.CX_TypeClass_SubstTemplateTypeParm => new SubstTemplateTypeParmType(handle),
-        CX_TypeClass.CX_TypeClass_Enum => new EnumType(handle),
-        CX_TypeClass.CX_TypeClass_Record => new RecordType(handle),
-        CX_TypeClass.CX_TypeClass_TemplateSpecialization => new TemplateSpecializationType(handle),
-        CX_TypeClass.CX_TypeClass_TemplateTypeParm => new TemplateTypeParmType(handle),
-        CX_TypeClass.CX_TypeClass_TypeOfExpr => new TypeOfExprType(handle),
-        CX_TypeClass.CX_TypeClass_TypeOf => new TypeOfType(handle),
-        CX_TypeClass.CX_TypeClass_Typedef => new TypedefType(handle),
-        CX_TypeClass.CX_TypeClass_UnaryTransform => new UnaryTransformType(handle),
-        CX_TypeClass.CX_TypeClass_UnresolvedUsing => new UnresolvedUsingType(handle),
-        CX_TypeClass.CX_TypeClass_Using => new UsingType(handle),
-        CX_TypeClass.CX_TypeClass_Vector => new VectorType(handle),
-        CX_TypeClass.CX_TypeClass_ExtVector => new ExtVectorType(handle),
+        CX_TypeClass_Invalid => new Type(handle, handle.kind, handle.TypeClass),
+        CX_TypeClass_Adjusted => new AdjustedType(handle),
+        CX_TypeClass_Decayed => new DecayedType(handle),
+        CX_TypeClass_ConstantArray => new ConstantArrayType(handle),
+        CX_TypeClass_DependentSizedArray => new DependentSizedArrayType(handle),
+        CX_TypeClass_IncompleteArray => new IncompleteArrayType(handle),
+        CX_TypeClass_VariableArray => new VariableArrayType(handle),
+        CX_TypeClass_Atomic => new AtomicType(handle),
+        CX_TypeClass_Attributed => new AttributedType(handle),
+        CX_TypeClass_BTFTagAttributed => new BTFTagAttributedType(handle),
+        CX_TypeClass_BitInt => new BitIntType(handle),
+        CX_TypeClass_BlockPointer => new BlockPointerType(handle),
+        CX_TypeClass_Builtin => new BuiltinType(handle),
+        CX_TypeClass_Complex => new ComplexType(handle),
+        CX_TypeClass_Decltype => new DecltypeType(handle),
+        CX_TypeClass_Auto => new AutoType(handle),
+        CX_TypeClass_DeducedTemplateSpecialization => new DeducedTemplateSpecializationType(handle),
+        CX_TypeClass_DependentAddressSpace => new DependentAddressSpaceType(handle),
+        CX_TypeClass_DependentBitInt => new DependentBitIntType(handle),
+        CX_TypeClass_DependentName => new DependentNameType(handle),
+        CX_TypeClass_DependentSizedExtVector => new DependentSizedExtVectorType(handle),
+        CX_TypeClass_DependentTemplateSpecialization => new DependentTemplateSpecializationType(handle),
+        CX_TypeClass_DependentVector => new DependentVectorType(handle),
+        CX_TypeClass_Elaborated => new ElaboratedType(handle),
+        CX_TypeClass_FunctionNoProto => new FunctionNoProtoType(handle),
+        CX_TypeClass_FunctionProto => new FunctionProtoType(handle),
+        CX_TypeClass_InjectedClassName => new InjectedClassNameType(handle),
+        CX_TypeClass_MacroQualified => new MacroQualifiedType(handle),
+        CX_TypeClass_ConstantMatrix => new ConstantMatrixType(handle),
+        CX_TypeClass_DependentSizedMatrix => new DependentSizedMatrixType(handle),
+        CX_TypeClass_MemberPointer => new MemberPointerType(handle),
+        CX_TypeClass_ObjCObjectPointer => new ObjCObjectPointerType(handle),
+        CX_TypeClass_ObjCObject => new ObjCObjectType(handle),
+        CX_TypeClass_ObjCInterface => new ObjCInterfaceType(handle),
+        CX_TypeClass_ObjCTypeParam => new ObjCTypeParamType(handle),
+        CX_TypeClass_PackExpansion => new PackExpansionType(handle),
+        CX_TypeClass_Paren => new ParenType(handle),
+        CX_TypeClass_Pipe => new PipeType(handle),
+        CX_TypeClass_Pointer => new PointerType(handle),
+        CX_TypeClass_LValueReference => new LValueReferenceType(handle),
+        CX_TypeClass_RValueReference => new RValueReferenceType(handle),
+        CX_TypeClass_SubstTemplateTypeParmPack => new SubstTemplateTypeParmPackType(handle),
+        CX_TypeClass_SubstTemplateTypeParm => new SubstTemplateTypeParmType(handle),
+        CX_TypeClass_Enum => new EnumType(handle),
+        CX_TypeClass_Record => new RecordType(handle),
+        CX_TypeClass_TemplateSpecialization => new TemplateSpecializationType(handle),
+        CX_TypeClass_TemplateTypeParm => new TemplateTypeParmType(handle),
+        CX_TypeClass_TypeOfExpr => new TypeOfExprType(handle),
+        CX_TypeClass_TypeOf => new TypeOfType(handle),
+        CX_TypeClass_Typedef => new TypedefType(handle),
+        CX_TypeClass_UnaryTransform => new UnaryTransformType(handle),
+        CX_TypeClass_UnresolvedUsing => new UnresolvedUsingType(handle),
+        CX_TypeClass_Using => new UsingType(handle),
+        CX_TypeClass_Vector => new VectorType(handle),
+        CX_TypeClass_ExtVector => new ExtVectorType(handle),
         _ => new Type(handle, handle.kind, handle.TypeClass),
     };
 

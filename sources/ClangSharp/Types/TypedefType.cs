@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class TypedefType : Type
 {
     private readonly Lazy<TypedefNameDecl> _decl;
 
-    internal TypedefType(CXType handle) : base(handle, CXTypeKind.CXType_Typedef, CX_TypeClass.CX_TypeClass_Typedef)
+    internal TypedefType(CXType handle) : base(handle, CXType_Typedef, CX_TypeClass_Typedef)
     {
         _decl = new Lazy<TypedefNameDecl>(() => TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.Declaration));
     }

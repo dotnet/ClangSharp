@@ -2,18 +2,20 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
 public class UsingShadowDecl : NamedDecl, IRedeclarable<UsingShadowDecl>
 {
-    internal UsingShadowDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_UnexposedDecl, CX_DeclKind.CX_DeclKind_UsingShadow)
+    internal UsingShadowDecl(CXCursor handle) : this(handle, CXCursor_UnexposedDecl, CX_DeclKind_UsingShadow)
     {
     }
 
     private protected UsingShadowDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastUsingShadow or < CX_DeclKind.CX_DeclKind_FirstUsingShadow)
+        if (handle.DeclKind is > CX_DeclKind_LastUsingShadow or < CX_DeclKind_FirstUsingShadow)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

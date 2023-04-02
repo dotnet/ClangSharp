@@ -5,6 +5,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CXTemplateArgumentKind;
+using static ClangSharp.Interop.CX_TemplateNameKind;
 
 namespace ClangSharp;
 
@@ -114,9 +117,9 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
     {
         WeakReference<TemplateArgument>? templateArgumentRef;
 
-        if (handle.kind == CXTemplateArgumentKind.CXTemplateArgumentKind_Invalid)
+        if (handle.kind == CXTemplateArgumentKind_Invalid)
         {
-            Debug.Assert(handle.kind != CXTemplateArgumentKind.CXTemplateArgumentKind_Invalid);
+            Debug.Assert(handle.kind != CXTemplateArgumentKind_Invalid);
             return null!;
         }
         else if (!_createdTemplateArguments.TryGetValue(handle, out templateArgumentRef))
@@ -160,9 +163,9 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
     {
         WeakReference<TemplateName>? templateNameRef;
 
-        if (handle.kind == CX_TemplateNameKind.CX_TNK_Invalid)
+        if (handle.kind == CX_TNK_Invalid)
         {
-            Debug.Assert(handle.kind != CX_TemplateNameKind.CX_TNK_Invalid);
+            Debug.Assert(handle.kind != CX_TNK_Invalid);
             return null!;
         }
         else if (!_createdTemplateNames.TryGetValue(handle, out templateNameRef))
@@ -184,9 +187,9 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
     {
         WeakReference<Type>? typeRef;
 
-        if (handle.kind == CXTypeKind.CXType_Invalid)
+        if (handle.kind == CXType_Invalid)
         {
-            Debug.Assert(handle.kind != CXTypeKind.CXType_Invalid);
+            Debug.Assert(handle.kind != CXType_Invalid);
             return null!;
         }
         else if (!_createdTypes.TryGetValue(handle, out typeRef))

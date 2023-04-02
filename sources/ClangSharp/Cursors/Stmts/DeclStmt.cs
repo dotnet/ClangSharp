@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class DeclStmt : Stmt
 {
     private readonly Lazy<IReadOnlyList<Decl>> _decls;
 
-    internal DeclStmt(CXCursor handle) : base(handle, CXCursorKind.CXCursor_DeclStmt, CX_StmtClass.CX_StmtClass_DeclStmt)
+    internal DeclStmt(CXCursor handle) : base(handle, CXCursor_DeclStmt, CX_StmtClass_DeclStmt)
     {
         _decls = new Lazy<IReadOnlyList<Decl>>(() => {
             var numDecls = Handle.NumDecls;

@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using ClangSharp.Abstractions;
 using ClangSharp.Interop;
 using NUnit.Framework;
+using static ClangSharp.Interop.CXTranslationUnit_Flags;
 
 namespace ClangSharp.UnitTests;
 
@@ -18,9 +19,9 @@ public abstract class PInvokeGeneratorTest
     protected const string DefaultLibraryPath = "ClangSharpPInvokeGenerator";
     protected const string DefaultNamespaceName = "ClangSharp.Test";
 
-    protected const CXTranslationUnit_Flags DefaultTranslationUnitFlags = CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes          // Include attributed types in CXType
-                                                                        | CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes         // Implicit attributes should be visited
-                                                                        | CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord;
+    protected const CXTranslationUnit_Flags DefaultTranslationUnitFlags = CXTranslationUnit_IncludeAttributedTypes          // Include attributed types in CXType
+                                                                        | CXTranslationUnit_VisitImplicitAttributes         // Implicit attributes should be visited
+                                                                        | CXTranslationUnit_DetailedPreprocessingRecord;
 
     protected static readonly string[] DefaultCClangCommandLineArgs = new string[]
     {

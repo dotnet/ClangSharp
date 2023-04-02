@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -19,13 +21,13 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
     private readonly Lazy<FunctionDecl> _templateInstantiationPattern;
     private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateSpecializationArgs;
 
-    internal FunctionDecl(CXCursor handle) : this(handle, CXCursorKind.CXCursor_FunctionDecl, CX_DeclKind.CX_DeclKind_Function)
+    internal FunctionDecl(CXCursor handle) : this(handle, CXCursor_FunctionDecl, CX_DeclKind_Function)
     {
     }
 
     private protected FunctionDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastFunction or < CX_DeclKind.CX_DeclKind_FirstFunction)
+        if (handle.DeclKind is > CX_DeclKind_LastFunction or < CX_DeclKind_FirstFunction)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

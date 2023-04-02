@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -13,9 +15,9 @@ public sealed class DeclRefExpr : Expr
     private readonly Lazy<NamedDecl> _foundDecl;
     private readonly Lazy<IReadOnlyList<TemplateArgumentLoc>> _templateArgs;
 
-    internal DeclRefExpr(CXCursor handle) : base(handle, handle.Kind, CX_StmtClass.CX_StmtClass_DeclRefExpr)
+    internal DeclRefExpr(CXCursor handle) : base(handle, handle.Kind, CX_StmtClass_DeclRefExpr)
     {
-        if (handle.Kind is not CXCursorKind.CXCursor_DeclRefExpr and not CXCursorKind.CXCursor_ObjCSelfExpr)
+        if (handle.Kind is not CXCursor_DeclRefExpr and not CXCursor_ObjCSelfExpr)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

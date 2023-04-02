@@ -2,6 +2,8 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
@@ -9,7 +11,7 @@ public sealed class ObjCTypeParamType : Type
 {
     private readonly Lazy<ObjCTypeParamDecl> _decl;
 
-    internal ObjCTypeParamType(CXType handle) : base(handle, CXTypeKind.CXType_ObjCTypeParam, CX_TypeClass.CX_TypeClass_ObjCTypeParam)
+    internal ObjCTypeParamType(CXType handle) : base(handle, CXType_ObjCTypeParam, CX_TypeClass_ObjCTypeParam)
     {
         _decl = new Lazy<ObjCTypeParamDecl>(() => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.Declaration));
     }

@@ -2,6 +2,7 @@
 
 using System;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,7 +12,7 @@ public class RedeclarableTemplateDecl : TemplateDecl, IRedeclarable<Redeclarable
 
     private protected RedeclarableTemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
-        if (handle.DeclKind is > CX_DeclKind.CX_DeclKind_LastRedeclarableTemplate or < CX_DeclKind.CX_DeclKind_FirstRedeclarableTemplate)
+        if (handle.DeclKind is > CX_DeclKind_LastRedeclarableTemplate or < CX_DeclKind_FirstRedeclarableTemplate)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }

@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -12,7 +14,7 @@ public sealed class CXXConstructorDecl : CXXMethodDecl
     private readonly Lazy<CXXConstructorDecl> _inheritedConstructor;
     private readonly Lazy<IReadOnlyList<Expr>> _initExprs;
 
-    internal CXXConstructorDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_Constructor, CX_DeclKind.CX_DeclKind_CXXConstructor)
+    internal CXXConstructorDecl(CXCursor handle) : base(handle, CXCursor_Constructor, CX_DeclKind_CXXConstructor)
     {
         _inheritedConstructor = new Lazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.InheritedConstructor));
         _initExprs = new Lazy<IReadOnlyList<Expr>>(() => {

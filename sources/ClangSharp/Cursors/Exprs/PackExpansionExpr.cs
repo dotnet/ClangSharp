@@ -2,12 +2,14 @@
 
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
 public sealed class PackExpansionExpr : Expr
 {
-    internal PackExpansionExpr(CXCursor handle) : base(handle, CXCursorKind.CXCursor_PackExpansionExpr, CX_StmtClass.CX_StmtClass_PackExpansionExpr)
+    internal PackExpansionExpr(CXCursor handle) : base(handle, CXCursor_PackExpansionExpr, CX_StmtClass_PackExpansionExpr)
     {
         Debug.Assert(NumChildren is 1);
     }

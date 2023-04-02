@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CXCursorKind;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
@@ -11,7 +13,7 @@ public sealed class ObjCProtocolDecl : ObjCContainerDecl, IRedeclarable<ObjCProt
     private readonly Lazy<ObjCProtocolDecl> _definition;
     private readonly Lazy<IReadOnlyList<ObjCProtocolDecl>> _protocols;
 
-    internal ObjCProtocolDecl(CXCursor handle) : base(handle, CXCursorKind.CXCursor_ObjCProtocolDecl, CX_DeclKind.CX_DeclKind_ObjCProtocol)
+    internal ObjCProtocolDecl(CXCursor handle) : base(handle, CXCursor_ObjCProtocolDecl, CX_DeclKind_ObjCProtocol)
     {
         _definition = new Lazy<ObjCProtocolDecl>(() => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.Definition));
 
