@@ -2175,6 +2175,10 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             return GetCallingConvention(cursor, context, decltypeType.UnderlyingType, ref wasRemapped);
         }
+        else if (type is ElaboratedType elaboratedType)
+        {
+            return GetCallingConvention(cursor, context, elaboratedType.NamedType, ref wasRemapped);
+        }
         else if (type is FunctionType functionType)
         {
             var callingConv = functionType.CallConv;
@@ -2520,7 +2524,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private static CXXRecordDecl GetRecordDecl(CXXBaseSpecifier cxxBaseSpecifier)
+    private CXXRecordDecl GetRecordDecl(CXXBaseSpecifier cxxBaseSpecifier)
     {
         var baseType = cxxBaseSpecifier.Type;
 
@@ -2532,11 +2536,35 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (baseType is ElaboratedType elaboratedType)
             {
-                baseType = elaboratedType.CanonicalType;
+                baseType = elaboratedType.NamedType;
             }
             else if (baseType is TemplateSpecializationType templateSpecializationType)
             {
-                baseType = templateSpecializationType.CanonicalType;
+                if (templateSpecializationType.IsTypeAlias)
+                {
+                    baseType = templateSpecializationType.AliasedType;
+                }
+                else if (templateSpecializationType.IsSugared)
+                {
+                    baseType = templateSpecializationType.Desugar;
+                }
+                else if (templateSpecializationType.TemplateName.AsTemplateDecl is TemplateDecl templateDecl)
+                {
+                    if (templateDecl.TemplatedDecl is TypeDecl typeDecl)
+                    {
+                        baseType = typeDecl.TypeForDecl;
+                    }
+                    else
+                    {
+                        AddDiagnostic(DiagnosticLevel.Error, $"Unsupported template specialization declaration kind: '{templateDecl.TemplatedDecl.DeclKindName}'.", cxxBaseSpecifier);
+                        baseType = templateSpecializationType.CanonicalType;
+                    }
+                }
+                else
+                {
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported template specialization type: '{templateSpecializationType}'.", cxxBaseSpecifier);
+                    baseType = templateSpecializationType.CanonicalType;
+                }
             }
             else if (baseType is TypedefType typedefType)
             {
@@ -3102,7 +3130,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (type is DeducedType deducedType)
             {
-                result.typeName = GetTypeName(cursor, context, rootType, deducedType.CanonicalType, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeName(cursor, context, rootType, deducedType.GetDeducedType, ignoreTransparentStructsWhereRequired, out _);
             }
             else if (type is DependentNameType dependentNameType)
             {
@@ -3862,11 +3890,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             // platform size, based on whatever parameters were passed into clang.
 
             var name = GetTypeName(cursor, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
-
-            if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
-            {
-                remappedName = name;
-            }
+            var remappedName = GetRemappedTypeName(cursor, context: null, type, out _, skipUsing: true, ignoreTransparentStructsWhereRequired: false);
 
             if ((remappedName == name) && _config.WithTransparentStructs.TryGetValue(remappedName, out var transparentStruct) && ((transparentStruct.Name == "long") || (transparentStruct.Name == "ulong")))
             {
@@ -4350,7 +4374,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 parmVarDecl = functionDecl.Parameters.FirstOrDefault();
             }
 
-            if ((parmVarDecl is not null) && (parmVarDecl.Type is PointerType pointerType))
+            if ((parmVarDecl is not null) && (parmVarDecl.Type.CanonicalType is PointerType pointerType))
             {
                 var typeName = GetTypeName(parmVarDecl, context: null, pointerType.PointeeType, ignoreTransparentStructsWhereRequired: false, out var nativeTypeName);
                 return name.StartsWith($"{nativeTypeName}_") || name.StartsWith($"{typeName}_") || (typeName == "IRpcStubBuffer");
@@ -4590,11 +4614,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         else if (type is TypedefType typedefType)
         {
             var name = GetTypeName(cursor, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
-
-            if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
-            {
-                remappedName = name;
-            }
+            var remappedName = GetRemappedTypeName(cursor, context: null, type, out _, skipUsing: true, ignoreTransparentStructsWhereRequired: false);
 
             return (remappedName != "IntPtr")
                 && (remappedName != "nint")
@@ -5335,13 +5355,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (type.CanonicalType is ConstantArrayType or IncompleteArrayType)
         {
-            var name = GetTypeName(fieldDecl, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
-
-            if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
-            {
-                remappedName = name;
-            }
-
+            var remappedName = GetRemappedTypeName(fieldDecl, context: null, type, out _, skipUsing: true, ignoreTransparentStructsWhereRequired: false);
             return IsSupportedFixedSizedBufferType(remappedName);
         }
 
@@ -5417,13 +5431,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool IsUnsafe(NamedDecl namedDecl, Type type)
     {
-        var name = GetTypeName(namedDecl, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
-
-        if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
-        {
-            remappedName = name;
-        }
-
+        var remappedName = GetRemappedTypeName(namedDecl, context: null, type, out _, skipUsing: true, ignoreTransparentStructsWhereRequired: false);
         return remappedName.Contains('*');
     }
 

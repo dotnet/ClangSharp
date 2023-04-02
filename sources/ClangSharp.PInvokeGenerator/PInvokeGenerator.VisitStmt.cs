@@ -886,7 +886,7 @@ public partial class PInvokeGenerator
     {
         var outputBuilder = StartCSharpCode();
 
-        if (IsPrevContextDecl<EnumConstantDecl>(out _, out _) && explicitCastExpr.Type is EnumType enumType)
+        if (IsPrevContextDecl<EnumConstantDecl>(out _, out _) && explicitCastExpr.Type.CanonicalType is EnumType enumType)
         {
             outputBuilder.Write('(');
             var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _);
@@ -2811,7 +2811,7 @@ public partial class PInvokeGenerator
 
             case CX_UO_AddrOf:
             {
-                if ((unaryOperator.SubExpr is DeclRefExpr declRefExpr) && (declRefExpr.Decl.Type is LValueReferenceType))
+                if ((unaryOperator.SubExpr is DeclRefExpr declRefExpr) && (declRefExpr.Decl.Type.CanonicalType is LValueReferenceType))
                 {
                     Visit(unaryOperator.SubExpr);
                 }
