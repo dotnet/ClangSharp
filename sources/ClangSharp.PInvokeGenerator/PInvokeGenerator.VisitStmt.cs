@@ -81,13 +81,13 @@ public partial class PInvokeGenerator
         if ((callExpr.DirectCallee is not null) && callExpr.DirectCallee.IsInlined)
         {
             var evalResult = callExpr.Handle.Evaluate;
-            var canonicalType = callExpr.Type.CanonicalType;
+            var type = callExpr.Type;
 
             switch (evalResult.Kind)
             {
                 case CXEval_Int:
                 {
-                    if (canonicalType.Handle.IsUnsigned)
+                    if (type.CanonicalType.Handle.IsUnsigned)
                     {
                         outputBuilder.Write(evalResult.AsUnsigned);
                     }
@@ -102,7 +102,7 @@ public partial class PInvokeGenerator
 
                 case CXEval_Float:
                 {
-                    if (canonicalType.Kind == CXType_Float)
+                    if (type.CanonicalType.Kind == CXType_Float)
                     {
                         outputBuilder.Write((float)evalResult.AsDouble);
                     }
@@ -125,7 +125,7 @@ public partial class PInvokeGenerator
 
         var isUnusedValue = false;
 
-        if (callExpr.Type.CanonicalType.Kind != CXType_Void)
+        if (!IsTypeVoid(callExpr, callExpr.Type))
         {
             isUnusedValue = IsPrevContextStmt<CompoundStmt>(out _, out _)
                          || IsPrevContextStmt<IfStmt>(out _, out _);
@@ -172,7 +172,7 @@ public partial class PInvokeGenerator
                         if (IsStmtAsWritten<IntegerLiteral>(callExpr.Args[1], out var integerLiteralExpr, removeParens: true) && (integerLiteralExpr.Value == 0) &&
                             IsStmtAsWritten<UnaryExprOrTypeTraitExpr>(callExpr.Args[2], out var unaryExprOrTypeTraitExpr, removeParens: true) && (unaryExprOrTypeTraitExpr.Kind == CX_UETT_SizeOf))
                         {
-                            var typeOfArgument = unaryExprOrTypeTraitExpr.TypeOfArgument.CanonicalType;
+                            var typeOfArgument = unaryExprOrTypeTraitExpr.TypeOfArgument;
                             var expr = callExpr.Args[0];
 
                             if (IsStmtAsWritten<UnaryOperator>(expr, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UO_AddrOf))
@@ -180,11 +180,11 @@ public partial class PInvokeGenerator
                                 expr = unaryOperator.SubExpr;
                             }
 
-                            if (IsStmtAsWritten<DeclRefExpr>(expr, out var declRefExpr, removeParens: true) && (typeOfArgument == declRefExpr.Type.CanonicalType))
+                            if (IsStmtAsWritten<DeclRefExpr>(expr, out var declRefExpr, removeParens: true) && (typeOfArgument.CanonicalType == declRefExpr.Type.CanonicalType))
                             {
                                 namedDecl = declRefExpr.Decl;
                             }
-                            else if (IsStmtAsWritten<MemberExpr>(expr, out var memberExpr, removeParens: true) && (typeOfArgument == memberExpr.Type.CanonicalType))
+                            else if (IsStmtAsWritten<MemberExpr>(expr, out var memberExpr, removeParens: true) && (typeOfArgument.CanonicalType == memberExpr.Type.CanonicalType))
                             {
                                 namedDecl = memberExpr.MemberDecl;
                             }
@@ -245,12 +245,12 @@ public partial class PInvokeGenerator
         void VisitArgs(CallExpr callExpr)
         {
             var callExprType = (callExpr.Callee is MemberExpr memberExpr)
-                             ? memberExpr.MemberDecl.Type.CanonicalType
-                             : callExpr.Callee.Type.CanonicalType;
+                             ? memberExpr.MemberDecl.Type
+                             : callExpr.Callee.Type;
 
-            if (callExprType is PointerType pointerType)
+            if (IsType<PointerType>(callExpr, callExprType, out var pointerType))
             {
-                callExprType = pointerType.PointeeType.CanonicalType;
+                callExprType = pointerType.PointeeType;
             }
 
             outputBuilder.Write('(');
@@ -267,11 +267,9 @@ public partial class PInvokeGenerator
                     outputBuilder.Write(", ");
                 }
 
-                if (callExprType is FunctionProtoType functionProtoType)
+                if (IsType<FunctionProtoType>(callExpr, callExprType, out var functionProtoType))
                 {
-                    var paramType = functionProtoType.ParamTypes[i].CanonicalType;
-
-                    if (paramType is ReferenceType)
+                    if (IsType<ReferenceType>(callExpr, functionProtoType.ParamTypes[i]))
                     {
                         if (IsStmtAsWritten<UnaryOperator>(arg, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UO_Deref))
                         {
@@ -279,12 +277,12 @@ public partial class PInvokeGenerator
                         }
                         else if (IsStmtAsWritten<DeclRefExpr>(arg, out var declRefExpr, removeParens: true))
                         {
-                            if (declRefExpr.Decl.Type.CanonicalType is not ReferenceType and not PointerType)
+                            if (!IsTypePointerOrReference(declRefExpr.Decl))
                             {
                                 outputBuilder.Write('&');
                             }
                         }
-                        else if (arg.Type.CanonicalType is not ReferenceType and not PointerType)
+                        else if (!IsTypePointerOrReference(arg))
                         {
                             outputBuilder.Write('&');
                         }
@@ -543,13 +541,22 @@ public partial class PInvokeGenerator
             Debug.Assert(@base is not null);
             Visit(@base);
 
-            var type = @base is CXXThisExpr
-                     ? null
-                     : @base is DeclRefExpr declRefExpr
-                         ? declRefExpr.Decl.Type.CanonicalType
-                         : @base.Type.CanonicalType;
-
-            if (type is not null and (PointerType or ReferenceType))
+            if (@base is CXXThisExpr)
+            {
+                outputBuilder.Write('.');
+            }
+            else if (@base is DeclRefExpr declRefExpr)
+            {
+                if (IsTypePointerOrReference(declRefExpr.Decl))
+                {
+                    outputBuilder.Write("->");
+                }
+                else
+                {
+                    outputBuilder.Write('.');
+                }
+            }
+            else if (IsTypePointerOrReference(@base))
             {
                 outputBuilder.Write("->");
             }
@@ -886,7 +893,7 @@ public partial class PInvokeGenerator
     {
         var outputBuilder = StartCSharpCode();
 
-        if (IsPrevContextDecl<EnumConstantDecl>(out _, out _) && explicitCastExpr.Type.CanonicalType is EnumType enumType)
+        if (IsPrevContextDecl<EnumConstantDecl>(out _, out _) && IsType<EnumType>(explicitCastExpr, out var enumType))
         {
             outputBuilder.Write('(');
             var enumUnderlyingTypeName = GetRemappedTypeName(explicitCastExpr, context: null, enumType.Decl.IntegerType, out _);
@@ -903,7 +910,7 @@ public partial class PInvokeGenerator
 
             if (cursorName.StartsWith("ClangSharpMacro_") &&  _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
             {
-                if (!IsPrimitiveValue(type) || IsConstant(typeName, varDecl.Init))
+                if (!IsPrimitiveValue(explicitCastExpr, type) || IsConstant(typeName, varDecl.Init))
                 {
                     typeName = transparentStruct.Name;
                 }
@@ -1142,7 +1149,7 @@ public partial class PInvokeGenerator
 
                 var value = previousContext.Value;
 
-                if ((value.Cursor is SwitchStmt switchStmt) && (switchStmt.Cond.IgnoreImplicit.Type.CanonicalType is EnumType))
+                if ((value.Cursor is SwitchStmt switchStmt) && IsType<EnumType>(switchStmt.Cond.IgnoreImplicit))
                 {
                     Visit(subExpr);
                     subExpr = null;
@@ -1180,7 +1187,28 @@ public partial class PInvokeGenerator
     private void VisitInitListExpr(InitListExpr initListExpr)
     {
         var outputBuilder = StartCSharpCode();
-        ForType(outputBuilder, initListExpr, initListExpr.Type);
+
+        if (IsType<ArrayType>(initListExpr, out var arrayType))
+        {
+            ForArrayType(outputBuilder, initListExpr, arrayType);
+        }
+        else if (IsType<BuiltinType>(initListExpr, out var builtinType))
+        {
+            ForBuiltinType(outputBuilder, initListExpr, builtinType);
+        }
+        else if (IsType<PointerType>(initListExpr, out var pointerType))
+        {
+            ForPointerType(outputBuilder, initListExpr, pointerType);
+        }
+        else if (IsType<RecordType>(initListExpr, out var recordType))
+        {
+            ForRecordType(outputBuilder, initListExpr, recordType);
+        }
+        else
+        {
+            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression type: '{initListExpr.Type.TypeClassSpelling}'. Generated bindings may be incomplete.", initListExpr);
+        }
+
         StopCSharpCode();
 
         long CalculateRootSize(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, ArrayType? arrayType, bool isUnmanagedConstant)
@@ -1195,7 +1223,7 @@ public partial class PInvokeGenerator
                 }
                 long size = -1;
 
-                if (arrayType is ConstantArrayType or IncompleteArrayType)
+                if (IsTypeConstantOrIncompleteArray(initListExpr, arrayType))
                 {
                     size = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1);
                 }
@@ -1389,38 +1417,6 @@ public partial class PInvokeGenerator
             outputBuilder.NeedsSemicolon = true;
         }
 
-        void ForType(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, Type type)
-        {
-            if (type is ArrayType arrayType)
-            {
-                ForArrayType(outputBuilder, initListExpr, arrayType);
-            }
-            else if (type is BuiltinType builtinType)
-            {
-                ForBuiltinType(outputBuilder, initListExpr, builtinType);
-            }
-            else if (type is ElaboratedType elaboratedType)
-            {
-                ForType(outputBuilder, initListExpr, elaboratedType.NamedType);
-            }
-            else if (type is PointerType pointerType)
-            {
-                ForPointerType(outputBuilder, initListExpr, pointerType);
-            }
-            else if (type is RecordType recordType)
-            {
-                ForRecordType(outputBuilder, initListExpr, recordType);
-            }
-            else if (type is TypedefType typedefType)
-            {
-                ForType(outputBuilder, initListExpr, typedefType.Decl.UnderlyingType);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported init list expression type: '{type.TypeClassSpelling}'. Generated bindings may be incomplete.", initListExpr);
-            }
-        }
-
         void HandleInitListExpr(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr)
         {
             var inits = initListExpr.Inits;
@@ -1516,7 +1512,7 @@ public partial class PInvokeGenerator
             outputBuilder.NeedsNewline = true;
             long rootSize = -1;
 
-            if (type is ArrayType arrayType)
+            if (IsType<ArrayType>(initListExpr, type, out var arrayType))
             {
                 rootSize = CalculateRootSize(outputBuilder, initListExpr, arrayType, isUnmanagedConstant: true);
 
@@ -1623,7 +1619,7 @@ public partial class PInvokeGenerator
                     _testOutputBuilder.WriteSemicolon();
                     _testOutputBuilder.WriteNewline();
                 }
-                else if (type is RecordType recordType)
+                else if (IsType<RecordType>(initListExpr, type, out var recordType))
                 {
                     var decl = recordType.Decl;
 
@@ -1671,7 +1667,7 @@ public partial class PInvokeGenerator
                 }
                 else
                 {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported type kind: '{type.Kind}'. Generated bindings may be incomplete.", initListExpr);
+                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported type kind: '{type.TypeClassSpelling}'. Generated bindings may be incomplete.", initListExpr);
                 }
 
                 _testOutputBuilder.WriteBlockEnd();
@@ -1801,21 +1797,22 @@ public partial class PInvokeGenerator
                 Visit(memberExprBase);
             }
 
-            var type = null as Type;
-
-            if (!IsStmtAsWritten<CXXThisExpr>(memberExprBase, out _, removeParens: true))
+            if (IsStmtAsWritten<CXXThisExpr>(memberExprBase, out _, removeParens: true))
             {
-                if (memberExprBase is DeclRefExpr declRefExpr)
+                outputBuilder.Write('.');
+            }
+            else if (memberExprBase is DeclRefExpr declRefExpr)
+            {
+                if (IsTypePointerOrReference(declRefExpr.Decl))
                 {
-                    type = declRefExpr.Decl.Type.CanonicalType;
+                    outputBuilder.Write("->");
                 }
                 else
                 {
-                    type = memberExpr.Base.Type.CanonicalType;
+                    outputBuilder.Write('.');
                 }
             }
-
-            if (type is not null and (PointerType or ReferenceType))
+            else if (IsTypePointerOrReference(memberExpr.Base))
             {
                 outputBuilder.Write("->");
             }
@@ -1870,7 +1867,8 @@ public partial class PInvokeGenerator
     private void VisitReturnStmt(ReturnStmt returnStmt)
     {
         var outputBuilder = StartCSharpCode();
-        if (IsPrevContextDecl<FunctionDecl>(out var functionDecl, out _) && (functionDecl.ReturnType.CanonicalType.Kind != CXType_Void))
+
+        if (IsPrevContextDecl<FunctionDecl>(out var functionDecl, out _) && !IsTypeVoid(functionDecl, functionDecl.ReturnType))
         {
             outputBuilder.Write("return");
 
@@ -1878,12 +1876,9 @@ public partial class PInvokeGenerator
             {
                 outputBuilder.Write(' ');
 
-                if (functionDecl.ReturnType.CanonicalType is not ReferenceType and not PointerType)
+                if (!IsTypePointerOrReference(functionDecl) && IsType<ReferenceType>(returnStmt.RetValue))
                 {
-                    if (returnStmt.RetValue.Type.CanonicalType is ReferenceType)
-                    {
-                        outputBuilder.Write('*');
-                    }
+                    outputBuilder.Write('*');
                 }
 
                 Visit(returnStmt.RetValue);
@@ -2630,7 +2625,7 @@ public partial class PInvokeGenerator
 
                         if (calleeDecl is null)
                         {
-                            parentType = callExpr.Callee.Type.CanonicalType;
+                            parentType = callExpr.Callee.Type;
                         }
                         else if (calleeDecl is FunctionDecl functionDecl)
                         {
@@ -2649,7 +2644,7 @@ public partial class PInvokeGenerator
                                 }
                             }
 
-                            parentType = functionDecl.Parameters[index].Type.CanonicalType;
+                            parentType = functionDecl.Parameters[index].Type;
                         }
                         else
                         {
@@ -2658,15 +2653,15 @@ public partial class PInvokeGenerator
                     }
                     else if (IsPrevContextStmt<Expr>(out var expr, out _))
                     {
-                        parentType = expr.Type.CanonicalType;
+                        parentType = expr.Type;
                     }
                     else if (IsPrevContextDecl<TypeDecl>(out var typeDecl, out _))
                     {
-                        parentType = typeDecl.TypeForDecl.CanonicalType;
+                        parentType = typeDecl.TypeForDecl;
                     }
                     else if (IsPrevContextDecl<ValueDecl>(out var valueDecl, out _))
                     {
-                        parentType = valueDecl.Type.CanonicalType;
+                        parentType = valueDecl.Type;
                     }
 
                     var needsCast = false;
@@ -2685,10 +2680,10 @@ public partial class PInvokeGenerator
                             }
                         }
 
-                        needsCast = parentType.Kind == CXType_UInt;
-                        needsCast |= parentType.Kind == CXType_ULong;
+                        needsCast = IsType<BuiltinType>(unaryExprOrTypeTraitExpr, parentType, out var builtinType) &&
+                                    ((builtinType.Kind == CXType_UInt) || (builtinType.Kind == CXType_ULong));
                         needsCast &= !IsSupportedFixedSizedBufferType(typeName);
-                        needsCast &= argumentType.CanonicalType.Kind != CXType_Enum;
+                        needsCast &= !IsType<EnumType>(unaryExprOrTypeTraitExpr, argumentType);
                         needsCast |= parentTypeIsVariableSized;
                     }
 
@@ -2765,9 +2760,8 @@ public partial class PInvokeGenerator
             case CX_UO_LNot:
             {
                 var subExpr = GetExprAsWritten(unaryOperator.SubExpr, removeParens: true);
-                var canonicalType = subExpr.Type.CanonicalType;
 
-                if (canonicalType.IsIntegerType && (canonicalType.Kind != CXType_Bool))
+                if (IsType<BuiltinType>(subExpr, out var builtinType) && builtinType.IsIntegerType && (builtinType.Kind != CXType_Bool))
                 {
                     var needsParens = IsStmtAsWritten<BinaryOperator>(subExpr, out _);
 
@@ -2783,7 +2777,7 @@ public partial class PInvokeGenerator
                     }
                     outputBuilder.Write(" == 0");
                 }
-                else if (canonicalType is PointerType or ReferenceType)
+                else if (IsTypePointerOrReference(subExpr))
                 {
                     var needsParens = !IsPrevContextStmt<ParenExpr>(out _, out _, preserveParen: true) &&
                                       !IsPrevContextStmt<IfStmt>(out _, out _, preserveParen: true);
@@ -2811,7 +2805,7 @@ public partial class PInvokeGenerator
 
             case CX_UO_AddrOf:
             {
-                if ((unaryOperator.SubExpr is DeclRefExpr declRefExpr) && (declRefExpr.Decl.Type.CanonicalType is LValueReferenceType))
+                if ((unaryOperator.SubExpr is DeclRefExpr declRefExpr) && IsType<LValueReferenceType>(declRefExpr.Decl))
                 {
                     Visit(unaryOperator.SubExpr);
                 }
@@ -2864,11 +2858,23 @@ public partial class PInvokeGenerator
             Debug.Assert(@base is not null);
             Visit(@base);
 
-            var type = @base is CXXThisExpr
-                     ? null
-                     : @base is DeclRefExpr declRefExpr ? declRefExpr.Decl.Type.CanonicalType : @base.Type.CanonicalType;
-
-            if (type is not null and (PointerType or ReferenceType))
+            if (@base is CXXThisExpr)
+            {
+                outputBuilder.Write('.');
+                return;
+            }
+            else if (@base is DeclRefExpr declRefExpr)
+            {
+                if (IsTypePointerOrReference(declRefExpr.Decl))
+                {
+                    outputBuilder.Write("->");
+                }
+                else
+                {
+                    outputBuilder.Write('.');
+                }
+            }
+            else if (IsTypePointerOrReference(@base))
             {
                 outputBuilder.Write("->");
             }

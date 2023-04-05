@@ -459,15 +459,13 @@ public partial class PInvokeGenerator
 
         _outputBuilder.BeginField(in desc);
 
-        if (type.CanonicalType is ConstantArrayType or IncompleteArrayType)
+        if (IsTypeConstantOrIncompleteArray(fieldDecl, type, out var arrayType))
         {
-            var arrayType = (ArrayType)type.CanonicalType;
-
             var count = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1).ToString();
             var elementType = arrayType.ElementType;
-            while (elementType.CanonicalType is ConstantArrayType or IncompleteArrayType)
+
+            while (IsTypeConstantOrIncompleteArray(fieldDecl, elementType, out var subArrayType))
             {
-                var subArrayType = (ArrayType)elementType.CanonicalType;
                 count += " * ";
                 count += Math.Max((subArrayType as ConstantArrayType)?.Size ?? 0, 1).ToString();
                 elementType = subArrayType.ElementType;
@@ -697,7 +695,7 @@ public partial class PInvokeGenerator
                 var outputBuilder = StartCSharpCode();
                 outputBuilder.WriteIndentation();
 
-                if (returnType.CanonicalType.Kind != CXType_Void)
+                if (!IsTypeVoid(functionDecl, returnType))
                 {
                     outputBuilder.Write("return ");
                 }
@@ -944,7 +942,7 @@ public partial class PInvokeGenerator
         _outputBuilder.WriteDivider(true);
         _outputBuilder.BeginField(in desc);
 
-        var isFixedSizedBuffer = type.CanonicalType is ConstantArrayType or IncompleteArrayType;
+        var isFixedSizedBuffer = IsTypeConstantOrIncompleteArray(indirectFieldDecl, type);
         var generateCompatibleCode = _config.GenerateCompatibleCode;
         var typeString = string.Empty;
 
@@ -953,7 +951,7 @@ public partial class PInvokeGenerator
             typeString = "ref ";
         }
 
-        if (type.CanonicalType is RecordType recordType)
+        if (IsType<RecordType>(indirectFieldDecl, type, out var recordType))
         {
             var recordDecl = recordType.Decl;
 
@@ -992,7 +990,7 @@ public partial class PInvokeGenerator
 
         _outputBuilder.WriteRegularField(typeString, escapedName);
 
-        var isIndirectPointerField = ((type.CanonicalType is PointerType) || (type.CanonicalType is ReferenceType)) && (typeName != "IntPtr") && (typeName != "UIntPtr");
+        var isIndirectPointerField = IsTypePointerOrReference(indirectFieldDecl, type) && (typeName != "IntPtr") && (typeName != "UIntPtr");
 
         _outputBuilder.BeginBody();
         _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
@@ -1086,7 +1084,7 @@ public partial class PInvokeGenerator
                     if (isSupportedFixedSizedBufferType)
                     {
                         code.Write("[0], ");
-                        code.Write(Math.Max((type.CanonicalType as ConstantArrayType)?.Size ?? 0, 1));
+                        code.Write(Math.Max(IsType<ConstantArrayType>(indirectFieldDecl, type, out var constantArrayType) ? constantArrayType.Size : 0, 1));
                     }
                     else
                     {
@@ -1240,7 +1238,7 @@ public partial class PInvokeGenerator
 
                 var defaultArg = parmVarDecl.DefaultArg;
 
-                if (parmVarDecl.Type.CanonicalType.IsPointerType && (defaultArg.Handle.Evaluate.Kind == CXEval_UnExposed))
+                if (IsTypePointerOrReference(parmVarDecl) && (defaultArg.Handle.Evaluate.Kind == CXEval_UnExposed))
                 {
                     if (!isExprDefaultValue)
                     {
@@ -1809,7 +1807,7 @@ public partial class PInvokeGenerator
 
             Visit(recordDecl.Decls, excludedCursors);
 
-            foreach (var array in recordDecl.Fields.Where((field) => field.Type.CanonicalType is ConstantArrayType or IncompleteArrayType))
+            foreach (var array in recordDecl.Fields.Where((field) => IsTypeConstantOrIncompleteArray(field)))
             {
                 VisitConstantOrIncompleteArrayFieldDecl(recordDecl, array);
             }
@@ -1962,7 +1960,8 @@ public partial class PInvokeGenerator
                 return;
             }
 
-            if (_config.GenerateTrimmableVtbls && cxxMethodDecl.Parameters.Any((parmVarDecl) => (parmVarDecl.Type.CanonicalType is PointerType pointerType) && (pointerType.PointeeType is FunctionType)))
+            if (_config.GenerateTrimmableVtbls && cxxMethodDecl.Parameters.Any((parmVarDecl) => IsType<PointerType>(parmVarDecl, parmVarDecl.Type, out var pointerType) &&
+                                                                                                IsType<FunctionType>(parmVarDecl, pointerType.PointeeType, out _)))
             {
                 // This breaks trimming right now
                 return;
@@ -1978,7 +1977,7 @@ public partial class PInvokeGenerator
             var needsReturnFixup = false;
             var needsCastToTransparentStruct = false;
 
-            if (returnType.Kind != CXType_Void)
+            if (!IsTypeVoid(cxxMethodDecl, returnType))
             {
                 needsReturnFixup = NeedsReturnFixup(cxxMethodDecl);
                 needsCastToTransparentStruct = _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentStruct) && IsTransparentStructHandle(transparentStruct.Kind);
@@ -2134,7 +2133,7 @@ public partial class PInvokeGenerator
                 isInherited = true;
             }
 
-            if (returnType.Kind != CXType_Void)
+            if (!IsTypeVoid(cxxMethodDecl, returnType))
             {
                 needsReturnFixup = NeedsReturnFixup(cxxMethodDecl);
                 needsCastToTransparentStruct = _config.WithTransparentStructs.TryGetValue(returnTypeName, out var transparentStruct) && IsTransparentStructHandle(transparentStruct.Kind);
@@ -2202,7 +2201,7 @@ public partial class PInvokeGenerator
                 body.WriteIndentation();
             }
 
-            if (returnType.Kind != CXType_Void)
+            if (!IsTypeVoid(cxxMethodDecl, returnType))
             {
                 body.Write("return ");
             }
@@ -2356,8 +2355,7 @@ public partial class PInvokeGenerator
         {
             Debug.Assert(fieldDecl.IsBitField);
 
-            var type = fieldDecl.Type;
-            var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
+            var typeName = GetRemappedTypeName(fieldDecl, context: null, fieldDecl.Type, out var nativeTypeName);
 
             if (string.IsNullOrWhiteSpace(nativeTypeName))
             {
@@ -2367,7 +2365,6 @@ public partial class PInvokeGenerator
             nativeTypeName += $" : {fieldDecl.BitWidthValue}";
 
             var currentSize = fieldDecl.Type.Handle.SizeOf;
-
             var bitfieldName = "_bitfield";
 
             Type typeBacking;
@@ -2424,11 +2421,15 @@ public partial class PInvokeGenerator
             }
 
             var bitfieldOffset = (currentSize * 8) - remainingBits;
-
             var bitwidthHexStringBacking = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
-            var canonicalTypeBacking = typeBacking.CanonicalType;
 
-            switch (canonicalTypeBacking.Kind)
+            if (!IsType<BuiltinType>(fieldDecl, typeBacking, out var builtinTypeBacking))
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{typeBacking.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
+                return;
+            }
+
+            switch (builtinTypeBacking.Kind)
             {
                 case CXType_Char_U:
                 case CXType_UChar:
@@ -2491,21 +2492,37 @@ public partial class PInvokeGenerator
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{canonicalTypeBacking.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{builtinTypeBacking.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
                     break;
                 }
             }
 
             var bitwidthHexString = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
+            var type = fieldDecl.Type;
 
-            var canonicalType = type.CanonicalType;
-
-            if (canonicalType is EnumType enumType)
+            if (IsType<BuiltinType>(fieldDecl, type, out var builtinType))
             {
-                canonicalType = enumType.Decl.IntegerType.CanonicalType;
+                type = builtinType;
+            }
+            else if (IsType<EnumType>(fieldDecl, type, out var enumType))
+            {
+                if (IsType<BuiltinType>(fieldDecl, enumType.Decl.IntegerType, out builtinType))
+                {
+                    type = enumType;
+                }
+                else
+                {
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{enumType.Decl.IntegerType.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
+                    return;
+                }
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{fieldDecl.Type.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
+                return;
             }
 
-            switch (canonicalType.Kind)
+            switch (builtinType.Kind)
             {
                 case CXType_Char_U:
                 case CXType_UChar:
@@ -2568,12 +2585,10 @@ public partial class PInvokeGenerator
 
                 default:
                 {
-                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{canonicalType.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
+                    AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{builtinType.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
                     break;
                 }
             }
-
-            canonicalType = type.CanonicalType;
 
             var accessSpecifier = GetAccessSpecifier(fieldDecl, matchStar: false);
             var name = GetRemappedCursorName(fieldDecl);
@@ -2609,7 +2624,7 @@ public partial class PInvokeGenerator
             var recordDeclName = GetCursorName(recordDecl);
 
             var isRemappedToSelf = _config.RemappedNames.TryGetValue(typeName, out var remappedTypeName) && typeName.Equals(remappedTypeName);
-            var needsCast = (currentSize < 4) || (canonicalTypeBacking != canonicalType) || isRemappedToSelf;
+            var needsCast = (currentSize < 4) || (type != builtinTypeBacking) || isRemappedToSelf;
 
             if (needsCast)
             {
@@ -2721,7 +2736,7 @@ public partial class PInvokeGenerator
 
             code.Write(") | ");
 
-            if ((canonicalTypeBacking != canonicalType) && (canonicalType is not EnumType))
+            if ((builtinType != builtinTypeBacking) && !IsType<EnumType>(fieldDecl))
             {
                 code.Write('(');
                 code.Write(typeNameBacking);
@@ -2735,7 +2750,7 @@ public partial class PInvokeGenerator
                 code.Write('(');
             }
 
-            if ((canonicalType is EnumType) || isRemappedToSelf)
+            if (IsType<EnumType>(fieldDecl) || isRemappedToSelf)
             {
                 code.Write('(');
                 code.Write(typeNameBacking);
@@ -2778,11 +2793,14 @@ public partial class PInvokeGenerator
 
         void VisitConstantOrIncompleteArrayFieldDecl(RecordDecl recordDecl, FieldDecl constantOrIncompleteArray)
         {
-            Debug.Assert(constantOrIncompleteArray.Type.CanonicalType is ConstantArrayType or IncompleteArrayType);
+            if (!IsTypeConstantOrIncompleteArray(constantOrIncompleteArray, out var arrayType))
+            {
+                AddDiagnostic(DiagnosticLevel.Error, "Expected constant or incomplete array. Generated bindings may be incomplete", constantOrIncompleteArray);
+                return;
+            }
 
             var outputBuilder = _outputBuilder;
-            var arrayType = (ArrayType)constantOrIncompleteArray.Type.CanonicalType;
-            var arrayTypeName = GetRemappedTypeName(constantOrIncompleteArray, context: null, constantOrIncompleteArray.Type, out _);
+            var arrayTypeName = GetRemappedTypeName(constantOrIncompleteArray, context: null, arrayType, out _);
 
             if (IsSupportedFixedSizedBufferType(arrayTypeName))
             {
@@ -2795,10 +2813,9 @@ public partial class PInvokeGenerator
             var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
             var accessSpecifier = GetAccessSpecifier(constantOrIncompleteArray, matchStar: false);
-            var canonicalElementType = arrayType.ElementType.CanonicalType;
-            var isUnsafeElementType =
-                ((canonicalElementType is PointerType) || (canonicalElementType is ReferenceType)) &&
-                (arrayTypeName != "IntPtr") && (arrayTypeName != "UIntPtr");
+            var elementType = arrayType.ElementType;
+            var isUnsafeElementType = IsTypePointerOrReference(constantOrIncompleteArray, arrayType.ElementType) &&
+                                      (arrayTypeName != "IntPtr") && (arrayTypeName != "UIntPtr");
 
             var name = GetArtificialFixedSizedBufferName(constantOrIncompleteArray);
             var escapedName = EscapeName(name);
@@ -2807,12 +2824,8 @@ public partial class PInvokeGenerator
             var totalSize = arraySize;
             var sizePerDimension = new List<(long index, long size)>() {(0, arraySize) };
 
-            var elementType = arrayType.ElementType;
-
-            while (elementType.CanonicalType is ConstantArrayType or IncompleteArrayType)
+            while (IsTypeConstantOrIncompleteArray(recordDecl, elementType, out var subArrayType))
             {
-                var subArrayType = (ArrayType)elementType.CanonicalType;
-
                 var subArraySize = Math.Max((subArrayType as ConstantArrayType)?.Size ?? 0, 1);
                 totalSize *= subArraySize;
                 sizePerDimension.Add((0, subArraySize));
@@ -3102,73 +3115,33 @@ public partial class PInvokeGenerator
 
         void ForPointeeType(TypedefDecl typedefDecl, Type? parentType, Type pointeeType, bool onlyHandleRemappings)
         {
-            if (pointeeType is AttributedType attributedType)
-            {
-                ForPointeeType(typedefDecl, attributedType, attributedType.ModifiedType, onlyHandleRemappings);
-            }
-            else if (pointeeType is ElaboratedType elaboratedType)
-            {
-                ForPointeeType(typedefDecl, elaboratedType, elaboratedType.NamedType, onlyHandleRemappings);
-            }
-            else if (pointeeType is FunctionProtoType functionProtoType)
+            if (IsType<FunctionProtoType>(typedefDecl, pointeeType, out var functionProtoType))
             {
                 ForFunctionProtoType(typedefDecl, functionProtoType, parentType, onlyHandleRemappings);
             }
-            else if (pointeeType is PointerType pointerType)
+            else if (IsType<PointerType>(typedefDecl, pointeeType, out var pointerType))
             {
                 ForPointeeType(typedefDecl, pointerType, pointerType.PointeeType, onlyHandleRemappings);
-            }
-            else if (pointeeType is TypedefType typedefType)
-            {
-                ForPointeeType(typedefDecl, typedefType, typedefType.Decl.UnderlyingType, onlyHandleRemappings);
-            }
-            else if (pointeeType is not ConstantArrayType and not IncompleteArrayType and not BuiltinType and not TagType and not TemplateTypeParmType)
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported pointee type: '{pointeeType.TypeClassSpelling}'. Generating bindings may be incomplete.", typedefDecl);
             }
         }
 
         void ForUnderlyingType(TypedefDecl typedefDecl, Type underlyingType, bool onlyHandleRemappings)
         {
-            if (underlyingType is ArrayType arrayType)
-            {
-                // Nothing to do for array types
-            }
-            else if (underlyingType is AttributedType attributedType)
-            {
-                ForUnderlyingType(typedefDecl, attributedType.ModifiedType, onlyHandleRemappings);
-            }
-            else if (underlyingType is BuiltinType builtinType)
-            {
-                // Nothing to do for builtin types
-            }
-            else if (underlyingType is DecltypeType decltypeType)
-            {
-                ForUnderlyingType(typedefDecl, decltypeType.UnderlyingType, onlyHandleRemappings);
-            }
-            else if (underlyingType is DependentNameType dependentNameType)
-            {
-                // Nothing to do for dependent name types
-            }
-            else if (underlyingType is ElaboratedType elaboratedType)
-            {
-                ForUnderlyingType(typedefDecl, elaboratedType.NamedType, onlyHandleRemappings);
-            }
-            else if (underlyingType is FunctionProtoType functionProtoType)
+            if (IsType<FunctionProtoType>(typedefDecl, underlyingType, out var functionProtoType))
             {
                 ForFunctionProtoType(typedefDecl, functionProtoType, parentType: null, onlyHandleRemappings);
             }
-            else if (underlyingType is PointerType pointerType)
+            else if (IsType<PointerType>(typedefDecl, underlyingType, out var pointerType))
             {
                 ForPointeeType(typedefDecl, parentType: null, pointerType.PointeeType, onlyHandleRemappings);
             }
-            else if (underlyingType is ReferenceType referenceType)
+            else if (IsType<ReferenceType>(typedefDecl, underlyingType, out var referenceType))
             {
                 ForPointeeType(typedefDecl, parentType: null, referenceType.PointeeType, onlyHandleRemappings);
             }
-            else if (underlyingType is TagType underlyingTagType)
+            else if (IsType<TagType>(typedefDecl, underlyingType, out var tagType))
             {
-                var tagDecl = underlyingTagType.AsTagDecl;
+                var tagDecl = tagType.AsTagDecl;
                 Debug.Assert(tagDecl is not null);
 
                 var underlyingName = GetCursorName(tagDecl);
@@ -3195,38 +3168,13 @@ public partial class PInvokeGenerator
                     }
                 }
             }
-            else if (underlyingType is TemplateSpecializationType templateSpecializationType)
+            else if (IsType<TemplateSpecializationType>(typedefDecl, underlyingType, out var templateSpecializationType))
             {
                 if (templateSpecializationType.IsTypeAlias)
                 {
                     ForUnderlyingType(typedefDecl, templateSpecializationType.AliasedType, onlyHandleRemappings);
                 }
-                else
-                {
-                    // Nothing to do for non-aliased template specialization types
-                }
             }
-            else if (underlyingType is TemplateTypeParmType templateTypeParmType)
-            {
-                // Nothing to do for template type parameter types
-            }
-            else if (underlyingType is TypedefType typedefType)
-            {
-                ForUnderlyingType(typedefDecl, typedefType.Decl.UnderlyingType, onlyHandleRemappings);
-            }
-            else
-            {
-                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported underlying type: '{underlyingType.TypeClassSpelling}'. Generating bindings may be incomplete.", typedefDecl);
-            }
-
-            return;
-        }
-
-        string GetUndecoratedName(Type type)
-        {
-            return type is AttributedType attributedType
-                ? GetUndecoratedName(attributedType.ModifiedType)
-                : type is ElaboratedType elaboratedType ? GetUndecoratedName(elaboratedType.NamedType) : type.AsString;
         }
     }
 
@@ -3316,7 +3264,7 @@ public partial class PInvokeGenerator
                 flags |= ValueFlags.Initializer;
             }
 
-            if (type.IsLocalConstQualified || isMacroDefinitionRecord || (type is ConstantArrayType or IncompleteArrayType))
+            if (type.IsLocalConstQualified || isMacroDefinitionRecord || IsTypeConstantOrIncompleteArray(varDecl))
             {
                 flags |= ValueFlags.Constant;
             }
@@ -3380,7 +3328,7 @@ public partial class PInvokeGenerator
                     }
                 }
             }
-            else if (IsPrimitiveValue(type))
+            else if (IsPrimitiveValue(varDecl, type))
             {
                 kind = ValueKind.Primitive;
 
@@ -3410,11 +3358,8 @@ public partial class PInvokeGenerator
                     }
                 }
 
-                if (type is ArrayType)
+                if (IsType<ArrayType>(varDecl, type, out var arrayType))
                 {
-                    var arrayType = type as ArrayType;
-                    Debug.Assert(arrayType is not null);
-
                     flags |= ValueFlags.Array;
 
                     if (!_config.GenerateUnmanagedConstants)
@@ -3472,8 +3417,8 @@ public partial class PInvokeGenerator
 
             if (varDecl.HasInit)
             {
-                var dereference = (type.CanonicalType is PointerType pointerType) &&
-                                  (pointerType.PointeeType.CanonicalType is FunctionType) &&
+                var dereference = IsType<PointerType>(varDecl, type, out var pointerType) &&
+                                  IsType<FunctionType>(varDecl, pointerType.PointeeType) &&
                                   isMacroDefinitionRecord;
 
                 if (dereference)
@@ -3523,7 +3468,7 @@ public partial class PInvokeGenerator
 
                 outputBuilder.Write(typeName);
 
-                if (type is ArrayType)
+                if (IsType<ArrayType>(varDecl, type))
                 {
                     outputBuilder.Write("[]");
                 }
@@ -3545,7 +3490,7 @@ public partial class PInvokeGenerator
 
     private bool IsConstant(string targetTypeName, Expr initExpr)
     {
-        if (initExpr.Type.CanonicalType.IsPointerType && (targetTypeName != "string"))
+        if (IsTypePointerOrReference(initExpr) && (targetTypeName != "string"))
         {
             return false;
         }
@@ -3911,19 +3856,11 @@ public partial class PInvokeGenerator
         }
     }
 
-    private bool IsPrimitiveValue(Type type)
+    private bool IsPrimitiveValue(Cursor? cursor, Type type)
     {
-        if (type is AttributedType attributedType)
+        if (IsType<BuiltinType>(cursor, type, out var builtinType))
         {
-            return IsPrimitiveValue(attributedType.ModifiedType);
-        }
-        else if (type is AutoType autoType)
-        {
-            return IsPrimitiveValue(autoType.CanonicalType);
-        }
-        else if (type is BuiltinType)
-        {
-            switch (type.Kind)
+            switch (builtinType.Kind)
             {
                 case CXType_Bool:
                 case CXType_Char_U:
@@ -3947,19 +3884,11 @@ public partial class PInvokeGenerator
                 }
             }
         }
-        else if (type is ElaboratedType elaboratedType)
+        else if (IsType<EnumType>(cursor, type, out var enumType))
         {
-            return IsPrimitiveValue(elaboratedType.NamedType);
-        }
-        else if (type is EnumType enumType)
-        {
-            return IsPrimitiveValue(enumType.Decl.IntegerType);
-        }
-        else if (type is TypedefType typedefType)
-        {
-            return IsPrimitiveValue(typedefType.Decl.UnderlyingType);
+            return IsPrimitiveValue(cursor, enumType.Decl.IntegerType);
         }
 
-        return type.IsPointerType;
+        return IsTypePointerOrReference(cursor, type);
     }
 }

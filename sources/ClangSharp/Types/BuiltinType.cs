@@ -7,7 +7,6 @@ namespace ClangSharp;
 
 public sealed class BuiltinType : Type
 {
-
     internal BuiltinType(CXType handle) : base(handle, handle.kind, CX_TypeClass_Builtin)
     {
     }
