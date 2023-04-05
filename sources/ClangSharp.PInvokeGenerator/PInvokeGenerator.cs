@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Text;
 using System.Text.RegularExpressions;
 using ClangSharp.Abstractions;
@@ -2049,7 +2050,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 var type = fieldDecl.Type;
 
-                if (type.CanonicalType is EnumType enumType)
+                if (IsType<EnumType>(fieldDecl, type, out var enumType))
                 {
                     type = enumType.Decl.IntegerType;
                 }
@@ -2062,7 +2063,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 var type = fieldDecl.Type;
 
-                if (type.CanonicalType is EnumType enumType)
+                if (IsType<EnumType>(fieldDecl, type, out var enumType))
                 {
                     type = enumType.Decl.IntegerType;
                 }
@@ -2117,7 +2118,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported manually-specified calling convention: '{callConv}'. Determining convention from cursor.", cursor);
         }
 
-        if (type is AttributedType attributedType)
+        if (IsType<AttributedType>(cursor, type, out var attributedType))
         {
             var callingConvention = GetCallingConvention(cursor, context, attributedType.ModifiedType, ref wasRemapped);
 
@@ -2171,15 +2172,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
         }
-        else if (type is DecltypeType decltypeType)
-        {
-            return GetCallingConvention(cursor, context, decltypeType.UnderlyingType, ref wasRemapped);
-        }
-        else if (type is ElaboratedType elaboratedType)
-        {
-            return GetCallingConvention(cursor, context, elaboratedType.NamedType, ref wasRemapped);
-        }
-        else if (type is FunctionType functionType)
+        else if (IsType<FunctionType>(cursor, type, out var functionType))
         {
             var callingConv = functionType.CallConv;
 
@@ -2222,13 +2215,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
         }
-        else if (type is PointerType pointerType)
+        else if (IsType<PointerType>(cursor, type, out var pointerType))
         {
             return GetCallingConvention(cursor, context, pointerType.PointeeType, ref wasRemapped);
-        }
-        else if (type is TypedefType typedefType)
-        {
-            return GetCallingConvention(cursor, context, typedefType.Decl.UnderlyingType, ref wasRemapped);
         }
         else
         {
@@ -2528,56 +2517,13 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         var baseType = cxxBaseSpecifier.Type;
 
-        while (baseType is not RecordType)
+        if (IsType<RecordType>(cxxBaseSpecifier, baseType, out var recordType))
         {
-            if (baseType is AttributedType attributedType)
-            {
-                baseType = attributedType.ModifiedType;
-            }
-            else if (baseType is ElaboratedType elaboratedType)
-            {
-                baseType = elaboratedType.NamedType;
-            }
-            else if (baseType is TemplateSpecializationType templateSpecializationType)
-            {
-                if (templateSpecializationType.IsTypeAlias)
-                {
-                    baseType = templateSpecializationType.AliasedType;
-                }
-                else if (templateSpecializationType.IsSugared)
-                {
-                    baseType = templateSpecializationType.Desugar;
-                }
-                else if (templateSpecializationType.TemplateName.AsTemplateDecl is TemplateDecl templateDecl)
-                {
-                    if (templateDecl.TemplatedDecl is TypeDecl typeDecl)
-                    {
-                        baseType = typeDecl.TypeForDecl;
-                    }
-                    else
-                    {
-                        AddDiagnostic(DiagnosticLevel.Error, $"Unsupported template specialization declaration kind: '{templateDecl.TemplatedDecl.DeclKindName}'.", cxxBaseSpecifier);
-                        baseType = templateSpecializationType.CanonicalType;
-                    }
-                }
-                else
-                {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported template specialization type: '{templateSpecializationType}'.", cxxBaseSpecifier);
-                    baseType = templateSpecializationType.CanonicalType;
-                }
-            }
-            else if (baseType is TypedefType typedefType)
-            {
-                baseType = typedefType.Decl.UnderlyingType;
-            }
-            else
-            {
-                break;
-            }
+            return (CXXRecordDecl)recordType.Decl;
         }
 
-        var baseRecordType = (RecordType)baseType;
-        return (CXXRecordDecl)baseRecordType.Decl;
+        AddDiagnostic(DiagnosticLevel.Error, "Failed to retrieve record type for CXX base specifier. Falling back to referenced type.", cxxBaseSpecifier);
+        return (CXXRecordDecl)cxxBaseSpecifier.Referenced;
     }
 
     private string GetRemappedCursorName(NamedDecl namedDecl)
@@ -2791,23 +2737,12 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (!wasRemapped)
         {
-            var canonicalType = type.CanonicalType;
-
-            if (canonicalType is ConstantArrayType or IncompleteArrayType)
+            if (IsTypeConstantOrIncompleteArray(cursor, type, out var arrayType) && IsType<RecordType>(cursor, arrayType.ElementType))
             {
-                var arrayType = (ArrayType)canonicalType;
-
-                if (arrayType.ElementType is RecordType)
-                {
-                    canonicalType = arrayType.ElementType;
-                }
-            }
-            else if ((canonicalType is IncompleteArrayType incompleteArrayType) && (incompleteArrayType.ElementType is RecordType))
-            {
-                canonicalType = incompleteArrayType.ElementType;
+                type = arrayType.ElementType;
             }
 
-            if ((canonicalType is RecordType recordType) && remappedName.StartsWith("__AnonymousRecord_"))
+            if (IsType<RecordType>(cursor, type, out var recordType) && remappedName.StartsWith("__AnonymousRecord_"))
             {
                 var recordDecl = recordType.Decl;
                 remappedName = "_Anonymous";
@@ -2853,7 +2788,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
             }
-            else if ((canonicalType is EnumType enumType) && remappedName.StartsWith("__AnonymousEnum_"))
+            else if (IsType<EnumType>(cursor, type, out var enumType) && remappedName.StartsWith("__AnonymousEnum_"))
             {
                 remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _, skipUsing);
             }
@@ -2980,6 +2915,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                                            .Replace("unnamed union at", "anonymous union at");
 
             result.nativeTypeName = result.typeName;
+
+            // We don't want to handle these using IsType because we need to specially
+            // handle cases like TypedefType at each level of the type hierarchy
 
             if (type is ArrayType arrayType)
             {
@@ -3209,7 +3147,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 var nameBuilder = new StringBuilder();
 
-                var templateTypeDecl = templateSpecializationType.CanonicalType is RecordType recordType
+                var templateTypeDecl = IsType<RecordType>(cursor, templateSpecializationType, out var recordType)
                                      ? recordType.Decl
                                      : (NamedDecl)templateSpecializationType.TemplateName.AsTemplateDecl;
 
@@ -3345,6 +3283,9 @@ public sealed partial class PInvokeGenerator : IDisposable
         var name = pointeeType.AsString;
         nativePointeeTypeName = name;
 
+        // We don't want to handle these using IsType because we need to specially
+        // handle cases like TypedefType at each level of the type hierarchy
+
         if (pointeeType is AttributedType attributedType)
         {
             name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, out var nativeModifiedTypeName);
@@ -3355,7 +3296,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
         else if (pointeeType is FunctionType functionType)
         {
-            if (!_config.ExcludeFnptrCodegen && (functionType is FunctionProtoType functionProtoType))
+            if (!_config.ExcludeFnptrCodegen && IsType<FunctionProtoType>(cursor, functionType, out var functionProtoType))
             {
                 _config.ExcludeFnptrCodegen = true;
                 var callConv = GetCallingConvention(cursor, context, rootType);
@@ -3510,9 +3451,12 @@ public sealed partial class PInvokeGenerator : IDisposable
         size32 = 0;
         size64 = 0;
 
+        // We don't want to handle these using IsType because we need to specially
+        // handle cases like TypedefType at each level of the type hierarchy
+
         if (type is ArrayType arrayType)
         {
-            if (type is ConstantArrayType or IncompleteArrayType)
+            if (IsTypeConstantOrIncompleteArray(cursor, type))
             {
                 var count = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1);
                 GetTypeSize(cursor, arrayType.ElementType, ref alignment32, ref alignment64, ref has8BytePrimitiveField, out var elementSize32, out var elementSize64);
@@ -4060,40 +4004,40 @@ public sealed partial class PInvokeGenerator : IDisposable
         return hasVtbl;
     }
 
-    private static bool IsEnumOperator(FunctionDecl functionDecl, string name)
+    private bool IsEnumOperator(FunctionDecl functionDecl, string name)
     {
         if (name.StartsWith("operator") && ((functionDecl.Parameters.Count == 1) || (functionDecl.Parameters.Count == 2)))
         {
             var parmVarDecl1 = functionDecl.Parameters[0];
-            var parmVarDecl1Type = parmVarDecl1.Type.CanonicalType;
+            var parmVarDecl1Type = parmVarDecl1.Type;
 
-            if (parmVarDecl1Type is PointerType pointerType1)
+            if (IsType<PointerType>(parmVarDecl1, parmVarDecl1Type, out var pointerType1))
             {
-                parmVarDecl1Type = pointerType1.PointeeType.CanonicalType;
+                parmVarDecl1Type = pointerType1.PointeeType;
             }
-            else if (parmVarDecl1Type is ReferenceType referenceType1)
+            else if (IsType<ReferenceType>(parmVarDecl1, parmVarDecl1Type, out var referenceType1))
             {
-                parmVarDecl1Type = referenceType1.PointeeType.CanonicalType;
+                parmVarDecl1Type = referenceType1.PointeeType;
             }
 
             if (functionDecl.Parameters.Count == 1)
             {
-                return parmVarDecl1Type.Kind == CXType_Enum;
+                return IsType<EnumType>(parmVarDecl1);
             }
 
             var parmVarDecl2 = functionDecl.Parameters[1];
-            var parmVarDecl2Type = parmVarDecl2.Type.CanonicalType;
+            var parmVarDecl2Type = parmVarDecl2.Type;
 
-            if (parmVarDecl2Type is PointerType pointerType2)
+            if (IsType<PointerType>(parmVarDecl2, parmVarDecl2Type, out var pointerType2))
             {
-                parmVarDecl2Type = pointerType2.PointeeType.CanonicalType;
+                parmVarDecl2Type = pointerType2.PointeeType;
             }
-            else if (parmVarDecl2Type is ReferenceType referenceType2)
+            else if (IsType<ReferenceType>(parmVarDecl2, parmVarDecl2Type, out var referenceType2))
             {
-                parmVarDecl2Type = referenceType2.PointeeType.CanonicalType;
+                parmVarDecl2Type = referenceType2.PointeeType;
             }
 
-            if ((parmVarDecl1Type == parmVarDecl2Type) && (parmVarDecl2Type.Kind == CXType_Enum))
+            if ((parmVarDecl1Type.CanonicalType == parmVarDecl2Type.CanonicalType) && IsType<EnumType>(parmVarDecl2))
             {
                 return true;
             }
@@ -4374,7 +4318,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 parmVarDecl = functionDecl.Parameters.FirstOrDefault();
             }
 
-            if ((parmVarDecl is not null) && (parmVarDecl.Type.CanonicalType is PointerType pointerType))
+            if ((parmVarDecl is not null) && IsType<PointerType>(parmVarDecl, out var pointerType))
             {
                 var typeName = GetTypeName(parmVarDecl, context: null, pointerType.PointeeType, ignoreTransparentStructsWhereRequired: false, out var nativeTypeName);
                 return name.StartsWith($"{nativeTypeName}_") || name.StartsWith($"{typeName}_") || (typeName == "IRpcStubBuffer");
@@ -4441,23 +4385,23 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 for (var n = 0; n < cxxMethodDeclToMatch.Parameters.Count; n++)
                 {
-                    var parameterTypeToMatch = cxxMethodDeclToMatch.Parameters[n].Type.CanonicalType;
-                    var parameterType = cxxMethodDecl.Parameters[n].Type.CanonicalType;
+                    var parameterTypeToMatch = cxxMethodDeclToMatch.Parameters[n].Type;
+                    var parameterType = cxxMethodDecl.Parameters[n].Type;
 
-                    if (parameterType == parameterTypeToMatch)
+                    if (parameterType.CanonicalType == parameterTypeToMatch.CanonicalType)
                     {
                         continue;
                     }
 
-                    if ((parameterTypeToMatch is PointerType pointerTypeToMatch) &&
-                        (parameterType is ReferenceType referenceType) &&
+                    if (IsType<PointerType>(cursor, parameterTypeToMatch, out var pointerTypeToMatch) &&
+                        IsType<ReferenceType>(cursor, parameterType, out var referenceType) &&
                         (referenceType.PointeeType.CanonicalType == pointerTypeToMatch.PointeeType.CanonicalType))
                     {
                         continue;
                     }
 
-                    if ((parameterTypeToMatch is ReferenceType referenceTypeToMatch) &&
-                        (parameterType is PointerType pointerType) &&
+                    if (IsType<ReferenceType>(cursor, parameterTypeToMatch, out var referenceTypeToMatch) &&
+                        IsType<PointerType>(cursor, parameterType, out var pointerType) &&
                         (pointerType.PointeeType.CanonicalType == referenceTypeToMatch.PointeeType.CanonicalType))
                     {
                         continue;
@@ -4530,7 +4474,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 var field = recordDecl.Fields.First();
 
-                if ((GetCursorName(field) != "unused") || (field.Type.CanonicalType.Kind != CXType_Int))
+                if ((GetCursorName(field) != "unused") || !IsType<BuiltinType>(field, out var builtinType) || (builtinType.Kind != CXType_Int))
                 {
                     return false;
                 }
@@ -4568,6 +4512,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool IsFixedSize(Cursor cursor, Type type)
     {
+        // We don't want to handle these using IsType because we need to specially
+        // handle cases like TypedefType at each level of the type hierarchy
+
         if (type is ArrayType)
         {
             return false;
@@ -4736,6 +4683,173 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         expr = GetExprAsWritten(expr, removeParens);
         return expr == expectedStmt;
+    }
+
+    private bool IsType<T>(Expr expr)
+        where T : Type
+    {
+        return IsType<T>(expr, out _);
+    }
+
+    private bool IsType<T>(Expr expr, [MaybeNullWhen(false)] out T value)
+        where T : Type
+    {
+        return IsType<T>(expr, expr.Type, out value);
+    }
+
+    private bool IsType<T>(ValueDecl valueDecl)
+        where T : Type
+    {
+        return IsType<T>(valueDecl, out _);
+    }
+
+    private bool IsType<T>(ValueDecl typeDecl, [MaybeNullWhen(false)] out T value)
+        where T : Type
+    {
+        return IsType<T>(typeDecl, typeDecl.Type, out value);
+    }
+
+    private bool IsType<T>(Cursor? cursor, Type type)
+        where T : Type
+    {
+        return IsType<T>(cursor, type, out _);
+    }
+
+    private bool IsType<T>(Cursor? cursor, Type type, [MaybeNullWhen(false)] out T value)
+        where T : Type
+    {
+        if (type is T t)
+        {
+            value = t;
+            return true;
+        }
+        else if (type is AttributedType attributedType)
+        {
+            return IsType(cursor, attributedType.ModifiedType, out value);
+        }
+        else if (type is DecltypeType decltypeType)
+        {
+            return IsType(cursor, decltypeType.UnderlyingType, out value);
+        }
+        else if (type is DeducedType deducedType)
+        {
+            return IsType(cursor, deducedType.GetDeducedType, out value);
+        }
+        else if (type is DependentNameType dependentNameType)
+        {
+            if (dependentNameType.IsSugared)
+            {
+                return IsType(cursor, dependentNameType.Desugar, out value);
+            }
+        }
+        else if (type is ElaboratedType elaboratedType)
+        {
+            return IsType(cursor, elaboratedType.NamedType, out value);
+        }
+        else if (type is InjectedClassNameType injectedClassNameType)
+        {
+            return IsType(cursor, injectedClassNameType.InjectedTST, out value);
+        }
+        else if (type is PackExpansionType packExpansionType)
+        {
+            return IsType(cursor, packExpansionType.Pattern, out value);
+        }
+        else if (type is SubstTemplateTypeParmType substTemplateTypeParmType)
+        {
+            return IsType(cursor, substTemplateTypeParmType.ReplacementType, out value);
+        }
+        else if (type is TemplateSpecializationType templateSpecializationType)
+        {
+            if (templateSpecializationType.IsTypeAlias)
+            {
+                return IsType(cursor, templateSpecializationType.AliasedType, out value);
+            }
+            else if (templateSpecializationType.IsSugared)
+            {
+                return IsType(cursor, templateSpecializationType.Desugar, out value);
+            }
+            else if (templateSpecializationType.TemplateName.AsTemplateDecl is TemplateDecl templateDecl)
+            {
+                if (templateDecl.TemplatedDecl is TypeDecl typeDecl)
+                {
+                    return IsType(cursor, typeDecl.TypeForDecl, out value);
+                }
+            }
+        }
+        else if (type is TemplateTypeParmType templateTypeParmType)
+        {
+            if (templateTypeParmType.IsSugared)
+            {
+                return IsType(cursor, templateTypeParmType.Decl.TypeForDecl, out value);
+            }
+        }
+        else if (type is TypedefType typedefType)
+        {
+            return IsType(cursor, typedefType.Decl.UnderlyingType, out value);
+        }
+        else if (type is UsingType usingType)
+        {
+            if (usingType.IsSugared)
+            {
+                return IsType(cursor, usingType.Desugar, out value);
+            }
+        }
+
+        value = default;
+        return false;
+    }
+
+    private bool IsTypeConstantOrIncompleteArray(Expr expr)
+    {
+        return IsTypeConstantOrIncompleteArray(expr, out _);
+    }
+
+    private bool IsTypeConstantOrIncompleteArray(Expr expr, [MaybeNullWhen(false)] out ArrayType arrayType)
+    {
+        return IsTypeConstantOrIncompleteArray(expr, expr.Type, out arrayType);
+    }
+
+    private bool IsTypeConstantOrIncompleteArray(ValueDecl valueDecl)
+    {
+        return IsTypeConstantOrIncompleteArray(valueDecl, out _);
+    }
+
+    private bool IsTypeConstantOrIncompleteArray(ValueDecl valueDecl, [MaybeNullWhen(false)] out ArrayType arrayType)
+    {
+        return IsTypeConstantOrIncompleteArray(valueDecl, valueDecl.Type, out arrayType);
+    }
+
+    private bool IsTypeConstantOrIncompleteArray(Cursor? cursor, Type type)
+    {
+        return IsTypeConstantOrIncompleteArray(cursor, type, out _);
+    }
+
+    private bool IsTypeConstantOrIncompleteArray(Cursor? cursor, Type type, [MaybeNullWhen(false)] out ArrayType arrayType)
+    {
+        return IsType<ArrayType>(cursor, type, out arrayType) &&
+               (arrayType is ConstantArrayType or IncompleteArrayType);
+    }
+
+    private bool IsTypePointerOrReference(Expr expr)
+    {
+        return IsTypePointerOrReference(expr, expr.Type);
+    }
+
+    private bool IsTypePointerOrReference(ValueDecl valueDecl)
+    {
+        return IsTypePointerOrReference(valueDecl, valueDecl.Type);
+    }
+
+    private bool IsTypePointerOrReference(Cursor? cursor, Type type)
+    {
+        return IsType<PointerType>(cursor, type)
+            || IsType<ReferenceType>(cursor, type);
+    }
+
+    private bool IsTypeVoid(Cursor? cursor, Type type)
+    {
+        return IsType<BuiltinType>(cursor, type, out var builtinType)
+            && (builtinType.Kind == CXType_Void);
     }
 
     internal static bool IsSupportedFixedSizedBufferType(string typeName)
@@ -5353,7 +5467,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         var type = fieldDecl.Type;
 
-        if (type.CanonicalType is ConstantArrayType or IncompleteArrayType)
+        if (IsType<ArrayType>(fieldDecl, out var arrayType) && IsTypeConstantOrIncompleteArray(fieldDecl, type))
         {
             var remappedName = GetRemappedTypeName(fieldDecl, context: null, type, out _, skipUsing: true, ignoreTransparentStructsWhereRequired: false);
             return IsSupportedFixedSizedBufferType(remappedName);
@@ -5481,28 +5595,25 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (cxxMethodDecl.IsVirtual)
         {
-            var canonicalReturnType = cxxMethodDecl.ReturnType.CanonicalType;
-
-            switch (canonicalReturnType.TypeClass)
+            if (IsType<BuiltinType>(cxxMethodDecl, cxxMethodDecl.ReturnType))
             {
-                case CX_TypeClass_Builtin:
-                case CX_TypeClass_Enum:
-                case CX_TypeClass_Pointer:
-                {
-                    break;
-                }
-
-                case CX_TypeClass_Record:
-                {
-                    needsReturnFixup = true;
-                    break;
-                }
-
-                default:
-                {
-                    AddDiagnostic(DiagnosticLevel.Error, $"Unsupported return type for abstract method: '{canonicalReturnType.TypeClass}'. Generated bindings may be incomplete.", cxxMethodDecl);
-                    break;
-                }
+                // No fixup needed
+            }
+            else if (IsType<EnumType>(cxxMethodDecl, cxxMethodDecl.ReturnType))
+            {
+                // No fixup needed
+            }
+            else if (IsType<PointerType>(cxxMethodDecl, cxxMethodDecl.ReturnType))
+            {
+                // No fixup needed
+            }
+            else if (IsType<RecordType>(cxxMethodDecl, cxxMethodDecl.ReturnType))
+            {
+                needsReturnFixup = true;
+            }
+            else
+            {
+                AddDiagnostic(DiagnosticLevel.Error, $"Unsupported return type for abstract method: '{cxxMethodDecl.ReturnType.TypeClass}'. Generated bindings may be incomplete.", cxxMethodDecl);
             }
         }
 
@@ -5981,15 +6092,16 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (namedDecl is FieldDecl fieldDecl)
             {
-                if (fieldDecl.Type is TypedefType defType && defType.Decl.HasAttrs)
+                if (IsType<TypedefType>(fieldDecl, out var typedefType))
                 {
-                    declAttrs = declAttrs.Concat(defType.Decl.Attrs);
-                }
+                    declAttrs = declAttrs.Concat(typedefType.Decl.Attrs);
+                }          
             }
             else if (namedDecl is RecordDecl recordDecl)
             {
                 var typedefName = recordDecl.TypedefNameForAnonDecl;
-                if (typedefName != null && typedefName.HasAttrs)
+
+                if ((typedefName is not null) && typedefName.HasAttrs)
                 {
                     declAttrs = declAttrs.Concat(typedefName.Attrs);
                 }

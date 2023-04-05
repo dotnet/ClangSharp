@@ -8,7 +8,6 @@ namespace ClangSharp;
 
 public sealed class DependentNameType : TypeWithKeyword
 {
-
     internal DependentNameType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentName)
     {
     }
