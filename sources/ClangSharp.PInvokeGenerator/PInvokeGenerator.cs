@@ -6575,17 +6575,12 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private static int ParseCxxStandardVersion(ReadOnlySpan<char> version)
     {
-        if(int.TryParse(version, out var std))
+        // Maybe in the future we'll need to check for more c++ standard drafts, but atm this should work
+        if(version.EndsWith("a") || version.EndsWith("b"))
         {
-            // Maybe in the future we'll need to check for more c++ standard drafts, but atm this should work
-            if (version.EndsWith("a") || version.EndsWith("b"))
-            {
-                return std * 10;
-            }
-
-            return std;
+            return int.TryParse(version[..^1], out var draftStd) ? draftStd * 10 : -1;
         }
 
-        return -1;
+        return int.TryParse(version, out var std) ? std : -1;
     }
 }
