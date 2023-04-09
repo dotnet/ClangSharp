@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.AccessControl;
 using System.Text;
 using System.Text.RegularExpressions;
 using ClangSharp.Abstractions;
@@ -18,7 +17,6 @@ using static ClangSharp.Interop.CX_AttrKind;
 using static ClangSharp.Interop.CX_BinaryOperatorKind;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
 using static ClangSharp.Interop.CX_StmtClass;
-using static ClangSharp.Interop.CX_TypeClass;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
 using static ClangSharp.Interop.CX_UnaryOperatorKind;
 using static ClangSharp.Interop.CXCallingConv;
@@ -327,6 +325,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 Debug.Assert(leaveStreamOpen is true);
             }
 
+            GenerateNativeBitfieldAttribute(this, stream, leaveStreamOpen);
             GenerateNativeInheritanceAttribute(this, stream, leaveStreamOpen);
             GenerateNativeTypeNameAttribute(this, stream, leaveStreamOpen);
             GenerateSetsLastSystemErrorAttribute(this, stream, leaveStreamOpen);
@@ -373,9 +372,118 @@ public sealed partial class PInvokeGenerator : IDisposable
         _uuidsToGenerate.Clear();
         _visitedFiles.Clear();
 
+        static void GenerateNativeBitfieldAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        {
+            var config = generator.Config;
+
+            if (!config.GenerateNativeBitfieldAttribute)
+            {
+                return;
+            }
+
+            if (stream is null)
+            {
+                var outputPath = Path.Combine(config.OutputLocation, "NativeBitfieldAttribute.cs");
+                stream = generator._outputStreamFactory(outputPath);
+            }
+
+            using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
+            sw.NewLine = "\n";
+
+            if (config.HeaderText != string.Empty)
+            {
+                sw.WriteLine(config.HeaderText);
+            }
+
+            var indentString = "    ";
+
+            sw.WriteLine("using System;");
+            sw.WriteLine("using System.Diagnostics;");
+            sw.WriteLine();
+
+            sw.Write("namespace ");
+            sw.Write(generator.GetNamespace("NativeBitfieldAttribute"));
+
+            if (generator.Config.GenerateFileScopedNamespaces)
+            {
+                sw.WriteLine(';');
+                sw.WriteLine();
+                indentString = "";
+            }
+            else
+            {
+                sw.WriteLine();
+                sw.WriteLine('{');
+            }
+
+            sw.Write(indentString);
+            sw.WriteLine("/// <summary>Defines the layout of a bitfield as it was used in the native signature.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("[AttributeUsage(AttributeTargets.Field, AllowMultiple = true, Inherited = true)]");
+            sw.Write(indentString);
+            sw.WriteLine("[Conditional(\"DEBUG\")]");
+            sw.Write(indentString);
+            sw.WriteLine("internal sealed partial class NativeBitfieldAttribute : Attribute");
+            sw.Write(indentString);
+            sw.WriteLine('{');
+            sw.Write(indentString);
+            sw.WriteLine("    private readonly string _name;");
+            sw.WriteLine("    private readonly int _offset;");
+            sw.WriteLine("    private readonly int _length;");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    /// <summary>Initializes a new instance of the <see cref=\"NativeBitfieldAttribute\" /> class.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("    /// <param name=\"name\">The name of the bitfield that was used in the native signature.</param>");
+            sw.WriteLine("    /// <param name=\"offset\">The offset of the bitfield that was used in the native signature.</param>");
+            sw.WriteLine("    /// <param name=\"length\">The length of the bitfield that was used in the native signature.</param>");
+            sw.Write(indentString);
+            sw.WriteLine("    public NativeTypeNameAttribute(string name, int offset, int length)");
+            sw.Write(indentString);
+            sw.WriteLine("    {");
+            sw.Write(indentString);
+            sw.WriteLine("        _name = name;");
+            sw.WriteLine("        _offset = offset;");
+            sw.WriteLine("        _length = length;");
+            sw.Write(indentString);
+            sw.WriteLine("    }");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    /// <summary>Gets the length of the bitfield that was used in the native signature.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("    public int Length => _length;");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    /// <summary>Gets the name of the bitfield that was used in the native signature.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("    public string Name => _name;");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    /// <summary>Gets the offset of the bitfield that was used in the native signature.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("    public int Offset => _offset;");
+            sw.Write(indentString);
+            sw.WriteLine('}');
+
+            if (!generator.Config.GenerateFileScopedNamespaces)
+            {
+                sw.WriteLine('}');
+            }
+
+            if (!leaveStreamOpen)
+            {
+                stream = null;
+            }
+        }
+
         static void GenerateNativeInheritanceAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
         {
             var config = generator.Config;
+
+            if (!config.GenerateNativeInheritanceAttribute)
+            {
+                return;
+            }
 
             if (stream is null)
             {
@@ -543,6 +651,11 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             var config = generator.Config;
 
+            if (!config.GenerateSetsLastSystemErrorAttribute)
+            {
+                return;
+            }
+
             if (stream is null)
             {
                 Debug.Assert(stream is null);
@@ -615,6 +728,11 @@ public sealed partial class PInvokeGenerator : IDisposable
         static void GenerateVtblIndexAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
         {
             var config = generator.Config;
+
+            if (!config.GenerateVtblIndexAttribute)
+            {
+                return;
+            }
 
             if (stream is null)
             {
@@ -1527,6 +1645,33 @@ public sealed partial class PInvokeGenerator : IDisposable
         _diagnostics.Add(diagnostic);
     }
 
+    private void AddUsingDirective(IOutputBuilder? outputBuilder, string namespaceName)
+    {
+        if (outputBuilder is null)
+        {
+            return;
+        }
+
+        var needsUsing = false;
+
+        if (_currentNamespace is not null)
+        {
+            if (!_currentNamespace.StartsWith(namespaceName))
+            {
+                needsUsing = true;
+            }
+            else if ((_currentNamespace.Length > namespaceName.Length) && (_currentNamespace[namespaceName.Length] != '.'))
+            {
+                needsUsing = true;
+            }
+        }
+
+        if (needsUsing)
+        {
+            outputBuilder.EmitUsingDirective(namespaceName);
+        }
+    }
+
     private void CloseOutputBuilder(Stream stream, IOutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen, bool emitNamespaceDeclaration)
     {
         if (stream is null)
@@ -2023,13 +2168,14 @@ public sealed partial class PInvokeGenerator : IDisposable
         return $"_{name}_e__FixedBuffer";
     }
 
-    private Type[] GetBitfieldCount(RecordDecl recordDecl)
+    private BitfieldDesc[] GetBitfieldDescs(RecordDecl recordDecl)
     {
-        var types = new List<Type>(recordDecl.Fields.Count);
+        var bitfieldDescs = new List<BitfieldDesc>(recordDecl.Fields.Count);
 
-        var count = 0;
+        var backingFieldIndex = -1;
         var previousSize = 0L;
         var remainingBits = 0L;
+        var currentBits = 0L;
 
         foreach (var fieldDecl in recordDecl.Fields)
         {
@@ -2044,8 +2190,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if ((!_config.GenerateUnixTypes && (currentSize != previousSize)) || (fieldDecl.BitWidthValue > remainingBits))
             {
-                count++;
-                remainingBits = currentSize * 8;
+                backingFieldIndex++;
+                currentBits = currentSize * 8;
+                remainingBits = currentBits;
                 previousSize = 0;
 
                 var type = fieldDecl.Type;
@@ -2055,27 +2202,53 @@ public sealed partial class PInvokeGenerator : IDisposable
                     type = enumType.Decl.IntegerType;
                 }
 
-                types.Add(type);
+                var bitfieldDesc = new BitfieldDesc {
+                    TypeBacking = type,
+                    Regions = new List<BitfieldRegion>() {
+                        new BitfieldRegion {
+                            Name = GetRemappedCursorName(fieldDecl),
+                            Offset = 0,
+                            Length = fieldDecl.BitWidthValue
+                        },
+                    }
+                };
+                bitfieldDescs.Add(bitfieldDesc);
             }
-            else if (_config.GenerateUnixTypes && (currentSize > previousSize))
+            else
             {
-                remainingBits += (currentSize - previousSize) * 8;
+                var bitfieldDesc = bitfieldDescs[^1];
 
-                var type = fieldDecl.Type;
-
-                if (IsType<EnumType>(fieldDecl, type, out var enumType))
+                if (_config.GenerateUnixTypes && (currentSize > previousSize))
                 {
-                    type = enumType.Decl.IntegerType;
+                    remainingBits += (currentSize - previousSize) * 8;
+                    currentBits += (currentSize - previousSize) * 8;
+
+                    var type = fieldDecl.Type;
+
+                    if (IsType<EnumType>(fieldDecl, type, out var enumType))
+                    {
+                        type = enumType.Decl.IntegerType;
+                    }
+
+                    bitfieldDescs[^1] = new BitfieldDesc {
+                        TypeBacking = type,
+                        Regions = bitfieldDesc.Regions,
+                    };
                 }
 
-                types[^1] = type;
+                var bitfieldRegion = new BitfieldRegion {
+                    Name = GetRemappedCursorName(fieldDecl),
+                    Offset = currentBits - remainingBits,
+                    Length = fieldDecl.BitWidthValue
+                };
+                bitfieldDesc.Regions.Add(bitfieldRegion);
             }
 
             remainingBits -= fieldDecl.BitWidthValue;
             previousSize = Math.Max(previousSize, currentSize);
         }
 
-        return types.ToArray();
+        return bitfieldDescs.ToArray();
     }
 
     private CallingConvention GetCallingConvention(Cursor? cursor, Cursor? context, Type type)
@@ -2688,24 +2861,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
 
                 var namespaceName = GetNamespace(remappedName);
-                var needsUsing = false;
-
-                if (_currentNamespace is not null)
-                {
-                    if (!_currentNamespace.StartsWith(namespaceName))
-                    {
-                        needsUsing = true;
-                    }
-                    else if ((_currentNamespace.Length > namespaceName.Length) && (_currentNamespace[namespaceName.Length] != '.'))
-                    {
-                        needsUsing = true;
-                    }
-                }
-
-                if (needsUsing)
-                {
-                    outputBuilder?.EmitUsingDirective(namespaceName);
-                }
+                AddUsingDirective(outputBuilder, namespaceName);
             }
 
             return remappedName;

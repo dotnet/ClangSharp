@@ -26,7 +26,7 @@ public class Program
     private static readonly RootCommand s_rootCommand;
 
     private static readonly Option<bool> s_versionOption;
-    private static readonly Option<string[]> s_addtionalOption;
+    private static readonly Option<string[]> s_additionalOption;
     private static readonly Option<string[]> s_configOption;
     private static readonly Option<string[]> s_defineMacros;
     private static readonly Option<string[]> s_excludedNames;
@@ -116,6 +116,7 @@ public class Program
         new TwoColumnHelpRow("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
         new TwoColumnHelpRow("generate-macro-bindings", "Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones."),
         new TwoColumnHelpRow("generate-marker-interfaces", "Bindings for marker interfaces representing native inheritance hierarchies should be generated."),
+        new TwoColumnHelpRow("generate-native-bitfield-attribute", "[NativeBitfield(\"\", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout."),
         new TwoColumnHelpRow("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
         new TwoColumnHelpRow("generate-setslastsystemerror-attribute", "[SetsLastSystemError] attribute should be generated rather than using SetLastError = true."),
         new TwoColumnHelpRow("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),
@@ -131,7 +132,7 @@ public class Program
 
     static Program()
     {
-        s_addtionalOption = GetAdditionalOption();
+        s_additionalOption = GetAdditionalOption();
         s_configOption = GetConfigOption();
         s_defineMacros = GetDefineMacroOption();
         s_excludedNames = GetExcludeOption();
@@ -170,7 +171,7 @@ public class Program
 
         s_rootCommand = new RootCommand("ClangSharp P/Invoke Binding Generator")
         {
-            s_addtionalOption,
+            s_additionalOption,
             s_configOption,
             s_defineMacros,
             s_excludedNames,
@@ -241,7 +242,7 @@ public class Program
 
     public static void Run(InvocationContext context)
     {
-        var additionalArgs = context.ParseResult.GetValueForOption(s_addtionalOption) ?? Array.Empty<string>();
+        var additionalArgs = context.ParseResult.GetValueForOption(s_additionalOption) ?? Array.Empty<string>();
         var configSwitches = context.ParseResult.GetValueForOption(s_configOption) ?? Array.Empty<string>();
         var defineMacros = context.ParseResult.GetValueForOption(s_defineMacros) ?? Array.Empty<string>();
         var excludedNames = context.ParseResult.GetValueForOption(s_excludedNames) ?? Array.Empty<string>();
@@ -560,6 +561,12 @@ public class Program
                 case "generate-marker-interfaces":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces;
+                    break;
+                }
+
+                case "generate-native-bitfield-attribute":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute;
                     break;
                 }
 
