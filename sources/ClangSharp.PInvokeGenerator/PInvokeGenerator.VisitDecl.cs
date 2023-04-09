@@ -1753,8 +1753,8 @@ public partial class PInvokeGenerator
                 _testOutputBuilder.WriteBlockEnd();
             }
 
-            var bitfieldTypes = GetBitfieldCount(recordDecl);
-            var bitfieldIndex = (bitfieldTypes.Length == 1) ? -1 : 0;
+            var bitfieldDescs = GetBitfieldDescs(recordDecl);
+            var bitfieldIndex = (bitfieldDescs.Length == 1) ? -1 : 0;
 
             var bitfieldPreviousSize = 0L;
             var bitfieldRemainingBits = 0L;
@@ -1763,7 +1763,7 @@ public partial class PInvokeGenerator
             {
                 if (fieldDecl.IsBitField)
                 {
-                    VisitBitfieldDecl(fieldDecl, bitfieldTypes, recordDecl, contextName: "", ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
+                    VisitBitfieldDecl(fieldDecl, bitfieldDescs, recordDecl, contextName: "", ref bitfieldIndex, ref bitfieldPreviousSize, ref bitfieldRemainingBits);
                 }
                 else
                 {
@@ -2351,7 +2351,7 @@ public partial class PInvokeGenerator
             }
         }
 
-        void VisitBitfieldDecl(FieldDecl fieldDecl, Type[] types, RecordDecl recordDecl, string contextName, ref int index, ref long previousSize, ref long remainingBits)
+        void VisitBitfieldDecl(FieldDecl fieldDecl, BitfieldDesc[] bitfieldDescs, RecordDecl recordDecl, string contextName, ref int index, ref long previousSize, ref long remainingBits)
         {
             Debug.Assert(fieldDecl.IsBitField);
 
@@ -2384,7 +2384,8 @@ public partial class PInvokeGenerator
                 remainingBits = currentSize * 8;
                 previousSize = 0;
 
-                typeBacking = (index > 0) ? types[index - 1] : types[0];
+                var bitfieldDesc = (index > 0) ? bitfieldDescs[index - 1] : bitfieldDescs[0];
+                typeBacking = bitfieldDesc.TypeBacking;
                 typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
 
                 if (parent == recordDecl)
@@ -2396,6 +2397,26 @@ public partial class PInvokeGenerator
                         Offset = parent.IsUnion ? 0 : null,
                         NeedsNewKeyword = false,
                         Location = fieldDecl.Location,
+                        WriteCustomAttrs = static context => {
+                            (var bitfieldDesc, var generator) = ((BitfieldDesc, PInvokeGenerator))context;
+
+                            if (!generator.Config.GenerateNativeBitfieldAttribute)
+                            {
+                                return;
+                            }
+
+                            var outputBuilder = generator._outputBuilder;
+                            Debug.Assert(outputBuilder is not null);
+
+                            foreach (var bitfieldRegion in bitfieldDesc.Regions)
+                            {
+                                outputBuilder.WriteCustomAttribute($"NativeBitfield(\"{bitfieldRegion.Name}\", offset: {bitfieldRegion.Offset}, length: {bitfieldRegion.Length})");
+                            }
+
+                            var namespaceName = generator.GetNamespace("NativeBitfieldAttribute");
+                            generator.AddUsingDirective(outputBuilder, namespaceName);
+                        },
+                        CustomAttrGeneratorData = (bitfieldDesc, this),
                     };
                     _outputBuilder.BeginField(in fieldDesc);
                     _outputBuilder.WriteRegularField(typeNameBacking, bitfieldName);
@@ -2416,7 +2437,7 @@ public partial class PInvokeGenerator
                     bitfieldName += index.ToString();
                 }
 
-                typeBacking = (index > 0) ? types[index - 1] : types[0];
+                typeBacking = (index > 0) ? bitfieldDescs[index - 1].TypeBacking : bitfieldDescs[0].TypeBacking;
                 typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
             }
 

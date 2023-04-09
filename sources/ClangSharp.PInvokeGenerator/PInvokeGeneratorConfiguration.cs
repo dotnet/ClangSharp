@@ -228,6 +228,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateMultipleFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles);
 
+    public bool GenerateNativeBitfieldAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute);
+
     public bool GenerateNativeInheritanceAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
 
     public bool GeneratePreviewCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode);

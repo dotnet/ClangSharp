@@ -38,6 +38,9 @@ public abstract class StructDeclarationTest : PInvokeGeneratorTest
     public Task BitfieldTest() => BitfieldTestImpl();
 
     [Test]
+    public Task BitfieldWithNativeBitfieldAttributeTest() => BitfieldWithNativeBitfieldAttributeTestImpl();
+
+    [Test]
     public Task DeclTypeTest() => DeclTypeTestImpl();
 
     [Test]
@@ -221,6 +224,8 @@ public abstract class StructDeclarationTest : PInvokeGeneratorTest
     protected abstract Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType);
 
     protected abstract Task BitfieldTestImpl();
+
+    protected abstract Task BitfieldWithNativeBitfieldAttributeTestImpl();
 
     protected abstract Task DeclTypeTestImpl();
 
