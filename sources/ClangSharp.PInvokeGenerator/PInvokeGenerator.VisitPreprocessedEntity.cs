@@ -34,7 +34,7 @@ public partial class PInvokeGenerator
             var macroName = $"ClangSharpMacro_{macroDefinitionRecord.Spelling}";
 
             _ = _fileContentsBuilder.Append('\n');
-            _ = _fileContentsBuilder.Append($"const __auto_type {macroName} = ");
+            _ = _fileContentsBuilder.Append($"const {_placeholderMacroType} {macroName} = ");
 
             var sourceRangeEnd = tokens[^1].GetExtent(translationUnitHandle).End;
             var sourceRangeStart = tokens[1].GetLocation(translationUnitHandle);

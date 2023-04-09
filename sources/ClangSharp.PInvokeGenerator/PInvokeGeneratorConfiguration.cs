@@ -15,6 +15,9 @@ public sealed class PInvokeGeneratorConfiguration
     private const string DefaultMethodPrefixToStripValue = "";
     private const string DefaultTestOutputLocationValue = "";
 
+    private readonly string _language;
+    private readonly string _languageStandard;
+
     private readonly string _defaultNamespace;
     private readonly string _headerText;
     private readonly string _libraryPath;
@@ -49,8 +52,11 @@ public sealed class PInvokeGeneratorConfiguration
 
     private PInvokeGeneratorConfigurationOptions _options;
 
-    public PInvokeGeneratorConfiguration(string defaultNamespace, string outputLocation, string? headerFile, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions options)
+    public PInvokeGeneratorConfiguration(string language, string languageStandard, string defaultNamespace, string outputLocation, string? headerFile, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions options)
     {
+        _language = language;
+        _languageStandard = languageStandard;
+
         if (string.IsNullOrWhiteSpace(defaultNamespace))
         {
             throw new ArgumentNullException(nameof(defaultNamespace));
@@ -320,6 +326,10 @@ public sealed class PInvokeGeneratorConfiguration
     public PInvokeGeneratorOutputMode OutputMode => _outputMode;
 
     public string OutputLocation => _outputLocation;
+
+    public string Language => _language;
+
+    public string LanguageStandard => _languageStandard;
 
     [AllowNull]
     public IReadOnlyDictionary<string, string> RemappedNames

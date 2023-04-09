@@ -63,7 +63,7 @@ typedef struct MyStruct {
 ";
         }
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs);
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -97,7 +97,7 @@ typedef struct _MyOtherStruct
     }
 }
 ";
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs);
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
@@ -138,6 +138,28 @@ namespace ClangSharp.Test
     }
 }
 ";
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs);
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    public Task MacroTest()
+    {
+        var inputContents = @"#define MyMacro1 5
+#define MyMacro2 MyMacro1";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{{
+    public static partial class Methods
+    {{
+        [NativeTypeName(""#define MyMacro1 5"")]
+        public const int MyMacro1 = 5;
+
+        [NativeTypeName(""#define MyMacro2 MyMacro1"")]
+        public const int MyMacro2 = 5;
+    }}
+}}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 }
