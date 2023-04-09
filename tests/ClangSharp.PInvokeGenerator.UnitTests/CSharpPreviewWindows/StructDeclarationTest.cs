@@ -939,7 +939,7 @@ namespace ClangSharp.Test
 
         public {expectedManagedType} y;
 
-        [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:{line}:{column})"")]
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L{line}_C{column}"")]
         public _Anonymous_e__Struct Anonymous;
 
         [UnscopedRef]
@@ -1018,13 +1018,13 @@ namespace ClangSharp.Test
         {{
             public {expectedManagedType} z;
 
-            [NativeTypeName(""struct (anonymous struct at ClangUnsavedFile.h:14:9)"")]
+            [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L14_C9"")]
             public _w_e__Struct w;
 
-            [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:19:9)"")]
+            [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L19_C9"")]
             public _Anonymous1_e__Struct Anonymous1;
 
-            [NativeTypeName(""MyStruct::(anonymous union at ClangUnsavedFile.h:29:9)"")]
+            [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L29_C9"")]
             public _Anonymous2_e__Union Anonymous2;
 
             public MyUnion u;
@@ -1044,7 +1044,7 @@ namespace ClangSharp.Test
             {{
                 public {expectedManagedType} value1;
 
-                [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:23:13)"")]
+                [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L23_C13"")]
                 public _Anonymous_e__Struct Anonymous;
 
                 public partial struct _Anonymous_e__Struct
@@ -1118,7 +1118,7 @@ namespace ClangSharp.Test
 
         public int y;
 
-        [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:6:5)"")]
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L6_C5"")]
         public _Anonymous_e__Struct Anonymous;
 
         [UnscopedRef]
@@ -1169,7 +1169,7 @@ namespace ClangSharp.Test
         {
             public int z;
 
-            [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:10:9)"")]
+            [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L10_C9"")]
             public _Anonymous_e__Struct Anonymous;
 
             public partial struct _Anonymous_e__Struct
@@ -1508,7 +1508,7 @@ namespace ClangSharp.Test
 
         public double b;
 
-        [NativeTypeName(""MyStruct::(anonymous struct at ClangUnsavedFile.h:7:5)"")]
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L7_C5"")]
         public _Anonymous_e__Struct Anonymous;
 
         [UnscopedRef]

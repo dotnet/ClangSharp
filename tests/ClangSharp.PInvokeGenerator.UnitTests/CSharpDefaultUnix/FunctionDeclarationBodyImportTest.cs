@@ -1434,7 +1434,7 @@ namespace ClangSharp.Test
     public partial struct MyUnion
     {
         [FieldOffset(0)]
-        [NativeTypeName(""MyUnion::(anonymous struct at ClangUnsavedFile.h:3:5)"")]
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L3_C5"")]
         public _Anonymous_e__Struct Anonymous;
 
         public ref int a
