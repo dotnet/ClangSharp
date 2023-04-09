@@ -438,7 +438,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             sw.WriteLine("    /// <param name=\"offset\">The offset of the bitfield that was used in the native signature.</param>");
             sw.WriteLine("    /// <param name=\"length\">The length of the bitfield that was used in the native signature.</param>");
             sw.Write(indentString);
-            sw.WriteLine("    public NativeTypeNameAttribute(string name, int offset, int length)");
+            sw.WriteLine("    public NativeBitfieldAttribute(string name, int offset, int length)");
             sw.Write(indentString);
             sw.WriteLine("    {");
             sw.Write(indentString);
