@@ -813,7 +813,7 @@ namespace ClangSharp.Test
         public {expectedManagedType} b;
 
         [FieldOffset(0)]
-        [NativeTypeName(""MyUnion::(anonymous union at ClangUnsavedFile.h:{line}:{column})"")]
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L{line}_C{column}"")]
         public _Anonymous_e__Union Anonymous;
 
         public ref {expectedManagedType} a
@@ -895,7 +895,7 @@ namespace ClangSharp.Test
         public int y;
 
         [FieldOffset(0)]
-        [NativeTypeName(""MyUnion::(anonymous union at ClangUnsavedFile.h:6:5)"")]
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L6_C5"")]
         public _Anonymous_e__Union Anonymous;
 
         public ref int z
@@ -947,7 +947,7 @@ namespace ClangSharp.Test
             public int z;
 
             [FieldOffset(0)]
-            [NativeTypeName(""MyUnion::(anonymous union at ClangUnsavedFile.h:10:9)"")]
+            [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L10_C9"")]
             public _Anonymous_e__Union Anonymous;
 
             [StructLayout(LayoutKind.Explicit)]
@@ -1284,7 +1284,7 @@ namespace ClangSharp.Test
         public double b;
 
         [FieldOffset(0)]
-        [NativeTypeName(""MyUnion::(anonymous union at ClangUnsavedFile.h:7:5)"")]
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L7_C5"")]
         public _Anonymous_e__Union Anonymous;
 
         public ref double a

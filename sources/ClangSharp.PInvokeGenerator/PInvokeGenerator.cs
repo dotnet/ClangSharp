@@ -2719,103 +2719,102 @@ public sealed partial class PInvokeGenerator : IDisposable
         var nameToCheck = nativeTypeName;
         var remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing, skipUsingIfNotRemapped: true);
 
-        if (wasRemapped)
-        {
-            return remappedName;
-        }
-
-        nameToCheck = nameToCheck.Replace("::", ".");
-        remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing, skipUsingIfNotRemapped: true);
-
-        if (wasRemapped)
-        {
-            return remappedName;
-        }
-
-        nameToCheck = name;
-        remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing);
-
         if (!wasRemapped)
         {
-            if (IsTypeConstantOrIncompleteArray(cursor, type, out var arrayType) && IsType<RecordType>(cursor, arrayType.ElementType))
-            {
-                type = arrayType.ElementType;
-            }
+            nameToCheck = nameToCheck.Replace("::", ".");
+            remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing, skipUsingIfNotRemapped: true);
 
-            if (IsType<RecordType>(cursor, type, out var recordType) && remappedName.StartsWith("__AnonymousRecord_"))
+            if (!wasRemapped)
             {
-                var recordDecl = recordType.Decl;
-                remappedName = "_Anonymous";
+                nameToCheck = name;
+                remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing);
 
-                if (recordDecl.Parent is RecordDecl parentRecordDecl)
+                if (!wasRemapped)
                 {
-                    var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordType).FirstOrDefault();
-
-                    if (matchingField is not null)
+                    if (IsTypeConstantOrIncompleteArray(cursor, type, out var arrayType) && IsType<RecordType>(cursor, arrayType.ElementType))
                     {
-                        remappedName = "_";
-                        remappedName += GetRemappedCursorName(matchingField);
+                        type = arrayType.ElementType;
                     }
-                    else
+
+                    if (IsType<RecordType>(cursor, type, out var recordType) && remappedName.StartsWith("__AnonymousRecord_"))
                     {
-                        var index = 0;
+                        var recordDecl = recordType.Decl;
+                        remappedName = "_Anonymous";
 
-                        if (parentRecordDecl.AnonymousRecords.Count > 1)
+                        if (recordDecl.Parent is RecordDecl parentRecordDecl)
                         {
-                            index = parentRecordDecl.AnonymousRecords.IndexOf(cursor) + 1;
-                        }
+                            var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordType).FirstOrDefault();
 
-                        while (parentRecordDecl.IsAnonymousStructOrUnion && (parentRecordDecl.IsUnion == recordType.Decl.IsUnion))
-                        {
-                            index += 1;
-
-                            if (parentRecordDecl.Parent is RecordDecl parentRecordDeclParent)
+                            if (matchingField is not null)
                             {
-                                if (parentRecordDeclParent.AnonymousRecords.Count > 0)
+                                remappedName = "_";
+                                remappedName += GetRemappedCursorName(matchingField);
+                            }
+                            else
+                            {
+                                var index = 0;
+
+                                if (parentRecordDecl.AnonymousRecords.Count > 1)
                                 {
-                                    index += parentRecordDeclParent.AnonymousRecords.Count - 1;
+                                    index = parentRecordDecl.AnonymousRecords.IndexOf(cursor) + 1;
                                 }
-                                parentRecordDecl = parentRecordDeclParent;
+
+                                while (parentRecordDecl.IsAnonymousStructOrUnion && (parentRecordDecl.IsUnion == recordType.Decl.IsUnion))
+                                {
+                                    index += 1;
+
+                                    if (parentRecordDecl.Parent is RecordDecl parentRecordDeclParent)
+                                    {
+                                        if (parentRecordDeclParent.AnonymousRecords.Count > 0)
+                                        {
+                                            index += parentRecordDeclParent.AnonymousRecords.Count - 1;
+                                        }
+                                        parentRecordDecl = parentRecordDeclParent;
+                                    }
+                                }
+
+                                if (index != 0)
+                                {
+                                    remappedName += index.ToString();
+                                }
                             }
                         }
 
-                        if (index != 0)
-                        {
-                            remappedName += index.ToString();
-                        }
+                        remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
+                    }
+                    else if (IsType<EnumType>(cursor, type, out var enumType) && remappedName.StartsWith("__AnonymousEnum_"))
+                    {
+                        remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _, skipUsing);
+                    }
+                    else if (cursor is EnumDecl enumDecl)
+                    {
+                        // Even though some types have entries with names like *_FORCE_DWORD or *_FORCE_UINT
+                        // MSVC and Clang both still treat this as "signed" values and thus we don't want
+                        // to specially handle it as uint, as that can break ABI handling on some platforms.
+
+                        WithType(enumDecl, ref remappedName, ref nativeTypeName);
                     }
                 }
-
-                remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
             }
-            else if (IsType<EnumType>(cursor, type, out var enumType) && remappedName.StartsWith("__AnonymousEnum_"))
-            {
-                remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _, skipUsing);
-            }
-            else if (cursor is EnumDecl enumDecl)
-            {
-                var enumDeclName = GetRemappedCursorName(enumDecl);
+        }
 
-                if (enumDecl.Enumerators.Any((enumConstantDecl) => IsForceDwordOrForceUInt(enumDeclName, enumConstantDecl)))
-                {
-                    remappedName = "uint";
-                }
-
-                WithType(enumDecl, ref remappedName, ref nativeTypeName);
-            }
+        if (string.IsNullOrWhiteSpace(nativeTypeName))
+        {
+            // When we have an empty native type name, it means the original
+            // name is the same as the native type name and no adjustments
+            // were made. In order to ensure things are correctly preserved
+            // we need to ensure its propagated back here so the below comparison
+            // works and we don't end up comparing "empty" vs "remapped"
+            nativeTypeName = name;
         }
 
         if (IsNativeTypeNameEquivalent(nativeTypeName, remappedName))
         {
+            // Empty the native type name if its equivalent to the new name
             nativeTypeName = string.Empty;
         }
-        return remappedName;
 
-        bool IsForceDwordOrForceUInt(string enumDeclName, EnumConstantDecl enumConstantDecl)
-        {
-            var enumConstantDeclName = GetRemappedCursorName(enumConstantDecl);
-            return (enumConstantDeclName == $"{enumDeclName}_FORCE_DWORD") || (enumConstantDeclName == $"{enumDeclName}_FORCE_UINT");
-        }
+        return remappedName;
     }
 
     private static string GetSourceRangeContents(CXTranslationUnit translationUnit, CXSourceRange sourceRange)
@@ -2904,13 +2903,38 @@ public sealed partial class PInvokeGenerator : IDisposable
     }
 
     private string GetTypeName(Cursor? cursor, Cursor? context, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
-        => GetTypeName(cursor, context, type, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
+    {
+        if (_typeNames.TryGetValue((cursor, context, type), out var result))
+        {
+            nativeTypeName = result.nativeTypeName;
+            return result.typeName;
+        }
+        else if (IsType<TagType>(cursor, type, out var tagType) && tagType.Decl.Handle.IsAnonymous)
+        {
+            // In order to avoid minor path differences, casing, and other deltas across different
+            // invocations of the tool, we want to use the "built" anonymous name so we get a more
+            // minimal but still accurate set of information embedded in the output.
+
+            result.typeName = GetAnonymousName(tagType.Decl, tagType.KindSpelling);
+            result.nativeTypeName = result.typeName;
+
+            _typeNames[(cursor, context, type)] = result;
+
+            nativeTypeName = result.nativeTypeName;
+            return result.typeName;
+        }
+        else
+        {
+            return GetTypeName(cursor, context, type, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
+        }
+    }
 
     private string GetTypeName(Cursor? cursor, Cursor? context, Type rootType, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
     {
         if (!_typeNames.TryGetValue((cursor, context, type), out var result))
         {
             result.typeName = type.AsString.NormalizePath()
+                                           .Replace("unnamed enum at", "anonymous enum at")
                                            .Replace("unnamed struct at", "anonymous struct at")
                                            .Replace("unnamed union at", "anonymous union at");
 
@@ -3113,7 +3137,12 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 if (tagType.Decl.Handle.IsAnonymous)
                 {
+                    // In order to avoid minor path differences, casing, and other deltas across different
+                    // invocations of the tool, we want to use the "built" anonymous name so we get a more
+                    // minimal but still accurate set of information embedded in the output.
+
                     result.typeName = GetAnonymousName(tagType.Decl, tagType.KindSpelling);
+                    result.nativeTypeName = result.typeName;
                 }
                 else if (tagType.Handle.IsConstQualified)
                 {

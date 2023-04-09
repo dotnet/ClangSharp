@@ -961,7 +961,7 @@ struct MyStruct
         <type>{expectedManagedType}</type>
       </field>
       <field name=""Anonymous"" access=""public"">
-        <type native=""MyStruct::(anonymous struct at ClangUnsavedFile.h:10:5)"">_Anonymous_e__Struct</type>
+        <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C5"">_Anonymous_e__Struct</type>
       </field>
       <field name=""z"" access=""public"">
         <type>ref {expectedManagedType}</type>
@@ -998,7 +998,7 @@ struct MyStruct
           <type>{expectedManagedType}</type>
         </field>
         <field name=""w"" access=""public"">
-          <type native=""struct (anonymous struct at ClangUnsavedFile.h:14:9)"">_w_e__Struct</type>
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L14_C9"">_w_e__Struct</type>
         </field>
         <field name=""u"" access=""public"">
           <type>MyUnion</type>
@@ -1082,7 +1082,7 @@ struct MyStruct
         <type>int</type>
       </field>
       <field name=""Anonymous"" access=""public"">
-        <type native=""MyStruct::(anonymous struct at ClangUnsavedFile.h:6:5)"">_Anonymous_e__Struct</type>
+        <type native=""__AnonymousRecord_ClangUnsavedFile_L6_C5"">_Anonymous_e__Struct</type>
       </field>
       <field name=""z"" access=""public"">
         <type>ref int</type>
@@ -1119,7 +1119,7 @@ struct MyStruct
           <type>int</type>
         </field>
         <field name=""Anonymous"" access=""public"">
-          <type native=""MyStruct::(anonymous struct at ClangUnsavedFile.h:10:9)"">_Anonymous_e__Struct</type>
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous_e__Struct</type>
         </field>
         <struct name=""_Anonymous_e__Struct"" access=""public"">
           <field name=""w"" access=""public"">
@@ -1474,7 +1474,7 @@ struct example_s {
         <type>double</type>
       </field>
       <field name=""Anonymous"" access=""public"">
-        <type native=""MyStruct::(anonymous struct at ClangUnsavedFile.h:7:5)"">_Anonymous_e__Struct</type>
+        <type native=""__AnonymousRecord_ClangUnsavedFile_L7_C5"">_Anonymous_e__Struct</type>
       </field>
       <field name=""a"" access=""public"">
         <type>ref double</type>
