@@ -6547,7 +6547,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
 
             var cxxStandard = ParseCxxStandard(_config.LanguageStandard);
-            return (cxxStandard is not -1 and not 98 and > 11) ? Cxx11AutoType : GnuAutoType;
+            return (cxxStandard is not -1 and not 98 and >= 11) ? Cxx11AutoType : GnuAutoType;
         }
         else
         {
@@ -6562,12 +6562,28 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (standard.StartsWith(CxxStandard))
         {
-            return int.TryParse(standard[CxxStandard.Length..], out var std) ? std : -1;
+            return ParseCxxStandardVersion(standard.AsSpan()[CxxStandard.Length..]);
         }
 
         if (standard.StartsWith(GnuxxStandard))
         {
-            return int.TryParse(standard[GnuxxStandard.Length..], out var std) ? std : -1;
+            return ParseCxxStandardVersion(standard.AsSpan()[GnuxxStandard.Length..]);
+        }
+
+        return -1;
+    }
+
+    private static int ParseCxxStandardVersion(ReadOnlySpan<char> version)
+    {
+        if(int.TryParse(version, out var std))
+        {
+            // Maybe in the future we'll need to check for more c++ standard drafts, but atm this should work
+            if (version.EndsWith("a") || version.EndsWith("b"))
+            {
+                return std * 10;
+            }
+
+            return std;
         }
 
         return -1;
