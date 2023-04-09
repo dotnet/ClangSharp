@@ -6547,7 +6547,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
 
             var cxxStandard = ParseCxxStandard(_config.LanguageStandard);
-            return (cxxStandard is not -1 and < 11) ? Cxx11AutoType : GnuAutoType;
+            return (cxxStandard is not -1 and not 98 and > 11) ? Cxx11AutoType : GnuAutoType;
         }
         else
         {
