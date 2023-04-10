@@ -148,16 +148,16 @@ namespace ClangSharp.Test
 #define MyMacro2 MyMacro1";
 
         var expectedOutputContents = @"namespace ClangSharp.Test
-{{
+{
     public static partial class Methods
-    {{
+    {
         [NativeTypeName(""#define MyMacro1 5"")]
         public const int MyMacro1 = 5;
 
         [NativeTypeName(""#define MyMacro2 MyMacro1"")]
         public const int MyMacro2 = 5;
-    }}
-}}
+    }
+}
 ";
 
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
