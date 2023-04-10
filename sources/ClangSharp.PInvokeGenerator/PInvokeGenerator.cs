@@ -60,13 +60,13 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly Dictionary<string, List<string>> _topLevelClassAttributes;
     private readonly HashSet<string> _topLevelClassNames;
     private readonly HashSet<string> _usedRemappings;
+    private readonly string _placeholderMacroType;
 
     private string _filePath;
     private string[] _clangCommandLineArgs;
     private CXTranslationUnit_Flags _translationFlags;
     private string? _currentClass;
     private string? _currentNamespace;
-
     private IOutputBuilder? _outputBuilder;
     private CSharpOutputBuilder? _testOutputBuilder;
     private CSharpOutputBuilder? _stmtOutputBuilder;
@@ -133,6 +133,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         _usedRemappings = new HashSet<string>();
         _filePath = "";
         _clangCommandLineArgs = Array.Empty<string>();
+        _placeholderMacroType = GetPlaceholderMacroType();
     }
 
     ~PInvokeGenerator()
@@ -6280,7 +6281,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 if (IsType<TypedefType>(fieldDecl, out var typedefType))
                 {
                     declAttrs = declAttrs.Concat(typedefType.Decl.Attrs);
-                }          
+                }
             }
             else if (namedDecl is RecordDecl recordDecl)
             {
@@ -6716,5 +6717,55 @@ public sealed partial class PInvokeGenerator : IDisposable
                 _stmtOutputBuilder = null;
             }
         }
+    }
+
+    private string GetPlaceholderMacroType()
+    {
+        const string Cxx11AutoType = "auto";
+        const string GnuAutoType = "__auto_type";
+
+        if (_config.Language is "c++")
+        {
+            if (string.IsNullOrEmpty(_config.LanguageStandard))
+            {
+                return Cxx11AutoType; // Nowadays, the default standard within clang will always be above c++11
+            }
+
+            var cxxStandard = ParseCxxStandard(_config.LanguageStandard);
+            return (cxxStandard is not -1 and not 98 and >= 11) ? Cxx11AutoType : GnuAutoType;
+        }
+        else
+        {
+            return GnuAutoType;
+        }
+    }
+
+    private static int ParseCxxStandard(string standard)
+    {
+        const string CxxStandard = "c++";
+        const string GnuxxStandard = "gnu++";
+
+        if (standard.StartsWith(CxxStandard))
+        {
+            return ParseCxxStandardVersion(standard.AsSpan()[CxxStandard.Length..]);
+        }
+
+        if (standard.StartsWith(GnuxxStandard))
+        {
+            return ParseCxxStandardVersion(standard.AsSpan()[GnuxxStandard.Length..]);
+        }
+
+        return -1;
+    }
+
+    private static int ParseCxxStandardVersion(ReadOnlySpan<char> version)
+    {
+        // Maybe in the future we'll need to check for more c++ standard drafts, but atm this should work
+        if(version.EndsWith("a") || version.EndsWith("b"))
+        {
+            return int.TryParse(version[..^1], out var draftStd) ? draftStd * 10 : -1;
+        }
+
+        return int.TryParse(version, out var std) ? std : -1;
     }
 }

@@ -698,7 +698,7 @@ public class Program
         translationFlags |= CXTranslationUnit_IncludeAttributedTypes;               // Include attributed types in CXType
         translationFlags |= CXTranslationUnit_VisitImplicitAttributes;              // Implicit attributes should be visited
 
-        var config = new PInvokeGeneratorConfiguration(namespaceName, outputLocation, headerFile, outputMode, configOptions) {
+        var config = new PInvokeGeneratorConfiguration(language, std, namespaceName, outputLocation, headerFile, outputMode, configOptions) {
             DefaultClass = methodClassName,
             ExcludedNames = excludedNames,
             IncludedNames = includedNames,
@@ -1069,7 +1069,7 @@ public class Program
             aliases: new string[] { "--language", "-x" },
             description: "Treat subsequent input files as having type <language>.",
             getDefaultValue: () => "c++"
-        );
+        ).FromAmong("c", "c++");
     }
 
     private static Option<string> GetLibraryOption()
