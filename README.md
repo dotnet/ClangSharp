@@ -27,7 +27,7 @@ Source browsing is available via: https://source.clangsharp.dev/
 * [Building Managed](#building-managed)
 * [Building Native](#building-native)
 * [Generating Bindings](#generating-bindings)
-* [Using locally built versions](#using-locally-build-versions)
+* [Using locally built versions](#using-locally-built-versions)
 * [Spotlight](#spotlight)
 
 ### Code of Conduct
