@@ -450,6 +450,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsArrayFormAsWritten(CXCursor C
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsArrow(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsCBuffer(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsClassExtension(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsCompleteDefinition(CXCursor C);
@@ -612,6 +614,8 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumExpansionTypes(CXCursor C);
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumExprs(CXCursor C);
 
+CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumExprsOther(CXCursor C);
+
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumFields(CXCursor C);
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumFriends(CXCursor C);
@@ -663,6 +667,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getRhsExpr(CXCursor C);
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getShouldCopy(CXCursor C);
 
 CLANGSHARP_LINKAGE CXSourceRange clangsharp_Cursor_getSourceRange(CXCursor C);
+
+CLANGSHARP_LINKAGE CXSourceRange clangsharp_Cursor_getSourceRangeRaw(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getSpecialization(CXCursor C, unsigned i);
 
@@ -771,6 +777,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_TemplateArgumentLoc_getSourceIntegralExpr
 CLANGSHARP_LINKAGE CXCursor clangsharp_TemplateArgumentLoc_getSourceNullPtrExpression(CX_TemplateArgumentLoc T);
 
 CLANGSHARP_LINKAGE CXSourceRange clangsharp_TemplateArgumentLoc_getSourceRange(CX_TemplateArgumentLoc T);
+
+CLANGSHARP_LINKAGE CXSourceRange clangsharp_TemplateArgumentLoc_getSourceRangeRaw(CX_TemplateArgumentLoc T);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_TemplateName_getAsTemplateDecl(CX_TemplateName T);
 

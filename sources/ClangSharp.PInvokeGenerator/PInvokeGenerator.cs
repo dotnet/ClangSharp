@@ -34,8 +34,8 @@ public sealed partial class PInvokeGenerator : IDisposable
     private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
     private static readonly Regex s_needsSystemSupportRegex = new Regex(@"\b(?:Guid|IntPtr|UIntPtr)\b", RegexOptions.Compiled);
 
-    private const string ExpectedClangVersion = "version 15.0";
-    private const string ExpectedClangSharpVersion = "version 15.0";
+    private const string ExpectedClangVersion = "version 16.0";
+    private const string ExpectedClangSharpVersion = "version 16.0";
 
     private readonly CXIndex _index;
     private readonly OutputBuilderFactory _outputBuilderFactory;
@@ -1498,9 +1498,40 @@ public sealed partial class PInvokeGenerator : IDisposable
                     var name = kvp.Key;
                     var remappings = kvp.Value;
 
-                    if (!_config.RemappedNames.TryGetValue(name, out var remappedName))
+                    if (!_config.RemappedNames.TryGetValue(name, out _))
                     {
-                        AddDiagnostic(DiagnosticLevel.Info, $"Potential missing remapping '{name}'. {GetFoundRemappingString(name, remappings)}");
+                        var addDiag = false;
+
+                        var altName = name;
+                        var smlName = name;
+
+                        if (name.Contains("::"))
+                        {
+                            altName = name.Replace("::", ".");
+                            smlName = altName.Split('.')[^1];
+                        }
+                        else if (name.Contains('.'))
+                        {
+                            altName = name.Replace(".", "::");
+                            smlName = altName.Split("::")[^1];
+                        }
+                        else
+                        {
+                            addDiag = true;
+                        }
+
+                        if (!addDiag && !_config.RemappedNames.TryGetValue(altName, out _))
+                        {
+                            if (!_config.RemappedNames.TryGetValue(smlName, out _))
+                            {
+                                addDiag = true;
+                            }
+                        }
+
+                        if (addDiag && !remappings.Contains(altName) && !remappings.Contains(smlName))
+                        {
+                            AddDiagnostic(DiagnosticLevel.Info, $"Potential missing remapping '{name}'. {GetFoundRemappingString(name, remappings)}");
+                        }
                     }
                 }
 
@@ -1511,7 +1542,38 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                     if (_config.RemappedNames.TryGetValue(name, out var remappedName) && !remappings.Contains(remappedName) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
                     {
-                        AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. {GetFoundRemappingString(name, remappings)}");
+                        var addDiag = false;
+
+                        var altName = name;
+                        var smlName = name;
+
+                        if (name.Contains("::"))
+                        {
+                            altName = name.Replace("::", ".");
+                            smlName = altName.Split('.')[^1];
+                        }
+                        else if (name.Contains('.'))
+                        {
+                            altName = name.Replace(".", "::");
+                            smlName = altName.Split("::")[^1];
+                        }
+                        else
+                        {
+                            addDiag = true;
+                        }
+
+                        if (!addDiag && _config.RemappedNames.TryGetValue(altName, out remappedName) && !remappings.Contains(remappedName) && (altName != remappedName) && !_config.ForceRemappedNames.Contains(altName))
+                        {
+                            if (_config.RemappedNames.TryGetValue(smlName, out remappedName) && !remappings.Contains(remappedName) && (smlName != remappedName) && !_config.ForceRemappedNames.Contains(smlName))
+                            {
+                                addDiag = true;
+                            }
+                        }
+
+                        if (addDiag)
+                        {
+                            AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. {GetFoundRemappingString(name, remappings)}");
+                        }
                     }
                 }
 
@@ -1521,7 +1583,38 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                     if (!_allValidNameRemappings.ContainsKey(name) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
                     {
-                        AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. No remappings were found.");
+                        var addDiag = false;
+
+                        var altName = name;
+                        var smlName = name;
+
+                        if (name.Contains("::"))
+                        {
+                            altName = name.Replace("::", ".");
+                            smlName = altName.Split('.')[^1];
+                        }
+                        else if (name.Contains('.'))
+                        {
+                            altName = name.Replace(".", "::");
+                            smlName = altName.Split("::")[^1];
+                        }
+                        else
+                        {
+                            addDiag = true;
+                        }
+
+                        if (!addDiag && !_allValidNameRemappings.ContainsKey(altName) && (altName != remappedName) && !_config.ForceRemappedNames.Contains(altName))
+                        {
+                            if (!_allValidNameRemappings.ContainsKey(smlName) && (smlName != remappedName) && !_config.ForceRemappedNames.Contains(smlName))
+                            {
+                                addDiag = true;
+                            }
+                        }
+
+                        if (addDiag)
+                        {
+                            AddDiagnostic(DiagnosticLevel.Info, $"Potential invalid remapping '{name}={remappedName}'. No remappings were found.");
+                        }
                     }
                 }
 
@@ -2416,8 +2509,21 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 name = "Dispose";
             }
-            else if (string.IsNullOrWhiteSpace(name))
+            else if (string.IsNullOrWhiteSpace(name) || name.StartsWith('('))
             {
+#if DEBUG
+                if (name.StartsWith('('))
+                {
+                    Debug.Assert(name.StartsWith("(anonymous enum at ") ||
+                                 name.StartsWith("(anonymous struct at ") ||
+                                 name.StartsWith("(anonymous union at ") ||
+                                 name.StartsWith("(unnamed enum at ") ||
+                                 name.StartsWith("(unnamed struct at ") ||
+                                 name.StartsWith("(unnamed union at "));
+                    Debug.Assert(name.EndsWith(')'));
+                }
+#endif
+
                 if (namedDecl is TypeDecl typeDecl)
                 {
                     name = (typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous
@@ -2707,9 +2813,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private string GetRemappedCursorName(NamedDecl namedDecl, out string nativeTypeName, bool skipUsing)
     {
-        nativeTypeName = GetCursorName(namedDecl);
+        nativeTypeName = GetCursorQualifiedName(namedDecl);
 
-        var name = GetCursorQualifiedName(namedDecl);
+        var name = nativeTypeName;
         var remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out var wasRemapped, skipUsing);
 
         if (wasRemapped)
@@ -2742,7 +2848,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             return remappedName;
         }
 
-        name = nativeTypeName;
+        name = GetCursorName(namedDecl);
         remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing);
 
         if (wasRemapped)
@@ -3264,11 +3370,20 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                result.typeName = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, out var nativeNamedTypeName);
+
+                if (!string.IsNullOrWhiteSpace(nativeNamedTypeName) &&
+                    !result.nativeTypeName.StartsWith("const ") &&
+                    !result.nativeTypeName.StartsWith("enum ") &&
+                    !result.nativeTypeName.StartsWith("struct ") &&
+                    !result.nativeTypeName.StartsWith("union "))
+                {
+                    result.nativeTypeName = nativeNamedTypeName;
+                }
             }
             else if (type is FunctionType functionType)
             {
-                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, functionType, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, functionType, ignoreTransparentStructsWhereRequired, out _, out _);
             }
             else if (type is InjectedClassNameType injectedClassNameType)
             {
@@ -3280,11 +3395,21 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (type is PointerType pointerType)
             {
-                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, pointerType.PointeeType, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, pointerType.PointeeType, ignoreTransparentStructsWhereRequired, out var nativePointeeTypeName, out var isAdjusted);
+
+                if (isAdjusted)
+                {
+                    result.nativeTypeName = $"{nativePointeeTypeName} *";
+                }
             }
             else if (type is ReferenceType referenceType)
             {
-                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, referenceType.PointeeType, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, referenceType.PointeeType, ignoreTransparentStructsWhereRequired, out var nativePointeeTypeName, out var isAdjusted);
+
+                if (isAdjusted)
+                {
+                    result.nativeTypeName = $"{nativePointeeTypeName} &";
+                }
             }
             else if (type is SubstTemplateTypeParmType substTemplateTypeParmType)
             {
@@ -3464,21 +3589,33 @@ public sealed partial class PInvokeGenerator : IDisposable
         return result.typeName;
     }
 
-    private string GetTypeNameForPointeeType(Cursor? cursor, Cursor? context, Type rootType, Type pointeeType, bool ignoreTransparentStructsWhereRequired, out string nativePointeeTypeName)
+    private string GetTypeNameForPointeeType(Cursor? cursor, Cursor? context, Type rootType, Type pointeeType, bool ignoreTransparentStructsWhereRequired, out string nativePointeeTypeName, out bool isAdjusted)
     {
         var name = pointeeType.AsString;
+
         nativePointeeTypeName = name;
+        isAdjusted = false;
 
         // We don't want to handle these using IsType because we need to specially
         // handle cases like TypedefType at each level of the type hierarchy
 
         if (pointeeType is AttributedType attributedType)
         {
-            name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, out var nativeModifiedTypeName);
+            name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, out var nativeModifiedTypeName, out isAdjusted);
         }
         else if (pointeeType is ElaboratedType elaboratedType)
         {
-            name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, out var nativeNamedTypeName);
+            name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, out var nativeNamedTypeName, out isAdjusted);
+
+            if (!string.IsNullOrWhiteSpace(nativeNamedTypeName) &&
+                !nativePointeeTypeName.StartsWith("const ") &&
+                !nativePointeeTypeName.StartsWith("enum ") &&
+                !nativePointeeTypeName.StartsWith("struct ") &&
+                !nativePointeeTypeName.StartsWith("union "))
+            {
+                nativePointeeTypeName = nativeNamedTypeName;
+                isAdjusted = true;
+            }
         }
         else if (pointeeType is FunctionType functionType)
         {
@@ -3613,7 +3750,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else
             {
-                name = GetTypeNameForPointeeType(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out var nativeUnderlyingTypeName);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out var nativeUnderlyingTypeName, out isAdjusted);
             }
         }
         else

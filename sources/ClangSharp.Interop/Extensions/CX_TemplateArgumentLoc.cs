@@ -17,4 +17,6 @@ public unsafe partial struct CX_TemplateArgumentLoc
     public CXCursor SourceNullPtrExpression => clangsharp.TemplateArgumentLoc_getSourceNullPtrExpression(this);
 
     public CXSourceRange SourceRange => clangsharp.TemplateArgumentLoc_getSourceRange(this);
+
+    public CXSourceRange SourceRangeRaw => clangsharp.TemplateArgumentLoc_getSourceRangeRaw(this);
 }

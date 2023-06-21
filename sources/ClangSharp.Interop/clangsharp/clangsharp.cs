@@ -399,6 +399,10 @@ public static partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsArrow(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsCBuffer", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsCBuffer(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsClassExtension", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsClassExtension(CXCursor C);
@@ -698,6 +702,9 @@ public static partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumExprs", ExactSpelling = true)]
     public static extern int Cursor_getNumExprs(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumExprsOther", ExactSpelling = true)]
+    public static extern int Cursor_getNumExprsOther(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumFields", ExactSpelling = true)]
     public static extern int Cursor_getNumFields(CXCursor C);
 
@@ -777,6 +784,9 @@ public static partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getSourceRange", ExactSpelling = true)]
     public static extern CXSourceRange Cursor_getSourceRange(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getSourceRangeRaw", ExactSpelling = true)]
+    public static extern CXSourceRange Cursor_getSourceRangeRaw(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getSpecialization", ExactSpelling = true)]
     public static extern CXCursor Cursor_getSpecialization(CXCursor C, [NativeTypeName("unsigned int")] uint i);
@@ -942,6 +952,9 @@ public static partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgumentLoc_getSourceRange", ExactSpelling = true)]
     public static extern CXSourceRange TemplateArgumentLoc_getSourceRange(CX_TemplateArgumentLoc T);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateArgumentLoc_getSourceRangeRaw", ExactSpelling = true)]
+    public static extern CXSourceRange TemplateArgumentLoc_getSourceRangeRaw(CX_TemplateArgumentLoc T);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_TemplateName_getAsTemplateDecl", ExactSpelling = true)]
     public static extern CXCursor TemplateName_getAsTemplateDecl(CX_TemplateName T);

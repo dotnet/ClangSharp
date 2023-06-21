@@ -349,7 +349,7 @@ public partial class PInvokeGenerator
 
                     if (IsPrevContextStmt<ImplicitCastExpr>(out var implicitCastExpr, out _))
                     {
-                        // C# characters are effectively `ushort` while C defaults to "char" which is 
+                        // C# characters are effectively `ushort` while C defaults to "char" which is
                         // most typically `sbyte`. Due to this we need to insert a correct implicit
                         // cast to ensure things are correctly handled here.
 

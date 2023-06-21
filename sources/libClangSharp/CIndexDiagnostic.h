@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-15.0.0/clang/tools/libclang
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-16.0.6/clang/tools/libclang
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 #ifndef LIBCLANGSHARP_CINDEXDIAGNOSTIC_H
@@ -25,9 +25,11 @@ namespace clang {
     class CXDiagnosticSetImpl {
         std::vector<std::unique_ptr<CXDiagnosticImpl>> Diagnostics;
         const bool IsExternallyManaged;
+
     public:
         CXDiagnosticSetImpl(bool isManaged = false)
-            : IsExternallyManaged(isManaged) { }
+            : IsExternallyManaged(isManaged) {
+        }
 
         virtual ~CXDiagnosticSetImpl();
 
@@ -46,7 +48,9 @@ namespace clang {
             return Diagnostics.empty();
         }
 
-        bool isExternallyManaged() const { return IsExternallyManaged; }
+        bool isExternallyManaged() const {
+            return IsExternallyManaged;
+        }
     };
 
     class CXDiagnosticImpl {
@@ -88,7 +92,9 @@ namespace clang {
         /// Return the FixIt information (source range and inserted text).
         virtual CXString getFixIt(unsigned FixIt, CXSourceRange* ReplacementRange) const = 0;
 
-        Kind getKind() const { return K; }
+        Kind getKind() const {
+            return K;
+        }
 
         CXDiagnosticSetImpl& getChildDiagnostics() {
             return ChildDiags;

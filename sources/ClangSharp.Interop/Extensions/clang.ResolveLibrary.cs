@@ -37,8 +37,8 @@ public static unsafe partial class @clang
 
     private static bool TryResolveClang(Assembly assembly, DllImportSearchPath? searchPath, out IntPtr nativeLibrary)
     {
-        return (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang.so.15", assembly, searchPath, out nativeLibrary))
-            || (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang-15", assembly, searchPath, out nativeLibrary))
+        return (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang.so.16", assembly, searchPath, out nativeLibrary))
+            || (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang-16", assembly, searchPath, out nativeLibrary))
             || (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && NativeLibrary.TryLoad("libclang.so.1", assembly, searchPath, out nativeLibrary))
             || NativeLibrary.TryLoad("libclang", assembly, searchPath, out nativeLibrary);
     }

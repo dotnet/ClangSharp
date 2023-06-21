@@ -27,7 +27,10 @@ CINDEX_VERSION_STRINGIZE_
 --file
 clang-c/BuildSystem.h
 clang-c/CXCompilationDatabase.h
+clang-c/CXDiagnostic.h
 clang-c/CXErrorCode.h
+clang-c/CXFile.h
+clang-c/CXSourceLocation.h
 clang-c/CXString.h
 clang-c/Documentation.h
 clang-c/ExternC.h

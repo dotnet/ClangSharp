@@ -1,63 +1,38 @@
 {
   "runtimes": {
-    "freebsd.12-x64": {
-      "libclang": {
-        "libclang.runtime.freebsd.12-x64": "15.0.0"
-      }
-    },
-    "freebsd.13-x64": {
-      "libclang": {
-        "libclang.runtime.freebsd.13-x64": "15.0.0"
-      }
-    },
     "linux-arm64": {
       "libclang": {
-        "libclang.runtime.linux-arm64": "15.0.0"
+        "libclang.runtime.linux-arm64": "16.0.6"
       }
     },
     "linux-x64": {
       "libclang": {
-        "libclang.runtime.linux-x64": "15.0.0"
+        "libclang.runtime.linux-x64": "16.0.6"
       }
     },
     "osx-arm64": {
       "libclang": {
-        "libclang.runtime.osx-arm64": "15.0.0"
+        "libclang.runtime.osx-arm64": "16.0.6"
       }
     },
     "osx-x64": {
       "libclang": {
-        "libclang.runtime.osx-x64": "15.0.0"
-      }
-    },
-    "ubuntu.18.04-x64": {
-      "libclang": {
-        "libclang.runtime.ubuntu.18.04-x64": "15.0.0"
-      }
-    },
-    "ubuntu.20.04-x64": {
-      "libclang": {
-        "libclang.runtime.ubuntu.20.04-x64": "15.0.0"
-      }
-    },
-    "ubuntu.22.04-x64": {
-      "libclang": {
-        "libclang.runtime.ubuntu.22.04-x64": "15.0.0"
+        "libclang.runtime.osx-x64": "16.0.6"
       }
     },
     "win-arm64": {
       "libclang": {
-        "libclang.runtime.win-arm64": "15.0.0"
+        "libclang.runtime.win-arm64": "16.0.6"
       }
     },
     "win-x64": {
       "libclang": {
-        "libclang.runtime.win-x64": "15.0.0"
+        "libclang.runtime.win-x64": "16.0.6"
       }
     },
     "win-x86": {
       "libclang": {
-        "libclang.runtime.win-x86": "15.0.0"
+        "libclang.runtime.win-x86": "16.0.6"
       }
     }
   }

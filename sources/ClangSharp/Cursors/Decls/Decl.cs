@@ -161,6 +161,8 @@ public class Decl : Cursor
 
     public CXSourceRange SourceRange => clangsharp.Cursor_getSourceRange(Handle);
 
+    public CXSourceRange SourceRangeRaw => clangsharp.Cursor_getSourceRangeRaw(Handle);
+
     public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.Value;
 
     internal static new Decl Create(CXCursor handle) => handle.DeclKind switch {
@@ -175,12 +177,14 @@ public class Decl : Cursor
         CX_DeclKind_FileScopeAsm => new FileScopeAsmDecl(handle),
         CX_DeclKind_Friend => new FriendDecl(handle),
         CX_DeclKind_FriendTemplate => new FriendTemplateDecl(handle),
+        CX_DeclKind_ImplicitConceptSpecialization => new ImplicitConceptSpecializationDecl(handle),
         CX_DeclKind_Import => new ImportDecl(handle),
         CX_DeclKind_LifetimeExtendedTemporary => new LifetimeExtendedTemporaryDecl(handle),
         CX_DeclKind_LinkageSpec => new LinkageSpecDecl(handle),
         CX_DeclKind_Using => new UsingDecl(handle),
         CX_DeclKind_UsingEnum => new UsingEnumDecl(handle),
         CX_DeclKind_Label => new LabelDecl(handle),
+        CX_DeclKind_HLSLBuffer => new HLSLBufferDecl(handle),
         CX_DeclKind_Namespace => new NamespaceDecl(handle),
         CX_DeclKind_NamespaceAlias => new NamespaceAliasDecl(handle),
         CX_DeclKind_ObjCCompatibleAlias => new ObjCCompatibleAliasDecl(handle),
@@ -248,6 +252,7 @@ public class Decl : Cursor
         CX_DeclKind_PragmaDetectMismatch => new PragmaDetectMismatchDecl(handle),
         CX_DeclKind_RequiresExprBody => new RequiresExprBodyDecl(handle),
         CX_DeclKind_StaticAssert => new StaticAssertDecl(handle),
+        CX_DeclKind_TopLevelStmt => new TopLevelStmtDecl(handle),
         CX_DeclKind_TranslationUnit => new TranslationUnitDecl(handle),
         _ => new Decl(handle, handle.kind, handle.DeclKind),
     };

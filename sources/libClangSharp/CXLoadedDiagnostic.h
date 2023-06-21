@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-15.0.0/clang/tools/libclang
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-16.0.6/clang/tools/libclang
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 #ifndef LIBCLANGSHARP_CXLOADEDDIAGNOSTIC_H
@@ -19,7 +19,10 @@ namespace clang {
     class CXLoadedDiagnostic : public CXDiagnosticImpl {
     public:
         CXLoadedDiagnostic()
-            : CXDiagnosticImpl(LoadedDiagnosticKind), severity(0), category(0) { }
+            : CXDiagnosticImpl(LoadedDiagnosticKind)
+            , severity(0)
+            , category(0) {
+        }
 
         ~CXLoadedDiagnostic() override;
 
@@ -66,7 +69,11 @@ namespace clang {
             unsigned column;
             unsigned offset;
 
-            Location() : line(0), column(0), offset(0) { }
+            Location()
+                : line(0)
+                , column(0)
+                , offset(0) {
+            }
         };
 
         Location DiagLoc;

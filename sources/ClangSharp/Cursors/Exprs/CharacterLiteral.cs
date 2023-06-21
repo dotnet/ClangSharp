@@ -3,9 +3,9 @@
 using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CXTokenKind;
-using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
@@ -20,8 +20,16 @@ public sealed class CharacterLiteral : Expr
         _valueString = new Lazy<string>(() => {
             var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
-            Debug.Assert(tokens.Length == 1);
-            Debug.Assert(tokens[0].Kind == CXToken_Literal);
+            if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Literal and not CXToken_Identifier))
+            {
+                tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRangeRaw);
+
+                if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Literal and not CXToken_Identifier))
+                {
+                    Debug.Assert(false, "Failed to stringify tokens for character literal.");
+                    return Value.ToString();
+                }
+            }
 
             var spelling = tokens[0].GetSpelling(Handle.TranslationUnit).ToString();
             spelling = spelling.Trim('\\', '\r', '\n');

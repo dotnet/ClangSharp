@@ -87,6 +87,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public CXType NamedType => clang.Type_getNamedType(this);
 
+    public CXType NonReferenceType => (kind != CXType_Invalid) ? clang.getNonReferenceType(this) : default;
+
     public CXTypeNullabilityKind Nullability => clang.Type_getNullability(this);
 
     public int NumArgTypes => clang.getNumArgTypes(this);
@@ -213,6 +215,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
     public CXCursor UnderlyingExpr => (kind != CXType_Invalid) ? clangsharp.Type_getUnderlyingExpr(this) : default;
 
     public CXType UnderlyingType => (kind != CXType_Invalid) ? clangsharp.Type_getUnderlyingType(this) : default;
+
+    public CXType UnqualifiedType => (kind != CXType_Invalid) ? clang.getUnqualifiedType(this) : default;
 
     public CXType ValueType => clang.Type_getValueType(this);
 
