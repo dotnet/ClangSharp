@@ -118,7 +118,7 @@ This program will take a given set of C or C++ header files and generate C# bind
 
 The simplest and recommended setup is to install the generator as a .NET tool and then use response files:
 ```
-dotnet tool install --global ClangSharpPInvokeGenerator --version 16.0.6
+dotnet tool install --global ClangSharpPInvokeGenerator --version 16.0.0
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 
