@@ -6470,6 +6470,8 @@ public sealed partial class PInvokeGenerator : IDisposable
                         break;
                     }
 
+                    case CX_AttrKind_Format:
+                    case CX_AttrKind_FormatArg:
                     case CX_AttrKind_MSNoVTable:
                     case CX_AttrKind_MSAllocator:
                     case CX_AttrKind_MaxFieldAlignment:
