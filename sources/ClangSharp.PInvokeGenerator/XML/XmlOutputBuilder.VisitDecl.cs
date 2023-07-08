@@ -332,9 +332,10 @@ internal partial class XmlOutputBuilder
         _ = _sb.Append("</code>");
     }
 
-    public void BeginGetter(bool aggressivelyInlined)
+    public void BeginGetter(bool aggressivelyInlined, bool isReadOnly)
     {
         _ = _sb.Append("<get");
+
         if (aggressivelyInlined)
         {
             _ = _sb.Append(" inlining=\"aggressive\"");

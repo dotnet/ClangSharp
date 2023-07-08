@@ -995,7 +995,7 @@ public partial class PInvokeGenerator
         var isIndirectPointerField = IsTypePointerOrReference(indirectFieldDecl, type) && (typeName != "IntPtr") && (typeName != "UIntPtr");
 
         _outputBuilder.BeginBody();
-        _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
+        _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: fieldDecl.IsBitField && !Config.GenerateCompatibleCode);
         var code = _outputBuilder.BeginCSharpCode();
 
         if (fieldDecl.IsBitField)
@@ -2439,7 +2439,8 @@ public partial class PInvokeGenerator
                     bitfieldName += index.ToString();
                 }
 
-                typeBacking = (index > 0) ? bitfieldDescs[index - 1].TypeBacking : bitfieldDescs[0].TypeBacking;
+                var bitfieldDesc = (index > 0) ? bitfieldDescs[index - 1] : bitfieldDescs[0];
+                typeBacking = bitfieldDesc.TypeBacking;
                 typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
             }
 
@@ -2451,6 +2452,8 @@ public partial class PInvokeGenerator
                 AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{typeBacking.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
                 return;
             }
+
+            var isTypeBackingSigned = false;
 
             switch (builtinTypeBacking.Kind)
             {
@@ -2489,21 +2492,25 @@ public partial class PInvokeGenerator
                 case CXType_Short:
                 case CXType_Int:
                 {
+                    isTypeBackingSigned = true;
                     break;
                 }
 
                 case CXType_Long:
                 {
+                    isTypeBackingSigned = true;
+
                     if (_config.GenerateUnixTypes)
                     {
                         goto default;
                     }
-
-                    goto case CXType_Int;
+                    break;
                 }
 
                 case CXType_LongLong:
                 {
+                    isTypeBackingSigned = true;
+
                     if (typeNameBacking == "nint")
                     {
                         goto case CXType_Int;
@@ -2545,6 +2552,8 @@ public partial class PInvokeGenerator
                 return;
             }
 
+            var isTypeSigned = false;
+
             switch (builtinType.Kind)
             {
                 case CXType_Char_U:
@@ -2582,21 +2591,25 @@ public partial class PInvokeGenerator
                 case CXType_Short:
                 case CXType_Int:
                 {
+                    isTypeSigned = true;
                     break;
                 }
 
                 case CXType_Long:
                 {
+                    isTypeSigned = true;
+
                     if (_config.GenerateUnixTypes)
                     {
                         goto default;
                     }
-
-                    goto case CXType_Int;
+                    break;
                 }
 
                 case CXType_LongLong:
                 {
+                    isTypeSigned = true;
+
                     if (typeNameBacking == "nint")
                     {
                         goto case CXType_Int;
@@ -2639,15 +2652,30 @@ public partial class PInvokeGenerator
             _outputBuilder.BeginField(in desc);
             _outputBuilder.WriteRegularField(typeName, escapedName);
             _outputBuilder.BeginBody();
-            _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
+            _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: !Config.GenerateCompatibleCode);
             var code = _outputBuilder.BeginCSharpCode();
 
             code.WriteIndented("return ");
 
             var recordDeclName = GetCursorName(recordDecl);
 
+            var isSmallType = currentSize < 4;
             var isRemappedToSelf = _config.RemappedNames.TryGetValue(typeName, out var remappedTypeName) && typeName.Equals(remappedTypeName);
-            var needsCast = (currentSize < 4) || (type != builtinTypeBacking) || isRemappedToSelf;
+            var isTypeMismatch = type != builtinTypeBacking;
+            var isUnsignedToSigned = !isTypeBackingSigned && isTypeSigned;
+
+            var needsCast = isSmallType || isRemappedToSelf || isTypeMismatch || isUnsignedToSigned;
+            var needsParenFirst = !isSmallType && isUnsignedToSigned;
+            var needsParenSecond = !needsParenFirst || isRemappedToSelf;
+
+            // backing  int, current int            (value << cns) >> cns
+            // backing  int, current uint           (uint)((value >> cns) & msk)
+
+            // backing uint, current int            ((int)value << cns) >> cns
+            // backing uint, current uint           (value >> cns) & msk
+
+            // backing uint, current byte           (byte)((value >> cns) & msk)
+            // backing uint, current sbyte          (sbyte)((value << cns) >> cns)
 
             if (needsCast)
             {
@@ -2658,7 +2686,7 @@ public partial class PInvokeGenerator
                 code.Write(")(");
             }
 
-            if (bitfieldOffset != 0)
+            if ((!needsParenFirst && (bitfieldOffset != 0)) || (!needsCast && isTypeSigned))
             {
                 code.Write('(');
             }
@@ -2675,21 +2703,37 @@ public partial class PInvokeGenerator
             code.Write(bitfieldName);
             code.EndMarker("bitfieldName");
 
-            if (bitfieldOffset != 0)
+            if (isTypeSigned)
             {
-                code.Write(" >> ");
-                code.BeginMarker("bitfieldOffset");
-                code.Write(bitfieldOffset);
-                code.EndMarker("bitfieldOffset");
+                code.Write(" << ");
+                code.BeginMarker("remainingBitsMinusBitWidth");
+                code.Write(remainingBits - fieldDecl.BitWidthValue);
+                code.EndMarker("remainingBitsMinusBitWidth");
                 code.Write(')');
+
+                code.Write(" >> ");
+                code.BeginMarker("currentSizeMinusBitWidth");
+                code.Write((currentSize * 8) - fieldDecl.BitWidthValue);
+                code.EndMarker("currentSizeMinusBitWidth");
+            }
+            else
+            {
+                if (bitfieldOffset != 0)
+                {
+                    code.Write(" >> ");
+                    code.BeginMarker("bitfieldOffset");
+                    code.Write(bitfieldOffset);
+                    code.EndMarker("bitfieldOffset");
+                    code.Write(')');
+                }
+
+                code.Write(" & 0x");
+                code.BeginMarker("bitwidthHexStringBacking");
+                code.Write(bitwidthHexStringBacking);
+                code.EndMarker("bitwidthHexStringBacking");
             }
 
-            code.Write(" & 0x");
-            code.BeginMarker("bitwidthHexStringBacking");
-            code.Write(bitwidthHexStringBacking);
-            code.EndMarker("bitwidthHexStringBacking");
-
-            if (needsCast)
+            if (needsCast && needsParenSecond)
             {
                 code.Write(')');
             }
@@ -2868,6 +2912,11 @@ public partial class PInvokeGenerator
                 AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} (constant array field) has a size of 0", constantOrIncompleteArray);
             }
 
+            if (!_config.GeneratePreviewCode || (totalSize <= 1) || isUnsafeElementType)
+            {
+                totalSizeString = null;
+            }
+
             var desc = new StructDesc {
                 AccessSpecifier = accessSpecifier,
                 EscapedName = escapedName,
@@ -2884,10 +2933,15 @@ public partial class PInvokeGenerator
                 Location = constantOrIncompleteArray.Location,
                 IsNested = true,
                 WriteCustomAttrs = static context => {
-                    (var fieldDecl, var outputBuilder, var generator, var totalSizeString) = ((FieldDecl, IOutputBuilder, PInvokeGenerator, string))context;
+                    (var fieldDecl, var outputBuilder, var generator, var totalSizeString) = ((FieldDecl, IOutputBuilder, PInvokeGenerator, string?))context;
 
                     generator.WithAttributes(fieldDecl);
                     generator.WithUsings(fieldDecl);
+
+                    if (totalSizeString is not null)
+                    {
+                        outputBuilder.WriteCustomAttribute($"InlineArray({totalSizeString})");
+                    }
                 },
                 CustomAttrGeneratorData = (constantOrIncompleteArray, _outputBuilder, this, totalSizeString),
             };
@@ -2895,7 +2949,7 @@ public partial class PInvokeGenerator
             _outputBuilder.BeginStruct(in desc);
 
             var firstFieldName = "";
-            var numFieldsToEmit = totalSize;
+            var numFieldsToEmit = (totalSizeString is not null) ? Math.Min(totalSize, 1) : totalSize;
 
             for (long i = 0; i < numFieldsToEmit; i++)
             {
@@ -2963,7 +3017,7 @@ public partial class PInvokeGenerator
                 _outputBuilder.EndIndexerParameters();
                 _outputBuilder.BeginBody();
 
-                _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
+                _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: false);
                 var code = _outputBuilder.BeginCSharpCode();
 
                 code.WriteIndented("fixed (");
@@ -2982,7 +3036,7 @@ public partial class PInvokeGenerator
                 _outputBuilder.EndBody();
                 _outputBuilder.EndIndexer();
             }
-            else
+            else if (totalSizeString is null)
             {
                 _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: false, needsUnscopedRef: _config.GenerateLatestCode);
                 _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
@@ -2996,7 +3050,7 @@ public partial class PInvokeGenerator
                 _outputBuilder.EndIndexerParameters();
                 _outputBuilder.BeginBody();
 
-                _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
+                _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: false);
                 var code = _outputBuilder.BeginCSharpCode();
                 code.AddUsingDirective("System");
                 code.AddUsingDirective("System.Runtime.InteropServices");

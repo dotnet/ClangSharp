@@ -61,7 +61,7 @@ internal partial interface IOutputBuilder
     CSharpOutputBuilder BeginCSharpCode();
     void EndCSharpCode(CSharpOutputBuilder output);
 
-    void BeginGetter(bool aggressivelyInlined);
+    void BeginGetter(bool aggressivelyInlined, bool isReadOnly);
     void EndGetter();
     void BeginSetter(bool aggressivelyInlined);
     void EndSetter();
