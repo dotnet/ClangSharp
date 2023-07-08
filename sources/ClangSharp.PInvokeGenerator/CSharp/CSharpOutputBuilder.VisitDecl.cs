@@ -177,7 +177,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             {
                 WriteNewline();
                 WriteBlockStart();
-                BeginGetter(desc.IsConstant && _config.GenerateAggressiveInlining);
+                BeginGetter(desc.IsConstant && _config.GenerateAggressiveInlining, isReadOnly: false);
             }
             else
             {
@@ -883,7 +883,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
         // nop, used only by XML
     }
 
-    public void BeginGetter(bool aggressivelyInlined)
+    public void BeginGetter(bool aggressivelyInlined, bool isReadOnly)
     {
         if (aggressivelyInlined)
         {
@@ -891,7 +891,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             WriteIndentedLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         }
 
-        WriteIndentedLine("get");
+        WriteIndentedLine(isReadOnly ? "readonly get" : "get");
         WriteBlockStart();
     }
 

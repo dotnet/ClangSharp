@@ -995,7 +995,7 @@ public partial class PInvokeGenerator
         var isIndirectPointerField = IsTypePointerOrReference(indirectFieldDecl, type) && (typeName != "IntPtr") && (typeName != "UIntPtr");
 
         _outputBuilder.BeginBody();
-        _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
+        _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: fieldDecl.IsBitField && !Config.GenerateCompatibleCode);
         var code = _outputBuilder.BeginCSharpCode();
 
         if (fieldDecl.IsBitField)
@@ -2639,7 +2639,7 @@ public partial class PInvokeGenerator
             _outputBuilder.BeginField(in desc);
             _outputBuilder.WriteRegularField(typeName, escapedName);
             _outputBuilder.BeginBody();
-            _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
+            _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: !Config.GenerateCompatibleCode);
             var code = _outputBuilder.BeginCSharpCode();
 
             code.WriteIndented("return ");
@@ -2973,7 +2973,7 @@ public partial class PInvokeGenerator
                 _outputBuilder.EndIndexerParameters();
                 _outputBuilder.BeginBody();
 
-                _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
+                _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: false);
                 var code = _outputBuilder.BeginCSharpCode();
 
                 code.WriteIndented("fixed (");
@@ -3006,7 +3006,7 @@ public partial class PInvokeGenerator
                 _outputBuilder.EndIndexerParameters();
                 _outputBuilder.BeginBody();
 
-                _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining);
+                _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: false);
                 var code = _outputBuilder.BeginCSharpCode();
                 code.AddUsingDirective("System");
                 code.AddUsingDirective("System.Runtime.InteropServices");

@@ -147,7 +147,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 24"")]
         public uint o0_b0_24
         {
-            get
+            readonly get
             {
                 return _bitfield1 & 0xFFFFFFu;
             }
@@ -163,7 +163,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 16"")]
         public uint o4_b0_16
         {
-            get
+            readonly get
             {
                 return _bitfield2 & 0xFFFFu;
             }
@@ -177,7 +177,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 3"")]
         public uint o4_b16_3
         {
-            get
+            readonly get
             {
                 return (_bitfield2 >> 16) & 0x7u;
             }
@@ -191,7 +191,7 @@ struct MyStruct3
         [NativeTypeName(""int : 3"")]
         public int o4_b19_3
         {
-            get
+            readonly get
             {
                 return (int)((_bitfield2 >> 19) & 0x7u);
             }
@@ -207,7 +207,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned char : 1"")]
         public byte o8_b0_1
         {
-            get
+            readonly get
             {
                 return (byte)(_bitfield3 & 0x1u);
             }
@@ -223,7 +223,7 @@ struct MyStruct3
         [NativeTypeName(""int : 1"")]
         public int o12_b0_1
         {
-            get
+            readonly get
             {
                 return _bitfield4 & 0x1;
             }
@@ -237,7 +237,7 @@ struct MyStruct3
         [NativeTypeName(""int : 1"")]
         public int o12_b1_1
         {
-            get
+            readonly get
             {
                 return (_bitfield4 >> 1) & 0x1;
             }
@@ -256,7 +256,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
         {
-            get
+            readonly get
             {
                 return _bitfield1 & 0x1u;
             }
@@ -274,7 +274,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 1"")]
         public uint o8_b0_1
         {
-            get
+            readonly get
             {
                 return _bitfield2 & 0x1u;
             }
@@ -293,7 +293,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
         {
-            get
+            readonly get
             {
                 return _bitfield & 0x1u;
             }
@@ -307,7 +307,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b1_1
         {
-            get
+            readonly get
             {
                 return (_bitfield >> 1) & 0x1u;
             }
@@ -361,7 +361,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 24"")]
         public uint o0_b0_24
         {
-            get
+            readonly get
             {
                 return _bitfield1 & 0xFFFFFFu;
             }
@@ -380,7 +380,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 16"")]
         public uint o4_b0_16
         {
-            get
+            readonly get
             {
                 return _bitfield2 & 0xFFFFu;
             }
@@ -394,7 +394,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 3"")]
         public uint o4_b16_3
         {
-            get
+            readonly get
             {
                 return (_bitfield2 >> 16) & 0x7u;
             }
@@ -408,7 +408,7 @@ struct MyStruct3
         [NativeTypeName(""int : 3"")]
         public int o4_b19_3
         {
-            get
+            readonly get
             {
                 return (int)((_bitfield2 >> 19) & 0x7u);
             }
@@ -425,7 +425,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned char : 1"")]
         public byte o8_b0_1
         {
-            get
+            readonly get
             {
                 return (byte)(_bitfield3 & 0x1u);
             }
@@ -443,7 +443,7 @@ struct MyStruct3
         [NativeTypeName(""int : 1"")]
         public int o12_b0_1
         {
-            get
+            readonly get
             {
                 return _bitfield4 & 0x1;
             }
@@ -457,7 +457,7 @@ struct MyStruct3
         [NativeTypeName(""int : 1"")]
         public int o12_b1_1
         {
-            get
+            readonly get
             {
                 return (_bitfield4 >> 1) & 0x1;
             }
@@ -477,7 +477,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
         {
-            get
+            readonly get
             {
                 return _bitfield1 & 0x1u;
             }
@@ -496,7 +496,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 1"")]
         public uint o8_b0_1
         {
-            get
+            readonly get
             {
                 return _bitfield2 & 0x1u;
             }
@@ -517,7 +517,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b0_1
         {
-            get
+            readonly get
             {
                 return _bitfield & 0x1u;
             }
@@ -531,7 +531,7 @@ struct MyStruct3
         [NativeTypeName(""unsigned int : 1"")]
         public uint o0_b1_1
         {
-            get
+            readonly get
             {
                 return (_bitfield >> 1) & 0x1u;
             }
@@ -1337,7 +1337,7 @@ namespace ClangSharp.Test
 
         public int o0_b0_16
         {
-            get
+            readonly get
             {
                 return Anonymous.Anonymous.o0_b0_16;
             }
@@ -1350,7 +1350,7 @@ namespace ClangSharp.Test
 
         public int o0_b16_4
         {
-            get
+            readonly get
             {
                 return Anonymous.Anonymous.o0_b16_4;
             }
@@ -1377,7 +1377,7 @@ namespace ClangSharp.Test
                 [NativeTypeName(""int : 16"")]
                 public int o0_b0_16
                 {
-                    get
+                    readonly get
                     {
                         return _bitfield & 0xFFFF;
                     }
@@ -1391,7 +1391,7 @@ namespace ClangSharp.Test
                 [NativeTypeName(""int : 4"")]
                 public int o0_b16_4
                 {
-                    get
+                    readonly get
                     {
                         return (_bitfield >> 16) & 0xF;
                     }
