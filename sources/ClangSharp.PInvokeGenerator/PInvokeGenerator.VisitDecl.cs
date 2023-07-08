@@ -2439,7 +2439,8 @@ public partial class PInvokeGenerator
                     bitfieldName += index.ToString();
                 }
 
-                typeBacking = (index > 0) ? bitfieldDescs[index - 1].TypeBacking : bitfieldDescs[0].TypeBacking;
+                var bitfieldDesc = (index > 0) ? bitfieldDescs[index - 1] : bitfieldDescs[0];
+                typeBacking = bitfieldDesc.TypeBacking;
                 typeNameBacking = GetRemappedTypeName(fieldDecl, context: null, typeBacking, out _);
             }
 
@@ -2451,6 +2452,8 @@ public partial class PInvokeGenerator
                 AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported bitfield type: '{typeBacking.TypeClassSpelling}'. Generated bindings may be incomplete.", fieldDecl);
                 return;
             }
+
+            var isTypeBackingSigned = false;
 
             switch (builtinTypeBacking.Kind)
             {
@@ -2489,21 +2492,25 @@ public partial class PInvokeGenerator
                 case CXType_Short:
                 case CXType_Int:
                 {
+                    isTypeBackingSigned = true;
                     break;
                 }
 
                 case CXType_Long:
                 {
+                    isTypeBackingSigned = true;
+
                     if (_config.GenerateUnixTypes)
                     {
                         goto default;
                     }
-
-                    goto case CXType_Int;
+                    break;
                 }
 
                 case CXType_LongLong:
                 {
+                    isTypeBackingSigned = true;
+
                     if (typeNameBacking == "nint")
                     {
                         goto case CXType_Int;
@@ -2545,6 +2552,8 @@ public partial class PInvokeGenerator
                 return;
             }
 
+            var isTypeSigned = false;
+
             switch (builtinType.Kind)
             {
                 case CXType_Char_U:
@@ -2582,21 +2591,25 @@ public partial class PInvokeGenerator
                 case CXType_Short:
                 case CXType_Int:
                 {
+                    isTypeSigned = true;
                     break;
                 }
 
                 case CXType_Long:
                 {
+                    isTypeSigned = true;
+
                     if (_config.GenerateUnixTypes)
                     {
                         goto default;
                     }
-
-                    goto case CXType_Int;
+                    break;
                 }
 
                 case CXType_LongLong:
                 {
+                    isTypeSigned = true;
+
                     if (typeNameBacking == "nint")
                     {
                         goto case CXType_Int;
@@ -2646,8 +2659,23 @@ public partial class PInvokeGenerator
 
             var recordDeclName = GetCursorName(recordDecl);
 
+            var isSmallType = currentSize < 4;
             var isRemappedToSelf = _config.RemappedNames.TryGetValue(typeName, out var remappedTypeName) && typeName.Equals(remappedTypeName);
-            var needsCast = (currentSize < 4) || (type != builtinTypeBacking) || isRemappedToSelf;
+            var isTypeMismatch = type != builtinTypeBacking;
+            var isUnsignedToSigned = !isTypeBackingSigned && isTypeSigned;
+
+            var needsCast = isSmallType || isRemappedToSelf || isTypeMismatch || isUnsignedToSigned;
+            var needsParenFirst = !isSmallType && isUnsignedToSigned;
+            var needsParenSecond = !needsParenFirst || isRemappedToSelf;
+
+            // backing  int, current int            (value << cns) >> cns
+            // backing  int, current uint           (uint)((value >> cns) & msk)
+
+            // backing uint, current int            ((int)value << cns) >> cns
+            // backing uint, current uint           (value >> cns) & msk
+
+            // backing uint, current byte           (byte)((value >> cns) & msk)
+            // backing uint, current sbyte          (sbyte)((value << cns) >> cns)
 
             if (needsCast)
             {
@@ -2658,7 +2686,7 @@ public partial class PInvokeGenerator
                 code.Write(")(");
             }
 
-            if (bitfieldOffset != 0)
+            if ((!needsParenFirst && (bitfieldOffset != 0)) || (!needsCast && isTypeSigned))
             {
                 code.Write('(');
             }
@@ -2675,21 +2703,37 @@ public partial class PInvokeGenerator
             code.Write(bitfieldName);
             code.EndMarker("bitfieldName");
 
-            if (bitfieldOffset != 0)
+            if (isTypeSigned)
             {
-                code.Write(" >> ");
-                code.BeginMarker("bitfieldOffset");
-                code.Write(bitfieldOffset);
-                code.EndMarker("bitfieldOffset");
+                code.Write(" << ");
+                code.BeginMarker("remainingBitsMinusBitWidth");
+                code.Write(remainingBits - fieldDecl.BitWidthValue);
+                code.EndMarker("remainingBitsMinusBitWidth");
                 code.Write(')');
+
+                code.Write(" >> ");
+                code.BeginMarker("currentSizeMinusBitWidth");
+                code.Write((currentSize * 8) - fieldDecl.BitWidthValue);
+                code.EndMarker("currentSizeMinusBitWidth");
+            }
+            else
+            {
+                if (bitfieldOffset != 0)
+                {
+                    code.Write(" >> ");
+                    code.BeginMarker("bitfieldOffset");
+                    code.Write(bitfieldOffset);
+                    code.EndMarker("bitfieldOffset");
+                    code.Write(')');
+                }
+
+                code.Write(" & 0x");
+                code.BeginMarker("bitwidthHexStringBacking");
+                code.Write(bitwidthHexStringBacking);
+                code.EndMarker("bitwidthHexStringBacking");
             }
 
-            code.Write(" & 0x");
-            code.BeginMarker("bitwidthHexStringBacking");
-            code.Write(bitwidthHexStringBacking);
-            code.EndMarker("bitwidthHexStringBacking");
-
-            if (needsCast)
+            if (needsCast && needsParenSecond)
             {
                 code.Write(')');
             }

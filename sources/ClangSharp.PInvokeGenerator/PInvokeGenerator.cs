@@ -2296,7 +2296,8 @@ public sealed partial class PInvokeGenerator : IDisposable
                 continue;
             }
 
-            var currentSize = fieldDecl.Type.Handle.SizeOf;
+            var type = fieldDecl.Type;
+            var currentSize = type.Handle.SizeOf;
 
             if ((!_config.GenerateUnixTypes && (currentSize != previousSize)) || (fieldDecl.BitWidthValue > remainingBits))
             {
@@ -2305,15 +2306,15 @@ public sealed partial class PInvokeGenerator : IDisposable
                 remainingBits = currentBits;
                 previousSize = 0;
 
-                var type = fieldDecl.Type;
+                var typeBacking = type;
 
                 if (IsType<EnumType>(fieldDecl, type, out var enumType))
                 {
-                    type = enumType.Decl.IntegerType;
+                    typeBacking = enumType.Decl.IntegerType;
                 }
 
                 var bitfieldDesc = new BitfieldDesc {
-                    TypeBacking = type,
+                    TypeBacking = typeBacking,
                     Regions = new List<BitfieldRegion>() {
                         new BitfieldRegion {
                             Name = GetRemappedCursorName(fieldDecl),
@@ -2333,15 +2334,15 @@ public sealed partial class PInvokeGenerator : IDisposable
                     remainingBits += (currentSize - previousSize) * 8;
                     currentBits += (currentSize - previousSize) * 8;
 
-                    var type = fieldDecl.Type;
+                    var typeBacking = type;
 
                     if (IsType<EnumType>(fieldDecl, type, out var enumType))
                     {
-                        type = enumType.Decl.IntegerType;
+                        typeBacking = enumType.Decl.IntegerType;
                     }
 
                     bitfieldDescs[^1] = new BitfieldDesc {
-                        TypeBacking = type,
+                        TypeBacking = typeBacking,
                         Regions = bitfieldDesc.Regions,
                     };
                 }

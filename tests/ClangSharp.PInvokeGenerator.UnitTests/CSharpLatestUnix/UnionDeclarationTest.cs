@@ -196,7 +196,7 @@ namespace ClangSharp.Test
         {{
             readonly get
             {{
-                return (int)((_bitfield2 >> 19) & 0x7u);
+                return (int)(_bitfield2 << 10) >> 29;
             }}
 
             set
@@ -224,7 +224,7 @@ namespace ClangSharp.Test
         {{
             readonly get
             {{
-                return (int)((_bitfield2 >> 23) & 0x1u);
+                return (int)(_bitfield2 << 8) >> 31;
             }}
 
             set
@@ -238,7 +238,7 @@ namespace ClangSharp.Test
         {{
             readonly get
             {{
-                return (int)((_bitfield2 >> 24) & 0x1u);
+                return (int)(_bitfield2 << 7) >> 31;
             }}
 
             set
@@ -980,7 +980,7 @@ namespace ClangSharp.Test
                 {
                     readonly get
                     {
-                        return _bitfield & 0xFFFF;
+                        return (_bitfield << 16) >> 16;
                     }
 
                     set
@@ -994,7 +994,7 @@ namespace ClangSharp.Test
                 {
                     readonly get
                     {
-                        return (_bitfield >> 16) & 0xF;
+                        return (_bitfield << 12) >> 28;
                     }
 
                     set
