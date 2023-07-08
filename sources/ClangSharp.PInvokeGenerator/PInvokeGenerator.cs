@@ -83,14 +83,46 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         ArgumentNullException.ThrowIfNull(config);
 
-        var clangVersion = clang.getClangVersion().ToString();
+        var clangVersion = string.Empty;
+
+        try
+        {
+            clangVersion = clang.getClangVersion().ToString();
+        }
+        catch
+        {
+            Console.WriteLine();
+            Console.WriteLine("*****IMPORTANT*****");
+            Console.WriteLine($"Failed to resolve libClang.");
+            Console.WriteLine("If you are running as a dotnet tool, you may need to manually copy the appropriate DLLs from NuGet due to limitations in the dotnet tool support. Please see https://github.com/dotnet/clangsharp for more details.");
+            Console.WriteLine("*****IMPORTANT*****");
+            Console.WriteLine();
+
+            throw;
+        }
 
         if (!clangVersion.Contains(ExpectedClangVersion))
         {
             throw new InvalidOperationException($"Invalid libClang version. Returned string '{clangVersion}' does not contain '{ExpectedClangVersion}'");
         }
 
-        var clangSharpVersion = clangsharp.getVersion().ToString();
+        var clangSharpVersion = string.Empty;
+
+        try
+        {
+            clangSharpVersion = clangsharp.getVersion().ToString();
+        }
+        catch
+        {
+            Console.WriteLine();
+            Console.WriteLine("*****IMPORTANT*****");
+            Console.WriteLine($"Failed to resolve libClangSharp.");
+            Console.WriteLine("If you are running as a dotnet tool, you may need to manually copy the appropriate DLLs from NuGet due to limitations in the dotnet tool support. Please see https://github.com/dotnet/clangsharp for more details.");
+            Console.WriteLine("*****IMPORTANT*****");
+            Console.WriteLine();
+
+            throw;
+        }
 
         if (!clangSharpVersion.Contains(ExpectedClangSharpVersion))
         {

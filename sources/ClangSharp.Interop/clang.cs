@@ -31,13 +31,6 @@ public static unsafe partial class @clang
             return nativeLibrary;
         }
 
-        Console.WriteLine();
-        Console.WriteLine("*****IMPORTANT*****");
-        Console.WriteLine($"Failed to resolve {libraryName}.");
-        Console.WriteLine("If you are running as a dotnet tool, you may need to manually copy the appropriate DLLs from NuGet due to limitations in the dotnet tool support. Please see https://github.com/dotnet/clangsharp for more details.");
-        Console.WriteLine("*****IMPORTANT*****");
-        Console.WriteLine();
-
         return IntPtr.Zero;
     }
 
