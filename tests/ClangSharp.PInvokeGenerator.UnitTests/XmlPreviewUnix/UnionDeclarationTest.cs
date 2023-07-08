@@ -307,28 +307,10 @@ union MyOtherUnion
         <type native=""MyUnion[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyUnion</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
         <field name=""e0"" access=""public"">
           <type>MyUnion</type>
         </field>
-        <field name=""e1"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e2"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <indexer access=""public"">
-          <type>ref MyUnion</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref AsSpan()[index];</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;MyUnion&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0, 3);</code>
-        </function>
       </struct>
     </struct>
   </namespace>
@@ -364,91 +346,10 @@ union MyOtherUnion
         <type native=""MyUnion[2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">MyUnion</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(2 * 1 * 3 * 4)</attribute>
         <field name=""e0_0_0_0"" access=""public"">
           <type>MyUnion</type>
         </field>
-        <field name=""e1_0_0_0"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_1_0"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_1_0"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_2_0"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_2_0"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_0_1"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_0_1"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_1_1"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_1_1"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_2_1"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_2_1"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_0_2"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_0_2"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_1_2"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_1_2"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_2_2"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_2_2"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_0_3"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_0_3"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_1_3"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_1_3"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e0_0_2_3"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e1_0_2_3"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <indexer access=""public"">
-          <type>ref MyUnion</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref AsSpan()[index];</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;MyUnion&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0_0_0_0, 24);</code>
-        </function>
       </struct>
     </struct>
   </namespace>
@@ -486,28 +387,10 @@ union MyOtherUnion
         <type native=""MyBuffer"" count=""3"" fixed=""_c_e__FixedBuffer"">MyUnion</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
         <field name=""e0"" access=""public"">
           <type>MyUnion</type>
         </field>
-        <field name=""e1"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e2"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <indexer access=""public"">
-          <type>ref MyUnion</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref AsSpan()[index];</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;MyUnion&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0, 3);</code>
-        </function>
       </struct>
     </struct>
   </namespace>
@@ -543,28 +426,10 @@ union MyOtherUnion
         <type native=""MyUnion[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyUnion</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
         <field name=""e0"" access=""public"">
           <type>MyUnion</type>
         </field>
-        <field name=""e1"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <field name=""e2"" access=""public"">
-          <type>MyUnion</type>
-        </field>
-        <indexer access=""public"">
-          <type>ref MyUnion</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref AsSpan()[index];</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;MyUnion&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0, 3);</code>
-        </function>
       </struct>
     </struct>
   </namespace>

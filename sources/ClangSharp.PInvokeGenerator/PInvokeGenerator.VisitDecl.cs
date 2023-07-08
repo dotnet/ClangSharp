@@ -2868,6 +2868,11 @@ public partial class PInvokeGenerator
                 AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} (constant array field) has a size of 0", constantOrIncompleteArray);
             }
 
+            if (!_config.GeneratePreviewCode || (totalSize <= 1) || isUnsafeElementType)
+            {
+                totalSizeString = null;
+            }
+
             var desc = new StructDesc {
                 AccessSpecifier = accessSpecifier,
                 EscapedName = escapedName,
@@ -2884,10 +2889,15 @@ public partial class PInvokeGenerator
                 Location = constantOrIncompleteArray.Location,
                 IsNested = true,
                 WriteCustomAttrs = static context => {
-                    (var fieldDecl, var outputBuilder, var generator, var totalSizeString) = ((FieldDecl, IOutputBuilder, PInvokeGenerator, string))context;
+                    (var fieldDecl, var outputBuilder, var generator, var totalSizeString) = ((FieldDecl, IOutputBuilder, PInvokeGenerator, string?))context;
 
                     generator.WithAttributes(fieldDecl);
                     generator.WithUsings(fieldDecl);
+
+                    if (totalSizeString is not null)
+                    {
+                        outputBuilder.WriteCustomAttribute($"InlineArray({totalSizeString})");
+                    }
                 },
                 CustomAttrGeneratorData = (constantOrIncompleteArray, _outputBuilder, this, totalSizeString),
             };
@@ -2895,7 +2905,7 @@ public partial class PInvokeGenerator
             _outputBuilder.BeginStruct(in desc);
 
             var firstFieldName = "";
-            var numFieldsToEmit = totalSize;
+            var numFieldsToEmit = (totalSizeString is not null) ? Math.Min(totalSize, 1) : totalSize;
 
             for (long i = 0; i < numFieldsToEmit; i++)
             {
@@ -2982,7 +2992,7 @@ public partial class PInvokeGenerator
                 _outputBuilder.EndBody();
                 _outputBuilder.EndIndexer();
             }
-            else
+            else if (totalSizeString is null)
             {
                 _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: false, needsUnscopedRef: _config.GenerateLatestCode);
                 _outputBuilder.WriteIndexer($"ref {arrayTypeName}");

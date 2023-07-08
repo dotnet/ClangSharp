@@ -598,9 +598,7 @@ struct MyOtherStruct
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -614,23 +612,10 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct[3]"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(3)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyStruct e0;
-            public MyStruct e1;
-            public MyStruct e2;
-
-            [UnscopedRef]
-            public ref MyStruct this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            [UnscopedRef]
-            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
 }}
@@ -652,9 +637,7 @@ struct MyOtherStruct
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -668,55 +651,10 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct[2][1][3][4]"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(2 * 1 * 3 * 4)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyStruct e0_0_0_0;
-            public MyStruct e1_0_0_0;
-
-            public MyStruct e0_0_1_0;
-            public MyStruct e1_0_1_0;
-
-            public MyStruct e0_0_2_0;
-            public MyStruct e1_0_2_0;
-
-            public MyStruct e0_0_0_1;
-            public MyStruct e1_0_0_1;
-
-            public MyStruct e0_0_1_1;
-            public MyStruct e1_0_1_1;
-
-            public MyStruct e0_0_2_1;
-            public MyStruct e1_0_2_1;
-
-            public MyStruct e0_0_0_2;
-            public MyStruct e1_0_0_2;
-
-            public MyStruct e0_0_1_2;
-            public MyStruct e1_0_1_2;
-
-            public MyStruct e0_0_2_2;
-            public MyStruct e1_0_2_2;
-
-            public MyStruct e0_0_0_3;
-            public MyStruct e1_0_0_3;
-
-            public MyStruct e0_0_1_3;
-            public MyStruct e1_0_1_3;
-
-            public MyStruct e0_0_2_3;
-            public MyStruct e1_0_2_3;
-
-            [UnscopedRef]
-            public ref MyStruct this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            [UnscopedRef]
-            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0_0_0_0, 24);
         }}
     }}
 }}
@@ -740,9 +678,7 @@ struct MyOtherStruct
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -756,23 +692,10 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyBuffer"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(3)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyStruct e0;
-            public MyStruct e1;
-            public MyStruct e2;
-
-            [UnscopedRef]
-            public ref MyStruct this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            [UnscopedRef]
-            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
 }}
@@ -794,9 +717,7 @@ struct MyOtherStruct
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -811,23 +732,10 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct[3]"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(3)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyStruct e0;
-            public MyStruct e1;
-            public MyStruct e2;
-
-            [UnscopedRef]
-            public ref MyStruct this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            [UnscopedRef]
-            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
 }}
@@ -1143,6 +1051,7 @@ struct MyStruct
 
         var expectedOutputContents = $@"using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -1281,24 +1190,10 @@ namespace ClangSharp.Test
                 public {expectedManagedType} value2;
             }}
 
+            [InlineArray(4)]
             public partial struct _buffer2_e__FixedBuffer
             {{
                 public MyUnion e0;
-                public MyUnion e1;
-                public MyUnion e2;
-                public MyUnion e3;
-
-                [UnscopedRef]
-                public ref MyUnion this[int index]
-                {{
-                    get
-                    {{
-                        return ref AsSpan()[index];
-                    }}
-                }}
-
-                [UnscopedRef]
-                public Span<MyUnion> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 4);
             }}
         }}
     }}

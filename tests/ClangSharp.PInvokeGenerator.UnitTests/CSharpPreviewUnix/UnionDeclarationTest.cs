@@ -349,8 +349,7 @@ union MyOtherUnion
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Diagnostics.CodeAnalysis;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -369,23 +368,10 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyUnion[3]"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(3)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyUnion e0;
-            public MyUnion e1;
-            public MyUnion e2;
-
-            [UnscopedRef]
-            public ref MyUnion this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            [UnscopedRef]
-            public Span<MyUnion> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
 }}
@@ -407,8 +393,7 @@ union MyOtherUnion
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Diagnostics.CodeAnalysis;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -427,55 +412,10 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyUnion[2][1][3][4]"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(2 * 1 * 3 * 4)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyUnion e0_0_0_0;
-            public MyUnion e1_0_0_0;
-
-            public MyUnion e0_0_1_0;
-            public MyUnion e1_0_1_0;
-
-            public MyUnion e0_0_2_0;
-            public MyUnion e1_0_2_0;
-
-            public MyUnion e0_0_0_1;
-            public MyUnion e1_0_0_1;
-
-            public MyUnion e0_0_1_1;
-            public MyUnion e1_0_1_1;
-
-            public MyUnion e0_0_2_1;
-            public MyUnion e1_0_2_1;
-
-            public MyUnion e0_0_0_2;
-            public MyUnion e1_0_0_2;
-
-            public MyUnion e0_0_1_2;
-            public MyUnion e1_0_1_2;
-
-            public MyUnion e0_0_2_2;
-            public MyUnion e1_0_2_2;
-
-            public MyUnion e0_0_0_3;
-            public MyUnion e1_0_0_3;
-
-            public MyUnion e0_0_1_3;
-            public MyUnion e1_0_1_3;
-
-            public MyUnion e0_0_2_3;
-            public MyUnion e1_0_2_3;
-
-            [UnscopedRef]
-            public ref MyUnion this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            [UnscopedRef]
-            public Span<MyUnion> AsSpan() => MemoryMarshal.CreateSpan(ref e0_0_0_0, 24);
         }}
     }}
 }}
@@ -499,8 +439,7 @@ union MyOtherUnion
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Diagnostics.CodeAnalysis;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -519,23 +458,10 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyBuffer"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(3)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyUnion e0;
-            public MyUnion e1;
-            public MyUnion e2;
-
-            [UnscopedRef]
-            public ref MyUnion this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            [UnscopedRef]
-            public Span<MyUnion> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
 }}
@@ -557,8 +483,7 @@ union MyOtherUnion
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Diagnostics.CodeAnalysis;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -578,23 +503,10 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyUnion[3]"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(3)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyUnion e0;
-            public MyUnion e1;
-            public MyUnion e2;
-
-            [UnscopedRef]
-            public ref MyUnion this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            [UnscopedRef]
-            public Span<MyUnion> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
 }}
