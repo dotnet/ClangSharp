@@ -2888,11 +2888,6 @@ public partial class PInvokeGenerator
 
                     generator.WithAttributes(fieldDecl);
                     generator.WithUsings(fieldDecl);
-
-                    if (generator.Config.GeneratePreviewCode)
-                    {
-                        outputBuilder.WriteCustomAttribute($"InlineArray({totalSizeString})");
-                    }
                 },
                 CustomAttrGeneratorData = (constantOrIncompleteArray, _outputBuilder, this, totalSizeString),
             };
@@ -2900,7 +2895,7 @@ public partial class PInvokeGenerator
             _outputBuilder.BeginStruct(in desc);
 
             var firstFieldName = "";
-            var numFieldsToEmit = _config.GeneratePreviewCode ? Math.Min(totalSize, 1) : totalSize;
+            var numFieldsToEmit = totalSize;
 
             for (long i = 0; i < numFieldsToEmit; i++)
             {
@@ -2954,11 +2949,7 @@ public partial class PInvokeGenerator
 
             var generateCompatibleCode = _config.GenerateCompatibleCode;
 
-            if (_config.GeneratePreviewCode)
-            {
-                // Nothing to emit
-            }
-            else if (generateCompatibleCode || isUnsafeElementType)
+            if (generateCompatibleCode || isUnsafeElementType)
             {
                 _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: generateCompatibleCode && !isUnsafeElementType, needsUnscopedRef: false);
                 _outputBuilder.WriteIndexer($"ref {arrayTypeName}");

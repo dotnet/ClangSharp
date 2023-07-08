@@ -22,10 +22,6 @@ internal partial class CSharpOutputBuilder
         {
             AddUsingDirective("System.Diagnostics.CodeAnalysis");
         }
-        else if (attribute.StartsWith("InlineArray("))
-        {
-            AddUsingDirective("System.Runtime.CompilerServices");
-        }
         else if (attribute.StartsWith("Guid(")|| attribute.Equals("Optional") || attribute.StartsWith("Optional, DefaultParameterValue("))
         {
             AddUsingDirective("System.Runtime.InteropServices");
