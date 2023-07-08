@@ -14,7 +14,6 @@
     <ClangSharpProjectCategory>sources</ClangSharpProjectCategory>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageValidationBaselineVersion>16.0.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />

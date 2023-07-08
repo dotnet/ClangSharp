@@ -47,6 +47,7 @@
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <PackageOutputPath>$(BaseArtifactsPath)pkg/$(Configuration)/</PackageOutputPath>
+    <PackageValidationBaselineVersion>16.0.0</PackageValidationBaselineVersion>
     <Product>ClangSharp</Product>
     <RootNamespace>ClangSharp</RootNamespace>
     <VersionPrefix>16.0.1</VersionPrefix>
