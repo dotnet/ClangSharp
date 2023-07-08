@@ -25,7 +25,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool IsVirtual
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsVirtual) != 0;
         }
@@ -38,7 +38,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool IsDllImport
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsDllImport) != 0;
         }
@@ -53,7 +53,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool IsManualImport
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsManualImport) != 0;
         }
@@ -68,7 +68,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool HasFnPtrCodeGen
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.HasFnPtrCodeGen) != 0;
         }
@@ -83,7 +83,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool IsAggressivelyInlined
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsAggressivelyInlined) != 0;
         }
@@ -98,7 +98,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool SetLastError
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.SetLastError) != 0;
         }
@@ -113,7 +113,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool IsCxx
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsCxx) != 0;
         }
@@ -126,7 +126,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool NeedsNewKeyword
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.NeedsNewKeyword) != 0;
         }
@@ -141,7 +141,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool IsUnsafe
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsUnsafe) != 0;
         }
@@ -154,7 +154,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool IsCtxCxxRecord
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsCtxCxxRecord) != 0;
         }
@@ -169,7 +169,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool IsCxxRecordCtxUnsafe
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsCxxRecordCtxUnsafe) != 0;
         }
@@ -184,7 +184,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool IsMemberFunction
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsMemberFunction) != 0;
         }
@@ -199,7 +199,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool? IsStatic
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsStatic) != 0
                  ? true
@@ -219,7 +219,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool NeedsReturnFixup
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.NeedsReturnFixup) != 0;
         }
@@ -234,7 +234,7 @@ internal struct FunctionOrDelegateDesc
 
     public bool IsCxxConstructor
     {
-        get
+        readonly get
         {
             return (Flags & FunctionOrDelegateFlags.IsCxxConstructor) != 0;
         }

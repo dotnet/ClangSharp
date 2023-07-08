@@ -1,0 +1,10 @@
+<linker>
+    <assembly fullname="ClangSharp.Interop">
+        <type fullname="ClangSharp.Interop.Configuration" feature="ClangSharp.Interop.DisableResolveLibraryHook" featurevalue="true">
+            <field name="s_disableResolveLibraryHook" value="true" initialize="true" />
+        </type>
+        <type fullname="ClangSharp.Interop.Configuration" feature="ClangSharp.Interop.DisableResolveLibraryHook" featurevalue="false">
+            <field name="s_disableResolveLibraryHook" value="false" initialize="true" />
+        </type>
+    </assembly>
+</linker>

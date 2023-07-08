@@ -60,7 +60,7 @@ public unsafe partial struct CXCodeCompleteResults : IDisposable
         }
     }
 
-    public CXCursorKind GetContaininerKind(out bool isIncomplete)
+    public CXCursorKind GetContainerKind(out bool isIncomplete)
     {
         fixed (CXCodeCompleteResults* pThis = &this)
         {
@@ -97,5 +97,5 @@ public unsafe partial struct CXCodeCompleteResults : IDisposable
         }
     }
 
-    public void Sort() => clang.sortCodeCompletionResults(Results, NumResults);
+    public readonly void Sort() => clang.sortCodeCompletionResults(Results, NumResults);
 }

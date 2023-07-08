@@ -13,9 +13,9 @@ public unsafe partial struct CXTargetInfo : IDisposable, IEquatable<CXTargetInfo
 
     public IntPtr Handle { get; set; }
 
-    public int PointerWidth => clang.TargetInfo_getPointerWidth(this);
+    public readonly int PointerWidth => clang.TargetInfo_getPointerWidth(this);
 
-    public CXString Triple => clang.TargetInfo_getTriple(this);
+    public readonly CXString Triple => clang.TargetInfo_getTriple(this);
 
     public static implicit operator CXTargetInfo(CXTargetInfoImpl* value) => new CXTargetInfo((IntPtr)value);
 
@@ -34,11 +34,11 @@ public unsafe partial struct CXTargetInfo : IDisposable, IEquatable<CXTargetInfo
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXTargetInfo other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXTargetInfo other) && Equals(other);
 
-    public bool Equals(CXTargetInfo other) => this == other;
+    public readonly bool Equals(CXTargetInfo other) => this == other;
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 
-    public override string ToString() => Triple.ToString();
+    public override readonly string ToString() => Triple.ToString();
 }

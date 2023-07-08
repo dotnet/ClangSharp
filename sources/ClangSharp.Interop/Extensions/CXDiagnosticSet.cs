@@ -24,13 +24,13 @@ public unsafe partial struct CXDiagnosticSet : IDisposable, IEquatable<CXDiagnos
         Handle = handle;
     }
 
-    public CXDiagnostic this[uint index] => GetDiagnostic(index);
+    public readonly CXDiagnostic this[uint index] => GetDiagnostic(index);
 
-    public int Count => (int)NumDiagnostics;
+    public readonly int Count => (int)NumDiagnostics;
 
     public IntPtr Handle { get; set; }
 
-    public uint NumDiagnostics => clang.getNumDiagnosticsInSet(this);
+    public readonly uint NumDiagnostics => clang.getNumDiagnosticsInSet(this);
 
     public static explicit operator CXDiagnosticSet(void* value) => new CXDiagnosticSet((IntPtr)value);
 
@@ -49,13 +49,13 @@ public unsafe partial struct CXDiagnosticSet : IDisposable, IEquatable<CXDiagnos
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXDiagnosticSet other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXDiagnosticSet other) && Equals(other);
 
-    public bool Equals(CXDiagnosticSet other) => this == other;
+    public readonly bool Equals(CXDiagnosticSet other) => this == other;
 
-    public CXDiagnostic GetDiagnostic(uint index) => (CXDiagnostic)clang.getDiagnosticInSet(this, index);
+    public readonly CXDiagnostic GetDiagnostic(uint index) => (CXDiagnostic)clang.getDiagnosticInSet(this, index);
 
-    public IEnumerator<CXDiagnostic> GetEnumerator()
+    public readonly IEnumerator<CXDiagnostic> GetEnumerator()
     {
         var count = NumDiagnostics;
 
@@ -65,7 +65,7 @@ public unsafe partial struct CXDiagnosticSet : IDisposable, IEquatable<CXDiagnos
         }
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 }

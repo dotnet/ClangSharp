@@ -41,20 +41,13 @@ public sealed class Diagnostic : IEquatable<Diagnostic>
 
     public bool Equals(Diagnostic? other)
     {
-        if (other is null)
-        {
-            return false;
-        }
-
-        return (_level == other.Level)
+        return (other is not null)
+            && (_level == other.Level)
             && (_location == other.Location)
             && (_message == other.Message);
     }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(_level, _location, _message);
-    }
+    public override int GetHashCode() => HashCode.Combine(_level, _location, _message);
 
     public override string ToString() => string.IsNullOrWhiteSpace(_location) ? $"{_level}: {_message}" : $"{_level} ({_location}): {_message}";
 }

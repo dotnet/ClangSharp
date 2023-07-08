@@ -10,9 +10,9 @@ public partial struct CXTUResourceUsage : IDisposable, IReadOnlyCollection<CXTUR
 {
     public unsafe CXTUResourceUsageEntry this[uint index] => entries[index];
 
-    public int Count => (int)numEntries;
+    public readonly int Count => (int)numEntries;
 
-    public void Dispose() => clang.disposeCXTUResourceUsage(this);
+    public readonly void Dispose() => clang.disposeCXTUResourceUsage(this);
 
     public IEnumerator<CXTUResourceUsageEntry> GetEnumerator()
     {

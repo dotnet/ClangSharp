@@ -14,7 +14,7 @@ public struct EnumDesc
 
     public bool IsNested
     {
-        get
+        readonly get
         {
             return (Flags & EnumFlags.Nested) != 0;
         }

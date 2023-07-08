@@ -6,7 +6,7 @@ namespace ClangSharp.Interop;
 
 public unsafe partial struct CXToken : IEquatable<CXToken>
 {
-    public CXTokenKind Kind => clang.getTokenKind(this);
+    public readonly CXTokenKind Kind => clang.getTokenKind(this);
 
     public static bool operator ==(CXToken left, CXToken right)
     {
@@ -26,17 +26,17 @@ public unsafe partial struct CXToken : IEquatable<CXToken>
                (left.ptr_data != right.ptr_data);
     }
 
-    public override bool Equals(object? obj) => (obj is CXSourceRange other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXSourceRange other) && Equals(other);
 
-    public bool Equals(CXToken other) => this == other;
+    public readonly bool Equals(CXToken other) => this == other;
 
-    public CXSourceRange GetExtent(CXTranslationUnit translationUnit) => clang.getTokenExtent(translationUnit, this);
+    public readonly CXSourceRange GetExtent(CXTranslationUnit translationUnit) => clang.getTokenExtent(translationUnit, this);
 
     public override int GetHashCode() => HashCode.Combine(int_data[0], int_data[1], int_data[2], int_data[3], (IntPtr)ptr_data);
 
-    public CXSourceLocation GetLocation(CXTranslationUnit translationUnit) => clang.getTokenLocation(translationUnit, this);
+    public readonly CXSourceLocation GetLocation(CXTranslationUnit translationUnit) => clang.getTokenLocation(translationUnit, this);
 
-    public CXString GetSpelling(CXTranslationUnit translationUnit) => clang.getTokenSpelling(translationUnit, this);
+    public readonly CXString GetSpelling(CXTranslationUnit translationUnit) => clang.getTokenSpelling(translationUnit, this);
 
-    public override string ToString() => "";
+    public override readonly string ToString() => "";
 }

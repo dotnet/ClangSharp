@@ -23,7 +23,7 @@ public unsafe partial struct CXVirtualFileOverlay : IDisposable, IEquatable<CXVi
 
     public static CXVirtualFileOverlay Create(uint options) => clang.VirtualFileOverlay_create(options);
 
-    public CXErrorCode AddFileMapping(string? virtualPath, string? realPath)
+    public readonly CXErrorCode AddFileMapping(string? virtualPath, string? realPath)
     {
         using var marshaledVirtualPath = new MarshaledString(virtualPath);
         using var marshaledRealPath = new MarshaledString(realPath);
@@ -39,15 +39,15 @@ public unsafe partial struct CXVirtualFileOverlay : IDisposable, IEquatable<CXVi
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXVirtualFileOverlay other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXVirtualFileOverlay other) && Equals(other);
 
-    public bool Equals(CXVirtualFileOverlay other) => this == other;
+    public readonly bool Equals(CXVirtualFileOverlay other) => this == other;
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 
-    public CXErrorCode SetCaseSensitivity(bool caseSensitive) => clang.VirtualFileOverlay_setCaseSensitivity(this, caseSensitive ? 1 : 0);
+    public readonly CXErrorCode SetCaseSensitivity(bool caseSensitive) => clang.VirtualFileOverlay_setCaseSensitivity(this, caseSensitive ? 1 : 0);
 
-    public Span<byte> WriteToBuffer(uint options, out CXErrorCode errorCode)
+    public readonly Span<byte> WriteToBuffer(uint options, out CXErrorCode errorCode)
     {
         sbyte* pBuffer; uint size;
         errorCode = clang.VirtualFileOverlay_writeToBuffer(this, options, &pBuffer, &size);

@@ -10,7 +10,7 @@ public unsafe partial struct CXSourceRangeList : IDisposable, IReadOnlyCollectio
 {
     public unsafe CXSourceRange this[uint index] => ranges[index];
 
-    public int Count => (int)count;
+    public readonly int Count => (int)count;
 
     public void Dispose()
     {

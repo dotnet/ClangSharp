@@ -574,9 +574,7 @@ namespace ClangSharp.Test
     {
         var inputContents = "typedef struct MyStruct MyStruct;";
         var expectedOutputContents = string.Empty;
-
-        var excludedNames = new string[] { "MyStruct" };
-        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
@@ -981,8 +979,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        var excludedNames = new string[] { "DECLSPEC_UUID" };
-        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidTestExcludedNames);
     }
 
     protected override Task InheritanceTestImpl()

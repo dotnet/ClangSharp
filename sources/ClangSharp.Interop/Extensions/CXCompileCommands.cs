@@ -13,13 +13,13 @@ public unsafe partial struct CXCompileCommands : IDisposable, IEquatable<CXCompi
         Handle = handle;
     }
 
-    public CXCompileCommand this[uint index] => GetCommand(index);
+    public readonly CXCompileCommand this[uint index] => GetCommand(index);
 
-    public int Count => (int)Size;
+    public readonly int Count => (int)Size;
 
     public IntPtr Handle { get; set; }
 
-    public uint Size => clang.CompileCommands_getSize(this);
+    public readonly uint Size => clang.CompileCommands_getSize(this);
 
     public static explicit operator CXCompileCommands(void* value) => new CXCompileCommands((IntPtr)value);
 
@@ -38,13 +38,13 @@ public unsafe partial struct CXCompileCommands : IDisposable, IEquatable<CXCompi
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXCompileCommands other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXCompileCommands other) && Equals(other);
 
-    public bool Equals(CXCompileCommands other) => this == other;
+    public readonly bool Equals(CXCompileCommands other) => this == other;
 
-    public CXCompileCommand GetCommand(uint index) => (CXCompileCommand)clang.CompileCommands_getCommand(this, index);
+    public readonly CXCompileCommand GetCommand(uint index) => (CXCompileCommand)clang.CompileCommands_getCommand(this, index);
 
-    public IEnumerator<CXCompileCommand> GetEnumerator()
+    public readonly IEnumerator<CXCompileCommand> GetEnumerator()
     {
         var count = Size;
 
@@ -54,7 +54,7 @@ public unsafe partial struct CXCompileCommands : IDisposable, IEquatable<CXCompi
         }
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 }

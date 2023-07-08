@@ -20,7 +20,7 @@ internal struct StructDesc
 
     public bool IsNested
     {
-        get
+        readonly get
         {
             return (Flags & StructFlags.Nested) != 0;
         }
@@ -33,7 +33,7 @@ internal struct StructDesc
 
     public bool IsUnsafe
     {
-        get
+        readonly get
         {
             return (Flags & StructFlags.Unsafe) != 0;
         }
@@ -46,7 +46,7 @@ internal struct StructDesc
 
     public bool HasVtbl
     {
-        get
+        readonly get
         {
             return (Flags & StructFlags.Vtbl) != 0;
         }
@@ -59,7 +59,7 @@ internal struct StructDesc
 
     public bool IsUnion
     {
-        get
+        readonly get
         {
             return (Flags & StructFlags.Union) != 0;
         }
@@ -73,7 +73,7 @@ internal struct StructDesc
     public Action<object> WriteCustomAttrs { get; set; }
     public object CustomAttrGeneratorData { get; set; }
 
-    public StructLayoutAttribute? LayoutAttribute
+    public readonly StructLayoutAttribute? LayoutAttribute
     {
         get
         {
@@ -82,16 +82,10 @@ internal struct StructDesc
             if (IsUnion)
             {
                 Debug.Assert(layout.Kind == LayoutKind.Explicit);
-
                 return new StructLayoutAttribute(layout.Kind);
             }
 
-            if (layout.Pack is not null)
-            {
-                return new StructLayoutAttribute(layout.Kind);
-            }
-
-            return null;
+            return layout.Pack is not null ? new StructLayoutAttribute(layout.Kind) : null;
         }
     }
 

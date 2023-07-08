@@ -30,13 +30,13 @@ public unsafe partial struct CXPrintingPolicy : IDisposable, IEquatable<CXPrinti
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXPrintingPolicy other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXPrintingPolicy other) && Equals(other);
 
-    public bool Equals(CXPrintingPolicy other) => this == other;
+    public readonly bool Equals(CXPrintingPolicy other) => this == other;
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 
-    public uint GetProperty(CXPrintingPolicyProperty property) => clang.PrintingPolicy_getProperty(this, property);
+    public readonly uint GetProperty(CXPrintingPolicyProperty property) => clang.PrintingPolicy_getProperty(this, property);
 
-    public void SetProperty(CXPrintingPolicyProperty property, uint value) => clang.PrintingPolicy_setProperty(this, property, value);
+    public readonly void SetProperty(CXPrintingPolicyProperty property, uint value) => clang.PrintingPolicy_setProperty(this, property, value);
 }

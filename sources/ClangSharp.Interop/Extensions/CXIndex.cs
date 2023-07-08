@@ -11,7 +11,7 @@ public unsafe partial struct CXIndex : IDisposable, IEquatable<CXIndex>
         Handle = handle;
     }
 
-    public CXGlobalOptFlags GlobalOptions
+    public readonly CXGlobalOptFlags GlobalOptions
     {
         get
         {
@@ -36,15 +36,15 @@ public unsafe partial struct CXIndex : IDisposable, IEquatable<CXIndex>
 
     public static CXIndex Create(bool excludeDeclarationsFromPch = false, bool displayDiagnostics = false) => (CXIndex)clang.createIndex(excludeDeclarationsFromPch ? 1 : 0, displayDiagnostics ? 1 : 0);
 
-    public void Dispose() => clang.disposeIndex(this);
+    public readonly void Dispose() => clang.disposeIndex(this);
 
-    public override bool Equals(object? obj) => (obj is CXIndex other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXIndex other) && Equals(other);
 
-    public bool Equals(CXIndex other) => this == other;
+    public readonly bool Equals(CXIndex other) => this == other;
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 
-    public void SetInvocationEmissionPathOption(string Path)
+    public readonly void SetInvocationEmissionPathOption(string Path)
     {
         using var marshaledPath = new MarshaledString(Path);
         clang.CXIndex_setInvocationEmissionPathOption(this, marshaledPath);

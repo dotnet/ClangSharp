@@ -4,7 +4,7 @@ namespace ClangSharp.Interop;
 
 public unsafe partial struct CXTUResourceUsageEntry
 {
-    public string Name
+    public readonly string Name
     {
         get
         {
@@ -19,5 +19,5 @@ public unsafe partial struct CXTUResourceUsageEntry
         }
     }
 
-    public override string ToString() => Name;
+    public override readonly string ToString() => Name;
 }

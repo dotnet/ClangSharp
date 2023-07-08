@@ -17,9 +17,23 @@ public sealed class CompoundStmt : Stmt
 
     public IReadOnlyList<Stmt> Body => Children;
 
-    public Stmt? BodyBack => Children.LastOrDefault();
+    public Stmt? BodyBack
+    {
+        get
+        {
+            var children = Children;
+            return (children.Count != 0) ? children[^1] : null;
+        }
+    }
 
-    public Stmt? BodyFront => Children.FirstOrDefault();
+    public Stmt? BodyFront
+    {
+        get
+        {
+            var children = Children;
+            return (children.Count != 0) ? children[0] : null;
+        }
+    }
 
     public uint Size => unchecked((uint)NumChildren);
 

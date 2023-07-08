@@ -10,7 +10,7 @@ public unsafe partial struct CXStringSet : IDisposable, IReadOnlyCollection<CXSt
 {
     public CXString this[uint index] => Strings[index];
 
-    int IReadOnlyCollection<CXString>.Count => (int)Count;
+    readonly int IReadOnlyCollection<CXString>.Count => (int)Count;
 
     public void Dispose()
     {

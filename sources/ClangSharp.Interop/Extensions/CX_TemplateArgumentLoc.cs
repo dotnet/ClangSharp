@@ -4,19 +4,19 @@ namespace ClangSharp.Interop;
 
 public unsafe partial struct CX_TemplateArgumentLoc
 {
-    public CX_TemplateArgument Argument => clangsharp.TemplateArgumentLoc_getArgument(this);
+    public readonly CX_TemplateArgument Argument => clangsharp.TemplateArgumentLoc_getArgument(this);
 
-    public CXSourceLocation Location => clangsharp.TemplateArgumentLoc_getLocation(this);
+    public readonly CXSourceLocation Location => clangsharp.TemplateArgumentLoc_getLocation(this);
 
-    public CXCursor SourceDeclExpression => clangsharp.TemplateArgumentLoc_getSourceDeclExpression(this);
+    public readonly CXCursor SourceDeclExpression => clangsharp.TemplateArgumentLoc_getSourceDeclExpression(this);
 
-    public CXCursor SourceExpression => clangsharp.TemplateArgumentLoc_getSourceExpression(this);
+    public readonly CXCursor SourceExpression => clangsharp.TemplateArgumentLoc_getSourceExpression(this);
 
-    public CXCursor SourceIntegralExpression => clangsharp.TemplateArgumentLoc_getSourceIntegralExpression(this);
+    public readonly CXCursor SourceIntegralExpression => clangsharp.TemplateArgumentLoc_getSourceIntegralExpression(this);
 
-    public CXCursor SourceNullPtrExpression => clangsharp.TemplateArgumentLoc_getSourceNullPtrExpression(this);
+    public readonly CXCursor SourceNullPtrExpression => clangsharp.TemplateArgumentLoc_getSourceNullPtrExpression(this);
 
-    public CXSourceRange SourceRange => clangsharp.TemplateArgumentLoc_getSourceRange(this);
+    public readonly CXSourceRange SourceRange => clangsharp.TemplateArgumentLoc_getSourceRange(this);
 
-    public CXSourceRange SourceRangeRaw => clangsharp.TemplateArgumentLoc_getSourceRangeRaw(this);
+    public readonly CXSourceRange SourceRangeRaw => clangsharp.TemplateArgumentLoc_getSourceRangeRaw(this);
 }

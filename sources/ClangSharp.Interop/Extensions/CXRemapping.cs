@@ -28,7 +28,7 @@ public unsafe partial struct CXRemapping : IDisposable, IEquatable<CXRemapping>
 
     public IntPtr Handle { get; set; }
 
-    public uint NumFiles => clang.remap_getNumFiles(this);
+    public readonly uint NumFiles => clang.remap_getNumFiles(this);
 
     public static explicit operator CXRemapping(void* value) => new CXRemapping((IntPtr)value);
 
@@ -47,11 +47,11 @@ public unsafe partial struct CXRemapping : IDisposable, IEquatable<CXRemapping>
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXRemapping other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXRemapping other) && Equals(other);
 
-    public bool Equals(CXRemapping other) => this == other;
+    public readonly bool Equals(CXRemapping other) => this == other;
 
-    public void GetFilenames(uint index, out CXString original, out CXString transformed)
+    public readonly void GetFilenames(uint index, out CXString original, out CXString transformed)
     {
         fixed (CXString* pOriginal = &original)
         fixed (CXString* pTransformed = &transformed)
@@ -60,5 +60,5 @@ public unsafe partial struct CXRemapping : IDisposable, IEquatable<CXRemapping>
         }
     }
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 }

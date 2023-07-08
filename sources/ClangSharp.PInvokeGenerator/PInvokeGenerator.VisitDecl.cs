@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Abstractions;
+using ClangSharp.CSharp;
 using static ClangSharp.Interop.CX_CastKind;
 using static ClangSharp.Interop.CX_CharacterKind;
 using static ClangSharp.Interop.CX_DeclKind;
@@ -140,7 +141,7 @@ public partial class PInvokeGenerator
 
             case CX_DeclKind_TypeAlias:
             {
-                VisitTypeAliasDecl((TypeAliasDecl)decl);
+                // Nothing to generate for type alias declarations
                 break;
             }
 
@@ -546,7 +547,8 @@ public partial class PInvokeGenerator
 
         if (isManualImport && !_config.WithClasses.ContainsKey(name))
         {
-            var firstParameter = functionDecl.Parameters.FirstOrDefault();
+            var parameters = functionDecl.Parameters;
+            var firstParameter = (parameters.Count != 0) ? parameters[0] : null;
             var firstParameterTypeName = (firstParameter is not null) ? GetTargetTypeName(firstParameter, out var _) : "void";
             AddDiagnostic(DiagnosticLevel.Warning, $"Found manual import for {name} with no class remapping. First Parameter Type: {firstParameterTypeName}; Return Type: {returnTypeName}", functionDecl);
         }
@@ -756,7 +758,7 @@ public partial class PInvokeGenerator
             }
             else
             {
-                var firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters.Last()) + 1) : 0;
+                var firstCtorInitializer = functionDecl.Parameters.Any() ? (functionDecl.CursorChildren.IndexOf(functionDecl.Parameters[functionDecl.Parameters.Count - 1]) + 1) : 0;
                 var lastCtorInitializer = (functionDecl.Body is not null) ? functionDecl.CursorChildren.IndexOf(functionDecl.Body) : functionDecl.CursorChildren.Count;
 
                 if (functionDecl is CXXConstructorDecl cxxConstructorDecl)
@@ -1191,7 +1193,7 @@ public partial class PInvokeGenerator
                     : null,
                 Location = parmVarDecl.Location,
                 WriteCustomAttrs = static context => {
-                    (var parmVarDecl, var generator, var csharpOutputBuilder, var defaultArg) = ((ParmVarDecl, PInvokeGenerator, CSharp.CSharpOutputBuilder, Expr))context;
+                    (var parmVarDecl, var generator, var csharpOutputBuilder, var defaultArg) = ((ParmVarDecl, PInvokeGenerator, CSharpOutputBuilder, Expr))context;
 
                     generator.WithAttributes(parmVarDecl);
                     generator.WithUsings(parmVarDecl);
@@ -1208,7 +1210,7 @@ public partial class PInvokeGenerator
                         csharpOutputBuilder?.WriteCustomAttribute("Optional", null);
                     }
                 },
-                CustomAttrGeneratorData = (parmVarDecl, this, null as CSharp.CSharpOutputBuilder, null as Expr),
+                CustomAttrGeneratorData = (parmVarDecl, this, null as CSharpOutputBuilder, null as Expr),
                 IsForManualImport = isForManualImport
             };
 
@@ -1219,7 +1221,7 @@ public partial class PInvokeGenerator
             {
                 isExprDefaultValue = IsDefaultValue(parmVarDecl.DefaultArg);
 
-                if ((_outputBuilder is CSharp.CSharpOutputBuilder csharpOutputBuilder) && (_config.WithTransparentStructs.ContainsKey(typeName) || parameters.Skip(index).Any((parmVarDecl) => {
+                if ((_outputBuilder is CSharpOutputBuilder csharpOutputBuilder) && (_config.WithTransparentStructs.ContainsKey(typeName) || parameters.Skip(index).Any((parmVarDecl) => {
                     var type = parmVarDecl.Type;
                     var typeName = GetTargetTypeName(parmVarDecl, out var nativeTypeName);
                     return _config.WithTransparentStructs.ContainsKey(typeName);
@@ -1469,7 +1471,7 @@ public partial class PInvokeGenerator
                 }
 
                 nativeNameWithExtras = nativeTypeNameBuilder.ToString();
-                nativeInheritance = GetCursorName(cxxRecordDecl.Bases.Last().Referenced);
+                nativeInheritance = GetCursorName(cxxRecordDecl.Bases[cxxRecordDecl.Bases.Count - 1].Referenced);
                 baseTypeNames = baseTypeNamesBuilder.ToArray();
             }
 
@@ -1807,7 +1809,7 @@ public partial class PInvokeGenerator
 
             Visit(recordDecl.Decls, excludedCursors);
 
-            foreach (var array in recordDecl.Fields.Where((field) => IsTypeConstantOrIncompleteArray(field)))
+            foreach (var array in recordDecl.Fields.Where(IsTypeConstantOrIncompleteArray))
             {
                 VisitConstantOrIncompleteArrayFieldDecl(recordDecl, array);
             }
@@ -1830,7 +1832,7 @@ public partial class PInvokeGenerator
 
                 if (_config.GenerateMarkerInterfaces)
                 {
-                    if (_outputBuilder is CSharp.CSharpOutputBuilder csharpOutputBuilder)
+                    if (_outputBuilder is CSharpOutputBuilder csharpOutputBuilder)
                     {
                         csharpOutputBuilder.NeedsNewline = true;
                     }
@@ -1842,7 +1844,7 @@ public partial class PInvokeGenerator
 
                 if (_config.GenerateExplicitVtbls || _config.GenerateTrimmableVtbls)
                 {
-                    if (_outputBuilder is CSharp.CSharpOutputBuilder csharpOutputBuilder)
+                    if (_outputBuilder is CSharpOutputBuilder csharpOutputBuilder)
                     {
                         csharpOutputBuilder.NeedsNewline = true;
                     }
@@ -2843,12 +2845,14 @@ public partial class PInvokeGenerator
 
             var arraySize = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1);
             var totalSize = arraySize;
+            var totalSizeString = $"{arraySize}";
             var sizePerDimension = new List<(long index, long size)>() {(0, arraySize) };
 
             while (IsTypeConstantOrIncompleteArray(recordDecl, elementType, out var subArrayType))
             {
                 var subArraySize = Math.Max((subArrayType as ConstantArrayType)?.Size ?? 0, 1);
                 totalSize *= subArraySize;
+                totalSizeString += $" * {subArraySize}";
                 sizePerDimension.Add((0, subArraySize));
 
                 elementType = subArrayType.ElementType;
@@ -2880,19 +2884,25 @@ public partial class PInvokeGenerator
                 Location = constantOrIncompleteArray.Location,
                 IsNested = true,
                 WriteCustomAttrs = static context => {
-                    (var fieldDecl, var generator) = ((FieldDecl, PInvokeGenerator))context;
+                    (var fieldDecl, var outputBuilder, var generator, var totalSizeString) = ((FieldDecl, IOutputBuilder, PInvokeGenerator, string))context;
 
                     generator.WithAttributes(fieldDecl);
                     generator.WithUsings(fieldDecl);
+
+                    if (generator.Config.GeneratePreviewCode)
+                    {
+                        outputBuilder.WriteCustomAttribute($"InlineArray({totalSizeString})");
+                    }
                 },
-                CustomAttrGeneratorData = (constantOrIncompleteArray, this),
+                CustomAttrGeneratorData = (constantOrIncompleteArray, _outputBuilder, this, totalSizeString),
             };
 
             _outputBuilder.BeginStruct(in desc);
 
             var firstFieldName = "";
+            var numFieldsToEmit = _config.GeneratePreviewCode ? Math.Min(totalSize, 1) : totalSize;
 
-            for (long i = 0; i < totalSize; i++)
+            for (long i = 0; i < numFieldsToEmit; i++)
             {
                 var dimension = sizePerDimension[0];
                 var firstDimension = dimension.index++;
@@ -2944,7 +2954,11 @@ public partial class PInvokeGenerator
 
             var generateCompatibleCode = _config.GenerateCompatibleCode;
 
-            if (generateCompatibleCode || isUnsafeElementType)
+            if (_config.GeneratePreviewCode)
+            {
+                // Nothing to emit
+            }
+            else if (generateCompatibleCode || isUnsafeElementType)
             {
                 _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: generateCompatibleCode && !isUnsafeElementType, needsUnscopedRef: false);
                 _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
@@ -3072,11 +3086,6 @@ public partial class PInvokeGenerator
     {
         Visit(translationUnitDecl.Decls);
         Visit(translationUnitDecl.CursorChildren, translationUnitDecl.Decls);
-    }
-
-    private void VisitTypeAliasDecl(TypeAliasDecl typeAliasDecl)
-    {
-        // Nothing to generate for type alias declarations
     }
 
     private void VisitTypedefDecl(TypedefDecl typedefDecl, bool onlyHandleRemappings)
@@ -3299,14 +3308,7 @@ public partial class PInvokeGenerator
                     case CX_CLK_Ascii:
                     case CX_CLK_UTF8:
                     {
-                        if (flags.HasFlag(ValueFlags.Constant))
-                        {
-                            typeName = "ReadOnlySpan<byte>";
-                        }
-                        else
-                        {
-                            typeName = "byte[]";
-                        }
+                        typeName = flags.HasFlag(ValueFlags.Constant) ? "ReadOnlySpan<byte>" : "byte[]";
                         break;
                     }
 
@@ -3331,14 +3333,7 @@ public partial class PInvokeGenerator
 
                     case CX_CLK_UTF32:
                     {
-                        if (_config.GenerateLatestCode && flags.HasFlag(ValueFlags.Constant))
-                        {
-                            typeName = "ReadOnlySpan<uint>";
-                        }
-                        else
-                        {
-                            typeName = "uint[]";
-                        }
+                        typeName = (_config.GenerateLatestCode && flags.HasFlag(ValueFlags.Constant)) ? "ReadOnlySpan<uint>" : "uint[]";
                         break;
                     }
 
@@ -3482,7 +3477,7 @@ public partial class PInvokeGenerator
             var name = GetRemappedCursorName(varDecl);
             var escapedName = EscapeName(name);
 
-            if (varDecl == declStmt.Decls.First())
+            if (varDecl == declStmt.Decls[0])
             {
                 var type = varDecl.Type;
                 var typeName = GetRemappedTypeName(varDecl, context: null, type, out _);
@@ -3853,18 +3848,8 @@ public partial class PInvokeGenerator
             case CX_StmtClass_UnaryOperator:
             {
                 var unaryOperator = (UnaryOperator)initExpr;
-
-                if (!IsConstant(targetTypeName, unaryOperator.SubExpr))
-                {
-                    return false;
-                }
-
-                if (unaryOperator.Opcode != CX_UO_Minus)
-                {
-                    return true;
-                }
-
-                return targetTypeName is not "IntPtr" and not "nint" and not "nuint" and not "UIntPtr";
+                return IsConstant(targetTypeName, unaryOperator.SubExpr)
+                    && ((unaryOperator.Opcode != CX_UO_Minus) || (targetTypeName is not "IntPtr" and not "nint" and not "nuint" and not "UIntPtr"));
             }
 
             // case CX_StmtClass_VAArgExpr:

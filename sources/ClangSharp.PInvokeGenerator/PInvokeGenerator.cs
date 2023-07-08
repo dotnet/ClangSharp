@@ -31,8 +31,10 @@ namespace ClangSharp;
 public sealed partial class PInvokeGenerator : IDisposable
 {
     private const int DefaultStreamWriterBufferSize = 1024;
+
     private static readonly Encoding s_defaultStreamWriterEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-    private static readonly Regex s_needsSystemSupportRegex = new Regex(@"\b(?:Guid|IntPtr|UIntPtr)\b", RegexOptions.Compiled);
+    private static readonly string[] s_doubleColonSeparator = new string[] { "::" };
+    private static readonly char[] s_doubleQuoteSeparator = new char[] { '"' };
 
     private const string ExpectedClangVersion = "version 16.0";
     private const string ExpectedClangSharpVersion = "version 16.0";
@@ -79,10 +81,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     public PInvokeGenerator(PInvokeGeneratorConfiguration config, Func<string, Stream>? outputStreamFactory = null)
     {
-        if (config is null)
-        {
-            throw new ArgumentNullException(nameof(config));
-        }
+        ArgumentNullException.ThrowIfNull(config);
 
         var clangVersion = clang.getClangVersion().ToString();
 
@@ -1768,15 +1767,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private void CloseOutputBuilder(Stream stream, IOutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen, bool emitNamespaceDeclaration)
     {
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(stream);
 
-        if (outputBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(outputBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(outputBuilder);
 
         using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
         sw.NewLine = "\n";
@@ -1903,7 +1896,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 if (_topLevelClassAttributes.TryGetValue(nonTestName, out var withAttributes))
                 {
-                    if (withAttributes.Any())
+                    if (withAttributes.Count != 0)
                     {
                         foreach (var attribute in withAttributes)
                         {
@@ -2235,18 +2228,9 @@ public sealed partial class PInvokeGenerator : IDisposable
     private AccessSpecifier GetMethodClassAccessSpecifier(string name)
     {
         var accessMap = _config.WithAccessSpecifiers;
-
-        if (accessMap.TryGetValue(name, out var accessSpecifier))
-        {
-            return accessSpecifier;
-        }
-
-        if (accessMap.TryGetValue("*", out accessSpecifier))
-        {
-            return accessSpecifier;
-        }
-
-        return AccessSpecifier.None;
+        return (accessMap.TryGetValue(name, out var accessSpecifier) || accessMap.TryGetValue("*", out accessSpecifier))
+             ? accessSpecifier
+             : AccessSpecifier.None;
     }
 
     private static string GetAnonymousName(Cursor cursor, string kind)
@@ -2447,11 +2431,9 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 case CXCallingConv_C:
                 {
-                    if ((cursor is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsInstance)
-                    {
-                        return CallingConvention.ThisCall;
-                    }
-                    return CallingConvention.Cdecl;
+                    return ((cursor is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsInstance)
+                         ? CallingConvention.ThisCall
+                         : CallingConvention.Cdecl;
                 }
 
                 case CXCallingConv_X86StdCall:
@@ -2654,7 +2636,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
 
-        void AppendTemplateArgument(TemplateArgument templateArgument, Decl parentDecl, StringBuilder qualifiedName)
+        void AppendTemplateArgument(TemplateArgument templateArgument, StringBuilder qualifiedName)
         {
             switch (templateArgument.Kind)
             {
@@ -2691,13 +2673,13 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (templateArgs.Any())
             {
-                AppendTemplateArgument(templateArgs[0], classTemplateSpecializationDecl, qualifiedName);
+                AppendTemplateArgument(templateArgs[0], qualifiedName);
 
                 for (var i = 1; i < templateArgs.Count; i++)
                 {
                     _ = qualifiedName.Append(',');
                     _ = qualifiedName.Append(' ');
-                    AppendTemplateArgument(templateArgs[i], classTemplateSpecializationDecl, qualifiedName);
+                    AppendTemplateArgument(templateArgs[i], qualifiedName);
                 }
             }
 
@@ -2806,10 +2788,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return (CXXRecordDecl)cxxBaseSpecifier.Referenced;
     }
 
-    private string GetRemappedCursorName(NamedDecl namedDecl)
-    {
-        return GetRemappedCursorName(namedDecl, out _, skipUsing: false);
-    }
+    private string GetRemappedCursorName(NamedDecl namedDecl) => GetRemappedCursorName(namedDecl, out _, skipUsing: false);
 
     private string GetRemappedCursorName(NamedDecl namedDecl, out string nativeTypeName, bool skipUsing)
     {
@@ -2905,9 +2884,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     }
 
     private string GetRemappedName(string name, Cursor? cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
-    {
-        return GetRemappedName(name, cursor, tryRemapOperatorName, out wasRemapped, skipUsing, skipUsingIfNotRemapped: skipUsing);
-    }
+        => GetRemappedName(name, cursor, tryRemapOperatorName, out wasRemapped, skipUsing, skipUsingIfNotRemapped: skipUsing);
 
     private string GetRemappedName(string name, Cursor? cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing, bool skipUsingIfNotRemapped)
     {
@@ -2962,7 +2939,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             if (!skipUsing)
             {
-                if (s_needsSystemSupportRegex.IsMatch(remappedName))
+                if (NeedsSystemSupportRegex().IsMatch(remappedName))
                 {
                     outputBuilder?.EmitSystemSupport();
                 }
@@ -3109,14 +3086,9 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             if (decl is EnumConstantDecl enumConstantDecl)
             {
-                if (enumConstantDecl.DeclContext is EnumDecl enumDecl)
-                {
-                    targetTypeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out nativeTypeName);
-                }
-                else
-                {
-                    targetTypeName = GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out nativeTypeName);
-                }
+                targetTypeName = enumConstantDecl.DeclContext is EnumDecl enumDecl
+                               ? GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out nativeTypeName)
+                               : GetRemappedTypeName(enumConstantDecl, context: null, enumConstantDecl.Type, out nativeTypeName);
             }
             else if (decl is TypeDecl previousTypeDecl)
             {
@@ -3450,7 +3422,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 if (result.typeName.Contains("::"))
                 {
-                    result.typeName = result.typeName.Split(new string[] { "::" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                    result.typeName = result.typeName.Split(s_doubleColonSeparator, StringSplitOptions.RemoveEmptyEntries).Last();
                     result.typeName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out _, skipUsing: true);
                 }
             }
@@ -4238,13 +4210,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     }
 
     private bool HasSuppressGCTransition(Cursor? cursor)
-    {
-        if (cursor is not NamedDecl namedDecl)
-        {
-            return false;
-        }
-        return HasRemapping(namedDecl, _config.WithSuppressGCTransitions);
-    }
+        => (cursor is NamedDecl namedDecl) && HasRemapping(namedDecl, _config.WithSuppressGCTransitions);
 
     private bool HasBaseField(CXXRecordDecl cxxRecordDecl)
     {
@@ -4395,7 +4361,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             if (_outputBuilder != null)
             {
-                // We don't want to exclude  by fileif we already have an active output builder as we
+                // We don't want to exclude by file if we already have an active output builder as we
                 // are likely processing members of an already included type but those members may
                 // indirectly exist or be defined in a non-traversed file.
                 return false;
@@ -4415,7 +4381,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             declLocation.GetExpansionLocation(out var expansionFile, out var expansionLine, out var expansionColumn, out _);
 
-            if ((expansionFile == file) && (expansionLine == line) && (expansionColumn == column) && _config.TraversalNames.Any())
+            if ((expansionFile == file) && (expansionLine == line) && (expansionColumn == column) && _config.TraversalNames.Count != 0)
             {
                 // clang_getLocation is a very expensive call, so exit early if the expansion file is the same
                 // However, if we are not explicitly specifying traversal names, its possible the expansion location
@@ -4571,7 +4537,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 return true;
             }
 
-            if (_config.IncludedNames.Any() && !_config.IncludedNames.Contains(qualifiedName)
+            if (_config.IncludedNames.Count != 0 && !_config.IncludedNames.Contains(qualifiedName)
                                             && !_config.IncludedNames.Contains(dottedQualifiedName)
                                             && !_config.IncludedNames.Contains(qualifiedNameWithoutParameters)
                                             && !_config.IncludedNames.Contains(dottedQualifiedNameWithoutParameters)
@@ -4617,7 +4583,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 return true;
             }
-            else if (!_config.TraversalNames.Any() && location.IsFromMainFile)
+            else if (_config.TraversalNames.Count == 0 && location.IsFromMainFile)
             {
                 return true;
             }
@@ -4634,11 +4600,13 @@ public sealed partial class PInvokeGenerator : IDisposable
                 name.EndsWith("_UserSize") || name.EndsWith("_UserSize64") ||
                 name.EndsWith("_UserUnmarshal") || name.EndsWith("_UserUnmarshal64"))
             {
-                parmVarDecl = functionDecl.Parameters.LastOrDefault();
+                var parameters = functionDecl.Parameters;
+                parmVarDecl = (parameters.Count != 0) ? parameters[^1] : null;
             }
             else if (name.EndsWith("_Proxy") || name.EndsWith("_Stub"))
             {
-                parmVarDecl = functionDecl.Parameters.FirstOrDefault();
+                var parameters = functionDecl.Parameters;
+                parmVarDecl = (parameters.Count != 0) ? parameters[0] : null;
             }
 
             if ((parmVarDecl is not null) && IsType<PointerType>(parmVarDecl, out var pointerType))
@@ -4747,7 +4715,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         {
                             // The found declaration and declaration to match are both virtual
                             // We want to treat the one from the base declaration as non-conflicting
-                            // So return true to report the declration to match as the conflict
+                            // So return true to report the declaration to match as the conflict
                             return true;
                         }
                         else if (cxxMethodDeclToMatch.IsThisDeclarationADefinition != cxxMethodDecl.IsThisDeclarationADefinition)
@@ -4763,7 +4731,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     {
                         // The found declaration is virtual while the declaration to match is not
                         // We want to treat the virtual declaration as non-conflicting
-                        // So return true to report the declration to match as the conflict
+                        // So return true to report the declaration to match as the conflict
                         return true;
                     }
                 }
@@ -4778,7 +4746,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 {
                     // Neither the declaration nor the declaration to match are virtual
                     // We want to pick whichever declaration appears first
-                    // So return true or false based on if we already encounted the declaration to match
+                    // So return true or false based on if we already encountered the declaration to match
                     return !foundCxxMethodDeclToMatch;
                 }
 
@@ -4795,7 +4763,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     return false;
                 }
 
-                var field = recordDecl.Fields.First();
+                var field = recordDecl.Fields[0];
 
                 if ((GetCursorName(field) != "unused") || !IsType<BuiltinType>(field, out var builtinType) || (builtinType.Kind != CXType_Int))
                 {
@@ -4899,19 +4867,10 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private bool IsNativeTypeNameEquivalent(string nativeTypeName, string typeName)
+    private static bool IsNativeTypeNameEquivalent(string nativeTypeName, string typeName)
     {
-        if (nativeTypeName.Equals(typeName, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (nativeTypeName.Replace(" ", "").Equals(typeName, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        return false;
+        return nativeTypeName.Equals(typeName, StringComparison.OrdinalIgnoreCase)
+            || nativeTypeName.Replace(" ", "").Equals(typeName, StringComparison.OrdinalIgnoreCase);
     }
 
     private bool IsPrevContextDecl<T>([MaybeNullWhen(false)] out T cursor, out object? userData)
@@ -5009,34 +4968,19 @@ public sealed partial class PInvokeGenerator : IDisposable
     }
 
     private bool IsType<T>(Expr expr)
-        where T : Type
-    {
-        return IsType<T>(expr, out _);
-    }
+        where T : Type => IsType<T>(expr, out _);
 
     private bool IsType<T>(Expr expr, [MaybeNullWhen(false)] out T value)
-        where T : Type
-    {
-        return IsType<T>(expr, expr.Type, out value);
-    }
+        where T : Type => IsType(expr, expr.Type, out value);
 
     private bool IsType<T>(ValueDecl valueDecl)
-        where T : Type
-    {
-        return IsType<T>(valueDecl, out _);
-    }
+        where T : Type => IsType<T>(valueDecl, out _);
 
     private bool IsType<T>(ValueDecl typeDecl, [MaybeNullWhen(false)] out T value)
-        where T : Type
-    {
-        return IsType<T>(typeDecl, typeDecl.Type, out value);
-    }
+        where T : Type => IsType(typeDecl, typeDecl.Type, out value);
 
     private bool IsType<T>(Cursor? cursor, Type type)
-        where T : Type
-    {
-        return IsType<T>(cursor, type, out _);
-    }
+        where T : Type => IsType<T>(cursor, type, out _);
 
     private bool IsType<T>(Cursor? cursor, Type type, [MaybeNullWhen(false)] out T value)
         where T : Type
@@ -5123,57 +5067,37 @@ public sealed partial class PInvokeGenerator : IDisposable
     }
 
     private bool IsTypeConstantOrIncompleteArray(Expr expr)
-    {
-        return IsTypeConstantOrIncompleteArray(expr, out _);
-    }
+         => IsTypeConstantOrIncompleteArray(expr, out _);
 
     private bool IsTypeConstantOrIncompleteArray(Expr expr, [MaybeNullWhen(false)] out ArrayType arrayType)
-    {
-        return IsTypeConstantOrIncompleteArray(expr, expr.Type, out arrayType);
-    }
+         => IsTypeConstantOrIncompleteArray(expr, expr.Type, out arrayType);
 
     private bool IsTypeConstantOrIncompleteArray(ValueDecl valueDecl)
-    {
-        return IsTypeConstantOrIncompleteArray(valueDecl, out _);
-    }
+         => IsTypeConstantOrIncompleteArray(valueDecl, out _);
 
     private bool IsTypeConstantOrIncompleteArray(ValueDecl valueDecl, [MaybeNullWhen(false)] out ArrayType arrayType)
-    {
-        return IsTypeConstantOrIncompleteArray(valueDecl, valueDecl.Type, out arrayType);
-    }
+         => IsTypeConstantOrIncompleteArray(valueDecl, valueDecl.Type, out arrayType);
 
     private bool IsTypeConstantOrIncompleteArray(Cursor? cursor, Type type)
-    {
-        return IsTypeConstantOrIncompleteArray(cursor, type, out _);
-    }
+         => IsTypeConstantOrIncompleteArray(cursor, type, out _);
 
     private bool IsTypeConstantOrIncompleteArray(Cursor? cursor, Type type, [MaybeNullWhen(false)] out ArrayType arrayType)
-    {
-        return IsType<ArrayType>(cursor, type, out arrayType) &&
-               (arrayType is ConstantArrayType or IncompleteArrayType);
-    }
+         => IsType(cursor, type, out arrayType)
+         && (arrayType is ConstantArrayType or IncompleteArrayType);
 
     private bool IsTypePointerOrReference(Expr expr)
-    {
-        return IsTypePointerOrReference(expr, expr.Type);
-    }
+         => IsTypePointerOrReference(expr, expr.Type);
 
     private bool IsTypePointerOrReference(ValueDecl valueDecl)
-    {
-        return IsTypePointerOrReference(valueDecl, valueDecl.Type);
-    }
+        => IsTypePointerOrReference(valueDecl, valueDecl.Type);
 
     private bool IsTypePointerOrReference(Cursor? cursor, Type type)
-    {
-        return IsType<PointerType>(cursor, type)
-            || IsType<ReferenceType>(cursor, type);
-    }
+        => IsType<PointerType>(cursor, type)
+        || IsType<ReferenceType>(cursor, type);
 
     private bool IsTypeVoid(Cursor? cursor, Type type)
-    {
-        return IsType<BuiltinType>(cursor, type, out var builtinType)
-            && (builtinType.Kind == CXType_Void);
-    }
+         => IsType<BuiltinType>(cursor, type, out var builtinType)
+         && (builtinType.Kind == CXType_Void);
 
     internal static bool IsSupportedFixedSizedBufferType(string typeName)
     {
@@ -5203,21 +5127,15 @@ public sealed partial class PInvokeGenerator : IDisposable
     }
 
     private static bool IsTransparentStructBoolean(PInvokeGeneratorTransparentStructKind kind)
-    {
-        return kind == PInvokeGeneratorTransparentStructKind.Boolean;
-    }
+        => kind is PInvokeGeneratorTransparentStructKind.Boolean;
 
     private static bool IsTransparentStructHandle(PInvokeGeneratorTransparentStructKind kind)
-    {
-        return kind is PInvokeGeneratorTransparentStructKind.Handle
-                    or PInvokeGeneratorTransparentStructKind.HandleWin32;
-    }
+         =>  kind is PInvokeGeneratorTransparentStructKind.Handle
+                  or PInvokeGeneratorTransparentStructKind.HandleWin32;
 
     private static bool IsTransparentStructHexBased(PInvokeGeneratorTransparentStructKind kind)
-    {
-        return IsTransparentStructHandle(kind)
-            || (kind == PInvokeGeneratorTransparentStructKind.TypedefHex);
-    }
+         => IsTransparentStructHandle(kind)
+         || (kind == PInvokeGeneratorTransparentStructKind.TypedefHex);
 
     private bool IsUnchecked(string targetTypeName, Stmt stmt)
     {
@@ -5710,7 +5628,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private bool IsUnchecked(string typeName, CXEvalResult evalResult)
+    private static bool IsUnchecked(string typeName, CXEvalResult evalResult)
     {
         if (evalResult.Kind != CXEval_Int)
         {
@@ -5721,7 +5639,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return IsUnchecked(typeName, signedValue, signedValue < 0, isHex: false);
     }
 
-    private bool IsUnchecked(string typeName, long signedValue, bool isNegative, bool isHex)
+    private static bool IsUnchecked(string typeName, long signedValue, bool isNegative, bool isHex)
     {
         switch (typeName)
         {
@@ -5790,7 +5708,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         var type = fieldDecl.Type;
 
-        if (IsType<ArrayType>(fieldDecl, out var arrayType) && IsTypeConstantOrIncompleteArray(fieldDecl, type))
+        if (IsType<ArrayType>(fieldDecl, out _) && IsTypeConstantOrIncompleteArray(fieldDecl, type))
         {
             var remappedName = GetRemappedTypeName(fieldDecl, context: null, type, out _, skipUsing: true, ignoreTransparentStructsWhereRequired: false);
             return IsSupportedFixedSizedBufferType(remappedName);
@@ -6123,7 +6041,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         var uuidAttr = uuidAttrs.First();
         var uuidAttrText = GetSourceRangeContents(recordDecl.TranslationUnit.Handle, uuidAttr.Extent);
-        var uuidText = uuidAttrText.Split(new char[] { '"' }, StringSplitOptions.RemoveEmptyEntries)[1];
+        var uuidText = uuidAttrText.Split(s_doubleQuoteSeparator, StringSplitOptions.RemoveEmptyEntries)[1];
 
         if (!Guid.TryParse(uuidText, out uuid))
         {
@@ -6560,13 +6478,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                 var parentName = GetRemappedCursorName(parentTypeDecl);
                 namespaceName = $"{GetNamespace(parentName, parentTypeDecl)}.{parentName}";
             }
-            else if (s_needsSystemSupportRegex.IsMatch(remappedName))
-            {
-                namespaceName = "System";
-            }
             else
             {
-                namespaceName = _config.DefaultNamespace;
+                namespaceName = NeedsSystemSupportRegex().IsMatch(remappedName) ? "System" : _config.DefaultNamespace;
             }
         }
         return namespaceName;
@@ -6633,17 +6547,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             name = name["ClangSharpMacro_".Length..];
         }
 
-        if (entries.Contains(name))
-        {
-            return true;
-        }
-
-        if (matchStar && entries.Contains("*"))
-        {
-            return true;
-        }
-
-        return false;
+        return entries.Contains(name) || (matchStar && entries.Contains("*"));
     }
 
     private bool TryGetRemappedValue<T>(NamedDecl namedDecl, IReadOnlyDictionary<string, T> remappings, [MaybeNullWhen(false)] out T value, bool matchStar = false)
@@ -6879,32 +6783,35 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
+    [GeneratedRegex(@"\b(?:Guid|IntPtr|UIntPtr)\b")]
+    private static partial Regex NeedsSystemSupportRegex();
+
     private static int ParseCxxStandard(string standard)
     {
         const string CxxStandard = "c++";
         const string GnuxxStandard = "gnu++";
 
-        if (standard.StartsWith(CxxStandard))
-        {
-            return ParseCxxStandardVersion(standard.AsSpan()[CxxStandard.Length..]);
-        }
-
-        if (standard.StartsWith(GnuxxStandard))
-        {
-            return ParseCxxStandardVersion(standard.AsSpan()[GnuxxStandard.Length..]);
-        }
-
-        return -1;
+        return standard.StartsWith(CxxStandard) ? ParseCxxStandardVersion(standard.AsSpan()[CxxStandard.Length..])
+             : standard.StartsWith(GnuxxStandard) ? ParseCxxStandardVersion(standard.AsSpan()[GnuxxStandard.Length..])
+             : -1;
     }
 
     private static int ParseCxxStandardVersion(ReadOnlySpan<char> version)
     {
         // Maybe in the future we'll need to check for more c++ standard drafts, but atm this should work
-        if(version.EndsWith("a") || version.EndsWith("b"))
+
+        if (version.EndsWith("a") || version.EndsWith("b"))
         {
-            return int.TryParse(version[..^1], out var draftStd) ? draftStd * 10 : -1;
+            if (int.TryParse(version[..^1], out var draftStd))
+            {
+                return draftStd * 10;
+            }
+        }
+        else if (int.TryParse(version, out var std))
+        {
+            return std;
         }
 
-        return int.TryParse(version, out var std) ? std : -1;
+        return -1;
     }
 }

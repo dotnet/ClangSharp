@@ -43,7 +43,7 @@ public unsafe partial struct CXString : IDisposable
         return clang.constructUSR_ObjCProperty(marshaledProperty, classUsr);
     }
 
-    public string CString
+    public readonly string CString
     {
         get
         {
@@ -58,7 +58,7 @@ public unsafe partial struct CXString : IDisposable
         }
     }
 
-    public void Dispose() => clang.disposeString(this);
+    public readonly void Dispose() => clang.disposeString(this);
 
-    public override string ToString() => CString;
+    public override readonly string ToString() => CString;
 }

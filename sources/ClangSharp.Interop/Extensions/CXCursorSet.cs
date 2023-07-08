@@ -23,7 +23,7 @@ public unsafe partial struct CXCursorSet : IDisposable, IEquatable<CXCursorSet>
 
     public static CXCursorSet Create() => clang.createCXCursorSet();
 
-    public bool Contains(CXCursor cursor) => clang.CXCursorSet_contains(this, cursor) != 0;
+    public readonly bool Contains(CXCursor cursor) => clang.CXCursorSet_contains(this, cursor) != 0;
 
     public void Dispose()
     {
@@ -34,11 +34,11 @@ public unsafe partial struct CXCursorSet : IDisposable, IEquatable<CXCursorSet>
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXCursorSet other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXCursorSet other) && Equals(other);
 
-    public bool Equals(CXCursorSet other) => this == other;
+    public readonly bool Equals(CXCursorSet other) => this == other;
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 
-    public bool Insert(CXCursor cursor) => clang.CXCursorSet_insert(this, cursor) != 0;
+    public readonly bool Insert(CXCursor cursor) => clang.CXCursorSet_insert(this, cursor) != 0;
 }

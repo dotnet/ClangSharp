@@ -17,5 +17,5 @@ public sealed class LinkageSpecDecl : Decl, IDeclContext
         }
     }
 
-    public CXLanguageKind Langage => Handle.Language;
+    public CXLanguageKind Language => Handle.Language;
 }

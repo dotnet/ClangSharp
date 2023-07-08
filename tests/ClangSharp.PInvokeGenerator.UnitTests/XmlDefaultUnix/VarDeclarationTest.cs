@@ -77,10 +77,9 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
   </namespace>
 </bindings>
 ";
-        var excludedNames = new string[] { "GUID" };
-        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames, remappedNames: remappedNames);
+        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidMacroTestExcludedNames, remappedNames: remappedNames);
     }
 
     protected override Task MacroTestImpl(string nativeValue, string expectedManagedType, string expectedManagedValue)
@@ -416,8 +415,7 @@ static const char* const MyConst3 = ""Test"";";
 </bindings>
 ";
 
-        var excludedNames = new string[] { "MyMacro1", "MyMacro2" };
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: UncheckedConversionMacroTest2ExcludedNames);
     }
 
     protected override Task UncheckedPointerMacroTestImpl()

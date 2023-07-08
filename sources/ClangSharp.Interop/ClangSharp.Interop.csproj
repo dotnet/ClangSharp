@@ -2,11 +2,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0;netstandard2.0</TargetFrameworks>
+    <NoWarn>$(NoWarn);CA1069</NoWarn>
+    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <Compile Remove="Extensions/clang.ResolveLibrary.cs" />
+    <Compile Remove="clang.cs" />
     <InternalsVisibleTo Include="ClangSharp" Key="$(AssemblyOriginatorPublicKey)" />
     <InternalsVisibleTo Include="ClangSharp.PInvokeGenerator" Key="$(AssemblyOriginatorPublicKey)" />
   </ItemGroup>

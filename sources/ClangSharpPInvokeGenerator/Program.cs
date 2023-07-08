@@ -62,7 +62,6 @@ public class Program
     private static readonly Option<string[]> s_withUsingNameValuePairs;
     private static readonly Option<string[]> s_withPackingNameValuePairs;
 
-
     private static readonly TwoColumnHelpRow[] s_configOptions = new TwoColumnHelpRow[]
     {
         new TwoColumnHelpRow("?, h, help", "Show help and usage information for -c, --config"),
@@ -87,7 +86,7 @@ public class Program
         // Exclusion Options
 
         new TwoColumnHelpRow("exclude-anonymous-field-helpers", "The helper ref properties generated for fields in nested anonymous structs and unions should not be generated."),
-        new TwoColumnHelpRow("exclude-com-proxies", "Types recognized as COM proxies should not have bindings generated. Thes are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub."),
+        new TwoColumnHelpRow("exclude-com-proxies", "Types recognized as COM proxies should not have bindings generated. These are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub."),
         new TwoColumnHelpRow("exclude-default-remappings", "Default remappings for well known types should not be added. This currently includes intptr_t, ptrdiff_t, size_t, and uintptr_t"),
         new TwoColumnHelpRow("exclude-empty-records", "Bindings for records that contain no members should not be generated. These are commonly encountered for opaque handle like types such as HWND."),
         new TwoColumnHelpRow("exclude-enum-operators", "Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default."),
@@ -129,6 +128,43 @@ public class Program
         new TwoColumnHelpRow("log-potential-typedef-remappings", "A list of potential typedef remappings should be generated. This can help identify missing remappings."),
         new TwoColumnHelpRow("log-visited-files", "A list of the visited files should be generated. This can help identify traversal issues."),
     };
+
+    private static readonly string[] s_additionalOptionAliases = new string[] { "--additional", "-a" };
+    private static readonly string[] s_configOptionAliases = new string[] { "--config", "-c" };
+    private static readonly string[] s_defineMacroOptionAliases = new string[] { "--define-macro", "-D" };
+    private static readonly string[] s_excludeOptionAliases = new string[] { "--exclude", "-e" };
+    private static readonly string[] s_fileOptionAliases = new string[] { "--file", "-f" };
+    private static readonly string[] s_fileDirectionOptionAliases = new string[] { "--file-directory", "-F" };
+    private static readonly string[] s_headerOptionAliases = new string[] { "--headerFile", "-h" };
+    private static readonly string[] s_includeOptionAliases = new string[] { "--include", "-i" };
+    private static readonly string[] s_includeDirectoryOptionAliases = new string[] { "--include-directory", "-I" };
+    private static readonly string[] s_languageOptionAliases = new string[] { "--language", "-x" };
+    private static readonly string[] s_libraryOptionAliases = new string[] { "--libraryPath", "-l" };
+    private static readonly string[] s_methodClassNameOptionAliases = new string[] { "--methodClassName", "-m" };
+    private static readonly string[] s_namespaceOptionAliases = new string[] { "--namespace", "-n" };
+    private static readonly string[] s_nativeTypeNamesStripOptionAliases = new string[] { "--nativeTypeNamesToStrip" };
+    private static readonly string[] s_outputModeOptionAliases = new string[] { "--output-mode", "-om" };
+    private static readonly string[] s_outputOptionAliases = new string[] { "--output", "-o" };
+    private static readonly string[] s_prefixStripOptionAliases = new string[] { "--prefixStrip", "-p" };
+    private static readonly string[] s_remapOptionAliases = new string[] { "--remap", "-r" };
+    private static readonly string[] s_stdOptionAliases = new string[] { "--std", "-std" };
+    private static readonly string[] s_testOutputOptionAliases = new string[] { "--test-output", "-to" };
+    private static readonly string[] s_versionOptionAliases = new string[] { "--version", "-v" };
+    private static readonly string[] s_traverseOptionAliases = new string[] { "--traverse", "-t" };
+    private static readonly string[] s_withAccessSpecifierOptionAliases = new string[] { "--with-access-specifier", "-was" };
+    private static readonly string[] s_withAttributeOptionAliases = new string[] { "--with-attribute", "-wa" };
+    private static readonly string[] s_withCallConvOptionAliases = new string[] { "--with-callconv", "-wcc" };
+    private static readonly string[] s_withClassOptionAliases = new string[] { "--with-class", "-wc" };
+    private static readonly string[] s_withGuidOptionAliases = new string[] { "--with-guid", "-wg" };
+    private static readonly string[] s_withLibraryPathOptionAliases = new string[] { "--with-librarypath", "-wlb" };
+    private static readonly string[] s_withManualImportOptionAliases = new string[] { "--with-manual-import", "-wmi" };
+    private static readonly string[] s_withNamespaceOptionAliases = new string[] { "--with-namespace", "-wn" };
+    private static readonly string[] s_withSetLastErrorOptionAliases = new string[] { "--with-setlasterror", "-wsle" };
+    private static readonly string[] s_withSuppressGCTransitionOptionAliases = new string[] { "--with-suppressgctransition", "-wsgct" };
+    private static readonly string[] s_withTransparentStructOptionAliases = new string[] { "--with-transparent-struct", "-wts" };
+    private static readonly string[] s_withTypeOptionAliases = new string[] { "--with-type", "-wt" };
+    private static readonly string[] s_withUsingOptionAliases = new string[] { "--with-using", "-wu" };
+    private static readonly string[] s_withPackingOptionAliases = new string[] { "--with-packing", "-wp" };
 
     static Program()
     {
@@ -291,7 +327,7 @@ public class Program
 
         var errorList = new List<string>();
 
-        if (!files.Any())
+        if (files.Length == 0)
         {
             errorList.Add("Error: No input C/C++ files provided. Use --file or -f");
         }
@@ -653,7 +689,7 @@ public class Program
             return;
         }
 
-        if (errorList.Any())
+        if (errorList.Count != 0)
         {
             context.Console.Error.Write($"Error in args for '{files.FirstOrDefault()}'");
             context.Console.Error.Write(Environment.NewLine);
@@ -671,23 +707,15 @@ public class Program
             return;
         }
 
-        string[] clangCommandLineArgs;
-
-        if (string.IsNullOrWhiteSpace(std))
-        {
-            clangCommandLineArgs = new string[] {
-                $"--language={language}",               // Treat subsequent input files as having type <language>
-                "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
-            };
-        }
-        else
-        {
-            clangCommandLineArgs = new string[] {
-                $"--language={language}",               // Treat subsequent input files as having type <language>
-                $"--std={std}",                         // Language standard to compile for
-                "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
-            };
-        }
+        var clangCommandLineArgs = string.IsNullOrWhiteSpace(std)
+                                 ? new string[] {
+                                     $"--language={language}",               // Treat subsequent input files as having type <language>
+                                     "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
+                                 } : new string[] {
+                                     $"--language={language}",               // Treat subsequent input files as having type <language>
+                                     $"--std={std}",                         // Language standard to compile for
+                                     "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
+                                 };
 
         clangCommandLineArgs = clangCommandLineArgs.Concat(includeDirectories.Select(x => "--include-directory=" + x)).ToArray();
         clangCommandLineArgs = clangCommandLineArgs.Concat(defineMacros.Select(x => "--define-macro=" + x)).ToArray();
@@ -834,9 +862,9 @@ public class Program
 
             var key = parts[0].TrimEnd();
 
-            if (result.ContainsKey(key))
+            if (result.TryGetValue(key, out var value))
             {
-                errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {result[key]}");
+                errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {value}");
                 continue;
             }
 
@@ -860,9 +888,9 @@ public class Program
 
             var key = parts[0].TrimEnd();
 
-            if (result.ContainsKey(key))
+            if (result.TryGetValue(key, out var value))
             {
-                errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {result[key]}");
+                errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {value}");
                 continue;
             }
 
@@ -886,9 +914,9 @@ public class Program
 
             var key = parts[0].TrimEnd();
 
-            if (result.ContainsKey(key))
+            if (result.TryGetValue(key, out var value))
             {
-                errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {result[key]}");
+                errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {value}");
                 continue;
             }
 
@@ -918,9 +946,9 @@ public class Program
 
             var key = parts[0].TrimEnd();
 
-            if (result.ContainsKey(key))
+            if (result.TryGetValue(key, out var value))
             {
-                errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {result[key]}");
+                errorList.Add($"Error: A key with the given name already exists: {key}. Existing: {value}");
                 continue;
             }
 
@@ -958,12 +986,13 @@ public class Program
 
             var key = parts[0].TrimEnd();
 
-            if (!result.ContainsKey(key))
+            if (!result.TryGetValue(key, out var value))
             {
-                result.Add(key, new List<string>());
+                value = new List<string>();
+                result.Add(key, value);
             }
 
-            var list = (List<string>)result[key];
+            var list = (List<string>)value;
             list.Add(parts[1].TrimStart());
         }
     }
@@ -971,7 +1000,7 @@ public class Program
     private static Option<string[]> GetAdditionalOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--additional", "-a" },
+            aliases: s_additionalOptionAliases,
             description: "An argument to pass to Clang when parsing the input files.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -982,7 +1011,7 @@ public class Program
     private static Option<string[]> GetConfigOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--config", "-c" },
+            aliases: s_configOptionAliases,
             description: "A configuration option that controls how the bindings are generated. Specify 'help' to see the available options.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -993,7 +1022,7 @@ public class Program
     private static Option<string[]> GetDefineMacroOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--define-macro", "-D" },
+            aliases: s_defineMacroOptionAliases,
             description: "Define <macro> to <value> (or 1 if <value> omitted).",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1004,7 +1033,7 @@ public class Program
     private static Option<string[]> GetExcludeOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--exclude", "-e" },
+            aliases: s_excludeOptionAliases,
             description: "A declaration name to exclude from binding generation.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1015,7 +1044,7 @@ public class Program
     private static Option<string[]> GetFileOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--file", "-f" },
+            aliases: s_fileOptionAliases,
             description: "A file to parse and generate bindings for.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1026,7 +1055,7 @@ public class Program
     private static Option<string> GetFileDirectoryOption()
     {
         return new Option<string>(
-            aliases: new string[] { "--file-directory", "-F" },
+            aliases: s_fileDirectionOptionAliases,
             description: "The base path for files to parse.",
             getDefaultValue: () => string.Empty
         );
@@ -1035,7 +1064,7 @@ public class Program
     private static Option<string> GetHeaderOption()
     {
         return new Option<string>(
-            aliases: new string[] { "--headerFile", "-h" },
+            aliases: s_headerOptionAliases,
             description: "A file which contains the header to prefix every generated file with.",
             getDefaultValue: () => string.Empty
         );
@@ -1044,7 +1073,7 @@ public class Program
     private static Option<string[]> GetIncludeOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--include", "-i" },
+            aliases: s_includeOptionAliases,
             description: "A declaration name to include in binding generation.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1055,7 +1084,7 @@ public class Program
     private static Option<string[]> GetIncludeDirectoryOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--include-directory", "-I" },
+            aliases: s_includeDirectoryOptionAliases,
             description: "Add directory to include search path.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1066,7 +1095,7 @@ public class Program
     private static Option<string> GetLanguageOption()
     {
         return new Option<string>(
-            aliases: new string[] { "--language", "-x" },
+            aliases: s_languageOptionAliases,
             description: "Treat subsequent input files as having type <language>.",
             getDefaultValue: () => "c++"
         ).FromAmong("c", "c++");
@@ -1075,7 +1104,7 @@ public class Program
     private static Option<string> GetLibraryOption()
     {
         return new Option<string>(
-            aliases: new string[] { "--libraryPath", "-l" },
+            aliases: s_libraryOptionAliases,
             description: "The string to use in the DllImport attribute used when generating bindings.",
             getDefaultValue: () => string.Empty
         );
@@ -1084,7 +1113,7 @@ public class Program
     private static Option<string> GetMethodClassNameOption()
     {
         return new Option<string>(
-            aliases: new string[] { "--methodClassName", "-m" },
+            aliases: s_methodClassNameOptionAliases,
             description: "The name of the static class that will contain the generated method bindings.",
             getDefaultValue: () => "Methods"
         );
@@ -1093,7 +1122,7 @@ public class Program
     private static Option<string> GetNamespaceOption()
     {
         return new Option<string>(
-            aliases: new string[] { "--namespace", "-n" },
+            aliases: s_namespaceOptionAliases,
             description: "The namespace in which to place the generated bindings.",
             getDefaultValue: () => string.Empty
         );
@@ -1102,7 +1131,7 @@ public class Program
     private static Option<string[]> GetNativeTypeNamesStripOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--nativeTypeNamesToStrip" },
+            aliases: s_nativeTypeNamesStripOptionAliases,
             description: "The contents to strip from the generated NativeTypeName attributes.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1113,7 +1142,7 @@ public class Program
     private static Option<PInvokeGeneratorOutputMode> GetOutputModeOption()
     {
         return new Option<PInvokeGeneratorOutputMode>(
-            aliases: new string[] { "--output-mode", "-om" },
+            aliases: s_outputModeOptionAliases,
             description: "The mode describing how the information collected from the headers are presented in the resultant bindings.",
             getDefaultValue: () => PInvokeGeneratorOutputMode.CSharp
         );
@@ -1122,7 +1151,7 @@ public class Program
     private static Option<string> GetOutputOption()
     {
         return new Option<string>(
-            aliases: new string[] { "--output", "-o" },
+            aliases: s_outputOptionAliases,
             description: "The output location to write the generated bindings to.",
             getDefaultValue: () => string.Empty
         );
@@ -1131,7 +1160,7 @@ public class Program
     private static Option<string> GetPrefixStripOption()
     {
         return new Option<string>(
-            aliases: new string[] { "--prefixStrip", "-p" },
+            aliases: s_prefixStripOptionAliases,
             description: "The prefix to strip from the generated method bindings.",
             getDefaultValue: () => string.Empty
         );
@@ -1140,7 +1169,7 @@ public class Program
     private static Option<string[]> GetRemapOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--remap", "-r" },
+            aliases: s_remapOptionAliases,
             description: "A declaration name to be remapped to another name during binding generation.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1151,7 +1180,7 @@ public class Program
     private static Option<string> GetStdOption()
     {
         return new Option<string>(
-            aliases: new string[] { "--std", "-std" },
+            aliases: s_stdOptionAliases,
             description: "Language standard to compile for.",
             getDefaultValue: () => ""
         );
@@ -1160,7 +1189,7 @@ public class Program
     private static Option<string> GetTestOutputOption()
     {
         return new Option<string>(
-            aliases: new string[] { "--test-output", "-to" },
+            aliases: s_testOutputOptionAliases,
             description: "The output location to write the generated tests to.",
             getDefaultValue: () => string.Empty
         );
@@ -1169,7 +1198,7 @@ public class Program
     private static Option<bool> GetVersionOption()
     {
         return new Option<bool>(
-            aliases: new string[] { "--version", "-v" },
+            aliases: s_versionOptionAliases,
             description: "Prints the current version information for the tool and its native dependencies."
         ) {
             Arity = ArgumentArity.Zero
@@ -1179,7 +1208,7 @@ public class Program
     private static Option<string[]> GetTraverseOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--traverse", "-t" },
+            aliases: s_traverseOptionAliases,
             description: "A file name included either directly or indirectly by -f that should be traversed during binding generation.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1190,7 +1219,7 @@ public class Program
     private static Option<string[]> GetWithAccessSpecifierOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-access-specifier", "-was" },
+            aliases: s_withAccessSpecifierOptionAliases,
             description: "An access specifier to be used with the given qualified or remapped declaration name during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1201,7 +1230,7 @@ public class Program
     private static Option<string[]> GetWithAttributeOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-attribute", "-wa" },
+            aliases: s_withAttributeOptionAliases,
             description: "An attribute to be added to the given remapped declaration name during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1212,7 +1241,7 @@ public class Program
     private static Option<string[]> GetWithCallConvOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-callconv", "-wcc" },
+            aliases: s_withCallConvOptionAliases,
             description: "A calling convention to be used for the given declaration during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1223,7 +1252,7 @@ public class Program
     private static Option<string[]> GetWithClassOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-class", "-wc" },
+            aliases: s_withClassOptionAliases,
             description: "A class to be used for the given remapped constant or function declaration name during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1234,7 +1263,7 @@ public class Program
     private static Option<string[]> GetWithGuidOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-guid", "-wg" },
+            aliases: s_withGuidOptionAliases,
             description: "A GUID to be used for the given declaration during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1245,7 +1274,7 @@ public class Program
     private static Option<string[]> GetWithLibraryPathOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-librarypath", "-wlb" },
+            aliases: s_withLibraryPathOptionAliases,
             description: "A library path to be used for the given declaration during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1256,7 +1285,7 @@ public class Program
     private static Option<string[]> GetWithManualImportOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-manual-import", "-wmi" },
+            aliases: s_withManualImportOptionAliases,
             description: "A remapped function name to be treated as a manual import during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1267,7 +1296,7 @@ public class Program
     private static Option<string[]> GetWithNamespaceOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-namespace", "-wn" },
+            aliases: s_withNamespaceOptionAliases,
             description: "A namespace to be used for the given remapped declaration name during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1278,7 +1307,7 @@ public class Program
     private static Option<string[]> GetWithSetLastErrorOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-setlasterror", "-wsle" },
+            aliases: s_withSetLastErrorOptionAliases,
             description: "Add the SetLastError=true modifier or SetsSystemLastError attribute to a given DllImport or UnmanagedFunctionPointer. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1289,7 +1318,7 @@ public class Program
     private static Option<string[]> GetWithSuppressGCTransitionOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-suppressgctransition", "-wsgct" },
+            aliases: s_withSuppressGCTransitionOptionAliases,
             description: "Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1300,7 +1329,7 @@ public class Program
     private static Option<string[]> GetWithTransparentStructOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-transparent-struct", "-wts" },
+            aliases: s_withTransparentStructOptionAliases,
             description: "A remapped type name to be treated as a transparent wrapper during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1311,7 +1340,7 @@ public class Program
     private static Option<string[]> GetWithTypeOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-type", "-wt" },
+            aliases: s_withTypeOptionAliases,
             description: "A type to be used for the given enum declaration during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1322,7 +1351,7 @@ public class Program
     private static Option<string[]> GetWithUsingOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-using", "-wu" },
+            aliases: s_withUsingOptionAliases,
             description: "A using directive to be included for the given remapped declaration name during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
@@ -1333,7 +1362,7 @@ public class Program
     private static Option<string[]> GetWithPackingOption()
     {
         return new Option<string[]>(
-            aliases: new string[] { "--with-packing", "-wp" },
+            aliases: s_withPackingOptionAliases,
             description: "Overrides the StructLayoutAttribute.Pack property for the given type. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {

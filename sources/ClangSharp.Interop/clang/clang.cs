@@ -151,7 +151,7 @@ public static unsafe partial class @clang
     public static extern uint getDiagnosticCategory([NativeTypeName("CXDiagnostic")] void* param0);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getDiagnosticCategoryName", ExactSpelling = true)]
-    [Obsolete]
+    [Obsolete("https://clang.llvm.org/doxygen/group__CINDEX__DIAG.html#gaf3d608c7860a57ce6571a3b03b4ead33")]
     public static extern CXString getDiagnosticCategoryName([NativeTypeName("unsigned int")] uint Category);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getDiagnosticCategoryText", ExactSpelling = true)]
