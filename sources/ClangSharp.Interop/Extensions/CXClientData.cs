@@ -21,9 +21,9 @@ public unsafe partial struct CXClientData : IEquatable<CXClientData>
 
     public static bool operator !=(CXClientData left, CXClientData right) => left.Handle != right.Handle;
 
-    public override bool Equals(object? obj) => (obj is CXClientData other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXClientData other) && Equals(other);
 
-    public bool Equals(CXClientData other) => this == other;
+    public readonly bool Equals(CXClientData other) => this == other;
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 }

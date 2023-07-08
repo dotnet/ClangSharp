@@ -952,7 +952,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
         // nop, used only by XML
     }
 
-    private string GetAccessSpecifierString(AccessSpecifier accessSpecifier, bool isNested)
+    private static string GetAccessSpecifierString(AccessSpecifier accessSpecifier, bool isNested)
     {
         switch (accessSpecifier)
         {

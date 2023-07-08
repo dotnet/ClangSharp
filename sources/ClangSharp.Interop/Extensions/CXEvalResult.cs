@@ -12,13 +12,13 @@ public unsafe partial struct CXEvalResult : IDisposable, IEquatable<CXEvalResult
         Handle = handle;
     }
 
-    public double AsDouble => (Kind == CXEval_Float) ? clang.EvalResult_getAsDouble(this) : 0;
+    public readonly double AsDouble => (Kind == CXEval_Float) ? clang.EvalResult_getAsDouble(this) : 0;
 
-    public int AsInt => (Kind == CXEval_Int) ? clang.EvalResult_getAsInt(this) : 0;
+    public readonly int AsInt => (Kind == CXEval_Int) ? clang.EvalResult_getAsInt(this) : 0;
 
-    public long AsLongLong => (Kind == CXEval_Int) ? clang.EvalResult_getAsLongLong(this) : 0;
+    public readonly long AsLongLong => (Kind == CXEval_Int) ? clang.EvalResult_getAsLongLong(this) : 0;
 
-    public string AsStr
+    public readonly string AsStr
     {
         get
         {
@@ -33,13 +33,13 @@ public unsafe partial struct CXEvalResult : IDisposable, IEquatable<CXEvalResult
         }
     }
 
-    public ulong AsUnsigned => (Kind == CXEval_Int) ? clang.EvalResult_getAsUnsigned(this) : 0;
+    public readonly ulong AsUnsigned => (Kind == CXEval_Int) ? clang.EvalResult_getAsUnsigned(this) : 0;
 
     public IntPtr Handle { get; set; }
 
-    public bool IsUnsignedInt => (Kind == CXEval_Int) && (clang.EvalResult_isUnsignedInt(this) != 0);
+    public readonly bool IsUnsignedInt => (Kind == CXEval_Int) && (clang.EvalResult_isUnsignedInt(this) != 0);
 
-    public CXEvalResultKind Kind => clang.EvalResult_getKind(this);
+    public readonly CXEvalResultKind Kind => clang.EvalResult_getKind(this);
 
     public static explicit operator CXEvalResult(void* value) => new CXEvalResult((IntPtr)value);
 
@@ -58,9 +58,9 @@ public unsafe partial struct CXEvalResult : IDisposable, IEquatable<CXEvalResult
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXEvalResult other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXEvalResult other) && Equals(other);
 
-    public bool Equals(CXEvalResult other) => this == other;
+    public readonly bool Equals(CXEvalResult other) => this == other;
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 }

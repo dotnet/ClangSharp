@@ -63,10 +63,9 @@ namespace ClangSharp.Test
     }}
 }}
 ";
-        var excludedNames = new string[] { "GUID" };
-        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
 
-        return ValidateGeneratedCSharpDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames, remappedNames: remappedNames);
+        var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
+        return ValidateGeneratedCSharpDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidMacroTestExcludedNames, remappedNames: remappedNames);
     }
 
     protected override Task MacroTestImpl(string nativeValue, string expectedManagedType, string expectedManagedValue)
@@ -309,8 +308,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        var excludedNames = new string[] { "MyMacro1", "MyMacro2" };
-        return ValidateGeneratedCSharpDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedCSharpDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: UncheckedConversionMacroTest2ExcludedNames);
     }
 
     protected override Task UncheckedPointerMacroTestImpl()

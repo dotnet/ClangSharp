@@ -7,6 +7,8 @@ namespace ClangSharp.UnitTests;
 
 public abstract class EnumDeclarationTest : PInvokeGeneratorTest
 {
+    protected static readonly string[] ExcludeTestExcludedNames = new[] { "MyEnum" };
+
     [Test]
     public Task BasicTest() => BasicTestImpl();
 

@@ -23,7 +23,7 @@ public sealed class ObjCAtTryStmt : Stmt
             var children = Children;
             var skipLast = 0;
 
-            if (children.Last() is ObjCAtFinallyStmt) {
+            if (children[children.Count - 1] is ObjCAtFinallyStmt) {
                 skipLast++;
             }
 
@@ -33,7 +33,7 @@ public sealed class ObjCAtTryStmt : Stmt
         _finallyStmt = new Lazy<ObjCAtFinallyStmt?>(() => {
             var children = Children;
 
-            return (children.Last() is ObjCAtFinallyStmt finallyStmt) ? finallyStmt : null;
+            return (children[children.Count - 1] is ObjCAtFinallyStmt finallyStmt) ? finallyStmt : null;
         });
     }
 

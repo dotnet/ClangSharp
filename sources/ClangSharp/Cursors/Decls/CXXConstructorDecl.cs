@@ -64,8 +64,8 @@ public sealed class CXXConstructorDecl : CXXMethodDecl
                 return null;
             }
 
-            var e = InitExprs.FirstOrDefault()?.IgnoreImplicit;
-
+            var initExprs = InitExprs;
+            var e = (initExprs.Count != 0) ? initExprs[0].IgnoreImplicit : null;
             return (e is CXXConstructExpr construct) ? construct.Constructor : null;
         }
     }

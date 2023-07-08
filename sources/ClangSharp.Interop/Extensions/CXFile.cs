@@ -13,9 +13,9 @@ public unsafe partial struct CXFile : IEquatable<CXFile>
 
     public IntPtr Handle { get; set; }
 
-    public CXString Name => clang.getFileName(this);
+    public readonly CXString Name => clang.getFileName(this);
 
-    public long Time => clang.getFileTime(this);
+    public readonly long Time => clang.getFileTime(this);
 
     public static explicit operator CXFile(void* value) => new CXFile((IntPtr)value);
 
@@ -25,15 +25,15 @@ public unsafe partial struct CXFile : IEquatable<CXFile>
 
     public static bool operator !=(CXFile left, CXFile right) => clang.File_isEqual(left, right) == 0;
 
-    public override bool Equals(object? obj) => (obj is CXFile other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXFile other) && Equals(other);
 
-    public bool Equals(CXFile other) => this == other;
+    public readonly bool Equals(CXFile other) => this == other;
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 
-    public override string ToString() => Name.ToString();
+    public override readonly string ToString() => Name.ToString();
 
-    public bool TryGetUniqueId(out CXFileUniqueID id)
+    public readonly bool TryGetUniqueId(out CXFileUniqueID id)
     {
         fixed (CXFileUniqueID* pId = &id)
         {
@@ -41,5 +41,5 @@ public unsafe partial struct CXFile : IEquatable<CXFile>
         }
     }
 
-    public CXString TryGetRealPathName() => clang.File_tryGetRealPathName(this);
+    public readonly CXString TryGetRealPathName() => clang.File_tryGetRealPathName(this);
 }

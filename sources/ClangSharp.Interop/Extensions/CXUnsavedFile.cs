@@ -64,9 +64,9 @@ public unsafe partial struct CXUnsavedFile : IDisposable
         }
     }
 
-    public ReadOnlySpan<byte> ContentsSpan => new ReadOnlySpan<byte>(Contents, (int)Length);
+    public readonly ReadOnlySpan<byte> ContentsSpan => new ReadOnlySpan<byte>(Contents, (int)Length);
 
-    public string FilenameString
+    public readonly string FilenameString
     {
         get
         {

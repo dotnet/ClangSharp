@@ -68,7 +68,7 @@ public sealed class CSharpPreviewWindows_EnumDeclarationTest : EnumDeclarationTe
         var expectedOutputContents = string.Empty;
 
         var excludedNames = new string[] { "MyEnum" };
-        return ValidateGeneratedCSharpPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedCSharpPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
     }
 
     protected override Task ExplicitTypedTestImpl(string nativeType, string expectedManagedType)

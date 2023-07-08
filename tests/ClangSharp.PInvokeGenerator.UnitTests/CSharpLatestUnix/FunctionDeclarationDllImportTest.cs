@@ -112,7 +112,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: TemplateTestExcludedNames);
     }
 
     protected override Task TemplateMemberTestImpl()
@@ -139,7 +139,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: TemplateTestExcludedNames);
     }
 
     protected override Task NoLibraryPathTestImpl()

@@ -7,6 +7,8 @@ namespace ClangSharp.UnitTests;
 
 public abstract class FunctionDeclarationDllImportTest : PInvokeGeneratorTest
 {
+    protected static readonly string[] TemplateTestExcludedNames = new[] { "MyTemplate" };
+
     [Test]
     public Task BasicTest() => BasicTestImpl();
 

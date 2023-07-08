@@ -23,5 +23,5 @@ public unsafe partial struct CXIdxEntityInfo
         }
     }
 
-    public bool IsObjCContainer => clang.index_isEntityObjCContainerKind(kind) != 0;
+    public readonly bool IsObjCContainer => clang.index_isEntityObjCContainerKind(kind) != 0;
 }

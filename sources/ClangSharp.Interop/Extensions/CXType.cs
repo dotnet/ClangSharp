@@ -11,123 +11,123 @@ namespace ClangSharp.Interop;
 [DebuggerDisplay("{DebuggerDisplayString,nq}")]
 public unsafe partial struct CXType : IEquatable<CXType>
 {
-    public uint AddressSpace => (kind != CXType_Invalid) ? clang.getAddressSpace(this) : default;
+    public readonly uint AddressSpace => (kind != CXType_Invalid) ? clang.getAddressSpace(this) : default;
 
-    public CXCursor AddrSpaceExpr => clangsharp.Type_getAddrSpaceExpr(this);
+    public readonly CXCursor AddrSpaceExpr => clangsharp.Type_getAddrSpaceExpr(this);
 
-    public CXType AdjustedType => (kind != CXType_Invalid) ? clangsharp.Type_getAdjustedType(this) : default;
+    public readonly CXType AdjustedType => (kind != CXType_Invalid) ? clangsharp.Type_getAdjustedType(this) : default;
 
-    public long AlignOf => clang.Type_getAlignOf(this);
+    public readonly long AlignOf => clang.Type_getAlignOf(this);
 
-    public CXType ArrayElementType => clang.getArrayElementType(this);
+    public readonly CXType ArrayElementType => clang.getArrayElementType(this);
 
-    public long ArraySize => clang.getArraySize(this);
+    public readonly long ArraySize => clang.getArraySize(this);
 
-    public CX_AttrKind AttrKind => clangsharp.Type_getAttrKind(this);
+    public readonly CX_AttrKind AttrKind => clangsharp.Type_getAttrKind(this);
 
-    public CXType BaseType => clangsharp.Type_getBaseType(this);
+    public readonly CXType BaseType => clangsharp.Type_getBaseType(this);
 
-    public CXType CanonicalType => clang.getCanonicalType(this);
+    public readonly CXType CanonicalType => clang.getCanonicalType(this);
 
-    public CXType ClassType => clang.Type_getClassType(this);
+    public readonly CXType ClassType => clang.Type_getClassType(this);
 
-    public CXCursor ColumnExpr => clangsharp.Type_getColumnExpr(this);
+    public readonly CXCursor ColumnExpr => clangsharp.Type_getColumnExpr(this);
 
-    public CXRefQualifierKind CXXRefQualifier => clang.Type_getCXXRefQualifier(this);
+    public readonly CXRefQualifierKind CXXRefQualifier => clang.Type_getCXXRefQualifier(this);
 
-    public CXType DecayedType => clangsharp.Type_getDecayedType(this);
+    public readonly CXType DecayedType => clangsharp.Type_getDecayedType(this);
 
-    public CXCursor Declaration => (kind != CXType_Invalid) ? clangsharp.Type_getDeclaration(this) : default;
+    public readonly CXCursor Declaration => (kind != CXType_Invalid) ? clangsharp.Type_getDeclaration(this) : default;
 
-    public CXType DeducedType => (kind != CXType_Invalid) ? clangsharp.Type_getDeducedType(this) : default;
+    public readonly CXType DeducedType => (kind != CXType_Invalid) ? clangsharp.Type_getDeducedType(this) : default;
 
-    public int Depth => clangsharp.Type_getDepth(this);
+    public readonly int Depth => clangsharp.Type_getDepth(this);
 
-    public CXType Desugar => (kind != CXType_Invalid) ? clangsharp.Type_desugar(this) : default;
+    public readonly CXType Desugar => (kind != CXType_Invalid) ? clangsharp.Type_desugar(this) : default;
 
-    public CXType ElementType => (kind != CXType_Invalid) ? clangsharp.Type_getElementType(this) :default;
+    public readonly CXType ElementType => (kind != CXType_Invalid) ? clangsharp.Type_getElementType(this) :default;
 
-    public CXType EquivalentType => (kind != CXType_Invalid) ? clangsharp.Type_getEquivalentType(this) : default;
+    public readonly CXType EquivalentType => (kind != CXType_Invalid) ? clangsharp.Type_getEquivalentType(this) : default;
 
-    public CXCursor_ExceptionSpecificationKind ExceptionSpecificationType => (CXCursor_ExceptionSpecificationKind)clang.getExceptionSpecificationType(this);
+    public readonly CXCursor_ExceptionSpecificationKind ExceptionSpecificationType => (CXCursor_ExceptionSpecificationKind)clang.getExceptionSpecificationType(this);
 
-    public CXCallingConv FunctionTypeCallingConv => clang.getFunctionTypeCallingConv(this);
+    public readonly CXCallingConv FunctionTypeCallingConv => clang.getFunctionTypeCallingConv(this);
 
-    public int Index => clangsharp.Type_getIndex(this);
+    public readonly int Index => clangsharp.Type_getIndex(this);
 
-    public CXType InjectedSpecializationType => (kind != CXType_Invalid) ? clangsharp.Type_getInjectedSpecializationType(this) : default;
+    public readonly CXType InjectedSpecializationType => (kind != CXType_Invalid) ? clangsharp.Type_getInjectedSpecializationType(this) : default;
 
-    public CXType InjectedTST => (kind != CXType_Invalid) ? clangsharp.Type_getInjectedTST(this) : default;
+    public readonly CXType InjectedTST => (kind != CXType_Invalid) ? clangsharp.Type_getInjectedTST(this) : default;
 
-    public bool IsCanonical => Equals(CanonicalType);
+    public readonly bool IsCanonical => Equals(CanonicalType);
 
-    public bool IsConstQualified => clang.isConstQualifiedType(this) != 0;
+    public readonly bool IsConstQualified => clang.isConstQualifiedType(this) != 0;
 
-    public bool IsFunctionTypeVariadic => clang.isFunctionTypeVariadic(this) != 0;
+    public readonly bool IsFunctionTypeVariadic => clang.isFunctionTypeVariadic(this) != 0;
 
-    public bool IsPODType => clang.isPODType(this) != 0;
+    public readonly bool IsPODType => clang.isPODType(this) != 0;
 
-    public bool IsRestrictQualified => clang.isRestrictQualifiedType(this) != 0;
+    public readonly bool IsRestrictQualified => clang.isRestrictQualifiedType(this) != 0;
 
-    public bool IsSigned => clangsharp.Type_getIsSigned(this) != 0;
+    public readonly bool IsSigned => clangsharp.Type_getIsSigned(this) != 0;
 
-    public bool IsSugared => (kind != CXType_Invalid) && clangsharp.Type_getIsSugared(this) != 0;
+    public readonly bool IsSugared => (kind != CXType_Invalid) && clangsharp.Type_getIsSugared(this) != 0;
 
-    public bool IsTransparentTagTypedef => clang.Type_isTransparentTagTypedef(this) != 0;
+    public readonly bool IsTransparentTagTypedef => clang.Type_isTransparentTagTypedef(this) != 0;
 
-    public bool IsTypeAlias => clangsharp.Type_getIsTypeAlias(this) != 0;
+    public readonly bool IsTypeAlias => clangsharp.Type_getIsTypeAlias(this) != 0;
 
-    public bool IsUnsigned => clangsharp.Type_getIsUnsigned(this) != 0;
+    public readonly bool IsUnsigned => clangsharp.Type_getIsUnsigned(this) != 0;
 
-    public bool IsVolatileQualified => clang.isVolatileQualifiedType(this) != 0;
+    public readonly bool IsVolatileQualified => clang.isVolatileQualifiedType(this) != 0;
 
-    public CXString KindSpelling => clang.getTypeKindSpelling(kind);
+    public readonly CXString KindSpelling => clang.getTypeKindSpelling(kind);
 
-    public CXType ModifiedType => clangsharp.Type_getModifiedType(this);
+    public readonly CXType ModifiedType => clangsharp.Type_getModifiedType(this);
 
-    public CXType NamedType => clang.Type_getNamedType(this);
+    public readonly CXType NamedType => clang.Type_getNamedType(this);
 
-    public CXType NonReferenceType => (kind != CXType_Invalid) ? clang.getNonReferenceType(this) : default;
+    public readonly CXType NonReferenceType => (kind != CXType_Invalid) ? clang.getNonReferenceType(this) : default;
 
-    public CXTypeNullabilityKind Nullability => clang.Type_getNullability(this);
+    public readonly CXTypeNullabilityKind Nullability => clang.Type_getNullability(this);
 
-    public int NumArgTypes => clang.getNumArgTypes(this);
+    public readonly int NumArgTypes => clang.getNumArgTypes(this);
 
-    public int NumBits => clangsharp.Type_getNumBits(this);
+    public readonly int NumBits => clangsharp.Type_getNumBits(this);
 
-    public CXCursor NumBitsExpr => clangsharp.Type_getNumBitsExpr(this);
+    public readonly CXCursor NumBitsExpr => clangsharp.Type_getNumBitsExpr(this);
 
-    public int NumColumns => clangsharp.Type_getNumColumns(this);
+    public readonly int NumColumns => clangsharp.Type_getNumColumns(this);
 
-    public int NumElementsFlattened => clangsharp.Type_getNumElementsFlattened(this);
+    public readonly int NumElementsFlattened => clangsharp.Type_getNumElementsFlattened(this);
 
-    public int NumRows => clangsharp.Type_getNumRows(this);
+    public readonly int NumRows => clangsharp.Type_getNumRows(this);
 
-    public long NumElements => clang.getNumElements(this);
+    public readonly long NumElements => clang.getNumElements(this);
 
-    public uint NumObjCProtocolRefs => clang.Type_getNumObjCProtocolRefs(this);
+    public readonly uint NumObjCProtocolRefs => clang.Type_getNumObjCProtocolRefs(this);
 
-    public uint NumObjCTypeArgs => clang.Type_getNumObjCTypeArgs(this);
+    public readonly uint NumObjCTypeArgs => clang.Type_getNumObjCTypeArgs(this);
 
-    public int NumTemplateArguments => clang.Type_getNumTemplateArguments(this);
+    public readonly int NumTemplateArguments => clang.Type_getNumTemplateArguments(this);
 
-    public CXType ObjCObjectBaseType => clang.Type_getObjCObjectBaseType(this);
+    public readonly CXType ObjCObjectBaseType => clang.Type_getObjCObjectBaseType(this);
 
-    public CXType OriginalType => (kind != CXType_Invalid) ? clangsharp.Type_getOriginalType(this) : default;
+    public readonly CXType OriginalType => (kind != CXType_Invalid) ? clangsharp.Type_getOriginalType(this) : default;
 
-    public CXCursor OwnedTagDecl => (kind != CXType_Invalid) ? clangsharp.Type_getOwnedTagDecl(this) : default;
+    public readonly CXCursor OwnedTagDecl => (kind != CXType_Invalid) ? clangsharp.Type_getOwnedTagDecl(this) : default;
 
-    public CXType PointeeType => (kind != CXType_Invalid) ? clangsharp.Type_getPointeeType(this) : default;
+    public readonly CXType PointeeType => (kind != CXType_Invalid) ? clangsharp.Type_getPointeeType(this) : default;
 
-    public CXType ResultType => clang.getResultType(this);
+    public readonly CXType ResultType => clang.getResultType(this);
 
-    public CXCursor RowExpr => (kind != CXType_Invalid) ? clangsharp.Type_getRowExpr(this) : default;
+    public readonly CXCursor RowExpr => (kind != CXType_Invalid) ? clangsharp.Type_getRowExpr(this) : default;
 
-    public CXCursor SizeExpr => (kind != CXType_Invalid) ? clangsharp.Type_getSizeExpr(this) : default;
+    public readonly CXCursor SizeExpr => (kind != CXType_Invalid) ? clangsharp.Type_getSizeExpr(this) : default;
 
-    public long SizeOf => clang.Type_getSizeOf(this);
+    public readonly long SizeOf => clang.Type_getSizeOf(this);
 
-    public CXString Spelling => (kind != CXType_Invalid) ? clang.getTypeSpelling(this) : default;
+    public readonly CXString Spelling => (kind != CXType_Invalid) ? clang.getTypeSpelling(this) : default;
 
     public CX_TemplateName TemplateName
     {
@@ -139,9 +139,9 @@ public unsafe partial struct CXType : IEquatable<CXType>
         }
     }
 
-    public CX_TypeClass TypeClass => clangsharp.Type_getTypeClass(this);
+    public readonly CX_TypeClass TypeClass => clangsharp.Type_getTypeClass(this);
 
-    public string TypeClassSpelling
+    public readonly string TypeClassSpelling
     {
         get
         {
@@ -210,47 +210,47 @@ public unsafe partial struct CXType : IEquatable<CXType>
         }
     }
 
-    public CXString TypedefName => (kind != CXType_Invalid) ? clang.getTypedefName(this) : default;
+    public readonly CXString TypedefName => (kind != CXType_Invalid) ? clang.getTypedefName(this) : default;
 
-    public CXCursor UnderlyingExpr => (kind != CXType_Invalid) ? clangsharp.Type_getUnderlyingExpr(this) : default;
+    public readonly CXCursor UnderlyingExpr => (kind != CXType_Invalid) ? clangsharp.Type_getUnderlyingExpr(this) : default;
 
-    public CXType UnderlyingType => (kind != CXType_Invalid) ? clangsharp.Type_getUnderlyingType(this) : default;
+    public readonly CXType UnderlyingType => (kind != CXType_Invalid) ? clangsharp.Type_getUnderlyingType(this) : default;
 
-    public CXType UnqualifiedType => (kind != CXType_Invalid) ? clang.getUnqualifiedType(this) : default;
+    public readonly CXType UnqualifiedType => (kind != CXType_Invalid) ? clang.getUnqualifiedType(this) : default;
 
-    public CXType ValueType => clang.Type_getValueType(this);
+    public readonly CXType ValueType => clang.Type_getValueType(this);
 
-    internal string DebuggerDisplayString => $"{TypeClassSpelling}: {this}";
+    internal readonly string DebuggerDisplayString => $"{TypeClassSpelling}: {this}";
 
     public static bool operator ==(CXType left, CXType right) => clang.equalTypes(left, right) != 0;
 
     public static bool operator !=(CXType left, CXType right) => clang.equalTypes(left, right) == 0;
 
-    public override bool Equals(object? obj) => (obj is CXType other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXType other) && Equals(other);
 
-    public bool Equals(CXType other) => this == other;
+    public readonly bool Equals(CXType other) => this == other;
 
-    public CXType GetArgType(uint i) => clang.getArgType(this, i);
+    public readonly CXType GetArgType(uint i) => clang.getArgType(this, i);
 
     public override int GetHashCode() => HashCode.Combine(kind, (IntPtr)data[0], (IntPtr)data[1]);
 
-    public CXString GetObjCEncoding() => clang.Type_getObjCEncoding(this);
+    public readonly CXString GetObjCEncoding() => clang.Type_getObjCEncoding(this);
 
-    public CXCursor GetObjCProtocolDecl(uint i) => clang.Type_getObjCProtocolDecl(this, i);
+    public readonly CXCursor GetObjCProtocolDecl(uint i) => clang.Type_getObjCProtocolDecl(this, i);
 
-    public CXType GetObjCTypeArg(uint i) => clang.Type_getObjCTypeArg(this, i);
+    public readonly CXType GetObjCTypeArg(uint i) => clang.Type_getObjCTypeArg(this, i);
 
-    public long GetOffsetOf(string s)
+    public readonly long GetOffsetOf(string s)
     {
         using var marshaledS = new MarshaledString(s);
         return clang.Type_getOffsetOf(this, marshaledS);
     }
 
-    public CX_TemplateArgument GetTemplateArgument(uint i) => clangsharp.Type_getTemplateArgument(this, i);
+    public readonly CX_TemplateArgument GetTemplateArgument(uint i) => clangsharp.Type_getTemplateArgument(this, i);
 
-    public override string ToString() => Spelling.ToString();
+    public override readonly string ToString() => Spelling.ToString();
 
-    public CXVisitorResult VisitFields(CXFieldVisitor visitor, CXClientData clientData)
+    public readonly CXVisitorResult VisitFields(CXFieldVisitor visitor, CXClientData clientData)
     {
         var pVisitor = (delegate* unmanaged[Cdecl]<CXCursor, void*, CXVisitorResult>)Marshal.GetFunctionPointerForDelegate(visitor);
         var result = VisitFields(pVisitor, clientData);
@@ -259,7 +259,7 @@ public unsafe partial struct CXType : IEquatable<CXType>
         return result;
     }
 
-    public CXVisitorResult VisitFields(delegate* unmanaged[Cdecl]<CXCursor, void*, CXVisitorResult> visitor, CXClientData clientData)
+    public readonly CXVisitorResult VisitFields(delegate* unmanaged[Cdecl]<CXCursor, void*, CXVisitorResult> visitor, CXClientData clientData)
     {
         return (CXVisitorResult)clang.Type_visitFields(this, visitor, clientData);
     }

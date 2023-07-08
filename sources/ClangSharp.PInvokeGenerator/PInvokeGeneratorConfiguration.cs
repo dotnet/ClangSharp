@@ -577,34 +577,12 @@ public sealed class PInvokeGeneratorConfiguration
 
     public static AccessSpecifier ConvertStringToAccessSpecifier(string input)
     {
-        if (input.Equals("internal", StringComparison.OrdinalIgnoreCase))
-        {
-            return AccessSpecifier.Internal;
-        }
-        else if (input.Equals("private", StringComparison.OrdinalIgnoreCase))
-        {
-            return AccessSpecifier.Private;
-        }
-        else if (input.Equals("private protected", StringComparison.OrdinalIgnoreCase))
-        {
-            return AccessSpecifier.PrivateProtected;
-        }
-        else if (input.Equals("protected", StringComparison.OrdinalIgnoreCase))
-        {
-            return AccessSpecifier.Protected;
-        }
-        else if (input.Equals("protected internal", StringComparison.OrdinalIgnoreCase))
-        {
-            return AccessSpecifier.ProtectedInternal;
-        }
-        else if (input.Equals("public", StringComparison.OrdinalIgnoreCase))
-        {
-            return AccessSpecifier.Public;
-        }
-        else
-        {
-            return AccessSpecifier.None;
-        }
+        return input.Equals("internal", StringComparison.OrdinalIgnoreCase) ? AccessSpecifier.Internal
+             : input.Equals("private", StringComparison.OrdinalIgnoreCase) ? AccessSpecifier.Private
+             : input.Equals("private protected", StringComparison.OrdinalIgnoreCase) ? AccessSpecifier.PrivateProtected
+             : input.Equals("protected", StringComparison.OrdinalIgnoreCase) ? AccessSpecifier.Protected
+             : input.Equals("protected internal", StringComparison.OrdinalIgnoreCase) ? AccessSpecifier.ProtectedInternal
+             : input.Equals("public", StringComparison.OrdinalIgnoreCase) ? AccessSpecifier.Public : AccessSpecifier.None;
     }
 
     private static void AddRange<TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>>? keyValuePairs)

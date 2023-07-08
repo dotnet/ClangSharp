@@ -5,5 +5,5 @@ namespace ClangSharp.Interop;
 
 public unsafe partial struct CX_TemplateName
 {
-    public CXCursor AsTemplateDecl => clangsharp.TemplateName_getAsTemplateDecl(this);
+    public readonly CXCursor AsTemplateDecl => clangsharp.TemplateName_getAsTemplateDecl(this);
 }

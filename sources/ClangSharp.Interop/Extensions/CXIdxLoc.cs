@@ -4,9 +4,9 @@ namespace ClangSharp.Interop;
 
 public unsafe partial struct CXIdxLoc
 {
-    public CXSourceLocation SourceLocation => clang.indexLoc_getCXSourceLocation(this);
+    public readonly CXSourceLocation SourceLocation => clang.indexLoc_getCXSourceLocation(this);
 
-    public void GetFileLocation(out CXIdxClientFile indexFile, out CXFile file, out uint line, out uint column, out uint offset)
+    public readonly void GetFileLocation(out CXIdxClientFile indexFile, out CXFile file, out uint line, out uint column, out uint offset)
     {
         fixed (CXIdxClientFile* pIndexFile = &indexFile)
         fixed (CXFile* pFile = &file)

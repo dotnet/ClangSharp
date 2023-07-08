@@ -32,25 +32,25 @@ public unsafe partial struct CXModuleMapDescriptor : IDisposable, IEquatable<CXM
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXModuleMapDescriptor other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXModuleMapDescriptor other) && Equals(other);
 
-    public bool Equals(CXModuleMapDescriptor other) => this == other;
+    public readonly bool Equals(CXModuleMapDescriptor other) => this == other;
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 
-    public CXErrorCode SetFrameworkModuleName(string name)
+    public readonly CXErrorCode SetFrameworkModuleName(string name)
     {
         var marshaledName = new MarshaledString(name);
         return clang.ModuleMapDescriptor_setFrameworkModuleName(this, marshaledName);
     }
 
-    public CXErrorCode SetUmbrellaHeader(string name)
+    public readonly CXErrorCode SetUmbrellaHeader(string name)
     {
         using var marshaledName = new MarshaledString(name);
         return clang.ModuleMapDescriptor_setUmbrellaHeader(this, marshaledName);
     }
 
-    public Span<byte> WriteToBuffer(uint options, out CXErrorCode errorCode)
+    public readonly Span<byte> WriteToBuffer(uint options, out CXErrorCode errorCode)
     {
         sbyte* pBuffer; uint size;
         errorCode = clang.ModuleMapDescriptor_writeToBuffer(this, options, &pBuffer, &size);

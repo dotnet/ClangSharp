@@ -87,7 +87,7 @@ public sealed class XmlDefaultUnix_EnumDeclarationTest : EnumDeclarationTest
         var expectedOutputContents = string.Empty;
 
         var excludedNames = new string[] { "MyEnum" };
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
     }
 
     protected override Task ExplicitTypedTestImpl(string nativeType, string expectedManagedType)

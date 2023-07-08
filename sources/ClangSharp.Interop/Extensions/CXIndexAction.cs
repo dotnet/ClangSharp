@@ -32,13 +32,13 @@ public unsafe partial struct CXIndexAction : IDisposable, IEquatable<CXIndexActi
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXIndexAction other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXIndexAction other) && Equals(other);
 
-    public bool Equals(CXIndexAction other) => this == other;
+    public readonly bool Equals(CXIndexAction other) => this == other;
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 
-    public bool TryIndexSourceFile(CXClientData clientData, ReadOnlySpan<IndexerCallbacks> indexCallbacks, CXIndexOptFlags indexOptions, string sourceFilename, ReadOnlySpan<string> commandLineArgs, ReadOnlySpan<CXUnsavedFile> unsavedFiles, out CXTranslationUnit tu, CXTranslationUnit_Flags tuOptions)
+    public readonly bool TryIndexSourceFile(CXClientData clientData, ReadOnlySpan<IndexerCallbacks> indexCallbacks, CXIndexOptFlags indexOptions, string sourceFilename, ReadOnlySpan<string> commandLineArgs, ReadOnlySpan<CXUnsavedFile> unsavedFiles, out CXTranslationUnit tu, CXTranslationUnit_Flags tuOptions)
     {
         using var marshaledSourceFilename = new MarshaledString(sourceFilename);
         using var marshaledCommandLineArgs = new MarshaledStringArray(commandLineArgs);
@@ -53,7 +53,7 @@ public unsafe partial struct CXIndexAction : IDisposable, IEquatable<CXIndexActi
         }
     }
 
-    public bool TryIndexSourceFileFullArgv(CXClientData clientData, ReadOnlySpan<IndexerCallbacks> indexCallbacks, CXIndexOptFlags indexOptions, string sourceFilename, ReadOnlySpan<string> commandLineArgs, ReadOnlySpan<CXUnsavedFile> unsavedFiles, out CXTranslationUnit tu, CXTranslationUnit_Flags tuOptions)
+    public readonly bool TryIndexSourceFileFullArgv(CXClientData clientData, ReadOnlySpan<IndexerCallbacks> indexCallbacks, CXIndexOptFlags indexOptions, string sourceFilename, ReadOnlySpan<string> commandLineArgs, ReadOnlySpan<CXUnsavedFile> unsavedFiles, out CXTranslationUnit tu, CXTranslationUnit_Flags tuOptions)
     {
         using var marshaledSourceFilename = new MarshaledString(sourceFilename);
         using var marshaledCommandLineArgs = new MarshaledStringArray(commandLineArgs);
@@ -68,7 +68,7 @@ public unsafe partial struct CXIndexAction : IDisposable, IEquatable<CXIndexActi
         }
     }
 
-    public bool TryIndexTranslationUnit(CXClientData clientData, ReadOnlySpan<IndexerCallbacks> indexCallbacks, CXIndexOptFlags indexOptions, CXTranslationUnit tu)
+    public readonly bool TryIndexTranslationUnit(CXClientData clientData, ReadOnlySpan<IndexerCallbacks> indexCallbacks, CXIndexOptFlags indexOptions, CXTranslationUnit tu)
     {
         fixed (IndexerCallbacks* pIndexCallbacks = indexCallbacks)
         {

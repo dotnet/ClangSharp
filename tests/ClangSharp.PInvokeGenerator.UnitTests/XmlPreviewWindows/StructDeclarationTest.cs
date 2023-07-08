@@ -523,9 +523,7 @@ typedef struct
     {
         var inputContents = "typedef struct MyStruct MyStruct;";
         var expectedOutputContents = string.Empty;
-
-        var excludedNames = new string[] { "MyStruct" };
-        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
@@ -980,8 +978,7 @@ struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyStruct2
 </bindings>
 ";
 
-        var excludedNames = new string[] { "DECLSPEC_UUID" };
-        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidTestExcludedNames);
     }
 
     protected override Task InheritanceTestImpl()

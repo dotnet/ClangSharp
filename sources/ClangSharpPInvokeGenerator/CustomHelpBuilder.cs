@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 // Portions of this code are ported from https://github.com/dotnet/command-line-api
-// The original source is Copyright © .NET Foundation and Contributor. All rigts reserved. Licensed under the MIT License (MIT).
+// The original source is Copyright © .NET Foundation and Contributor. All rights reserved. Licensed under the MIT License (MIT).
 
 using System.CommandLine;
 using System.CommandLine.Help;

@@ -829,7 +829,7 @@ public partial class PInvokeGenerator
         }
         else
         {
-            Visit(declStmt.Decls.First());
+            Visit(declStmt.Decls[0]);
 
             foreach (var decl in declStmt.Decls.Skip(1))
             {
@@ -1111,9 +1111,9 @@ public partial class PInvokeGenerator
 
             default:
             {
-                if (IsStmtAsWritten<DeclRefExpr>(subExpr, out var declRefExpr, removeParens: true) && (declRefExpr.Decl is EnumConstantDecl enumConstantDecl))
+                if (IsStmtAsWritten<DeclRefExpr>(subExpr, out var declRefExpr, removeParens: true) && (declRefExpr.Decl is EnumConstantDecl))
                 {
-                    ForEnumConstantDecl(implicitCastExpr, enumConstantDecl);
+                    ForEnumConstantDecl(implicitCastExpr);
                 }
                 else
                 {
@@ -1123,7 +1123,7 @@ public partial class PInvokeGenerator
             }
         }
 
-        void ForEnumConstantDecl(ImplicitCastExpr implicitCastExpr, EnumConstantDecl enumConstantDecl)
+        void ForEnumConstantDecl(ImplicitCastExpr implicitCastExpr)
         {
             var subExpr = implicitCastExpr.SubExprAsWritten;
 
@@ -1194,11 +1194,11 @@ public partial class PInvokeGenerator
         }
         else if (IsType<BuiltinType>(initListExpr, out var builtinType))
         {
-            ForBuiltinType(outputBuilder, initListExpr, builtinType);
+            ForBuiltinType(outputBuilder, initListExpr);
         }
         else if (IsType<PointerType>(initListExpr, out var pointerType))
         {
-            ForPointerType(outputBuilder, initListExpr, pointerType);
+            ForPointerType(outputBuilder, initListExpr);
         }
         else if (IsType<RecordType>(initListExpr, out var recordType))
         {
@@ -1307,7 +1307,7 @@ public partial class PInvokeGenerator
             }
         }
 
-        void ForBuiltinType(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, BuiltinType builtinType)
+        void ForBuiltinType(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr)
         {
             var inits = initListExpr.Inits;
 
@@ -1401,7 +1401,7 @@ public partial class PInvokeGenerator
             }
         }
 
-        void ForPointerType(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr, PointerType pointerType)
+        void ForPointerType(CSharpOutputBuilder outputBuilder, InitListExpr initListExpr)
         {
             var inits = initListExpr.Inits;
 

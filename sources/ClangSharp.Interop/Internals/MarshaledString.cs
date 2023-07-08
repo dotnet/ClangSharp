@@ -31,7 +31,7 @@ public unsafe struct MarshaledString : IDisposable
         Value = (sbyte*)value;
     }
 
-    public ReadOnlySpan<byte> AsSpan() => new ReadOnlySpan<byte>(Value, Length);
+    public readonly ReadOnlySpan<byte> AsSpan() => new ReadOnlySpan<byte>(Value, Length);
 
     public int Length { get; private set; }
 
@@ -49,7 +49,7 @@ public unsafe struct MarshaledString : IDisposable
 
     public static implicit operator sbyte*(in MarshaledString value) => value.Value;
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         var span = new ReadOnlySpan<byte>(Value, Length);
         return span.AsString();

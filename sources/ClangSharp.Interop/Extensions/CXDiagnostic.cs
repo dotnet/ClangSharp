@@ -13,23 +13,23 @@ public unsafe partial struct CXDiagnostic : IDisposable, IEquatable<CXDiagnostic
 
     public static CXDiagnosticDisplayOptions DefaultDisplayOptions => (CXDiagnosticDisplayOptions)clang.defaultDiagnosticDisplayOptions();
 
-    public uint Category => clang.getDiagnosticCategory(this);
+    public readonly uint Category => clang.getDiagnosticCategory(this);
 
-    public CXString CategoryText => clang.getDiagnosticCategoryText(this);
+    public readonly CXString CategoryText => clang.getDiagnosticCategoryText(this);
 
-    public CXDiagnosticSet ChildDiagnostics => (CXDiagnosticSet)clang.getChildDiagnostics(this);
+    public readonly CXDiagnosticSet ChildDiagnostics => (CXDiagnosticSet)clang.getChildDiagnostics(this);
 
     public IntPtr Handle { get; set; }
 
-    public CXSourceLocation Location => clang.getDiagnosticLocation(this);
+    public readonly CXSourceLocation Location => clang.getDiagnosticLocation(this);
 
-    public uint NumFixIts => clang.getDiagnosticNumFixIts(this);
+    public readonly uint NumFixIts => clang.getDiagnosticNumFixIts(this);
 
-    public uint NumRanges => clang.getDiagnosticNumRanges(this);
+    public readonly uint NumRanges => clang.getDiagnosticNumRanges(this);
 
-    public CXDiagnosticSeverity Severity => clang.getDiagnosticSeverity(this);
+    public readonly CXDiagnosticSeverity Severity => clang.getDiagnosticSeverity(this);
 
-    public CXString Spelling => clang.getDiagnosticSpelling(this);
+    public readonly CXString Spelling => clang.getDiagnosticSpelling(this);
 
     public static explicit operator CXDiagnostic(void* value) => new CXDiagnostic((IntPtr)value);
 
@@ -48,16 +48,16 @@ public unsafe partial struct CXDiagnostic : IDisposable, IEquatable<CXDiagnostic
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXDiagnostic other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXDiagnostic other) && Equals(other);
 
-    public bool Equals(CXDiagnostic other) => this == other;
+    public readonly bool Equals(CXDiagnostic other) => this == other;
 
-    public CXString Format(CXDiagnosticDisplayOptions options) => clang.formatDiagnostic(this, (uint)options);
+    public readonly CXString Format(CXDiagnosticDisplayOptions options) => clang.formatDiagnostic(this, (uint)options);
 
     [Obsolete("Use " + nameof(CategoryText) + " instead.")]
     public static CXString GetCategoryName(uint category) => clang.getDiagnosticCategoryName(category);
 
-    public CXString GetFixIt(uint fixIt, out CXSourceRange replacementRange)
+    public readonly CXString GetFixIt(uint fixIt, out CXSourceRange replacementRange)
     {
         fixed (CXSourceRange* pReplacementRange = &replacementRange)
         {
@@ -65,9 +65,9 @@ public unsafe partial struct CXDiagnostic : IDisposable, IEquatable<CXDiagnostic
         }
     }
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 
-    public CXString GetOption(out CXString disable)
+    public readonly CXString GetOption(out CXString disable)
     {
         fixed (CXString* pDisable = &disable)
         {
@@ -75,7 +75,7 @@ public unsafe partial struct CXDiagnostic : IDisposable, IEquatable<CXDiagnostic
         }
     }
 
-    public CXSourceRange GetRange(uint range) => clang.getDiagnosticRange(this, range);
+    public readonly CXSourceRange GetRange(uint range) => clang.getDiagnosticRange(this, range);
 
-    public override string ToString() => Spelling.ToString();
+    public override readonly string ToString() => Spelling.ToString();
 }

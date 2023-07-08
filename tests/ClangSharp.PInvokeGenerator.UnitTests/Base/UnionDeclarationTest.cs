@@ -7,6 +7,9 @@ namespace ClangSharp.UnitTests;
 
 public abstract class UnionDeclarationTest : PInvokeGeneratorTest
 {
+    protected static readonly string[] ExcludeTestExcludedNames = new[] { "MyUnion" };
+    protected static readonly string[] GuidTestExcludedNames = new[] { "DECLSPEC_UUID" };
+
     [TestCase("double", "double")]
     [TestCase("short", "short")]
     [TestCase("int", "int")]

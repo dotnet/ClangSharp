@@ -11,7 +11,7 @@ public unsafe partial struct CXCompilationDatabase : IDisposable, IEquatable<CXC
         Handle = handle;
     }
 
-    public CXCompileCommands AllCompileCommands => (CXCompileCommands)clang.CompilationDatabase_getAllCompileCommands(this);
+    public readonly CXCompileCommands AllCompileCommands => (CXCompileCommands)clang.CompilationDatabase_getAllCompileCommands(this);
 
     public IntPtr Handle { get; set; }
 
@@ -42,15 +42,15 @@ public unsafe partial struct CXCompilationDatabase : IDisposable, IEquatable<CXC
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXCompilationDatabase other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXCompilationDatabase other) && Equals(other);
 
-    public bool Equals(CXCompilationDatabase other) => this == other;
+    public readonly bool Equals(CXCompilationDatabase other) => this == other;
 
-    public CXCompileCommands GetCompileCommands(string completeFileName)
+    public readonly CXCompileCommands GetCompileCommands(string completeFileName)
     {
         using var marshaledCompleteFileName = new MarshaledString(completeFileName);
         return (CXCompileCommands)clang.CompilationDatabase_getCompileCommands(this, marshaledCompleteFileName);
     }
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 }

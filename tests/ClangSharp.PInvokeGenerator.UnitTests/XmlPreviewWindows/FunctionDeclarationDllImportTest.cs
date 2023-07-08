@@ -121,7 +121,7 @@ extern ""C"" void MyFunction(MyTemplate<{nativeType}> myStruct);";
 </bindings>
 ";
 
-        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: TemplateTestExcludedNames);
     }
 
     protected override Task TemplateMemberTestImpl()
@@ -148,7 +148,7 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: new[] { "MyTemplate" });
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: TemplateTestExcludedNames);
     }
 
     protected override Task NoLibraryPathTestImpl()

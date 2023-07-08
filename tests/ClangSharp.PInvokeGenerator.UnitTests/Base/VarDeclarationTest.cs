@@ -7,6 +7,9 @@ namespace ClangSharp.UnitTests;
 
 public abstract class VarDeclarationTest : PInvokeGeneratorTest
 {
+    protected static readonly string[] GuidMacroTestExcludedNames = new[] { "GUID" };
+    protected static readonly string[] UncheckedConversionMacroTest2ExcludedNames = new string[] { "MyMacro1", "MyMacro2" };
+
     [TestCase("double", "double")]
     [TestCase("short", "short")]
     [TestCase("int", "int")]

@@ -66,9 +66,7 @@ public sealed class CSharpCompatibleUnix_EnumDeclarationTest : EnumDeclarationTe
 ";
 
         var expectedOutputContents = string.Empty;
-
-        var excludedNames = new string[] { "MyEnum" };
-        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
     }
 
     protected override Task ExplicitTypedTestImpl(string nativeType, string expectedManagedType)

@@ -333,9 +333,7 @@ namespace ClangSharp.Test
     {
         var inputContents = "typedef union MyUnion MyUnion;";
         var expectedOutputContents = string.Empty;
-
-        var excludedNames = new string[] { "MyUnion" };
-        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
@@ -775,8 +773,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        var excludedNames = new string[] { "DECLSPEC_UUID" };
-        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: excludedNames);
+        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidTestExcludedNames);
     }
 
     protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)

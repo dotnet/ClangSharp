@@ -14,25 +14,25 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
 
     public static CXTranslationUnit_Flags DefaultEditingOptions => (CXTranslationUnit_Flags)clang.defaultEditingTranslationUnitOptions();
 
-    public CXSourceRangeList* AllSkippedRanges => clang.getAllSkippedRanges(this);
+    public readonly CXSourceRangeList* AllSkippedRanges => clang.getAllSkippedRanges(this);
 
-    public CXCursor Cursor => clang.getTranslationUnitCursor(this);
+    public readonly CXCursor Cursor => clang.getTranslationUnitCursor(this);
 
-    public CXReparse_Flags DefaultReparseOptions => (CXReparse_Flags)clang.defaultReparseOptions(this);
+    public readonly CXReparse_Flags DefaultReparseOptions => (CXReparse_Flags)clang.defaultReparseOptions(this);
 
-    public CXSaveTranslationUnit_Flags DefaultSaveOptions => (CXSaveTranslationUnit_Flags)clang.defaultSaveOptions(this);
+    public readonly CXSaveTranslationUnit_Flags DefaultSaveOptions => (CXSaveTranslationUnit_Flags)clang.defaultSaveOptions(this);
 
-    public CXDiagnosticSet DiagnosticSet => (CXDiagnosticSet)clang.getDiagnosticSetFromTU(this);
+    public readonly CXDiagnosticSet DiagnosticSet => (CXDiagnosticSet)clang.getDiagnosticSetFromTU(this);
 
     public IntPtr Handle { get; set; }
 
-    public uint NumDiagnostics => clang.getNumDiagnostics(this);
+    public readonly uint NumDiagnostics => clang.getNumDiagnostics(this);
 
-    public CXTUResourceUsage ResourceUsage => clang.getCXTUResourceUsage(this);
+    public readonly CXTUResourceUsage ResourceUsage => clang.getCXTUResourceUsage(this);
 
-    public CXString Spelling => clang.getTranslationUnitSpelling(this);
+    public readonly CXString Spelling => clang.getTranslationUnitSpelling(this);
 
-    public CXTargetInfo TargetInfo => clang.getTranslationUnitTargetInfo(this);
+    public readonly CXTargetInfo TargetInfo => clang.getTranslationUnitTargetInfo(this);
 
     public static implicit operator CXTranslationUnit(CXTranslationUnitImpl* value) => new CXTranslationUnit((IntPtr)value);
 
@@ -112,7 +112,7 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
         }
     }
 
-    public void AnnotateTokens(ReadOnlySpan<CXToken> tokens, Span<CXCursor> cursors)
+    public readonly void AnnotateTokens(ReadOnlySpan<CXToken> tokens, Span<CXCursor> cursors)
     {
         fixed (CXToken* pTokens = tokens)
         fixed (CXCursor* pCursors = cursors)
@@ -121,7 +121,7 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
         }
     }
 
-    public CXCodeCompleteResults* CodeCompleteAt(string completeFilename, uint completeLine, uint completeColumn, ReadOnlySpan<CXUnsavedFile> unsavedFiles, CXCodeComplete_Flags options)
+    public readonly CXCodeCompleteResults* CodeCompleteAt(string completeFilename, uint completeLine, uint completeColumn, ReadOnlySpan<CXUnsavedFile> unsavedFiles, CXCodeComplete_Flags options)
     {
         using var marshaledCompleteFilename = new MarshaledString(completeFilename);
 
@@ -140,7 +140,7 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
         }
     }
 
-    public void DisposeTokens(ReadOnlySpan<CXToken> tokens)
+    public readonly void DisposeTokens(ReadOnlySpan<CXToken> tokens)
     {
         fixed (CXToken* pTokens = tokens)
         {
@@ -148,23 +148,23 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
         }
     }
 
-    public override bool Equals(object? obj) => (obj is CXTranslationUnit other) && Equals(other);
+    public override readonly bool Equals(object? obj) => (obj is CXTranslationUnit other) && Equals(other);
 
-    public bool Equals(CXTranslationUnit other) => this == other;
+    public readonly bool Equals(CXTranslationUnit other) => this == other;
 
-    public CXResult FindIncludesInFile(CXFile file, CXCursorAndRangeVisitor visitor) => clang.findIncludesInFile(this, file, visitor);
+    public readonly CXResult FindIncludesInFile(CXFile file, CXCursorAndRangeVisitor visitor) => clang.findIncludesInFile(this, file, visitor);
 
-    public CXCursor GetCursor(CXSourceLocation location) => clang.getCursor(this, location);
+    public readonly CXCursor GetCursor(CXSourceLocation location) => clang.getCursor(this, location);
 
-    public CXDiagnostic GetDiagnostic(uint index) => (CXDiagnostic)clang.getDiagnostic(this, index);
+    public readonly CXDiagnostic GetDiagnostic(uint index) => (CXDiagnostic)clang.getDiagnostic(this, index);
 
-    public CXFile GetFile(string fileName)
+    public readonly CXFile GetFile(string fileName)
     {
         using var marshaledFileName = new MarshaledString(fileName);
         return GetFile(marshaledFileName.AsSpan());
     }
 
-    public CXFile GetFile(ReadOnlySpan<byte> fileName)
+    public readonly CXFile GetFile(ReadOnlySpan<byte> fileName)
     {
         fixed (byte* pFileName = fileName)
         {
@@ -172,7 +172,7 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
         }
     }
 
-    public ReadOnlySpan<byte> GetFileContents(CXFile file, out UIntPtr size)
+    public readonly ReadOnlySpan<byte> GetFileContents(CXFile file, out UIntPtr size)
     {
         fixed (UIntPtr* pSize = &size)
         {
@@ -181,33 +181,33 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
         }
     }
 
-    public override int GetHashCode() => Handle.GetHashCode();
+    public override readonly int GetHashCode() => Handle.GetHashCode();
 
-    public void GetInclusions(CXInclusionVisitor visitor, CXClientData clientData)
+    public readonly void GetInclusions(CXInclusionVisitor visitor, CXClientData clientData)
     {
         var pVisitor = (delegate* unmanaged[Cdecl]<void*, CXSourceLocation*, uint, void*, void>)Marshal.GetFunctionPointerForDelegate(visitor);
         GetInclusions(pVisitor, clientData);
         GC.KeepAlive(visitor);
     }
 
-    public void GetInclusions(delegate* unmanaged[Cdecl]<void*, CXSourceLocation*, uint, void*, void> visitor, CXClientData clientData)
+    public readonly void GetInclusions(delegate* unmanaged[Cdecl]<void*, CXSourceLocation*, uint, void*, void> visitor, CXClientData clientData)
     {
         clang.getInclusions(this, visitor, clientData);
     }
 
-    public CXSourceLocation GetLocation(CXFile file, uint line, uint column) => clang.getLocation(this, file, line, column);
+    public readonly CXSourceLocation GetLocation(CXFile file, uint line, uint column) => clang.getLocation(this, file, line, column);
 
-    public CXSourceLocation GetLocationForOffset(CXFile file, uint offset) => clang.getLocationForOffset(this, file, offset);
+    public readonly CXSourceLocation GetLocationForOffset(CXFile file, uint offset) => clang.getLocationForOffset(this, file, offset);
 
-    public CXModule GetModuleForFile(CXFile file) => (CXModule)clang.getModuleForFile(this, file);
+    public readonly CXModule GetModuleForFile(CXFile file) => (CXModule)clang.getModuleForFile(this, file);
 
-    public CXSourceRangeList* GetSkippedRanges(CXFile file) => clang.getSkippedRanges(this, file);
+    public readonly CXSourceRangeList* GetSkippedRanges(CXFile file) => clang.getSkippedRanges(this, file);
 
-    public CXToken* GetToken(CXSourceLocation sourceLocation) => clang.getToken(this, sourceLocation);
+    public readonly CXToken* GetToken(CXSourceLocation sourceLocation) => clang.getToken(this, sourceLocation);
 
-    public bool IsFileMultipleIncludeGuarded(CXFile file) => clang.isFileMultipleIncludeGuarded(this, file) != 0;
+    public readonly bool IsFileMultipleIncludeGuarded(CXFile file) => clang.isFileMultipleIncludeGuarded(this, file) != 0;
 
-    public CXErrorCode Reparse(ReadOnlySpan<CXUnsavedFile> unsavedFiles, CXReparse_Flags options)
+    public readonly CXErrorCode Reparse(ReadOnlySpan<CXUnsavedFile> unsavedFiles, CXReparse_Flags options)
     {
         fixed (CXUnsavedFile* pUnsavedFiles = unsavedFiles)
         {
@@ -215,15 +215,15 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
         }
     }
 
-    public CXSaveError Save(string fileName, CXSaveTranslationUnit_Flags options)
+    public readonly CXSaveError Save(string fileName, CXSaveTranslationUnit_Flags options)
     {
         using var marshaledFileName = new MarshaledString(fileName);
         return (CXSaveError)clang.saveTranslationUnit(this, marshaledFileName, (uint)options);
     }
 
-    public bool Suspend() => clang.suspendTranslationUnit(this) != 0;
+    public readonly bool Suspend() => clang.suspendTranslationUnit(this) != 0;
 
-    public Span<CXToken> Tokenize(CXSourceRange sourceRange)
+    public readonly Span<CXToken> Tokenize(CXSourceRange sourceRange)
     {
         CXToken* pTokens; uint numTokens;
         clang.tokenize(this, sourceRange, &pTokens, &numTokens);
@@ -243,5 +243,5 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
 #endif
     }
 
-    public override string ToString() => Spelling.ToString();
+    public override readonly string ToString() => Spelling.ToString();
 }
