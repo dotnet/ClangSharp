@@ -2514,6 +2514,20 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             name = namedDecl.Name.NormalizePath();
 
+            // strip the prefix
+            if (name.StartsWith("enum "))
+            {
+                name = name[5..];
+            }
+            else if (name.StartsWith("struct "))
+            {
+                name = name[7..];
+            }
+            else if (name.StartsWith("union "))
+            {
+                name = name[6..];
+            }
+
             if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
             {
                 var parent = cxxConstructorDecl.Parent;
@@ -2534,7 +2548,8 @@ public sealed partial class PInvokeGenerator : IDisposable
                                  name.StartsWith("(anonymous union at ") ||
                                  name.StartsWith("(unnamed enum at ") ||
                                  name.StartsWith("(unnamed struct at ") ||
-                                 name.StartsWith("(unnamed union at "));
+                                 name.StartsWith("(unnamed union at ") ||
+                                 name.StartsWith("(unnamed at "));
                     Debug.Assert(name.EndsWith(')'));
                 }
 #endif
