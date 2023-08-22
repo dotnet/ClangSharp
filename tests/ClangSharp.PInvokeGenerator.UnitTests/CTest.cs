@@ -79,8 +79,25 @@ typedef struct _MyOtherStruct
     MyStruct _field1;
     MyStruct* _field2;
 } MyOtherStruct;
+
+typedef struct _MyStructWithAnonymousStruct
+{
+    struct {
+        int _field;
+    } _anonymousStructField1;
+} MyStructWithAnonymousStruct;
+
+typedef struct _MyStructWithAnonymousUnion
+{
+    union {
+        int _field1;
+        int* _field2;
+    } union1;
+} MyStructWithAnonymousUnion;
 ";
-        var expectedOutputContents = @"namespace ClangSharp.Test
+        var expectedOutputContents = @"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
 {
     public partial struct _MyStruct
     {
@@ -94,6 +111,33 @@ typedef struct _MyOtherStruct
 
         [NativeTypeName(""MyStruct *"")]
         public _MyStruct* _field2;
+    }
+
+    public partial struct _MyStructWithAnonymousStruct
+    {
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L14_C5"")]
+        public __anonymousStructField1_e__Struct _anonymousStructField1;
+
+        public partial struct __anonymousStructField1_e__Struct
+        {
+            public int _field;
+        }
+    }
+
+    public partial struct _MyStructWithAnonymousUnion
+    {
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L21_C5"")]
+        public _union1_e__Union union1;
+
+        [StructLayout(LayoutKind.Explicit)]
+        public unsafe partial struct _union1_e__Union
+        {
+            [FieldOffset(0)]
+            public int _field1;
+
+            [FieldOffset(0)]
+            public int* _field2;
+        }
     }
 }
 ";
