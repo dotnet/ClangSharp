@@ -216,6 +216,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateCppAttributes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCppAttributes);
 
+    public bool GenerateDisableRuntimeMarshalling => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateDisableRuntimeMarshalling);
+
     public bool GenerateDocIncludes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateDocIncludes);
 
     public bool GenerateExplicitVtbls => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);

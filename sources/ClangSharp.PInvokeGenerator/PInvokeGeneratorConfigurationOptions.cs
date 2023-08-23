@@ -80,4 +80,6 @@ public enum PInvokeGeneratorConfigurationOptions : ulong
     GenerateLatestCode = 1UL << 34,
 
     GenerateNativeBitfieldAttribute = 1UL << 35,
+
+    GenerateDisableRuntimeMarshalling = 1UL << 36,
 }

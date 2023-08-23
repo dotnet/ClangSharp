@@ -109,6 +109,7 @@ public class Program
 
         new TwoColumnHelpRow("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
         new TwoColumnHelpRow("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
+        new TwoColumnHelpRow("generate-disable-runtime-marshalling", "[assembly: DisableRuntimeMarshalling] should be generated."),
         new TwoColumnHelpRow("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
         new TwoColumnHelpRow("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
         new TwoColumnHelpRow("generate-guid-member", "Types with an associated GUID should have a corresponding member generated."),
@@ -561,6 +562,12 @@ public class Program
                 case "generate-cpp-attributes":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCppAttributes;
+                    break;
+                }
+
+                case "generate-disable-runtime-marshalling":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateDisableRuntimeMarshalling;
                     break;
                 }
 

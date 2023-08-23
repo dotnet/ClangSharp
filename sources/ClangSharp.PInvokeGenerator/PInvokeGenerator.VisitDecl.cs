@@ -418,9 +418,9 @@ public partial class PInvokeGenerator
         var type = fieldDecl.Type;
         var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
 
-        if (typeName == "bool")
+        if (!_config.GenerateDisableRuntimeMarshalling && (typeName == "bool"))
         {
-            // bool is not blittable, so we shouldn't use it for structs that may be in P/Invoke signatures
+            // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for structs that may be in P/Invoke signatures
             typeName = "byte";
             nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
         }
@@ -429,7 +429,7 @@ public partial class PInvokeGenerator
         {
             // bool* is not blittable in compat mode, so we shouldn't use it for structs that may be in P/Invoke signatures
             typeName = typeName.Replace("bool*", "byte*");
-            nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? typeName.Replace("byte*", "bool *") : nativeTypeName;
+            nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? typeName.Replace("byte*", "bool*") : nativeTypeName;
         }
 
         var parent = fieldDecl.Parent;
@@ -555,9 +555,9 @@ public partial class PInvokeGenerator
 
         if (isVirtual || (body is null))
         {
-            if (returnTypeName == "bool")
+            if (!_config.GenerateDisableRuntimeMarshalling && (returnTypeName == "bool"))
             {
-                // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for P/Invoke signatures
                 returnTypeName = "byte";
                 nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
             }
@@ -566,7 +566,7 @@ public partial class PInvokeGenerator
             {
                 // bool* is not blittable in compat mode, so we shouldn't use it for P/Invoke signatures
                 returnTypeName = returnTypeName.Replace("bool*", "byte*");
-                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? returnTypeName.Replace("byte*", "bool *") : nativeTypeName;
+                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? returnTypeName.Replace("byte*", "bool*") : nativeTypeName;
             }
         }
 
@@ -2306,8 +2306,9 @@ public partial class PInvokeGenerator
 
             body.Write(')');
 
-            if (returnTypeName == "bool")
+            if (!_config.GenerateDisableRuntimeMarshalling && (returnTypeName == "bool"))
             {
+                // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for P/Invoke signatures
                 body.Write(" != 0");
             }
 

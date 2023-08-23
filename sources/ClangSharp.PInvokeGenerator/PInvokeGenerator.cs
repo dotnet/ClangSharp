@@ -357,6 +357,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 Debug.Assert(leaveStreamOpen is true);
             }
 
+            GenerateDisableRuntimeMarshallingAttribute(this, stream, leaveStreamOpen);
             GenerateNativeBitfieldAttribute(this, stream, leaveStreamOpen);
             GenerateNativeInheritanceAttribute(this, stream, leaveStreamOpen);
             GenerateNativeTypeNameAttribute(this, stream, leaveStreamOpen);
@@ -403,6 +404,39 @@ public sealed partial class PInvokeGenerator : IDisposable
         _outputBuilderFactory.Clear();
         _uuidsToGenerate.Clear();
         _visitedFiles.Clear();
+
+        static void GenerateDisableRuntimeMarshallingAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        {
+            var config = generator.Config;
+
+            if (!config.GenerateDisableRuntimeMarshalling)
+            {
+                return;
+            }
+
+            if (stream is null)
+            {
+                var outputPath = Path.Combine(config.OutputLocation, "DisableRuntimeMarshalling.cs");
+                stream = generator._outputStreamFactory(outputPath);
+            }
+
+            using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
+            sw.NewLine = "\n";
+
+            if (config.HeaderText != string.Empty)
+            {
+                sw.WriteLine(config.HeaderText);
+            }
+
+            sw.WriteLine("using System.Runtime.CompilerServices;");
+            sw.WriteLine();
+            sw.WriteLine("[assembly: DisableRuntimeMarshalling]");
+            
+            if (!leaveStreamOpen)
+            {
+                stream = null;
+            }
+        }
 
         static void GenerateNativeBitfieldAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
         {
@@ -3148,9 +3182,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                 {
                     targetTypeName = GetRemappedTypeName(parmVarDecl, context: null, parmVarDecl.Type, out nativeTypeName);
 
-                    if ((parmVarDecl.ParentFunctionOrMethod is FunctionDecl functionDecl) && ((functionDecl is CXXMethodDecl { IsVirtual: true }) || (functionDecl.Body is null)) && (targetTypeName == "bool"))
+                    if (!_config.GenerateDisableRuntimeMarshalling && (parmVarDecl.ParentFunctionOrMethod is FunctionDecl functionDecl) && ((functionDecl is CXXMethodDecl { IsVirtual: true }) || (functionDecl.Body is null)) && (targetTypeName == "bool"))
                     {
-                        // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                        // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for P/Invoke signatures
                         targetTypeName = "byte";
                         nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
                     }
@@ -3263,6 +3297,15 @@ public sealed partial class PInvokeGenerator : IDisposable
                     }
 
                     case CXType_Char16:
+                    {
+                        if (_config.GenerateDisableRuntimeMarshalling)
+                        {
+                            result.typeName = (cursor is null) ? "Char" : "char";
+                            break;
+                        }
+                        goto case CXType_UShort;
+                    }
+
                     case CXType_UShort:
                     {
                         result.typeName = (cursor is null) ? "UInt16" : "ushort";
@@ -3309,7 +3352,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         }
                         else
                         {
-                            goto case CXType_UShort;
+                            goto case CXType_Char16;
                         }
                     }
 
@@ -3540,9 +3583,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                         }
                     }
 
-                    if (typeName == "bool")
+                    if (!_config.GenerateDisableRuntimeMarshalling && (typeName == "bool"))
                     {
-                        // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                        // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for P/Invoke signatures
                         typeName = "byte";
                     }
 
@@ -3648,9 +3691,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                 var needsReturnFixup = false;
                 var returnTypeName = GetRemappedTypeName(cursor, context: null, functionType.ReturnType, out _, skipUsing: true);
 
-                if (returnTypeName == "bool")
+                if (!_config.GenerateDisableRuntimeMarshalling && (returnTypeName == "bool"))
                 {
-                    // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                    // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for P/Invoke signatures
                     returnTypeName = "byte";
                 }
 
@@ -3722,9 +3765,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                 {
                     var typeName = GetRemappedTypeName(cursor, context: null, paramType, out _, skipUsing: true);
 
-                    if (typeName == "bool")
+                    if (!_config.GenerateDisableRuntimeMarshalling && (typeName == "bool"))
                     {
-                        // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                        // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for P/Invoke signatures
                         typeName = "byte";
                     }
 
@@ -5520,8 +5563,12 @@ public sealed partial class PInvokeGenerator : IDisposable
                     {
                         switch (targetTypeName)
                         {
+                            case "bool":
+                            case "Boolean":
                             case "byte":
                             case "Byte":
+                            case "char":
+                            case "Char":
                             case "ushort":
                             case "UInt16":
                             case "uint":
@@ -5698,6 +5745,13 @@ public sealed partial class PInvokeGenerator : IDisposable
                 return unsignedValue is < byte.MinValue or > byte.MaxValue;
             }
 
+            case "char":
+            case "Char":
+            {
+                var unsignedValue = unchecked((ulong)signedValue);
+                return unsignedValue is < char.MinValue or > char.MaxValue;
+            }
+
             case "ushort":
             case "UInt16":
             {
@@ -5844,12 +5898,15 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             case "byte":
             case "Byte":
-            case "UInt16":
+            case "char":
+            case "Char":
             case "nuint":
+            case "UInt16":
             case "uint":
             case "UInt32":
             case "ulong":
             case "UInt64":
+            case "UIntPtr":
             case "ushort":
             case var _ when typeName.EndsWith("*"):
             {
