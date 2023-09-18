@@ -852,9 +852,9 @@ public class Program
 
         foreach (var keyValuePair in keyValuePairs)
         {
-            var parts = keyValuePair.Split('=');
+            var parts = keyValuePair.Split('=',2);
 
-            if (parts.Length != 2)
+            if (parts.Length < 2)
             {
                 errorList.Add($"Error: Invalid key/value pair argument: {keyValuePair}. Expected 'name=value'");
                 continue;
