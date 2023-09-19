@@ -852,7 +852,7 @@ public class Program
 
         foreach (var keyValuePair in keyValuePairs)
         {
-            var parts = keyValuePair.Split('=',2);
+            var parts = keyValuePair.Split('=', 2);
 
             if (parts.Length < 2)
             {
