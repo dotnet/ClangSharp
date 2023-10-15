@@ -2396,13 +2396,21 @@ public sealed partial class PInvokeGenerator : IDisposable
         return bitfieldDescs.ToArray();
     }
 
-    private CallingConvention GetCallingConvention(Cursor? cursor, Cursor? context, Type type)
+    private CallConv GetCallingConvention(Cursor? cursor, Cursor? context, Type type)
     {
         if (cursor is FunctionDecl functionDecl)
         {
             if (functionDecl.IsVariadic)
             {
-                return CallingConvention.Cdecl;
+                return CallConv.Cdecl;
+            }
+
+            if (_config.GenerateCallConvMemberFunction)
+            {
+                if ((cursor is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsInstance)
+                {
+                    return CallConv.MemberFunction;
+                }
             }
         }
 
@@ -2410,7 +2418,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             if (TryGetRemappedValue(namedDecl, _config.WithCallConvs, out var callConv, matchStar: true))
             {
-                if (Enum.TryParse<CallingConvention>(callConv, true, out var remappedCallingConvention))
+                if (Enum.TryParse<CallConv>(callConv, true, out var remappedCallingConvention))
                 {
                     return remappedCallingConvention;
                 }
@@ -2422,14 +2430,22 @@ public sealed partial class PInvokeGenerator : IDisposable
         return GetCallingConvention(cursor, context, type, ref wasRemapped);
     }
 
-    private CallingConvention GetCallingConvention(Cursor? cursor, Cursor? context, Type type, ref bool wasRemapped)
+    private CallConv GetCallingConvention(Cursor? cursor, Cursor? context, Type type, ref bool wasRemapped)
     {
         var remappedName = GetRemappedTypeName(cursor, context, type, out _, ignoreTransparentStructsWhereRequired: false, skipUsing: true);
 
         if (_config.WithCallConvs.TryGetValue(remappedName, out var callConv) || _config.WithCallConvs.TryGetValue("*", out callConv))
         {
-            if (Enum.TryParse<CallingConvention>(callConv, true, out var remappedCallingConvention))
+            if (Enum.TryParse<CallConv>(callConv, true, out var remappedCallingConvention))
             {
+                if (_config.GenerateCallConvMemberFunction)
+                {
+                    if ((cursor is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsInstance)
+                    {
+                        return CallConv.MemberFunction;
+                    }
+                }
+
                 wasRemapped = true;
                 return remappedCallingConvention;
             }
@@ -2450,27 +2466,27 @@ public sealed partial class PInvokeGenerator : IDisposable
                 case CX_AttrKind_MSABI:
                 case CX_AttrKind_SysVABI:
                 {
-                    return CallingConvention.Winapi;
+                    return CallConv.Winapi;
                 }
 
                 case CX_AttrKind_CDecl:
                 {
-                    return CallingConvention.Cdecl;
+                    return CallConv.Cdecl;
                 }
 
                 case CX_AttrKind_FastCall:
                 {
-                    return CallingConvention.FastCall;
+                    return CallConv.FastCall;
                 }
 
                 case CX_AttrKind_StdCall:
                 {
-                    return CallingConvention.StdCall;
+                    return CallConv.StdCall;
                 }
 
                 case CX_AttrKind_ThisCall:
                 {
-                    return CallingConvention.ThisCall;
+                    return _config.GenerateCallConvMemberFunction ? CallConv.MemberFunction : CallConv.ThisCall;
                 }
 
                 case CX_AttrKind_AArch64VectorPcs:
@@ -2499,33 +2515,33 @@ public sealed partial class PInvokeGenerator : IDisposable
                 case CXCallingConv_C:
                 {
                     return ((cursor is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsInstance)
-                         ? CallingConvention.ThisCall
-                         : CallingConvention.Cdecl;
+                         ? (_config.GenerateCallConvMemberFunction ? CallConv.MemberFunction : CallConv.ThisCall)
+                         : CallConv.Cdecl;
                 }
 
                 case CXCallingConv_X86StdCall:
                 {
-                    return CallingConvention.StdCall;
+                    return CallConv.StdCall;
                 }
 
                 case CXCallingConv_X86FastCall:
                 {
-                    return CallingConvention.FastCall;
+                    return CallConv.FastCall;
                 }
 
                 case CXCallingConv_X86ThisCall:
                 {
-                    return CallingConvention.ThisCall;
+                    return _config.GenerateCallConvMemberFunction ? CallConv.MemberFunction : CallConv.ThisCall;
                 }
 
                 case CXCallingConv_Win64:
                 {
-                    return CallingConvention.Winapi;
+                    return CallConv.Winapi;
                 }
 
                 default:
                 {
-                    const CallingConvention Name = CallingConvention.Winapi;
+                    const CallConv Name = CallConv.Winapi;
                     AddDiagnostic(DiagnosticLevel.Warning, $"Unsupported calling convention: '{callingConv}'. Falling back to '{Name}'.", cursor);
                     return Name;
                 }
@@ -3708,7 +3724,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     _ = nameBuilder.Append(" unmanaged");
                     var hasSuppressGCTransition = HasSuppressGCTransition(cursor);
 
-                    if (callConv != CallingConvention.Winapi)
+                    if (callConv != CallConv.Winapi)
                     {
                         _ = nameBuilder.Append('[');
                         _ = nameBuilder.Append(callConv.AsString(true));
@@ -5955,7 +5971,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (IsType<RecordType>(cxxMethodDecl, cxxMethodDecl.ReturnType))
             {
-                needsReturnFixup = true;
+                needsReturnFixup = !_config.GenerateCallConvMemberFunction;
             }
             else
             {

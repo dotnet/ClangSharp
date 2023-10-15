@@ -82,4 +82,6 @@ public enum PInvokeGeneratorConfigurationOptions : ulong
     GenerateNativeBitfieldAttribute = 1UL << 35,
 
     GenerateDisableRuntimeMarshalling = 1UL << 36,
+
+    GenerateCallConvMemberFunction = 1UL << 37,
 }

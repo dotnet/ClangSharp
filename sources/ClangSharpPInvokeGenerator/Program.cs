@@ -108,6 +108,7 @@ public class Program
         // Generation Options
 
         new TwoColumnHelpRow("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
+        new TwoColumnHelpRow("generate-callconv-member-function", "Instance function pointers should use [CallConvMemberFunction] where applicable."),
         new TwoColumnHelpRow("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
         new TwoColumnHelpRow("generate-disable-runtime-marshalling", "[assembly: DisableRuntimeMarshalling] should be generated."),
         new TwoColumnHelpRow("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
@@ -556,6 +557,12 @@ public class Program
                 case "generate-aggressive-inlining":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateAggressiveInlining;
+                    break;
+                }
+
+                case "generate-callconv-member-function":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateCallConvMemberFunction;
                     break;
                 }
 

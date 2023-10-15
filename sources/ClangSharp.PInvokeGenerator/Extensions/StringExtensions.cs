@@ -31,13 +31,14 @@ internal static class StringExtensions
         _ => "public"
     };
 
-    public static string AsString(this CallingConvention value, bool isForFnPtr) => value switch
+    public static string AsString(this CallConv value, bool isForFnPtr) => value switch
     {
-        CallingConvention.Winapi => "Winapi",
-        CallingConvention.Cdecl => "Cdecl",
-        CallingConvention.StdCall => isForFnPtr ? "Stdcall" : "StdCall",
-        CallingConvention.ThisCall => isForFnPtr ? "Thiscall" : "ThisCall",
-        CallingConvention.FastCall => isForFnPtr ? "Fastcall" : "FastCall",
+        CallConv.Winapi => "Winapi",
+        CallConv.Cdecl => "Cdecl",
+        CallConv.StdCall => isForFnPtr ? "Stdcall" : "StdCall",
+        CallConv.ThisCall => isForFnPtr ? "Thiscall" : "ThisCall",
+        CallConv.FastCall => isForFnPtr ? "Fastcall" : "FastCall",
+        CallConv.MemberFunction => "MemberFunction",
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
     };
 }

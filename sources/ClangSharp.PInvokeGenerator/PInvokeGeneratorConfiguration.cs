@@ -212,6 +212,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateAggressiveInlining => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateAggressiveInlining);
 
+    public bool GenerateCallConvMemberFunction => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCallConvMemberFunction);
+
     public bool GenerateCompatibleCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
 
     public bool GenerateCppAttributes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCppAttributes);

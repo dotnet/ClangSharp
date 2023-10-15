@@ -393,7 +393,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
             AddUsingDirective("System.Runtime.InteropServices");
             WriteIndented("[UnmanagedFunctionPointer");
 
-            if (desc.CallingConvention != CallingConvention.Winapi)
+            if (desc.CallingConvention != CallConv.Winapi)
             {
                 Write("(CallingConvention.");
                 Write(desc.CallingConvention);
@@ -414,7 +414,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
 
             Write(", ");
 
-            if (desc.CallingConvention != CallingConvention.Winapi)
+            if (desc.CallingConvention != CallConv.Winapi)
             {
                 Write("CallingConvention = CallingConvention.");
                 Write(desc.CallingConvention);
@@ -568,7 +568,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
         {
             Write("delegate* unmanaged");
 
-            if (desc.CallingConvention != CallingConvention.Winapi)
+            if (desc.CallingConvention != CallConv.Winapi)
             {
                 Write('[');
                 Write(desc.CallingConvention);

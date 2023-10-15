@@ -108,7 +108,7 @@ internal partial class XmlOutputBuilder
         {
             Debug.Assert(!desc.HasFnPtrCodeGen);
             _ = _sb.Append($"<delegate name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
-            if (desc.CallingConvention != CallingConvention.Winapi)
+            if (desc.CallingConvention != CallConv.Winapi)
             {
                 _ = _sb.Append($" convention=\"{desc.CallingConvention.AsString(false)}\"");
             }
@@ -117,7 +117,7 @@ internal partial class XmlOutputBuilder
         {
             _ = _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
             _ = _sb.Append($" lib=\"{desc.LibraryPath}\"");
-            if (desc.CallingConvention != CallingConvention.Winapi)
+            if (desc.CallingConvention != CallConv.Winapi)
             {
                 _ = _sb.Append($" convention=\"{desc.CallingConvention.AsString(false)}\"");
             }
