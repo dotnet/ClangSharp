@@ -2,9 +2,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- CA1707: Identifiers should not contain underscores -->
     <NoWarn>$(NoWarn);CA1707</NoWarn>
-    <TargetFrameworks>net8.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

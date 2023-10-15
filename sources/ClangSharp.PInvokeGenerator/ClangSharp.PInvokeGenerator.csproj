@@ -2,10 +2,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- CA1303: Do not pass literals as localized parameters -->
-    <NoWarn>$(NoWarn);CA1303</NoWarn>
     <RootNamespace>ClangSharp</RootNamespace>
     <TargetFrameworks>net8.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- CA1303: Do not pass literals as localized parameters -->
+    <NoWarn>$(NoWarn);CA1303</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

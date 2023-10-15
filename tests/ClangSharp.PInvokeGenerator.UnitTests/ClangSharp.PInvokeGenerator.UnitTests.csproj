@@ -2,11 +2,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <RootNamespace>ClangSharp.UnitTests</RootNamespace>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- CA1707: Identifiers should not contain underscores -->
     <!-- CA1711: Identifiers should not have incorrect suffix -->
     <NoWarn>$(NoWarn);CA1707;CA1711</NoWarn>
-    <RootNamespace>ClangSharp.UnitTests</RootNamespace>
-    <TargetFrameworks>net8.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
