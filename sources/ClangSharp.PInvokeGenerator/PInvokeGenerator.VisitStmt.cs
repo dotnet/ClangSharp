@@ -2746,9 +2746,20 @@ public partial class PInvokeGenerator
                 break;
             }
 
+            case CX_UO_Deref:
+            {
+                if (_topLevelClassNames.Contains(outputBuilder.Name))
+                {
+                    _topLevelClassIsUnsafe[outputBuilder.Name] = true;
+                }
+
+                outputBuilder.Write(unaryOperator.OpcodeStr);
+                Visit(unaryOperator.SubExpr);
+                break;
+            }
+
             case CX_UO_PreInc:
             case CX_UO_PreDec:
-            case CX_UO_Deref:
             case CX_UO_Plus:
             case CX_UO_Minus:
             case CX_UO_Not:

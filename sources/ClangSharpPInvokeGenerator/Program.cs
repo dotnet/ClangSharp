@@ -22,6 +22,43 @@ namespace ClangSharp;
 
 public static class Program
 {
+    private static readonly string[] s_additionalOptionAliases = ["--additional", "-a"];
+    private static readonly string[] s_configOptionAliases = ["--config", "-c"];
+    private static readonly string[] s_defineMacroOptionAliases = ["--define-macro", "-D"];
+    private static readonly string[] s_excludeOptionAliases = ["--exclude", "-e"];
+    private static readonly string[] s_fileOptionAliases = ["--file", "-f"];
+    private static readonly string[] s_fileDirectionOptionAliases = ["--file-directory", "-F"];
+    private static readonly string[] s_headerOptionAliases = ["--headerFile", "-h"];
+    private static readonly string[] s_includeOptionAliases = ["--include", "-i"];
+    private static readonly string[] s_includeDirectoryOptionAliases = ["--include-directory", "-I"];
+    private static readonly string[] s_languageOptionAliases = ["--language", "-x"];
+    private static readonly string[] s_libraryOptionAliases = ["--libraryPath", "-l"];
+    private static readonly string[] s_methodClassNameOptionAliases = ["--methodClassName", "-m"];
+    private static readonly string[] s_namespaceOptionAliases = ["--namespace", "-n"];
+    private static readonly string[] s_nativeTypeNamesStripOptionAliases = ["--nativeTypeNamesToStrip"];
+    private static readonly string[] s_outputModeOptionAliases = ["--output-mode", "-om"];
+    private static readonly string[] s_outputOptionAliases = ["--output", "-o"];
+    private static readonly string[] s_prefixStripOptionAliases = ["--prefixStrip", "-p"];
+    private static readonly string[] s_remapOptionAliases = ["--remap", "-r"];
+    private static readonly string[] s_stdOptionAliases = ["--std", "-std"];
+    private static readonly string[] s_testOutputOptionAliases = ["--test-output", "-to"];
+    private static readonly string[] s_versionOptionAliases = ["--version", "-v"];
+    private static readonly string[] s_traverseOptionAliases = ["--traverse", "-t"];
+    private static readonly string[] s_withAccessSpecifierOptionAliases = ["--with-access-specifier", "-was"];
+    private static readonly string[] s_withAttributeOptionAliases = ["--with-attribute", "-wa"];
+    private static readonly string[] s_withCallConvOptionAliases = ["--with-callconv", "-wcc"];
+    private static readonly string[] s_withClassOptionAliases = ["--with-class", "-wc"];
+    private static readonly string[] s_withGuidOptionAliases = ["--with-guid", "-wg"];
+    private static readonly string[] s_withLibraryPathOptionAliases = ["--with-librarypath", "-wlb"];
+    private static readonly string[] s_withManualImportOptionAliases = ["--with-manual-import", "-wmi"];
+    private static readonly string[] s_withNamespaceOptionAliases = ["--with-namespace", "-wn"];
+    private static readonly string[] s_withSetLastErrorOptionAliases = ["--with-setlasterror", "-wsle"];
+    private static readonly string[] s_withSuppressGCTransitionOptionAliases = ["--with-suppressgctransition", "-wsgct"];
+    private static readonly string[] s_withTransparentStructOptionAliases = ["--with-transparent-struct", "-wts"];
+    private static readonly string[] s_withTypeOptionAliases = ["--with-type", "-wt"];
+    private static readonly string[] s_withUsingOptionAliases = ["--with-using", "-wu"];
+    private static readonly string[] s_withPackingOptionAliases = ["--with-packing", "-wp"];
+
     private static readonly Option<string[]> s_additionalOption = GetAdditionalOption();
     private static readonly Option<string[]> s_configOption = GetConfigOption();
     private static readonly Option<string[]> s_defineMacros = GetDefineMacroOption();
@@ -129,43 +166,6 @@ public static class Program
         new TwoColumnHelpRow("log-potential-typedef-remappings", "A list of potential typedef remappings should be generated. This can help identify missing remappings."),
         new TwoColumnHelpRow("log-visited-files", "A list of the visited files should be generated. This can help identify traversal issues."),
     ];
-
-    private static readonly string[] s_additionalOptionAliases = ["--additional", "-a"];
-    private static readonly string[] s_configOptionAliases = ["--config", "-c"];
-    private static readonly string[] s_defineMacroOptionAliases = ["--define-macro", "-D"];
-    private static readonly string[] s_excludeOptionAliases = ["--exclude", "-e"];
-    private static readonly string[] s_fileOptionAliases = ["--file", "-f"];
-    private static readonly string[] s_fileDirectionOptionAliases = ["--file-directory", "-F"];
-    private static readonly string[] s_headerOptionAliases = ["--headerFile", "-h"];
-    private static readonly string[] s_includeOptionAliases = ["--include", "-i"];
-    private static readonly string[] s_includeDirectoryOptionAliases = ["--include-directory", "-I"];
-    private static readonly string[] s_languageOptionAliases = ["--language", "-x"];
-    private static readonly string[] s_libraryOptionAliases = ["--libraryPath", "-l"];
-    private static readonly string[] s_methodClassNameOptionAliases = ["--methodClassName", "-m"];
-    private static readonly string[] s_namespaceOptionAliases = ["--namespace", "-n"];
-    private static readonly string[] s_nativeTypeNamesStripOptionAliases = ["--nativeTypeNamesToStrip"];
-    private static readonly string[] s_outputModeOptionAliases = ["--output-mode", "-om"];
-    private static readonly string[] s_outputOptionAliases = ["--output", "-o"];
-    private static readonly string[] s_prefixStripOptionAliases = ["--prefixStrip", "-p"];
-    private static readonly string[] s_remapOptionAliases = ["--remap", "-r"];
-    private static readonly string[] s_stdOptionAliases = ["--std", "-std"];
-    private static readonly string[] s_testOutputOptionAliases = ["--test-output", "-to"];
-    private static readonly string[] s_versionOptionAliases = ["--version", "-v"];
-    private static readonly string[] s_traverseOptionAliases = ["--traverse", "-t"];
-    private static readonly string[] s_withAccessSpecifierOptionAliases = ["--with-access-specifier", "-was"];
-    private static readonly string[] s_withAttributeOptionAliases = ["--with-attribute", "-wa"];
-    private static readonly string[] s_withCallConvOptionAliases = ["--with-callconv", "-wcc"];
-    private static readonly string[] s_withClassOptionAliases = ["--with-class", "-wc"];
-    private static readonly string[] s_withGuidOptionAliases = ["--with-guid", "-wg"];
-    private static readonly string[] s_withLibraryPathOptionAliases = ["--with-librarypath", "-wlb"];
-    private static readonly string[] s_withManualImportOptionAliases = ["--with-manual-import", "-wmi"];
-    private static readonly string[] s_withNamespaceOptionAliases = ["--with-namespace", "-wn"];
-    private static readonly string[] s_withSetLastErrorOptionAliases = ["--with-setlasterror", "-wsle"];
-    private static readonly string[] s_withSuppressGCTransitionOptionAliases = ["--with-suppressgctransition", "-wsgct"];
-    private static readonly string[] s_withTransparentStructOptionAliases = ["--with-transparent-struct", "-wts"];
-    private static readonly string[] s_withTypeOptionAliases = ["--with-type", "-wt"];
-    private static readonly string[] s_withUsingOptionAliases = ["--with-using", "-wu"];
-    private static readonly string[] s_withPackingOptionAliases = ["--with-packing", "-wp"];
 
     public static IEnumerable<HelpSectionDelegate> GetExtendedHelp(HelpContext context)
     {

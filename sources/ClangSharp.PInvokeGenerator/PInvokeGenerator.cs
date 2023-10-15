@@ -2426,7 +2426,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (_config.GenerateCallConvMemberFunction)
             {
-                if ((cursor is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsInstance)
+                if ((cursor is CXXMethodDecl cxxMethodDecl) && cxxMethodDecl.IsInstance && (context is not null))
                 {
                     return CallConv.MemberFunction;
                 }
@@ -4609,6 +4609,11 @@ public sealed partial class PInvokeGenerator : IDisposable
                     {
                         isExcludedValue |= 0b10;
                     }
+                }
+
+                if (_config.GenerateDisableRuntimeMarshalling && functionDecl.IsVariadic)
+                {
+                    isExcludedByConfigOption = true;
                 }
             }
 

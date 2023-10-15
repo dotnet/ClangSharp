@@ -1382,7 +1382,7 @@ public partial class PInvokeGenerator
 
                 _uuidsToGenerate.Add(uuidName, uuid);
 
-                if (_testOutputBuilder is not null)
+                if ((_testOutputBuilder is not null) && (uuid != Guid.Empty))
                 {
                     var className = GetClass(uuidName);
 
@@ -2686,7 +2686,7 @@ public partial class PInvokeGenerator
                 code.Write(")(");
             }
 
-            if ((!needsParenFirst && (bitfieldOffset != 0)) || (!needsCast && isTypeSigned))
+            if ((!needsParenFirst && (bitfieldOffset != 0)) || (!isUnsignedToSigned && isTypeSigned))
             {
                 code.Write('(');
             }
