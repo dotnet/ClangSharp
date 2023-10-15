@@ -65,7 +65,7 @@ public unsafe class Cursor : IEquatable<Cursor>
                 cursorChildrenHandle.Free();
 
 #if NET6_0_OR_GREATER
-                [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+                [UnmanagedCallersOnly(CallConvs = new System.Type[] { typeof(CallConvCdecl) })]
 #endif
                 static CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent, void* client_data)
                 {
