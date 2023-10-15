@@ -20,7 +20,7 @@ public unsafe struct MarshaledString : IDisposable
         }
         else
         {
-            var valueBytes = (input.Length != 0) ? Encoding.UTF8.GetBytes(input) : Array.Empty<byte>();
+            var valueBytes = (input.Length != 0) ? Encoding.UTF8.GetBytes(input) : [];
             length = valueBytes.Length;
             value = Marshal.AllocHGlobal(length + 1);
             Marshal.Copy(valueBytes, 0, value, length);

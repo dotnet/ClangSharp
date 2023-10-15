@@ -5,83 +5,83 @@ using System;
 namespace ClangSharp;
 
 [Flags]
-public enum PInvokeGeneratorConfigurationOptions : ulong
+public enum PInvokeGeneratorConfigurationOptions : long
 {
     None = 0,
 
-    GenerateMultipleFiles = 1UL << 0,
+    GenerateMultipleFiles = 1L << 0,
 
-    GenerateUnixTypes = 1UL << 1,
+    GenerateUnixTypes = 1L << 1,
 
-    NoDefaultRemappings = 1UL << 2,
+    NoDefaultRemappings = 1L << 2,
 
-    GenerateCompatibleCode = 1UL << 3,
+    GenerateCompatibleCode = 1L << 3,
 
-    ExcludeNIntCodegen = 1UL << 4,
+    ExcludeNIntCodegen = 1L << 4,
 
-    ExcludeFnptrCodegen = 1UL << 5,
+    ExcludeFnptrCodegen = 1L << 5,
 
-    LogExclusions = 1UL << 6,
+    LogExclusions = 1L << 6,
 
-    LogVisitedFiles = 1UL << 7,
+    LogVisitedFiles = 1L << 7,
 
-    GenerateExplicitVtbls = 1UL << 8,
+    GenerateExplicitVtbls = 1L << 8,
 
-    GenerateTestsNUnit = 1UL << 9,
+    GenerateTestsNUnit = 1L << 9,
 
-    GenerateTestsXUnit = 1UL << 10,
+    GenerateTestsXUnit = 1L << 10,
 
-    GenerateMacroBindings = 1UL << 11,
+    GenerateMacroBindings = 1L << 11,
 
-    ExcludeComProxies = 1UL << 12,
+    ExcludeComProxies = 1L << 12,
 
-    ExcludeEmptyRecords = 1UL << 13,
+    ExcludeEmptyRecords = 1L << 13,
 
-    ExcludeEnumOperators = 1UL << 14,
+    ExcludeEnumOperators = 1L << 14,
 
-    GenerateAggressiveInlining = 1UL << 15,
+    GenerateAggressiveInlining = 1L << 15,
 
-    ExcludeFunctionsWithBody = 1UL << 16,
+    ExcludeFunctionsWithBody = 1L << 16,
 
-    ExcludeAnonymousFieldHelpers = 1UL << 17,
+    ExcludeAnonymousFieldHelpers = 1L << 17,
 
-    LogPotentialTypedefRemappings = 1UL << 18,
+    LogPotentialTypedefRemappings = 1L << 18,
 
-    GenerateCppAttributes = 1UL << 19,
+    GenerateCppAttributes = 1L << 19,
 
-    GenerateNativeInheritanceAttribute = 1UL << 20,
+    GenerateNativeInheritanceAttribute = 1L << 20,
 
-    DontUseUsingStaticsForEnums = 1UL << 21,
+    DontUseUsingStaticsForEnums = 1L << 21,
 
-    GenerateVtblIndexAttribute = 1UL << 22,
+    GenerateVtblIndexAttribute = 1L << 22,
 
-    GeneratePreviewCode = 1UL << 23,
+    GeneratePreviewCode = 1L << 23,
 
-    GenerateTemplateBindings = 1UL << 24,
+    GenerateTemplateBindings = 1L << 24,
 
-    GenerateSourceLocationAttribute = 1UL << 25,
+    GenerateSourceLocationAttribute = 1L << 25,
 
-    GenerateUnmanagedConstants = 1UL << 26,
+    GenerateUnmanagedConstants = 1L << 26,
 
-    GenerateHelperTypes = 1UL << 27,
+    GenerateHelperTypes = 1L << 27,
 
-    GenerateTrimmableVtbls = 1UL << 28,
+    GenerateTrimmableVtbls = 1L << 28,
 
-    GenerateMarkerInterfaces = 1UL << 29,
+    GenerateMarkerInterfaces = 1L << 29,
 
-    GenerateFileScopedNamespaces = 1UL << 30,
+    GenerateFileScopedNamespaces = 1L << 30,
 
-    GenerateSetsLastSystemErrorAttribute = 1UL << 31,
+    GenerateSetsLastSystemErrorAttribute = 1L << 31,
 
-    GenerateDocIncludes = 1UL << 32,
+    GenerateDocIncludes = 1L << 32,
 
-    GenerateGuidMember = 1UL << 33,
+    GenerateGuidMember = 1L << 33,
 
-    GenerateLatestCode = 1UL << 34,
+    GenerateLatestCode = 1L << 34,
 
-    GenerateNativeBitfieldAttribute = 1UL << 35,
+    GenerateNativeBitfieldAttribute = 1L << 35,
 
-    GenerateDisableRuntimeMarshalling = 1UL << 36,
+    GenerateDisableRuntimeMarshalling = 1L << 36,
 
-    GenerateCallConvMemberFunction = 1UL << 37,
+    GenerateCallConvMemberFunction = 1L << 37,
 }

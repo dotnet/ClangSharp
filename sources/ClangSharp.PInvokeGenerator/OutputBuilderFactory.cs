@@ -19,7 +19,7 @@ internal sealed class OutputBuilderFactory
     {
         _config = config;
         _writeSourceLocation = config.GenerateSourceLocationAttribute;
-        _outputBuilders = new Dictionary<string, IOutputBuilder>();
+        _outputBuilders = [];
     }
 
     public IEnumerable<IOutputBuilder> OutputBuilders => _outputBuilders.Values;

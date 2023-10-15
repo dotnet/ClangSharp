@@ -67,7 +67,7 @@ public sealed class XmlCompatibleUnix_UnionDeclarationTest : UnionDeclarationTes
   </namespace>
 </bindings>
 ";
-        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
+        return ValidateGeneratedXmlCompatibleUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: []);
     }
 
     protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)

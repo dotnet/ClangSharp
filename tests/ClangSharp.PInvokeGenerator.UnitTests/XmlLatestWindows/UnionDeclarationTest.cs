@@ -67,7 +67,7 @@ public sealed class XmlLatestWindows_UnionDeclarationTest : UnionDeclarationTest
   </namespace>
 </bindings>
 ";
-        return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
+        return ValidateGeneratedXmlLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: []);
     }
 
     protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)

@@ -3,7 +3,7 @@ using ClangSharp.Interop;
 
 namespace ClangSharp.Abstractions;
 
-public struct EnumDesc
+internal struct EnumDesc
 {
     public AccessSpecifier AccessSpecifier { get; set; }
     public string TypeName { get; set; }

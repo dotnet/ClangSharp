@@ -40,7 +40,7 @@ public class CallExpr : Expr
 
     public FunctionDecl? DirectCallee => CalleeDecl as FunctionDecl;
 
-    public bool IsCallToStdMove => (NumArgs == 1) && (DirectCallee is FunctionDecl fd) && fd.IsInStdNamespace && (fd.Name == "move");
+    public bool IsCallToStdMove => (NumArgs == 1) && (DirectCallee is FunctionDecl fd) && fd.IsInStdNamespace && fd.Name.Equals("move", StringComparison.Ordinal);
 
     public uint NumArgs => (uint)Handle.NumArguments;
 }

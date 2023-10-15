@@ -65,7 +65,7 @@ public unsafe class Cursor : IEquatable<Cursor>
                 cursorChildrenHandle.Free();
 
 #if NET6_0_OR_GREATER
-                [UnmanagedCallersOnly(CallConvs = new System.Type[] { typeof(CallConvCdecl) })]
+                [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
 #endif
                 static CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent, void* client_data)
                 {
@@ -80,7 +80,6 @@ public unsafe class Cursor : IEquatable<Cursor>
                 }
             }
 
-            Debug.Assert(_cursorChildren is not null);
             return _cursorChildren!;
         }
     }

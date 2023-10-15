@@ -5,7 +5,7 @@ using System;
 namespace ClangSharp.Abstractions;
 
 [Flags]
-public enum StructFlags
+internal enum StructFlags
 {
     None = 0,
     Unsafe = 1 << 0,

@@ -1,8 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using ClangSharp.Abstractions;
 using ClangSharp.Interop;
 
@@ -269,7 +269,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
         Write(" enum ");
         Write(desc.EscapedName);
 
-        if (!desc.TypeName.Equals("int"))
+        if (!desc.TypeName.Equals("int", StringComparison.Ordinal))
         {
             Write(" : ");
             Write(desc.TypeName);
@@ -654,7 +654,8 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
     public void BeginConstructorInitializer(string memberRefName, string memberInitName)
     {
         WriteIndentation();
-        if (memberRefName.Equals(memberInitName))
+
+        if (memberRefName.Equals(memberInitName, StringComparison.Ordinal))
         {
             Write("this");
             Write('.');

@@ -1,36 +1,38 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace ClangSharp.CSharp;
 
 internal partial class CSharpOutputBuilder
 {
-    private bool _customAttrIsForParameter = false;
+    private bool _customAttrIsForParameter;
+
     public void WriteCustomAttribute(string attribute, Action? callback = null)
     {
-        if (attribute.Equals("Flags") || attribute.Equals("Obsolete"))
+        if (attribute.Equals("Flags", StringComparison.Ordinal) || attribute.Equals("Obsolete", StringComparison.Ordinal))
         {
             AddUsingDirective("System");
         }
-        else if (attribute.Equals("EditorBrowsable") || attribute.StartsWith("EditorBrowsable("))
+        else if (attribute.Equals("EditorBrowsable", StringComparison.Ordinal) || attribute.StartsWith("EditorBrowsable(", StringComparison.Ordinal))
         {
             AddUsingDirective("System.ComponentModel");
         }
-        else if (attribute.Equals("UnscopedRef"))
+        else if (attribute.Equals("UnscopedRef", StringComparison.Ordinal))
         {
             AddUsingDirective("System.Diagnostics.CodeAnalysis");
         }
-        else if (attribute.StartsWith("InlineArray("))
+        else if (attribute.StartsWith("InlineArray(", StringComparison.Ordinal))
         {
             AddUsingDirective("System.Runtime.CompilerServices");
         }
-        else if (attribute.StartsWith("Guid(")|| attribute.Equals("Optional") || attribute.StartsWith("Optional, DefaultParameterValue("))
+        else if (attribute.StartsWith("Guid(", StringComparison.Ordinal) || attribute.Equals("Optional", StringComparison.Ordinal) || attribute.StartsWith("Optional, DefaultParameterValue(", StringComparison.Ordinal))
         {
             AddUsingDirective("System.Runtime.InteropServices");
         }
-        else if (attribute.StartsWith("SupportedOSPlatform("))
+        else if (attribute.StartsWith("SupportedOSPlatform(", StringComparison.Ordinal))
         {
             AddUsingDirective("System.Runtime.Versioning");
         }
@@ -123,7 +125,12 @@ internal partial class CSharpOutputBuilder
         }
         else
         {
-            var valueString = value.ToString("X").ToUpperInvariant().Replace("{", "").Replace("}", "").Replace('X', 'x').Replace(",", ", ");
+            var valueString = value.ToString("X", CultureInfo.InvariantCulture)
+                                   .ToUpperInvariant()
+                                   .Replace("{", "", StringComparison.Ordinal)
+                                   .Replace("}", "", StringComparison.Ordinal)
+                                   .Replace('X', 'x')
+                                   .Replace(",", ", ", StringComparison.Ordinal);
             WriteIid(name, valueString);
         }
     }

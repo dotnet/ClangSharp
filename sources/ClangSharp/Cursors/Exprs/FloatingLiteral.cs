@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CXCursorKind;
@@ -25,7 +26,7 @@ public sealed class FloatingLiteral : Expr
                 if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Literal and not CXToken_Identifier))
                 {
                     Debug.Assert(false, "Failed to stringify tokens for floating literal.");
-                    return ValueAsApproximateDouble.ToString();
+                    return ValueAsApproximateDouble.ToString(CultureInfo.InvariantCulture);
                 }
             }
 

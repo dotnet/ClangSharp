@@ -55,6 +55,8 @@ public sealed partial class CapturedStmt : Stmt
 
     public bool CapturesVariable(VarDecl var)
     {
+        var canonicalDecl = var?.CanonicalDecl;
+
         foreach (var i in Captures)
         {
             if (!i.CapturesVariable && !i.CapturesVariableByCopy)
@@ -62,7 +64,7 @@ public sealed partial class CapturedStmt : Stmt
                 continue;
             }
 
-            if (i.CapturedVar.CanonicalDecl == var.CanonicalDecl)
+            if (i.CapturedVar.CanonicalDecl == canonicalDecl)
             {
                 return true;
             }

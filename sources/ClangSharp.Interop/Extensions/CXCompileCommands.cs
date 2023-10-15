@@ -6,18 +6,13 @@ using System.Collections.Generic;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXCompileCommands : IDisposable, IEquatable<CXCompileCommands>, IReadOnlyCollection<CXCompileCommand>
+public unsafe partial struct CXCompileCommands(IntPtr handle) : IDisposable, IEquatable<CXCompileCommands>, IReadOnlyCollection<CXCompileCommand>
 {
-    public CXCompileCommands(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public readonly CXCompileCommand this[uint index] => GetCommand(index);
 
     public readonly int Count => (int)Size;
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly uint Size => clang.CompileCommands_getSize(this);
 

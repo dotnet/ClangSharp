@@ -26,7 +26,7 @@ public static unsafe partial class @clang
             return nativeLibrary;
         }
 
-        if (libraryName.Equals("libclang") && TryResolveClang(assembly, searchPath, out nativeLibrary))
+        if (libraryName.Equals("libclang", StringComparison.Ordinal) && TryResolveClang(assembly, searchPath, out nativeLibrary))
         {
             return nativeLibrary;
         }

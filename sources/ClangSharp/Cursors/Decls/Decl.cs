@@ -121,7 +121,7 @@ public class Decl : Cursor
                 {
                     var redeclContext = parent!.RedeclContext;
                     Debug.Assert(redeclContext is not null);
-                    return redeclContext!.IsTranslationUnit && (nd.Name == "std");
+                    return redeclContext!.IsTranslationUnit && nd.Name.Equals("std", StringComparison.Ordinal);
                 }
             }
 

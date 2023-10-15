@@ -1,44 +1,32 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 namespace ClangSharp.CSharp;
 
-internal sealed partial class CSharpOutputBuilder
+internal sealed partial class CSharpOutputBuilder(string name, PInvokeGeneratorConfiguration config, string indentationString = CSharpOutputBuilder.DefaultIndentationString,
+                                                  bool isTestOutput = false, MarkerMode markerMode = MarkerMode.None,
+                                                  bool writeSourceLocation = false)
 {
     public const string DefaultIndentationString = "    ";
 
-    private readonly string _name;
-    private readonly PInvokeGeneratorConfiguration _config;
-    private readonly List<string> _contents;
-    private readonly StringBuilder _currentLine;
-    private readonly SortedSet<string> _usingDirectives;
-    private readonly SortedSet<string> _staticUsingDirectives;
-    private readonly string _indentationString;
-    private readonly bool _isTestOutput;
+    private readonly string _name = name;
+    private readonly PInvokeGeneratorConfiguration _config = config;
+    private readonly List<string> _contents = [];
+    private readonly StringBuilder _currentLine = new StringBuilder();
+    private readonly SortedSet<string> _usingDirectives = [];
+    private readonly SortedSet<string> _staticUsingDirectives = [];
+    private readonly string _indentationString = indentationString;
+    private readonly bool _isTestOutput = isTestOutput;
 
     private int _indentationLevel;
     private bool _isInMarkerInterface;
-    private readonly MarkerMode _markerMode;
-    private readonly bool _writeSourceLocation;
-
-    public CSharpOutputBuilder(string name, PInvokeGeneratorConfiguration config, string indentationString = DefaultIndentationString,
-                               bool isTestOutput = false, MarkerMode markerMode = MarkerMode.None,
-                               bool writeSourceLocation = false)
-    {
-        _name = name;
-        _config = config;
-        _contents = new List<string>();
-        _currentLine = new StringBuilder();
-        _usingDirectives = new SortedSet<string>();
-        _staticUsingDirectives = new SortedSet<string>();
-        _indentationString = indentationString;
-        _isTestOutput = isTestOutput;
-        _markerMode = markerMode;
-        _writeSourceLocation = writeSourceLocation;
-    }
+    private readonly MarkerMode _markerMode = markerMode;
+    private readonly bool _writeSourceLocation = writeSourceLocation;
 
     public IEnumerable<string> Contents => _contents;
 
@@ -62,7 +50,7 @@ internal sealed partial class CSharpOutputBuilder
 
     public IEnumerable<string> UsingDirectives => _usingDirectives;
 
-    public void AddUsingDirective(string namespaceName) => _ = namespaceName.StartsWith("static ") ? _staticUsingDirectives.Add(namespaceName) : _usingDirectives.Add(namespaceName);
+    public void AddUsingDirective(string namespaceName) => _ = namespaceName.StartsWith("static ", StringComparison.Ordinal) ? _staticUsingDirectives.Add(namespaceName) : _usingDirectives.Add(namespaceName);
 
     public void DecreaseIndentation()
     {
@@ -161,7 +149,7 @@ internal sealed partial class CSharpOutputBuilder
     public void WriteValueAsBytes(ulong value, int sizeInChars)
     {
         Write("0x");
-        Write(((byte)value).ToString("X2"));
+        Write(((byte)value).ToString("X2", CultureInfo.InvariantCulture));
 
         for (var i = 1; i < sizeInChars; i++)
         {
@@ -169,7 +157,7 @@ internal sealed partial class CSharpOutputBuilder
             value >>= 8;
 
             Write("0x");
-            Write(((byte)value).ToString("X2"));
+            Write(((byte)value).ToString("X2", CultureInfo.InvariantCulture));
         }
     }
 
@@ -315,7 +303,7 @@ internal sealed partial class CSharpOutputBuilder
     {
         foreach (var entry in _config.NativeTypeNamesToStrip)
         {
-            nativeTypeName = nativeTypeName.Replace(entry, "");
+            nativeTypeName = nativeTypeName.Replace(entry, "", StringComparison.Ordinal);
         }
 
         if (string.IsNullOrWhiteSpace(nativeTypeName))
