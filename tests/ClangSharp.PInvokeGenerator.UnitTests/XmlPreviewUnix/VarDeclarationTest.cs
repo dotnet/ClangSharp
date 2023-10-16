@@ -198,19 +198,19 @@ const wchar_t* const MyConst3 = L""Test"";";
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;uint&gt;</type>
         <value>
-          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+          <code>[0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000]</code>
         </value>
       </constant>
       <field name=""MyConst2"" access=""public"">
         <type primitive=""False"">uint[]</type>
         <value>
-          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+          <code>[0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000]</code>
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;uint&gt;</type>
         <value>
-          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+          <code>[0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000]</code>
         </value>
       </constant>
     </class>
@@ -270,19 +270,19 @@ static const wchar_t* const MyConst3 = L""Test"";";
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;uint&gt;</type>
         <value>
-          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+          <code>[0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000]</code>
         </value>
       </constant>
       <field name=""MyConst2"" access=""public"">
         <type primitive=""False"">uint[]</type>
         <value>
-          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+          <code>[0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000]</code>
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;uint&gt;</type>
         <value>
-          <code>new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000 }}</code>
+          <code>[0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000]</code>
         </value>
       </constant>
     </class>

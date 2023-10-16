@@ -6,6 +6,12 @@
     <TargetFrameworks>net8.0</TargetFrameworks>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- CA1707: Identifiers should not contain underscores -->
+    <!-- CA1711: Identifiers should not have incorrect suffix -->
+    <NoWarn>$(NoWarn);CA1707;CA1711</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="ClangUnsavedFile.h" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

@@ -80,7 +80,6 @@ public unsafe class Cursor : IEquatable<Cursor>
                 }
             }
 
-            Debug.Assert(_cursorChildren is not null);
             return _cursorChildren!;
         }
     }

@@ -17,12 +17,12 @@ public abstract class TranslationUnitTest
     protected const CXTranslationUnit_Flags DefaultTranslationUnitFlags = CXTranslationUnit_IncludeAttributedTypes      // Include attributed types in CXType
                                                                         | CXTranslationUnit_VisitImplicitAttributes;    // Implicit attributes should be visited
 
-    protected static readonly string[] DefaultClangCommandLineArgs = new string[]
-    {
+    protected static readonly string[] DefaultClangCommandLineArgs =
+    [
         "-std=c++17",                           // The input files should be compiled for C++ 17
         "-xc++",                                // The input files are C++
         "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
-    };
+    ];
 
     protected static TranslationUnit CreateTranslationUnit(string inputContents)
     {

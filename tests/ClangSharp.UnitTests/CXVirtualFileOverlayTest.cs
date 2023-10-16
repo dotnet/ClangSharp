@@ -15,18 +15,12 @@ namespace ClangSharp.UnitTests;
 //        on Windows, but clang doesn't seem to support this)
 public class CXVirtualFileOverlayTest
 {
-    public class TestVFO : IDisposable
+    internal sealed class TestVFO(string? contents) : IDisposable
     {
-        public CXVirtualFileOverlay VFO;
+        public CXVirtualFileOverlay VFO = CXVirtualFileOverlay.Create(options: 0);
 
-        private readonly string? _contents;
-        private bool _isDisposed = false;
-
-        public TestVFO(string? contents)
-        {
-            VFO = CXVirtualFileOverlay.Create(options: 0);
-            _contents = Fix(contents);
-        }
+        private readonly string? _contents = Fix(contents);
+        private bool _isDisposed;
 
         ~TestVFO()
         {
@@ -59,7 +53,7 @@ public class CXVirtualFileOverlayTest
             }
 
             var replacement = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "C:" : "";
-            return text.Replace("$ROOT$", replacement);
+            return text.Replace("$ROOT$", replacement, StringComparison.Ordinal);
         }
 
         public void Dispose()
@@ -68,7 +62,7 @@ public class CXVirtualFileOverlayTest
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool isDisposing)
+        private void Dispose(bool isDisposing)
         {
             if (_isDisposed)
             {
@@ -251,7 +245,7 @@ public class CXVirtualFileOverlayTest
             + "    },\n"
             + "    {\n"
             + "      'type': 'directory',\n"
-            + "      'name': \"$ROOT$/path/foobar\",\n"
+            + "      'name': \"$ROOT$/path/fooBar\",\n"
             + "      'contents': [\n"
             + "        {\n"
             + "          'type': 'file',\n"
@@ -266,8 +260,8 @@ public class CXVirtualFileOverlayTest
             + "      'contents': [\n"
             + "        {\n"
             + "          'type': 'file',\n"
-            + "          'name': \"foobarbaz.h\",\n"
-            + "          'external-contents': \"$ROOT$/real/foobarbaz.h\"\n"
+            + "          'name': \"fooBarBaz.h\",\n"
+            + "          'external-contents': \"$ROOT$/real/fooBarBaz.h\"\n"
             + "        }\n"
             + "      ]\n"
             + "    }\n"
@@ -277,8 +271,8 @@ public class CXVirtualFileOverlayTest
         using var t = new TestVFO(contents);
         t.Map("$ROOT$/path/foo/bar.h", "$ROOT$/real/bar.h");
         t.Map("$ROOT$/path/foo/bar", "$ROOT$/real/bar");
-        t.Map("$ROOT$/path/foobar/baz.h", "$ROOT$/real/baz.h");
-        t.Map("$ROOT$/path/foobarbaz.h", "$ROOT$/real/foobarbaz.h");
+        t.Map("$ROOT$/path/fooBar/baz.h", "$ROOT$/real/baz.h");
+        t.Map("$ROOT$/path/fooBarBaz.h", "$ROOT$/real/fooBarBaz.h");
     }
 
     [Test]

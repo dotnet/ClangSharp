@@ -4,18 +4,9 @@ using System.Collections.Generic;
 
 namespace ClangSharp.Abstractions;
 
-public struct BitfieldDesc
+internal struct BitfieldDesc
 {
     public Type TypeBacking { get; set; }
 
     public List<BitfieldRegion> Regions { get; set; }
-}
-
-public struct BitfieldRegion
-{
-    public string Name { get; set; }
-
-    public long Offset { get; set; }
-
-    public long Length { get; set; }
 }

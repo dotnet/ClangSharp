@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System;
 using System.Linq;
 using ClangSharp.Interop;
 using NUnit.Framework;
@@ -22,7 +23,7 @@ public sealed class DeclTest : TranslationUnitTest
 
         using var translationUnit = CreateTranslationUnit(inputContents);
 
-        var recordDecl = translationUnit.TranslationUnitDecl.Decls.OfType<RecordDecl>().Where((recordDecl) => recordDecl.Name == "MyStruct").Single();
+        var recordDecl = translationUnit.TranslationUnitDecl.Decls.OfType<RecordDecl>().Where((recordDecl) => recordDecl.Name.Equals("MyStruct", StringComparison.Ordinal)).Single();
         var accessSpecDecl = recordDecl.Decls.OfType<AccessSpecDecl>().Single();
 
         Assert.AreEqual(expectedAccessSpecifier, accessSpecDecl.Access);

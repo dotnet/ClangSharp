@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using ClangSharp.Abstractions;
 
 namespace ClangSharp.UnitTests;
 
@@ -91,7 +90,7 @@ public sealed class XmlDefaultWindows_StructDeclarationTest : StructDeclarationT
   </namespace>
 </bindings>
 ";
-        return ValidateGeneratedXmlDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
+        return ValidateGeneratedXmlDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: []);
     }
 
     protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)

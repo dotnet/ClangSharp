@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -239,7 +240,7 @@ public partial class PInvokeGenerator
         }
         else
         {
-            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.DeclKindName}'. Generated bindings may be incomplete.", calleeDecl);
+            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.DeclKindName}'. Generated bindings may be incomplete.", calleeDecl);
         }
 
         void VisitArgs(CallExpr callExpr)
@@ -334,12 +335,12 @@ public partial class PInvokeGenerator
                 if (characterLiteral.Value > ushort.MaxValue)
                 {
                     outputBuilder.Write("0x");
-                    outputBuilder.Write(characterLiteral.Value.ToString("X8"));
+                    outputBuilder.Write(characterLiteral.Value.ToString("X8", CultureInfo.InvariantCulture));
                 }
                 else if (characterLiteral.Value > byte.MaxValue)
                 {
                     outputBuilder.Write("0x");
-                    outputBuilder.Write(characterLiteral.Value.ToString("X4"));
+                    outputBuilder.Write(characterLiteral.Value.ToString("X4", CultureInfo.InvariantCulture));
                 }
                 else
                 {
@@ -364,7 +365,7 @@ public partial class PInvokeGenerator
                         targetTypeNumBits = targetType.Handle.NumBits;
                     }
 
-                    if (targetTypeName != "")
+                    if (!string.IsNullOrEmpty(targetTypeName))
                     {
                         if (!IsUnsigned(targetTypeName))
                         {
@@ -384,7 +385,7 @@ public partial class PInvokeGenerator
                     outputBuilder.Write(EscapeCharacter((char)characterLiteral.Value));
                     outputBuilder.Write('\'');
 
-                    if (castType != "")
+                    if (!string.IsNullOrEmpty(castType))
                     {
                         outputBuilder.Write(')');
                     }
@@ -407,7 +408,7 @@ public partial class PInvokeGenerator
                 if (characterLiteral.Value > ushort.MaxValue)
                 {
                     outputBuilder.Write("0x");
-                    outputBuilder.Write(characterLiteral.Value.ToString("X8"));
+                    outputBuilder.Write(characterLiteral.Value.ToString("X8", CultureInfo.InvariantCulture));
                 }
                 else
                 {
@@ -421,7 +422,7 @@ public partial class PInvokeGenerator
             case CX_CLK_UTF32:
             {
                 outputBuilder.Write("0x");
-                outputBuilder.Write(characterLiteral.Value.ToString("X8"));
+                outputBuilder.Write(characterLiteral.Value.ToString("X8", CultureInfo.InvariantCulture));
                 break;
             }
 
@@ -771,7 +772,7 @@ public partial class PInvokeGenerator
 
                 if (!_config.DontUseUsingStaticsForEnums)
                 {
-                    if (enumName.StartsWith("__AnonymousEnum_"))
+                    if (enumName.StartsWith("__AnonymousEnum_", StringComparison.Ordinal))
                     {
                         var className = GetClass(enumName);
 
@@ -908,7 +909,7 @@ public partial class PInvokeGenerator
         {
             var cursorName = GetCursorName(varDecl);
 
-            if (cursorName.StartsWith("ClangSharpMacro_") &&  _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
+            if (cursorName.StartsWith("ClangSharpMacro_", StringComparison.Ordinal) &&  _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
             {
                 if (!IsPrimitiveValue(explicitCastExpr, type) || IsConstant(typeName, varDecl.Init))
                 {
@@ -917,11 +918,11 @@ public partial class PInvokeGenerator
             }
         }
 
-        if (typeName == "IntPtr")
+        if (typeName.Equals("IntPtr", StringComparison.Ordinal))
         {
             typeName = "nint";
         }
-        else if (typeName == "UIntPtr")
+        else if (typeName.Equals("UIntPtr", StringComparison.Ordinal))
         {
             typeName = "nuint";
         }
@@ -944,7 +945,7 @@ public partial class PInvokeGenerator
     private void VisitFloatingLiteral(FloatingLiteral floatingLiteral)
     {
         var outputBuilder = StartCSharpCode();
-        if (floatingLiteral.ValueString.EndsWith(".f"))
+        if (floatingLiteral.ValueString.EndsWith(".f", StringComparison.Ordinal))
         {
             outputBuilder.Write(floatingLiteral.ValueString[0..^1]);
             outputBuilder.Write("0f");
@@ -953,7 +954,7 @@ public partial class PInvokeGenerator
         {
             outputBuilder.Write(floatingLiteral.ValueString);
 
-            if (floatingLiteral.ValueString.EndsWith("."))
+            if (floatingLiteral.ValueString.EndsWith('.'))
             {
                 outputBuilder.Write('0');
             }
@@ -1348,7 +1349,7 @@ public partial class PInvokeGenerator
                 outputBuilder.Write("new ");
                 outputBuilder.Write(typeName);
 
-                if (typeName == "Guid")
+                if (typeName.Equals("Guid", StringComparison.Ordinal))
                 {
                     outputBuilder.Write('(');
 
@@ -1500,14 +1501,34 @@ public partial class PInvokeGenerator
             outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
             outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
-            outputBuilder.WriteIndentedLine("ReadOnlySpan<byte> data = new byte[] {");
+            outputBuilder.WriteIndented("ReadOnlySpan<byte> data = ");
+
+            if (_config.GeneratePreviewCode)
+            {
+                outputBuilder.WriteLine("[");
+            }
+            else
+            {
+                outputBuilder.WriteLine("new byte[] {");
+            }
+
             outputBuilder.IncreaseIndentation();
 
             HandleInitListExpr(outputBuilder, initListExpr);
 
             outputBuilder.WriteNewline();
             outputBuilder.DecreaseIndentation();
-            outputBuilder.WriteIndentedLine("};");
+
+            if (_config.GeneratePreviewCode)
+            {
+                outputBuilder.WriteIndented(']');
+            }
+            else
+            {
+                outputBuilder.WriteIndented('}');
+            }
+
+            outputBuilder.WriteLine(';');
 
             outputBuilder.NeedsNewline = true;
             long rootSize = -1;
@@ -1565,7 +1586,7 @@ public partial class PInvokeGenerator
                 _testOutputBuilder.WriteLine("Test()");
                 _testOutputBuilder.WriteBlockStart();
 
-                if (typeName == "Guid")
+                if (typeName.Equals("Guid", StringComparison.Ordinal))
                 {
                     if (_config.GenerateTestsNUnit)
                     {
@@ -1682,7 +1703,7 @@ public partial class PInvokeGenerator
     {
         var valueString = integerLiteral.ValueString;
 
-        if (valueString.EndsWith("l", StringComparison.OrdinalIgnoreCase))
+        if (valueString.EndsWith('l') || valueString.EndsWith('L'))
         {
             valueString = valueString[0..^1];
         }
@@ -1715,11 +1736,11 @@ public partial class PInvokeGenerator
         {
             valueString = valueString[0..^2] + "UL";
         }
-        else if (valueString.EndsWith("l", StringComparison.OrdinalIgnoreCase))
+        else if (valueString.EndsWith('l') || valueString.EndsWith('L'))
         {
             valueString = valueString[0..^1] + "L";
         }
-        else if (valueString.EndsWith("u", StringComparison.OrdinalIgnoreCase))
+        else if (valueString.EndsWith('u') || valueString.EndsWith('U'))
         {
             valueString = valueString[0..^1] + "U";
         }
@@ -2485,7 +2506,7 @@ public partial class PInvokeGenerator
                     {
                         if (userData is ValueDesc valueDesc)
                         {
-                            if ((valueDesc.Kind == ValueKind.String) && (valueDesc.TypeName == "byte[]"))
+                            if ((valueDesc.Kind == ValueKind.String) && valueDesc.TypeName.Equals("byte[]", StringComparison.Ordinal))
                             {
                                 outputBuilder.Write(".ToArray()");
                             }
@@ -2501,7 +2522,7 @@ public partial class PInvokeGenerator
                     foreach (var b in bytes)
                     {
                         outputBuilder.Write("0x");
-                        outputBuilder.Write(b.ToString("X2"));
+                        outputBuilder.Write(b.ToString("X2", CultureInfo.InvariantCulture));
                         outputBuilder.Write(", ");
                     }
 
@@ -2532,7 +2553,14 @@ public partial class PInvokeGenerator
 
             case CX_CLK_UTF32:
             {
-                outputBuilder.Write("new uint[] { ");
+                if (_config.GeneratePreviewCode)
+                {
+                    outputBuilder.Write('[');
+                }
+                else
+                {
+                    outputBuilder.Write("new uint[] { ");
+                }
 
                 var bytes = Encoding.UTF32.GetBytes(stringLiteral.String);
                 var codepoints = MemoryMarshal.Cast<byte, uint>(bytes);
@@ -2540,11 +2568,20 @@ public partial class PInvokeGenerator
                 foreach (var codepoint in codepoints)
                 {
                     outputBuilder.Write("0x");
-                    outputBuilder.Write(codepoint.ToString("X8"));
+                    outputBuilder.Write(codepoint.ToString("X8", CultureInfo.InvariantCulture));
                     outputBuilder.Write(", ");
                 }
 
-                outputBuilder.Write("0x00000000 }");
+                outputBuilder.Write("0x00000000");
+
+                if (_config.GeneratePreviewCode)
+                {
+                    outputBuilder.Write(']');
+                }
+                else
+                {
+                    outputBuilder.Write(" }");
+                }
                 break;
             }
 
@@ -2648,7 +2685,7 @@ public partial class PInvokeGenerator
                         }
                         else
                         {
-                            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl?.DeclKindName}'. Generated bindings may be incomplete.", calleeDecl);
+                            AddDiagnostic(DiagnosticLevel.Error, $"Unsupported callee declaration: '{calleeDecl.DeclKindName}'. Generated bindings may be incomplete.", calleeDecl);
                         }
                     }
                     else if (IsPrevContextStmt<Expr>(out var expr, out _))
@@ -2673,10 +2710,10 @@ public partial class PInvokeGenerator
                         {
                             var cursorName = GetCursorName(varDecl);
 
-                            if (cursorName.StartsWith("ClangSharpMacro_"))
+                            if (cursorName.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
                             {
                                 cursorName = cursorName["ClangSharpMacro_".Length..];
-                                parentTypeIsVariableSized |= _config.WithTypes.TryGetValue(cursorName, out var remappedTypeName) && ((remappedTypeName == "int") || (remappedTypeName == "uint"));
+                                parentTypeIsVariableSized |= _config.WithTypes.TryGetValue(cursorName, out var remappedTypeName) && (remappedTypeName.Equals("int", StringComparison.Ordinal) || remappedTypeName.Equals("uint", StringComparison.Ordinal));
                             }
                         }
 
@@ -2745,9 +2782,20 @@ public partial class PInvokeGenerator
                 break;
             }
 
+            case CX_UO_Deref:
+            {
+                if (_topLevelClassNames.Contains(outputBuilder.Name))
+                {
+                    _topLevelClassIsUnsafe[outputBuilder.Name] = true;
+                }
+
+                outputBuilder.Write(unaryOperator.OpcodeStr);
+                Visit(unaryOperator.SubExpr);
+                break;
+            }
+
             case CX_UO_PreInc:
             case CX_UO_PreDec:
-            case CX_UO_Deref:
             case CX_UO_Plus:
             case CX_UO_Minus:
             case CX_UO_Not:
@@ -2829,6 +2877,11 @@ public partial class PInvokeGenerator
 
     private void VisitOffsetOfExpr(OffsetOfExpr offsetOfExpr)
     {
+        if (_config.GenerateDisableRuntimeMarshalling)
+        {
+            AddDiagnostic(DiagnosticLevel.Warning, $"OffsetOf is unsupported when DisableRuntimeMarshalling is enabled. Generated bindings may be incomplete.", offsetOfExpr);
+        }
+
         var outputBuilder = StartCSharpCode();
 
         outputBuilder.AddUsingDirective("System.Runtime.InteropServices");

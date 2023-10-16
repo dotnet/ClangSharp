@@ -4,13 +4,8 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXDiagnostic : IDisposable, IEquatable<CXDiagnostic>
+public unsafe partial struct CXDiagnostic(IntPtr handle) : IDisposable, IEquatable<CXDiagnostic>
 {
-    public CXDiagnostic(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public static CXDiagnosticDisplayOptions DefaultDisplayOptions => (CXDiagnosticDisplayOptions)clang.defaultDiagnosticDisplayOptions();
 
     public readonly uint Category => clang.getDiagnosticCategory(this);
@@ -19,7 +14,7 @@ public unsafe partial struct CXDiagnostic : IDisposable, IEquatable<CXDiagnostic
 
     public readonly CXDiagnosticSet ChildDiagnostics => (CXDiagnosticSet)clang.getChildDiagnostics(this);
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly CXSourceLocation Location => clang.getDiagnosticLocation(this);
 
@@ -54,7 +49,7 @@ public unsafe partial struct CXDiagnostic : IDisposable, IEquatable<CXDiagnostic
 
     public readonly CXString Format(CXDiagnosticDisplayOptions options) => clang.formatDiagnostic(this, (uint)options);
 
-    [Obsolete("Use " + nameof(CategoryText) + " instead.")]
+    [Obsolete($"Use {nameof(CategoryText)} instead.")]
     public static CXString GetCategoryName(uint category) => clang.getDiagnosticCategoryName(category);
 
     public readonly CXString GetFixIt(uint fixIt, out CXSourceRange replacementRange)

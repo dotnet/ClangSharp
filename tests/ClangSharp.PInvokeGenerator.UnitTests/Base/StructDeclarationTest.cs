@@ -7,8 +7,8 @@ namespace ClangSharp.UnitTests;
 
 public abstract class StructDeclarationTest : PInvokeGeneratorTest
 {
-    protected static readonly string[] ExcludeTestExcludedNames = new[] { "MyStruct" };
-    protected static readonly string[] GuidTestExcludedNames = new[] { "DECLSPEC_UUID" };
+    protected static readonly string[] ExcludeTestExcludedNames = ["MyStruct"];
+    protected static readonly string[] GuidTestExcludedNames = ["DECLSPEC_UUID"];
 
     [TestCase("double", "double")]
     [TestCase("short", "short")]

@@ -29,11 +29,11 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
     {
         Handle = handle;
 
-        _createdCursors = new Dictionary<CXCursor, WeakReference<Cursor>>();
-        _createdTemplateArguments = new Dictionary<CX_TemplateArgument, WeakReference<TemplateArgument>>();
-        _createdTemplateArgumentLocs = new Dictionary<CX_TemplateArgumentLoc, WeakReference<TemplateArgumentLoc>>();
-        _createdTemplateNames = new Dictionary<CX_TemplateName, WeakReference<TemplateName>>();
-        _createdTypes = new Dictionary<CXType, WeakReference<Type>>();
+        _createdCursors = [];
+        _createdTemplateArguments = [];
+        _createdTemplateArgumentLocs = [];
+        _createdTemplateNames = [];
+        _createdTypes = [];
 
         _translationUnitDecl = new Lazy<TranslationUnitDecl>(() => GetOrCreate<TranslationUnitDecl>(Handle.Cursor));
     }
@@ -119,7 +119,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
         if (handle.kind == CXTemplateArgumentKind_Invalid)
         {
-            Debug.Assert(handle.kind != CXTemplateArgumentKind_Invalid);
+            Debug.Assert(false, "Unsupported template argument encountered.");
             return null!;
         }
         else if (!_createdTemplateArguments.TryGetValue(handle, out templateArgumentRef))
@@ -142,7 +142,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
         if (handle.value == null)
         {
-            Debug.Assert(handle.value != null);
+            Debug.Assert(false, "Unsupported template argument location encountered.");
             return null!;
         }
         else if (!_createdTemplateArgumentLocs.TryGetValue(handle, out templateArgumentLocRef))
@@ -165,7 +165,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
         if (handle.kind == CX_TNK_Invalid)
         {
-            Debug.Assert(handle.kind != CX_TNK_Invalid);
+            Debug.Assert(false, "Unsupported template name encountered.");
             return null!;
         }
         else if (!_createdTemplateNames.TryGetValue(handle, out templateNameRef))
@@ -189,7 +189,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
         if (handle.kind == CXType_Invalid)
         {
-            Debug.Assert(handle.kind != CXType_Invalid);
+            Debug.Assert(false, "Unsupported type encountered.");
             return null!;
         }
         else if (!_createdTypes.TryGetValue(handle, out typeRef))

@@ -75,5 +75,5 @@ public sealed partial class BlockDecl : Decl, IDeclContext
 
     public nuint ParamSize => NumParams;
 
-    public bool CapturesVariable(VarDecl var) => Handle.CapturesVariable(var.Handle);
+    public bool CapturesVariable(VarDecl var) => Handle.CapturesVariable((var is not null) ? var.Handle : CXCursor.Null);
 }

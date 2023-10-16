@@ -5,7 +5,7 @@ using System;
 namespace ClangSharp.Abstractions;
 
 [Flags]
-public enum EnumFlags
+internal enum EnumFlags
 {
     None = 0,
     Nested = 1 << 0,

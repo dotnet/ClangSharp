@@ -1,7 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Globalization;
 using System.Text;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
@@ -38,10 +39,10 @@ internal partial class XmlOutputBuilder
           : desc.IsConstant ? _sb.Append("<constant")
           : _sb.Append("<field");
 
-        _ = _sb.Append($" name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
+        _ = _sb.Append(CultureInfo.InvariantCulture, $" name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
 
         desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
-        _ = _sb.Append($"<type primitive=\"{desc.Kind == ValueKind.Primitive}\">");
+        _ = _sb.Append(CultureInfo.InvariantCulture, $"<type primitive=\"{desc.Kind == ValueKind.Primitive}\">");
         _ = _sb.Append(EscapeText(desc.TypeName));
         _ = _sb.Append("</type>");
 
@@ -68,24 +69,24 @@ internal partial class XmlOutputBuilder
 
     public void BeginEnum(in EnumDesc desc)
     {
-        _ = _sb.Append($"<enumeration name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
+        _ = _sb.Append(CultureInfo.InvariantCulture, $"<enumeration name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\">");
         desc.WriteCustomAttrs?.Invoke(desc.CustomAttrGeneratorData);
-        _ = _sb.Append($"<type>{desc.TypeName}</type>");
+        _ = _sb.Append(CultureInfo.InvariantCulture, $"<type>{desc.TypeName}</type>");
     }
 
     public void EndEnum(in EnumDesc desc) => _sb.Append("</enumeration>");
 
     public void BeginField(in FieldDesc desc)
     {
-        _ = _sb.Append($"<field name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
+        _ = _sb.Append(CultureInfo.InvariantCulture, $"<field name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
         if (desc.InheritedFrom is not null)
         {
-            _ = _sb.Append($" inherited=\"{desc.InheritedFrom}\"");
+            _ = _sb.Append(CultureInfo.InvariantCulture, $" inherited=\"{desc.InheritedFrom}\"");
         }
 
         if (desc.Offset is not null)
         {
-            _ = _sb.Append($" offset=\"{desc.Offset}\"");
+            _ = _sb.Append(CultureInfo.InvariantCulture, $" offset=\"{desc.Offset}\"");
         }
 
         _ = _sb.Append('>');
@@ -96,35 +97,34 @@ internal partial class XmlOutputBuilder
     }
 
     public void WriteFixedCountField(string typeName, string escapedName, string fixedName, string count)
-        => _sb.Append($" count=\"{count}\" fixed=\"{fixedName}\">" +
-                      $"{EscapeText(typeName)}</type>");
+        => _sb.Append(CultureInfo.InvariantCulture, $" count=\"{count}\" fixed=\"{fixedName}\">{EscapeText(typeName)}</type>");
 
     public void WriteRegularField(string typeName, string escapedName)
-        => _sb.Append($">{EscapeText(typeName)}</type>");
+        => _sb.Append(CultureInfo.InvariantCulture, $">{EscapeText(typeName)}</type>");
     public void EndField(in FieldDesc desc) => _sb.Append("</field>");
     public void BeginFunctionOrDelegate(in FunctionOrDelegateDesc desc, ref bool isMethodClassUnsafe)
     {
         if (desc.IsVirtual)
         {
             Debug.Assert(!desc.HasFnPtrCodeGen);
-            _ = _sb.Append($"<delegate name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
-            if (desc.CallingConvention != CallingConvention.Winapi)
+            _ = _sb.Append(CultureInfo.InvariantCulture, $"<delegate name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
+            if (desc.CallingConvention != CallConv.Winapi)
             {
-                _ = _sb.Append($" convention=\"{desc.CallingConvention.AsString(false)}\"");
+                _ = _sb.Append(CultureInfo.InvariantCulture, $" convention=\"{desc.CallingConvention.AsString(false)}\"");
             }
         }
         else if (desc.IsDllImport)
         {
-            _ = _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
-            _ = _sb.Append($" lib=\"{desc.LibraryPath}\"");
-            if (desc.CallingConvention != CallingConvention.Winapi)
+            _ = _sb.Append(CultureInfo.InvariantCulture, $"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
+            _ = _sb.Append(CultureInfo.InvariantCulture, $" lib=\"{desc.LibraryPath}\"");
+            if (desc.CallingConvention != CallConv.Winapi)
             {
-                _ = _sb.Append($" convention=\"{desc.CallingConvention.AsString(false)}\"");
+                _ = _sb.Append(CultureInfo.InvariantCulture, $" convention=\"{desc.CallingConvention.AsString(false)}\"");
             }
 
             if (desc.EntryPoint != desc.EscapedName)
             {
-                _ = _sb.Append($" entrypoint=\"{desc.EntryPoint}\"");
+                _ = _sb.Append(CultureInfo.InvariantCulture, $" entrypoint=\"{desc.EntryPoint}\"");
             }
 
             if (desc.SetLastError)
@@ -134,7 +134,7 @@ internal partial class XmlOutputBuilder
         }
         else
         {
-            _ = _sb.Append($"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
+            _ = _sb.Append(CultureInfo.InvariantCulture, $"<function name=\"{desc.EscapedName}\" access=\"{desc.AccessSpecifier.AsString()}\"");
         }
 
         if (!desc.IsMemberFunction && (desc.IsStatic ?? (desc.IsDllImport || !desc.IsCxx)))
@@ -151,7 +151,7 @@ internal partial class XmlOutputBuilder
 
         if (vtblIndex != -1)
         {
-            _ = _sb.Append($" vtblindex=\"{vtblIndex}\"");
+            _ = _sb.Append(CultureInfo.InvariantCulture, $" vtblindex=\"{vtblIndex}\"");
         }
 
         _ = _sb.Append('>');
@@ -174,7 +174,7 @@ internal partial class XmlOutputBuilder
 
     public void BeginParameter(in ParameterDesc info)
     {
-        _ = _sb.Append($"<param name=\"{info.Name}\">");
+        _ = _sb.Append(CultureInfo.InvariantCulture, $"<param name=\"{info.Name}\">");
         info.WriteCustomAttrs?.Invoke(info.CustomAttrGeneratorData);
         _ = _sb.Append("<type>");
         _ = _sb.Append(EscapeText(info.Type));
@@ -210,7 +210,7 @@ internal partial class XmlOutputBuilder
     public void BeginConstructorInitializer(string memberRefName, string memberInitName) =>
         // "hint" is the name we're initializing using, but should only be used as a "hint" rather than a definitive
         // value, which is contained within the init block.
-        _ = _sb.Append($"<init field=\"{memberRefName}\" hint=\"{memberInitName}\">");
+        _ = _sb.Append(CultureInfo.InvariantCulture, $"<init field=\"{memberRefName}\" hint=\"{memberInitName}\">");
 
     public void EndConstructorInitializer() => _sb.Append("</init>");
 
@@ -323,8 +323,8 @@ internal partial class XmlOutputBuilder
                 _ = _sb.Append('\n');
             }
 
-            _ = _sb.Append(EscapeText(s).Replace("/*M*/&lt;", "<")
-                                    .Replace("/*M*/&gt;", ">"));
+            _ = _sb.Append(EscapeText(s).Replace("/*M*/&lt;", "<", StringComparison.Ordinal)
+                                        .Replace("/*M*/&gt;", ">", StringComparison.Ordinal));
 
             needsNewline = true;
         }
@@ -398,7 +398,7 @@ internal partial class XmlOutputBuilder
 
         foreach (var entry in _config.NativeTypeNamesToStrip)
         {
-            nativeTypeName = nativeTypeName.Replace(entry, "");
+            nativeTypeName = nativeTypeName.Replace(entry, "", StringComparison.Ordinal);
         }
 
         if (string.IsNullOrWhiteSpace(nativeTypeName))

@@ -67,7 +67,7 @@ public sealed class XmlPreviewWindows_UnionDeclarationTest : UnionDeclarationTes
   </namespace>
 </bindings>
 ";
-        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, commandlineArgs: Array.Empty<string>());
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: []);
     }
 
     protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)

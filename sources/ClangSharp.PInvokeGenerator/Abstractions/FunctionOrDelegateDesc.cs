@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
-using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 
 namespace ClangSharp.Abstractions;
@@ -15,7 +14,7 @@ internal struct FunctionOrDelegateDesc
     public string ParentName { get; set; }
     public string? LibraryPath { get; set; }
     public string ReturnType { get; set; }
-    public CallingConvention CallingConvention { get; set; }
+    public CallConv CallingConvention { get; set; }
     public FunctionOrDelegateFlags Flags { get; set; }
     public long? VtblIndex { get; set; }
     public CXSourceLocation? Location { get; set; }

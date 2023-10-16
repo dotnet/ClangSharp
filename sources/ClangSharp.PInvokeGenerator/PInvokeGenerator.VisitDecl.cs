@@ -280,7 +280,7 @@ public partial class PInvokeGenerator
         {
             parentName = GetRemappedCursorName(enumDecl);
 
-            if (parentName.StartsWith("__AnonymousEnum_"))
+            if (parentName.StartsWith("__AnonymousEnum_", StringComparison.Ordinal))
             {
                 parentName = "";
                 isAnonymousEnum = true;
@@ -347,7 +347,7 @@ public partial class PInvokeGenerator
         var escapedName = EscapeName(name);
         var isAnonymousEnum = false;
 
-        if (name.StartsWith("__AnonymousEnum_"))
+        if (name.StartsWith("__AnonymousEnum_", StringComparison.Ordinal))
         {
             isAnonymousEnum = true;
 
@@ -418,18 +418,18 @@ public partial class PInvokeGenerator
         var type = fieldDecl.Type;
         var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out var nativeTypeName);
 
-        if (typeName == "bool")
+        if (!_config.GenerateDisableRuntimeMarshalling && typeName.Equals("bool", StringComparison.Ordinal))
         {
-            // bool is not blittable, so we shouldn't use it for structs that may be in P/Invoke signatures
+            // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for structs that may be in P/Invoke signatures
             typeName = "byte";
             nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
         }
 
-        if (_config.GenerateCompatibleCode && typeName.StartsWith("bool*"))
+        if (_config.GenerateCompatibleCode && typeName.StartsWith("bool*", StringComparison.Ordinal))
         {
             // bool* is not blittable in compat mode, so we shouldn't use it for structs that may be in P/Invoke signatures
-            typeName = typeName.Replace("bool*", "byte*");
-            nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? typeName.Replace("byte*", "bool *") : nativeTypeName;
+            typeName = typeName.Replace("bool*", "byte*", StringComparison.Ordinal);
+            nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? typeName.Replace("byte*", "bool*", StringComparison.Ordinal) : nativeTypeName;
         }
 
         var parent = fieldDecl.Parent;
@@ -462,13 +462,13 @@ public partial class PInvokeGenerator
 
         if (IsTypeConstantOrIncompleteArray(fieldDecl, type, out var arrayType))
         {
-            var count = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1).ToString();
+            var count = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1).ToString(CultureInfo.InvariantCulture);
             var elementType = arrayType.ElementType;
 
             while (IsTypeConstantOrIncompleteArray(fieldDecl, elementType, out var subArrayType))
             {
                 count += " * ";
-                count += Math.Max((subArrayType as ConstantArrayType)?.Size ?? 0, 1).ToString();
+                count += Math.Max((subArrayType as ConstantArrayType)?.Size ?? 0, 1).ToString(CultureInfo.InvariantCulture);
                 elementType = subArrayType.ElementType;
             }
 
@@ -555,18 +555,18 @@ public partial class PInvokeGenerator
 
         if (isVirtual || (body is null))
         {
-            if (returnTypeName == "bool")
+            if (!_config.GenerateDisableRuntimeMarshalling && returnTypeName.Equals("bool", StringComparison.Ordinal))
             {
-                // bool is not blittable, so we shouldn't use it for P/Invoke signatures
+                // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for P/Invoke signatures
                 returnTypeName = "byte";
                 nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? "bool" : nativeTypeName;
             }
 
-            if (_config.GenerateCompatibleCode && returnTypeName.StartsWith("bool*"))
+            if (_config.GenerateCompatibleCode && returnTypeName.StartsWith("bool*", StringComparison.Ordinal))
             {
                 // bool* is not blittable in compat mode, so we shouldn't use it for P/Invoke signatures
-                returnTypeName = returnTypeName.Replace("bool*", "byte*");
-                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? returnTypeName.Replace("byte*", "bool *") : nativeTypeName;
+                returnTypeName = returnTypeName.Replace("bool*", "byte*", StringComparison.Ordinal);
+                nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? returnTypeName.Replace("byte*", "bool*", StringComparison.Ordinal) : nativeTypeName;
             }
         }
 
@@ -861,15 +861,15 @@ public partial class PInvokeGenerator
         {
             var contextNamePart = GetRemappedCursorName(rootRecordDecl);
 
-            if (contextNamePart.StartsWith("_"))
+            if (contextNamePart.StartsWith('_'))
             {
                 var suffixLength = 0;
 
-                if (contextNamePart.EndsWith("_e__Union"))
+                if (contextNamePart.EndsWith("_e__Union", StringComparison.Ordinal))
                 {
                     suffixLength = 10;
                 }
-                else if (contextNamePart.EndsWith("_e__Struct"))
+                else if (contextNamePart.EndsWith("_e__Struct", StringComparison.Ordinal))
                 {
                     suffixLength = 11;
                 }
@@ -992,7 +992,7 @@ public partial class PInvokeGenerator
 
         _outputBuilder.WriteRegularField(typeString, escapedName);
 
-        var isIndirectPointerField = IsTypePointerOrReference(indirectFieldDecl, type) && (typeName != "IntPtr") && (typeName != "UIntPtr");
+        var isIndirectPointerField = IsTypePointerOrReference(indirectFieldDecl, type) && !typeName.Equals("IntPtr", StringComparison.Ordinal) && !typeName.Equals("UIntPtr", StringComparison.Ordinal);
 
         _outputBuilder.BeginBody();
         _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: fieldDecl.IsBitField && !Config.GenerateCompatibleCode);
@@ -1179,7 +1179,7 @@ public partial class PInvokeGenerator
             var index = parameters.IndexOf(parmVarDecl);
             var lastIndex = parameters.Count - 1;
 
-            if (name.Equals("param"))
+            if (name.Equals("param", StringComparison.Ordinal))
             {
                 escapedName += index;
             }
@@ -1279,7 +1279,7 @@ public partial class PInvokeGenerator
             var index = parameters.IndexOf(parmVarDecl);
             var lastIndex = parameters.Count - 1;
 
-            if (name.Equals("param"))
+            if (name.Equals("param", StringComparison.Ordinal))
             {
                 escapedName += index;
             }
@@ -1355,13 +1355,11 @@ public partial class PInvokeGenerator
             var alignment = Math.Max(recordDecl.TypeForDecl.Handle.AlignOf, 1);
             var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
-            var isTopLevelStruct = _config.WithTypes.TryGetValue(name, out var withType) && (withType == "struct");
+            var isTopLevelStruct = _config.WithTypes.TryGetValue(name, out var withType) && withType.Equals("struct", StringComparison.Ordinal);
             var generateTestsClass = !recordDecl.IsAnonymousStructOrUnion && recordDecl.DeclContext is not RecordDecl;
 
             if ((_testOutputBuilder is not null) && generateTestsClass && !isTopLevelStruct)
             {
-                Debug.Assert(_testOutputBuilder is not null);
-
                 _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=\"");
                 _testOutputBuilder.Write(escapedName);
                 _testOutputBuilder.WriteLine("\" /> struct.</summary>");
@@ -1384,7 +1382,7 @@ public partial class PInvokeGenerator
 
                 _uuidsToGenerate.Add(uuidName, uuid);
 
-                if (_testOutputBuilder is not null)
+                if ((_testOutputBuilder is not null) && (uuid != Guid.Empty))
                 {
                     var className = GetClass(uuidName);
 
@@ -1472,7 +1470,7 @@ public partial class PInvokeGenerator
 
                 nativeNameWithExtras = nativeTypeNameBuilder.ToString();
                 nativeInheritance = GetCursorName(cxxRecordDecl.Bases[cxxRecordDecl.Bases.Count - 1].Referenced);
-                baseTypeNames = baseTypeNamesBuilder.ToArray();
+                baseTypeNames = [.. baseTypeNamesBuilder];
             }
 
             if (!TryGetRemappedValue(recordDecl, _config.WithPackings, out var pack))
@@ -1518,12 +1516,12 @@ public partial class PInvokeGenerator
             {
                 if (!_topLevelClassAttributes.TryGetValue(name, out var withAttributes))
                 {
-                    withAttributes = new List<string>();
+                    withAttributes = [];
                 }
 
                 if (!_topLevelClassUsings.TryGetValue(name, out var withUsings))
                 {
-                    withUsings = new HashSet<string>();
+                    withUsings = [];
                 }
 
                 if (desc.LayoutAttribute is not null)
@@ -1544,7 +1542,7 @@ public partial class PInvokeGenerator
                 {
                     foreach (var entry in _config.NativeTypeNamesToStrip)
                     {
-                        nativeTypeName = nativeTypeName.Replace(entry, "");
+                        nativeTypeName = nativeTypeName.Replace(entry, "", StringComparison.Ordinal);
                     }
 
                     if (!string.IsNullOrWhiteSpace(nativeTypeName))
@@ -1676,7 +1674,7 @@ public partial class PInvokeGenerator
                 }
             }
 
-            if ((_testOutputBuilder is not null) && generateTestsClass)
+            if ((_testOutputBuilder is not null) && generateTestsClass && !_config.GenerateDisableRuntimeMarshalling)
             {
                 _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"");
                 _testOutputBuilder.Write(escapedName);
@@ -2071,7 +2069,7 @@ public partial class PInvokeGenerator
             if (_config.GenerateMarkerInterfaces && !_config.ExcludeFnptrCodegen)
             {
                 var cxxRecordDeclName = GetRemappedCursorName(cxxRecordDecl);
-                cxxMethodDeclTypeName = cxxMethodDeclTypeName.Replace($"<{cxxRecordDeclName}*,", "<TSelf*,");
+                cxxMethodDeclTypeName = cxxMethodDeclTypeName.Replace($"<{cxxRecordDeclName}*,", "<TSelf*,", StringComparison.Ordinal);
             }
 
             var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
@@ -2294,7 +2292,8 @@ public partial class PInvokeGenerator
 
                 var parmVarDeclName = GetRemappedCursorName(parmVarDecls[index]);
                 var escapedParmVarDeclName = EscapeName(parmVarDeclName);
-                if (parmVarDeclName.Equals("param"))
+
+                if (parmVarDeclName.Equals("param", StringComparison.Ordinal))
                 {
                     escapedParmVarDeclName += index;
                 }
@@ -2306,8 +2305,9 @@ public partial class PInvokeGenerator
 
             body.Write(')');
 
-            if (returnTypeName == "bool")
+            if (!_config.GenerateDisableRuntimeMarshalling && returnTypeName.Equals("bool", StringComparison.Ordinal))
             {
+                // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for P/Invoke signatures
                 body.Write(" != 0");
             }
 
@@ -2380,7 +2380,7 @@ public partial class PInvokeGenerator
                 if (index >= 0)
                 {
                     index++;
-                    bitfieldName += index.ToString();
+                    bitfieldName += index.ToString(CultureInfo.InvariantCulture);
                 }
 
                 remainingBits = currentSize * 8;
@@ -2436,7 +2436,7 @@ public partial class PInvokeGenerator
 
                 if (index >= 0)
                 {
-                    bitfieldName += index.ToString();
+                    bitfieldName += index.ToString(CultureInfo.InvariantCulture);
                 }
 
                 var bitfieldDesc = (index > 0) ? bitfieldDescs[index - 1] : bitfieldDescs[0];
@@ -2445,7 +2445,7 @@ public partial class PInvokeGenerator
             }
 
             var bitfieldOffset = (currentSize * 8) - remainingBits;
-            var bitwidthHexStringBacking = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
+            var bitwidthHexStringBacking = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X", CultureInfo.InvariantCulture);
 
             if (!IsType<BuiltinType>(fieldDecl, typeBacking, out var builtinTypeBacking))
             {
@@ -2478,7 +2478,7 @@ public partial class PInvokeGenerator
 
                 case CXType_ULongLong:
                 {
-                    if (typeNameBacking == "nuint")
+                    if (typeNameBacking.Equals("nuint", StringComparison.Ordinal))
                     {
                         goto case CXType_UInt;
                     }
@@ -2511,7 +2511,7 @@ public partial class PInvokeGenerator
                 {
                     isTypeBackingSigned = true;
 
-                    if (typeNameBacking == "nint")
+                    if (typeNameBacking.Equals("nint", StringComparison.Ordinal))
                     {
                         goto case CXType_Int;
                     }
@@ -2527,7 +2527,7 @@ public partial class PInvokeGenerator
                 }
             }
 
-            var bitwidthHexString = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X");
+            var bitwidthHexString = ((1 << fieldDecl.BitWidthValue) - 1).ToString("X", CultureInfo.InvariantCulture);
             var type = fieldDecl.Type;
 
             if (IsType<BuiltinType>(fieldDecl, type, out var builtinType))
@@ -2577,7 +2577,7 @@ public partial class PInvokeGenerator
 
                 case CXType_ULongLong:
                 {
-                    if (typeNameBacking == "nuint")
+                    if (typeNameBacking.Equals("nuint", StringComparison.Ordinal))
                     {
                         goto case CXType_UInt;
                     }
@@ -2610,7 +2610,7 @@ public partial class PInvokeGenerator
                 {
                     isTypeSigned = true;
 
-                    if (typeNameBacking == "nint")
+                    if (typeNameBacking.Equals("nint", StringComparison.Ordinal))
                     {
                         goto case CXType_Int;
                     }
@@ -2660,7 +2660,7 @@ public partial class PInvokeGenerator
             var recordDeclName = GetCursorName(recordDecl);
 
             var isSmallType = currentSize < 4;
-            var isRemappedToSelf = _config.RemappedNames.TryGetValue(typeName, out var remappedTypeName) && typeName.Equals(remappedTypeName);
+            var isRemappedToSelf = _config.RemappedNames.TryGetValue(typeName, out var remappedTypeName) && typeName.Equals(remappedTypeName, StringComparison.Ordinal);
             var isTypeMismatch = type != builtinTypeBacking;
             var isUnsignedToSigned = !isTypeBackingSigned && isTypeSigned;
 
@@ -2686,7 +2686,7 @@ public partial class PInvokeGenerator
                 code.Write(")(");
             }
 
-            if ((!needsParenFirst && (bitfieldOffset != 0)) || (!needsCast && isTypeSigned))
+            if ((!needsParenFirst && (bitfieldOffset != 0)) || (!isUnsignedToSigned && isTypeSigned))
             {
                 code.Write('(');
             }
@@ -2882,7 +2882,7 @@ public partial class PInvokeGenerator
             var accessSpecifier = GetAccessSpecifier(constantOrIncompleteArray, matchStar: false);
             var elementType = arrayType.ElementType;
             var isUnsafeElementType = IsTypePointerOrReference(constantOrIncompleteArray, arrayType.ElementType) &&
-                                      (arrayTypeName != "IntPtr") && (arrayTypeName != "UIntPtr");
+                                      !arrayTypeName.Equals("IntPtr", StringComparison.Ordinal) && !arrayTypeName.Equals("UIntPtr", StringComparison.Ordinal);
 
             var name = GetArtificialFixedSizedBufferName(constantOrIncompleteArray);
             var escapedName = EscapeName(name);
@@ -2955,14 +2955,14 @@ public partial class PInvokeGenerator
             {
                 var dimension = sizePerDimension[0];
                 var firstDimension = dimension.index++;
-                var fieldName = "e" + firstDimension;
+                var fieldName = $"e{firstDimension}";
                 sizePerDimension[0] = dimension;
 
                 var separateStride = false;
                 for (var d = 1; d < sizePerDimension.Count; d++)
                 {
                     dimension = sizePerDimension[d];
-                    fieldName += "_" + dimension.index;
+                    fieldName += $"_{dimension.index}";
                     sizePerDimension[d] = dimension;
 
                     var previousDimension = sizePerDimension[d - 1];
@@ -2978,7 +2978,7 @@ public partial class PInvokeGenerator
                     sizePerDimension[d] = dimension;
                 }
 
-                if (firstFieldName == "")
+                if (string.IsNullOrEmpty(firstFieldName))
                 {
                     firstFieldName = fieldName;
                 }
@@ -3226,7 +3226,7 @@ public partial class PInvokeGenerator
                 {
                     if (!_allValidNameRemappings.TryGetValue(underlyingName, out var allRemappings))
                     {
-                        allRemappings = new HashSet<string>();
+                        allRemappings = [];
                         _allValidNameRemappings[underlyingName] = allRemappings;
                     }
                     _ = allRemappings.Add(typedefName);
@@ -3236,7 +3236,7 @@ public partial class PInvokeGenerator
                     {
                         if (!_traversedValidNameRemappings.TryGetValue(underlyingName, out var traversedRemappings))
                         {
-                            traversedRemappings = new HashSet<string>();
+                            traversedRemappings = [];
                             _traversedValidNameRemappings[underlyingName] = traversedRemappings;
                         }
                         _ = traversedRemappings.Add(typedefName);
@@ -3276,7 +3276,7 @@ public partial class PInvokeGenerator
             var isMacroDefinitionRecord = false;
 
             var nativeName = GetCursorName(varDecl);
-            if (nativeName.StartsWith("ClangSharpMacro_" + ""))
+            if (nativeName.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
             {
                 type = varDecl.Init.Type;
                 nativeName = nativeName["ClangSharpMacro_".Length..];
@@ -3435,7 +3435,7 @@ public partial class PInvokeGenerator
                 }
             }
 
-            if (typeName == "Guid")
+            if (typeName.Equals("Guid", StringComparison.Ordinal))
             {
                 _ = _generatedUuids.Add(name);
             }
@@ -3462,7 +3462,7 @@ public partial class PInvokeGenerator
                 StartUsingOutputBuilder(className);
                 Debug.Assert(_outputBuilder is not null);
 
-                if ((kind == ValueKind.String) && typeName.StartsWith("ReadOnlySpan<"))
+                if ((kind == ValueKind.String) && typeName.StartsWith("ReadOnlySpan<", StringComparison.Ordinal))
                 {
                     _outputBuilder.EmitSystemSupport();
                 }
@@ -3551,7 +3551,7 @@ public partial class PInvokeGenerator
 
     private bool IsConstant(string targetTypeName, Expr initExpr)
     {
-        if (IsTypePointerOrReference(initExpr) && (targetTypeName != "string"))
+        if (IsTypePointerOrReference(initExpr) && !targetTypeName.Equals("string", StringComparison.Ordinal))
         {
             return false;
         }
