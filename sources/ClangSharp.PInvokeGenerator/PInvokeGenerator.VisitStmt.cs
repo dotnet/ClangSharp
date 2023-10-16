@@ -1501,14 +1501,34 @@ public partial class PInvokeGenerator
             outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
             outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
 
-            outputBuilder.WriteIndentedLine("ReadOnlySpan<byte> data = new byte[] {");
+            outputBuilder.WriteIndented("ReadOnlySpan<byte> data = ");
+
+            if (_config.GeneratePreviewCode)
+            {
+                outputBuilder.WriteLine("[");
+            }
+            else
+            {
+                outputBuilder.WriteLine("new byte[] {");
+            }
+
             outputBuilder.IncreaseIndentation();
 
             HandleInitListExpr(outputBuilder, initListExpr);
 
             outputBuilder.WriteNewline();
             outputBuilder.DecreaseIndentation();
-            outputBuilder.WriteIndentedLine("};");
+
+            if (_config.GeneratePreviewCode)
+            {
+                outputBuilder.WriteIndented(']');
+            }
+            else
+            {
+                outputBuilder.WriteIndented('}');
+            }
+
+            outputBuilder.WriteLine(';');
 
             outputBuilder.NeedsNewline = true;
             long rootSize = -1;
@@ -2533,7 +2553,14 @@ public partial class PInvokeGenerator
 
             case CX_CLK_UTF32:
             {
-                outputBuilder.Write("new uint[] { ");
+                if (_config.GeneratePreviewCode)
+                {
+                    outputBuilder.Write('[');
+                }
+                else
+                {
+                    outputBuilder.Write("new uint[] { ");
+                }
 
                 var bytes = Encoding.UTF32.GetBytes(stringLiteral.String);
                 var codepoints = MemoryMarshal.Cast<byte, uint>(bytes);
@@ -2545,7 +2572,16 @@ public partial class PInvokeGenerator
                     outputBuilder.Write(", ");
                 }
 
-                outputBuilder.Write("0x00000000 }");
+                outputBuilder.Write("0x00000000");
+
+                if (_config.GeneratePreviewCode)
+                {
+                    outputBuilder.Write(']');
+                }
+                else
+                {
+                    outputBuilder.Write(" }");
+                }
                 break;
             }
 

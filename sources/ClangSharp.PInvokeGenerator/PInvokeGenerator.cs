@@ -1769,7 +1769,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         else
                         {
                             result += ' ';
-                            remainingRemappings = remappings.Except(new string[] { recommendedRemapping });
+                            remainingRemappings = remappings.Except([recommendedRemapping]);
                             remainingString = "Other";
                         }
                     }
@@ -1848,7 +1848,6 @@ public sealed partial class PInvokeGenerator : IDisposable
     private void CloseOutputBuilder(Stream stream, IOutputBuilder outputBuilder, bool isMethodClass, bool leaveStreamOpen, bool emitNamespaceDeclaration)
     {
         ArgumentNullException.ThrowIfNull(stream);
-
         ArgumentNullException.ThrowIfNull(outputBuilder);
 
         using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
@@ -1917,11 +1916,17 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (outputBuilder is CSharpOutputBuilder csOutputBuilder)
         {
-            ForCSharp(csOutputBuilder);
+            if (csOutputBuilder.Contents.Any())
+            {
+                ForCSharp(csOutputBuilder);
+            }
         }
         else if (outputBuilder is XmlOutputBuilder xmlOutputBuilder)
         {
-            ForXml(xmlOutputBuilder);
+            if (xmlOutputBuilder.Contents.Any())
+            {
+                ForXml(xmlOutputBuilder);
+            }
         }
 
         void ForCSharp(CSharpOutputBuilder csharpOutputBuilder)
