@@ -1674,7 +1674,7 @@ public partial class PInvokeGenerator
                 }
             }
 
-            if ((_testOutputBuilder is not null) && generateTestsClass)
+            if ((_testOutputBuilder is not null) && generateTestsClass && !_config.GenerateDisableRuntimeMarshalling)
             {
                 _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"");
                 _testOutputBuilder.Write(escapedName);

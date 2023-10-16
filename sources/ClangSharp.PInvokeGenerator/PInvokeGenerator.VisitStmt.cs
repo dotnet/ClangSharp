@@ -2841,6 +2841,11 @@ public partial class PInvokeGenerator
 
     private void VisitOffsetOfExpr(OffsetOfExpr offsetOfExpr)
     {
+        if (_config.GenerateDisableRuntimeMarshalling)
+        {
+            AddDiagnostic(DiagnosticLevel.Warning, $"OffsetOf is unsupported when DisableRuntimeMarshalling is enabled. Generated bindings may be incomplete.", offsetOfExpr);
+        }
+
         var outputBuilder = StartCSharpCode();
 
         outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
