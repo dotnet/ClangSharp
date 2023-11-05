@@ -29,11 +29,6 @@
       "libclang": {
         "libclang.runtime.win-x64": "16.0.6"
       }
-    },
-    "win-x86": {
-      "libclang": {
-        "libclang.runtime.win-x86": "16.0.6"
-      }
     }
   }
 }

@@ -28,26 +28,6 @@ jobs:
           ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
         if-no-files-found: error
-  windows-x86:
-    runs-on: ${{ matrix.os }}-latest
-    strategy:
-      matrix:
-        architecture: [ x86 ]
-        configuration: [ debug, release ]
-        os: [ windows ]
-    steps:
-    - uses: actions/checkout@v3
-    - run: ./scripts/cibuild.cmd -configuration ${{ matrix.configuration }} -architecture ${{ matrix.architecture }} /p:PlatformTarget=${{ matrix.architecture }}
-      shell: cmd
-    - uses: actions/upload-artifact@v3
-      with:
-        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
-        path: |
-          ./artifacts/bin/**/*
-          ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
-          ./artifacts/tst/**/*
-        if-no-files-found: error
   linux-x64:
     runs-on: ${{ matrix.os }}-latest
     strategy:

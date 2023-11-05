@@ -29,11 +29,6 @@
       "libClangSharp": {
         "libClangSharp.runtime.win-x64": "16.0.6"
       }
-    },
-    "win-x86": {
-      "libClangSharp": {
-        "libClangSharp.runtime.win-x86": "16.0.6"
-      }
     }
   }
 }

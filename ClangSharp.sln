@@ -86,11 +86,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.win-x64", 
 		packages\libclang\libclang.runtime.win-x64\libclang.runtime.win-x64.nuspec = packages\libclang\libclang.runtime.win-x64\libclang.runtime.win-x64.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libclang.runtime.win-x86", "libclang.runtime.win-x86", "{98BDA79D-8D81-4381-B794-65BAF82349D4}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libclang\libclang.runtime.win-x86\libclang.runtime.win-x86.nuspec = packages\libclang\libclang.runtime.win-x86\libclang.runtime.win-x86.nuspec
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp", "libClangSharp", "{EDEC2130-DA14-4415-91A3-225733FB61F8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp", "libClangSharp", "{B043C50D-8B06-4663-943A-DEBB6CFACEA6}"
@@ -112,11 +107,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.win-x64", "libClangSharp.runtime.win-x64", "{C1218464-0B5A-480E-BA13-2C6EA370987E}"
 	ProjectSection(SolutionItems) = preProject
 		packages\libClangSharp\libClangSharp.runtime.win-x64\libClangSharp.runtime.win-x64.nuspec = packages\libClangSharp\libClangSharp.runtime.win-x64\libClangSharp.runtime.win-x64.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp.runtime.win-x86", "libClangSharp.runtime.win-x86", "{6DF42BA2-F962-4BFC-9444-D0FD53D022B0}"
-	ProjectSection(SolutionItems) = preProject
-		packages\libClangSharp\libClangSharp.runtime.win-x86\libClangSharp.runtime.win-x86.nuspec = packages\libClangSharp\libClangSharp.runtime.win-x86\libClangSharp.runtime.win-x86.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libClangSharp", "libClangSharp", "{520C1055-34A1-4C72-AC24-023F84EF461D}"
@@ -224,13 +214,11 @@ Global
 		{7D89072F-8E3E-4009-BCCD-5D3C69F88042} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{8006B5D7-5E0E-4A0A-884F-62C5216144EE} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{4A298C7E-BF4D-418D-B70D-FE6D6F8097FD} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
-		{98BDA79D-8D81-4381-B794-65BAF82349D4} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{EDEC2130-DA14-4415-91A3-225733FB61F8} = {AE6CF12F-5CC3-463B-A74B-6CCAE26EE4EF}
 		{B043C50D-8B06-4663-943A-DEBB6CFACEA6} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{4F2F7171-202E-4E23-AABF-EB3501BDB0B2} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{C2BE41E6-95E9-431A-9C49-923BD50692AB} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{C1218464-0B5A-480E-BA13-2C6EA370987E} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
-		{6DF42BA2-F962-4BFC-9444-D0FD53D022B0} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
 		{520C1055-34A1-4C72-AC24-023F84EF461D} = {732BA761-B58E-4C34-9C96-097382A55A7A}
 		{B3F3A831-DA09-40A2-A25C-DE47A58BB93B} = {DFACF682-2673-4AE1-8F10-816D025C2D45}
 		{69B805C6-230D-49A2-A569-3CAC2EC9F293} = {EDEC2130-DA14-4415-91A3-225733FB61F8}
