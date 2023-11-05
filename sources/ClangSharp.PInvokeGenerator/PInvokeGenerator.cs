@@ -323,6 +323,21 @@ public sealed partial class PInvokeGenerator : IDisposable
             var outputPath = outputBuilder.IsTestOutput ? _config.TestOutputLocation : _config.OutputLocation;
             var isMethodClass = _topLevelClassNames.Contains(outputBuilder.Name);
 
+            if (outputBuilder is CSharpOutputBuilder csharpOutputBuilder)
+            {
+                if (!csharpOutputBuilder.Contents.Any())
+                {
+                    continue;
+                }
+            }
+            else if (outputBuilder is XmlOutputBuilder xmlOutputBuilder)
+            {
+                if (!xmlOutputBuilder.Contents.Any())
+                {
+                    continue;
+                }
+            }
+
             if (_config.GenerateMultipleFiles)
             {
                 outputPath = Path.Combine(outputPath, $"{outputBuilder.Name}{outputBuilder.Extension}");
@@ -1894,7 +1909,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     sw.WriteLine();
                 }
             }
-            else if ((outputBuilder is XmlOutputBuilder xmlOutputBuilder) && xmlOutputBuilder.Contents.Any())
+            else if (outputBuilder is XmlOutputBuilder xmlOutputBuilder)
             {
                 sw.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>");
                 sw.WriteLine("<bindings>");

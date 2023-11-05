@@ -58,6 +58,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{2F80
 		scripts\build.sh = scripts\build.sh
 		scripts\cibuild.cmd = scripts\cibuild.cmd
 		scripts\cibuild.sh = scripts\cibuild.sh
+		scripts\SignClientFileList.txt = scripts\SignClientFileList.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "packages", "packages", "{AE6CF12F-5CC3-463B-A74B-6CCAE26EE4EF}"
