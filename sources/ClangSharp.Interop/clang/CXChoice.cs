@@ -5,11 +5,9 @@
 
 namespace ClangSharp.Interop;
 
-public partial struct CXVersion
+public enum CXChoice
 {
-    public int Major;
-
-    public int Minor;
-
-    public int Subminor;
+    CXChoice_Default = 0,
+    CXChoice_Enabled = 1,
+    CXChoice_Disabled = 2,
 }

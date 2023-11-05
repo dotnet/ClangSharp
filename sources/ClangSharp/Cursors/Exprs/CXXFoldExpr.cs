@@ -24,7 +24,7 @@ public sealed class CXXFoldExpr : Expr
 
     public Expr LHS => (Expr)Children[1];
 
-    public CX_BinaryOperatorKind Operator => Handle.BinaryOperatorKind;
+    public CXBinaryOperatorKind Operator => Handle.BinaryOperatorKind;
 
     public Expr Pattern => IsLeftFold ? RHS : LHS;
 

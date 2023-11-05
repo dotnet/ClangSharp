@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(ClangSharp VERSION 16.0.6)
+project(ClangSharp VERSION 17.0.4)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

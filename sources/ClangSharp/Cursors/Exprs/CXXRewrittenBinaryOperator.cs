@@ -27,9 +27,9 @@ public sealed class CXXRewrittenBinaryOperator : Expr
 
     public static bool IsComparisonOp => true;
 
-    public CX_BinaryOperatorKind Opcode => Operator;
+    public CXBinaryOperatorKind Opcode => Operator;
 
-    public CX_BinaryOperatorKind Operator => Handle.BinaryOperatorKind;
+    public CXBinaryOperatorKind Operator => Handle.BinaryOperatorKind;
 
     public string OpcodeStr => Handle.BinaryOperatorKindSpelling.CString;
 

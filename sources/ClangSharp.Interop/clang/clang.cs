@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-16.0.6/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-17.0.4/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 using System;
@@ -151,7 +151,7 @@ public static unsafe partial class @clang
     public static extern uint getDiagnosticCategory([NativeTypeName("CXDiagnostic")] void* param0);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getDiagnosticCategoryName", ExactSpelling = true)]
-    [Obsolete("https://clang.llvm.org/doxygen/group__CINDEX__DIAG.html#gaf3d608c7860a57ce6571a3b03b4ead33")]
+    [Obsolete]
     public static extern CXString getDiagnosticCategoryName([NativeTypeName("unsigned int")] uint Category);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getDiagnosticCategoryText", ExactSpelling = true)]
@@ -390,6 +390,10 @@ public static unsafe partial class @clang
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_disposeIndex", ExactSpelling = true)]
     public static extern void disposeIndex([NativeTypeName("CXIndex")] void* index);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_createIndexWithOptions", ExactSpelling = true)]
+    [return: NativeTypeName("CXIndex")]
+    public static extern void* createIndexWithOptions([NativeTypeName("const CXIndexOptions *")] CXIndexOptions* options);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXIndex_setGlobalOptions", ExactSpelling = true)]
     public static extern void CXIndex_setGlobalOptions([NativeTypeName("CXIndex")] void* param0, [NativeTypeName("unsigned int")] uint options);
@@ -676,6 +680,10 @@ public static unsafe partial class @clang
     [return: NativeTypeName("unsigned long long")]
     public static extern ulong getEnumConstantDeclUnsignedValue(CXCursor C);
 
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_isBitField", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_isBitField(CXCursor C);
+
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getFieldDeclBitWidth", ExactSpelling = true)]
     public static extern int getFieldDeclBitWidth(CXCursor C);
 
@@ -881,10 +889,6 @@ public static unsafe partial class @clang
     [return: NativeTypeName("enum CXRefQualifierKind")]
     public static extern CXRefQualifierKind Type_getCXXRefQualifier(CXType T);
 
-    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_isBitField", ExactSpelling = true)]
-    [return: NativeTypeName("unsigned int")]
-    public static extern uint Cursor_isBitField(CXCursor C);
-
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_isVirtualBase", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint isVirtualBase(CXCursor param0);
@@ -910,6 +914,10 @@ public static unsafe partial class @clang
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_visitChildren", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint visitChildren(CXCursor parent, [NativeTypeName("CXCursorVisitor")] delegate* unmanaged[Cdecl]<CXCursor, CXCursor, void*, CXChildVisitResult> visitor, [NativeTypeName("CXClientData")] void* client_data);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_visitChildrenWithBlock", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint visitChildrenWithBlock(CXCursor parent, [NativeTypeName("CXCursorVisitorBlock")] delegate* unmanaged[Cdecl]<CXCursor, CXCursor, CXChildVisitResult> block);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCursorUSR", ExactSpelling = true)]
     public static extern CXString getCursorUSR(CXCursor param0);
@@ -1104,6 +1112,10 @@ public static unsafe partial class @clang
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXXMethod_isMoveAssignmentOperator", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint CXXMethod_isMoveAssignmentOperator(CXCursor C);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXXMethod_isExplicit", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint CXXMethod_isExplicit(CXCursor C);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXXRecord_isAbstract", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
@@ -1310,6 +1322,12 @@ public static unsafe partial class @clang
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_findIncludesInFile", ExactSpelling = true)]
     public static extern CXResult findIncludesInFile([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* TU, [NativeTypeName("CXFile")] void* file, CXCursorAndRangeVisitor visitor);
 
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_findReferencesInFileWithBlock", ExactSpelling = true)]
+    public static extern CXResult findReferencesInFileWithBlock(CXCursor param0, [NativeTypeName("CXFile")] void* param1, [NativeTypeName("CXCursorAndRangeVisitorBlock")] delegate* unmanaged[Cdecl]<CXCursor, CXSourceRange, CXVisitorResult> param2);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_findIncludesInFileWithBlock", ExactSpelling = true)]
+    public static extern CXResult findIncludesInFileWithBlock([NativeTypeName("CXTranslationUnit")] CXTranslationUnitImpl* param0, [NativeTypeName("CXFile")] void* param1, [NativeTypeName("CXCursorAndRangeVisitorBlock")] delegate* unmanaged[Cdecl]<CXCursor, CXSourceRange, CXVisitorResult> param2);
+
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_index_isEntityObjCContainerKind", ExactSpelling = true)]
     public static extern int index_isEntityObjCContainerKind(CXIdxEntityKind param0);
 
@@ -1381,17 +1399,31 @@ public static unsafe partial class @clang
     [return: NativeTypeName("unsigned int")]
     public static extern uint Type_visitFields(CXType T, [NativeTypeName("CXFieldVisitor")] delegate* unmanaged[Cdecl]<CXCursor, void*, CXVisitorResult> visitor, [NativeTypeName("CXClientData")] void* client_data);
 
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getBinaryOperatorKindSpelling", ExactSpelling = true)]
+    public static extern CXString getBinaryOperatorKindSpelling([NativeTypeName("enum CXBinaryOperatorKind")] CXBinaryOperatorKind kind);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCursorBinaryOperatorKind", ExactSpelling = true)]
+    [return: NativeTypeName("enum CXBinaryOperatorKind")]
+    public static extern CXBinaryOperatorKind getCursorBinaryOperatorKind(CXCursor cursor);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getUnaryOperatorKindSpelling", ExactSpelling = true)]
+    public static extern CXString getUnaryOperatorKindSpelling([NativeTypeName("enum CXUnaryOperatorKind")] CXUnaryOperatorKind kind);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCursorUnaryOperatorKind", ExactSpelling = true)]
+    [return: NativeTypeName("enum CXUnaryOperatorKind")]
+    public static extern CXUnaryOperatorKind getCursorUnaryOperatorKind(CXCursor cursor);
+
     [NativeTypeName("#define CINDEX_VERSION_MAJOR 0")]
     public const int CINDEX_VERSION_MAJOR = 0;
 
-    [NativeTypeName("#define CINDEX_VERSION_MINOR 63")]
-    public const int CINDEX_VERSION_MINOR = 63;
+    [NativeTypeName("#define CINDEX_VERSION_MINOR 64")]
+    public const int CINDEX_VERSION_MINOR = 64;
 
     [NativeTypeName("#define CINDEX_VERSION CINDEX_VERSION_ENCODE(CINDEX_VERSION_MAJOR, CINDEX_VERSION_MINOR)")]
-    public const int CINDEX_VERSION = (((0) * 10000) + ((63) * 1));
+    public const int CINDEX_VERSION = (((0) * 10000) + ((64) * 1));
 
     [NativeTypeName("#define CINDEX_VERSION_STRING CINDEX_VERSION_STRINGIZE(CINDEX_VERSION_MAJOR, CINDEX_VERSION_MINOR)")]
-    public static ReadOnlySpan<byte> CINDEX_VERSION_STRING => "0.63"u8;
+    public static ReadOnlySpan<byte> CINDEX_VERSION_STRING => "0.64"u8;
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_CXRewriter_create", ExactSpelling = true)]
     [return: NativeTypeName("CXRewriter")]

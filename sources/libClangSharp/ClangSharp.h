@@ -42,11 +42,6 @@ enum CX_AttrKind {
 #include <clang/Basic/AttrList.inc>
 };
 
-enum CX_BinaryOperatorKind {
-    CX_BO_Invalid,
-#define BINARY_OPERATION(Name, Spelling) CX_BO_##Name,
-#include <clang/AST/OperationKinds.def>
-};
 
 enum CX_CapturedRegionKind {
     CX_CR_Invalid,
@@ -180,12 +175,6 @@ enum CX_UnaryExprOrTypeTrait {
  #include "clang/Basic/TokenKinds.def"
 };
 
-enum CX_UnaryOperatorKind {
-    CX_UO_Invalid,
-#define UNARY_OPERATION(Name, Spelling) CX_UO_##Name,
-#include <clang/AST/OperationKinds.def>
-};
-
 enum CX_VariableCaptureKind {
     CX_VCK_Invalid,
     CX_VCK_This = clang::CapturedStmt::VCK_This + 1,
@@ -238,9 +227,7 @@ CLANGSHARP_LINKAGE CX_AttrKind clangsharp_Cursor_getAttrKind(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getBase(CXCursor C, unsigned i);
 
-CLANGSHARP_LINKAGE CX_BinaryOperatorKind clangsharp_Cursor_getBinaryOpcode(CXCursor C);
-
-CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getBinaryOpcodeSpelling(CX_BinaryOperatorKind Op);
+CLANGSHARP_LINKAGE CXBinaryOperatorKind clangsharp_Cursor_getBinaryOpcode(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getBindingDecl(CXCursor C, unsigned i);
 
@@ -715,10 +702,6 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTypedefNameForAnonDecl(CXCursor
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getTypeOperand(CXCursor C);
 
 CLANGSHARP_LINKAGE CX_UnaryExprOrTypeTrait clangsharp_Cursor_getUnaryExprOrTypeTraitKind(CXCursor C);
-
-CLANGSHARP_LINKAGE CX_UnaryOperatorKind clangsharp_Cursor_getUnaryOpcode(CXCursor C);
-
-CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getUnaryOpcodeSpelling(CX_UnaryOperatorKind Op);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getUnderlyingDecl(CXCursor C);
 

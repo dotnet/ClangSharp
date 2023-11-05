@@ -10,12 +10,12 @@ using System.Runtime.InteropServices;
 using System.Text;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
-using static ClangSharp.Interop.CX_BinaryOperatorKind;
+using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CX_CastKind;
 using static ClangSharp.Interop.CX_CharacterKind;
 using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
-using static ClangSharp.Interop.CX_UnaryOperatorKind;
+using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXEvalResultKind;
 using static ClangSharp.Interop.CXTypeKind;
 
@@ -176,7 +176,7 @@ public partial class PInvokeGenerator
                             var typeOfArgument = unaryExprOrTypeTraitExpr.TypeOfArgument;
                             var expr = callExpr.Args[0];
 
-                            if (IsStmtAsWritten<UnaryOperator>(expr, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UO_AddrOf))
+                            if (IsStmtAsWritten<UnaryOperator>(expr, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CXUnaryOperator_AddrOf))
                             {
                                 expr = unaryOperator.SubExpr;
                             }
@@ -272,7 +272,7 @@ public partial class PInvokeGenerator
                 {
                     if (IsType<ReferenceType>(callExpr, functionProtoType.ParamTypes[i]))
                     {
-                        if (IsStmtAsWritten<UnaryOperator>(arg, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CX_UO_Deref))
+                        if (IsStmtAsWritten<UnaryOperator>(arg, out var unaryOperator, removeParens: true) && (unaryOperator.Opcode == CXUnaryOperator_Deref))
                         {
                             arg = unaryOperator.SubExpr;
                         }
@@ -1052,7 +1052,7 @@ public partial class PInvokeGenerator
 
             case CX_CK_PointerToBoolean:
             {
-                if ((subExpr is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CX_UO_LNot))
+                if ((subExpr is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CXUnaryOperator_LNot))
                 {
                     Visit(subExpr);
                 }
@@ -1078,7 +1078,7 @@ public partial class PInvokeGenerator
 
             case CX_CK_IntegralToBoolean:
             {
-                if ((subExpr is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CX_UO_LNot))
+                if ((subExpr is UnaryOperator unaryOperator) && (unaryOperator.Opcode == CXUnaryOperator_LNot))
                 {
                     Visit(subExpr);
                 }
@@ -1128,7 +1128,7 @@ public partial class PInvokeGenerator
         {
             var subExpr = implicitCastExpr.SubExprAsWritten;
 
-            if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator, out _) && ((binaryOperator.Opcode == CX_BO_EQ) || (binaryOperator.Opcode == CX_BO_NE)))
+            if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator, out _) && ((binaryOperator.Opcode == CXBinaryOperator_EQ) || (binaryOperator.Opcode == CXBinaryOperator_NE)))
             {
                 Visit(subExpr);
                 subExpr = null;
@@ -2774,15 +2774,15 @@ public partial class PInvokeGenerator
         var outputBuilder = StartCSharpCode();
         switch (unaryOperator.Opcode)
         {
-            case CX_UO_PostInc:
-            case CX_UO_PostDec:
+            case CXUnaryOperator_PostInc:
+            case CXUnaryOperator_PostDec:
             {
                 Visit(unaryOperator.SubExpr);
                 outputBuilder.Write(unaryOperator.OpcodeStr);
                 break;
             }
 
-            case CX_UO_Deref:
+            case CXUnaryOperator_Deref:
             {
                 if (_topLevelClassNames.Contains(outputBuilder.Name))
                 {
@@ -2794,18 +2794,18 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_UO_PreInc:
-            case CX_UO_PreDec:
-            case CX_UO_Plus:
-            case CX_UO_Minus:
-            case CX_UO_Not:
+            case CXUnaryOperator_PreInc:
+            case CXUnaryOperator_PreDec:
+            case CXUnaryOperator_Plus:
+            case CXUnaryOperator_Minus:
+            case CXUnaryOperator_Not:
             {
                 outputBuilder.Write(unaryOperator.OpcodeStr);
                 Visit(unaryOperator.SubExpr);
                 break;
             }
 
-            case CX_UO_LNot:
+            case CXUnaryOperator_LNot:
             {
                 var subExpr = GetExprAsWritten(unaryOperator.SubExpr, removeParens: true);
 
@@ -2851,7 +2851,7 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_UO_AddrOf:
+            case CXUnaryOperator_AddrOf:
             {
                 if ((unaryOperator.SubExpr is DeclRefExpr declRefExpr) && IsType<LValueReferenceType>(declRefExpr.Decl))
                 {

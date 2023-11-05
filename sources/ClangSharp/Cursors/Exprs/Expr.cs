@@ -6,7 +6,7 @@ using ClangSharp.Interop;
 using static ClangSharp.Interop.CX_CastKind;
 using static ClangSharp.Interop.CX_ExprDependence;
 using static ClangSharp.Interop.CX_StmtClass;
-using static ClangSharp.Interop.CX_UnaryOperatorKind;
+using static ClangSharp.Interop.CXUnaryOperatorKind;
 
 namespace ClangSharp;
 
@@ -30,7 +30,7 @@ public class Expr : ValueStmt
 
         if (e is UnaryOperator uo)
         {
-            if (uo.Opcode == CX_UO_Extension)
+            if (uo.Opcode == CXUnaryOperator_Extension)
             {
                 return uo.SubExpr;
             }
@@ -104,7 +104,7 @@ public class Expr : ValueStmt
 
                 if (e is UnaryOperator unOp)
                 {
-                    if (unOp.Opcode == CX_UO_Extension)
+                    if (unOp.Opcode == CXUnaryOperator_Extension)
                     {
                         e = unOp.SubExpr;
                         continue;

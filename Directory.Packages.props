@@ -12,8 +12,8 @@
 
   <!-- Package versions for package references across all projects -->
   <ItemGroup>
-    <PackageVersion Include="libClang" Version="16.0.6" />
-    <PackageVersion Include="libClangSharp" Version="16.0.6" />
+    <PackageVersion Include="libClang" Version="17.0.4" />
+    <PackageVersion Include="libClangSharp" Version="17.0.4" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
     <PackageVersion Include="NUnit" Version="3.13.3" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />

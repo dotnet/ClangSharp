@@ -4,11 +4,11 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using static ClangSharp.Interop.CX_AttrKind;
-using static ClangSharp.Interop.CX_BinaryOperatorKind;
+using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CX_CastKind;
 using static ClangSharp.Interop.CX_DeclKind;
 using static ClangSharp.Interop.CX_StmtClass;
-using static ClangSharp.Interop.CX_UnaryOperatorKind;
+using static ClangSharp.Interop.CXUnaryOperatorKind;
 
 namespace ClangSharp.Interop;
 
@@ -35,7 +35,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             Debug.Assert(CX_AttrKind_LastAttr == CX_AttrKind_Thread);
 
             Debug.Assert(CX_AttrKind_FirstTypeAttr == CX_AttrKind_AddressSpace);
-            Debug.Assert(CX_AttrKind_LastTypeAttr == CX_AttrKind_UPtr);
+            Debug.Assert(CX_AttrKind_LastTypeAttr == CX_AttrKind_WebAssemblyFuncref);
 
             Debug.Assert(CX_AttrKind_FirstStmtAttr == CX_AttrKind_FallThrough);
             Debug.Assert(CX_AttrKind_LastStmtAttr == CX_AttrKind_Unlikely);
@@ -63,6 +63,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_AddressSpace => "AddressSpace",
                 CX_AttrKind_AnnotateType => "AnnotateType",
                 CX_AttrKind_ArmMveStrictPolymorphism => "ArmMveStrictPolymorphism",
+                CX_AttrKind_ArmStreaming => "CX_AttrKind_ArmStreaming",
                 CX_AttrKind_BTFTypeTag => "BTFTypeTag",
                 CX_AttrKind_CmseNSCall => "CmseNSCall",
                 CX_AttrKind_HLSLGroupSharedAddressSpace => "HLSLGroupSharedAddressSpace",
@@ -85,6 +86,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_TypeNullable => "TypeNullable",
                 CX_AttrKind_TypeNullableResult => "TypeNullableResult",
                 CX_AttrKind_UPtr => "UPtr",
+                CX_AttrKind_WebAssemblyFuncref => "WebAssemblyFuncref",
                 CX_AttrKind_FallThrough => "FallThrough",
                 CX_AttrKind_Likely => "Likely",
                 CX_AttrKind_MustTail => "MustTail",
@@ -162,6 +164,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_AssumeAligned => "AssumeAligned",
                 CX_AttrKind_Assumption => "Assumption",
                 CX_AttrKind_Availability => "Availability",
+                CX_AttrKind_AvailableOnlyInDefaultEvalMethod => "AvailableOnlyInDefaultEvalMethod",
                 CX_AttrKind_BPFPreserveAccessIndex => "BPFPreserveAccessIndex",
                 CX_AttrKind_BTFDeclTag => "BTFDeclTag",
                 CX_AttrKind_Blocks => "Blocks",
@@ -267,6 +270,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_NSErrorDomain => "NSErrorDomain",
                 CX_AttrKind_NSReturnsAutoreleased => "NSReturnsAutoreleased",
                 CX_AttrKind_NSReturnsNotRetained => "NSReturnsNotRetained",
+                CX_AttrKind_NVPTXKernel => "NVPTXKernel",
                 CX_AttrKind_Naked => "Naked",
                 CX_AttrKind_NoAlias => "NoAlias",
                 CX_AttrKind_NoCommon => "NoCommon",
@@ -378,6 +382,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_TypeVisibility => "TypeVisibility",
                 CX_AttrKind_Unavailable => "Unavailable",
                 CX_AttrKind_Uninitialized => "Uninitialized",
+                CX_AttrKind_UnsafeBufferUsage => "UnsafeBufferUsage",
                 CX_AttrKind_Unused => "Unused",
                 CX_AttrKind_Used => "Used",
                 CX_AttrKind_UsingIfExists => "UsingIfExists",
@@ -434,9 +439,9 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXAvailabilityKind Availability => clang.getCursorAvailability(this);
 
-    public readonly CX_BinaryOperatorKind BinaryOperatorKind => clangsharp.Cursor_getBinaryOpcode(this);
+    public readonly CXBinaryOperatorKind BinaryOperatorKind => clangsharp.Cursor_getBinaryOpcode(this);
 
-    public readonly CXString BinaryOperatorKindSpelling => clangsharp.Cursor_getBinaryOpcodeSpelling(BinaryOperatorKind);
+    public readonly CXString BinaryOperatorKindSpelling => clang.getBinaryOperatorKindSpelling(BinaryOperatorKind);
 
     public readonly CXCursor BindingExpr => clangsharp.Cursor_getBindingExpr(this);
 
@@ -1576,9 +1581,9 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CX_UnaryExprOrTypeTrait UnaryExprOrTypeTraitKind => clangsharp.Cursor_getUnaryExprOrTypeTraitKind(this);
 
-    public readonly CX_UnaryOperatorKind UnaryOperatorKind => clangsharp.Cursor_getUnaryOpcode(this);
+    public readonly CXUnaryOperatorKind UnaryOperatorKind => clang.getCursorUnaryOperatorKind(this);
 
-    public readonly CXString UnaryOperatorKindSpelling => clangsharp.Cursor_getUnaryOpcodeSpelling(UnaryOperatorKind);
+    public readonly CXString UnaryOperatorKindSpelling => clang.getUnaryOperatorKindSpelling(UnaryOperatorKind);
 
     public readonly CXCursor UnderlyingDecl => clangsharp.Cursor_getUnderlyingDecl(this);
 
@@ -1608,7 +1613,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             {
                 var additionalInfo = string.Empty;
 
-                if (BinaryOperatorKind != CX_BO_Invalid)
+                if (BinaryOperatorKind != CXBinaryOperator_Invalid)
                 {
                     additionalInfo = $" ({BinaryOperatorKindSpelling})";
                 }
@@ -1616,7 +1621,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 {
                     additionalInfo = $" ({CastKindSpelling})";
                 }
-                else if (UnaryOperatorKind != CX_UO_Invalid)
+                else if (UnaryOperatorKind != CXUnaryOperator_Invalid)
                 {
                     additionalInfo = $" ({UnaryOperatorKindSpelling})";
                 }

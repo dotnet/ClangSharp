@@ -4,7 +4,7 @@ using System.Diagnostics;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_StmtClass;
-using static ClangSharp.Interop.CX_UnaryOperatorKind;
+using static ClangSharp.Interop.CXUnaryOperatorKind;
 
 namespace ClangSharp;
 
@@ -15,19 +15,19 @@ public sealed class UnaryOperator : Expr
         Debug.Assert(NumChildren is 1);
     }
 
-    public bool IsArithmetic => Opcode is >= CX_UO_Plus and <= CX_UO_LNot;
+    public bool IsArithmetic => Opcode is >= CXUnaryOperator_Plus and <= CXUnaryOperator_LNot;
 
-    public bool IsDecrementOp => Opcode is CX_UO_PreDec or CX_UO_PostDec;
+    public bool IsDecrementOp => Opcode is CXUnaryOperator_PreDec or CXUnaryOperator_PostDec;
 
-    public bool IsIncrementOp => Opcode is CX_UO_PreInc or CX_UO_PostInc;
+    public bool IsIncrementOp => Opcode is CXUnaryOperator_PreInc or CXUnaryOperator_PostInc;
 
-    public bool IsIncrementDecrementOp => Opcode <= CX_UO_PreDec;
+    public bool IsIncrementDecrementOp => Opcode <= CXUnaryOperator_PreDec;
 
-    public bool IsPrefix => Opcode is CX_UO_PreInc or CX_UO_PreDec;
+    public bool IsPrefix => Opcode is CXUnaryOperator_PreInc or CXUnaryOperator_PreDec;
 
-    public bool IsPostfix => Opcode is CX_UO_PostInc or CX_UO_PostDec;
+    public bool IsPostfix => Opcode is CXUnaryOperator_PostInc or CXUnaryOperator_PostDec;
 
-    public CX_UnaryOperatorKind Opcode => Handle.UnaryOperatorKind;
+    public CXUnaryOperatorKind Opcode => Handle.UnaryOperatorKind;
 
     public string OpcodeStr => Handle.UnaryOperatorKindSpelling.ToString();
 

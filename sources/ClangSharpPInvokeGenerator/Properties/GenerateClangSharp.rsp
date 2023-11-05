@@ -1,5 +1,6 @@
 --additional
 -m64
+-std=c++17
 --config
 exclude-com-proxies
 exclude-empty-records

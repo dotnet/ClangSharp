@@ -15,7 +15,7 @@ using static ClangSharp.Interop.CX_DeclKind;
 using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CX_StorageClass;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
-using static ClangSharp.Interop.CX_UnaryOperatorKind;
+using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXEvalResultKind;
 using static ClangSharp.Interop.CXTypeKind;
 
@@ -3894,7 +3894,7 @@ public partial class PInvokeGenerator
             {
                 var unaryOperator = (UnaryOperator)initExpr;
                 return IsConstant(targetTypeName, unaryOperator.SubExpr)
-                    && ((unaryOperator.Opcode != CX_UO_Minus) || (targetTypeName is not "IntPtr" and not "nint" and not "nuint" and not "UIntPtr"));
+                    && ((unaryOperator.Opcode != CXUnaryOperator_Minus) || (targetTypeName is not "IntPtr" and not "nint" and not "nuint" and not "UIntPtr"));
             }
 
             // case CX_StmtClass_VAArgExpr:
