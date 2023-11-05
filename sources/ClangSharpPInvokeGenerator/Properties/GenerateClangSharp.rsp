@@ -1,11 +1,13 @@
+--additional
+-m64
 --config
-compatible-codegen
 exclude-com-proxies
 exclude-empty-records
 exclude-enum-operators
 generate-aggressive-inlining
+generate-callconv-member-function
 generate-cpp-attributes
-generate-macro-bindings
+generate-disable-runtime-marshalling
 generate-file-scoped-namespaces
 generate-guid-member
 generate-macro-bindings
@@ -32,9 +34,9 @@ clangsharp
 ClangSharp.Interop
 --output
 ./sources/ClangSharp/Interop
+--prefixStrip
+clangsharp_
 --remap
 MSGuidDeclParts=Guid
 --test-output
 ./tests/ClangSharp.UnitTests/InteropTests
---prefixStrip
-clangsharp_

@@ -1,11 +1,13 @@
+--additional
+-m64
 --config
-compatible-codegen
 exclude-com-proxies
 exclude-empty-records
 exclude-enum-operators
 generate-aggressive-inlining
+generate-callconv-member-function
 generate-cpp-attributes
-generate-macro-bindings
+generate-disable-runtime-marshalling
 generate-file-scoped-namespaces
 generate-guid-member
 generate-macro-bindings
@@ -46,7 +48,7 @@ clang
 ClangSharp.Interop
 --output
 ./sources/ClangSharp/Interop
---test-output
-./tests/ClangSharp.UnitTests/InteropTests
 --prefixStrip
 clang_
+--test-output
+./tests/ClangSharp.UnitTests/InteropTests

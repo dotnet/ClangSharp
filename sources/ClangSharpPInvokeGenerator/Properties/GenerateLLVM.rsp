@@ -1,11 +1,13 @@
+--additional
+-m64
 --config
-compatible-codegen
 exclude-com-proxies
 exclude-empty-records
 exclude-enum-operators
 generate-aggressive-inlining
+generate-callconv-member-function
 generate-cpp-attributes
-generate-macro-bindings
+generate-disable-runtime-marshalling
 generate-file-scoped-namespaces
 generate-guid-member
 generate-macro-bindings
@@ -44,7 +46,6 @@ llvm-c/Error.h
 llvm-c/ErrorHandling.h
 llvm-c/ExecutionEngine.h
 llvm-c/ExternC.h
-llvm-c/Initialization.h
 llvm-c/IRReader.h
 llvm-c/Linker.h
 llvm-c/LLJIT.h
@@ -57,13 +58,7 @@ llvm-c/Support.h
 llvm-c/Target.h
 llvm-c/TargetMachine.h
 llvm-c/Types.h
-llvm-c/Transforms/InstCombine.h
-llvm-c/Transforms/IPO.h
 llvm-c/Transforms/PassBuilder.h
-llvm-c/Transforms/PassManagerBuilder.h
-llvm-c/Transforms/Scalar.h
-llvm-c/Transforms/Utils.h
-llvm-c/Transforms/Vectorize.h
 --headerFile
 ./Properties/GenerateLLVM-LICENSE.txt
 --methodClassName
@@ -72,8 +67,6 @@ LLVM
 LLVMSharp.Interop
 --output
 ./sources/LLVMSharp/Interop
---test-output
-./tests/LLVMSharp.UnitTests/Interop
 --prefixStrip
 LLVM
 --remap
@@ -95,6 +88,8 @@ llvm_blake3_version=@blake3_version
 LLVM_BLAKE3_VERSION_STRING=@BLAKE3_VERSION_STRING
 __AnonymousEnum_Core_L463_C1=@LLVMAttributeIndex
 __AnonymousEnum_DebugInfo_L146_C1=@LLVMMetadataKind
+--test-output
+./tests/LLVMSharp.UnitTests/Interop
 --with-attribute
 LLVMDIFlags=Flags
 LLVMJITSymbolGenericFlags=Flags
