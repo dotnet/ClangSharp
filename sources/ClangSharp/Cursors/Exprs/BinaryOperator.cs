@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
-using static ClangSharp.Interop.CX_BinaryOperatorKind;
+using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
@@ -25,35 +25,35 @@ public class BinaryOperator : Expr
         Debug.Assert(NumChildren is 2);
     }
 
-    public bool IsAdditiveOp => Opcode is CX_BO_Add or CX_BO_Sub;
+    public bool IsAdditiveOp => Opcode is CXBinaryOperator_Add or CXBinaryOperator_Sub;
 
-    public bool IsAssignmentOp => Opcode is >= CX_BO_Assign and <= CX_BO_OrAssign;
+    public bool IsAssignmentOp => Opcode is >= CXBinaryOperator_Assign and <= CXBinaryOperator_OrAssign;
 
-    public bool IsBitwiseOp => Opcode is >= CX_BO_And and <= CX_BO_Or;
+    public bool IsBitwiseOp => Opcode is >= CXBinaryOperator_And and <= CXBinaryOperator_Or;
 
-    public bool IsCommaOp => Opcode == CX_BO_Comma;
+    public bool IsCommaOp => Opcode == CXBinaryOperator_Comma;
 
-    public bool IsComparisonOp => Opcode is >= CX_BO_Cmp and <= CX_BO_NE;
+    public bool IsComparisonOp => Opcode is >= CXBinaryOperator_Cmp and <= CXBinaryOperator_NE;
 
-    public bool IsCompoundAssignmentOp=> Opcode is > CX_BO_Assign and <= CX_BO_OrAssign;
+    public bool IsCompoundAssignmentOp=> Opcode is > CXBinaryOperator_Assign and <= CXBinaryOperator_OrAssign;
 
-    public bool IsEqualityOp => Opcode is CX_BO_EQ or CX_BO_NE;
+    public bool IsEqualityOp => Opcode is CXBinaryOperator_EQ or CXBinaryOperator_NE;
 
-    public bool IsLogicalOp => Opcode is CX_BO_LAnd or CX_BO_LOr;
+    public bool IsLogicalOp => Opcode is CXBinaryOperator_LAnd or CXBinaryOperator_LOr;
 
-    public bool IsMultiplicativeOp => Opcode is >= CX_BO_Mul and <= CX_BO_Rem;
+    public bool IsMultiplicativeOp => Opcode is >= CXBinaryOperator_Mul and <= CXBinaryOperator_Rem;
 
-    public bool IsPtrMemOp => Opcode is CX_BO_PtrMemD or CX_BO_PtrMemI;
+    public bool IsPtrMemOp => Opcode is CXBinaryOperator_PtrMemD or CXBinaryOperator_PtrMemI;
 
-    public bool IsRelationalOp => Opcode is >= CX_BO_LT and <= CX_BO_GE;
+    public bool IsRelationalOp => Opcode is >= CXBinaryOperator_LT and <= CXBinaryOperator_GE;
 
-    public bool IsShiftAssignOp=> Opcode is CX_BO_ShlAssign or CX_BO_ShrAssign;
+    public bool IsShiftAssignOp=> Opcode is CXBinaryOperator_ShlAssign or CXBinaryOperator_ShrAssign;
 
-    public bool IsShiftOp => Opcode is CX_BO_Shl or CX_BO_Shr;
+    public bool IsShiftOp => Opcode is CXBinaryOperator_Shl or CXBinaryOperator_Shr;
 
     public Expr LHS => (Expr)Children[0];
 
-    public CX_BinaryOperatorKind Opcode => Handle.BinaryOperatorKind;
+    public CXBinaryOperatorKind Opcode => Handle.BinaryOperatorKind;
 
     public string OpcodeStr => Handle.BinaryOperatorKindSpelling.CString;
 

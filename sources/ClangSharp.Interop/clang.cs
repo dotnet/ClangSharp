@@ -3,7 +3,10 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+[assembly: DisableRuntimeMarshalling]
 
 namespace ClangSharp.Interop;
 
@@ -38,8 +41,8 @@ public static unsafe partial class @clang
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            return NativeLibrary.TryLoad("libclang.so.16", assembly, searchPath, out nativeLibrary)
-                || NativeLibrary.TryLoad("libclang-16", assembly, searchPath, out nativeLibrary)
+            return NativeLibrary.TryLoad("libclang.so.17", assembly, searchPath, out nativeLibrary)
+                || NativeLibrary.TryLoad("libclang-17", assembly, searchPath, out nativeLibrary)
                 || NativeLibrary.TryLoad("libclang.so.1", assembly, searchPath, out nativeLibrary);
         }
 

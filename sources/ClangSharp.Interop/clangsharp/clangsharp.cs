@@ -37,10 +37,7 @@ public static partial class @clangsharp
     public static extern CXCursor Cursor_getBase(CXCursor C, [NativeTypeName("unsigned int")] uint i);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getBinaryOpcode", ExactSpelling = true)]
-    public static extern CX_BinaryOperatorKind Cursor_getBinaryOpcode(CXCursor C);
-
-    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getBinaryOpcodeSpelling", ExactSpelling = true)]
-    public static extern CXString Cursor_getBinaryOpcodeSpelling(CX_BinaryOperatorKind Op);
+    public static extern CXBinaryOperatorKind Cursor_getBinaryOpcode(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getBindingDecl", ExactSpelling = true)]
     public static extern CXCursor Cursor_getBindingDecl(CXCursor C, [NativeTypeName("unsigned int")] uint i);
@@ -856,12 +853,6 @@ public static partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUnaryExprOrTypeTraitKind", ExactSpelling = true)]
     public static extern CX_UnaryExprOrTypeTrait Cursor_getUnaryExprOrTypeTraitKind(CXCursor C);
-
-    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUnaryOpcode", ExactSpelling = true)]
-    public static extern CX_UnaryOperatorKind Cursor_getUnaryOpcode(CXCursor C);
-
-    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUnaryOpcodeSpelling", ExactSpelling = true)]
-    public static extern CXString Cursor_getUnaryOpcodeSpelling(CX_UnaryOperatorKind Op);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUnderlyingDecl", ExactSpelling = true)]
     public static extern CXCursor Cursor_getUnderlyingDecl(CXCursor C);

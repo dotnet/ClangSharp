@@ -307,33 +307,16 @@ CXCursor clangsharp_Cursor_getBase(CXCursor C, unsigned i) {
     return clang_getNullCursor();
 }
 
-CX_BinaryOperatorKind clangsharp_Cursor_getBinaryOpcode(CXCursor C) {
+CXBinaryOperatorKind clangsharp_Cursor_getBinaryOpcode(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
 
-        if (const BinaryOperator* BO = dyn_cast<BinaryOperator>(S)) {
-            return static_cast<CX_BinaryOperatorKind>(BO->getOpcode() + 1);
-        }
-
         if (const CXXFoldExpr* CFE = dyn_cast<CXXFoldExpr>(S)) {
-            return static_cast<CX_BinaryOperatorKind>(CFE->getOperator() + 1);
-        }
-
-        if (const CXXRewrittenBinaryOperator* CRBO = dyn_cast<CXXRewrittenBinaryOperator>(S)) {
-            return static_cast<CX_BinaryOperatorKind>(CRBO->getOperator() + 1);
+            return static_cast<CXBinaryOperatorKind>(CFE->getOperator() + 1);
         }
     }
 
-    return CX_BO_Invalid;
-}
-
-CXString clangsharp_Cursor_getBinaryOpcodeSpelling(CX_BinaryOperatorKind Op) {
-    if (Op != CX_BO_Invalid) {
-        return createDup(
-            BinaryOperator::getOpcodeStr(static_cast<BinaryOperatorKind>(Op - 1)));
-    }
-
-    return createEmpty();
+    return clang_getCursorBinaryOperatorKind(C);
 }
 
 CXCursor clangsharp_Cursor_getBindingDecl(CXCursor C, unsigned i) {
@@ -4701,26 +4684,6 @@ CX_UnaryExprOrTypeTrait clangsharp_Cursor_getUnaryExprOrTypeTraitKind(CXCursor C
     return CX_UETT_Invalid;
 }
 
-CX_UnaryOperatorKind clangsharp_Cursor_getUnaryOpcode(CXCursor C) {
-    if (isStmtOrExpr(C.kind)) {
-        const Stmt* S = getCursorStmt(C);
-        if (const UnaryOperator* UnOp = dyn_cast<UnaryOperator>(S)) {
-            return static_cast<CX_UnaryOperatorKind>(UnOp->getOpcode() + 1);
-        }
-    }
-
-    return CX_UO_Invalid;
-}
-
-CXString clangsharp_Cursor_getUnaryOpcodeSpelling(CX_UnaryOperatorKind Op) {
-    if (Op != CX_UO_Invalid) {
-        return createDup(
-            UnaryOperator::getOpcodeStr(static_cast<UnaryOperatorKind>(Op - 1)));
-    }
-
-    return createEmpty();
-}
-
 CXCursor clangsharp_Cursor_getUnderlyingDecl(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -4813,7 +4776,7 @@ int64_t clangsharp_Cursor_getVtblIdx(CXCursor C) {
 }
 
 CXString clangsharp_getVersion() {
-    return cxstring::createDup("clangsharp version 16.0.6");
+    return cxstring::createDup("clangsharp version 17.0.4");
 }
 
 void clangsharp_TemplateArgument_dispose(CX_TemplateArgument T) {

@@ -5,11 +5,21 @@
 
 namespace ClangSharp.Interop;
 
-public partial struct CXVersion
+public enum CXUnaryOperatorKind
 {
-    public int Major;
-
-    public int Minor;
-
-    public int Subminor;
+    CXUnaryOperator_Invalid,
+    CXUnaryOperator_PostInc,
+    CXUnaryOperator_PostDec,
+    CXUnaryOperator_PreInc,
+    CXUnaryOperator_PreDec,
+    CXUnaryOperator_AddrOf,
+    CXUnaryOperator_Deref,
+    CXUnaryOperator_Plus,
+    CXUnaryOperator_Minus,
+    CXUnaryOperator_Not,
+    CXUnaryOperator_LNot,
+    CXUnaryOperator_Real,
+    CXUnaryOperator_Imag,
+    CXUnaryOperator_Extension,
+    CXUnaryOperator_Coawait,
 }

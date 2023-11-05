@@ -15,11 +15,11 @@ using ClangSharp.CSharp;
 using ClangSharp.Interop;
 using ClangSharp.XML;
 using static ClangSharp.Interop.CX_AttrKind;
-using static ClangSharp.Interop.CX_BinaryOperatorKind;
+using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
 using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
-using static ClangSharp.Interop.CX_UnaryOperatorKind;
+using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXCallingConv;
 using static ClangSharp.Interop.CXDiagnosticSeverity;
 using static ClangSharp.Interop.CXEvalResultKind;
@@ -37,8 +37,8 @@ public sealed partial class PInvokeGenerator : IDisposable
     private static readonly string[] s_doubleColonSeparator = ["::"];
     private static readonly char[] s_doubleQuoteSeparator = ['"'];
 
-    private const string ExpectedClangVersion = "version 16.0";
-    private const string ExpectedClangSharpVersion = "version 16.0";
+    private const string ExpectedClangVersion = "version 17.0";
+    private const string ExpectedClangSharpVersion = "version 17.0";
 
     private readonly CXIndex _index;
     private readonly OutputBuilderFactory _outputBuilderFactory;
@@ -322,6 +322,21 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             var outputPath = outputBuilder.IsTestOutput ? _config.TestOutputLocation : _config.OutputLocation;
             var isMethodClass = _topLevelClassNames.Contains(outputBuilder.Name);
+
+            if (outputBuilder is CSharpOutputBuilder csharpOutputBuilder)
+            {
+                if (!csharpOutputBuilder.Contents.Any())
+                {
+                    continue;
+                }
+            }
+            else if (outputBuilder is XmlOutputBuilder xmlOutputBuilder)
+            {
+                if (!xmlOutputBuilder.Contents.Any())
+                {
+                    continue;
+                }
+            }
 
             if (_config.GenerateMultipleFiles)
             {
@@ -1894,7 +1909,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     sw.WriteLine();
                 }
             }
-            else if ((outputBuilder is XmlOutputBuilder xmlOutputBuilder) && xmlOutputBuilder.Contents.Any())
+            else if (outputBuilder is XmlOutputBuilder xmlOutputBuilder)
             {
                 sw.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>");
                 sw.WriteLine("<bindings>");
@@ -5674,12 +5689,12 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 switch (unaryOperator.Opcode)
                 {
-                    case CX_UO_Minus:
+                    case CXUnaryOperator_Minus:
                     {
                         return IsUnsigned(targetTypeName);
                     }
 
-                    case CX_UO_Not:
+                    case CXUnaryOperator_Not:
                     {
                         return IsUnsigned(targetTypeName) != IsUnsigned(sourceTypeName);
                     }
@@ -5748,14 +5763,14 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             switch (binaryOperator.Opcode)
             {
-                case CX_BO_Add:
+                case CXBinaryOperator_Add:
                 {
                     return isUnsigned
                         ? (ulong)lhsValue + (ulong)rhsValue < (ulong)lhsValue
                         : lhsValue + rhsValue < lhsValue;
                 }
 
-                case CX_BO_Sub:
+                case CXBinaryOperator_Sub:
                 {
                     return isUnsigned
                         ? (ulong)lhsValue - (ulong)rhsValue > (ulong)lhsValue

@@ -12,14 +12,12 @@
 
   <!-- Package versions for package references across all projects -->
   <ItemGroup>
-    <PackageVersion Include="libClang" Version="16.0.6" />
-    <PackageVersion Include="libClangSharp" Version="16.0.6" />
-    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
-    <PackageVersion Include="NUnit" Version="3.13.3" />
+    <PackageVersion Include="libClang" Version="17.0.4" />
+    <PackageVersion Include="libClangSharp" Version="17.0.4" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageVersion Include="NUnit" Version="3.14.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
-    <PackageVersion Include="System.Memory" Version="4.5.5" />
   </ItemGroup>
 
 </Project>

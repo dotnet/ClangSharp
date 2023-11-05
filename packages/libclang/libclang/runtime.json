@@ -2,37 +2,32 @@
   "runtimes": {
     "linux-arm64": {
       "libclang": {
-        "libclang.runtime.linux-arm64": "16.0.6"
+        "libclang.runtime.linux-arm64": "17.0.4"
       }
     },
     "linux-x64": {
       "libclang": {
-        "libclang.runtime.linux-x64": "16.0.6"
+        "libclang.runtime.linux-x64": "17.0.4"
       }
     },
     "osx-arm64": {
       "libclang": {
-        "libclang.runtime.osx-arm64": "16.0.6"
+        "libclang.runtime.osx-arm64": "17.0.4"
       }
     },
     "osx-x64": {
       "libclang": {
-        "libclang.runtime.osx-x64": "16.0.6"
+        "libclang.runtime.osx-x64": "17.0.4"
       }
     },
     "win-arm64": {
       "libclang": {
-        "libclang.runtime.win-arm64": "16.0.6"
+        "libclang.runtime.win-arm64": "17.0.4"
       }
     },
     "win-x64": {
       "libclang": {
-        "libclang.runtime.win-x64": "16.0.6"
-      }
-    },
-    "win-x86": {
-      "libclang": {
-        "libclang.runtime.win-x86": "16.0.6"
+        "libclang.runtime.win-x64": "17.0.4"
       }
     }
   }

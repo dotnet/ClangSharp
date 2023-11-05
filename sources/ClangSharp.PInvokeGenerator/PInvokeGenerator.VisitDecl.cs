@@ -15,7 +15,7 @@ using static ClangSharp.Interop.CX_DeclKind;
 using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CX_StorageClass;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
-using static ClangSharp.Interop.CX_UnaryOperatorKind;
+using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXEvalResultKind;
 using static ClangSharp.Interop.CXTypeKind;
 
@@ -1357,20 +1357,7 @@ public partial class PInvokeGenerator
 
             var isTopLevelStruct = _config.WithTypes.TryGetValue(name, out var withType) && withType.Equals("struct", StringComparison.Ordinal);
             var generateTestsClass = !recordDecl.IsAnonymousStructOrUnion && recordDecl.DeclContext is not RecordDecl;
-
-            if ((_testOutputBuilder is not null) && generateTestsClass && !isTopLevelStruct)
-            {
-                _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=\"");
-                _testOutputBuilder.Write(escapedName);
-                _testOutputBuilder.WriteLine("\" /> struct.</summary>");
-
-                WithAttributes(recordDecl, onlySupportedOSPlatform: true, isTestOutput: true);
-
-                _testOutputBuilder.WriteIndented("public static unsafe partial class ");
-                _testOutputBuilder.Write(escapedName);
-                _testOutputBuilder.WriteLine("Tests");
-                _testOutputBuilder.WriteBlockStart();
-            }
+            var testOutputStarted = false;
 
             var nullableUuid = (Guid?)null;
             var uuidName = "";
@@ -1384,6 +1371,8 @@ public partial class PInvokeGenerator
 
                 if ((_testOutputBuilder is not null) && (uuid != Guid.Empty))
                 {
+                    StartTestOutput(ref testOutputStarted, generateTestsClass, isTopLevelStruct);
+
                     var className = GetClass(uuidName);
 
                     _testOutputBuilder.AddUsingDirective("System");
@@ -1676,6 +1665,8 @@ public partial class PInvokeGenerator
 
             if ((_testOutputBuilder is not null) && generateTestsClass && !_config.GenerateDisableRuntimeMarshalling)
             {
+                StartTestOutput(ref testOutputStarted, generateTestsClass, isTopLevelStruct);
+
                 _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"");
                 _testOutputBuilder.Write(escapedName);
                 _testOutputBuilder.WriteLine("\" /> struct is blittable.</summary>");
@@ -1857,7 +1848,7 @@ public partial class PInvokeGenerator
             {
                 _outputBuilder.EndStruct(in desc);
 
-                if ((_testOutputBuilder is not null) && generateTestsClass)
+                if ((_testOutputBuilder is not null) && generateTestsClass && testOutputStarted)
                 {
                     _testOutputBuilder.WriteBlockEnd();
                 }
@@ -3125,6 +3116,25 @@ public partial class PInvokeGenerator
 
             _outputBuilder.EndStruct(in desc);
         }
+
+        void StartTestOutput(ref bool testOutputStarted, bool generateTestsClass, bool isTopLevelStruct)
+        {
+            if ((_testOutputBuilder is not null) && generateTestsClass && !isTopLevelStruct && !testOutputStarted)
+            {
+                _testOutputBuilder.WriteIndented("/// <summary>Provides validation of the <see cref=\"");
+                _testOutputBuilder.Write(escapedName);
+                _testOutputBuilder.WriteLine("\" /> struct.</summary>");
+
+                WithAttributes(recordDecl, onlySupportedOSPlatform: true, isTestOutput: true);
+
+                _testOutputBuilder.WriteIndented("public static unsafe partial class ");
+                _testOutputBuilder.Write(escapedName);
+                _testOutputBuilder.WriteLine("Tests");
+                _testOutputBuilder.WriteBlockStart();
+
+                testOutputStarted = true;
+            }
+        }
     }
 
     private void VisitTranslationUnitDecl(TranslationUnitDecl translationUnitDecl)
@@ -3894,7 +3904,7 @@ public partial class PInvokeGenerator
             {
                 var unaryOperator = (UnaryOperator)initExpr;
                 return IsConstant(targetTypeName, unaryOperator.SubExpr)
-                    && ((unaryOperator.Opcode != CX_UO_Minus) || (targetTypeName is not "IntPtr" and not "nint" and not "nuint" and not "UIntPtr"));
+                    && ((unaryOperator.Opcode != CXUnaryOperator_Minus) || (targetTypeName is not "IntPtr" and not "nint" and not "nuint" and not "UIntPtr"));
             }
 
             // case CX_StmtClass_VAArgExpr:

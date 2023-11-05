@@ -63,6 +63,7 @@ public enum CX_AtomicOperatorKind
     CX_AO__hip_atomic_compare_exchange_strong,
     CX_AO__hip_atomic_exchange,
     CX_AO__hip_atomic_fetch_add,
+    CX_AO__hip_atomic_fetch_sub,
     CX_AO__hip_atomic_fetch_and,
     CX_AO__hip_atomic_fetch_or,
     CX_AO__hip_atomic_fetch_xor,

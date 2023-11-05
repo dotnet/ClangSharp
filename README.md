@@ -13,7 +13,7 @@ A convenience package which provides the native libClang library for several pla
 
 A helper package which exposes many Clang APIs missing from libClang is provided here: https://www.nuget.org/packages/libClangSharp
 
-**NOTE:** libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/16.0.6); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
+**NOTE:** libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/17.0.4); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
 
 Nightly packages are available via the NuGet Feed URL: https://pkgs.clangsharp.dev/index.json
 
@@ -71,45 +71,60 @@ You can see any additional options that are available by passing `-help` on Wind
 ClangSharp provides a helper library, `libClangSharp`, that exposes additional functionality that is not available in `libClang`.
 Building this requires [CMake 3.13 or later](https://cmake.org/download/) as well as a version of MSVC or Clang that supports C++ 17.
 
-To succesfully build `libClangSharp` you must first build Clang (https://clang.llvm.org/get_started.html). The process done on Windows is roughly:
+To successfully build `libClangSharp` you must first build Clang (https://clang.llvm.org/get_started.html).
+
+#### Windows
+
+The process done on Windows is roughly:
 ```cmd
-git clone --single-branch --branch llvmorg-16.0.6 https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-17.0.4 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir artifacts/bin
 cd artifacts/bin
-cmake -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_INSTALL_PREFIX=../install -G "Visual Studio 16 2019" -A x64 -Thost=x64 ../../llvm
+cmake -DCMAKE_INSTALL_PREFIX=../install -DLLVM_ENABLE_PROJECTS=clang -G "Visual Studio 17 2022" -A x64 -Thost=x64 ../../llvm
 ```
 
 You can then open `LLVM.sln` in Visual Studio, change the configuration to `Release` and build the `install` project.
+
 Afterwards, you can then build `libClangSharp` where the process followed is roughly:
 ```cmd
 git clone https://github.com/dotnet/clangsharp
 cd clangsharp
 mkdir artifacts/bin/native
 cd artifacts/bin/native
-cmake -DPATH_TO_LLVM=../../../../llvm-project/artifacts/install/ -G "Visual Studio 16 2019" -A x64 -Thost=x64 ../../..
+cmake -DCMAKE_INSTALL_PREFIX=../install -DPATH_TO_LLVM=../../../../llvm-project/artifacts/install -G "Visual Studio 17 2022" -A x64 -Thost=x64 ../../..
 ```
 
-You can then open `libClangSharp.sln` in Visual Studio, change the configuration to `Release` and build the `ALL_BUILD` project.
+You can then open `libClangSharp.sln` in Visual Studio, change the configuration to `Release` and build the `install` project.
 
-If you building on Linux
+#### Linux
+
+The process done on Linux is roughly:
+```bash
+git clone --single-branch --branch llvmorg-17.0.4 https://github.com/llvm/llvm-project
+cd llvm-project
+mkdir -p artifacts/bin
+cd artifacts/bin
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install -DLLVM_ENABLE_PROJECTS=clang ../../llvm
+make install
 ```
+
+If you want your Linux build to be portable, you may also consider specifying the following options:
+* `-DLLVM_ENABLE_TERMINFO=OFF`
+* `-DLLVM_ENABLE_ZLIB=OFF`
+* `-DLLVM_ENABLE_ZSTD=OFF`
+* `-DLLVM_STATIC_LINK_CXX_STDLIB=ON`
+
+If you would prefer to use `Ninja`, then make sure to pass in `-G Ninja` and then invoke `ninja` rather than `make install`.
+
+Afterwards, you can then build `libClangSharp` where the process followed is roughly:
+```cmd
 git clone https://github.com/dotnet/clangsharp
 cd clangsharp
-mkdir artifacts/bin/native
+mkdir -p artifacts/bin/native
 cd artifacts/bin/native
-cmake -DPATH_TO_LLVM=/usr/lib/llvm/14/ ../../..
-make
-```
-
-or if you prefer Ninja
-```
-git clone https://github.com/dotnet/clangsharp
-cd clangsharp
-mkdir artifacts/bin/native
-cd artifacts/bin/native
-cmake -DPATH_TO_LLVM=/usr/lib/llvm/14/ -G Ninja ../../..
-ninja
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install -DPATH_TO_LLVM=../../../../llvm-project/artifacts/install
+make install
 ```
 
 ### Generating Bindings
@@ -118,7 +133,7 @@ This program will take a given set of C or C++ header files and generate C# bind
 
 The simplest and recommended setup is to install the generator as a .NET tool and then use response files:
 ```
-dotnet tool install --global ClangSharpPInvokeGenerator --version 16.0.0
+dotnet tool install --global ClangSharpPInvokeGenerator --version 17.0.0
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 
