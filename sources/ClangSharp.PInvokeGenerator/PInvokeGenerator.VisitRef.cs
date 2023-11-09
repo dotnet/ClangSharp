@@ -6,8 +6,11 @@ public partial class PInvokeGenerator
 {
     private void VisitRef(Ref @ref)
     {
-        var name = GetRemappedCursorName(@ref.Referenced);
-        StartCSharpCode().Write(name);
-        StopCSharpCode();
+        if (_outputBuilder is not null)
+        {
+            var name = GetRemappedCursorName(@ref.Referenced);
+            StartCSharpCode().Write(name);
+            StopCSharpCode();
+        }
     }
 }

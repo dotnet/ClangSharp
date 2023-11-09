@@ -100,6 +100,8 @@ public partial class PInvokeGenerator
             // case CX_DeclKind_BuiltinTemplate:
             // case CX_DeclKind_Concept:
 
+            case CX_DeclKind_ObjCInterface:
+            case CX_DeclKind_ObjCProtocol:
             case CX_DeclKind_ClassTemplate:
             {
                 VisitClassTemplateDecl((ClassTemplateDecl)decl);
@@ -182,6 +184,7 @@ public partial class PInvokeGenerator
             // case CX_DeclKind_ObjCAtDefsField:
             // case CX_DeclKind_ObjCIvar:
 
+            case CX_DeclKind_ObjCMethod:
             case CX_DeclKind_Function:
             case CX_DeclKind_CXXMethod:
             case CX_DeclKind_CXXConstructor:
@@ -196,6 +199,7 @@ public partial class PInvokeGenerator
             // case CX_DeclKind_MSProperty:
             // case CX_DeclKind_NonTypeTemplateParm:
 
+            case CX_DeclKind_ObjCProperty:
             case CX_DeclKind_Var:
             {
                 VisitVarDecl((VarDecl)decl);
