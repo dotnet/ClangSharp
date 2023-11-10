@@ -2271,21 +2271,29 @@ public sealed partial class PInvokeGenerator : IDisposable
     }
 
     internal static string EscapeCharacter(char value) => value switch {
-        '\0' => "\\0",
-        '\\' => "\\\\",
-        '\r' => "\\r",
-        '\n' => "\\n",
-        '\t' => "\\t",
-        '\'' => "\\'",
+        '\0' => @"\0",
+        '\\' => @"\\",
+        '\r' => @"\r",
+        '\n' => @"\n",
+        '\t' => @"\t",
+        '\'' => @"\'",
         _ => value.ToString(),
     };
 
-    internal static string EscapeString(string value) => value.Replace("\0", "\\0", StringComparison.Ordinal)
-                                                              .Replace("\\", "\\\\", StringComparison.Ordinal)
-                                                              .Replace("\r", "\\r", StringComparison.Ordinal)
-                                                              .Replace("\n", "\\n", StringComparison.Ordinal)
-                                                              .Replace("\t", "\\t", StringComparison.Ordinal)
-                                                              .Replace("\"", "\\\"", StringComparison.Ordinal);
+    // We first replace already escaped characters with their raw counterpart
+    // We then re-escape any raw characters. This ensures we don't end up with double escaped backslashes
+    internal static string EscapeString(string value) => value.Replace(@"\\", "\\", StringComparison.Ordinal)
+                                                              .Replace(@"\0", "\0", StringComparison.Ordinal)
+                                                              .Replace(@"\r", "\r", StringComparison.Ordinal)
+                                                              .Replace(@"\n", "\n", StringComparison.Ordinal)
+                                                              .Replace(@"\t", "\t", StringComparison.Ordinal)
+                                                              .Replace(@"\""", "\"", StringComparison.Ordinal)
+                                                              .Replace("\\", @"\\", StringComparison.Ordinal)
+                                                              .Replace("\0", @"\0", StringComparison.Ordinal)
+                                                              .Replace("\r", @"\r", StringComparison.Ordinal)
+                                                              .Replace("\n", @"\n", StringComparison.Ordinal)
+                                                              .Replace("\t", @"\t", StringComparison.Ordinal)
+                                                              .Replace("\"", @"\""", StringComparison.Ordinal);
 
     private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl, bool matchStar)
     {
