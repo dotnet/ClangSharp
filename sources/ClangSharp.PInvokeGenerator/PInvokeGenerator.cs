@@ -4706,7 +4706,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 var semanticParentCursor = cursor.SemanticParentCursor;
 
-                if ((semanticParentCursor is not null) && (IsExcluded(semanticParentCursor) || IsAlwaysIncluded(semanticParentCursor)))
+                if ((semanticParentCursor is null) || IsExcluded(semanticParentCursor) || IsAlwaysIncluded(semanticParentCursor))
                 {
                     if (_config.LogExclusions)
                     {
