@@ -3,9 +3,11 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("win")]
 public sealed class XmlPreviewWindows_CXXMethodDeclarationTest : CXXMethodDeclarationXmlTest
 {
     protected override Task ConstructorTestImpl()

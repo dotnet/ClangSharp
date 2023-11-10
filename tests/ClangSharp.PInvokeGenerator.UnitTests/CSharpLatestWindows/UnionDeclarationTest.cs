@@ -1,12 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("win")]
 public sealed class CSharpLatestWindows_UnionDeclarationTest : UnionDeclarationTest
 {
     protected override Task BasicTestImpl(string nativeType, string expectedManagedType)

@@ -3,9 +3,11 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("win")]
 public sealed class XmlLatestWindows_VarDeclarationTest : VarDeclarationTest
 {
     protected override Task BasicTestImpl(string nativeType, string expectedManagedType)

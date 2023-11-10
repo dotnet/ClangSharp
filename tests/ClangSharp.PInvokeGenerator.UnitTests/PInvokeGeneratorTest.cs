@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using NUnit.Framework;
 using System.Xml.Linq;
 using ClangSharp.Interop;
-using NUnit.Framework;
 using static ClangSharp.Interop.CXTranslationUnit_Flags;
 
 namespace ClangSharp.UnitTests;

@@ -2,9 +2,11 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("unix")]
 public sealed class XmlLatestUnix_EnumDeclarationTest : EnumDeclarationTest
 {
     protected override Task BasicTestImpl()
@@ -680,7 +682,7 @@ enum MyEnum2 : int
     </enumeration>
     <class name=""Methods"" access=""public"" static=""true"">
       <constant name=""MyEnum1_Value1"" access=""public"">
-        <type primitive=""True"">int</type>
+        <type primitive=""True"">uint</type>
         <value>
           <code>1</code>
         </value>
@@ -709,7 +711,7 @@ const int MyEnum2_Value1 = MyEnum1_Value1 + 1;
   <namespace name=""ClangSharp.Test"">
     <class name=""Methods"" access=""public"" static=""true"">
       <constant name=""MyEnum1_Value1"" access=""public"">
-        <type primitive=""True"">int</type>
+        <type primitive=""True"">uint</type>
         <value>
           <code>1</code>
         </value>

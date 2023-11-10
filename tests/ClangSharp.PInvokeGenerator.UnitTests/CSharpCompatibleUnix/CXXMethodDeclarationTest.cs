@@ -3,9 +3,11 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("unix")]
 public sealed class CSharpCompatibleUnix_CXXMethodDeclarationTest : CXXMethodDeclarationTest
 {
     protected override Task ConstructorTestImpl()
@@ -425,19 +427,19 @@ namespace ClangSharp.Test
         public void** lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        public delegate int _GetType(MyStruct* pThis, int objA, int objB);
+        public delegate int _GetType(MyStruct* pThis, int obj);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType1(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        public delegate int _GetType2(MyStruct* pThis, int obj);
+        public delegate int _GetType2(MyStruct* pThis, int objA, int objB);
 
-        public int GetType(int objA, int objB)
+        public int GetType(int obj)
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType>((IntPtr)(lpVtbl[0]))(pThis, objA, objB);
+                return Marshal.GetDelegateForFunctionPointer<_GetType>((IntPtr)(lpVtbl[0]))(pThis, obj);
             }}
         }}
 
@@ -449,11 +451,11 @@ namespace ClangSharp.Test
             }}
         }}
 
-        public int GetType(int obj)
+        public int GetType(int objA, int objB)
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType2>((IntPtr)(lpVtbl[2]))(pThis, obj);
+                return Marshal.GetDelegateForFunctionPointer<_GetType2>((IntPtr)(lpVtbl[2]))(pThis, objA, objB);
             }}
         }}
     }}
@@ -489,19 +491,19 @@ namespace ClangSharp.Test
         public Vtbl* lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        public delegate int _GetType(MyStruct* pThis, int objA, int objB);
+        public delegate int _GetType(MyStruct* pThis, int obj);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType1(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        public delegate int _GetType2(MyStruct* pThis, int obj);
+        public delegate int _GetType2(MyStruct* pThis, int objA, int objB);
 
-        public int GetType(int objA, int objB)
+        public int GetType(int obj)
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)(pThis, objA, objB);
+                return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)(pThis, obj);
             }}
         }}
 
@@ -513,23 +515,23 @@ namespace ClangSharp.Test
             }}
         }}
 
-        public int GetType(int obj)
+        public int GetType(int objA, int objB)
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType2>(lpVtbl->GetType2)(pThis, obj);
+                return Marshal.GetDelegateForFunctionPointer<_GetType2>(lpVtbl->GetType2)(pThis, objA, objB);
             }}
         }}
 
         public partial struct Vtbl
         {{
-            [NativeTypeName(""int (int, int){nativeCallConv}"")]
+            [NativeTypeName(""int (int){nativeCallConv}"")]
             public new IntPtr GetType;
 
             [NativeTypeName(""int (){nativeCallConv}"")]
             public IntPtr GetType1;
 
-            [NativeTypeName(""int (int){nativeCallConv}"")]
+            [NativeTypeName(""int (int, int){nativeCallConv}"")]
             public IntPtr GetType2;
         }}
     }}
@@ -565,19 +567,19 @@ namespace ClangSharp.Test
         public Vtbl* lpVtbl;
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        public delegate int _GetType(MyStruct* pThis, int objA, int objB);
+        public delegate int _GetType(MyStruct* pThis, int obj);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate int _GetType1(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        public delegate int _GetType2(MyStruct* pThis, int obj);
+        public delegate int _GetType2(MyStruct* pThis, int objA, int objB);
 
-        public int GetType(int objA, int objB)
+        public int GetType(int obj)
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)(pThis, objA, objB);
+                return Marshal.GetDelegateForFunctionPointer<_GetType>(lpVtbl->GetType)(pThis, obj);
             }}
         }}
 
@@ -589,32 +591,32 @@ namespace ClangSharp.Test
             }}
         }}
 
-        public int GetType(int obj)
+        public int GetType(int objA, int objB)
         {{
             fixed (MyStruct* pThis = &this)
             {{
-                return Marshal.GetDelegateForFunctionPointer<_GetType2>(lpVtbl->GetType2)(pThis, obj);
+                return Marshal.GetDelegateForFunctionPointer<_GetType2>(lpVtbl->GetType2)(pThis, objA, objB);
             }}
         }}
 
         public interface Interface
         {{
-            int GetType(int objA, int objB);
+            int GetType(int obj);
 
             int GetType();
 
-            int GetType(int obj);
+            int GetType(int objA, int objB);
         }}
 
         public partial struct Vtbl
         {{
-            [NativeTypeName(""int (int, int){nativeCallConv}"")]
+            [NativeTypeName(""int (int){nativeCallConv}"")]
             public new IntPtr GetType;
 
             [NativeTypeName(""int (){nativeCallConv}"")]
             public IntPtr GetType1;
 
-            [NativeTypeName(""int (int){nativeCallConv}"")]
+            [NativeTypeName(""int (int, int){nativeCallConv}"")]
             public IntPtr GetType2;
         }}
     }}

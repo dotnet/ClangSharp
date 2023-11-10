@@ -3,9 +3,11 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("win")]
 public sealed class CSharpDefaultWindows_CXXMethodDeclarationTest : CXXMethodDeclarationTest
 {
     protected override Task ConstructorTestImpl()

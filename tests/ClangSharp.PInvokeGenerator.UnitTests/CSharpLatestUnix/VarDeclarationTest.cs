@@ -2,9 +2,11 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("unix")]
 public sealed class CSharpLatestUnix_VarDeclarationTest : VarDeclarationTest
 {
     protected override Task BasicTestImpl(string nativeType, string expectedManagedType)

@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("win")]
 public sealed class CSharpLatestWindows_StructDeclarationTest : StructDeclarationTest
 {
     protected override Task IncompleteArraySizeTestImpl(string nativeType, string expectedManagedType)

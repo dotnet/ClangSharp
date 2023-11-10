@@ -3,9 +3,11 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("unix")]
 public sealed class CSharpLatestUnix_CXXMethodDeclarationTest : CXXMethodDeclarationTest
 {
     protected override Task ConstructorTestImpl()
@@ -423,9 +425,9 @@ namespace ClangSharp.Test
     {{
         public void** lpVtbl;
 
-        public int GetType(int objA, int objB)
+        public int GetType(int obj)
         {{
-            return ((delegate* unmanaged[Thiscall]<MyStruct*, int, int, int>)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, int, int>)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this), obj);
         }}
 
         public new int GetType()
@@ -433,9 +435,9 @@ namespace ClangSharp.Test
             return ((delegate* unmanaged[Thiscall]<MyStruct*, int>)(lpVtbl[1]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
-        public int GetType(int obj)
+        public int GetType(int objA, int objB)
         {{
-            return ((delegate* unmanaged[Thiscall]<MyStruct*, int, int>)(lpVtbl[2]))((MyStruct*)Unsafe.AsPointer(ref this), obj);
+            return ((delegate* unmanaged[Thiscall]<MyStruct*, int, int, int>)(lpVtbl[2]))((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
         }}
     }}
 }}
@@ -468,9 +470,9 @@ namespace ClangSharp.Test
     {{
         public Vtbl* lpVtbl;
 
-        public int GetType(int objA, int objB)
+        public int GetType(int obj)
         {{
-            return lpVtbl->GetType((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
+            return lpVtbl->GetType((MyStruct*)Unsafe.AsPointer(ref this), obj);
         }}
 
         public new int GetType()
@@ -478,21 +480,21 @@ namespace ClangSharp.Test
             return lpVtbl->GetType1((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
-        public int GetType(int obj)
+        public int GetType(int objA, int objB)
         {{
-            return lpVtbl->GetType2((MyStruct*)Unsafe.AsPointer(ref this), obj);
+            return lpVtbl->GetType2((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
         }}
 
         public partial struct Vtbl
         {{
-            [NativeTypeName(""int (int, int){nativeCallConv}"")]
-            public new delegate* unmanaged[Thiscall]<MyStruct*, int, int, int> GetType;
+            [NativeTypeName(""int (int){nativeCallConv}"")]
+            public new delegate* unmanaged[Thiscall]<MyStruct*, int, int> GetType;
 
             [NativeTypeName(""int (){nativeCallConv}"")]
             public delegate* unmanaged[Thiscall]<MyStruct*, int> GetType1;
 
-            [NativeTypeName(""int (int){nativeCallConv}"")]
-            public delegate* unmanaged[Thiscall]<MyStruct*, int, int> GetType2;
+            [NativeTypeName(""int (int, int){nativeCallConv}"")]
+            public delegate* unmanaged[Thiscall]<MyStruct*, int, int, int> GetType2;
         }}
     }}
 }}
@@ -525,9 +527,9 @@ namespace ClangSharp.Test
     {{
         public Vtbl<MyStruct>* lpVtbl;
 
-        public int GetType(int objA, int objB)
+        public int GetType(int obj)
         {{
-            return lpVtbl->GetType((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
+            return lpVtbl->GetType((MyStruct*)Unsafe.AsPointer(ref this), obj);
         }}
 
         public new int GetType()
@@ -535,31 +537,31 @@ namespace ClangSharp.Test
             return lpVtbl->GetType1((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
-        public int GetType(int obj)
+        public int GetType(int objA, int objB)
         {{
-            return lpVtbl->GetType2((MyStruct*)Unsafe.AsPointer(ref this), obj);
+            return lpVtbl->GetType2((MyStruct*)Unsafe.AsPointer(ref this), objA, objB);
         }}
 
         public interface Interface
         {{
-            int GetType(int objA, int objB);
+            int GetType(int obj);
 
             int GetType();
 
-            int GetType(int obj);
+            int GetType(int objA, int objB);
         }}
 
         public partial struct Vtbl<TSelf>
             where TSelf : unmanaged, Interface
         {{
-            [NativeTypeName(""int (int, int){nativeCallConv}"")]
-            public new delegate* unmanaged[Thiscall]<TSelf*, int, int, int> GetType;
+            [NativeTypeName(""int (int){nativeCallConv}"")]
+            public new delegate* unmanaged[Thiscall]<TSelf*, int, int> GetType;
 
             [NativeTypeName(""int (){nativeCallConv}"")]
             public delegate* unmanaged[Thiscall]<TSelf*, int> GetType1;
 
-            [NativeTypeName(""int (int){nativeCallConv}"")]
-            public delegate* unmanaged[Thiscall]<TSelf*, int, int> GetType2;
+            [NativeTypeName(""int (int, int){nativeCallConv}"")]
+            public delegate* unmanaged[Thiscall]<TSelf*, int, int, int> GetType2;
         }}
     }}
 }}
