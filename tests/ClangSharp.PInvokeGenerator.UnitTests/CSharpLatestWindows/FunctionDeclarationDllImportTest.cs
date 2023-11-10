@@ -3,9 +3,11 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("win")]
 public sealed class CSharpLatestWindows_FunctionDeclarationDllImportTest : FunctionDeclarationDllImportTest
 {
     protected override Task BasicTestImpl()

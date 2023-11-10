@@ -2,9 +2,11 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("win")]
 public sealed class XmlDefaultWindows_EnumDeclarationTest : EnumDeclarationTest
 {
     protected override Task BasicTestImpl()

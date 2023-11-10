@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
+[Platform("unix")]
 public sealed class XmlCompatibleUnix_StructDeclarationTest : StructDeclarationTest
 {
     protected override Task IncompleteArraySizeTestImpl(string nativeType, string expectedManagedType)
@@ -1905,7 +1907,9 @@ struct MyStruct3
 
     protected override Task WithPackingTestImpl()
     {
-        const string InputContents = @"struct MyStruct
+        const string InputContents = @"typedef int size_t;
+
+struct MyStruct
 {
     size_t FixedBuffer[1];
 };
