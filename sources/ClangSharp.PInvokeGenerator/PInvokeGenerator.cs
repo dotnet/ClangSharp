@@ -4699,16 +4699,21 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
 
             if (_config.IncludedNames.Count != 0 && !_config.IncludedNames.Contains(qualifiedName)
-                                            && !_config.IncludedNames.Contains(dottedQualifiedName)
-                                            && !_config.IncludedNames.Contains(qualifiedNameWithoutParameters)
-                                            && !_config.IncludedNames.Contains(dottedQualifiedNameWithoutParameters)
-                                            && !_config.IncludedNames.Contains(name))
+                                                 && !_config.IncludedNames.Contains(dottedQualifiedName)
+                                                 && !_config.IncludedNames.Contains(qualifiedNameWithoutParameters)
+                                                 && !_config.IncludedNames.Contains(dottedQualifiedNameWithoutParameters)
+                                                 && !_config.IncludedNames.Contains(name))
             {
-                if (_config.LogExclusions)
+                var semanticParentCursor = cursor.SemanticParentCursor;
+
+                if ((semanticParentCursor is not null) && (IsExcluded(semanticParentCursor) || IsAlwaysIncluded(semanticParentCursor)))
                 {
-                    AddDiagnostic(DiagnosticLevel.Info, $"Excluded {kind} '{qualifiedName}' as it was not in the include list");
+                    if (_config.LogExclusions)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Info, $"Excluded {kind} '{qualifiedName}' as it was not in the include list");
+                    }
+                    return true;
                 }
-                return true;
             }
 
             if ((isExcludedValue & 0b10) != 0)
