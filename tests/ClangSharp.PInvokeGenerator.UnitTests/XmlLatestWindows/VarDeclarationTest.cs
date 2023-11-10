@@ -144,7 +144,7 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
 
     protected override Task Utf8StringLiteralMacroTestImpl()
     {
-        var inputContents = $@"#define MyMacro1 ""Test""";
+        var inputContents = $@"#define MyMacro1 ""Test\0\\\r\n\t\""""";
 
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -153,7 +153,7 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
       <constant name=""MyMacro1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>""Test""u8</code>
+          <code>""Test\0\\\r\n\t\""""u8</code>
         </value>
       </constant>
     </class>
@@ -166,7 +166,7 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
 
     protected override Task Utf16StringLiteralMacroTestImpl()
     {
-        var inputContents = $@"#define MyMacro1 u""Test""";
+        var inputContents = $@"#define MyMacro1 u""Test\0\\\r\n\t\""""";
 
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -175,7 +175,7 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
       <constant name=""MyMacro1"" access=""public"">
         <type primitive=""True"">string</type>
         <value>
-          <code>""Test""</code>
+          <code>""Test\0\\\r\n\t\""""</code>
         </value>
       </constant>
     </class>
@@ -188,9 +188,9 @@ const GUID IID_IUnknown = {{ 0x00000000, 0x0000, 0x0000, {{ 0xC0, 0x00, 0x00, 0x
 
     protected override Task WideStringLiteralConstTestImpl()
     {
-        var inputContents = $@"const wchar_t MyConst1[] = L""Test"";
-const wchar_t* MyConst2 = L""Test"";
-const wchar_t* const MyConst3 = L""Test"";";
+        var inputContents = $@"const wchar_t MyConst1[] = L""Test\0\\\r\n\t\"""";
+const wchar_t* MyConst2 = L""Test\0\\\r\n\t\"""";
+const wchar_t* const MyConst3 = L""Test\0\\\r\n\t\"""";";
 
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -199,19 +199,19 @@ const wchar_t* const MyConst3 = L""Test"";";
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""True"">string</type>
         <value>
-          <code>""Test""</code>
+          <code>""Test\0\\\r\n\t\""""</code>
         </value>
       </constant>
       <field name=""MyConst2"" access=""public"">
         <type primitive=""True"">string</type>
         <value>
-          <code>""Test""</code>
+          <code>""Test\0\\\r\n\t\""""</code>
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
         <type primitive=""True"">string</type>
         <value>
-          <code>""Test""</code>
+          <code>""Test\0\\\r\n\t\""""</code>
         </value>
       </constant>
     </class>
@@ -224,9 +224,9 @@ const wchar_t* const MyConst3 = L""Test"";";
 
     protected override Task StringLiteralConstTestImpl()
     {
-        var inputContents = $@"const char MyConst1[] = ""Test"";
-const char* MyConst2 = ""Test"";
-const char* const MyConst3 = ""Test"";";
+        var inputContents = $@"const char MyConst1[] = ""Test\0\\\r\n\t\"""";
+const char* MyConst2 = ""Test\0\\\r\n\t\"""";
+const char* const MyConst3 = ""Test\0\\\r\n\t\"""";";
 
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -235,19 +235,19 @@ const char* const MyConst3 = ""Test"";";
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>""Test""u8</code>
+          <code>""Test\0\\\r\n\t\""""u8</code>
         </value>
       </constant>
       <field name=""MyConst2"" access=""public"">
         <type primitive=""False"">byte[]</type>
         <value>
-          <code>""Test""u8.ToArray()</code>
+          <code>""Test\0\\\r\n\t\""""u8.ToArray()</code>
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>""Test""u8</code>
+          <code>""Test\0\\\r\n\t\""""u8</code>
         </value>
       </constant>
     </class>
@@ -260,9 +260,9 @@ const char* const MyConst3 = ""Test"";";
 
     protected override Task WideStringLiteralStaticConstTestImpl()
     {
-        var inputContents = $@"static const wchar_t MyConst1[] = L""Test"";
-static const wchar_t* MyConst2 = L""Test"";
-static const wchar_t* const MyConst3 = L""Test"";";
+        var inputContents = $@"static const wchar_t MyConst1[] = L""Test\0\\\r\n\t\"""";
+static const wchar_t* MyConst2 = L""Test\0\\\r\n\t\"""";
+static const wchar_t* const MyConst3 = L""Test\0\\\r\n\t\"""";";
 
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -271,19 +271,19 @@ static const wchar_t* const MyConst3 = L""Test"";";
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""True"">string</type>
         <value>
-          <code>""Test""</code>
+          <code>""Test\0\\\r\n\t\""""</code>
         </value>
       </constant>
       <field name=""MyConst2"" access=""public"">
         <type primitive=""True"">string</type>
         <value>
-          <code>""Test""</code>
+          <code>""Test\0\\\r\n\t\""""</code>
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
         <type primitive=""True"">string</type>
         <value>
-          <code>""Test""</code>
+          <code>""Test\0\\\r\n\t\""""</code>
         </value>
       </constant>
     </class>
@@ -296,9 +296,9 @@ static const wchar_t* const MyConst3 = L""Test"";";
 
     protected override Task StringLiteralStaticConstTestImpl()
     {
-        var inputContents = $@"static const char MyConst1[] = ""Test"";
-static const char* MyConst2 = ""Test"";
-static const char* const MyConst3 = ""Test"";";
+        var inputContents = $@"static const char MyConst1[] = ""Test\0\\\r\n\t\"""";
+static const char* MyConst2 = ""Test\0\\\r\n\t\"""";
+static const char* const MyConst3 = ""Test\0\\\r\n\t\"""";";
 
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -307,19 +307,19 @@ static const char* const MyConst3 = ""Test"";";
       <constant name=""MyConst1"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>""Test""u8</code>
+          <code>""Test\0\\\r\n\t\""""u8</code>
         </value>
       </constant>
       <field name=""MyConst2"" access=""public"">
         <type primitive=""False"">byte[]</type>
         <value>
-          <code>""Test""u8.ToArray()</code>
+          <code>""Test\0\\\r\n\t\""""u8.ToArray()</code>
         </value>
       </field>
       <constant name=""MyConst3"" access=""public"">
         <type primitive=""False"">ReadOnlySpan&lt;byte&gt;</type>
         <value>
-          <code>""Test""u8</code>
+          <code>""Test\0\\\r\n\t\""""u8</code>
         </value>
       </constant>
     </class>
