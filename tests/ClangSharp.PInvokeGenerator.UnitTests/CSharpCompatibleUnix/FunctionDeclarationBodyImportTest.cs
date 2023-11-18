@@ -1446,7 +1446,7 @@ void MyFunction()
 namespace ClangSharp.Test
 {
     [StructLayout(LayoutKind.Explicit)]
-    public partial struct MyUnion
+    public unsafe partial struct MyUnion
     {
         [FieldOffset(0)]
         [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L3_C5"")]

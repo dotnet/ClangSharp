@@ -852,7 +852,7 @@ union MyUnion
         var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
+    <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
       <field name=""x"" access=""public"" offset=""0"">
         <type>int</type>
       </field>
@@ -898,7 +898,7 @@ union MyUnion
           <code>Anonymous.Anonymous.o0_b16_4 = value;</code>
         </set>
       </field>
-      <struct name=""_Anonymous_e__Union"" access=""public"" layout=""Explicit"">
+      <struct name=""_Anonymous_e__Union"" access=""public"" unsafe=""true"" layout=""Explicit"">
         <field name=""z"" access=""public"" offset=""0"">
           <type>int</type>
         </field>
@@ -1194,7 +1194,7 @@ union example_s {
         var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
+    <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
       <field name=""r"" access=""public"" offset=""0"">
         <type>double</type>
       </field>

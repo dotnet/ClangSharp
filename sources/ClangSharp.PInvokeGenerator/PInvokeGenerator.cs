@@ -5933,7 +5933,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 return true;
             }
-            else if ((decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && IsUnsafe(nestedRecordDecl))
+            else if ((decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && (IsUnsafe(nestedRecordDecl) || Config.GenerateCompatibleCode))
             {
                 return true;
             }
