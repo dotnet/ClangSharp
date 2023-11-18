@@ -55,7 +55,7 @@ See [LICENSE.md](LICENSE.md) in the repository root for more information.
 
 ### Building Managed
 
-ClangSharp requires the [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) and can be built simply with `dotnet build -c Release`.
+ClangSharp requires the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) and can be built simply with `dotnet build -c Release`.
 
 You can reproduce what the CI environment does by running `./scripts/cibuild.cmd` on Windows or `./scripts.cibuild.sh` on Unix.
 This will download the required .NET SDK locally and use that to build the repo; it will also run through all available actions in the appropriate order.
