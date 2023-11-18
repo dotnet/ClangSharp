@@ -1629,7 +1629,7 @@ void MyFunction()
         var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
+    <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
       <field name=""Anonymous"" access=""public"" offset=""0"">
         <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C5"">_Anonymous_e__Struct</type>
       </field>

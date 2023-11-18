@@ -898,7 +898,7 @@ namespace ClangSharp.Test
 namespace ClangSharp.Test
 {
     [StructLayout(LayoutKind.Explicit)]
-    public partial struct MyUnion
+    public unsafe partial struct MyUnion
     {
         [FieldOffset(0)]
         public int x;
@@ -959,7 +959,7 @@ namespace ClangSharp.Test
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        public partial struct _Anonymous_e__Union
+        public unsafe partial struct _Anonymous_e__Union
         {
             [FieldOffset(0)]
             public int z;
@@ -1290,7 +1290,7 @@ namespace ClangSharp.Test
 namespace ClangSharp.Test
 {
     [StructLayout(LayoutKind.Explicit)]
-    public partial struct MyUnion
+    public unsafe partial struct MyUnion
     {
         [FieldOffset(0)]
         public double r;

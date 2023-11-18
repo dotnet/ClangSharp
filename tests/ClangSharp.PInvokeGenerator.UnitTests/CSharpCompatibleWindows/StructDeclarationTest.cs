@@ -1257,7 +1257,7 @@ namespace ClangSharp.Test
                 public {expectedManagedType} value;
             }}
 
-            public partial struct _Anonymous1_e__Struct
+            public unsafe partial struct _Anonymous1_e__Struct
             {{
                 public {expectedManagedType} value1;
 
@@ -1326,7 +1326,7 @@ namespace ClangSharp.Test
 
         var expectedOutputContents = @"namespace ClangSharp.Test
 {
-    public partial struct MyStruct
+    public unsafe partial struct MyStruct
     {
         public int x;
 
@@ -1383,7 +1383,7 @@ namespace ClangSharp.Test
             }
         }
 
-        public partial struct _Anonymous_e__Struct
+        public unsafe partial struct _Anonymous_e__Struct
         {
             public int z;
 
@@ -1716,7 +1716,7 @@ struct example_s {
 
         var expectedOutputContents = @"namespace ClangSharp.Test
 {
-    public partial struct MyStruct
+    public unsafe partial struct MyStruct
     {
         public double r;
 

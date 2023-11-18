@@ -1258,7 +1258,7 @@ struct MyStruct
         var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"">
+    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
       <field name=""x"" access=""public"">
         <type>int</type>
       </field>
@@ -1304,7 +1304,7 @@ struct MyStruct
           <code>Anonymous.Anonymous.o0_b16_4 = value;</code>
         </set>
       </field>
-      <struct name=""_Anonymous_e__Struct"" access=""public"">
+      <struct name=""_Anonymous_e__Struct"" access=""public"" unsafe=""true"">
         <field name=""z"" access=""public"">
           <type>int</type>
         </field>
@@ -1654,7 +1654,7 @@ struct example_s {
         var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"">
+    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
       <field name=""r"" access=""public"">
         <type>double</type>
       </field>
