@@ -67,6 +67,50 @@ typedef struct MyStruct {
     }
 
     [Test]
+    public Task EnumTest()
+    {
+        var inputContents = @"enum {
+    VALUE1 = 0,
+    VALUE2,
+    VALUE3
+};
+
+struct MyStruct {
+    enum {
+        VALUEA = 0,
+        VALUEB,
+        VALUEC
+    } field;
+};
+";
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        [NativeTypeName(""__AnonymousEnum_ClangUnsavedFile_L8_C5"")]
+        public int field;
+
+        public const int VALUEA = 0;
+        public const int VALUEB = 1;
+        public const int VALUEC = 2;
+    }
+
+    public static partial class Methods
+    {
+        public const int VALUE1 = 0;
+        public const int VALUE2 = 1;
+        public const int VALUE3 = 2;
+    }
+}
+";
+        var diagnostics = new[] {
+            new Diagnostic(DiagnosticLevel.Info, "Found anonymous enum: __AnonymousEnum_ClangUnsavedFile_L1_C1. Mapping values as constants in: Methods", "Line 1, Column 1 in ClangUnsavedFile.h"),
+            new Diagnostic(DiagnosticLevel.Info, "Found anonymous enum: __AnonymousEnum_ClangUnsavedFile_L8_C5. Mapping values as constants in: Methods", "Line 8, Column 5 in ClangUnsavedFile.h")
+        };
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, expectedDiagnostics: diagnostics, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
     public Task StructTest()
     {
         var inputContents = @"typedef struct _MyStruct
