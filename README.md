@@ -201,9 +201,9 @@ Options:
   # Codegen Options
 
   compatible-codegen                     Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation.
-  default-codegen                        Bindings should be generated for the current LTS version of .NET/C#. This is currently .NET 6/C# 10.
-  latest-codegen                         Bindings should be generated for the current STS version of .NET/C#. This is currently .NET 7/C# 11.
-  preview-codegen                        Bindings should be generated for the preview version of .NET/C#. This is currently .NET 8/C# 12.
+  default-codegen                        Bindings should be generated for the previous LTS version of .NET/C#. This is currently .NET 6/C# 10.
+  latest-codegen                         Bindings should be generated for the current LTS/STS version of .NET/C#. This is currently .NET 8/C# 12.
+  preview-codegen                        Bindings should be generated for the preview version of .NET/C#. This is currently .NET 9/C# 13.
 
   # File Options
 

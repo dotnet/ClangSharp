@@ -174,7 +174,9 @@ public static class Program
         new TwoColumnHelpRow("generate-unmanaged-constants", "Unmanaged constants should be generated using static ref readonly properties. This is currently experimental."),
         new TwoColumnHelpRow("generate-vtbl-index-attribute", "[VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method."),
 
-        // Logging Options
+        new TwoColumnHelpRow("", ""),
+        new TwoColumnHelpRow("# Logging Options", ""),
+        new TwoColumnHelpRow("", ""),
 
         new TwoColumnHelpRow("log-exclusions", "A list of excluded declaration types should be generated. This will also log if the exclusion was due to an exact or partial match."),
         new TwoColumnHelpRow("log-potential-typedef-remappings", "A list of potential typedef remappings should be generated. This can help identify missing remappings."),
