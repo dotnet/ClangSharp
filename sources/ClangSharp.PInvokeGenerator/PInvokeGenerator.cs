@@ -210,6 +210,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     public void Close()
     {
         Stream? stream = null;
+        Stream? testStream = null;
 
         var methodClassOutputBuilders = new Dictionary<string, IOutputBuilder>();
         var methodClassTestOutputBuilders = new Dictionary<string, IOutputBuilder>();
@@ -237,11 +238,16 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             var outputPath = _config.OutputLocation;
             stream = _outputStreamFactory(outputPath);
+
+            var testOutputPath = _config.TestOutputLocation;
+            testStream = _outputStreamFactory(testOutputPath);
+
             leaveStreamOpen = true;
 
             var usingDirectives = new SortedSet<string>(StringComparer.Ordinal);
             var staticUsingDirectives = new SortedSet<string>(StringComparer.Ordinal);
             var hasAnyContents = false;
+            var testHasAnyContents = false;
 
             foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
             {
@@ -257,11 +263,19 @@ public sealed partial class PInvokeGenerator : IDisposable
                         _ = staticUsingDirectives.Add(staticUsingDirective);
                     }
 
-                    hasAnyContents = csharpOutputBuilder.Contents.Any();
+                    if (csharpOutputBuilder.IsTestOutput)
+                    {
+                        testHasAnyContents |= csharpOutputBuilder.Contents.Any();
+                    }
+                    else
+                    {
+                        hasAnyContents |= csharpOutputBuilder.Contents.Any();
+                    }
                 }
                 else if (outputBuilder is XmlOutputBuilder xmlOutputBuilder)
                 {
-                    hasAnyContents = xmlOutputBuilder.Contents.Any();
+                    Debug.Assert(!xmlOutputBuilder.IsTestOutput);
+                    hasAnyContents |= xmlOutputBuilder.Contents.Any();
                 }
             }
 
@@ -316,6 +330,36 @@ public sealed partial class PInvokeGenerator : IDisposable
                     }
                 }
             }
+
+            if (testHasAnyContents)
+            {
+                using var sw = new StreamWriter(testStream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
+                sw.NewLine = "\n";
+
+                if (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp)
+                {
+                    if (!string.IsNullOrEmpty(_config.HeaderText))
+                    {
+                        sw.WriteLine(_config.HeaderText);
+                    }
+
+                    if (usingDirectives.Count != 0)
+                    {
+                        foreach (var usingDirective in usingDirectives)
+                        {
+                            sw.Write("using ");
+                            sw.Write(usingDirective);
+                            sw.WriteLine(';');
+                        }
+
+                        sw.WriteLine();
+                    }
+                }
+            }
+            else
+            {
+                testStream = null;
+            }
         }
 
         foreach (var outputBuilder in _outputBuilderFactory.OutputBuilders)
@@ -359,11 +403,18 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             Debug.Assert(stream is not null);
             CloseOutputBuilder(stream, outputBuilder, isMethodClass, leaveStreamOpen, emitNamespaceDeclaration);
+
+            if (testStream is not null)
+            {
+                CloseOutputBuilder(testStream, outputBuilder, isMethodClass, leaveStreamOpen, emitNamespaceDeclaration);
+            }
+
             emitNamespaceDeclaration = false;
 
             if (_config.GenerateMultipleFiles)
             {
                 stream = null;
+                Debug.Assert(testStream is null);
             }
         }
 
@@ -400,7 +451,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             foreach (var entry in methodClassTestOutputBuilders)
             {
-                CloseOutputBuilder(stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
+                CloseOutputBuilder(testStream ?? stream, entry.Value, isMethodClass: true, leaveStreamOpen, emitNamespaceDeclaration);
             }
 
             using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
@@ -414,6 +465,17 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 sw.WriteLine("  </namespace>");
                 sw.WriteLine("</bindings>");
+            }
+
+            if (testStream is not null)
+            {
+                using var tsw = new StreamWriter(testStream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
+                tsw.NewLine = "\n";
+
+                if (_config.OutputMode == PInvokeGeneratorOutputMode.CSharp)
+                {
+                    tsw.WriteLine('}');
+                }
             }
         }
 
