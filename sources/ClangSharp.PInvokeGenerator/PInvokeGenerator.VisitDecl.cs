@@ -2903,7 +2903,7 @@ public partial class PInvokeGenerator
                 AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} (constant array field) has a size of 0", constantOrIncompleteArray);
             }
 
-            if (!_config.GeneratePreviewCode || (totalSize <= 1) || isUnsafeElementType)
+            if (!_config.GenerateLatestCode || (totalSize <= 1) || isUnsafeElementType)
             {
                 totalSizeString = null;
             }

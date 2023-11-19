@@ -1503,7 +1503,7 @@ public partial class PInvokeGenerator
 
             outputBuilder.WriteIndented("ReadOnlySpan<byte> data = ");
 
-            if (_config.GeneratePreviewCode)
+            if (_config.GenerateLatestCode)
             {
                 outputBuilder.WriteLine("[");
             }
@@ -1519,7 +1519,7 @@ public partial class PInvokeGenerator
             outputBuilder.WriteNewline();
             outputBuilder.DecreaseIndentation();
 
-            if (_config.GeneratePreviewCode)
+            if (_config.GenerateLatestCode)
             {
                 outputBuilder.WriteIndented(']');
             }
@@ -2553,7 +2553,7 @@ public partial class PInvokeGenerator
 
             case CX_CLK_UTF32:
             {
-                if (_config.GeneratePreviewCode)
+                if (_config.GenerateLatestCode)
                 {
                     outputBuilder.Write('[');
                 }
@@ -2574,7 +2574,7 @@ public partial class PInvokeGenerator
 
                 outputBuilder.Write("0x00000000");
 
-                if (_config.GeneratePreviewCode)
+                if (_config.GenerateLatestCode)
                 {
                     outputBuilder.Write(']');
                 }

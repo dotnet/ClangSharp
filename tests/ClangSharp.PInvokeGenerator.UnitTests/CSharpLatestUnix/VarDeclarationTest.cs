@@ -158,23 +158,25 @@ namespace ClangSharp.Test
 const wchar_t* MyConst2 = L""Test\0\\\r\n\t\"""";
 const wchar_t* const MyConst3 = L""Test\0\\\r\n\t\"""";";
 
-        var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
         [NativeTypeName(""const wchar_t[11]"")]
-        public static readonly uint[] MyConst1 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000 }};
+        public static ReadOnlySpan<uint> MyConst1 => [0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000];
 
         [NativeTypeName(""const wchar_t *"")]
-        public static uint[] MyConst2 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000 }};
+        public static uint[] MyConst2 = [0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000];
 
         [NativeTypeName(""const wchar_t *const"")]
-        public static readonly uint[] MyConst3 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000 }};
+        public static ReadOnlySpan<uint> MyConst3 => [0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000];
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task StringLiteralConstTestImpl()

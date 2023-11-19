@@ -89,7 +89,7 @@ internal partial class CSharpOutputBuilder
 
             WriteIndented("ReadOnlySpan<byte> data = ");
 
-            if (_config.GeneratePreviewCode)
+            if (_config.GenerateLatestCode)
             {
                 WriteLine('[');
             }
@@ -124,7 +124,7 @@ internal partial class CSharpOutputBuilder
             WriteNewline();
             DecreaseIndentation();
 
-            if (_config.GeneratePreviewCode)
+            if (_config.GenerateLatestCode)
             {
                 WriteIndented(']');
             }
