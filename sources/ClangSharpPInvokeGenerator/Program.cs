@@ -42,8 +42,8 @@ public static class Program
     private static readonly string[] s_remapOptionAliases = ["--remap", "-r"];
     private static readonly string[] s_stdOptionAliases = ["--std", "-std"];
     private static readonly string[] s_testOutputOptionAliases = ["--test-output", "-to"];
-    private static readonly string[] s_versionOptionAliases = ["--version", "-v"];
     private static readonly string[] s_traverseOptionAliases = ["--traverse", "-t"];
+    private static readonly string[] s_versionOptionAliases = ["--version", "-v"];
     private static readonly string[] s_withAccessSpecifierOptionAliases = ["--with-access-specifier", "-was"];
     private static readonly string[] s_withAttributeOptionAliases = ["--with-attribute", "-wa"];
     private static readonly string[] s_withCallConvOptionAliases = ["--with-callconv", "-wcc"];
@@ -52,12 +52,12 @@ public static class Program
     private static readonly string[] s_withLibraryPathOptionAliases = ["--with-librarypath", "-wlb"];
     private static readonly string[] s_withManualImportOptionAliases = ["--with-manual-import", "-wmi"];
     private static readonly string[] s_withNamespaceOptionAliases = ["--with-namespace", "-wn"];
+    private static readonly string[] s_withPackingOptionAliases = ["--with-packing", "-wp"];
     private static readonly string[] s_withSetLastErrorOptionAliases = ["--with-setlasterror", "-wsle"];
     private static readonly string[] s_withSuppressGCTransitionOptionAliases = ["--with-suppressgctransition", "-wsgct"];
     private static readonly string[] s_withTransparentStructOptionAliases = ["--with-transparent-struct", "-wts"];
     private static readonly string[] s_withTypeOptionAliases = ["--with-type", "-wt"];
     private static readonly string[] s_withUsingOptionAliases = ["--with-using", "-wu"];
-    private static readonly string[] s_withPackingOptionAliases = ["--with-packing", "-wp"];
 
     private static readonly Option<string[]> s_additionalOption = GetAdditionalOption();
     private static readonly Option<string[]> s_configOption = GetConfigOption();
@@ -89,12 +89,12 @@ public static class Program
     private static readonly Option<string[]> s_withLibraryPathNameValuePairs = GetWithLibraryPathOption();
     private static readonly Option<string[]> s_withManualImports = GetWithManualImportOption();
     private static readonly Option<string[]> s_withNamespaceNameValuePairs = GetWithNamespaceOption();
+    private static readonly Option<string[]> s_withPackingNameValuePairs = GetWithPackingOption();
     private static readonly Option<string[]> s_withSetLastErrors = GetWithSetLastErrorOption();
     private static readonly Option<string[]> s_withSuppressGCTransitions = GetWithSuppressGCTransitionOption();
     private static readonly Option<string[]> s_withTransparentStructNameValuePairs = GetWithTransparentStructOption();
     private static readonly Option<string[]> s_withTypeNameValuePairs = GetWithTypeOption();
     private static readonly Option<string[]> s_withUsingNameValuePairs = GetWithUsingOption();
-    private static readonly Option<string[]> s_withPackingNameValuePairs = GetWithPackingOption();
 
     private static readonly RootCommand s_rootCommand = GetRootCommand();
 
@@ -102,24 +102,32 @@ public static class Program
     [
         new TwoColumnHelpRow("?, h, help", "Show help and usage information for -c, --config"),
 
-        // Codegen Options
+        new TwoColumnHelpRow("", ""),
+        new TwoColumnHelpRow("# Codegen Options", ""),
+        new TwoColumnHelpRow("", ""),
 
         new TwoColumnHelpRow("compatible-codegen", "Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation."),
         new TwoColumnHelpRow("default-codegen", "Bindings should be generated for the current LTS version of .NET/C#. This is currently .NET 6/C# 10."),
         new TwoColumnHelpRow("latest-codegen", "Bindings should be generated for the current STS version of .NET/C#. This is currently .NET 7/C# 11."),
         new TwoColumnHelpRow("preview-codegen", "Bindings should be generated for the preview version of .NET/C#. This is currently .NET 8/C# 12."),
 
-        // File Options
+        new TwoColumnHelpRow("", ""),
+        new TwoColumnHelpRow("# File Options", ""),
+        new TwoColumnHelpRow("", ""),
 
         new TwoColumnHelpRow("single-file", "Bindings should be generated to a single output file. This is the default."),
         new TwoColumnHelpRow("multi-file", "Bindings should be generated so there is approximately one type per file."),
 
-        // Type Options
+        new TwoColumnHelpRow("", ""),
+        new TwoColumnHelpRow("# Type Options", ""),
+        new TwoColumnHelpRow("", ""),
 
         new TwoColumnHelpRow("unix-types", "Bindings should be generated assuming Unix defaults. This is the default on Unix platforms."),
         new TwoColumnHelpRow("windows-types", "Bindings should be generated assuming Windows defaults. This is the default on Windows platforms."),
 
-        // Exclusion Options
+        new TwoColumnHelpRow("", ""),
+        new TwoColumnHelpRow("# Exclusion Options", ""),
+        new TwoColumnHelpRow("", ""),
 
         new TwoColumnHelpRow("exclude-anonymous-field-helpers", "The helper ref properties generated for fields in nested anonymous structs and unions should not be generated."),
         new TwoColumnHelpRow("exclude-com-proxies", "Types recognized as COM proxies should not have bindings generated. These are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub."),
@@ -130,18 +138,24 @@ public static class Program
         new TwoColumnHelpRow("exclude-funcs-with-body", "Bindings for functions with bodies should not be generated."),
         new TwoColumnHelpRow("exclude-using-statics-for-enums", "Enum usages should be fully qualified and should not include a corresponding 'using static EnumName;'"),
 
-        // VTBL Options
+        new TwoColumnHelpRow("", ""),
+        new TwoColumnHelpRow("# Vtbl Options", ""),
+        new TwoColumnHelpRow("", ""),
 
         new TwoColumnHelpRow("explicit-vtbls", "VTBLs should have an explicit type generated with named fields per entry."),
         new TwoColumnHelpRow("implicit-vtbls", "VTBLs should be implicit to reduce metadata bloat. This is the current default"),
         new TwoColumnHelpRow("trimmable-vtbls", "VTBLs should be defined but not used in helper methods to reduce metadata bloat when trimming."),
 
-        // Test Options
+        new TwoColumnHelpRow("", ""),
+        new TwoColumnHelpRow("# Test Options", ""),
+        new TwoColumnHelpRow("", ""),
 
         new TwoColumnHelpRow("generate-tests-nunit", "Basic tests validating size, blittability, and associated metadata should be generated for NUnit."),
         new TwoColumnHelpRow("generate-tests-xunit", "Basic tests validating size, blittability, and associated metadata should be generated for XUnit."),
 
-        // Generation Options
+        new TwoColumnHelpRow("", ""),
+        new TwoColumnHelpRow("# Generation Options", ""),
+        new TwoColumnHelpRow("", ""),
 
         new TwoColumnHelpRow("generate-aggressive-inlining", "[MethodImpl(MethodImplOptions.AggressiveInlining)] should be added to generated helper functions."),
         new TwoColumnHelpRow("generate-callconv-member-function", "Instance function pointers should use [CallConvMemberFunction] where applicable."),
@@ -1151,12 +1165,12 @@ public static class Program
             s_withLibraryPathNameValuePairs,
             s_withManualImports,
             s_withNamespaceNameValuePairs,
+            s_withPackingNameValuePairs,
             s_withSetLastErrors,
             s_withSuppressGCTransitions,
             s_withTransparentStructNameValuePairs,
             s_withTypeNameValuePairs,
-            s_withUsingNameValuePairs,
-            s_withPackingNameValuePairs
+            s_withUsingNameValuePairs
         };
         Handler.SetHandler(rootCommand, (Action<InvocationContext>)Run);
         return rootCommand;
