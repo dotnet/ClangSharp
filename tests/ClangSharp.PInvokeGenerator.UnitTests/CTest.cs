@@ -83,7 +83,11 @@ struct MyStruct {
     } field;
 };
 ";
-        var expectedOutputContents = @"namespace ClangSharp.Test
+        string expectedOutputContents;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            expectedOutputContents = @"namespace ClangSharp.Test
 {
     public partial struct MyStruct
     {
@@ -103,6 +107,31 @@ struct MyStruct {
     }
 }
 ";
+        }
+        else
+        {
+            expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct MyStruct
+    {
+        [NativeTypeName(""__AnonymousEnum_ClangUnsavedFile_L8_C5"")]
+        public uint field;
+
+        public const uint VALUEA = 0;
+        public const uint VALUEB = 1;
+        public const uint VALUEC = 2;
+    }
+
+    public static partial class Methods
+    {
+        public const uint VALUE1 = 0;
+        public const uint VALUE2 = 1;
+        public const uint VALUE3 = 2;
+    }
+}
+";
+        }
+
         var diagnostics = new[] {
             new Diagnostic(DiagnosticLevel.Info, "Found anonymous enum: __AnonymousEnum_ClangUnsavedFile_L1_C1. Mapping values as constants in: Methods", "Line 1, Column 1 in ClangUnsavedFile.h"),
             new Diagnostic(DiagnosticLevel.Info, "Found anonymous enum: __AnonymousEnum_ClangUnsavedFile_L8_C5. Mapping values as constants in: Methods", "Line 8, Column 5 in ClangUnsavedFile.h")
