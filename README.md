@@ -2,7 +2,7 @@
 
 ClangSharp provides Clang bindings written in C#. It is self-hosted and auto-generates itself by parsing the Clang C header files using ClangSharpPInvokeGenerator.
 
-![ci](https://github.com/dotnet/clangsharp/workflows/ci/badge.svg?branch=main&event=push)
+[![ci](https://github.com/dotnet/ClangSharp/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/dotnet/ClangSharp/actions/workflows/ci.yml)
 
 A nuget package for the project is provided here: https://www.nuget.org/packages/clangsharp.
 A .NET tool for the P/Invoke generator project is provided here: https://www.nuget.org/packages/ClangSharpPInvokeGenerator
