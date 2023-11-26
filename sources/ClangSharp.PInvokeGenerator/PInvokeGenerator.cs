@@ -2344,8 +2344,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     // We first replace already escaped characters with their raw counterpart
     // We then re-escape any raw characters. This ensures we don't end up with double escaped backslashes
-    internal static string EscapeString(string value) => value.Replace(@"\\", "\\", StringComparison.Ordinal)
-                                                              .Replace(@"\0", "\0", StringComparison.Ordinal)
+    internal static string EscapeString(string value) => value.Replace(@"\0", "\0", StringComparison.Ordinal)
                                                               .Replace(@"\r", "\r", StringComparison.Ordinal)
                                                               .Replace(@"\n", "\n", StringComparison.Ordinal)
                                                               .Replace(@"\t", "\t", StringComparison.Ordinal)
