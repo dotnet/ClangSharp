@@ -3336,7 +3336,7 @@ public partial class PInvokeGenerator
                 _ = nativeTypeNameBuilder.Append(' ');
 
                 var macroValue = GetSourceRangeContents(varDecl.TranslationUnit.Handle, varDecl.Init.Extent);
-                _ = nativeTypeNameBuilder.Append(macroValue);
+                _ = nativeTypeNameBuilder.Append(macroValue.Replace(@"\\", "\\", StringComparison.Ordinal));
 
                 nativeTypeName = nativeTypeNameBuilder.ToString();
             }
