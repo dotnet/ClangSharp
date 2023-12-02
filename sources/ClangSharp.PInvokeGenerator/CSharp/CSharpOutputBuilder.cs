@@ -8,14 +8,14 @@ using System.Text;
 
 namespace ClangSharp.CSharp;
 
-internal sealed partial class CSharpOutputBuilder(string name, PInvokeGeneratorConfiguration config, string indentationString = CSharpOutputBuilder.DefaultIndentationString,
+internal sealed partial class CSharpOutputBuilder(string name, PInvokeGenerator generator, string indentationString = CSharpOutputBuilder.DefaultIndentationString,
                                                   bool isTestOutput = false, MarkerMode markerMode = MarkerMode.None,
                                                   bool writeSourceLocation = false)
 {
     public const string DefaultIndentationString = "    ";
 
     private readonly string _name = name;
-    private readonly PInvokeGeneratorConfiguration _config = config;
+    private readonly PInvokeGenerator _generator = generator;
     private readonly List<string> _contents = [];
     private readonly StringBuilder _currentLine = new StringBuilder();
     private readonly SortedSet<string> _usingDirectives = [];
@@ -301,7 +301,7 @@ internal sealed partial class CSharpOutputBuilder(string name, PInvokeGeneratorC
 
     private void AddNativeTypeNameAttribute(string nativeTypeName, string? prefix = null, string? postfix = null, string? attributePrefix = null)
     {
-        foreach (var entry in _config.NativeTypeNamesToStrip)
+        foreach (var entry in _generator.Config.NativeTypeNamesToStrip)
         {
             nativeTypeName = nativeTypeName.Replace(entry, "", StringComparison.Ordinal);
         }

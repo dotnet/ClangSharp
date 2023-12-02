@@ -1922,7 +1922,7 @@ struct MyStruct3
             <type>int</type>
           </param>
           <get>
-            <code>return ref AsSpan(int.MaxValue)[index];</code>
+            <code>return ref Unsafe.Add(ref e0, index);</code>
           </get>
         </indexer>
         <function name=""AsSpan"" access=""public"">

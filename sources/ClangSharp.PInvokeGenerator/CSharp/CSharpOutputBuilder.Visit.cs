@@ -73,7 +73,7 @@ internal partial class CSharpOutputBuilder
 
     public void WriteIid(string name, Guid value)
     {
-        if (_config.GenerateUnmanagedConstants)
+        if (_generator.Config.GenerateUnmanagedConstants)
         {
             AddUsingDirective("System");
             AddUsingDirective("System.Diagnostics");
@@ -89,7 +89,7 @@ internal partial class CSharpOutputBuilder
 
             WriteIndented("ReadOnlySpan<byte> data = ");
 
-            if (_config.GenerateLatestCode)
+            if (_generator.Config.GenerateLatestCode)
             {
                 WriteLine('[');
             }
@@ -124,7 +124,7 @@ internal partial class CSharpOutputBuilder
             WriteNewline();
             DecreaseIndentation();
 
-            if (_config.GenerateLatestCode)
+            if (_generator.Config.GenerateLatestCode)
             {
                 WriteIndented(']');
             }

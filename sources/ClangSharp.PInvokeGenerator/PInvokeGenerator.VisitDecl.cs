@@ -1087,18 +1087,17 @@ public partial class PInvokeGenerator
                     {
                         code.Write("[0], ");
                         code.Write(Math.Max(IsType<ConstantArrayType>(indirectFieldDecl, type, out var constantArrayType) ? constantArrayType.Size : 0, 1));
+                        code.Write(')');
                     }
-                    else
+                    else if (!_config.GenerateLatestCode)
                     {
-                        code.Write(".AsSpan(");
+                        code.Write(".AsSpan()");
                     }
                 }
                 else
                 {
-                    code.Write(", 1)");
+                    code.Write(", 1))");
                 }
-
-                code.Write(')');
 
                 if (isIndirectPointerField)
                 {
@@ -3046,14 +3045,17 @@ public partial class PInvokeGenerator
                 code.AddUsingDirective("System");
                 code.AddUsingDirective("System.Runtime.InteropServices");
 
-                code.WriteIndented("return ref AsSpan(");
+                code.WriteIndented("return ref ");
 
                 if (arraySize == 1)
                 {
-                    code.Write("int.MaxValue");
+                    code.Write("Unsafe.Add(ref e0, index)");
+                }
+                else
+                {
+                    code.Write("AsSpan()[index]");
                 }
 
-                code.Write(")[index]");
                 code.WriteSemicolon();
                 code.WriteNewline();
                 _outputBuilder.EndCSharpCode(code);

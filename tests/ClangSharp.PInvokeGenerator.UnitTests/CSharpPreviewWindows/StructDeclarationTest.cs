@@ -19,12 +19,33 @@ public sealed class CSharpPreviewWindows_StructDeclarationTest : StructDeclarati
 }};
 ";
 
-        var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
 {{
-    public unsafe partial struct MyStruct
+    public partial struct MyStruct
     {{
         [NativeTypeName(""{nativeType}[]"")]
-        public fixed {expectedManagedType} x[1];
+        public _x_e__FixedBuffer x;
+
+        public partial struct _x_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0;
+
+            [UnscopedRef]
+            public ref {expectedManagedType} this[int index]
+            {{
+                get
+                {{
+                    return ref Unsafe.Add(ref e0, index);
+                }}
+            }}
+
+            [UnscopedRef]
+            public Span<{expectedManagedType}> AsSpan(int length) => MemoryMarshal.CreateSpan(ref e0, length);
+        }}
     }}
 }}
 ";
@@ -792,12 +813,20 @@ namespace ClangSharp.Test
 }};
 ";
 
-        var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+
+namespace ClangSharp.Test
 {{
-    public unsafe partial struct MyStruct
+    public partial struct MyStruct
     {{
         [NativeTypeName(""{nativeType}[3]"")]
-        public fixed {expectedManagedType} c[3];
+        public _c_e__FixedBuffer c;
+
+        [InlineArray(3)]
+        public partial struct _c_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0;
+        }}
     }}
 }}
 ";
@@ -813,12 +842,20 @@ namespace ClangSharp.Test
 }};
 ";
 
-        var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+
+namespace ClangSharp.Test
 {{
-    public unsafe partial struct MyStruct
+    public partial struct MyStruct
     {{
         [NativeTypeName(""{nativeType}[2][1][3][4]"")]
-        public fixed {expectedManagedType} c[2 * 1 * 3 * 4];
+        public _c_e__FixedBuffer c;
+
+        [InlineArray(2 * 1 * 3 * 4)]
+        public partial struct _c_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0_0_0_0;
+        }}
     }}
 }}
 ";
@@ -836,12 +873,20 @@ struct MyStruct
 }};
 ";
 
-        var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+
+namespace ClangSharp.Test
 {{
-    public unsafe partial struct MyStruct
+    public partial struct MyStruct
     {{
         [NativeTypeName(""MyBuffer"")]
-        public fixed {expectedManagedType} c[3];
+        public _c_e__FixedBuffer c;
+
+        [InlineArray(3)]
+        public partial struct _c_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0;
+        }}
     }}
 }}
 ";
@@ -1064,7 +1109,7 @@ namespace ClangSharp.Test
         public {expectedManagedType} value;
     }}
 
-    public unsafe partial struct MyStruct
+    public partial struct MyStruct
     {{
         public {expectedManagedType} x;
 
@@ -1132,7 +1177,7 @@ namespace ClangSharp.Test
         {{
             get
             {{
-                return MemoryMarshal.CreateSpan(ref Anonymous.buffer1[0], 4);
+                return Anonymous.buffer1;
             }}
         }}
 
@@ -1141,11 +1186,11 @@ namespace ClangSharp.Test
         {{
             get
             {{
-                return Anonymous.buffer2.AsSpan();
+                return Anonymous.buffer2;
             }}
         }}
 
-        public unsafe partial struct _Anonymous_e__Struct
+        public partial struct _Anonymous_e__Struct
         {{
             public {expectedManagedType} z;
 
@@ -1161,7 +1206,7 @@ namespace ClangSharp.Test
             public MyUnion u;
 
             [NativeTypeName(""{nativeType}[4]"")]
-            public fixed {expectedManagedType} buffer1[4];
+            public _buffer1_e__FixedBuffer buffer1;
 
             [NativeTypeName(""MyUnion[4]"")]
             public _buffer2_e__FixedBuffer buffer2;
@@ -1189,6 +1234,12 @@ namespace ClangSharp.Test
             {{
                 [FieldOffset(0)]
                 public {expectedManagedType} value2;
+            }}
+
+            [InlineArray(4)]
+            public partial struct _buffer1_e__FixedBuffer
+            {{
+                public {expectedManagedType} e0;
             }}
 
             [InlineArray(4)]
@@ -1878,7 +1929,7 @@ namespace ClangSharp.Test
             {
                 get
                 {
-                    return ref AsSpan(int.MaxValue)[index];
+                    return ref Unsafe.Add(ref e0, index);
                 }
             }
 

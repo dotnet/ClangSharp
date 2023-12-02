@@ -11,14 +11,14 @@ namespace ClangSharp;
 
 internal sealed class OutputBuilderFactory
 {
-    private readonly PInvokeGeneratorConfiguration _config;
+    private readonly PInvokeGenerator _generator;
     private readonly bool _writeSourceLocation;
     private readonly Dictionary<string, IOutputBuilder> _outputBuilders;
 
-    public OutputBuilderFactory(PInvokeGeneratorConfiguration config)
+    public OutputBuilderFactory(PInvokeGenerator generator)
     {
-        _config = config;
-        _writeSourceLocation = config.GenerateSourceLocationAttribute;
+        _generator = generator;
+        _writeSourceLocation = generator.Config.GenerateSourceLocationAttribute;
         _outputBuilders = [];
     }
 
@@ -33,10 +33,10 @@ internal sealed class OutputBuilderFactory
             throw new ArgumentNullException(nameof(name));
         }
 
-        var outputBuilder = _config.OutputMode switch
+        var outputBuilder = _generator.Config.OutputMode switch
         {
-            PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name, _config, writeSourceLocation: _writeSourceLocation),
-            PInvokeGeneratorOutputMode.Xml => new XmlOutputBuilder(name, _config),
+            PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name, _generator, writeSourceLocation: _writeSourceLocation),
+            PInvokeGeneratorOutputMode.Xml => new XmlOutputBuilder(name, _generator),
             _ => throw new InvalidOperationException()
         };
 
@@ -51,7 +51,7 @@ internal sealed class OutputBuilderFactory
             throw new ArgumentNullException(nameof(name));
         }
 
-        var outputBuilder = new CSharpOutputBuilder(name, _config, isTestOutput: true, writeSourceLocation: _writeSourceLocation);
+        var outputBuilder = new CSharpOutputBuilder(name, _generator, isTestOutput: true, writeSourceLocation: _writeSourceLocation);
 
         _outputBuilders.Add(name, outputBuilder);
         return outputBuilder;

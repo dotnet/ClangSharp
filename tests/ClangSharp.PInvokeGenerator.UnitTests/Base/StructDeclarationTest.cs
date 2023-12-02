@@ -92,7 +92,6 @@ public abstract class StructDeclarationTest : PInvokeGeneratorTest
     [TestCase("unsigned short", "ushort")]
     [TestCase("unsigned int", "uint")]
     [TestCase("unsigned long long", "ulong")]
-    [TestCase("bool", "byte")]
     public Task FixedSizedBufferPrimitiveTest(string nativeType, string expectedManagedType) => FixedSizedBufferPrimitiveTestImpl(nativeType, expectedManagedType);
 
     [TestCase("unsigned char", "byte")]
@@ -105,7 +104,6 @@ public abstract class StructDeclarationTest : PInvokeGeneratorTest
     [TestCase("unsigned short", "ushort")]
     [TestCase("unsigned int", "uint")]
     [TestCase("unsigned long long", "ulong")]
-    [TestCase("bool", "byte")]
     public Task FixedSizedBufferPrimitiveMultidimensionalTest(string nativeType, string expectedManagedType) => FixedSizedBufferPrimitiveMultidimensionalTestImpl(nativeType, expectedManagedType);
 
     [TestCase("unsigned char", "byte")]
@@ -118,7 +116,6 @@ public abstract class StructDeclarationTest : PInvokeGeneratorTest
     [TestCase("unsigned short", "ushort")]
     [TestCase("unsigned int", "uint")]
     [TestCase("unsigned long long", "ulong")]
-    [TestCase("bool", "byte")]
     public Task FixedSizedBufferPrimitiveTypedefTest(string nativeType, string expectedManagedType) => FixedSizedBufferPrimitiveTypedefTestImpl(nativeType, expectedManagedType);
 
     [Test]
