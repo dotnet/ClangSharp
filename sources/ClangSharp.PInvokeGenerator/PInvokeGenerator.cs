@@ -239,9 +239,6 @@ public sealed partial class PInvokeGenerator : IDisposable
             var outputPath = _config.OutputLocation;
             stream = _outputStreamFactory(outputPath);
 
-            var testOutputPath = _config.TestOutputLocation;
-            testStream = _outputStreamFactory(testOutputPath);
-
             leaveStreamOpen = true;
 
             var usingDirectives = new SortedSet<string>(StringComparer.Ordinal);
@@ -333,6 +330,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (testHasAnyContents)
             {
+                var testOutputPath = _config.TestOutputLocation;
+                testStream = _outputStreamFactory(testOutputPath);
+
                 using var sw = new StreamWriter(testStream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
                 sw.NewLine = "\n";
 
@@ -358,7 +358,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else
             {
-                testStream = null;
+                Debug.Assert(testStream is null);
             }
         }
 
