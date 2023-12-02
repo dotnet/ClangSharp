@@ -1949,7 +1949,7 @@ namespace ClangSharp.Test
             {
                 get
                 {
-                    return ref AsSpan(int.MaxValue)[index];
+                    return ref Unsafe.Add(ref e0, index);
                 }
             }
 

@@ -503,10 +503,16 @@ union MyOtherUnion
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
+    <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
       <field name=""c"" access=""public"" offset=""0"">
         <type native=""{nativeType}[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
+        <field name=""e0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+      </struct>
     </struct>
   </namespace>
 </bindings>
@@ -526,10 +532,16 @@ union MyOtherUnion
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
+    <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
       <field name=""c"" access=""public"" offset=""0"">
         <type native=""{nativeType}[2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(2 * 1 * 3 * 4)</attribute>
+        <field name=""e0_0_0_0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+      </struct>
     </struct>
   </namespace>
 </bindings>
@@ -551,10 +563,16 @@ union MyUnion
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
+    <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
       <field name=""c"" access=""public"" offset=""0"">
         <type native=""MyBuffer"" count=""3"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
+        <field name=""e0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+      </struct>
     </struct>
   </namespace>
 </bindings>
@@ -638,7 +656,7 @@ union MyUnion
         <type>{expectedManagedType}</type>
       </field>
     </struct>
-    <struct name=""MyUnion"" access=""public"" unsafe=""true"" layout=""Explicit"">
+    <struct name=""MyUnion"" access=""public"" layout=""Explicit"">
       <field name=""r"" access=""public"" offset=""0"">
         <type>{expectedManagedType}</type>
       </field>
@@ -666,10 +684,10 @@ union MyUnion
       <field name=""buffer"" access=""public"">
         <type>Span&lt;{expectedManagedType}&gt;</type>
         <get>
-          <code>return MemoryMarshal.CreateSpan(ref Anonymous.buffer[0], 4);</code>
+          <code>return Anonymous.buffer;</code>
         </get>
       </field>
-      <struct name=""_Anonymous_e__Union"" access=""public"" unsafe=""true"" layout=""Explicit"">
+      <struct name=""_Anonymous_e__Union"" access=""public"" layout=""Explicit"">
         <field name=""a"" access=""public"" offset=""0"">
           <type>{expectedManagedType}</type>
         </field>
@@ -679,6 +697,12 @@ union MyUnion
         <field name=""buffer"" access=""public"" offset=""0"">
           <type native=""{nativeType}[4]"" count=""4"" fixed=""_buffer_e__FixedBuffer"">{expectedManagedType}</type>
         </field>
+        <struct name=""_buffer_e__FixedBuffer"" access=""public"">
+          <attribute>InlineArray(4)</attribute>
+          <field name=""e0"" access=""public"">
+            <type>{expectedManagedType}</type>
+          </field>
+        </struct>
       </struct>
     </struct>
   </namespace>

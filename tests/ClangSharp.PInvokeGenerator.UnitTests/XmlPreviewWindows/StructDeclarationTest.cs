@@ -22,10 +22,31 @@ public sealed class XmlPreviewWindows_StructDeclarationTest : StructDeclarationT
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+    <struct name=""MyStruct"" access=""public"">
       <field name=""x"" access=""public"">
         <type native=""{nativeType}[]"" count=""1"" fixed=""_x_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_x_e__FixedBuffer"" access=""public"">
+        <field name=""e0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+        <indexer access=""public"">
+          <type>ref {expectedManagedType}</type>
+          <param name=""index"">
+            <type>int</type>
+          </param>
+          <get>
+            <code>return ref Unsafe.Add(ref e0, index);</code>
+          </get>
+        </indexer>
+        <function name=""AsSpan"" access=""public"">
+          <type>Span&lt;{expectedManagedType}&gt;</type>
+          <param name=""length"">
+            <type>int</type>
+          </param>
+          <code>MemoryMarshal.CreateSpan(ref e0, length);</code>
+        </function>
+      </struct>
     </struct>
   </namespace>
 </bindings>
@@ -742,10 +763,16 @@ struct MyOtherStruct
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+    <struct name=""MyStruct"" access=""public"">
       <field name=""c"" access=""public"">
         <type native=""{nativeType}[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
+        <field name=""e0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+      </struct>
     </struct>
   </namespace>
 </bindings>
@@ -765,10 +792,16 @@ struct MyOtherStruct
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+    <struct name=""MyStruct"" access=""public"">
       <field name=""c"" access=""public"">
         <type native=""{nativeType}[2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(2 * 1 * 3 * 4)</attribute>
+        <field name=""e0_0_0_0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+      </struct>
     </struct>
   </namespace>
 </bindings>
@@ -790,10 +823,16 @@ struct MyStruct
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+    <struct name=""MyStruct"" access=""public"">
       <field name=""c"" access=""public"">
         <type native=""MyBuffer"" count=""3"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
+        <field name=""e0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+      </struct>
     </struct>
   </namespace>
 </bindings>
@@ -1004,7 +1043,7 @@ struct MyStruct
         <type>{expectedManagedType}</type>
       </field>
     </struct>
-    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+    <struct name=""MyStruct"" access=""public"">
       <field name=""x"" access=""public"">
         <type>{expectedManagedType}</type>
       </field>
@@ -1035,16 +1074,16 @@ struct MyStruct
       <field name=""buffer1"" access=""public"">
         <type>Span&lt;{expectedManagedType}&gt;</type>
         <get>
-          <code>return MemoryMarshal.CreateSpan(ref Anonymous.buffer1[0], 4);</code>
+          <code>return Anonymous.buffer1;</code>
         </get>
       </field>
       <field name=""buffer2"" access=""public"">
         <type>Span&lt;MyUnion&gt;</type>
         <get>
-          <code>return Anonymous.buffer2.AsSpan();</code>
+          <code>return Anonymous.buffer2;</code>
         </get>
       </field>
-      <struct name=""_Anonymous_e__Struct"" access=""public"" unsafe=""true"">
+      <struct name=""_Anonymous_e__Struct"" access=""public"">
         <field name=""z"" access=""public"">
           <type>{expectedManagedType}</type>
         </field>
@@ -1062,6 +1101,12 @@ struct MyStruct
         </field>
         <struct name=""_w_e__Struct"" access=""public"">
           <field name=""value"" access=""public"">
+            <type>{expectedManagedType}</type>
+          </field>
+        </struct>
+        <struct name=""_buffer1_e__FixedBuffer"" access=""public"">
+          <attribute>InlineArray(4)</attribute>
+          <field name=""e0"" access=""public"">
             <type>{expectedManagedType}</type>
           </field>
         </struct>
@@ -1766,7 +1811,7 @@ struct MyStruct3
             <type>int</type>
           </param>
           <get>
-            <code>return ref AsSpan(int.MaxValue)[index];</code>
+            <code>return ref Unsafe.Add(ref e0, index);</code>
           </get>
         </indexer>
         <function name=""AsSpan"" access=""public"">

@@ -127,8 +127,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                 throw new InvalidOperationException($"Invalid libClang version. Returned string '{clangSharpVersion}' does not contain '{ExpectedClangSharpVersion}'");
             }
 
+            _config = config;
             _index = CXIndex.Create();
-            _outputBuilderFactory = new OutputBuilderFactory(config);
+            _outputBuilderFactory = new OutputBuilderFactory(this);
             _outputStreamFactory = outputStreamFactory ?? ((path) => {
                 var directoryPath = Path.GetDirectoryName(path) ?? "";
                 _ = Directory.CreateDirectory(directoryPath);
@@ -138,7 +139,6 @@ public sealed partial class PInvokeGenerator : IDisposable
             _visitedFiles = [];
             _diagnostics = [];
             _context = new LinkedList<(Cursor, object?)>();
-            _config = config;
             _uuidsToGenerate = [];
             _generatedUuids = [];
             _cursorNames = [];
@@ -3690,7 +3690,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         case CXTemplateArgumentKind_Expression:
                         {
                             var oldOutputBuilder = _outputBuilder;
-                            _outputBuilder = new CSharpOutputBuilder("ClangSharp_TemplateSpecializationType_AsExpr", _config);
+                            _outputBuilder = new CSharpOutputBuilder("ClangSharp_TemplateSpecializationType_AsExpr", this);
 
                             Visit(arg.AsExpr);
                             typeName = _outputBuilder.ToString() ?? "";
@@ -5326,7 +5326,7 @@ public sealed partial class PInvokeGenerator : IDisposable
          => IsType<BuiltinType>(cursor, type, out var builtinType)
          && (builtinType.Kind == CXType_Void);
 
-    internal static bool IsSupportedFixedSizedBufferType(string typeName)
+    internal bool IsSupportedFixedSizedBufferType(string typeName)
     {
         switch (typeName)
         {
@@ -5343,7 +5343,8 @@ public sealed partial class PInvokeGenerator : IDisposable
             case "uint":
             case "ulong":
             {
-                return true;
+                // We want to prefer InlineArray in modern code, as it is safer and supports more features
+                return !Config.GenerateLatestCode;
             }
 
             default:

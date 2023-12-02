@@ -307,7 +307,7 @@ internal partial class XmlOutputBuilder
     public CSharpOutputBuilder BeginCSharpCode()
     {
         _ = _sb.Append("<code>");
-        return new CSharpOutputBuilder("__Internal", _config, markerMode: MarkerMode.Xml);
+        return new CSharpOutputBuilder("__Internal", _generator, markerMode: MarkerMode.Xml);
     }
 
     public void EndCSharpCode(CSharpOutputBuilder output)
@@ -396,7 +396,7 @@ internal partial class XmlOutputBuilder
             return;
         }
 
-        foreach (var entry in _config.NativeTypeNamesToStrip)
+        foreach (var entry in _generator.Config.NativeTypeNamesToStrip)
         {
             nativeTypeName = nativeTypeName.Replace(entry, "", StringComparison.Ordinal);
         }

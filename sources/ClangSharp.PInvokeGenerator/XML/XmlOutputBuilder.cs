@@ -8,9 +8,9 @@ using ClangSharp.Abstractions;
 
 namespace ClangSharp.XML;
 
-internal partial class XmlOutputBuilder(string name, PInvokeGeneratorConfiguration config) : IOutputBuilder
+internal partial class XmlOutputBuilder(string name, PInvokeGenerator generator) : IOutputBuilder
 {
-    private readonly PInvokeGeneratorConfiguration _config = config;
+    private readonly PInvokeGenerator _generator = generator;
 
     public string Name { get; } = name;
     public string Extension { get; } = ".xml";

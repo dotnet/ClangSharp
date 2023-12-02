@@ -567,16 +567,23 @@ namespace ClangSharp.Test
 }};
 ";
 
-        var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
     [StructLayout(LayoutKind.Explicit)]
-    public unsafe partial struct MyUnion
+    public partial struct MyUnion
     {{
         [FieldOffset(0)]
         [NativeTypeName(""{nativeType}[3]"")]
-        public fixed {expectedManagedType} c[3];
+        public _c_e__FixedBuffer c;
+
+        [InlineArray(3)]
+        public partial struct _c_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0;
+        }}
     }}
 }}
 ";
@@ -592,16 +599,23 @@ namespace ClangSharp.Test
 }};
 ";
 
-        var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
     [StructLayout(LayoutKind.Explicit)]
-    public unsafe partial struct MyUnion
+    public partial struct MyUnion
     {{
         [FieldOffset(0)]
         [NativeTypeName(""{nativeType}[2][1][3][4]"")]
-        public fixed {expectedManagedType} c[2 * 1 * 3 * 4];
+        public _c_e__FixedBuffer c;
+
+        [InlineArray(2 * 1 * 3 * 4)]
+        public partial struct _c_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0_0_0_0;
+        }}
     }}
 }}
 ";
@@ -619,16 +633,23 @@ union MyUnion
 }};
 ";
 
-        var expectedOutputContents = $@"using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {{
     [StructLayout(LayoutKind.Explicit)]
-    public unsafe partial struct MyUnion
+    public partial struct MyUnion
     {{
         [FieldOffset(0)]
         [NativeTypeName(""MyBuffer"")]
-        public fixed {expectedManagedType} c[3];
+        public _c_e__FixedBuffer c;
+
+        [InlineArray(3)]
+        public partial struct _c_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0;
+        }}
     }}
 }}
 ";
@@ -714,6 +735,7 @@ union MyUnion
 
         var expectedOutputContents = $@"using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -724,7 +746,7 @@ namespace ClangSharp.Test
     }}
 
     [StructLayout(LayoutKind.Explicit)]
-    public unsafe partial struct MyUnion
+    public partial struct MyUnion
     {{
         [FieldOffset(0)]
         public {expectedManagedType} r;
@@ -762,12 +784,12 @@ namespace ClangSharp.Test
         {{
             get
             {{
-                return MemoryMarshal.CreateSpan(ref Anonymous.buffer[0], 4);
+                return Anonymous.buffer;
             }}
         }}
 
         [StructLayout(LayoutKind.Explicit)]
-        public unsafe partial struct _Anonymous_e__Union
+        public partial struct _Anonymous_e__Union
         {{
             [FieldOffset(0)]
             public {expectedManagedType} a;
@@ -777,7 +799,13 @@ namespace ClangSharp.Test
 
             [FieldOffset(0)]
             [NativeTypeName(""{nativeType}[4]"")]
-            public fixed {expectedManagedType} buffer[4];
+            public _buffer_e__FixedBuffer buffer;
+
+            [InlineArray(4)]
+            public partial struct _buffer_e__FixedBuffer
+            {{
+                public {expectedManagedType} e0;
+            }}
         }}
     }}
 }}
