@@ -908,7 +908,7 @@ public partial class PInvokeGenerator
         {
             var cursorName = GetCursorName(varDecl);
 
-            if (cursorName.StartsWith("ClangSharpMacro_") &&  _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
+            if (cursorName.StartsWith("ClangSharpMacro_") && _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
             {
                 if (!IsPrimitiveValue(explicitCastExpr, type) || IsConstant(typeName, varDecl.Init))
                 {
@@ -1682,11 +1682,7 @@ public partial class PInvokeGenerator
     {
         var valueString = integerLiteral.ValueString;
 
-        if (valueString.EndsWith("l", StringComparison.OrdinalIgnoreCase))
-        {
-            valueString = valueString[0..^1];
-        }
-        else if (valueString.EndsWith("ui8", StringComparison.OrdinalIgnoreCase))
+        if (valueString.EndsWith("ui8", StringComparison.OrdinalIgnoreCase))
         {
             valueString = valueString[0..^3];
         }
@@ -1710,18 +1706,29 @@ public partial class PInvokeGenerator
         {
             valueString = valueString[0..^3] + "L";
         }
-
-        if (valueString.EndsWith("ul", StringComparison.OrdinalIgnoreCase))
+        else if (
+            valueString.EndsWith("ull", StringComparison.OrdinalIgnoreCase) ||
+            valueString.EndsWith("llu", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^2] + "UL";
+            valueString = valueString[0..^3] + "UL";
         }
-        else if (valueString.EndsWith("l", StringComparison.OrdinalIgnoreCase))
+        else if (valueString.EndsWith("ll", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^1] + "L";
+            valueString = valueString[0..^2] + "L";
+        }
+        else if (
+            valueString.EndsWith("ul", StringComparison.OrdinalIgnoreCase) ||
+            valueString.EndsWith("lu", StringComparison.OrdinalIgnoreCase))
+        {
+            valueString = valueString[0..^2] + "U";
         }
         else if (valueString.EndsWith("u", StringComparison.OrdinalIgnoreCase))
         {
             valueString = valueString[0..^1] + "U";
+        }
+        else if (valueString.EndsWith("l", StringComparison.OrdinalIgnoreCase))
+        {
+            valueString = valueString[0..^1];
         }
 
         var outputBuilder = StartCSharpCode();
