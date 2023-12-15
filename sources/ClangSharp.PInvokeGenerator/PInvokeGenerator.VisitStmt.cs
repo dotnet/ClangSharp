@@ -1902,9 +1902,17 @@ public partial class PInvokeGenerator
         {
             valueString = valueString[0..^3];
         }
+        else if (valueString.EndsWith("ui32", StringComparison.OrdinalIgnoreCase))
+        {
+            valueString = valueString[0..^4] + "U";
+        }
         else if (valueString.EndsWith("i32", StringComparison.OrdinalIgnoreCase))
         {
             valueString = valueString[0..^3];
+        }
+        else if (valueString.EndsWith("ui64", StringComparison.OrdinalIgnoreCase))
+        {
+            valueString = valueString[0..^4] + "UL";
         }
         else if (valueString.EndsWith("i64", StringComparison.OrdinalIgnoreCase))
         {
