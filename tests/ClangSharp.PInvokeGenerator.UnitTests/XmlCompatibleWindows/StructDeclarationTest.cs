@@ -1920,7 +1920,7 @@ struct MyStruct3
     {
         const string InputContents = @"struct MyStruct
 {
-    size_t FixedBuffer[1];
+    size_t FixedBuffer[2];
 };
 ";
 
@@ -1929,10 +1929,13 @@ struct MyStruct3
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" layout=""Sequential"" pack=""CustomPackValue"">
       <field name=""FixedBuffer"" access=""public"">
-        <type native=""size_t[1]"" count=""1"" fixed=""_FixedBuffer_e__FixedBuffer"">UIntPtr</type>
+        <type native=""size_t[2]"" count=""2"" fixed=""_FixedBuffer_e__FixedBuffer"">UIntPtr</type>
       </field>
       <struct name=""_FixedBuffer_e__FixedBuffer"" access=""public"">
         <field name=""e0"" access=""public"">
+          <type>UIntPtr</type>
+        </field>
+        <field name=""e1"" access=""public"">
           <type>UIntPtr</type>
         </field>
         <indexer access=""public"" unsafe=""true"">

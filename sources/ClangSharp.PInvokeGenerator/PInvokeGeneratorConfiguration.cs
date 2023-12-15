@@ -42,6 +42,7 @@ public sealed class PInvokeGeneratorConfiguration
     private readonly SortedDictionary<string, string> _withCallConvs;
     private readonly SortedDictionary<string, string> _withClasses;
     private readonly SortedDictionary<string, Guid> _withGuids;
+    private readonly SortedDictionary<string, string> _withLengths;
     private readonly SortedDictionary<string, string> _withLibraryPaths;
     private readonly SortedDictionary<string, string> _withNamespaces;
     private readonly SortedDictionary<string, (string, PInvokeGeneratorTransparentStructKind)> _withTransparentStructs;
@@ -95,6 +96,7 @@ public sealed class PInvokeGeneratorConfiguration
         _withCallConvs = [];
         _withClasses = [];
         _withGuids = [];
+        _withLengths = [];
         _withLibraryPaths = [];
         _withNamespaces = [];
         _withTransparentStructs = [];
@@ -449,6 +451,20 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_withGuids, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyDictionary<string, string> WithLengths
+    {
+        get
+        {
+            return _withLengths;
+        }
+
+        init
+        {
+            AddRange(_withLengths, value);
         }
     }
 

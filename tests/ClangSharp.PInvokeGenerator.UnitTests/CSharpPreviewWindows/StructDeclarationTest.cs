@@ -50,7 +50,10 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
+        var diagnostics = new[] {
+            new Diagnostic(DiagnosticLevel.Warning, "Found variable length array: 'MyStruct::x'. Please specify the length using `--with-length <string>`.", $"Line 3, Column {6 + expectedManagedType.Length} in ClangUnsavedFile.h"),
+        };
+        return ValidateGeneratedCSharpPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
     }
 
     protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
@@ -1904,12 +1907,11 @@ struct MyStruct3
     {
         const string InputContents = @"struct MyStruct
 {
-    size_t FixedBuffer[1];
+    size_t FixedBuffer[2];
 };
 ";
 
-        const string ExpectedOutputContents = @"using System;
-using System.Diagnostics.CodeAnalysis;
+        const string ExpectedOutputContents = @"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -1917,24 +1919,13 @@ namespace ClangSharp.Test
     [StructLayout(LayoutKind.Sequential, Pack = CustomPackValue)]
     public partial struct MyStruct
     {
-        [NativeTypeName(""size_t[1]"")]
+        [NativeTypeName(""size_t[2]"")]
         public _FixedBuffer_e__FixedBuffer FixedBuffer;
 
+        [InlineArray(2)]
         public partial struct _FixedBuffer_e__FixedBuffer
         {
             public nuint e0;
-
-            [UnscopedRef]
-            public ref nuint this[int index]
-            {
-                get
-                {
-                    return ref Unsafe.Add(ref e0, index);
-                }
-            }
-
-            [UnscopedRef]
-            public Span<nuint> AsSpan(int length) => MemoryMarshal.CreateSpan(ref e0, length);
         }
     }
 }

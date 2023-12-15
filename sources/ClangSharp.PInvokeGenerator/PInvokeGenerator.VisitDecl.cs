@@ -18,6 +18,7 @@ using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
 using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXEvalResultKind;
 using static ClangSharp.Interop.CXTypeKind;
+using ClangSharp.Interop;
 
 namespace ClangSharp;
 
@@ -822,13 +823,33 @@ public partial class PInvokeGenerator
                     memberInitName = GetRemappedCursorName(declRefExpr.Decl);
                 }
 
-                _outputBuilder.BeginConstructorInitializer(memberRefName, memberInitName);
+                var skipInitializer = false;
+                var typeName = "";
+
+                if (memberInit is InitListExpr initListExpr)
+                {
+                    typeName = GetRemappedTypeName(initListExpr, context: null, initListExpr.Type, out _);
+                }
+
+                if (string.Equals(memberRefName, typeName, StringComparison.Ordinal))
+                {
+                    skipInitializer = true;
+                }
+                else
+                {
+                    _outputBuilder.BeginConstructorInitializer(memberRefName, memberInitName);
+                }
 
                 var memberRefTypeName = GetRemappedTypeName(memberRef, context: null, memberRef.Type, out var memberRefNativeTypeName);
 
+                _ = _context.AddLast((cxxConstructorDecl, skipInitializer));
                 UncheckStmt(memberRefTypeName, memberInit);
+                _context.RemoveLast();
 
-                _outputBuilder.EndConstructorInitializer();
+                if (!skipInitializer)
+                {
+                    _outputBuilder.EndConstructorInitializer();
+                }
             }
         }
     }
@@ -1083,15 +1104,32 @@ public partial class PInvokeGenerator
 
                 if (isFixedSizedBuffer)
                 {
+                    var arraySize = IsType<ConstantArrayType>(indirectFieldDecl, type, out var constantArrayType) ? constantArrayType.Size : 0;
+                    arraySize = Math.Max(arraySize, 1);
+
                     if (isSupportedFixedSizedBufferType)
                     {
                         code.Write("[0], ");
-                        code.Write(Math.Max(IsType<ConstantArrayType>(indirectFieldDecl, type, out var constantArrayType) ? constantArrayType.Size : 0, 1));
+                        code.Write(arraySize);
                         code.Write(')');
                     }
-                    else if (!_config.GenerateLatestCode)
+                    else if (!_config.GenerateLatestCode || arraySize == 1)
                     {
-                        code.Write(".AsSpan()");
+                        code.Write(".AsSpan(");
+
+                        if (arraySize == 1)
+                        {
+                            if (TryGetRemappedValue(indirectFieldDecl, _config.WithLengths, out var length))
+                            {
+                                code.Write(length);
+                            }
+                            else
+                            {
+                                AddDiagnostic(DiagnosticLevel.Warning, $"Found variable length array: '{GetCursorQualifiedName(indirectFieldDecl)}'. Please specify the length using `--with-length <string>`.", indirectFieldDecl);
+                            }
+                        }
+
+                        code.Write(')');
                     }
                 }
                 else
@@ -1639,11 +1677,9 @@ public partial class PInvokeGenerator
                     var cxxBaseSpecifier = cxxRecordDecl.Bases[index];
                     var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
 
-                    if (HasField(baseCxxRecordDecl))
+                    if (HasField(baseCxxRecordDecl) && !IsBaseExcluded(cxxRecordDecl, baseCxxRecordDecl, cxxBaseSpecifier, out var baseFieldName))
                     {
                         var parent = GetRemappedCursorName(baseCxxRecordDecl);
-                        var baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
-                        baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out var wasRemapped, skipUsing: true);
 
                         var fieldDesc = new FieldDesc {
                             AccessSpecifier = GetAccessSpecifier(baseCxxRecordDecl, matchStar: true),
@@ -1771,14 +1807,22 @@ public partial class PInvokeGenerator
             {
                 foreach (var cxxConstructorDecl in cxxRecordDecl.Ctors)
                 {
-                    Visit(cxxConstructorDecl);
-                    _outputBuilder.WriteDivider();
+                    if (!IsExcluded(cxxConstructorDecl))
+                    {
+                        Visit(cxxConstructorDecl);
+                        _outputBuilder.WriteDivider();
+                    }
                 }
 
-                if (cxxRecordDecl.HasUserDeclaredDestructor && !cxxRecordDecl.Destructor.IsVirtual)
+                if (cxxRecordDecl.HasUserDeclaredDestructor)
                 {
-                    Visit(cxxRecordDecl.Destructor);
-                    _outputBuilder.WriteDivider();
+                    var cxxDestructorDecl = cxxRecordDecl.Destructor;
+
+                    if (!cxxDestructorDecl.IsVirtual && !IsExcluded(cxxDestructorDecl))
+                    {
+                        Visit(cxxDestructorDecl);
+                        _outputBuilder.WriteDivider();
+                    }
                 }
 
                 if (hasVtbl || hasBaseVtbl)
@@ -3714,14 +3758,14 @@ public partial class PInvokeGenerator
             case CX_StmtClass_CStyleCastExpr:
             case CX_StmtClass_CXXStaticCastExpr:
             case CX_StmtClass_CXXFunctionalCastExpr:
+            case CX_StmtClass_CXXConstCastExpr:
+            case CX_StmtClass_CXXDynamicCastExpr:
+            case CX_StmtClass_CXXReinterpretCastExpr:
             {
                 var cxxFunctionalCastExpr = (ExplicitCastExpr)initExpr;
                 return IsConstant(targetTypeName, cxxFunctionalCastExpr.SubExprAsWritten);
             }
 
-            // case CX_StmtClass_CXXConstCastExpr:
-            // case CX_StmtClass_CXXDynamicCastExpr:
-            // case CX_StmtClass_CXXReinterpretCastExpr:
             // case CX_StmtClass_ObjCBridgedCastExpr:
 
             case CX_StmtClass_ImplicitCastExpr:

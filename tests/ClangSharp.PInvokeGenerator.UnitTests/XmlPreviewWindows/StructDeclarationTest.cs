@@ -52,7 +52,10 @@ public sealed class XmlPreviewWindows_StructDeclarationTest : StructDeclarationT
 </bindings>
 ";
 
-        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
+        var diagnostics = new[] {
+            new Diagnostic(DiagnosticLevel.Warning, "Found variable length array: 'MyStruct::x'. Please specify the length using `--with-length <string>`.", $"Line 3, Column {6 + expectedManagedType.Length} in ClangUnsavedFile.h"),
+        };
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
     }
 
     protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
@@ -1790,7 +1793,7 @@ struct MyStruct3
     {
         const string InputContents = @"struct MyStruct
 {
-    size_t FixedBuffer[1];
+    size_t FixedBuffer[2];
 };
 ";
 
@@ -1799,28 +1802,13 @@ struct MyStruct3
   <namespace name=""ClangSharp.Test"">
     <struct name=""MyStruct"" access=""public"" layout=""Sequential"" pack=""CustomPackValue"">
       <field name=""FixedBuffer"" access=""public"">
-        <type native=""size_t[1]"" count=""1"" fixed=""_FixedBuffer_e__FixedBuffer"">nuint</type>
+        <type native=""size_t[2]"" count=""2"" fixed=""_FixedBuffer_e__FixedBuffer"">nuint</type>
       </field>
       <struct name=""_FixedBuffer_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(2)</attribute>
         <field name=""e0"" access=""public"">
           <type>nuint</type>
         </field>
-        <indexer access=""public"">
-          <type>ref nuint</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref Unsafe.Add(ref e0, index);</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;nuint&gt;</type>
-          <param name=""length"">
-            <type>int</type>
-          </param>
-          <code>MemoryMarshal.CreateSpan(ref e0, length);</code>
-        </function>
       </struct>
     </struct>
   </namespace>
