@@ -50,10 +50,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        var diagnostics = new[] {
-            new Diagnostic(DiagnosticLevel.Warning, "Found variable length array: 'MyStruct::x'. Please specify the length using `--with-length <string>`.", $"Line 3, Column {6 + expectedManagedType.Length} in ClangUnsavedFile.h"),
-        };
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
@@ -1916,21 +1913,10 @@ namespace ClangSharp.Test
         [NativeTypeName(""size_t[2]"")]
         public _FixedBuffer_e__FixedBuffer FixedBuffer;
 
+        [InlineArray(2)]
         public partial struct _FixedBuffer_e__FixedBuffer
         {
             public nuint e0;
-
-            [UnscopedRef]
-            public ref nuint this[int index]
-            {
-                get
-                {
-                    return ref AsSpan()[index];
-                }
-            }
-
-            [UnscopedRef]
-            public Span<nuint> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 2);
         }
     }
 }

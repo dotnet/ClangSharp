@@ -52,10 +52,7 @@ public sealed class XmlPreviewWindows_StructDeclarationTest : StructDeclarationT
 </bindings>
 ";
 
-        var diagnostics = new[] {
-            new Diagnostic(DiagnosticLevel.Warning, "Found variable length array: 'MyStruct::x'. Please specify the length using `--with-length <string>`.", $"Line 3, Column {6 + expectedManagedType.Length} in ClangUnsavedFile.h"),
-        };
-        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
