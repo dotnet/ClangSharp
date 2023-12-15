@@ -5028,6 +5028,17 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
+    private bool IsBaseExcluded(CXXRecordDecl cxxRecordDecl, CXXRecordDecl baseCxxRecordDecl, CXXBaseSpecifier cxxBaseSpecifier, out string baseFieldName)
+    {
+        baseFieldName = GetAnonymousName(cxxBaseSpecifier, "Base");
+        baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out _, skipUsing: true);
+
+        var qualifiedName = $"{GetCursorQualifiedName(cxxRecordDecl)}::{baseFieldName}";
+        var dottedQualifiedName = qualifiedName.Replace("::", ".", StringComparison.Ordinal);
+
+        return _config.ExcludedNames.Contains(qualifiedName) || _config.ExcludedNames.Contains(dottedQualifiedName);
+    }
+
     private bool IsFixedSize(Cursor cursor, Type type)
     {
         // We don't want to handle these using IsType because we need to specially
@@ -5100,18 +5111,23 @@ public sealed partial class PInvokeGenerator : IDisposable
             || nativeTypeName.Replace(" ", "", StringComparison.Ordinal).Equals(typeName, StringComparison.OrdinalIgnoreCase);
     }
 
-    private bool IsPrevContextDecl<T>([MaybeNullWhen(false)] out T cursor, out object? userData)
+    private bool IsPrevContextDecl<T>([MaybeNullWhen(false)] out T cursor, out object? userData, bool includeLast = false)
         where T : Decl
     {
         var previousContext = _context.Last;
         Debug.Assert(previousContext != null);
 
-        do
+        if (!includeLast)
         {
             previousContext = previousContext.Previous;
             Debug.Assert(previousContext != null);
         }
-        while (previousContext.Value.Cursor is not Decl);
+
+        while (previousContext.Value.Cursor is not Decl)
+        {
+            previousContext = previousContext.Previous;
+            Debug.Assert(previousContext != null);
+        }
 
         var value = previousContext.Value;
 
@@ -5515,15 +5531,14 @@ public sealed partial class PInvokeGenerator : IDisposable
                     || (IsUnsigned(targetTypeName) != IsUnsigned(explicitCastExprTypeName));
             }
 
-            // case CX_StmtClass_CXXConstCastExpr:
-            // case CX_StmtClass_CXXDynamicCastExpr:
-
+            case CX_StmtClass_CXXConstCastExpr:
+            case CX_StmtClass_CXXDynamicCastExpr:
             case CX_StmtClass_CXXReinterpretCastExpr:
             {
-                var reinterpretCastExpr = (CXXReinterpretCastExpr)stmt;
+                var namedCastExpr = (CXXNamedCastExpr)stmt;
 
-                return IsUnchecked(targetTypeName, reinterpretCastExpr.SubExprAsWritten)
-                    || IsUnchecked(targetTypeName, reinterpretCastExpr.Handle.Evaluate);
+                return IsUnchecked(targetTypeName, namedCastExpr.SubExprAsWritten)
+                    || IsUnchecked(targetTypeName, namedCastExpr.Handle.Evaluate);
             }
 
             // case CX_StmtClass_ObjCBridgedCastExpr:

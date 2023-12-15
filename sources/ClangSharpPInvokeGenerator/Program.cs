@@ -49,6 +49,7 @@ public static class Program
     private static readonly string[] s_withCallConvOptionAliases = ["--with-callconv", "-wcc"];
     private static readonly string[] s_withClassOptionAliases = ["--with-class", "-wc"];
     private static readonly string[] s_withGuidOptionAliases = ["--with-guid", "-wg"];
+    private static readonly string[] s_withLengthOptionAliases = ["--with-length", "-wl"];
     private static readonly string[] s_withLibraryPathOptionAliases = ["--with-librarypath", "-wlb"];
     private static readonly string[] s_withManualImportOptionAliases = ["--with-manual-import", "-wmi"];
     private static readonly string[] s_withNamespaceOptionAliases = ["--with-namespace", "-wn"];
@@ -86,6 +87,7 @@ public static class Program
     private static readonly Option<string[]> s_withCallConvNameValuePairs = GetWithCallConvOption();
     private static readonly Option<string[]> s_withClassNameValuePairs = GetWithClassOption();
     private static readonly Option<string[]> s_withGuidNameValuePairs = GetWithGuidOption();
+    private static readonly Option<string[]> s_withLengthNameValuePairs = GetWithLengthOption();
     private static readonly Option<string[]> s_withLibraryPathNameValuePairs = GetWithLibraryPathOption();
     private static readonly Option<string[]> s_withManualImports = GetWithManualImportOption();
     private static readonly Option<string[]> s_withNamespaceNameValuePairs = GetWithNamespaceOption();
@@ -242,6 +244,7 @@ public static class Program
         var withCallConvNameValuePairs = context.ParseResult.GetValueForOption(s_withCallConvNameValuePairs) ?? [];
         var withClassNameValuePairs = context.ParseResult.GetValueForOption(s_withClassNameValuePairs) ?? [];
         var withGuidNameValuePairs = context.ParseResult.GetValueForOption(s_withGuidNameValuePairs) ?? [];
+        var withLengthNameValuePairs = context.ParseResult.GetValueForOption(s_withLengthNameValuePairs) ?? [];
         var withLibraryPathNameValuePairs = context.ParseResult.GetValueForOption(s_withLibraryPathNameValuePairs) ?? [];
         var withManualImports = context.ParseResult.GetValueForOption(s_withManualImports) ?? [];
         var withNamespaceNameValuePairs = context.ParseResult.GetValueForOption(s_withNamespaceNameValuePairs) ?? [];
@@ -286,6 +289,7 @@ public static class Program
         ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
         ParseKeyValuePairs(withClassNameValuePairs, errorList, out Dictionary<string, string> withClasses);
         ParseKeyValuePairs(withGuidNameValuePairs, errorList, out Dictionary<string, Guid> withGuids);
+        ParseKeyValuePairs(withLengthNameValuePairs, errorList, out Dictionary<string, string> withLengths);
         ParseKeyValuePairs(withLibraryPathNameValuePairs, errorList, out Dictionary<string, string> withLibraryPaths);
         ParseKeyValuePairs(withNamespaceNameValuePairs, errorList, out Dictionary<string, string> withNamespaces);
         ParseKeyValuePairs(withTransparentStructNameValuePairs, errorList, out Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> withTransparentStructs);
@@ -693,6 +697,7 @@ public static class Program
             WithCallConvs = withCallConvs,
             WithClasses = withClasses,
             WithGuids = withGuids,
+            WithLengths = withLengths,
             WithLibraryPaths = withLibraryPaths,
             WithManualImports = withManualImports,
             WithNamespaces = withNamespaces,
@@ -1164,6 +1169,7 @@ public static class Program
             s_withCallConvNameValuePairs,
             s_withClassNameValuePairs,
             s_withGuidNameValuePairs,
+            s_withLengthNameValuePairs,
             s_withLibraryPathNameValuePairs,
             s_withManualImports,
             s_withNamespaceNameValuePairs,
@@ -1266,6 +1272,17 @@ public static class Program
         return new Option<string[]>(
             aliases: s_withGuidOptionAliases,
             description: "A GUID to be used for the given declaration during binding generation. Supports wildcards.",
+            getDefaultValue: Array.Empty<string>
+        ) {
+            AllowMultipleArgumentsPerToken = true
+        };
+    }
+
+    private static Option<string[]> GetWithLengthOption()
+    {
+        return new Option<string[]>(
+            aliases: s_withLengthOptionAliases,
+            description: "A length to be used for the given declaration during binding generation. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
