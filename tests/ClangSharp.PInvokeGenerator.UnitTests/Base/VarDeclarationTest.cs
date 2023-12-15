@@ -31,6 +31,7 @@ public abstract class VarDeclarationTest : PInvokeGeneratorTest
     [TestCase("0U", "uint", "0U")]
     [TestCase("0LL", "long", "0L")]
     [TestCase("0ULL", "ulong", "0UL")]
+    [TestCase("0LLU", "ulong", "0UL")]
     [TestCase("0.0", "double", "0.0")]
     [TestCase("0.f", "float", "0.0f")]
     public Task MacroTest(string nativeValue, string expectedManagedType, string expectedManagedValue) => MacroTestImpl(nativeValue, expectedManagedType, expectedManagedValue);
