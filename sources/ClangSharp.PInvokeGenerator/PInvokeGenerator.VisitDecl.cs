@@ -18,7 +18,6 @@ using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
 using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXEvalResultKind;
 using static ClangSharp.Interop.CXTypeKind;
-using ClangSharp.Interop;
 
 namespace ClangSharp;
 
