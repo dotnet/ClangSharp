@@ -6463,7 +6463,19 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             _outputBuilder.BeginUnchecked();
 
-            var needsCast = IsStmtAsWritten<IntegerLiteral>(stmt, out _, removeParens: true) && (stmt.DeclContext is EnumDecl);
+            var needsCast = false;
+
+            if (stmt.DeclContext is EnumDecl)
+            {
+                if (IsStmtAsWritten<IntegerLiteral>(stmt, out _, removeParens: true))
+                {
+                    needsCast = true;
+                }
+                else if (stmt is ImplicitCastExpr)
+                {
+                    needsCast = true;
+                }
+            }
 
             if (IsStmtAsWritten<UnaryExprOrTypeTraitExpr>(stmt, out var unaryExprOrTypeTraitExpr, removeParens: true) && ((CurrentContext.Cursor is VarDecl) || IsPrevContextDecl<VarDecl>(out _, out _)))
             {
