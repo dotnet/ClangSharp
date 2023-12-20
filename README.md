@@ -123,7 +123,7 @@ git clone https://github.com/dotnet/clangsharp
 cd clangsharp
 mkdir -p artifacts/bin/native
 cd artifacts/bin/native
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install -DPATH_TO_LLVM=../../../../llvm-project/artifacts/install
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install -DPATH_TO_LLVM=../../../../llvm-project/artifacts/install ../../../
 make install
 ```
 
