@@ -227,6 +227,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateFileScopedNamespaces => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces);
 
+    public bool GenerateGenericPointerWrapper => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper);
+
     public bool GenerateGuidMember => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateGuidMember);
 
     public bool GenerateHelperTypes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateHelperTypes);

@@ -12,7 +12,7 @@ internal partial class CSharpOutputBuilder
 
     public void WriteCustomAttribute(string attribute, Action? callback = null)
     {
-        if (attribute.Equals("Flags", StringComparison.Ordinal) || attribute.Equals("Obsolete", StringComparison.Ordinal))
+        if (attribute.Equals("Flags", StringComparison.Ordinal) || attribute.Equals("Obsolete", StringComparison.Ordinal) || attribute.StartsWith("Obsolete(", StringComparison.Ordinal))
         {
             AddUsingDirective("System");
         }
