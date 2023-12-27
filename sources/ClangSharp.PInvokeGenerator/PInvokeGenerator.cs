@@ -1652,6 +1652,16 @@ public sealed partial class PInvokeGenerator : IDisposable
                     var name = kvp.Key;
                     var remappings = kvp.Value;
 
+                    if (name.Contains('<', StringComparison.OrdinalIgnoreCase))
+                    {
+                        var parts = name.Split('<');
+
+                        if (parts.Length >= 2)
+                        {
+                            name = parts[0];
+                        }
+                    }
+
                     if (!_config.RemappedNames.TryGetValue(name, out _))
                     {
                         var addDiag = false;
@@ -2716,7 +2726,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 {
                     name = (typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous
                          ? GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling)
-                         : GetTypeName(namedDecl, context: null, typeDecl.TypeForDecl, ignoreTransparentStructsWhereRequired: false, out _);
+                         : GetTypeName(namedDecl, context: null, type: typeDecl.TypeForDecl, ignoreTransparentStructsWhereRequired: false, isTemplate: false, nativeTypeName: out _);
                 }
                 else if (namedDecl is ParmVarDecl)
                 {
@@ -3158,9 +3168,9 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private string GetRemappedTypeName(Cursor? cursor, Cursor? context, Type type, out string nativeTypeName, bool skipUsing = false, bool ignoreTransparentStructsWhereRequired = false)
+    private string GetRemappedTypeName(Cursor? cursor, Cursor? context, Type type, out string nativeTypeName, bool skipUsing = false, bool ignoreTransparentStructsWhereRequired = false, bool isTemplate = false)
     {
-        var name = GetTypeName(cursor, context, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
+        var name = GetTypeName(cursor, context, type, ignoreTransparentStructsWhereRequired, isTemplate: isTemplate, nativeTypeName: out nativeTypeName);
 
         var nameToCheck = nativeTypeName;
         var remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing, skipUsingIfNotRemapped: true);
@@ -3343,7 +3353,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return targetTypeName;
     }
 
-    private string GetTypeName(Cursor? cursor, Cursor? context, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
+    private string GetTypeName(Cursor? cursor, Cursor? context, Type type, bool ignoreTransparentStructsWhereRequired, bool isTemplate, out string nativeTypeName)
     {
         if (_typeNames.TryGetValue((cursor, context, type), out var result))
         {
@@ -3366,11 +3376,11 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
         else
         {
-            return GetTypeName(cursor, context, type, type, ignoreTransparentStructsWhereRequired, out nativeTypeName);
+            return GetTypeName(cursor, context, type, type, ignoreTransparentStructsWhereRequired, isTemplate, out nativeTypeName);
         }
     }
 
-    private string GetTypeName(Cursor? cursor, Cursor? context, Type rootType, Type type, bool ignoreTransparentStructsWhereRequired, out string nativeTypeName)
+    private string GetTypeName(Cursor? cursor, Cursor? context, Type rootType, Type type, bool ignoreTransparentStructsWhereRequired, bool isTemplate, out string nativeTypeName)
     {
         if (!_typeNames.TryGetValue((cursor, context, type), out var result))
         {
@@ -3395,7 +3405,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (type is AttributedType attributedType)
             {
-                result.typeName = GetTypeName(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeName(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, isTemplate, out _);
             }
             else if (type is BuiltinType)
             {
@@ -3538,17 +3548,17 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (type is DecltypeType decltypeType)
             {
-                result.typeName = GetTypeName(cursor, context, rootType, decltypeType.UnderlyingType, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeName(cursor, context, rootType, decltypeType.UnderlyingType, ignoreTransparentStructsWhereRequired, isTemplate, out _);
             }
             else if (type is DeducedType deducedType)
             {
-                result.typeName = GetTypeName(cursor, context, rootType, deducedType.GetDeducedType, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeName(cursor, context, rootType, deducedType.GetDeducedType, ignoreTransparentStructsWhereRequired, isTemplate, out _);
             }
             else if (type is DependentNameType dependentNameType)
             {
                 if (dependentNameType.IsSugared)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, dependentNameType.Desugar, ignoreTransparentStructsWhereRequired, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, dependentNameType.Desugar, ignoreTransparentStructsWhereRequired, isTemplate, out _);
                 }
                 else
                 {
@@ -3557,7 +3567,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (type is ElaboratedType elaboratedType)
             {
-                result.typeName = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, out var nativeNamedTypeName);
+                result.typeName = GetTypeName(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativeNamedTypeName);
 
                 if (!string.IsNullOrWhiteSpace(nativeNamedTypeName) &&
                     !result.nativeTypeName.StartsWith("const ", StringComparison.Ordinal) &&
@@ -3570,19 +3580,19 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (type is FunctionType functionType)
             {
-                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, functionType, ignoreTransparentStructsWhereRequired, out _, out _);
+                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, functionType, ignoreTransparentStructsWhereRequired, isTemplate, out _, out _);
             }
             else if (type is InjectedClassNameType injectedClassNameType)
             {
-                result.typeName = GetTypeName(cursor, context, rootType, injectedClassNameType.InjectedTST, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeName(cursor, context, rootType, injectedClassNameType.InjectedTST, ignoreTransparentStructsWhereRequired, isTemplate, out _);
             }
             else if (type is PackExpansionType packExpansionType)
             {
-                result.typeName = GetTypeName(cursor, context, rootType, packExpansionType.Pattern, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeName(cursor, context, rootType, packExpansionType.Pattern, ignoreTransparentStructsWhereRequired, isTemplate, out _);
             }
             else if (type is PointerType pointerType)
             {
-                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, pointerType.PointeeType, ignoreTransparentStructsWhereRequired, out var nativePointeeTypeName, out var isAdjusted);
+                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, pointerType.PointeeType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativePointeeTypeName, out var isAdjusted);
 
                 if (isAdjusted)
                 {
@@ -3591,7 +3601,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (type is ReferenceType referenceType)
             {
-                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, referenceType.PointeeType, ignoreTransparentStructsWhereRequired, out var nativePointeeTypeName, out var isAdjusted);
+                result.typeName = GetTypeNameForPointeeType(cursor, context, rootType, referenceType.PointeeType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativePointeeTypeName, out var isAdjusted);
 
                 if (isAdjusted)
                 {
@@ -3600,7 +3610,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             else if (type is SubstTemplateTypeParmType substTemplateTypeParmType)
             {
-                result.typeName = GetTypeName(cursor, context, rootType, substTemplateTypeParmType.ReplacementType, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeName(cursor, context, rootType, substTemplateTypeParmType.ReplacementType, ignoreTransparentStructsWhereRequired, isTemplate, out _);
             }
             else if (type is TagType tagType)
             {
@@ -3615,7 +3625,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
                 else if (tagType.Handle.IsConstQualified)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, tagType.Decl.TypeForDecl, ignoreTransparentStructsWhereRequired, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, tagType.Decl.TypeForDecl, ignoreTransparentStructsWhereRequired, isTemplate, out _);
                 }
                 else
                 {
@@ -3683,7 +3693,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     {
                         case CXTemplateArgumentKind_Type:
                         {
-                            typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out var nativeAsTypeName, skipUsing: true);
+                            typeName = GetRemappedTypeName(cursor, context: null, arg.AsType, out var nativeAsTypeName, skipUsing: true, isTemplate: true);
                             break;
                         }
 
@@ -3715,6 +3725,11 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                     if (typeName.EndsWith('*') || typeName.Contains("delegate*", StringComparison.Ordinal))
                     {
+                        if (Config.GenerateGenericPointerWrapper)
+                        {
+                            AddDiagnostic(DiagnosticLevel.Warning, $"Unhandled pointer in template: '{typeName}'. Falling back 'IntPtr'.", cursor);
+                        }
+
                         // Pointers are not yet supported as generic arguments; remap to IntPtr
                         typeName = "IntPtr";
                         _outputBuilder?.EmitSystemSupport();
@@ -3736,7 +3751,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 if (templateTypeParmType.IsSugared)
                 {
-                    result.typeName = GetTypeName(cursor, context, rootType, templateTypeParmType.Desugar, ignoreTransparentStructsWhereRequired, out _);
+                    result.typeName = GetTypeName(cursor, context, rootType, templateTypeParmType.Desugar, ignoreTransparentStructsWhereRequired, isTemplate, out _);
                 }
                 else
                 {
@@ -3750,11 +3765,11 @@ public sealed partial class PInvokeGenerator : IDisposable
                 // platform size, based on whatever parameters were passed into clang.
 
                 var remappedName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
-                result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, isTemplate, out _);
             }
             else if (type is UsingType usingType)
             {
-                result.typeName = GetTypeName(cursor, context, rootType, usingType.Desugar, ignoreTransparentStructsWhereRequired, out _);
+                result.typeName = GetTypeName(cursor, context, rootType, usingType.Desugar, ignoreTransparentStructsWhereRequired, isTemplate, out _);
             }
             else
             {
@@ -3776,7 +3791,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return result.typeName;
     }
 
-    private string GetTypeNameForPointeeType(Cursor? cursor, Cursor? context, Type rootType, Type pointeeType, bool ignoreTransparentStructsWhereRequired, out string nativePointeeTypeName, out bool isAdjusted)
+    private string GetTypeNameForPointeeType(Cursor? cursor, Cursor? context, Type rootType, Type pointeeType, bool ignoreTransparentStructsWhereRequired, bool isTemplate, out string nativePointeeTypeName, out bool isAdjusted)
     {
         var name = pointeeType.AsString;
 
@@ -3788,11 +3803,11 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (pointeeType is AttributedType attributedType)
         {
-            name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, out var nativeModifiedTypeName, out isAdjusted);
+            name = GetTypeNameForPointeeType(cursor, context, rootType, attributedType.ModifiedType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativeModifiedTypeName, out isAdjusted);
         }
         else if (pointeeType is ElaboratedType elaboratedType)
         {
-            name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, out var nativeNamedTypeName, out isAdjusted);
+            name = GetTypeNameForPointeeType(cursor, context, rootType, elaboratedType.NamedType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativeNamedTypeName, out isAdjusted);
 
             if (!string.IsNullOrWhiteSpace(nativeNamedTypeName) &&
                 !nativePointeeTypeName.StartsWith("const ", StringComparison.Ordinal) &&
@@ -3932,19 +3947,33 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (wasRemapped)
             {
-                name = remappedName;
-                name += '*';
+                if (isTemplate && Config.GenerateGenericPointerWrapper)
+                {
+                    name = $"Pointer<{remappedName}>";
+                }
+                else
+                {
+                    name = $"{remappedName}*";
+                }
             }
             else
             {
-                name = GetTypeNameForPointeeType(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, out var nativeUnderlyingTypeName, out isAdjusted);
+                name = GetTypeNameForPointeeType(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, isTemplate, out var nativeUnderlyingTypeName, out isAdjusted);
             }
         }
         else
         {
             // Otherwise fields that point at anonymous structs get the wrong name
-            name = GetRemappedTypeName(cursor, context, pointeeType, out nativePointeeTypeName, skipUsing: true);
-            name += '*';
+            var remappedName = GetRemappedTypeName(cursor, context, pointeeType, out nativePointeeTypeName, skipUsing: true);
+
+            if (isTemplate && Config.GenerateGenericPointerWrapper)
+            {
+                name = $"Pointer<{remappedName}>";
+            }
+            else
+            {
+                name = $"{remappedName}*";
+            }
         }
 
         return name;
@@ -4342,7 +4371,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             // can be treated correctly. Otherwise, they will resolve to a particular
             // platform size, based on whatever parameters were passed into clang.
 
-            var name = GetTypeName(cursor, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
+            var name = GetTypeName(cursor, context: null, type: type, ignoreTransparentStructsWhereRequired: false, isTemplate: false, nativeTypeName: out _);
             var remappedName = GetRemappedTypeName(cursor, context: null, type, out _, skipUsing: true, ignoreTransparentStructsWhereRequired: false);
 
             if ((remappedName == name) && _config.WithTransparentStructs.TryGetValue(remappedName, out var transparentStruct) && (transparentStruct.Name.Equals("long", StringComparison.Ordinal) || transparentStruct.Name.Equals("ulong", StringComparison.Ordinal)))
@@ -4838,7 +4867,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if ((parmVarDecl is not null) && IsType<PointerType>(parmVarDecl, out var pointerType))
             {
-                var typeName = GetTypeName(parmVarDecl, context: null, pointerType.PointeeType, ignoreTransparentStructsWhereRequired: false, out var nativeTypeName);
+                var typeName = GetTypeName(parmVarDecl, context: null, type: pointerType.PointeeType, ignoreTransparentStructsWhereRequired: false, isTemplate: false, nativeTypeName: out var nativeTypeName);
                 return name.StartsWith($"{nativeTypeName}_", StringComparison.Ordinal) || name.StartsWith($"{typeName}_", StringComparison.Ordinal) || typeName.Equals("IRpcStubBuffer", StringComparison.Ordinal);
             }
             return false;
@@ -5089,7 +5118,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
         else if (type is TypedefType typedefType)
         {
-            var name = GetTypeName(cursor, context: null, type, ignoreTransparentStructsWhereRequired: false, out _);
+            var name = GetTypeName(cursor, context: null, type: type, ignoreTransparentStructsWhereRequired: false, isTemplate: false, nativeTypeName: out _);
             var remappedName = GetRemappedTypeName(cursor, context: null, type, out _, skipUsing: true, ignoreTransparentStructsWhereRequired: false);
 
             return !remappedName.Equals("IntPtr", StringComparison.Ordinal)
@@ -5775,7 +5804,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     return true;
                 }
 
-                var sourceTypeName = GetTypeName(stmt, context: null, unaryOperator.SubExpr.Type, ignoreTransparentStructsWhereRequired: false, out _);
+                var sourceTypeName = GetTypeName(stmt, context: null, type: unaryOperator.SubExpr.Type, ignoreTransparentStructsWhereRequired: false, isTemplate: false, nativeTypeName: out _);
 
                 switch (unaryOperator.Opcode)
                 {

@@ -340,7 +340,7 @@ public partial class PInvokeGenerator
 
                             if (subExpr is CXXThisExpr)
                             {
-                                var referenceTypeName = GetTypeName(callExpr, context: null, referenceType, ignoreTransparentStructsWhereRequired: true, out _);
+                                var referenceTypeName = GetTypeName(callExpr, context: null, type: referenceType, ignoreTransparentStructsWhereRequired: true, isTemplate: false, nativeTypeName: out _);
 
                                 outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
                                 outputBuilder.Write('(');
@@ -440,6 +440,12 @@ public partial class PInvokeGenerator
                         // cast to ensure things are correctly handled here.
 
                         var targetType = implicitCastExpr.Type;
+                        targetTypeName = GetRemappedTypeName(implicitCastExpr, context: null, targetType, out _, skipUsing: true);
+                        targetTypeNumBits = targetType.Handle.NumBits;
+                    }
+                    else if (IsPrevContextStmt<BinaryOperator>(out var binaryOperator, out _))
+                    {
+                        var targetType = binaryOperator.Type;
                         targetTypeName = GetRemappedTypeName(implicitCastExpr, context: null, targetType, out _, skipUsing: true);
                         targetTypeNumBits = targetType.Handle.NumBits;
                     }
@@ -2106,7 +2112,7 @@ public partial class PInvokeGenerator
 
                         if (subExpr is CXXThisExpr)
                         {
-                            var referenceTypeName = GetTypeName(returnStmt, context: null, referenceType, ignoreTransparentStructsWhereRequired: true, out _);
+                            var referenceTypeName = GetTypeName(returnStmt, context: null, type: referenceType, ignoreTransparentStructsWhereRequired: true, isTemplate: false, nativeTypeName: out _);
 
                             outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
                             outputBuilder.Write('(');

@@ -84,4 +84,6 @@ public enum PInvokeGeneratorConfigurationOptions : long
     GenerateDisableRuntimeMarshalling = 1L << 36,
 
     GenerateCallConvMemberFunction = 1L << 37,
+
+    GenerateGenericPointerWrapper = 1L << 38,
 }
