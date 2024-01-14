@@ -1007,11 +1007,16 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         sw.Write("partial struct ");
         sw.Write(name);
-        sw.Write(" : IComparable, IComparable<");
-        sw.Write(name);
-        sw.Write(">, IEquatable<");
-        sw.Write(name);
-        sw.WriteLine(">, IFormattable");
+        sw.Write(" : ");
+        if (IsTransparentStructComparable(kind))
+        {
+            sw.Write("IComparable, IComparable<");
+            sw.Write(name);
+            sw.Write(">, IEquatable<");
+            sw.Write(name);
+            sw.Write(">, ");
+        }
+        sw.WriteLine("IFormattable");
 
         sw.WriteIndentedLine('{');
 
@@ -1092,49 +1097,52 @@ public sealed partial class PInvokeGenerator : IDisposable
             sw.WriteDivider();
         }
 
-        // All transparent structs support equality and relational comparisons with themselves
+        if (IsTransparentStructComparable(kind))
+        {
+            // Non-FnPtr transparent structs support equality and relational comparisons with themselves
 
-        sw.WriteIndented("    public static bool operator ==(");
-        sw.Write(name);
-        sw.Write(" left, ");
-        sw.Write(name);
-        sw.WriteLine(" right) => left.Value == right.Value;");
-        sw.WriteDivider();
+            sw.WriteIndented("    public static bool operator ==(");
+            sw.Write(name);
+            sw.Write(" left, ");
+            sw.Write(name);
+            sw.WriteLine(" right) => left.Value == right.Value;");
+            sw.WriteDivider();
 
-        sw.WriteIndented("    public static bool operator !=(");
-        sw.Write(name);
-        sw.Write(" left, ");
-        sw.Write(name);
-        sw.WriteLine(" right) => left.Value != right.Value;");
-        sw.WriteDivider();
+            sw.WriteIndented("    public static bool operator !=(");
+            sw.Write(name);
+            sw.Write(" left, ");
+            sw.Write(name);
+            sw.WriteLine(" right) => left.Value != right.Value;");
+            sw.WriteDivider();
 
-        sw.WriteIndented("    public static bool operator <(");
-        sw.Write(name);
-        sw.Write(" left, ");
-        sw.Write(name);
-        sw.WriteLine(" right) => left.Value < right.Value;");
-        sw.WriteDivider();
+            sw.WriteIndented("    public static bool operator <(");
+            sw.Write(name);
+            sw.Write(" left, ");
+            sw.Write(name);
+            sw.WriteLine(" right) => left.Value < right.Value;");
+            sw.WriteDivider();
 
-        sw.WriteIndented("    public static bool operator <=(");
-        sw.Write(name);
-        sw.Write(" left, ");
-        sw.Write(name);
-        sw.WriteLine(" right) => left.Value <= right.Value;");
-        sw.WriteDivider();
+            sw.WriteIndented("    public static bool operator <=(");
+            sw.Write(name);
+            sw.Write(" left, ");
+            sw.Write(name);
+            sw.WriteLine(" right) => left.Value <= right.Value;");
+            sw.WriteDivider();
 
-        sw.WriteIndented("    public static bool operator >(");
-        sw.Write(name);
-        sw.Write(" left, ");
-        sw.Write(name);
-        sw.WriteLine(" right) => left.Value > right.Value;");
-        sw.WriteDivider();
+            sw.WriteIndented("    public static bool operator >(");
+            sw.Write(name);
+            sw.Write(" left, ");
+            sw.Write(name);
+            sw.WriteLine(" right) => left.Value > right.Value;");
+            sw.WriteDivider();
 
-        sw.WriteIndented("    public static bool operator >=(");
-        sw.Write(name);
-        sw.Write(" left, ");
-        sw.Write(name);
-        sw.WriteLine(" right) => left.Value >= right.Value;");
-        sw.WriteDivider();
+            sw.WriteIndented("    public static bool operator >=(");
+            sw.Write(name);
+            sw.Write(" left, ");
+            sw.Write(name);
+            sw.WriteLine(" right) => left.Value >= right.Value;");
+            sw.WriteDivider();
+        }
 
         if (IsTransparentStructHandle(kind))
         {
@@ -1251,80 +1259,93 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         // All transparent structs define casts to/from the various integer types
 
-        OutputConversions(sw, name, type, kind, "byte");
-        OutputConversions(sw, name, type, kind, "short");
-        OutputConversions(sw, name, type, kind, "int");
-        OutputConversions(sw, name, type, kind, "long");
+        if (kind == PInvokeGeneratorTransparentStructKind.FnPtr)
+        {
+            OutputConversions(sw, name, type, kind, type);
+        }
+        else
+        {
+            OutputConversions(sw, name, type, kind, "byte");
+            OutputConversions(sw, name, type, kind, "short");
+            OutputConversions(sw, name, type, kind, "sbyte");
+            OutputConversions(sw, name, type, kind, "ushort");
+            OutputConversions(sw, name, type, kind, "int");
+            OutputConversions(sw, name, type, kind, "long");
+            OutputConversions(sw, name, type, kind, "uint");
+            OutputConversions(sw, name, type, kind, "ulong");
+        }
+
         OutputConversions(sw, name, type, kind, "nint");
-        OutputConversions(sw, name, type, kind, "sbyte");
-        OutputConversions(sw, name, type, kind, "ushort");
-        OutputConversions(sw, name, type, kind, "uint");
-        OutputConversions(sw, name, type, kind, "ulong");
         OutputConversions(sw, name, type, kind, "nuint");
 
-        // All transparent structs override CompareTo, Equals, GetHashCode, and ToString
-
-        sw.WriteIndentedLine("    public int CompareTo(object? obj)");
-        sw.WriteIndentedLine("    {");
-        sw.WriteIndented("            if (obj is ");
-        sw.Write(name);
-        sw.WriteLine(" other)");
-        sw.WriteIndentedLine("        {");
-        sw.WriteIndentedLine("            return CompareTo(other);");
-        sw.WriteIndentedLine("        }");
-        sw.WriteDivider();
-        sw.WriteIndented("        return (obj is null) ? 1 : throw new ArgumentException(\"obj is not an instance of ");
-        sw.Write(name);
-        sw.WriteLine(".\");");
-        sw.WriteIndentedLine("    }");
-        sw.WriteDivider();
-
-        sw.WriteIndented("    public int CompareTo(");
-        sw.Write(name);
-
-        if (isTypePointer)
+        if (IsTransparentStructComparable(kind))
         {
-            sw.WriteLine(" other) => ((nuint)(Value)).CompareTo((nuint)(other.Value));");
+            // Non-FnPtr transparent structs override CompareTo, Equals, GetHashCode
+
+            sw.WriteIndentedLine("    public int CompareTo(object? obj)");
+            sw.WriteIndentedLine("    {");
+            sw.WriteIndented("        if (obj is ");
+            sw.Write(name);
+            sw.WriteLine(" other)");
+            sw.WriteIndentedLine("        {");
+            sw.WriteIndentedLine("            return CompareTo(other);");
+            sw.WriteIndentedLine("        }");
+            sw.WriteDivider();
+            sw.WriteIndented("        return (obj is null) ? 1 : throw new ArgumentException(\"obj is not an instance of ");
+            sw.Write(name);
+            sw.WriteLine(".\");");
+            sw.WriteIndentedLine("    }");
+            sw.WriteDivider();
+
+            sw.WriteIndented("    public int CompareTo(");
+            sw.Write(name);
+
+            if (isTypePointer)
+            {
+                sw.WriteLine(" other) => ((nuint)(Value)).CompareTo((nuint)(other.Value));");
+            }
+            else
+            {
+                sw.WriteLine(" other) => Value.CompareTo(other.Value);");
+            }
+
+            sw.WriteDivider();
+
+            sw.WriteIndented("    public override bool Equals(object? obj) => (obj is ");
+            sw.Write(name);
+            sw.WriteLine(" other) && Equals(other);");
+            sw.WriteDivider();
+
+            sw.WriteIndented("    public bool Equals(");
+            sw.Write(name);
+
+            if (isTypePointer)
+            {
+                sw.WriteLine(" other) => ((nuint)(Value)).Equals((nuint)(other.Value));");
+            }
+            else
+            {
+                sw.WriteLine(" other) => Value.Equals(other.Value);");
+            }
+
+            sw.WriteDivider();
+
+            sw.WriteIndented("    public override int GetHashCode() => ");
+
+            if (isTypePointer)
+            {
+                sw.Write("((nuint)(Value))");
+            }
+            else
+            {
+                sw.Write("Value");
+            }
+
+            sw.WriteLine(".GetHashCode();");
+            sw.WriteDivider();
         }
-        else
-        {
-            sw.WriteLine(" other) => Value.CompareTo(other.Value);");
-        }
 
-        sw.WriteDivider();
-
-        sw.WriteIndented("    public override bool Equals(object? obj) => (obj is ");
-        sw.Write(name);
-        sw.WriteLine(" other) && Equals(other);");
-        sw.WriteDivider();
-
-        sw.WriteIndented("    public bool Equals(");
-        sw.Write(name);
-
-        if (isTypePointer)
-        {
-            sw.WriteLine(" other) => ((nuint)(Value)).Equals((nuint)(other.Value));");
-        }
-        else
-        {
-            sw.WriteLine(" other) => Value.Equals(other.Value);");
-        }
-
-        sw.WriteDivider();
-
-        sw.WriteIndented("    public override int GetHashCode() => ");
-
-        if (isTypePointer)
-        {
-            sw.Write("((nuint)(Value))");
-        }
-        else
-        {
-            sw.Write("Value");
-        }
-
-        sw.WriteLine(".GetHashCode();");
-        sw.WriteDivider();
+        // All transparent structs override ToString
 
         sw.WriteIndented("    public override string ToString() => ");
 
@@ -1409,13 +1430,18 @@ public sealed partial class PInvokeGenerator : IDisposable
             // public static castFromKind operator name(target value) => new name((type)(value));
 
             var castFromKind = "implicit";
-            var areEquivalentTypeAndTarget = (type == target) || isPointerToNativeCast
+            var areEquivalentType = type == target;
+            var areEquivalentTypeAndTarget = areEquivalentType || isPointerToNativeCast
                 || (type.Equals("nint", StringComparison.Ordinal) && target.Equals("int", StringComparison.Ordinal))
                 || (type.Equals("nuint", StringComparison.Ordinal) && target.Equals("uint", StringComparison.Ordinal))
                 || (type.Equals("long", StringComparison.Ordinal) && target.Equals("nint", StringComparison.Ordinal))
                 || (type.Equals("ulong", StringComparison.Ordinal) && target.Equals("nuint", StringComparison.Ordinal));
 
-            if (((typeDstSize <= targetSrcSize) && !areEquivalentTypeAndTarget) || ((targetSign == -1) && (typeSign == +1)) || IsTransparentStructHandle(kind))
+            var isForcedExplicit = !areEquivalentType && (kind == PInvokeGeneratorTransparentStructKind.FnPtr);
+
+            var isDowncast = (typeDstSize <= targetSrcSize) && !areEquivalentTypeAndTarget;
+            var isSignChange = (targetSign == -1) && (typeSign == +1);
+            if (isForcedExplicit || isDowncast || isSignChange || IsTransparentStructHandle(kind))
             {
                 castFromKind = "explicit";
             }
@@ -1456,7 +1482,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                 || (type.Equals("nint", StringComparison.Ordinal) && target.Equals("long", StringComparison.Ordinal))
                 || (type.Equals("nuint", StringComparison.Ordinal) && target.Equals("ulong", StringComparison.Ordinal));
 
-            if (((targetDstSize <= typeSrcSize) && !areEquivalentTypeAndTarget) || ((typeSign == -1) && (targetSign == +1)))
+            isDowncast = (targetDstSize <= typeSrcSize) && !areEquivalentTypeAndTarget;
+            isSignChange = (typeSign == -1) && (targetSign == +1);
+            if (isForcedExplicit || isDowncast || isSignChange)
             {
                 castToKind = "explicit";
             }
@@ -5333,6 +5361,9 @@ public sealed partial class PInvokeGenerator : IDisposable
     private static bool IsTransparentStructHexBased(PInvokeGeneratorTransparentStructKind kind)
          => IsTransparentStructHandle(kind)
          || (kind == PInvokeGeneratorTransparentStructKind.TypedefHex);
+
+    private static bool IsTransparentStructComparable(PInvokeGeneratorTransparentStructKind kind)
+        => kind is not PInvokeGeneratorTransparentStructKind.FnPtr;
 
     private bool IsUnchecked(string targetTypeName, Stmt stmt)
     {
