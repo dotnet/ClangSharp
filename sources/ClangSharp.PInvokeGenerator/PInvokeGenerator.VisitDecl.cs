@@ -3208,7 +3208,7 @@ public partial class PInvokeGenerator
 
             if (_config.GenerateFnPtrWrapper)
             {
-                var typeName = GetTargetTypeName(typedefDecl, out var nativeTypeName);
+                var typeName = GetTypeName(typedefDecl, null, typedefDecl.TypeForDecl, true, false, out var nativeTypeName);
 
                 // TODO: use the underlying typedef type instead of name?
                 if (IsNativeTypeNameEquivalent(nativeTypeName, name))

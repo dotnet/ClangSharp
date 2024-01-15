@@ -3061,7 +3061,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
             }
         }
-
+        
         return remappedName;
     }
 
@@ -3083,7 +3083,6 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (_config.RemappedNames.TryGetValue(tmpName, out remappedName))
             {
-
                 wasRemapped = true;
                 _ = _usedRemappings.Add(tmpName);
                 return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
@@ -3731,6 +3730,12 @@ public sealed partial class PInvokeGenerator : IDisposable
                 // platform size, based on whatever parameters were passed into clang.
 
                 var remappedName = GetRemappedName(result.typeName, cursor, tryRemapOperatorName: false, out var wasRemapped, skipUsing: true);
+
+                if (_config.GenerateFnPtrWrapper && !ignoreTransparentStructsWhereRequired && IsFunctionPointer(cursor, typedefType))
+                {
+                    wasRemapped = true;
+                }
+
                 result.typeName = wasRemapped ? remappedName : GetTypeName(cursor, context, rootType, typedefType.Decl.UnderlyingType, ignoreTransparentStructsWhereRequired, isTemplate, out _);
             }
             else if (type is UsingType usingType)
@@ -3755,6 +3760,38 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         nativeTypeName = result.nativeTypeName;
         return result.typeName;
+
+        bool IsFunctionPointer(Cursor? cursor, Type underlyingType)
+        {
+            bool ForPointeeType(Cursor? cursor, Type pointeeType)
+            {
+                if (IsType<FunctionProtoType>(cursor, pointeeType, out _))
+                {
+                    return true;
+                }
+
+                // Do not recurse of the pointee is a pointer.
+                return false;
+            }
+
+            if (IsType<PointerType>(cursor, underlyingType, out var pointerType))
+            {
+                return ForPointeeType(cursor, pointerType.PointeeType);
+            }
+            else if (IsType<ReferenceType>(cursor, underlyingType, out var referenceType))
+            {
+                return ForPointeeType(cursor, referenceType.PointeeType);
+            }
+            else if (IsType<TemplateSpecializationType>(cursor, underlyingType, out var templateSpecializationType))
+            {
+                if (templateSpecializationType.IsTypeAlias)
+                {
+                    return IsFunctionPointer(cursor, templateSpecializationType.AliasedType);
+                }
+            }
+
+            return false;
+        }
     }
 
     private string GetTypeNameForPointeeType(Cursor? cursor, Cursor? context, Type rootType, Type pointeeType, bool ignoreTransparentStructsWhereRequired, bool isTemplate, out string nativePointeeTypeName, out bool isAdjusted)
