@@ -998,6 +998,15 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
 
+        if (Config.GenerateDocIncludes)
+        {
+            sw.WriteIndented("/// <include file='");
+            sw.Write(parentName);
+            sw.Write(".xml' path='doc/member[@name=\"");
+            sw.Write(name);
+            sw.WriteLine("\"]/*' />");
+        }
+
         if (nativeTypeName is not null)
         {
             sw.AddNativeTypeNameAttribute(nativeTypeName);
