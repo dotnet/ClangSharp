@@ -3194,7 +3194,8 @@ public partial class PInvokeGenerator
 
         void ForFunctionProtoType(TypedefDecl typedefDecl, FunctionProtoType functionProtoType, Type? parentType, bool onlyHandleRemappings)
         {
-            if (!_config.ExcludeFnptrCodegen || onlyHandleRemappings)
+            var hasOutput = _config.GenerateFnPtrWrapper || _config.ExcludeFnptrCodegen;
+            if (!hasOutput || onlyHandleRemappings)
             {
                 return;
             }
