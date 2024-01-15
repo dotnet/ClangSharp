@@ -717,7 +717,7 @@ public partial class PInvokeGenerator
                 {
                     outputBuilder.Write("Base");
                 }
-                
+
                 outputBuilder.Write('.');
                 outputBuilder.Write(name);
                 outputBuilder.Write('(');
@@ -3202,14 +3202,21 @@ public partial class PInvokeGenerator
             var name = GetRemappedCursorName(typedefDecl);
             var escapedName = EscapeName(name);
 
-            var callingConventionName = GetCallingConvention(typedefDecl, context: null, typedefDecl.TypeForDecl);
-
-            var returnType = functionProtoType.ReturnType;
-            var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
-
             StartUsingOutputBuilder(name);
+            Debug.Assert(_outputBuilder is not null);
+
+            if (_config.GenerateFnPtrWrapper)
             {
-                Debug.Assert(_outputBuilder is not null);
+                var typeName = GetTargetTypeName(typedefDecl, out var nativeTypeName);
+                
+                GenerateTransparentStruct(name, escapedName, typeName, PInvokeGeneratorTransparentStructKind.FnPtr);
+            }
+            else
+            {
+                var callingConventionName = GetCallingConvention(typedefDecl, context: null, typedefDecl.TypeForDecl);
+
+                var returnType = functionProtoType.ReturnType;
+                var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
 
                 var desc = new FunctionOrDelegateDesc {
                     AccessSpecifier = GetAccessSpecifier(typedefDecl, matchStar: true),
