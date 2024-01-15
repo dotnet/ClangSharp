@@ -3208,8 +3208,14 @@ public partial class PInvokeGenerator
             if (_config.GenerateFnPtrWrapper)
             {
                 var typeName = GetTargetTypeName(typedefDecl, out var nativeTypeName);
-                
-                GenerateTransparentStruct(name, escapedName, typeName, PInvokeGeneratorTransparentStructKind.FnPtr);
+
+                // TODO: use the underlying typedef type instead of name?
+                if (IsNativeTypeNameEquivalent(nativeTypeName, name))
+                {
+                    nativeTypeName = null;
+                }
+
+                GenerateTransparentStruct(name, escapedName, typeName, nativeTypeName, PInvokeGeneratorTransparentStructKind.FnPtr);
             }
             else
             {

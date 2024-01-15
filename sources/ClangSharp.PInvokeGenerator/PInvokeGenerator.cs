@@ -973,19 +973,19 @@ public sealed partial class PInvokeGenerator : IDisposable
                 var kind = transparentStruct.Value.Kind;
 
                 generator.StartUsingOutputBuilder(name);
-                generator.GenerateTransparentStruct(name, name, type, kind);
+                generator.GenerateTransparentStruct(name, name, type, null, kind);
                 generator.StopUsingOutputBuilder();
             }
         }
     }
 
-    private void GenerateTransparentStruct(string parentName, string name, string type, PInvokeGeneratorTransparentStructKind kind)
+    private void GenerateTransparentStruct(string parentName, string name, string type, string? nativeTypeName, PInvokeGeneratorTransparentStructKind kind)
     {
         var isTypePointer = type.Contains('*', StringComparison.Ordinal);
 
         var sw = StartCSharpCode();
 
-        sw.EmitSystemSupport(); 
+        sw.EmitSystemSupport();
 
         if (kind == PInvokeGeneratorTransparentStructKind.HandleWin32)
         {
@@ -996,6 +996,11 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 sw.AddUsingDirective(handleNamespace);
             }
+        }
+
+        if (nativeTypeName is not null)
+        {
+            sw.AddNativeTypeNameAttribute(nativeTypeName);
         }
 
         sw.WriteIndented("public readonly ");
