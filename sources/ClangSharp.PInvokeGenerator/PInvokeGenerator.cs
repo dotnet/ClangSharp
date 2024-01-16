@@ -973,14 +973,26 @@ public sealed partial class PInvokeGenerator : IDisposable
                 var kind = transparentStruct.Value.Kind;
 
                 generator.StartUsingOutputBuilder(name);
-                generator.GenerateTransparentStruct(name, name, type, null, kind);
+
+                var desc = new TransparentStructDesc() {
+                    ParentName = name,
+                    Name = name,
+                    Type = type,
+                    Kind = kind
+                };
+                generator.GenerateTransparentStruct(desc);
+
                 generator.StopUsingOutputBuilder();
             }
         }
     }
 
-    private void GenerateTransparentStruct(string parentName, string name, string type, string? nativeTypeName, PInvokeGeneratorTransparentStructKind kind)
+    private void GenerateTransparentStruct(in TransparentStructDesc desc)
     {
+        var name = desc.Name;
+        var type = desc.Type;
+        var kind = desc.Kind;
+
         var isTypePointer = type.Contains('*', StringComparison.Ordinal);
 
         var sw = StartCSharpCode();
@@ -1001,15 +1013,15 @@ public sealed partial class PInvokeGenerator : IDisposable
         if (Config.GenerateDocIncludes)
         {
             sw.WriteIndented("/// <include file='");
-            sw.Write(parentName);
+            sw.Write(desc.ParentName);
             sw.Write(".xml' path='doc/member[@name=\"");
             sw.Write(name);
             sw.WriteLine("\"]/*' />");
         }
 
-        if (nativeTypeName is not null)
+        if (desc.NativeName is not null)
         {
-            sw.AddNativeTypeNameAttribute(nativeTypeName);
+            sw.AddNativeTypeNameAttribute(desc.NativeName);
         }
 
         sw.WriteIndented("public readonly ");
@@ -1034,6 +1046,10 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         sw.WriteIndentedLine('{');
 
+        if (desc.NativeType is not null)
+        {
+            sw.AddNativeTypeNameAttribute(desc.NativeType);
+        }
         sw.WriteIndented("    public readonly ");
         sw.Write(type);
         sw.WriteLine(" Value;");
