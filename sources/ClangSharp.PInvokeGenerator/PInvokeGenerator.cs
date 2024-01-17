@@ -3806,7 +3806,8 @@ public sealed partial class PInvokeGenerator : IDisposable
                     return true;
                 }
 
-                // Do not recurse of the pointee is a pointer.
+                // Do not recurse if the pointee is a pointer,
+                // we do not want to detect pointers to function pointers.
                 return false;
             }
 
