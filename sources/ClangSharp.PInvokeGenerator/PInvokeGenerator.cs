@@ -1044,323 +1044,350 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
         sw.WriteLine("IFormattable");
 
-        sw.WriteIndentedLine('{');
-
-        if (desc.NativeType is not null)
+        sw.WriteBlockStart();
         {
-            sw.AddNativeTypeNameAttribute(desc.NativeType);
-        }
-        sw.WriteIndented("    public readonly ");
-        sw.Write(type);
-        sw.WriteLine(" Value;");
-        sw.WriteDivider();
-
-        // All transparent structs be created directly from the underlying type
-
-        sw.WriteIndented("    public ");
-        sw.Write(name);
-        sw.Write('(');
-        sw.Write(type);
-        sw.WriteLine(" value)");
-        sw.WriteIndentedLine("    {");
-        sw.WriteIndentedLine("        Value = value;");
-        sw.WriteIndentedLine("    }");
-        sw.WriteDivider();
-
-        if (IsTransparentStructHandle(kind) || (kind == PInvokeGeneratorTransparentStructKind.HandleVulkan))
-        {
-            // Handle like transparent structs define a NULL member
-
-            if (kind == PInvokeGeneratorTransparentStructKind.HandleWin32)
+            if (desc.NativeType is not null)
             {
-                sw.WriteIndented("    public static ");
+                sw.AddNativeTypeNameAttribute(desc.NativeType);
+            }
+            sw.WriteIndented("public readonly ");
+            sw.Write(type);
+            sw.WriteLine(" Value;");
+            sw.WriteDivider();
+
+            // All transparent structs be created directly from the underlying type
+
+            sw.WriteIndented("public ");
+            sw.Write(name);
+            sw.Write('(');
+            sw.Write(type);
+            sw.WriteLine(" value)");
+            sw.WriteBlockStart();
+            sw.WriteIndentedLine("Value = value;");
+            sw.WriteBlockEnd();
+
+            sw.WriteDivider();
+
+            if (IsTransparentStructHandle(kind) || (kind == PInvokeGeneratorTransparentStructKind.HandleVulkan))
+            {
+                // Handle like transparent structs define a NULL member
+
+                if (kind == PInvokeGeneratorTransparentStructKind.HandleWin32)
+                {
+                    sw.WriteIndented("public static ");
+                    sw.Write(name);
+                    sw.Write(" INVALID_VALUE => new ");
+                    sw.Write(name);
+
+                    if (isTypePointer)
+                    {
+                        sw.Write("((");
+                        sw.Write(type);
+                        sw.WriteLine(")(-1));");
+                    }
+                    else
+                    {
+                        sw.WriteLine("(-1);");
+                    }
+
+                    sw.WriteDivider();
+                }
+
+                sw.WriteIndented("public static ");
                 sw.Write(name);
-                sw.Write(" INVALID_VALUE => new ");
+                sw.Write(" NULL => new ");
                 sw.Write(name);
 
                 if (isTypePointer)
                 {
-                    sw.Write("((");
-                    sw.Write(type);
-                    sw.WriteLine(")(-1));");
+                    sw.WriteLine("(null);");
                 }
                 else
                 {
-                    sw.WriteLine("(-1);");
+                    sw.WriteLine("(0);");
                 }
 
                 sw.WriteDivider();
             }
-
-            sw.WriteIndented("    public static ");
-            sw.Write(name);
-            sw.Write(" NULL => new ");
-            sw.Write(name);
-
-            if (isTypePointer)
+            else if (IsTransparentStructBoolean(kind))
             {
-                sw.WriteLine("(null);");
-            }
-            else
-            {
+                // Boolean like transparent structs define FALSE and TRUE members
+
+                sw.WriteIndented("public static ");
+                sw.Write(name);
+                sw.Write(" FALSE => new ");
+                sw.Write(name);
                 sw.WriteLine("(0);");
-            }
+                sw.WriteDivider();
 
-            sw.WriteDivider();
-        }
-        else if (IsTransparentStructBoolean(kind))
-        {
-            // Boolean like transparent structs define FALSE and TRUE members
-
-            sw.WriteIndented("    public static ");
-            sw.Write(name);
-            sw.Write(" FALSE => new ");
-            sw.Write(name);
-            sw.WriteLine("(0);");
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public static ");
-            sw.Write(name);
-            sw.Write(" TRUE => new ");
-            sw.Write(name);
-            sw.WriteLine("(1);");
-            sw.WriteDivider();
-        }
-
-        if (IsTransparentStructComparable(kind))
-        {
-            // Non-FnPtr transparent structs support equality and relational comparisons with themselves
-
-            sw.WriteIndented("    public static bool operator ==(");
-            sw.Write(name);
-            sw.Write(" left, ");
-            sw.Write(name);
-            sw.WriteLine(" right) => left.Value == right.Value;");
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public static bool operator !=(");
-            sw.Write(name);
-            sw.Write(" left, ");
-            sw.Write(name);
-            sw.WriteLine(" right) => left.Value != right.Value;");
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public static bool operator <(");
-            sw.Write(name);
-            sw.Write(" left, ");
-            sw.Write(name);
-            sw.WriteLine(" right) => left.Value < right.Value;");
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public static bool operator <=(");
-            sw.Write(name);
-            sw.Write(" left, ");
-            sw.Write(name);
-            sw.WriteLine(" right) => left.Value <= right.Value;");
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public static bool operator >(");
-            sw.Write(name);
-            sw.Write(" left, ");
-            sw.Write(name);
-            sw.WriteLine(" right) => left.Value > right.Value;");
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public static bool operator >=(");
-            sw.Write(name);
-            sw.Write(" left, ");
-            sw.Write(name);
-            sw.WriteLine(" right) => left.Value >= right.Value;");
-            sw.WriteDivider();
-        }
-
-        if (IsTransparentStructHandle(kind))
-        {
-            // Handle like transparent structs can be cast to/from void*
-
-            sw.WriteIndented("    public static explicit operator ");
-            sw.Write(name);
-            sw.Write("(void* value) => new ");
-            sw.Write(name);
-
-            if (type.Equals("void*", StringComparison.Ordinal))
-            {
-                sw.WriteLine("(value);");
-            }
-            else
-            {
-                if (!IsUnsigned(type))
-                {
-                    sw.Write("unchecked");
-                }
-
-                sw.Write("((");
-                sw.Write(type);
-                sw.WriteLine(")(value));");
-            }
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public static implicit operator void*(");
-            sw.Write(name);
-
-            if (isTypePointer)
-            {
-                sw.WriteLine(" value) => value.Value;");
-            }
-            else
-            {
-                var isUnchecked = !IsUnsigned(type);
-                sw.Write(" value) => ");
-
-                if (isUnchecked)
-                {
-                    sw.Write("unchecked(");
-                }
-                sw.Write("(void*)(value.Value)");
-
-                if (isUnchecked)
-                {
-                    sw.Write(")");
-                }
+                sw.WriteIndented("public static ");
+                sw.Write(name);
+                sw.Write(" TRUE => new ");
+                sw.Write(name);
+                sw.WriteLine("(1);");
                 sw.WriteDivider();
             }
 
-            sw.WriteDivider();
-
-            if ((kind == PInvokeGeneratorTransparentStructKind.HandleWin32) && !name.Equals("HANDLE", StringComparison.Ordinal))
+            if (IsTransparentStructComparable(kind))
             {
-                // Win32 handle like transparent structs can also be cast to/from HANDLE
+                // Non-FnPtr transparent structs support equality and relational comparisons with themselves
 
-                sw.WriteIndented("    public static explicit operator ");
+                sw.WriteIndented("public static bool operator ==(");
                 sw.Write(name);
-                sw.Write("(HANDLE value) => new ");
+                sw.Write(" left, ");
                 sw.Write(name);
-                sw.WriteLine("(value);");
+                sw.WriteLine(" right) => left.Value == right.Value;");
                 sw.WriteDivider();
 
-                sw.WriteIndented("    public static implicit operator HANDLE(");
+                sw.WriteIndented("public static bool operator !=(");
                 sw.Write(name);
-                sw.WriteLine(" value) => new HANDLE(value.Value);");
+                sw.Write(" left, ");
+                sw.Write(name);
+                sw.WriteLine(" right) => left.Value != right.Value;");
+                sw.WriteDivider();
+
+                sw.WriteIndented("public static bool operator <(");
+                sw.Write(name);
+                sw.Write(" left, ");
+                sw.Write(name);
+                sw.WriteLine(" right) => left.Value < right.Value;");
+                sw.WriteDivider();
+
+                sw.WriteIndented("public static bool operator <=(");
+                sw.Write(name);
+                sw.Write(" left, ");
+                sw.Write(name);
+                sw.WriteLine(" right) => left.Value <= right.Value;");
+                sw.WriteDivider();
+
+                sw.WriteIndented("public static bool operator >(");
+                sw.Write(name);
+                sw.Write(" left, ");
+                sw.Write(name);
+                sw.WriteLine(" right) => left.Value > right.Value;");
+                sw.WriteDivider();
+
+                sw.WriteIndented("public static bool operator >=(");
+                sw.Write(name);
+                sw.Write(" left, ");
+                sw.Write(name);
+                sw.WriteLine(" right) => left.Value >= right.Value;");
                 sw.WriteDivider();
             }
-        }
-        else if (IsTransparentStructBoolean(kind))
-        {
-            // Boolean like transparent structs define conversion to/from bool
-            // and support for usage in bool like scenarios.
 
-            sw.WriteIndented("    public static implicit operator bool(");
-            sw.Write(name);
-            sw.WriteLine(" value) => value.Value != 0;");
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public static implicit operator ");
-            sw.Write(name);
-            sw.Write("(bool value) => new ");
-            sw.Write(name);
-
-            if (type.Equals("int", StringComparison.Ordinal))
+            if (IsTransparentStructHandle(kind))
             {
-                sw.WriteLine("(value ? 1 : 0);");
+                // Handle like transparent structs can be cast to/from void*
+
+                sw.WriteIndented("public static explicit operator ");
+                sw.Write(name);
+                sw.Write("(void* value) => new ");
+                sw.Write(name);
+
+                if (type.Equals("void*", StringComparison.Ordinal))
+                {
+                    sw.WriteLine("(value);");
+                }
+                else
+                {
+                    if (!IsUnsigned(type))
+                    {
+                        sw.Write("unchecked");
+                    }
+
+                    sw.Write("((");
+                    sw.Write(type);
+                    sw.WriteLine(")(value));");
+                }
+                sw.WriteDivider();
+
+                sw.WriteIndented("public static implicit operator void*(");
+                sw.Write(name);
+
+                if (isTypePointer)
+                {
+                    sw.WriteLine(" value) => value.Value;");
+                }
+                else
+                {
+                    var isUnchecked = !IsUnsigned(type);
+                    sw.Write(" value) => ");
+
+                    if (isUnchecked)
+                    {
+                        sw.Write("unchecked(");
+                    }
+                    sw.Write("(void*)(value.Value)");
+
+                    if (isUnchecked)
+                    {
+                        sw.Write(")");
+                    }
+                    sw.WriteDivider();
+                }
+
+                sw.WriteDivider();
+
+                if ((kind == PInvokeGeneratorTransparentStructKind.HandleWin32) && !name.Equals("HANDLE", StringComparison.Ordinal))
+                {
+                    // Win32 handle like transparent structs can also be cast to/from HANDLE
+
+                    sw.WriteIndented("public static explicit operator ");
+                    sw.Write(name);
+                    sw.Write("(HANDLE value) => new ");
+                    sw.Write(name);
+                    sw.WriteLine("(value);");
+                    sw.WriteDivider();
+
+                    sw.WriteIndented("public static implicit operator HANDLE(");
+                    sw.Write(name);
+                    sw.WriteLine(" value) => new HANDLE(value.Value);");
+                    sw.WriteDivider();
+                }
             }
-            else if (type.Equals("uint", StringComparison.Ordinal))
+            else if (IsTransparentStructBoolean(kind))
             {
-                sw.WriteLine("(value ? 1u : 0u);");
+                // Boolean like transparent structs define conversion to/from bool
+                // and support for usage in bool like scenarios.
+
+                sw.WriteIndented("public static implicit operator bool(");
+                sw.Write(name);
+                sw.WriteLine(" value) => value.Value != 0;");
+                sw.WriteDivider();
+
+                sw.WriteIndented("public static implicit operator ");
+                sw.Write(name);
+                sw.Write("(bool value) => new ");
+                sw.Write(name);
+
+                if (type.Equals("int", StringComparison.Ordinal))
+                {
+                    sw.WriteLine("(value ? 1 : 0);");
+                }
+                else if (type.Equals("uint", StringComparison.Ordinal))
+                {
+                    sw.WriteLine("(value ? 1u : 0u);");
+                }
+                else
+                {
+                    sw.Write("((");
+                    sw.Write(type);
+                    sw.WriteLine(")(value ? 1u : 0u);");
+                }
+
+                sw.WriteDivider();
+
+                sw.WriteIndented("public static bool operator false(");
+                sw.Write(name);
+                sw.WriteLine(" value) => value.Value == 0;");
+                sw.WriteDivider();
+
+                sw.WriteIndented("public static bool operator true(");
+                sw.Write(name);
+                sw.WriteLine(" value) => value.Value != 0;");
+                sw.WriteDivider();
+            }
+
+            // All transparent structs define casts to/from the various integer types
+
+            if (kind == PInvokeGeneratorTransparentStructKind.FnPtr)
+            {
+                OutputConversions(sw, name, type, kind, type);
             }
             else
             {
-                sw.Write("((");
-                sw.Write(type);
-                sw.WriteLine(")(value ? 1u : 0u);");
+                OutputConversions(sw, name, type, kind, "byte");
+                OutputConversions(sw, name, type, kind, "short");
+                OutputConversions(sw, name, type, kind, "sbyte");
+                OutputConversions(sw, name, type, kind, "ushort");
+                OutputConversions(sw, name, type, kind, "int");
+                OutputConversions(sw, name, type, kind, "long");
+                OutputConversions(sw, name, type, kind, "uint");
+                OutputConversions(sw, name, type, kind, "ulong");
             }
 
-            sw.WriteDivider();
+            OutputConversions(sw, name, type, kind, "nint");
+            OutputConversions(sw, name, type, kind, "nuint");
 
-            sw.WriteIndented("    public static bool operator false(");
-            sw.Write(name);
-            sw.WriteLine(" value) => value.Value == 0;");
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public static bool operator true(");
-            sw.Write(name);
-            sw.WriteLine(" value) => value.Value != 0;");
-            sw.WriteDivider();
-        }
-
-        // All transparent structs define casts to/from the various integer types
-
-        if (kind == PInvokeGeneratorTransparentStructKind.FnPtr)
-        {
-            OutputConversions(sw, name, type, kind, type);
-        }
-        else
-        {
-            OutputConversions(sw, name, type, kind, "byte");
-            OutputConversions(sw, name, type, kind, "short");
-            OutputConversions(sw, name, type, kind, "sbyte");
-            OutputConversions(sw, name, type, kind, "ushort");
-            OutputConversions(sw, name, type, kind, "int");
-            OutputConversions(sw, name, type, kind, "long");
-            OutputConversions(sw, name, type, kind, "uint");
-            OutputConversions(sw, name, type, kind, "ulong");
-        }
-
-        OutputConversions(sw, name, type, kind, "nint");
-        OutputConversions(sw, name, type, kind, "nuint");
-
-        if (IsTransparentStructComparable(kind))
-        {
-            // Non-FnPtr transparent structs override CompareTo, Equals, GetHashCode
-
-            sw.WriteIndentedLine("    public int CompareTo(object? obj)");
-            sw.WriteIndentedLine("    {");
-            sw.WriteIndented("        if (obj is ");
-            sw.Write(name);
-            sw.WriteLine(" other)");
-            sw.WriteIndentedLine("        {");
-            sw.WriteIndentedLine("            return CompareTo(other);");
-            sw.WriteIndentedLine("        }");
-            sw.WriteDivider();
-            sw.WriteIndented("        return (obj is null) ? 1 : throw new ArgumentException(\"obj is not an instance of ");
-            sw.Write(name);
-            sw.WriteLine(".\");");
-            sw.WriteIndentedLine("    }");
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public int CompareTo(");
-            sw.Write(name);
-
-            if (isTypePointer)
+            if (IsTransparentStructComparable(kind))
             {
-                sw.WriteLine(" other) => ((nuint)(Value)).CompareTo((nuint)(other.Value));");
+                // Non-FnPtr transparent structs override CompareTo, Equals, GetHashCode
+
+                sw.WriteIndentedLine("public int CompareTo(object? obj)");
+                sw.WriteBlockStart();
+                {
+                    sw.WriteIndented("if (obj is ");
+                    sw.Write(name);
+                    sw.WriteLine(" other)");
+                    sw.WriteBlockStart();
+                    sw.WriteIndentedLine("return CompareTo(other);");
+                    sw.WriteBlockEnd();
+
+                    sw.WriteDivider();
+
+                    sw.WriteIndented("return (obj is null) ? 1 : throw new ArgumentException(\"obj is not an instance of ");
+                    sw.Write(name);
+                    sw.WriteLine(".\");");
+                }
+                sw.WriteBlockEnd();
+
+                sw.WriteDivider();
+
+                sw.WriteIndented("public int CompareTo(");
+                sw.Write(name);
+                sw.Write(" other) => ");
+
+                if (isTypePointer)
+                {
+                    sw.WriteLine("((nuint)(Value)).CompareTo((nuint)(other.Value));");
+                }
+                else
+                {
+                    sw.WriteLine("Value.CompareTo(other.Value);");
+                }
+
+                sw.WriteDivider();
+
+                sw.WriteIndented("public override bool Equals(object? obj) => (obj is ");
+                sw.Write(name);
+                sw.WriteLine(" other) && Equals(other);");
+
+                sw.WriteDivider();
+
+                sw.WriteIndented("public bool Equals(");
+                sw.Write(name);
+                sw.Write(" other) => ");
+
+                if (isTypePointer)
+                {
+                    sw.WriteLine("((nuint)(Value)).Equals((nuint)(other.Value));");
+                }
+                else
+                {
+                    sw.WriteLine("Value.Equals(other.Value);");
+                }
+
+                sw.WriteDivider();
+
+                sw.WriteIndented("public override int GetHashCode() => ");
+
+                if (isTypePointer)
+                {
+                    sw.Write("((nuint)(Value))");
+                }
+                else
+                {
+                    sw.Write("Value");
+                }
+
+                sw.WriteLine(".GetHashCode();");
+
+                sw.WriteDivider();
             }
-            else
-            {
-                sw.WriteLine(" other) => Value.CompareTo(other.Value);");
-            }
 
-            sw.WriteDivider();
+            // All transparent structs override ToString
 
-            sw.WriteIndented("    public override bool Equals(object? obj) => (obj is ");
-            sw.Write(name);
-            sw.WriteLine(" other) && Equals(other);");
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public bool Equals(");
-            sw.Write(name);
-
-            if (isTypePointer)
-            {
-                sw.WriteLine(" other) => ((nuint)(Value)).Equals((nuint)(other.Value));");
-            }
-            else
-            {
-                sw.WriteLine(" other) => Value.Equals(other.Value);");
-            }
-
-            sw.WriteDivider();
-
-            sw.WriteIndented("    public override int GetHashCode() => ");
+            sw.WriteIndented("public override string ToString() => ");
 
             if (isTypePointer)
             {
@@ -1371,59 +1398,43 @@ public sealed partial class PInvokeGenerator : IDisposable
                 sw.Write("Value");
             }
 
-            sw.WriteLine(".GetHashCode();");
-            sw.WriteDivider();
-        }
+            sw.Write(".ToString(");
 
-        // All transparent structs override ToString
-
-        sw.WriteIndented("    public override string ToString() => ");
-
-        if (isTypePointer)
-        {
-            sw.Write("((nuint)(Value))");
-        }
-        else
-        {
-            sw.Write("Value");
-        }
-
-        sw.Write(".ToString(");
-
-        if (IsTransparentStructHexBased(kind))
-        {
-            var (typeSrcSize, typeDstSize, typeSign) = GetSizeAndSignOf(type);
-
-            if (typeSrcSize != typeDstSize)
+            if (IsTransparentStructHexBased(kind))
             {
-                sw.Write("(sizeof(nint) == 4) ? \"X8\" : \"X16\"");
+                var (typeSrcSize, typeDstSize, typeSign) = GetSizeAndSignOf(type);
+
+                if (typeSrcSize != typeDstSize)
+                {
+                    sw.Write("(sizeof(nint) == 4) ? \"X8\" : \"X16\"");
+                }
+                else
+                {
+                    sw.Write('"');
+                    sw.Write('X');
+                    sw.Write(typeSrcSize * 2);
+                    sw.Write('"');
+                }
+            }
+
+            sw.WriteLine(");");
+
+            sw.WriteDivider();
+
+            sw.WriteIndented("public string ToString(string? format, IFormatProvider? formatProvider) => ");
+
+            if (isTypePointer)
+            {
+                sw.Write("((nuint)(Value))");
             }
             else
             {
-                sw.Write('"');
-                sw.Write('X');
-                sw.Write(typeSrcSize * 2);
-                sw.Write('"');
+                sw.Write("Value");
             }
+
+            sw.WriteLine(".ToString(format, formatProvider);");
         }
-
-        sw.WriteLine(");");
-        sw.WriteDivider();
-
-        sw.WriteIndented("    public string ToString(string? format, IFormatProvider? formatProvider) => ");
-
-        if (isTypePointer)
-        {
-            sw.Write("((nuint)(Value))");
-        }
-        else
-        {
-            sw.Write("Value");
-        }
-
-        sw.WriteLine(".ToString(format, formatProvider);");
-
-        sw.WriteIndentedLine('}');
+        sw.WriteBlockEnd();
 
         StopCSharpCode();
 
@@ -1476,31 +1487,37 @@ public sealed partial class PInvokeGenerator : IDisposable
                 castFromKind = "explicit";
             }
 
-            sw.WriteIndented("    public static ");
+            sw.WriteIndented("public static ");
             sw.Write(castFromKind);
             sw.Write(" operator ");
             sw.Write(name);
             sw.Write('(');
             sw.Write(target);
-            sw.Write(" value) => new ");
-            sw.Write(name);
-            sw.Write('(');
-
-            if (castFromKind.Equals("explicit", StringComparison.Ordinal) || isPointerToNativeCast)
+            sw.Write(" value)");
+            sw.BeginBody(isExpressionBody: true);
             {
-                sw.Write("unchecked((");
-                sw.Write(type);
-                sw.Write(")(");
+                sw.Write("new ");
+                sw.Write(name);
+                sw.Write('(');
+
+                if (castFromKind.Equals("explicit", StringComparison.Ordinal) || isPointerToNativeCast)
+                {
+                    sw.Write("unchecked((");
+                    sw.Write(type);
+                    sw.Write(")(");
+                }
+
+                sw.Write("value");
+
+                if (castFromKind.Equals("explicit", StringComparison.Ordinal) || isPointerToNativeCast)
+                {
+                    sw.Write("))");
+                }
+
+                sw.Write(")");
+                sw.WriteSemicolon();
             }
-
-            sw.Write("value");
-
-            if (castFromKind.Equals("explicit", StringComparison.Ordinal) || isPointerToNativeCast)
-            {
-                sw.Write("))");
-            }
-
-            sw.WriteLine(");");
+            sw.EndBody(true);
             sw.WriteDivider();
 
             // public static castToKind operator target(name value) => ((target)(value.Value));
@@ -1519,29 +1536,32 @@ public sealed partial class PInvokeGenerator : IDisposable
                 castToKind = "explicit";
             }
 
-            sw.WriteIndented("    public static ");
+            sw.WriteIndented("public static ");
             sw.Write(castToKind);
             sw.Write(" operator ");
             sw.Write(target);
             sw.Write('(');
             sw.Write(name);
-            sw.Write(" value) => ");
-
-            if (castToKind.Equals("explicit", StringComparison.Ordinal) || isPointerToNativeCast)
+            sw.Write(" value)");
+            sw.BeginBody(isExpressionBody: true);
             {
-                sw.Write('(');
-                sw.Write(target);
-                sw.Write(")(");
+                if (castToKind.Equals("explicit", StringComparison.Ordinal) || isPointerToNativeCast)
+                {
+                    sw.Write('(');
+                    sw.Write(target);
+                    sw.Write(")(");
+                }
+
+                sw.Write("value.Value");
+
+                if (castToKind.Equals("explicit", StringComparison.Ordinal) || isPointerToNativeCast)
+                {
+                    sw.Write(')');
+                }
+
+                sw.WriteSemicolon();
             }
-
-            sw.Write("value.Value");
-
-            if (castToKind.Equals("explicit", StringComparison.Ordinal) || isPointerToNativeCast)
-            {
-                sw.Write(')');
-            }
-
-            sw.WriteLine(';');
+            sw.EndBody(true);
             sw.WriteDivider();
         }
     }
@@ -3077,7 +3097,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
             }
         }
-        
+
         return remappedName;
     }
 
