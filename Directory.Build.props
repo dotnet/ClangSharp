@@ -47,7 +47,7 @@
     <PackageValidationBaselineVersion>17.0.0</PackageValidationBaselineVersion>
     <Product>ClangSharp</Product>
     <RootNamespace>ClangSharp</RootNamespace>
-    <VersionPrefix>17.0.1</VersionPrefix>
+    <VersionPrefix>17.0.2</VersionPrefix>
     <VersionSuffix Condition="'$(EXCLUDE_SUFFIX_FROM_VERSION)' != 'true'">rc1</VersionSuffix>
     <VersionSuffix Condition="'$(GITHUB_EVENT_NAME)' == 'pull_request'">pr</VersionSuffix>
   </PropertyGroup>
