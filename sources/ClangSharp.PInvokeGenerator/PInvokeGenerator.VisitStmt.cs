@@ -191,10 +191,20 @@ public partial class PInvokeGenerator
             {
                 case "memcpy":
                 {
+                    var args = callExpr.Args;
+
                     if (Config.GenerateLatestCode)
                     {
                         outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
                         outputBuilder.Write("NativeMemory.Copy");
+
+                        if (args.Count == 3)
+                        {
+                            // Swap the operands around:
+                            // * NativeMemory.Copy takes: source, dest, count
+                            // * memcpy takes: dest, source, count
+                            args = [args[1], args[0], args[2]];
+                        }
                     }
                     else
                     {
@@ -202,7 +212,7 @@ public partial class PInvokeGenerator
                         outputBuilder.Write("Unsafe.CopyBlockUnaligned");
                     }
                     
-                    VisitArgs(callExpr);
+                    VisitArgs(callExpr, args);
                     break;
                 }
 
