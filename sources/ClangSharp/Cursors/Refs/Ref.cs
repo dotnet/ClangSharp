@@ -34,6 +34,12 @@ public class Ref : Cursor
                 break;
             }
 
+            case CXCursor_OverloadedDeclRef:
+            {
+                result = new OverloadedDeclRef(handle);
+                break;
+            }
+
             case CXCursor_ObjCSuperClassRef:
             case CXCursor_ObjCProtocolRef:
             case CXCursor_ObjCClassRef:
@@ -42,7 +48,6 @@ public class Ref : Cursor
             case CXCursor_NamespaceRef:
             case CXCursor_MemberRef:
             case CXCursor_LabelRef:
-            case CXCursor_OverloadedDeclRef:
             case CXCursor_VariableRef:
             {
                 result = new Ref(handle, handle.Kind);
