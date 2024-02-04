@@ -24,5 +24,4 @@ public sealed class OverloadedDeclRef : Ref
     }
 
     public IEnumerable<Decl> OverloadedDecls => _overloadedDecls.Value;
-
 }
