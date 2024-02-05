@@ -2813,6 +2813,11 @@ CXCursor clangsharp_Cursor_getLambdaStaticInvoker(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
+            CXXMethodDecl *CallOp = CRD->getLambdaCallOperator();
+            // Work around a Clang bug: CRD->getLambdaStaticInvoker will crash if getLambdaCallOperator returns null.
+            if (CallOp == nullptr) {
+                return clang_getNullCursor();
+            }
             return MakeCXCursor(CRD->getLambdaStaticInvoker(), getCursorTU(C));
         }
     }
@@ -3088,6 +3093,9 @@ int clangsharp_Cursor_getNumAssociatedConstraints(CXCursor C) {
 int clangsharp_Cursor_getNumAttrs(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
+        if (!D->hasAttrs()) {
+            return 0;
+        }
         return D->getAttrs().size();
     }
 

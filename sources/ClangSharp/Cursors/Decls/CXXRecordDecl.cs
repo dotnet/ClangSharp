@@ -14,7 +14,7 @@ public class CXXRecordDecl : RecordDecl
     private readonly Lazy<IReadOnlyList<CXXConstructorDecl>> _ctors;
     private readonly Lazy<FunctionTemplateDecl> _dependentLambdaCallOperator;
     private readonly Lazy<ClassTemplateDecl> _describedClassTemplate;
-    private readonly Lazy<CXXDestructorDecl> _destructor;
+    private readonly Lazy<CXXDestructorDecl?> _destructor;
     private readonly Lazy<IReadOnlyList<FriendDecl>> _friends;
     private readonly Lazy<CXXRecordDecl> _instantiatedFromMemberClass;
     private readonly Lazy<CXXMethodDecl> _lambdaCallOperator;
@@ -63,7 +63,10 @@ public class CXXRecordDecl : RecordDecl
 
         _dependentLambdaCallOperator = new Lazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.DependentLambdaCallOperator));
         _describedClassTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.DescribedCursorTemplate));
-        _destructor = new Lazy<CXXDestructorDecl>(() => TranslationUnit.GetOrCreate<CXXDestructorDecl>(Handle.Destructor));
+        _destructor = new Lazy<CXXDestructorDecl?>(() => {
+            CXCursor destructor = Handle.Destructor;
+            return destructor.IsNull ? null : TranslationUnit.GetOrCreate<CXXDestructorDecl>(Handle.Destructor);
+        });
 
         _friends = new Lazy<IReadOnlyList<FriendDecl>>(() => {
             var numFriends = Handle.NumFriends;
@@ -126,7 +129,7 @@ public class CXXRecordDecl : RecordDecl
 
     public ClassTemplateDecl DescribedClassTemplate => _describedClassTemplate.Value;
 
-    public CXXDestructorDecl Destructor => _destructor.Value;
+    public CXXDestructorDecl? Destructor => _destructor.Value;
 
     public IReadOnlyList<FriendDecl> Friends => _friends.Value;
 
