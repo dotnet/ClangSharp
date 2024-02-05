@@ -172,6 +172,7 @@ public static class Program
         new TwoColumnHelpRow("generate-native-bitfield-attribute", "[NativeBitfield(\"\", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout."),
         new TwoColumnHelpRow("generate-native-inheritance-attribute", "[NativeInheritance(\"\")] attribute should be generated to document the encountered C++ base type."),
         new TwoColumnHelpRow("generate-generic-pointer-wrapper", "Pointer<T> should be used for limited generic type support."),
+        new TwoColumnHelpRow("generate-fnptr-wrapper", "Function pointers should be wrapped in transparent structs instead of delegates."),
         new TwoColumnHelpRow("generate-setslastsystemerror-attribute", "[SetsLastSystemError] attribute should be generated rather than using SetLastError = true."),
         new TwoColumnHelpRow("generate-template-bindings", "Bindings for template-definitions should be generated. This is currently experimental."),
         new TwoColumnHelpRow("generate-unmanaged-constants", "Unmanaged constants should be generated using static ref readonly properties. This is currently experimental."),
@@ -570,6 +571,12 @@ public static class Program
                 case "generate-generic-pointer-wrapper":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper;
+                    break;
+                }
+
+                case "generate-fnptr-wrapper":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateFnPtrWrapper;
                     break;
                 }
 

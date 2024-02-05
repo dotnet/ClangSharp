@@ -299,7 +299,7 @@ internal sealed partial class CSharpOutputBuilder(string name, PInvokeGenerator 
         }
     }
 
-    private void AddNativeTypeNameAttribute(string nativeTypeName, string? prefix = null, string? postfix = null, string? attributePrefix = null)
+    public void AddNativeTypeNameAttribute(string nativeTypeName, string? prefix = null, string? postfix = null, string? attributePrefix = null)
     {
         foreach (var entry in _generator.Config.NativeTypeNamesToStrip)
         {

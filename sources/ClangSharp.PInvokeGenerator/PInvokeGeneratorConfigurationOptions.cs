@@ -86,4 +86,6 @@ public enum PInvokeGeneratorConfigurationOptions : long
     GenerateCallConvMemberFunction = 1L << 37,
 
     GenerateGenericPointerWrapper = 1L << 38,
+
+    GenerateFnPtrWrapper = 1L << 39,
 }
