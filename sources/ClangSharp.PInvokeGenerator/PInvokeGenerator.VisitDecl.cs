@@ -717,7 +717,7 @@ public partial class PInvokeGenerator
                 {
                     outputBuilder.Write("Base");
                 }
-                
+
                 outputBuilder.Write('.');
                 outputBuilder.Write(name);
                 outputBuilder.Write('(');
@@ -1817,7 +1817,11 @@ public partial class PInvokeGenerator
                 {
                     var cxxDestructorDecl = cxxRecordDecl.Destructor;
 
-                    if (!cxxDestructorDecl.IsVirtual && !IsExcluded(cxxDestructorDecl))
+                    if (cxxDestructorDecl == null)
+                    {
+                        AddDiagnostic(DiagnosticLevel.Warning, "Record has user declared destructor, but Destructor property was null. Generated bindings may be incomplete.", cxxRecordDecl);
+                    }
+                    else if (!cxxDestructorDecl.IsVirtual && !IsExcluded(cxxDestructorDecl))
                     {
                         Visit(cxxDestructorDecl);
                         _outputBuilder.WriteDivider();
