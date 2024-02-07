@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 using static ClangSharp.Interop.CX_CastKind;
@@ -291,6 +292,13 @@ public partial class PInvokeGenerator
         if (string.IsNullOrEmpty(parentName))
         {
             parentName = _outputBuilder.Name;
+        }
+
+        if (Config.StripEnumMemberTypeName)
+        {
+            Regex stripParentNameRegex = new($"^{Regex.Escape(parentName)}_*", RegexOptions.IgnoreCase);
+            var strippedName = stripParentNameRegex.Replace(escapedName, string.Empty);
+            escapedName = strippedName;
         }
 
         var kind = isAnonymousEnum ? ValueKind.Primitive : ValueKind.Enumerator;
