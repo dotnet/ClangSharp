@@ -265,6 +265,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateVtblIndexAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
 
+    public bool StripEnumMemberTypeName => _options.HasFlag(PInvokeGeneratorConfigurationOptions.StripEnumMemberTypeName);
+
     public string HeaderText => _headerText;
 
     [AllowNull]
