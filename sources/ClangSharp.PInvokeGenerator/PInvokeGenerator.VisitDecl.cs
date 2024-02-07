@@ -295,11 +295,11 @@ public partial class PInvokeGenerator
             parentName = _outputBuilder.Name;
         }
 
-        var strippedName = escapedName;
         if (Config.StripEnumMemberTypeName)
         {
             Regex stripParentNameRegex = new($"^{Regex.Escape(parentName)}_*", RegexOptions.IgnoreCase);
-            strippedName = stripParentNameRegex.Replace(escapedName, string.Empty);
+            var strippedName = stripParentNameRegex.Replace(escapedName, string.Empty);
+            escapedName = strippedName;
         }
 
         var kind = isAnonymousEnum ? ValueKind.Primitive : ValueKind.Enumerator;
@@ -313,7 +313,7 @@ public partial class PInvokeGenerator
         var desc = new ValueDesc {
             AccessSpecifier = accessSpecifier,
             TypeName = typeName,
-            EscapedName = Config.StripEnumMemberTypeName ? strippedName : escapedName,
+            EscapedName = escapedName,
             NativeTypeName = null,
             ParentName = parentName,
             Kind = kind,
