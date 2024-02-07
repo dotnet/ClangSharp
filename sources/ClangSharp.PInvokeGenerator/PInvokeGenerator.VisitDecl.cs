@@ -19,6 +19,7 @@ using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
 using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXEvalResultKind;
 using static ClangSharp.Interop.CXTypeKind;
+using System.Text.RegularExpressions;
 
 namespace ClangSharp;
 
@@ -294,6 +295,13 @@ public partial class PInvokeGenerator
             parentName = _outputBuilder.Name;
         }
 
+        var strippedName = escapedName;
+        if (Config.StripEnumMemberTypeName)
+        {
+            Regex stripParentNameRegex = new($"^{Regex.Escape(parentName)}_*");
+            strippedName = stripParentNameRegex.Replace(escapedName, string.Empty);
+        }
+
         var kind = isAnonymousEnum ? ValueKind.Primitive : ValueKind.Enumerator;
         var flags = ValueFlags.Constant;
 
@@ -305,7 +313,7 @@ public partial class PInvokeGenerator
         var desc = new ValueDesc {
             AccessSpecifier = accessSpecifier,
             TypeName = typeName,
-            EscapedName = escapedName,
+            EscapedName = Config.StripEnumMemberTypeName ? strippedName : escapedName,
             NativeTypeName = null,
             ParentName = parentName,
             Kind = kind,
