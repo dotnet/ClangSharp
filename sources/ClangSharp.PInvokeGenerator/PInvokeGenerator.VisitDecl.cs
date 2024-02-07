@@ -298,7 +298,7 @@ public partial class PInvokeGenerator
         var strippedName = escapedName;
         if (Config.StripEnumMemberTypeName)
         {
-            Regex stripParentNameRegex = new($"^{Regex.Escape(parentName)}_*");
+            Regex stripParentNameRegex = new($"^{Regex.Escape(parentName)}_*", RegexOptions.IgnoreCase);
             strippedName = stripParentNameRegex.Replace(escapedName, string.Empty);
         }
 
