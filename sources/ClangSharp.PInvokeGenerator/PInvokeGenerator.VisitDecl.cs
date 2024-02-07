@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 using static ClangSharp.Interop.CX_CastKind;
@@ -19,7 +20,6 @@ using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
 using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXEvalResultKind;
 using static ClangSharp.Interop.CXTypeKind;
-using System.Text.RegularExpressions;
 
 namespace ClangSharp;
 
