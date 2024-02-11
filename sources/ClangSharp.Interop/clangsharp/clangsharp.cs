@@ -1032,6 +1032,9 @@ public static partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getOriginalType", ExactSpelling = true)]
     public static extern CXType Type_getOriginalType(CXType CT);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getSubstTemplateTypeParamAssociatedDecl", ExactSpelling = true)]
+    public static extern CXCursor Type_getSubstTemplateTypeParamAssociatedDecl(CXType CT);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getOwnedTagDecl", ExactSpelling = true)]
     public static extern CXCursor Type_getOwnedTagDecl(CXType CT);
 
