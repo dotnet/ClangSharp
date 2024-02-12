@@ -1001,15 +1001,19 @@ CXCursor clangsharp_Cursor_getDefaultArg(CXCursor C) {
 }
 
 CXType clangsharp_Cursor_getDefaultArgType(CXCursor C) {
+    QualType QT;
+
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
         if (const TemplateTypeParmDecl* TTPD = dyn_cast<TemplateTypeParmDecl>(D)) {
-            return MakeCXType(TTPD->getDefaultArgument(), getCursorTU(C));
+            if (TTPD->hasDefaultArgument()) {
+                QT = TTPD->getDefaultArgument();
+            }
         }
     }
 
-    return MakeCXType(QualType(), getCursorTU(C));
+    return MakeCXType(QT, getCursorTU(C));
 }
 
 CXCursor clangsharp_Cursor_getDefinition(CXCursor C) {
