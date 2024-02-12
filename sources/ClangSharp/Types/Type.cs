@@ -13,6 +13,7 @@ public unsafe class Type : IEquatable<Type>
 {
     private readonly Lazy<string> _asString;
     private readonly Lazy<Type> _canonicalType;
+    private readonly Lazy<Decl?> _declaration;
     private readonly Lazy<Type> _desugar;
     private readonly Lazy<string> _kindSpelling;
     private readonly Lazy<Type> _pointeeType;
@@ -33,6 +34,10 @@ public unsafe class Type : IEquatable<Type>
 
         _asString = new Lazy<string>(Handle.Spelling.ToString);
         _canonicalType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CanonicalType));
+        _declaration = new Lazy<Decl?>(() => {
+            CXCursor cursor = Handle.Declaration;
+            return cursor.Kind == CXCursorKind.CXCursor_NoDeclFound ? null : TranslationUnit.GetOrCreate<Decl>(cursor);
+        });
         _desugar = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar));
         _kindSpelling = new Lazy<string>(Handle.KindSpelling.ToString);
         _pointeeType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
@@ -54,6 +59,8 @@ public unsafe class Type : IEquatable<Type>
     }
 
     public Type CanonicalType => _canonicalType.Value;
+
+    public Decl? Declaration => _declaration.Value;
 
     public Type Desugar => _desugar.Value;
 
