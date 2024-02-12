@@ -15,7 +15,7 @@ public class Decl : Cursor
     private readonly Lazy<Stmt?> _body;
     private readonly Lazy<Decl> _canonicalDecl;
     private readonly Lazy<IReadOnlyList<Decl>> _decls;
-    private readonly Lazy<TemplateDecl> _describedTemplate;
+    private readonly Lazy<TemplateDecl?> _describedTemplate;
     private readonly Lazy<Decl> _mostRecentDecl;
     private readonly Lazy<Decl> _nextDeclInContext;
     private readonly Lazy<Decl> _nonClosureContext;
@@ -62,7 +62,11 @@ public class Decl : Cursor
             return decls;
         });
 ;
-        _describedTemplate = new Lazy<TemplateDecl>(() => TranslationUnit.GetOrCreate<TemplateDecl>(Handle.DescribedTemplate));
+        _describedTemplate = new Lazy<TemplateDecl?>(() =>
+        {
+            CXCursor describedTemplate = Handle.DescribedTemplate;
+            return describedTemplate.IsNull ? null : TranslationUnit.GetOrCreate<TemplateDecl>(describedTemplate);
+        });
         _mostRecentDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.MostRecentDecl));
         _nextDeclInContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NextDeclInContext));
         _nonClosureContext = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NonClosureContext));
@@ -90,7 +94,11 @@ public class Decl : Cursor
 
     public IReadOnlyList<Decl> Decls => _decls.Value;
 
-    public TemplateDecl DescribedTemplate => _describedTemplate.Value;
+    /// <summary>
+    /// Per clang documentation: This returns null for partial specializations, because they are not modeled as TemplateDecls.
+    /// Use DescribedTemplateParams to handle those cases.
+    /// </summary>
+    public TemplateDecl? DescribedTemplate => _describedTemplate.Value;
 
     public bool HasAttrs => Handle.HasAttrs;
 
