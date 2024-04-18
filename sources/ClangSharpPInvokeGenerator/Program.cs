@@ -777,23 +777,9 @@ public static class Program
                     context.Console.Write("    ");
                     context.Console.WriteLine(diagnostic.ToString());
 
-                    if (diagnostic.Level == DiagnosticLevel.Warning)
+                    if (diagnostic.Level == DiagnosticLevel.Error)
                     {
-                        if (exitCode >= 0)
-                        {
-                            exitCode++;
-                        }
-                    }
-                    else if (diagnostic.Level == DiagnosticLevel.Error)
-                    {
-                        if (exitCode >= 0)
-                        {
-                            exitCode = -1;
-                        }
-                        else
-                        {
-                            exitCode--;
-                        }
+                        exitCode = -1;
                     }
                 }
             }
