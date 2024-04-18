@@ -7001,7 +7001,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         Debug.Assert(_outputBuilder is not null);
 
-        if (TryGetRemappedValue(namedDecl, _config.WithUsings, out var usings))
+        if (TryGetRemappedValue(namedDecl, _config.WithUsings, out var usings, matchStar: true))
         {
             foreach (var @using in usings)
             {
