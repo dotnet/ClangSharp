@@ -4539,7 +4539,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return hasVtbl;
     }
 
-    private bool IsEnumOperator(FunctionDecl functionDecl, string name)
+    private static bool IsEnumOperator(FunctionDecl functionDecl, string name)
     {
         if (name.StartsWith("operator", StringComparison.Ordinal) && ((functionDecl.Parameters.Count == 1) || (functionDecl.Parameters.Count == 2)))
         {
@@ -4586,7 +4586,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         if (!_isExcluded.TryGetValue(cursor, out var isExcludedValue))
         {
-            isExcludedValue |= (!IsAlwaysIncluded(cursor) && (IsExcludedByConfig(cursor) || IsExcludedByFile(cursor) || IsExcludedByName(cursor, ref isExcludedValue))) ? 0b01u : 0b00u;
+            isExcludedValue |= (!IsAlwaysIncluded(cursor) && (IsExcludedByConfig(cursor) || IsExcludedByFile(cursor) || IsExcludedByName(cursor, ref isExcludedValue) || IsExcludedByAttributes(cursor))) ? 0b01u : 0b00u;
             _isExcluded.Add(cursor, isExcludedValue);
         }
         isExcludedByConflictingDefinition = (isExcludedValue & 0b10) != 0;
@@ -5055,6 +5055,23 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             return !TryGetUuid(recordDecl, out _);
         }
+
+        bool IsExcludedByAttributes(Cursor cursor)
+        {
+            if (cursor is NamedDecl namedDecl)
+            {
+                foreach (var attr in GetAttributesFor(namedDecl))
+                {
+                    switch (attr.Kind)
+                    {
+                        case CX_AttrKind_Builtin:
+                            return true;
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 
     private bool IsBaseExcluded(CXXRecordDecl cxxRecordDecl, CXXRecordDecl baseCxxRecordDecl, CXXBaseSpecifier cxxBaseSpecifier, out string baseFieldName)
@@ -5239,22 +5256,22 @@ public sealed partial class PInvokeGenerator : IDisposable
         return expr == expectedStmt;
     }
 
-    private bool IsType<T>(Expr expr)
+    private static bool IsType<T>(Expr expr)
         where T : Type => IsType<T>(expr, out _);
 
-    private bool IsType<T>(Expr expr, [MaybeNullWhen(false)] out T value)
+    private static bool IsType<T>(Expr expr, [MaybeNullWhen(false)] out T value)
         where T : Type => IsType(expr, expr.Type, out value);
 
-    private bool IsType<T>(ValueDecl valueDecl)
+    private static bool IsType<T>(ValueDecl valueDecl)
         where T : Type => IsType<T>(valueDecl, out _);
 
-    private bool IsType<T>(ValueDecl typeDecl, [MaybeNullWhen(false)] out T value)
+    private static bool IsType<T>(ValueDecl typeDecl, [MaybeNullWhen(false)] out T value)
         where T : Type => IsType(typeDecl, typeDecl.Type, out value);
 
-    private bool IsType<T>(Cursor? cursor, Type type)
+    private static bool IsType<T>(Cursor? cursor, Type type)
         where T : Type => IsType<T>(cursor, type, out _);
 
-    private bool IsType<T>(Cursor? cursor, Type type, [MaybeNullWhen(false)] out T value)
+    private static bool IsType<T>(Cursor? cursor, Type type, [MaybeNullWhen(false)] out T value)
         where T : Type
     {
         if (type is T t)
@@ -5338,36 +5355,36 @@ public sealed partial class PInvokeGenerator : IDisposable
         return false;
     }
 
-    private bool IsTypeConstantOrIncompleteArray(Expr expr)
+    private static bool IsTypeConstantOrIncompleteArray(Expr expr)
          => IsTypeConstantOrIncompleteArray(expr, out _);
 
-    private bool IsTypeConstantOrIncompleteArray(Expr expr, [MaybeNullWhen(false)] out ArrayType arrayType)
+    private static bool IsTypeConstantOrIncompleteArray(Expr expr, [MaybeNullWhen(false)] out ArrayType arrayType)
          => IsTypeConstantOrIncompleteArray(expr, expr.Type, out arrayType);
 
     private bool IsTypeConstantOrIncompleteArray(ValueDecl valueDecl)
          => IsTypeConstantOrIncompleteArray(valueDecl, out _);
 
-    private bool IsTypeConstantOrIncompleteArray(ValueDecl valueDecl, [MaybeNullWhen(false)] out ArrayType arrayType)
+    private static bool IsTypeConstantOrIncompleteArray(ValueDecl valueDecl, [MaybeNullWhen(false)] out ArrayType arrayType)
          => IsTypeConstantOrIncompleteArray(valueDecl, valueDecl.Type, out arrayType);
 
-    private bool IsTypeConstantOrIncompleteArray(Cursor? cursor, Type type)
+    private static bool IsTypeConstantOrIncompleteArray(Cursor? cursor, Type type)
          => IsTypeConstantOrIncompleteArray(cursor, type, out _);
 
-    private bool IsTypeConstantOrIncompleteArray(Cursor? cursor, Type type, [MaybeNullWhen(false)] out ArrayType arrayType)
+    private static bool IsTypeConstantOrIncompleteArray(Cursor? cursor, Type type, [MaybeNullWhen(false)] out ArrayType arrayType)
          => IsType(cursor, type, out arrayType)
          && (arrayType is ConstantArrayType or IncompleteArrayType);
 
-    private bool IsTypePointerOrReference(Expr expr)
+    private static bool IsTypePointerOrReference(Expr expr)
          => IsTypePointerOrReference(expr, expr.Type);
 
-    private bool IsTypePointerOrReference(ValueDecl valueDecl)
+    private static bool IsTypePointerOrReference(ValueDecl valueDecl)
         => IsTypePointerOrReference(valueDecl, valueDecl.Type);
 
-    private bool IsTypePointerOrReference(Cursor? cursor, Type type)
+    private static bool IsTypePointerOrReference(Cursor? cursor, Type type)
         => IsType<PointerType>(cursor, type)
         || IsType<ReferenceType>(cursor, type);
 
-    private bool IsTypeVoid(Cursor? cursor, Type type)
+    private static bool IsTypeVoid(Cursor? cursor, Type type)
          => IsType<BuiltinType>(cursor, type, out var builtinType)
          && (builtinType.Kind == CXType_Void);
 
@@ -6610,6 +6627,32 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private void Visit(IEnumerable<Cursor> cursors, IEnumerable<Cursor> excludedCursors) => Visit(cursors.Except(excludedCursors));
 
+    private static IEnumerable<Attr> GetAttributesFor(NamedDecl namedDecl)
+    {
+        var declAttrs = namedDecl.HasAttrs
+            ? namedDecl.Attrs
+            : Enumerable.Empty<Attr>();
+
+        if (namedDecl is FieldDecl fieldDecl)
+        {
+            if (IsType<TypedefType>(fieldDecl, out var typedefType))
+            {
+                declAttrs = declAttrs.Concat(typedefType.Decl.Attrs);
+            }
+        }
+        else if (namedDecl is RecordDecl recordDecl)
+        {
+            var typedefName = recordDecl.TypedefNameForAnonDecl;
+
+            if ((typedefName is not null) && typedefName.HasAttrs)
+            {
+                declAttrs = declAttrs.Concat(typedefName.Attrs);
+            }
+        }
+
+        return declAttrs;
+    }
+
     private void WithAttributes(NamedDecl namedDecl, bool onlySupportedOSPlatform = false, bool isTestOutput = false)
     {
         var outputBuilder = isTestOutput ? _testOutputBuilder : _outputBuilder;
@@ -6625,30 +6668,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (!isTestOutput)
         {
-            var declAttrs = namedDecl.HasAttrs
-                ? namedDecl.Attrs
-                : Enumerable.Empty<Attr>();
-
-            if (namedDecl is FieldDecl fieldDecl)
-            {
-                if (IsType<TypedefType>(fieldDecl, out var typedefType))
-                {
-                    declAttrs = declAttrs.Concat(typedefType.Decl.Attrs);
-                }
-            }
-            else if (namedDecl is RecordDecl recordDecl)
-            {
-                var typedefName = recordDecl.TypedefNameForAnonDecl;
-
-                if ((typedefName is not null) && typedefName.HasAttrs)
-                {
-                    declAttrs = declAttrs.Concat(typedefName.Attrs);
-                }
-            }
-
             var obsoleteEmitted = false;
 
-            foreach (var attr in declAttrs)
+            foreach (var attr in GetAttributesFor(namedDecl))
             {
                 switch (attr.Kind)
                 {

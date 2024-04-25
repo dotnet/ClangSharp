@@ -3966,7 +3966,7 @@ public partial class PInvokeGenerator
         }
     }
 
-    private bool IsPrimitiveValue(Cursor? cursor, Type type)
+    private static bool IsPrimitiveValue(Cursor? cursor, Type type)
     {
         if (IsType<BuiltinType>(cursor, type, out var builtinType))
         {
