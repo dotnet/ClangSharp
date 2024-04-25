@@ -6691,7 +6691,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                     case CX_AttrKind_MSNoVTable:
                     case CX_AttrKind_MSAllocator:
                     case CX_AttrKind_MaxFieldAlignment:
+                    case CX_AttrKind_NoThrow:
                     case CX_AttrKind_SelectAny:
+                    case CX_AttrKind_TypeVisibility:
                     case CX_AttrKind_Uuid:
                     {
                         // Nothing to handle
