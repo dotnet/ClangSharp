@@ -9,18 +9,10 @@ using ClangSharp.XML;
 
 namespace ClangSharp;
 
-internal sealed class OutputBuilderFactory
+internal sealed class OutputBuilderFactory(PInvokeGenerator generator)
 {
-    private readonly PInvokeGenerator _generator;
-    private readonly bool _writeSourceLocation;
-    private readonly Dictionary<string, IOutputBuilder> _outputBuilders;
-
-    public OutputBuilderFactory(PInvokeGenerator generator)
-    {
-        _generator = generator;
-        _writeSourceLocation = generator.Config.GenerateSourceLocationAttribute;
-        _outputBuilders = [];
-    }
+    private readonly bool _writeSourceLocation = generator.Config.GenerateSourceLocationAttribute;
+    private readonly Dictionary<string, IOutputBuilder> _outputBuilders = [];
 
     public IEnumerable<IOutputBuilder> OutputBuilders => _outputBuilders.Values;
 
@@ -33,10 +25,10 @@ internal sealed class OutputBuilderFactory
             throw new ArgumentNullException(nameof(name));
         }
 
-        var outputBuilder = _generator.Config.OutputMode switch
+        var outputBuilder = generator.Config.OutputMode switch
         {
-            PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name, _generator, writeSourceLocation: _writeSourceLocation),
-            PInvokeGeneratorOutputMode.Xml => new XmlOutputBuilder(name, _generator),
+            PInvokeGeneratorOutputMode.CSharp => (IOutputBuilder) new CSharpOutputBuilder(name, generator, writeSourceLocation: _writeSourceLocation),
+            PInvokeGeneratorOutputMode.Xml => new XmlOutputBuilder(name, generator),
             _ => throw new InvalidOperationException()
         };
 
@@ -51,7 +43,7 @@ internal sealed class OutputBuilderFactory
             throw new ArgumentNullException(nameof(name));
         }
 
-        var outputBuilder = new CSharpOutputBuilder(name, _generator, isTestOutput: true, writeSourceLocation: _writeSourceLocation);
+        var outputBuilder = new CSharpOutputBuilder(name, generator, isTestOutput: true, writeSourceLocation: _writeSourceLocation);
 
         _outputBuilders.Add(name, outputBuilder);
         return outputBuilder;

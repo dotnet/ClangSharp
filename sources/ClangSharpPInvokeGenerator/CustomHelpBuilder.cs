@@ -9,16 +9,8 @@ using System.CommandLine.IO;
 
 namespace ClangSharp;
 
-internal sealed class CustomHelpBuilder : HelpBuilder
+internal sealed class CustomHelpBuilder(IConsole console, LocalizationResources localizationResources, int maxWidth = int.MaxValue) : HelpBuilder(localizationResources, maxWidth)
 {
-    private IConsole Console { get; }
-
-    public CustomHelpBuilder(IConsole console, LocalizationResources localizationResources, int maxWidth = int.MaxValue)
-        : base(localizationResources, maxWidth)
-    {
-        Console = console;
-    }
-
     public void Write(Option option)
     {
         Write(string.Join(", ", option.Aliases));
@@ -27,17 +19,17 @@ internal sealed class CustomHelpBuilder : HelpBuilder
         WriteLine();
     }
 
-    public void Write(string value) => Console.Out.Write(value);
+    public void Write(string value) => console.Out.Write(value);
 
     public void Write(params TwoColumnHelpRow[] helpItems)
     {
         WriteLine("Options:");
         var _ = new Command("unused");
-        WriteColumns(helpItems, new HelpContext(this, _, Console.Out.CreateTextWriter()));
+        WriteColumns(helpItems, new HelpContext(this, _, console.Out.CreateTextWriter()));
         WriteLine();
     }
 
-    public void WriteLine() => Console.Out.WriteLine();
+    public void WriteLine() => console.Out.WriteLine();
 
-    public void WriteLine(string value) => Console.Out.WriteLine(value);
+    public void WriteLine(string value) => console.Out.WriteLine(value);
 }

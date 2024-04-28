@@ -27,7 +27,7 @@ public class CXTranslationUnitTest
             File.WriteAllText(file.FullName, "int main() { return 0; }");
 
             using var index = CXIndex.Create();
-            using var translationUnit = CXTranslationUnit.Parse(index, file.FullName, Array.Empty<string>(), Array.Empty<CXUnsavedFile>(), CXTranslationUnit_None);
+            using var translationUnit = CXTranslationUnit.Parse(index, file.FullName, [], [], CXTranslationUnit_None);
             var clangFile = translationUnit.GetFile(file.FullName);
             Assert.AreEqual(file.FullName, clangFile.Name.CString);
         }
@@ -53,7 +53,7 @@ public class CXTranslationUnitTest
             File.WriteAllText(file.FullName, "int main() { return 0; }");
 
             var index = CXIndex.Create();
-            var translationUnit = CXTranslationUnit.Parse(index, file.FullName, Array.Empty<string>(), Array.Empty<CXUnsavedFile>(), CXTranslationUnit_None);
+            var translationUnit = CXTranslationUnit.Parse(index, file.FullName, [], [], CXTranslationUnit_None);
             var clangFile = translationUnit.GetFile(file.FullName);
             var clangFileName = clangFile.Name;
             var clangFileNameString = clangFileName.CString;

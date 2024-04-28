@@ -4,14 +4,9 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXCursorSet : IDisposable, IEquatable<CXCursorSet>
+public unsafe partial struct CXCursorSet(IntPtr handle) : IDisposable, IEquatable<CXCursorSet>
 {
-    public CXCursorSet(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public static implicit operator CXCursorSet(CXCursorSetImpl* value) => new CXCursorSet((IntPtr)value);
 

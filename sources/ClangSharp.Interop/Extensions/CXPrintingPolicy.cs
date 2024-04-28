@@ -4,14 +4,9 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXPrintingPolicy : IDisposable, IEquatable<CXPrintingPolicy>
+public unsafe partial struct CXPrintingPolicy(IntPtr handle) : IDisposable, IEquatable<CXPrintingPolicy>
 {
-    public CXPrintingPolicy(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public static explicit operator CXPrintingPolicy(void* value) => new CXPrintingPolicy((IntPtr)value);
 

@@ -5,13 +5,8 @@ using static ClangSharp.Interop.CXEvalResultKind;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXEvalResult : IDisposable, IEquatable<CXEvalResult>
+public unsafe partial struct CXEvalResult(IntPtr handle) : IDisposable, IEquatable<CXEvalResult>
 {
-    public CXEvalResult(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public readonly double AsDouble => (Kind == CXEval_Float) ? clang.EvalResult_getAsDouble(this) : 0;
 
     public readonly int AsInt => (Kind == CXEval_Int) ? clang.EvalResult_getAsInt(this) : 0;
@@ -35,7 +30,7 @@ public unsafe partial struct CXEvalResult : IDisposable, IEquatable<CXEvalResult
 
     public readonly ulong AsUnsigned => (Kind == CXEval_Int) ? clang.EvalResult_getAsUnsigned(this) : 0;
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly bool IsUnsignedInt => (Kind == CXEval_Int) && (clang.EvalResult_isUnsignedInt(this) != 0);
 

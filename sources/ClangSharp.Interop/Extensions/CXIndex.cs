@@ -4,13 +4,8 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXIndex : IDisposable, IEquatable<CXIndex>
+public unsafe partial struct CXIndex(IntPtr handle) : IDisposable, IEquatable<CXIndex>
 {
-    public CXIndex(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public readonly CXGlobalOptFlags GlobalOptions
     {
         get
@@ -24,7 +19,7 @@ public unsafe partial struct CXIndex : IDisposable, IEquatable<CXIndex>
         }
     }
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public static explicit operator CXIndex(void* value) => new CXIndex((IntPtr)value);
 

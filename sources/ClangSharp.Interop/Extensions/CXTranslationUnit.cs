@@ -5,13 +5,8 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTranslationUnit>
+public unsafe partial struct CXTranslationUnit(IntPtr handle) : IDisposable, IEquatable<CXTranslationUnit>
 {
-    public CXTranslationUnit(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public static CXTranslationUnit_Flags DefaultEditingOptions => (CXTranslationUnit_Flags)clang.defaultEditingTranslationUnitOptions();
 
     public readonly CXSourceRangeList* AllSkippedRanges => clang.getAllSkippedRanges(this);
@@ -24,7 +19,7 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
 
     public readonly CXDiagnosticSet DiagnosticSet => (CXDiagnosticSet)clang.getDiagnosticSetFromTU(this);
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly uint NumDiagnostics => clang.getNumDiagnostics(this);
 
@@ -227,20 +222,7 @@ public unsafe partial struct CXTranslationUnit : IDisposable, IEquatable<CXTrans
     {
         CXToken* pTokens; uint numTokens;
         clang.tokenize(this, sourceRange, &pTokens, &numTokens);
-
-#if NETSTANDARD
-        var result = new CXToken[checked((int)numTokens)];
-
-        fixed (CXToken* pResult = result)
-        {
-            var size = sizeof(CXToken) * numTokens;
-            Buffer.MemoryCopy(pTokens, pResult, size, size);
-        }
-
-        return result;
-#else
         return new Span<CXToken>(pTokens, (int)numTokens);
-#endif
     }
 
     public override readonly string ToString() => Spelling.ToString();

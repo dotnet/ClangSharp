@@ -48,15 +48,7 @@ public unsafe class Cursor : IEquatable<Cursor>
                     TranslationUnit.Handle.Handle
                 };
 
-#if NET6_0_OR_GREATER
                 _ = clang.visitChildren(Handle, &Visitor, client_data);
-#else
-                var visitor = (CXCursorVisitor)Visitor;
-                var pVisitor = (delegate* unmanaged[Cdecl]<CXCursor, CXCursor, void*, CXChildVisitResult>)Marshal.GetFunctionPointerForDelegate(visitor);
-
-                _ = clang.visitChildren(Handle, pVisitor, client_data);
-                GC.KeepAlive(visitor);
-#endif
 
                 var cursorChildren = (List<Cursor>?)cursorChildrenHandle.Target;
                 Debug.Assert(cursorChildren is not null);
@@ -64,9 +56,7 @@ public unsafe class Cursor : IEquatable<Cursor>
                 _cursorChildren = cursorChildren;
                 cursorChildrenHandle.Free();
 
-#if NET6_0_OR_GREATER
-                [UnmanagedCallersOnly(CallConvs = new System.Type[] { typeof(CallConvCdecl) })]
-#endif
+                [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
                 static CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent, void* client_data)
                 {
                     var cursorChildren = (List<Cursor>?)GCHandle.FromIntPtr(((nint*)client_data)[0]).Target;

@@ -4,13 +4,8 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXRemapping : IDisposable, IEquatable<CXRemapping>
+public unsafe partial struct CXRemapping(IntPtr handle) : IDisposable, IEquatable<CXRemapping>
 {
-    public CXRemapping(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public static CXRemapping GetRemappings(string path)
     {
         using var marshaledPath = new MarshaledString(path);
@@ -26,7 +21,7 @@ public unsafe partial struct CXRemapping : IDisposable, IEquatable<CXRemapping>
         return (CXRemapping)clang.getRemappingsFromFileList(pMarshaledPaths, (uint)filePaths.Length);
     }
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly uint NumFiles => clang.remap_getNumFiles(this);
 

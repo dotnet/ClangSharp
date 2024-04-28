@@ -15,7 +15,7 @@ public sealed class OverloadedDeclRef : Ref
     internal OverloadedDeclRef(CXCursor handle) : base(handle, CXCursor_OverloadedDeclRef)
     {
         _overloadedDecls = new Lazy<IEnumerable<Decl>>(() => {
-            uint num = Handle.NumOverloadedDecls;
+            var num = Handle.NumOverloadedDecls;
             return Enumerable.Range(0, (int)num)
                 .Select(i => Handle.GetOverloadedDecl((uint)i))
                 .Select(c => TranslationUnit.GetOrCreate<Decl>(c))

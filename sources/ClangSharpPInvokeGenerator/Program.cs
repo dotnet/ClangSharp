@@ -729,7 +729,7 @@ public static class Program
             {
                 var filePath = Path.Combine(fileDirectory, file);
 
-                var translationUnitError = CXTranslationUnit.TryParse(pinvokeGenerator.IndexHandle, filePath, clangCommandLineArgs, Array.Empty<CXUnsavedFile>(), translationFlags, out var handle);
+                var translationUnitError = CXTranslationUnit.TryParse(pinvokeGenerator.IndexHandle, filePath, clangCommandLineArgs, [], translationFlags, out var handle);
                 var skipProcessing = false;
 
                 if (translationUnitError != CXError_Success)
@@ -956,7 +956,7 @@ public static class Program
 
             if (!result.TryGetValue(key, out var value))
             {
-                value = new List<string>();
+                value = [];
                 result.Add(key, value);
             }
 
