@@ -260,7 +260,7 @@ public static class Program
 
         if (versionResult is not null)
         {
-            context.Console.WriteLine($"{s_rootCommand.Description} version 17.0.4");
+            context.Console.WriteLine($"{s_rootCommand.Description} version 18.1.3");
             context.Console.WriteLine($"  {clang.getClangVersion()}");
             context.Console.WriteLine($"  {clangsharp.getVersion()}");
             context.ExitCode = -1;

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata minClientVersion="2.12">
     <id>libclang.runtime.win-arm64</id>
-    <version>17.0.4</version>
+    <version>18.1.3</version>
     <authors>.NET Foundation and Contributors</authors>
     <owners>.NET Foundation and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/dotnet/clangsharp</projectUrl>
     <description>win arm64 native library for libclang.</description>
     <copyright>Copyright © LLVM Project</copyright>
-    <repository type="git" url="https://github.com/llvm/llvm-project" branch="llvmorg-17.0.4" />
+    <repository type="git" url="https://github.com/llvm/llvm-project" branch="llvmorg-18.1.3" />
   </metadata>
   <files>
     <file src="..\libclang\LICENSE.TXT" target="LICENSE.TXT" />

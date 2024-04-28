@@ -37,8 +37,8 @@ public sealed partial class PInvokeGenerator : IDisposable
     private static readonly string[] s_doubleColonSeparator = ["::"];
     private static readonly char[] s_doubleQuoteSeparator = ['"'];
 
-    private const string ExpectedClangVersion = "version 17.0";
-    private const string ExpectedClangSharpVersion = "version 17.0";
+    private const string ExpectedClangVersion = "version 18.1";
+    private const string ExpectedClangSharpVersion = "version 18.1";
 
     private readonly CXIndex _index;
     private readonly OutputBuilderFactory _outputBuilderFactory;
@@ -513,7 +513,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             sw.WriteLine("using System.Runtime.CompilerServices;");
             sw.WriteLine();
             sw.WriteLine("[assembly: DisableRuntimeMarshalling]");
-            
+
             if (!leaveStreamOpen)
             {
                 stream = null;
