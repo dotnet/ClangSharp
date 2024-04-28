@@ -29,7 +29,7 @@ public class CXTranslationUnitTest
             using var index = CXIndex.Create();
             using var translationUnit = CXTranslationUnit.Parse(index, file.FullName, [], [], CXTranslationUnit_None);
             var clangFile = translationUnit.GetFile(file.FullName);
-            Assert.AreEqual(file.FullName, clangFile.Name.CString);
+            Assert.That(clangFile.Name.CString, Is.EqualTo(file.FullName));
         }
         finally
         {
@@ -58,7 +58,7 @@ public class CXTranslationUnitTest
             var clangFileName = clangFile.Name;
             var clangFileNameString = clangFileName.CString;
 
-            Assert.AreEqual(file.FullName, clangFileNameString);
+            Assert.That(clangFileNameString, Is.EqualTo(file.FullName));
         }
         finally
         {

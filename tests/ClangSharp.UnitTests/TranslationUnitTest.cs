@@ -26,7 +26,7 @@ public abstract class TranslationUnitTest
 
     protected static TranslationUnit CreateTranslationUnit(string inputContents)
     {
-        Assert.True(File.Exists(DefaultInputFileName));
+        Assert.That(DefaultInputFileName, Does.Exist);
 
         using var unsavedFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
         var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
@@ -52,7 +52,7 @@ public abstract class TranslationUnitTest
                 }
             }
 
-            Assert.False(invalidTranslationUnitHandle, errorDiagnostics.ToString());
+            Assert.That(invalidTranslationUnitHandle, Is.False, errorDiagnostics.ToString());
         }
 
         return TranslationUnit.GetOrCreate(translationUnit);

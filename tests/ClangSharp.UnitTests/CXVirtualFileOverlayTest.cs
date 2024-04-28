@@ -33,7 +33,7 @@ public class CXVirtualFileOverlayTest
             rPath = Fix(rPath);
 
             var err = VFO.AddFileMapping(vPath, rPath);
-            Assert.AreEqual(CXError_Success, err);
+            Assert.That(err, Is.EqualTo(CXError_Success));
         }
 
         public void MapError(string? vPath, string? rPath, CXErrorCode expErr)
@@ -42,7 +42,7 @@ public class CXVirtualFileOverlayTest
             rPath = Fix(rPath);
 
             var err = VFO.AddFileMapping(vPath, rPath);
-            Assert.AreEqual(expErr, err);
+            Assert.That(err, Is.EqualTo(expErr));
         }
 
         private static string? Fix(string? text)
@@ -73,7 +73,7 @@ public class CXVirtualFileOverlayTest
             if (_contents != null)
             {
                 var buffer = VFO.WriteToBuffer(options: 0, errorCode: out _);
-                Assert.AreEqual(_contents, buffer.AsString());
+                Assert.That(buffer.AsString(), Is.EqualTo(_contents));
                 buffer.ClangFree();
             }
 
