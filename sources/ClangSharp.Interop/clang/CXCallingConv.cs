@@ -27,6 +27,7 @@ public enum CXCallingConv
     CXCallingConv_AArch64VectorCall = 16,
     CXCallingConv_SwiftAsync = 17,
     CXCallingConv_AArch64SVEPCS = 18,
+    CXCallingConv_M68kRTD = 19,
     CXCallingConv_Invalid = 100,
     CXCallingConv_Unexposed = 200,
 }

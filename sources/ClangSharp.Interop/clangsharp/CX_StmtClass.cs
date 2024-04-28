@@ -36,6 +36,7 @@ public enum CX_StmtClass
     CX_StmtClass_OMPDepobjDirective,
     CX_StmtClass_OMPDispatchDirective,
     CX_StmtClass_OMPErrorDirective,
+    CX_StmtClass_OMPScopeDirective,
     CX_StmtClass_OMPFlushDirective,
     CX_StmtClass_OMPInteropDirective,
     CX_StmtClass_OMPDistributeDirective,
