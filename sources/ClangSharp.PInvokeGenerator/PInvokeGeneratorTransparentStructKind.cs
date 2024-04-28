@@ -9,4 +9,5 @@ public enum PInvokeGeneratorTransparentStructKind
     HandleWin32 = 4,
     TypedefHex = 5,
     HandleVulkan = 6,
+    FnPtr = 7,
 }

@@ -3198,7 +3198,8 @@ public partial class PInvokeGenerator
 
         void ForFunctionProtoType(TypedefDecl typedefDecl, FunctionProtoType functionProtoType, Type? parentType, bool onlyHandleRemappings)
         {
-            if (!_config.ExcludeFnptrCodegen || onlyHandleRemappings)
+            var hasOutput = _config.GenerateFnPtrWrapper || _config.ExcludeFnptrCodegen;
+            if (!hasOutput || onlyHandleRemappings)
             {
                 return;
             }
@@ -3206,14 +3207,35 @@ public partial class PInvokeGenerator
             var name = GetRemappedCursorName(typedefDecl);
             var escapedName = EscapeName(name);
 
-            var callingConventionName = GetCallingConvention(typedefDecl, context: null, typedefDecl.TypeForDecl);
-
-            var returnType = functionProtoType.ReturnType;
-            var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
-
             StartUsingOutputBuilder(name);
+            Debug.Assert(_outputBuilder is not null);
+
+            if (_config.GenerateFnPtrWrapper)
             {
-                Debug.Assert(_outputBuilder is not null);
+                var type = GetTypeName(typedefDecl, null, typedefDecl.TypeForDecl, true, false, out var nativeName);
+                _ = GetTypeName(typedefDecl, null, typedefDecl.UnderlyingType, true, false, out var nativeType);
+
+                if (IsNativeTypeNameEquivalent(nativeName, name))
+                {
+                    nativeName = null;
+                }
+
+                var desc = new TransparentStructDesc() {
+                    ParentName = name,
+                    Name = escapedName,
+                    NativeName = nativeName,
+                    Type = type,
+                    NativeType = nativeType,
+                    Kind = PInvokeGeneratorTransparentStructKind.FnPtr
+                };
+                GenerateTransparentStruct(desc);
+            }
+            else
+            {
+                var callingConventionName = GetCallingConvention(typedefDecl, context: null, typedefDecl.TypeForDecl);
+
+                var returnType = functionProtoType.ReturnType;
+                var returnTypeName = GetRemappedTypeName(typedefDecl, context: null, returnType, out var nativeTypeName);
 
                 var desc = new FunctionOrDelegateDesc {
                     AccessSpecifier = GetAccessSpecifier(typedefDecl, matchStar: true),
