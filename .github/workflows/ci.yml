@@ -101,7 +101,7 @@ jobs:
     - uses: actions/setup-dotnet@v3
       with:
         global-json-file: ./global.json
-    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.1-beta.23530.1
+    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.1-beta.24170.3
     - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --timestamp-url "http://timestamp.digicert.com" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileList.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-key-vault-certificate "${{ secrets.SC_KEY_VAULT_CERTIFICATE_ID }}" --azure-key-vault-client-id "${{ secrets.SC_AZURE_CLIENT_ID }}" --azure-key-vault-client-secret "${{ secrets.SC_AZURE_CLIENT_SECRET }}" --azure-key-vault-tenant-id "${{ secrets.SC_AZURE_TENANT_ID }}" --azure-key-vault-url "${{ secrets.SC_KEY_VAULT_URL }}"
     - uses: actions/upload-artifact@v3
       with:
@@ -142,7 +142,7 @@ jobs:
     - uses: actions/setup-dotnet@v3
       with:
         global-json-file: ./global.json
-    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.1-beta.23530.1
+    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.1-beta.24170.3
     - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --timestamp-url "http://timestamp.digicert.com" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileList.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-key-vault-certificate "${{ secrets.SC_KEY_VAULT_CERTIFICATE_ID }}" --azure-key-vault-client-id "${{ secrets.SC_AZURE_CLIENT_ID }}" --azure-key-vault-client-secret "${{ secrets.SC_AZURE_CLIENT_SECRET }}" --azure-key-vault-tenant-id "${{ secrets.SC_AZURE_TENANT_ID }}" --azure-key-vault-url "${{ secrets.SC_KEY_VAULT_URL }}"
     - uses: actions/upload-artifact@v3
       with:
@@ -161,7 +161,7 @@ jobs:
         path: ./artifacts
     - uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '6.0.x'
+        dotnet-version: '8.0.x'
         source-url: https://pkgs.clangsharp.dev/index.json
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.AZURE_DEVOPS_PAT }}
@@ -177,5 +177,5 @@ jobs:
         path: ./artifacts
     - uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '6.0.x'
+        dotnet-version: '8.0.x'
     - run: dotnet nuget push "./artifacts/pkg/Release/*.nupkg" --source https://nuget.pkg.github.com/dotnet/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

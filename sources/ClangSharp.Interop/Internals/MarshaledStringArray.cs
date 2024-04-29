@@ -25,6 +25,8 @@ public unsafe ref struct MarshaledStringArray
         }
     }
 
+    public readonly int Count => Values.Length;
+
     public readonly ReadOnlySpan<MarshaledString> Values => _values;
 
     public void Dispose()

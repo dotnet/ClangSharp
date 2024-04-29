@@ -10,41 +10,39 @@ public unsafe partial struct CXUnsavedFile : IDisposable
 {
     public static CXUnsavedFile Create(string filename, string contents)
     {
-        IntPtr pFilename, pContents;
-        int filenameLength, contentsLength;
+        sbyte* pFilename, pContents;
+        nuint contentsLength;
 
-        if ((filename is null) || (filename.Length == 0))
+        if (string.IsNullOrEmpty(filename))
         {
-            pFilename = IntPtr.Zero;
+            pFilename = null;
         }
         else
         {
-            var filenameBytes = Encoding.UTF8.GetBytes(filename);
-            filenameLength = filenameBytes.Length;
-            pFilename = Marshal.AllocHGlobal(filenameLength + 1);
-            Marshal.Copy(filenameBytes, 0, pFilename, filenameLength);
-            Marshal.WriteByte(pFilename, filenameLength, 0);
+            var maxFilenameLength = Encoding.UTF8.GetMaxByteCount(filename.Length);
+            pFilename = (sbyte*)NativeMemory.Alloc((uint)maxFilenameLength + 1);
+            var filenameLength = (uint)Encoding.UTF8.GetBytes(filename, new Span<byte>(pFilename, maxFilenameLength));
+            pFilename[filenameLength] = 0;
         }
 
-        if ((contents is null) || (contents.Length == 0))
+        if (string.IsNullOrEmpty(contents))
         {
             contentsLength = 0;
-            pContents = IntPtr.Zero;
+            pContents = null;
         }
         else
         {
-            var contentsBytes = Encoding.UTF8.GetBytes(contents);
-            contentsLength = contentsBytes.Length;
-            pContents = Marshal.AllocHGlobal(contentsLength + 1);
-            Marshal.Copy(contentsBytes, 0, pContents, contentsLength);
-            Marshal.WriteByte(pContents, contentsLength, 0);
+            var maxContentsLength = Encoding.UTF8.GetMaxByteCount(contents.Length);
+            pContents = (sbyte*)NativeMemory.Alloc((uint)maxContentsLength + 1);
+            contentsLength = (uint)Encoding.UTF8.GetBytes(contents, new Span<byte>(pContents, maxContentsLength));
+            pContents[contentsLength] = 0;
         }
 
         return new CXUnsavedFile()
         {
-            Filename = (sbyte*)pFilename,
-            Contents = (sbyte*)pContents,
-            Length = (UIntPtr)contentsLength
+            Filename = pFilename,
+            Contents = pContents,
+            Length = contentsLength
         };
     }
 
@@ -52,15 +50,15 @@ public unsafe partial struct CXUnsavedFile : IDisposable
     {
         if (Filename != null)
         {
-            Marshal.FreeHGlobal((IntPtr)Filename);
+            NativeMemory.Free(Filename);
             Filename = null;
         }
 
         if (Contents != null)
         {
-            Marshal.FreeHGlobal((IntPtr)Contents);
+            NativeMemory.Free(Contents);
             Contents = null;
-            Length = (UIntPtr)0;
+            Length = 0;
         }
     }
 
