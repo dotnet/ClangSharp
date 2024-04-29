@@ -96,5 +96,6 @@ __AnonymousEnum_DebugInfo_L147_C1=@LLVMMetadataKind
 --with-attribute
 LLVMDIFlags=Flags
 LLVMJITSymbolGenericFlags=Flags
+LLVMFastMathFlags=Flags
 LLVMOrcJITDylibLookupFlags=Flags
 LLVMOrcSymbolLookupFlags=Flags
