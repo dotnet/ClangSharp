@@ -14,6 +14,7 @@ using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CX_CastKind;
 using static ClangSharp.Interop.CX_CharacterKind;
 using static ClangSharp.Interop.CX_StmtClass;
+using static ClangSharp.Interop.CX_StringKind;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
 using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXEvalResultKind;
@@ -2727,8 +2728,8 @@ public partial class PInvokeGenerator
         var outputBuilder = StartCSharpCode();
         switch (stringLiteral.Kind)
         {
-            case CX_CLK_Ascii:
-            case CX_CLK_UTF8:
+            case CX_SLK_Ordinary:
+            case CX_SLK_UTF8:
             {
                 if (Config.GenerateLatestCode)
                 {
@@ -2766,19 +2767,19 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_CLK_Wide:
+            case CX_SLK_Wide:
             {
                 if (_config.GenerateUnixTypes)
                 {
-                    goto case CX_CLK_UTF32;
+                    goto case CX_SLK_UTF32;
                 }
                 else
                 {
-                    goto case CX_CLK_UTF16;
+                    goto case CX_SLK_UTF16;
                 }
             }
 
-            case CX_CLK_UTF16:
+            case CX_SLK_UTF16:
             {
                 outputBuilder.Write('"');
                 outputBuilder.Write(EscapeString(stringLiteral.String));
@@ -2786,7 +2787,7 @@ public partial class PInvokeGenerator
                 break;
             }
 
-            case CX_CLK_UTF32:
+            case CX_SLK_UTF32:
             {
                 if (_config.GenerateLatestCode)
                 {

@@ -4,6 +4,7 @@ using System;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using System.Diagnostics;
 
 namespace ClangSharp;
 
@@ -11,6 +12,7 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
 {
     private readonly Lazy<Expr> _bitWidth;
     private readonly Lazy<Expr> _inClassInitializer;
+    private readonly Lazy<bool> _isAnonymousField;
 
     internal FieldDecl(CXCursor handle) : this(handle, CXCursor_FieldDecl, CX_DeclKind_Field)
     {
@@ -25,6 +27,38 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
 
         _bitWidth = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.BitWidth));
         _inClassInitializer = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.InClassInitializer));
+        _isAnonymousField = new Lazy<bool>(() => {
+            var name = Name;
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return true;
+            }
+
+            var anonymousNameStartIndex = name.IndexOf("::(", StringComparison.Ordinal);
+
+            if (anonymousNameStartIndex != -1)
+            {
+                anonymousNameStartIndex += 2;
+                name = name[anonymousNameStartIndex..];
+            }
+
+            if (name.StartsWith('('))
+            {
+                Debug.Assert(name.StartsWith("(anonymous enum at ", StringComparison.Ordinal) ||
+                                 name.StartsWith("(anonymous struct at ", StringComparison.Ordinal) ||
+                                 name.StartsWith("(anonymous union at ", StringComparison.Ordinal) ||
+                                 name.StartsWith("(unnamed enum at ", StringComparison.Ordinal) ||
+                                 name.StartsWith("(unnamed struct at ", StringComparison.Ordinal) ||
+                                 name.StartsWith("(unnamed union at ", StringComparison.Ordinal) ||
+                                 name.StartsWith("(unnamed at ", StringComparison.Ordinal));
+                Debug.Assert(name.EndsWith(')'));
+
+                return true;
+            }
+
+            return false;
+        });
     }
 
     public Expr BitWidth => _bitWidth.Value;
@@ -37,7 +71,7 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
 
     public Expr InClassInitializer => _inClassInitializer.Value;
 
-    public bool IsAnonymousField => string.IsNullOrWhiteSpace(Name);
+    public bool IsAnonymousField => _isAnonymousField.Value;
 
     public bool IsAnonymousStructOrUnion => Handle.IsAnonymousStructOrUnion;
 

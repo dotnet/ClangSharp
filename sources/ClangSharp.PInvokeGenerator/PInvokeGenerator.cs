@@ -2690,6 +2690,14 @@ public sealed partial class PInvokeGenerator : IDisposable
                 name = name[6..];
             }
 
+            var anonymousNameStartIndex = name.IndexOf("::(", StringComparison.Ordinal);
+
+            if (anonymousNameStartIndex != -1)
+            {
+                anonymousNameStartIndex += 2;
+                name = name[anonymousNameStartIndex..];
+            }
+
             if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
             {
                 var parent = cxxConstructorDecl.Parent;

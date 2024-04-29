@@ -956,7 +956,7 @@ public static class Program
 
             if (!result.TryGetValue(key, out var value))
             {
-                value = [];
+                value = new List<string>();
                 result.Add(key, value);
             }
 

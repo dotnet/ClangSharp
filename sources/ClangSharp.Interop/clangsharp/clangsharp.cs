@@ -540,9 +540,9 @@ public static partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsPotentiallyEvaluated(CXCursor C);
 
-    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsPure", ExactSpelling = true)]
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsPureVirtual", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
-    public static extern uint Cursor_getIsPure(CXCursor C);
+    public static extern uint Cursor_getIsPureVirtual(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsResultDependent", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
@@ -790,6 +790,9 @@ public static partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getStmtClass", ExactSpelling = true)]
     public static extern CX_StmtClass Cursor_getStmtClass(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getStringLiteralKind", ExactSpelling = true)]
+    public static extern CX_StringKind Cursor_getStringLiteralKind(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getStringLiteralValue", ExactSpelling = true)]
     public static extern CXString Cursor_getStringLiteralValue(CXCursor C);

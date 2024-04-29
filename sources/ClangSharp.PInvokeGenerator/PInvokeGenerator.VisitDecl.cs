@@ -14,6 +14,7 @@ using static ClangSharp.Interop.CX_CharacterKind;
 using static ClangSharp.Interop.CX_DeclKind;
 using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CX_StorageClass;
+using static ClangSharp.Interop.CX_StringKind;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
 using static ClangSharp.Interop.CXUnaryOperatorKind;
 using static ClangSharp.Interop.CXEvalResultKind;
@@ -3409,33 +3410,33 @@ public partial class PInvokeGenerator
 
                 switch (stringLiteral.Kind)
                 {
-                    case CX_CLK_Ascii:
-                    case CX_CLK_UTF8:
+                    case CX_SLK_Ordinary:
+                    case CX_SLK_UTF8:
                     {
                         typeName = flags.HasFlag(ValueFlags.Constant) ? "ReadOnlySpan<byte>" : "byte[]";
                         break;
                     }
 
-                    case CX_CLK_Wide:
+                    case CX_SLK_Wide:
                     {
                         if (_config.GenerateUnixTypes)
                         {
-                            goto case CX_CLK_UTF32;
+                            goto case CX_SLK_UTF32;
                         }
                         else
                         {
-                            goto case CX_CLK_UTF16;
+                            goto case CX_SLK_UTF16;
                         }
                     }
 
-                    case CX_CLK_UTF16:
+                    case CX_SLK_UTF16:
                     {
                         kind = ValueKind.Primitive;
                         typeName = "string";
                         break;
                     }
 
-                    case CX_CLK_UTF32:
+                    case CX_SLK_UTF32:
                     {
                         typeName = (_config.GenerateLatestCode && flags.HasFlag(ValueFlags.Constant)) ? "ReadOnlySpan<uint>" : "uint[]";
                         break;
