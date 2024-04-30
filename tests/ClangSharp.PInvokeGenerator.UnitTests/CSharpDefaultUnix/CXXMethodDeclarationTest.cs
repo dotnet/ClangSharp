@@ -125,6 +125,40 @@ public sealed class CSharpDefaultUnix_CXXMethodDeclarationTest : CXXMethodDeclar
         return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
+    protected override Task DefaultParameterInheritedFromTemplateTestImpl()
+    {
+        // NOTE: This is a regression test where a struct inherits a function from a template with a default parameter.
+        const string InputContents = @"template <typename T>
+struct MyTemplate
+{
+    int* DoWork(int* value = nullptr)
+    {
+        return value;
+    }
+};
+
+struct MyStruct : public MyTemplate<int>
+{};
+";
+
+        var entryPoint = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "__ZN8$MyTemplateDoWorkEv" : "_ZN10MyTemplateIiE6DoWorkEPi";
+
+        var expectedOutputContents = $@"using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
+{{
+    [NativeTypeName(""struct MyStruct : MyTemplate<int>"")]
+    public unsafe partial struct MyStruct
+    {{
+        [DllImport(""ClangSharpPInvokeGenerator"", CallingConvention = CallingConvention.ThisCall, EntryPoint = ""{entryPoint}"", ExactSpelling = true)]
+        public static extern int* DoWork(MyStruct* pThis, int* value = null);
+    }}
+}}
+";
+
+        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(InputContents, expectedOutputContents);
+    }
+
     protected override Task DestructorTestImpl()
     {
         var inputContents = @"struct MyStruct

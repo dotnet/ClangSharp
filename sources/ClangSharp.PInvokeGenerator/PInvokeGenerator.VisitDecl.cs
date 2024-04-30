@@ -1253,10 +1253,13 @@ public partial class PInvokeGenerator
 
             var handledDefaultArg = false;
             var isExprDefaultValue = false;
+            var defaultArg = (parmVarDecl.HasDefaultArg && !parmVarDecl.HasUnparsedDefaultArg) ?
+                (parmVarDecl.HasUninstantiatedDefaultArg ? parmVarDecl.UninstantiatedDefaultArg : parmVarDecl.DefaultArg) :
+                null;
 
-            if (parmVarDecl.HasDefaultArg)
+            if (defaultArg != null)
             {
-                isExprDefaultValue = IsDefaultValue(parmVarDecl.DefaultArg);
+                isExprDefaultValue = IsDefaultValue(defaultArg);
 
                 if ((_outputBuilder is CSharpOutputBuilder csharpOutputBuilder) && (_config.WithTransparentStructs.ContainsKey(typeName) || parameters.Skip(index).Any((parmVarDecl) => {
                     var type = parmVarDecl.Type;
@@ -1264,18 +1267,16 @@ public partial class PInvokeGenerator
                     return _config.WithTransparentStructs.ContainsKey(typeName);
                 })))
                 {
-                    desc.CustomAttrGeneratorData = (parmVarDecl, this, csharpOutputBuilder, isExprDefaultValue ? null : parmVarDecl.DefaultArg);
+                    desc.CustomAttrGeneratorData = (parmVarDecl, this, csharpOutputBuilder, isExprDefaultValue ? null : defaultArg);
                     handledDefaultArg = true;
                 }
             }
 
             _outputBuilder.BeginParameter(in desc);
 
-            if (parmVarDecl.HasDefaultArg && !handledDefaultArg)
+            if (defaultArg != null && !handledDefaultArg)
             {
                 _outputBuilder.BeginParameterDefault();
-
-                var defaultArg = parmVarDecl.DefaultArg;
 
                 if (IsTypePointerOrReference(parmVarDecl) && (defaultArg.Handle.Evaluate.Kind == CXEval_UnExposed))
                 {
@@ -1290,7 +1291,7 @@ public partial class PInvokeGenerator
                 }
                 else
                 {
-                    Visit(parmVarDecl.DefaultArg);
+                    Visit(defaultArg);
                 }
 
                 _outputBuilder.EndParameterDefault();
@@ -1341,10 +1342,10 @@ public partial class PInvokeGenerator
 
             _outputBuilder.BeginParameter(in desc);
 
-            if (parmVarDecl.HasDefaultArg)
+            if (parmVarDecl.HasDefaultArg && !parmVarDecl.HasUnparsedDefaultArg)
             {
                 _outputBuilder.BeginParameterDefault();
-                Visit(parmVarDecl.DefaultArg);
+                Visit(parmVarDecl.HasUninstantiatedDefaultArg ? parmVarDecl.UninstantiatedDefaultArg : parmVarDecl.DefaultArg);
                 _outputBuilder.EndParameterDefault();
             }
 

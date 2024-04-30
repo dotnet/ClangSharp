@@ -165,6 +165,48 @@ public sealed class XmlDefaultWindows_CXXMethodDeclarationTest : CXXMethodDeclar
         return ValidateGeneratedXmlDefaultWindowsBindingsAsync(inputContents, expectedOutputContents);
     }
 
+    protected override Task DefaultParameterInheritedFromTemplateTestImpl()
+    {
+        // NOTE: This is a regression test where a struct inherits a function from a template with a default parameter.
+        const string InputContents = @"template <typename T>
+struct MyTemplate
+{
+    int* DoWork(int* value = nullptr)
+    {
+        return value;
+    }
+};
+
+struct MyStruct : public MyTemplate<int>
+{};
+";
+
+        var entryPoint = Environment.Is64BitProcess ? "?DoWork@?$MyTemplate@H@@QEAAPEAHPEAH@Z" : "?DoWork@?$MyTemplate@H@@QEAPEHPEH@Z";
+
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""MyStruct"" access=""public"" native=""struct MyStruct : MyTemplate&lt;int&gt;"" unsafe=""true"">
+      <function name=""DoWork"" access=""public"" lib=""ClangSharpPInvokeGenerator"" convention=""ThisCall"" entrypoint=""{entryPoint}"" static=""true"" unsafe=""true"">
+        <type>int*</type>
+        <param name=""pThis"">
+          <type>MyStruct*</type>
+        </param>
+        <param name=""value"">
+          <type>int*</type>
+          <init>
+            <code>null</code>
+          </init>
+        </param>
+      </function>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+        return ValidateGeneratedXmlDefaultWindowsBindingsAsync(InputContents, expectedOutputContents);
+    }
+
     protected override Task DestructorTestImpl()
     {
         var inputContents = @"struct MyStruct
