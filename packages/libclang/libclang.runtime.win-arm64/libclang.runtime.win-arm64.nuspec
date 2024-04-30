@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata minClientVersion="2.12">
     <id>libclang.runtime.win-arm64</id>
-    <version>18.1.3</version>
+    <version>18.1.3.1</version>
     <authors>.NET Foundation and Contributors</authors>
     <owners>.NET Foundation and Contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
