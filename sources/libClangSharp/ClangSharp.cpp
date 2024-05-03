@@ -1466,6 +1466,30 @@ unsigned clangsharp_Cursor_getHasDefaultArg(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getHasUnparsedDefaultArg(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const ParmVarDecl* PVD = dyn_cast<ParmVarDecl>(D)) {
+            return PVD->hasUnparsedDefaultArg();
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getHasUninstantiatedDefaultArg(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const ParmVarDecl* PVD = dyn_cast<ParmVarDecl>(D)) {
+            return PVD->hasUninstantiatedDefaultArg();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getHasElseStorage(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
