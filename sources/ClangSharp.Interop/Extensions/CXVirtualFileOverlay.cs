@@ -4,14 +4,9 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXVirtualFileOverlay : IDisposable, IEquatable<CXVirtualFileOverlay>
+public unsafe partial struct CXVirtualFileOverlay(IntPtr handle) : IDisposable, IEquatable<CXVirtualFileOverlay>
 {
-    public CXVirtualFileOverlay(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public static implicit operator CXVirtualFileOverlay(CXVirtualFileOverlayImpl* value) => new CXVirtualFileOverlay((IntPtr)value);
 
@@ -51,18 +46,6 @@ public unsafe partial struct CXVirtualFileOverlay : IDisposable, IEquatable<CXVi
     {
         sbyte* pBuffer; uint size;
         errorCode = clang.VirtualFileOverlay_writeToBuffer(this, options, &pBuffer, &size);
-
-#if NETSTANDARD
-        var result = new byte[checked((int)size)];
-
-        fixed (byte* pResult = result)
-        {
-            Buffer.MemoryCopy(pBuffer, pResult, size, size);
-        }
-
-        return result;
-#else
         return new Span<byte>(pBuffer, (int)size);
-#endif
     }
 }

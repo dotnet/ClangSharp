@@ -4,14 +4,9 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXModuleMapDescriptor : IDisposable, IEquatable<CXModuleMapDescriptor>
+public unsafe partial struct CXModuleMapDescriptor(IntPtr handle) : IDisposable, IEquatable<CXModuleMapDescriptor>
 {
-    public CXModuleMapDescriptor(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public static implicit operator CXModuleMapDescriptor(CXModuleMapDescriptorImpl* value) => new CXModuleMapDescriptor((IntPtr)value);
 
@@ -54,18 +49,6 @@ public unsafe partial struct CXModuleMapDescriptor : IDisposable, IEquatable<CXM
     {
         sbyte* pBuffer; uint size;
         errorCode = clang.ModuleMapDescriptor_writeToBuffer(this, options, &pBuffer, &size);
-
-#if NETSTANDARD
-        var result = new byte[checked((int)size)];
-
-        fixed (byte* pResult = result)
-        {
-            Buffer.MemoryCopy(pBuffer, pResult, size, size);
-        }
-
-        return result;
-#else
         return new Span<byte>(pBuffer, (int)size);
-#endif
     }
 }

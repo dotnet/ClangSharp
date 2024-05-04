@@ -170,14 +170,9 @@ public sealed class CSharpCompatibleWindows_CXXMethodDeclarationTest : CXXMethod
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            if (!Environment.Is64BitProcess)
-            {
-                entryPoint = "?MyVoidMethod@MyStruct@@QAEXXZ";
-            }
-            else
-            {
-                entryPoint = "?MyVoidMethod@MyStruct@@QEAAXXZ";
-            }
+            entryPoint = Environment.Is64BitProcess
+                       ? "?MyVoidMethod@MyStruct@@QEAAXXZ"
+                       : "?MyVoidMethod@MyStruct@@QAEXXZ";
         }
 
         var expectedOutputContents = $@"using System.Runtime.InteropServices;

@@ -4,14 +4,9 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXFile : IEquatable<CXFile>
+public unsafe partial struct CXFile(IntPtr handle) : IEquatable<CXFile>
 {
-    public CXFile(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly CXString Name => clang.getFileName(this);
 

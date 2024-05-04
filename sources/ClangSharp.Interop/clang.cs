@@ -41,8 +41,8 @@ public static unsafe partial class @clang
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            return NativeLibrary.TryLoad("libclang.so.17", assembly, searchPath, out nativeLibrary)
-                || NativeLibrary.TryLoad("libclang-17", assembly, searchPath, out nativeLibrary)
+            return NativeLibrary.TryLoad("libclang.so.18", assembly, searchPath, out nativeLibrary)
+                || NativeLibrary.TryLoad("libclang-18", assembly, searchPath, out nativeLibrary)
                 || NativeLibrary.TryLoad("libclang.so.1", assembly, searchPath, out nativeLibrary);
         }
 

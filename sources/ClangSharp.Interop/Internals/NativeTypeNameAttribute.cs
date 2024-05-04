@@ -7,12 +7,7 @@ namespace ClangSharp.Interop;
 
 [Conditional("DEBUG")]
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = false, Inherited = true)]
-internal sealed class NativeTypeNameAttribute : Attribute
+internal sealed class NativeTypeNameAttribute(string name) : Attribute
 {
-    public NativeTypeNameAttribute(string name)
-    {
-        Name = name;
-    }
-
-    public string Name { get; }
+    public string Name { get; } = name;
 }

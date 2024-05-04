@@ -4,18 +4,13 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXModule : IEquatable<CXModule>
+public unsafe partial struct CXModule(IntPtr handle) : IEquatable<CXModule>
 {
-    public CXModule(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public readonly CXFile AstFile => (CXFile)clang.Module_getASTFile(this);
 
     public readonly CXString FullName => clang.Module_getFullName(this);
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly bool IsSystem => clang.Module_isSystem(this) != 0;
 

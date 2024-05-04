@@ -29,6 +29,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="ILLink.Substitutions.xml" LogicalName="ILLink.Substitutions.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="libClang" />
     <PackageReference Include="libClangSharp" />
   </ItemGroup>

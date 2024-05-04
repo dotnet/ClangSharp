@@ -38,6 +38,6 @@ ClangSharp.Interop
 --prefixStrip
 clangsharp_
 --remap
-MSGuidDeclParts=Guid
+MSGuidDeclParts=@Guid
 --test-output
 ./tests/ClangSharp.UnitTests/InteropTests

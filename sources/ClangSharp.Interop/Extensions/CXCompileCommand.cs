@@ -4,18 +4,13 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXCompileCommand : IEquatable<CXCompileCommand>
+public unsafe partial struct CXCompileCommand(IntPtr handle) : IEquatable<CXCompileCommand>
 {
-    public CXCompileCommand(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public readonly CXString Directory => clang.CompileCommand_getDirectory(this);
 
     public readonly CXString Filename => clang.CompileCommand_getFilename(this);
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly uint NumArgs => clang.CompileCommand_getNumArgs(this);
 

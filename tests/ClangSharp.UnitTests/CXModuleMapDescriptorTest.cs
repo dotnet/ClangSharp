@@ -23,7 +23,7 @@ public class CXModuleMapDescriptorTest
         _ = mmd.SetUmbrellaHeader("TestFrame.h");
 
         var buffer = mmd.WriteToBuffer(options: 0, errorCode: out _);
-        Assert.AreEqual(contents, buffer.AsString());
+        Assert.That(buffer.AsString(), Is.EqualTo(contents));
         buffer.ClangFree();
     }
 }

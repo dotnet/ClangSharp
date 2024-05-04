@@ -32,7 +32,7 @@ public unsafe partial struct CXToken : IEquatable<CXToken>
 
     public readonly CXSourceRange GetExtent(CXTranslationUnit translationUnit) => clang.getTokenExtent(translationUnit, this);
 
-    public override int GetHashCode() => HashCode.Combine(int_data[0], int_data[1], int_data[2], int_data[3], (IntPtr)ptr_data);
+    public override readonly int GetHashCode() => HashCode.Combine(int_data[0], int_data[1], int_data[2], int_data[3], (IntPtr)ptr_data);
 
     public readonly CXSourceLocation GetLocation(CXTranslationUnit translationUnit) => clang.getTokenLocation(translationUnit, this);
 

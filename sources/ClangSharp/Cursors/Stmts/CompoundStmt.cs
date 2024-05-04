@@ -9,12 +9,8 @@ using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
-public sealed class CompoundStmt : Stmt
+public sealed class CompoundStmt(CXCursor handle) : Stmt(handle, CXCursor_CompoundStmt, CX_StmtClass_CompoundStmt)
 {
-    public CompoundStmt(CXCursor handle) : base(handle, CXCursor_CompoundStmt, CX_StmtClass_CompoundStmt)
-    {
-    }
-
     public IReadOnlyList<Stmt> Body => Children;
 
     public Stmt? BodyBack

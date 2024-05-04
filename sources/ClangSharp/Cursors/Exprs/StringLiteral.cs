@@ -4,8 +4,8 @@ using System;
 using System.Runtime.InteropServices;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
-using static ClangSharp.Interop.CX_CharacterKind;
 using static ClangSharp.Interop.CX_StmtClass;
+using static ClangSharp.Interop.CX_StringKind;
 
 namespace ClangSharp;
 
@@ -15,7 +15,7 @@ public sealed class StringLiteral : Expr
     {
     }
 
-    public CX_CharacterKind Kind => Handle.CharacterLiteralKind;
+    public CX_StringKind Kind => Handle.StringLiteralKind;
 
     public unsafe string String
     {
@@ -33,28 +33,28 @@ public sealed class StringLiteral : Expr
 
             switch (Kind)
             {
-                case CX_CLK_Ascii:
-                case CX_CLK_UTF8:
+                case CX_SLK_Ordinary:
+                case CX_SLK_UTF8:
                 {
                     return new ReadOnlySpan<byte>(pCString, length).AsString();
                 }
 
-                case CX_CLK_Wide:
+                case CX_SLK_Wide:
                 {
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        goto case CX_CLK_UTF16;
+                        goto case CX_SLK_UTF16;
                     }
 
-                    goto case CX_CLK_UTF32;
+                    goto case CX_SLK_UTF32;
                 }
 
-                case CX_CLK_UTF16:
+                case CX_SLK_UTF16:
                 {
                     return new ReadOnlySpan<ushort>(pCString, length).AsString();
                 }
 
-                case CX_CLK_UTF32:
+                case CX_SLK_UTF32:
                 {
                     return new ReadOnlySpan<uint>(pCString, length).AsString();
                 }

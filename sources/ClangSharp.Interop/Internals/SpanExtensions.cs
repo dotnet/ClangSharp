@@ -10,12 +10,7 @@ public static unsafe class SpanExtensions
 {
     public static string AsString(sbyte* pStr)
     {
-#if NET6_0_OR_GREATER
         var span = MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)(pStr));
-#else
-        var span = new ReadOnlySpan<byte>(pStr, int.MaxValue);
-        span = span.Slice(0, span.IndexOf((byte)'\0'));
-#endif
         return span.AsString();
     }
 
