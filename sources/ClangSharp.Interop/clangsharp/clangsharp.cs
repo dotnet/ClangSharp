@@ -270,6 +270,14 @@ public static partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getHasDefaultArg(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasUnparsedDefaultArg", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasUnparsedDefaultArg(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasUninstantiatedDefaultArg", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getHasUninstantiatedDefaultArg(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getHasElseStorage", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getHasElseStorage(CXCursor C);

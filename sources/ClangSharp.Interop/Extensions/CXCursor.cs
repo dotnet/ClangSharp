@@ -802,7 +802,20 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor DecomposedDecl => clangsharp.Cursor_getDecomposedDecl(this);
 
-    public readonly CXCursor DefaultArg => clangsharp.Cursor_getDefaultArg(this);
+    public readonly CXCursor DefaultArg
+    {
+        get
+        {
+            if (DeclKind == CX_DeclKind_ParmVar)
+            {
+                if (HasUnparsedDefaultArg || HasUninstantiatedDefaultArg)
+                {
+                    return CXCursor.Null;
+                }
+            }
+            return clangsharp.Cursor_getDefaultArg(this);
+        }
+    }
 
     public readonly CXType DefaultArgType => clangsharp.Cursor_getDefaultArgType(this);
 
@@ -887,6 +900,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly uint Hash => clang.hashCursor(this);
 
     public readonly bool HasTemplateKeyword => clangsharp.Cursor_getHasTemplateKeyword(this) != 0;
+
+    public readonly bool HasUninstantiatedDefaultArg => clangsharp.Cursor_getHasUninstantiatedDefaultArg(this) != 0;
+
+    public readonly bool HasUnparsedDefaultArg => clangsharp.Cursor_getHasUnparsedDefaultArg(this) != 0;
 
     public readonly bool HasUserDeclaredConstructor => clangsharp.Cursor_getHasUserDeclaredConstructor(this) != 0;
 
