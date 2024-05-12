@@ -4,18 +4,13 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXCompletionString : IEquatable<CXCompletionString>
+public unsafe partial struct CXCompletionString(IntPtr handle) : IEquatable<CXCompletionString>
 {
-    public CXCompletionString(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public readonly CXAvailabilityKind Availability => clang.getCompletionAvailability(this);
 
     public readonly CXString BriefComment => clang.getCompletionBriefComment(this);
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly uint NumAnnotations => clang.getCompletionNumAnnotations(this);
 

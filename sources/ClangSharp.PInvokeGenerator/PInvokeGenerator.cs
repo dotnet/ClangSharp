@@ -37,8 +37,8 @@ public sealed partial class PInvokeGenerator : IDisposable
     private static readonly string[] s_doubleColonSeparator = ["::"];
     private static readonly char[] s_doubleQuoteSeparator = ['"'];
 
-    private const string ExpectedClangVersion = "version 17.0";
-    private const string ExpectedClangSharpVersion = "version 17.0";
+    private const string ExpectedClangVersion = "version 18.1";
+    private const string ExpectedClangSharpVersion = "version 18.1";
 
     private readonly CXIndex _index;
     private readonly OutputBuilderFactory _outputBuilderFactory;
@@ -142,8 +142,8 @@ public sealed partial class PInvokeGenerator : IDisposable
             _uuidsToGenerate = [];
             _generatedUuids = [];
             _cursorNames = [];
-            _cursorQualifiedNames = new Dictionary<(NamedDecl, bool), string>();
-            _typeNames = new Dictionary<(Cursor?, Cursor?, Type), (string, string)>();
+            _cursorQualifiedNames = [];
+            _typeNames = [];
             _allValidNameRemappings = new Dictionary<string, HashSet<string>>() {
                 ["intptr_t"] = ["IntPtr", "nint"],
                 ["ptrdiff_t"] = ["IntPtr", "nint"],
@@ -513,7 +513,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             sw.WriteLine("using System.Runtime.CompilerServices;");
             sw.WriteLine();
             sw.WriteLine("[assembly: DisableRuntimeMarshalling]");
-            
+
             if (!leaveStreamOpen)
             {
                 stream = null;
@@ -1451,24 +1451,21 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             static (int srcSize, int dstSize, int sign) GetSizeAndSignOf(string type)
             {
-                if (type.Contains('*', StringComparison.Ordinal))
-                {
-                    return (8, 4, +1);
-                }
-
-                return type switch {
-                    "sbyte" => (1, 1, -1),
-                    "byte" => (1, 1, +1),
-                    "short" => (2, 2, -1),
-                    "ushort" => (2, 2, +1),
-                    "int" => (4, 4, -1),
-                    "uint" => (4, 4, +1),
-                    "nint" => (8, 4, -1),
-                    "nuint" => (8, 4, +1),
-                    "long" => (8, 8, -1),
-                    "ulong" => (8, 8, +1),
-                    _ => (0, 0, 0),
-                };
+                return type.Contains('*', StringComparison.Ordinal)
+                     ? (8, 4, +1)
+                     : type switch {
+                        "sbyte" => (1, 1, -1),
+                        "byte" => (1, 1, +1),
+                        "short" => (2, 2, -1),
+                        "ushort" => (2, 2, +1),
+                        "int" => (4, 4, -1),
+                        "uint" => (4, 4, +1),
+                        "nint" => (8, 4, -1),
+                        "nuint" => (8, 4, +1),
+                        "long" => (8, 8, -1),
+                        "ulong" => (8, 8, +1),
+                        _ => (0, 0, 0),
+                    };
             }
 
             static void OutputConversions(StreamWriter sw, string indentString, string name, string type, PInvokeGeneratorTransparentStructKind kind, string target)
@@ -1582,7 +1579,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         if (translationUnit.Handle.NumDiagnostics != 0)
         {
             var errorDiagnostics = new StringBuilder();
-            errorDiagnostics.AppendLine($"The provided {nameof(CXTranslationUnit)} has the following diagnostics which prevent its use:");
+            _ = errorDiagnostics.AppendLine($"The provided {nameof(CXTranslationUnit)} has the following diagnostics which prevent its use:");
             var invalidTranslationUnitHandle = false;
 
             for (uint i = 0; i < translationUnit.Handle.NumDiagnostics; ++i)
@@ -1592,8 +1589,8 @@ public sealed partial class PInvokeGenerator : IDisposable
                 if (diagnostic.Severity is CXDiagnostic_Error or CXDiagnostic_Fatal)
                 {
                     invalidTranslationUnitHandle = true;
-                    errorDiagnostics.Append(' ', 4);
-                    errorDiagnostics.AppendLine(diagnostic.Format(CXDiagnostic.DefaultDisplayOptions).ToString());
+                    _ = errorDiagnostics.Append(' ', 4);
+                    _ = errorDiagnostics.AppendLine(diagnostic.Format(CXDiagnostic.DefaultDisplayOptions).ToString());
                 }
             }
 
@@ -1613,12 +1610,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 var file = translationUnitHandle.GetFile(_filePath);
                 var fileContents = translationUnitHandle.GetFileContents(file, out var size);
+                var fileContentsBuilder = _fileContentsBuilder;
 
-#if NETCOREAPP
-                _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents));
-#else
-                _fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents.ToArray()));
-#endif
+                _ = fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents));
 
                 foreach (var cursor in translationUnit.TranslationUnitDecl.CursorChildren)
                 {
@@ -1628,8 +1622,8 @@ public sealed partial class PInvokeGenerator : IDisposable
                     }
                 }
 
-                var unsavedFileContents = _fileContentsBuilder.ToString();
-                _fileContentsBuilder.Clear();
+                var unsavedFileContents = fileContentsBuilder.ToString();
+                _ = fileContentsBuilder.Clear();
 
                 using var unsavedFile = CXUnsavedFile.Create(_filePath, unsavedFileContents);
                 var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
@@ -1851,7 +1845,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                         if (remappings.Count == 1)
                         {
-                            remainingRemappings = Array.Empty<string>();
+                            remainingRemappings = [];
                         }
                         else
                         {
@@ -2696,6 +2690,14 @@ public sealed partial class PInvokeGenerator : IDisposable
                 name = name[6..];
             }
 
+            var anonymousNameStartIndex = name.IndexOf("::(", StringComparison.Ordinal);
+
+            if (anonymousNameStartIndex != -1)
+            {
+                anonymousNameStartIndex += 2;
+                name = name[anonymousNameStartIndex..];
+            }
+
             if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
             {
                 var parent = cxxConstructorDecl.Parent;
@@ -3275,22 +3277,17 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private static string GetSourceRangeContents(CXTranslationUnit translationUnit, CXSourceRange sourceRange)
     {
-        sourceRange.Start.GetFileLocation(out var startFile, out var startLine, out var startColumn, out var startOffset);
-        sourceRange.End.GetFileLocation(out var endFile, out var endLine, out var endColumn, out var endOffset);
+        sourceRange.Start.GetFileLocation(out var startFile, out _, out _, out var startOffset);
+        sourceRange.End.GetFileLocation(out var endFile, out _, out _, out var endOffset);
 
         if (startFile != endFile)
         {
             return string.Empty;
         }
 
-        var fileContents = translationUnit.GetFileContents(startFile, out var fileSize);
+        var fileContents = translationUnit.GetFileContents(startFile, out _);
         fileContents = fileContents.Slice(unchecked((int)startOffset), unchecked((int)(endOffset - startOffset)));
-
-#if NETCOREAPP
         return Encoding.UTF8.GetString(fileContents);
-#else
-        return Encoding.UTF8.GetString(fileContents.ToArray());
-#endif
     }
 
     private string GetTargetTypeName(Cursor cursor, out string nativeTypeName)
@@ -3947,14 +3944,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (wasRemapped)
             {
-                if (isTemplate && Config.GenerateGenericPointerWrapper)
-                {
-                    name = $"Pointer<{remappedName}>";
-                }
-                else
-                {
-                    name = $"{remappedName}*";
-                }
+                name = isTemplate && Config.GenerateGenericPointerWrapper
+                     ? $"Pointer<{remappedName}>"
+                     : $"{remappedName}*";
             }
             else
             {
@@ -3966,14 +3958,9 @@ public sealed partial class PInvokeGenerator : IDisposable
             // Otherwise fields that point at anonymous structs get the wrong name
             var remappedName = GetRemappedTypeName(cursor, context, pointeeType, out nativePointeeTypeName, skipUsing: true);
 
-            if (isTemplate && Config.GenerateGenericPointerWrapper)
-            {
-                name = $"Pointer<{remappedName}>";
-            }
-            else
-            {
-                name = $"{remappedName}*";
-            }
+            name = isTemplate && Config.GenerateGenericPointerWrapper
+                 ? $"Pointer<{remappedName}>"
+                 : $"{remappedName}*";
         }
 
         return name;
@@ -6713,7 +6700,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                     case CX_AttrKind_MSNoVTable:
                     case CX_AttrKind_MSAllocator:
                     case CX_AttrKind_MaxFieldAlignment:
+                    case CX_AttrKind_NoThrow:
                     case CX_AttrKind_SelectAny:
+                    case CX_AttrKind_TypeVisibility:
                     case CX_AttrKind_Uuid:
                     {
                         // Nothing to handle

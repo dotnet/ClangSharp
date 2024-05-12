@@ -3,15 +3,13 @@
 
 namespace ClangSharp.Interop;
 
-public enum CX_UnaryExprOrTypeTrait
+public enum CX_StringKind
 {
-    CX_UETT_Invalid,
-    CX_UETT_SizeOf,
-    CX_UETT_DataSizeOf,
-    CX_UETT_AlignOf,
-    CX_UETT_PreferredAlignOf,
-    CX_UETT_VecStep,
-    CX_UETT_OpenMPRequiredSimdAlign,
-    CX_UETT_VectorElements,
-    CX_UETT_Last = -1 + 1 + 1 + 1 + 1 + 1 + 1 + 1,
+    CX_SLK_Invalid,
+    CX_SLK_Ordinary,
+    CX_SLK_Wide,
+    CX_SLK_UTF8,
+    CX_SLK_UTF16,
+    CX_SLK_UTF32,
+    CX_SLK_Unevaluated,
 }

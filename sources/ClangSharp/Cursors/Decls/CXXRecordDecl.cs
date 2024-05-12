@@ -64,7 +64,7 @@ public class CXXRecordDecl : RecordDecl
         _dependentLambdaCallOperator = new Lazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.DependentLambdaCallOperator));
         _describedClassTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.DescribedCursorTemplate));
         _destructor = new Lazy<CXXDestructorDecl?>(() => {
-            CXCursor destructor = Handle.Destructor;
+            var destructor = Handle.Destructor;
             return destructor.IsNull ? null : TranslationUnit.GetOrCreate<CXXDestructorDecl>(Handle.Destructor);
         });
 

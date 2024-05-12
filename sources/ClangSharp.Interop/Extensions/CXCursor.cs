@@ -37,11 +37,11 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             Debug.Assert(CX_AttrKind_FirstTypeAttr == CX_AttrKind_AddressSpace);
             Debug.Assert(CX_AttrKind_LastTypeAttr == CX_AttrKind_WebAssemblyFuncref);
 
-            Debug.Assert(CX_AttrKind_FirstStmtAttr == CX_AttrKind_FallThrough);
+            Debug.Assert(CX_AttrKind_FirstStmtAttr == CX_AttrKind_CodeAlign);
             Debug.Assert(CX_AttrKind_LastStmtAttr == CX_AttrKind_Unlikely);
 
             Debug.Assert(CX_AttrKind_FirstDeclOrStmtAttr == CX_AttrKind_AlwaysInline);
-            Debug.Assert(CX_AttrKind_LastDeclOrStmtAttr == CX_AttrKind_NoMerge);
+            Debug.Assert(CX_AttrKind_LastDeclOrStmtAttr == CX_AttrKind_Suppress);
 
             Debug.Assert(CX_AttrKind_FirstInheritableAttr == CX_AttrKind_AlwaysInline);
             Debug.Assert(CX_AttrKind_LastInheritableAttr == CX_AttrKind_ZeroCallUsedRegs);
@@ -62,11 +62,17 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_Invalid => "Invalid",
                 CX_AttrKind_AddressSpace => "AddressSpace",
                 CX_AttrKind_AnnotateType => "AnnotateType",
+                CX_AttrKind_ArmIn => "ArmIn",
+                CX_AttrKind_ArmInOut => "ArmInOut",
                 CX_AttrKind_ArmMveStrictPolymorphism => "ArmMveStrictPolymorphism",
-                CX_AttrKind_ArmStreaming => "CX_AttrKind_ArmStreaming",
+                CX_AttrKind_ArmOut => "ArmOut",
+                CX_AttrKind_ArmPreserves => "ArmPreserves",
+                CX_AttrKind_ArmStreaming => "ArmStreaming",
+                CX_AttrKind_ArmStreamingCompatible => "ArmStreamingCompatible",
                 CX_AttrKind_BTFTypeTag => "BTFTypeTag",
                 CX_AttrKind_CmseNSCall => "CmseNSCall",
                 CX_AttrKind_HLSLGroupSharedAddressSpace => "HLSLGroupSharedAddressSpace",
+                CX_AttrKind_HLSLParamModifier => "HLSLParamModifier",
                 CX_AttrKind_NoDeref => "NoDeref",
                 CX_AttrKind_ObjCGC => "ObjCGC",
                 CX_AttrKind_ObjCInertUnsafeUnretained => "ObjCInertUnsafeUnretained",
@@ -87,15 +93,16 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_TypeNullableResult => "TypeNullableResult",
                 CX_AttrKind_UPtr => "UPtr",
                 CX_AttrKind_WebAssemblyFuncref => "WebAssemblyFuncref",
+                CX_AttrKind_CodeAlign => "CodeAlign",
                 CX_AttrKind_FallThrough => "FallThrough",
                 CX_AttrKind_Likely => "Likely",
                 CX_AttrKind_MustTail => "MustTail",
                 CX_AttrKind_OpenCLUnrollHint => "OpenCLUnrollHint",
-                CX_AttrKind_Suppress => "Suppress",
                 CX_AttrKind_Unlikely => "Unlikely",
                 CX_AttrKind_AlwaysInline => "AlwaysInline",
                 CX_AttrKind_NoInline => "NoInline",
                 CX_AttrKind_NoMerge => "NoMerge",
+                CX_AttrKind_Suppress => "Suppress",
                 CX_AttrKind_AArch64SVEPcs => "AArch64SVEPcs",
                 CX_AttrKind_AArch64VectorPcs => "AArch64VectorPcs",
                 CX_AttrKind_AMDGPUKernelCall => "AMDGPUKernelCall",
@@ -105,6 +112,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_FastCall => "FastCall",
                 CX_AttrKind_IntelOclBicc => "IntelOclBicc",
                 CX_AttrKind_LifetimeBound => "LifetimeBound",
+                CX_AttrKind_M68kRTD => "M68kRTD",
                 CX_AttrKind_MSABI => "MSABI",
                 CX_AttrKind_NSReturnsRetained => "NSReturnsRetained",
                 CX_AttrKind_ObjCOwnership => "ObjCOwnership",
@@ -156,6 +164,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_ArcWeakrefUnavailable => "ArcWeakrefUnavailable",
                 CX_AttrKind_ArgumentWithTypeTag => "ArgumentWithTypeTag",
                 CX_AttrKind_ArmBuiltinAlias => "ArmBuiltinAlias",
+                CX_AttrKind_ArmLocallyStreaming => "ArmLocallyStreaming",
+                CX_AttrKind_ArmNew => "ArmNew",
                 CX_AttrKind_Artificial => "Artificial",
                 CX_AttrKind_AsmLabel => "AsmLabel",
                 CX_AttrKind_AssertCapability => "AssertCapability",
@@ -166,6 +176,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_Availability => "Availability",
                 CX_AttrKind_AvailableOnlyInDefaultEvalMethod => "AvailableOnlyInDefaultEvalMethod",
                 CX_AttrKind_BPFPreserveAccessIndex => "BPFPreserveAccessIndex",
+                CX_AttrKind_BPFPreserveStaticOffset => "BPFPreserveStaticOffset",
                 CX_AttrKind_BTFDeclTag => "BTFDeclTag",
                 CX_AttrKind_Blocks => "Blocks",
                 CX_AttrKind_Builtin => "Builtin",
@@ -194,6 +205,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_CapturedRecord => "CapturedRecord",
                 CX_AttrKind_Cleanup => "Cleanup",
                 CX_AttrKind_CmseNSEntry => "CmseNSEntry",
+                CX_AttrKind_CodeModel => "CodeModel",
                 CX_AttrKind_CodeSeg => "CodeSeg",
                 CX_AttrKind_Cold => "Cold",
                 CX_AttrKind_Common => "Common",
@@ -204,6 +216,12 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_ConsumableAutoCast => "ConsumableAutoCast",
                 CX_AttrKind_ConsumableSetOnRead => "ConsumableSetOnRead",
                 CX_AttrKind_Convergent => "Convergent",
+                CX_AttrKind_CoroDisableLifetimeBound => "CoroDisableLifetimeBound",
+                CX_AttrKind_CoroLifetimeBound => "CoroLifetimeBound",
+                CX_AttrKind_CoroOnlyDestroyWhenComplete => "CoroOnlyDestroyWhenComplete",
+                CX_AttrKind_CoroReturnType => "CoroReturnType",
+                CX_AttrKind_CoroWrapper => "CoroWrapper",
+                CX_AttrKind_CountedBy => "CountedBy",
                 CX_AttrKind_DLLExport => "DLLExport",
                 CX_AttrKind_DLLExportStaticLocal => "DLLExportStaticLocal",
                 CX_AttrKind_DLLImport => "DLLImport",
@@ -251,6 +269,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_M68kInterrupt => "M68kInterrupt",
                 CX_AttrKind_MIGServerRoutine => "MIGServerRoutine",
                 CX_AttrKind_MSAllocator => "MSAllocator",
+                CX_AttrKind_MSConstexpr => "MSConstexpr",
                 CX_AttrKind_MSInheritance => "MSInheritance",
                 CX_AttrKind_MSNoVTable => "MSNoVTable",
                 CX_AttrKind_MSP430Interrupt => "MSP430Interrupt",
@@ -333,6 +352,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_PragmaClangRodataSection => "PragmaClangRodataSection",
                 CX_AttrKind_PragmaClangTextSection => "PragmaClangTextSection",
                 CX_AttrKind_PreferredName => "PreferredName",
+                CX_AttrKind_PreferredType => "PreferredType",
                 CX_AttrKind_PtGuardedBy => "PtGuardedBy",
                 CX_AttrKind_PtGuardedVar => "PtGuardedVar",
                 CX_AttrKind_Pure => "Pure",
@@ -367,6 +387,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_SwiftBridge => "SwiftBridge",
                 CX_AttrKind_SwiftBridgedTypedef => "SwiftBridgedTypedef",
                 CX_AttrKind_SwiftError => "SwiftError",
+                CX_AttrKind_SwiftImportAsNonGeneric => "SwiftImportAsNonGeneric",
+                CX_AttrKind_SwiftImportPropertyAsAccessors => "SwiftImportPropertyAsAccessors",
                 CX_AttrKind_SwiftName => "SwiftName",
                 CX_AttrKind_SwiftNewType => "SwiftNewType",
                 CX_AttrKind_SwiftPrivate => "SwiftPrivate",
@@ -431,6 +453,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
                 CX_AttrKind_Overloadable => "Overloadable",
                 CX_AttrKind_RenderScriptKernel => "RenderScriptKernel",
                 CX_AttrKind_SwiftObjCMembers => "SwiftObjCMembers",
+                CX_AttrKind_SwiftVersionedAddition => "SwiftVersionedAddition",
+                CX_AttrKind_SwiftVersionedRemoval => "SwiftVersionedRemoval",
                 CX_AttrKind_Thread => "Thread",
                 _ => Kind.ToString()[12..],
             };
@@ -441,7 +465,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXBinaryOperatorKind BinaryOperatorKind => clangsharp.Cursor_getBinaryOpcode(this);
 
-    public readonly CXString BinaryOperatorKindSpelling => clang.getBinaryOperatorKindSpelling(BinaryOperatorKind);
+    public readonly CXString BinaryOperatorKindSpelling
+        => (BinaryOperatorKind != CXBinaryOperator_Invalid) ? clang.getBinaryOperatorKindSpelling(BinaryOperatorKind) : default;
 
     public readonly CXCursor BindingExpr => clangsharp.Cursor_getBindingExpr(this);
 
@@ -617,20 +642,35 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     {
         get
         {
-            Debug.Assert(CX_DeclKind_FirstBaseUsing == CX_DeclKind_Using);
-            Debug.Assert(CX_DeclKind_LastBaseUsing == CX_DeclKind_UsingEnum);
+            Debug.Assert(CX_DeclKind_FirstObjCImpl == CX_DeclKind_ObjCImplementation);
+            Debug.Assert(CX_DeclKind_LastObjCImpl == CX_DeclKind_ObjCCategoryImpl);
 
-            Debug.Assert(CX_DeclKind_FirstObjCImpl == CX_DeclKind_ObjCCategoryImpl);
-            Debug.Assert(CX_DeclKind_LastObjCImpl == CX_DeclKind_ObjCImplementation);
+            Debug.Assert(CX_DeclKind_FirstObjCContainer == CX_DeclKind_ObjCProtocol);
+            Debug.Assert(CX_DeclKind_LastObjCContainer == CX_DeclKind_ObjCCategory);
 
-            Debug.Assert(CX_DeclKind_FirstObjCContainer == CX_DeclKind_ObjCCategory);
-            Debug.Assert(CX_DeclKind_LastObjCContainer == CX_DeclKind_ObjCProtocol);
+            Debug.Assert(CX_DeclKind_FirstCXXMethod == CX_DeclKind_CXXMethod);
+            Debug.Assert(CX_DeclKind_LastCXXMethod == CX_DeclKind_CXXConstructor);
 
-            Debug.Assert(CX_DeclKind_FirstRedeclarableTemplate == CX_DeclKind_ClassTemplate);
-            Debug.Assert(CX_DeclKind_LastRedeclarableTemplate == CX_DeclKind_VarTemplate);
+            Debug.Assert(CX_DeclKind_FirstFunction == CX_DeclKind_Function);
+            Debug.Assert(CX_DeclKind_LastFunction == CX_DeclKind_CXXDeductionGuide);
 
-            Debug.Assert(CX_DeclKind_FirstTemplate == CX_DeclKind_BuiltinTemplate);
-            Debug.Assert(CX_DeclKind_LastTemplate == CX_DeclKind_TemplateTemplateParm);
+            Debug.Assert(CX_DeclKind_FirstVarTemplateSpecialization == CX_DeclKind_VarTemplateSpecialization);
+            Debug.Assert(CX_DeclKind_LastVarTemplateSpecialization == CX_DeclKind_VarTemplatePartialSpecialization);
+
+            Debug.Assert(CX_DeclKind_FirstVar == CX_DeclKind_Var);
+            Debug.Assert(CX_DeclKind_LastVar == CX_DeclKind_Decomposition);
+
+            Debug.Assert(CX_DeclKind_FirstField == CX_DeclKind_Field);
+            Debug.Assert(CX_DeclKind_LastField == CX_DeclKind_ObjCAtDefsField);
+
+            Debug.Assert(CX_DeclKind_FirstDeclarator == CX_DeclKind_Function);
+            Debug.Assert(CX_DeclKind_LastDeclarator == CX_DeclKind_ObjCAtDefsField);
+
+            Debug.Assert(CX_DeclKind_FirstValue == CX_DeclKind_OMPDeclareReduction);
+            Debug.Assert(CX_DeclKind_LastValue == CX_DeclKind_Binding);
+
+            Debug.Assert(CX_DeclKind_FirstUsingShadow == CX_DeclKind_UsingShadow);
+            Debug.Assert(CX_DeclKind_LastUsingShadow == CX_DeclKind_ConstructorUsingShadow);
 
             Debug.Assert(CX_DeclKind_FirstClassTemplateSpecialization == CX_DeclKind_ClassTemplateSpecialization);
             Debug.Assert(CX_DeclKind_LastClassTemplateSpecialization == CX_DeclKind_ClassTemplatePartialSpecialization);
@@ -641,134 +681,118 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             Debug.Assert(CX_DeclKind_FirstRecord == CX_DeclKind_Record);
             Debug.Assert(CX_DeclKind_LastRecord == CX_DeclKind_ClassTemplatePartialSpecialization);
 
-            Debug.Assert(CX_DeclKind_FirstTag == CX_DeclKind_Enum);
-            Debug.Assert(CX_DeclKind_LastTag == CX_DeclKind_ClassTemplatePartialSpecialization);
+            Debug.Assert(CX_DeclKind_FirstTag == CX_DeclKind_Record);
+            Debug.Assert(CX_DeclKind_LastTag == CX_DeclKind_Enum);
 
-            Debug.Assert(CX_DeclKind_FirstTypedefName == CX_DeclKind_ObjCTypeParam);
-            Debug.Assert(CX_DeclKind_LastTypedefName == CX_DeclKind_Typedef);
+            Debug.Assert(CX_DeclKind_FirstTypedefName == CX_DeclKind_Typedef);
+            Debug.Assert(CX_DeclKind_LastTypedefName == CX_DeclKind_ObjCTypeParam);
 
-            Debug.Assert(CX_DeclKind_FirstType == CX_DeclKind_Enum);
-            Debug.Assert(CX_DeclKind_LastType == CX_DeclKind_UnresolvedUsingTypename);
+            Debug.Assert(CX_DeclKind_FirstType == CX_DeclKind_Record);
+            Debug.Assert(CX_DeclKind_LastType == CX_DeclKind_TemplateTypeParm);
 
-            Debug.Assert(CX_DeclKind_FirstUsingShadow == CX_DeclKind_UsingShadow);
-            Debug.Assert(CX_DeclKind_LastUsingShadow == CX_DeclKind_ConstructorUsingShadow);
+            Debug.Assert(CX_DeclKind_FirstRedeclarableTemplate == CX_DeclKind_VarTemplate);
+            Debug.Assert(CX_DeclKind_LastRedeclarableTemplate == CX_DeclKind_ClassTemplate);
 
-            Debug.Assert(CX_DeclKind_FirstField == CX_DeclKind_Field);
-            Debug.Assert(CX_DeclKind_LastField == CX_DeclKind_ObjCIvar);
+            Debug.Assert(CX_DeclKind_FirstTemplate == CX_DeclKind_TemplateTemplateParm);
+            Debug.Assert(CX_DeclKind_LastTemplate == CX_DeclKind_BuiltinTemplate);
 
-            Debug.Assert(CX_DeclKind_FirstCXXMethod == CX_DeclKind_CXXMethod);
-            Debug.Assert(CX_DeclKind_LastCXXMethod == CX_DeclKind_CXXDestructor);
+            Debug.Assert(CX_DeclKind_FirstBaseUsing == CX_DeclKind_UsingEnum);
+            Debug.Assert(CX_DeclKind_LastBaseUsing == CX_DeclKind_Using);
 
-            Debug.Assert(CX_DeclKind_FirstFunction == CX_DeclKind_Function);
-            Debug.Assert(CX_DeclKind_LastFunction == CX_DeclKind_CXXDestructor);
+            Debug.Assert(CX_DeclKind_FirstNamed == CX_DeclKind_ObjCMethod);
+            Debug.Assert(CX_DeclKind_LastNamed == CX_DeclKind_Using);
 
-            Debug.Assert(CX_DeclKind_FirstVarTemplateSpecialization == CX_DeclKind_VarTemplateSpecialization);
-            Debug.Assert(CX_DeclKind_LastVarTemplateSpecialization == CX_DeclKind_VarTemplatePartialSpecialization);
-
-            Debug.Assert(CX_DeclKind_FirstVar == CX_DeclKind_Var);
-            Debug.Assert(CX_DeclKind_LastVar == CX_DeclKind_VarTemplatePartialSpecialization);
-
-            Debug.Assert(CX_DeclKind_FirstDeclarator == CX_DeclKind_Field);
-            Debug.Assert(CX_DeclKind_LastDeclarator == CX_DeclKind_VarTemplatePartialSpecialization);
-
-            Debug.Assert(CX_DeclKind_FirstValue == CX_DeclKind_Binding);
-            Debug.Assert(CX_DeclKind_LastValue == CX_DeclKind_UnresolvedUsingValue);
-
-            Debug.Assert(CX_DeclKind_FirstNamed == CX_DeclKind_Using);
-            Debug.Assert(CX_DeclKind_LastNamed == CX_DeclKind_UnresolvedUsingValue);
-
-            Debug.Assert(CX_DeclKind_FirstDecl == CX_DeclKind_AccessSpec);
-            Debug.Assert(CX_DeclKind_LastDecl == CX_DeclKind_TranslationUnit);
+            Debug.Assert(CX_DeclKind_FirstDecl == CX_DeclKind_TranslationUnit);
+            Debug.Assert(CX_DeclKind_LastDecl == CX_DeclKind_AccessSpec);
 
             return DeclKind switch {
                 CX_DeclKind_Invalid => "Invalid",
-                CX_DeclKind_AccessSpec => "AccessSpec",
-                CX_DeclKind_Block => "Block",
-                CX_DeclKind_Captured => "Captured",
-                CX_DeclKind_ClassScopeFunctionSpecialization => "ClassScopeFunctionSpecialization",
-                CX_DeclKind_Empty => "Empty",
-                CX_DeclKind_Export => "Export",
-                CX_DeclKind_ExternCContext => "ExternCContext",
-                CX_DeclKind_FileScopeAsm => "FileScopeAsm",
-                CX_DeclKind_Friend => "Friend",
-                CX_DeclKind_FriendTemplate => "FriendTemplate",
-                CX_DeclKind_ImplicitConceptSpecialization => "ImplicitConceptSpecialization",
-                CX_DeclKind_Import => "Import",
-                CX_DeclKind_LifetimeExtendedTemporary => "LifetimeExtendedTemporary",
+                CX_DeclKind_TranslationUnit => "TranslationUnit",
+                CX_DeclKind_RequiresExprBody => "RequiresExprBody",
                 CX_DeclKind_LinkageSpec => "LinkageSpec",
-                CX_DeclKind_Using => "Using",
-                CX_DeclKind_UsingEnum => "UsingEnum",
-                CX_DeclKind_Label => "Label",
-                CX_DeclKind_HLSLBuffer => "HLSLBuffer",
-                CX_DeclKind_Namespace => "Namespace",
-                CX_DeclKind_NamespaceAlias => "NamespaceAlias",
-                CX_DeclKind_ObjCCompatibleAlias => "ObjCCompatibleAlias",
-                CX_DeclKind_ObjCCategory => "ObjCCategory",
-                CX_DeclKind_ObjCCategoryImpl => "ObjCCategoryImpl",
-                CX_DeclKind_ObjCImplementation => "ObjCImplementation",
-                CX_DeclKind_ObjCInterface => "ObjCInterface",
-                CX_DeclKind_ObjCProtocol => "ObjCProtocol",
+                CX_DeclKind_ExternCContext => "ExternCContext",
+                CX_DeclKind_Export => "Export",
+                CX_DeclKind_Captured => "Captured",
+                CX_DeclKind_Block => "Block",
+                CX_DeclKind_TopLevelStmt => "TopLevelStmt",
+                CX_DeclKind_StaticAssert => "StaticAssert",
+                CX_DeclKind_PragmaDetectMismatch => "PragmaDetectMismatch",
+                CX_DeclKind_PragmaComment => "PragmaComment",
+                CX_DeclKind_ObjCPropertyImpl => "ObjCPropertyImpl",
+                CX_DeclKind_OMPThreadPrivate => "OMPThreadPrivate",
+                CX_DeclKind_OMPRequires => "OMPRequires",
+                CX_DeclKind_OMPAllocate => "OMPAllocate",
                 CX_DeclKind_ObjCMethod => "ObjCMethod",
-                CX_DeclKind_ObjCProperty => "ObjCProperty",
-                CX_DeclKind_BuiltinTemplate => "BuiltinTemplate",
-                CX_DeclKind_Concept => "Concept",
-                CX_DeclKind_ClassTemplate => "ClassTemplate",
-                CX_DeclKind_FunctionTemplate => "FunctionTemplate",
-                CX_DeclKind_TypeAliasTemplate => "TypeAliasTemplate",
-                CX_DeclKind_VarTemplate => "VarTemplate",
-                CX_DeclKind_TemplateTemplateParm => "TemplateTemplateParm",
-                CX_DeclKind_Enum => "Enum",
+                CX_DeclKind_ObjCProtocol => "ObjCProtocol",
+                CX_DeclKind_ObjCInterface => "ObjCInterface",
+                CX_DeclKind_ObjCImplementation => "ObjCImplementation",
+                CX_DeclKind_ObjCCategoryImpl => "ObjCCategoryImpl",
+                CX_DeclKind_ObjCCategory => "ObjCCategory",
+                CX_DeclKind_Namespace => "Namespace",
+                CX_DeclKind_HLSLBuffer => "HLSLBuffer",
+                CX_DeclKind_OMPDeclareReduction => "OMPDeclareReduction",
+                CX_DeclKind_OMPDeclareMapper => "OMPDeclareMapper",
+                CX_DeclKind_UnresolvedUsingValue => "UnresolvedUsingValue",
+                CX_DeclKind_UnnamedGlobalConstant => "UnnamedGlobalConstant",
+                CX_DeclKind_TemplateParamObject => "TemplateParamObject",
+                CX_DeclKind_MSGuid => "MSGuid",
+                CX_DeclKind_IndirectField => "IndirectField",
+                CX_DeclKind_EnumConstant => "EnumConstant",
+                CX_DeclKind_Function => "Function",
+                CX_DeclKind_CXXMethod => "CXXMethod",
+                CX_DeclKind_CXXDestructor => "CXXDestructor",
+                CX_DeclKind_CXXConversion => "CXXConversion",
+                CX_DeclKind_CXXConstructor => "CXXConstructor",
+                CX_DeclKind_CXXDeductionGuide => "CXXDeductionGuide",
+                CX_DeclKind_Var => "Var",
+                CX_DeclKind_VarTemplateSpecialization => "VarTemplateSpecialization",
+                CX_DeclKind_VarTemplatePartialSpecialization => "VarTemplatePartialSpecialization",
+                CX_DeclKind_ParmVar => "ParmVar",
+                CX_DeclKind_OMPCapturedExpr => "OMPCapturedExpr",
+                CX_DeclKind_ImplicitParam => "ImplicitParam",
+                CX_DeclKind_Decomposition => "Decomposition",
+                CX_DeclKind_NonTypeTemplateParm => "NonTypeTemplateParm",
+                CX_DeclKind_MSProperty => "MSProperty",
+                CX_DeclKind_Field => "Field",
+                CX_DeclKind_ObjCIvar => "ObjCIvar",
+                CX_DeclKind_ObjCAtDefsField => "ObjCAtDefsField",
+                CX_DeclKind_Binding => "Binding",
+                CX_DeclKind_UsingShadow => "UsingShadow",
+                CX_DeclKind_ConstructorUsingShadow => "ConstructorUsingShadow",
+                CX_DeclKind_UsingPack => "UsingPack",
+                CX_DeclKind_UsingDirective => "UsingDirective",
+                CX_DeclKind_UnresolvedUsingIfExists => "UnresolvedUsingIfExists",
                 CX_DeclKind_Record => "Record",
                 CX_DeclKind_CXXRecord => "CXXRecord",
                 CX_DeclKind_ClassTemplateSpecialization => "ClassTemplateSpecialization",
                 CX_DeclKind_ClassTemplatePartialSpecialization => "ClassTemplatePartialSpecialization",
-                CX_DeclKind_TemplateTypeParm => "TemplateTypeParm",
-                CX_DeclKind_ObjCTypeParam => "ObjCTypeParam",
-                CX_DeclKind_TypeAlias => "TypeAlias",
-                CX_DeclKind_Typedef => "Typedef",
+                CX_DeclKind_Enum => "Enum",
                 CX_DeclKind_UnresolvedUsingTypename => "UnresolvedUsingTypename",
-                CX_DeclKind_UnresolvedUsingIfExists => "UnresolvedUsingIfExists",
-                CX_DeclKind_UsingDirective => "UsingDirective",
-                CX_DeclKind_UsingPack => "UsingPack",
-                CX_DeclKind_UsingShadow => "UsingShadow",
-                CX_DeclKind_ConstructorUsingShadow => "ConstructorUsingShadow",
-                CX_DeclKind_Binding => "Binding",
-                CX_DeclKind_Field => "Field",
-                CX_DeclKind_ObjCAtDefsField => "ObjCAtDefsField",
-                CX_DeclKind_ObjCIvar => "ObjCIvar",
-                CX_DeclKind_Function => "Function",
-                CX_DeclKind_CXXDeductionGuide => "CXXDeductionGuide",
-                CX_DeclKind_CXXMethod => "CXXMethod",
-                CX_DeclKind_CXXConstructor => "CXXConstructor",
-                CX_DeclKind_CXXConversion => "CXXConversion",
-                CX_DeclKind_CXXDestructor => "CXXDestructor",
-                CX_DeclKind_MSProperty => "MSProperty",
-                CX_DeclKind_NonTypeTemplateParm => "NonTypeTemplateParm",
-                CX_DeclKind_Var => "Var",
-                CX_DeclKind_Decomposition => "Decomposition",
-                CX_DeclKind_ImplicitParam => "ImplicitParam",
-                CX_DeclKind_OMPCapturedExpr => "OMPCapturedExpr",
-                CX_DeclKind_ParmVar => "ParmVar",
-                CX_DeclKind_VarTemplateSpecialization => "VarTemplateSpecialization",
-                CX_DeclKind_VarTemplatePartialSpecialization => "VarTemplatePartialSpecialization",
-                CX_DeclKind_EnumConstant => "EnumConstant",
-                CX_DeclKind_IndirectField => "IndirectField",
-                CX_DeclKind_MSGuid => "MSGuid",
-                CX_DeclKind_OMPDeclareMapper => "OMPDeclareMapper",
-                CX_DeclKind_OMPDeclareReduction => "OMPDeclareReduction",
-                CX_DeclKind_TemplateParamObject => "TemplateParamObject",
-                CX_DeclKind_UnnamedGlobalConstant => "UnnamedGlobalConstant",
-                CX_DeclKind_UnresolvedUsingValue => "UnresolvedUsingValue",
-                CX_DeclKind_OMPAllocate => "OMPAllocate",
-                CX_DeclKind_OMPRequires => "OMPRequires",
-                CX_DeclKind_OMPThreadPrivate => "OMPThreadPrivate",
-                CX_DeclKind_ObjCPropertyImpl => "ObjCPropertyImpl",
-                CX_DeclKind_PragmaComment => "PragmaComment",
-                CX_DeclKind_PragmaDetectMismatch => "PragmaDetectMismatch",
-                CX_DeclKind_RequiresExprBody => "RequiresExprBody",
-                CX_DeclKind_StaticAssert => "StaticAssert",
-                CX_DeclKind_TopLevelStmt => "TopLevelStmt",
-                CX_DeclKind_TranslationUnit => "TranslationUnit",
+                CX_DeclKind_Typedef => "Typedef",
+                CX_DeclKind_TypeAlias => "TypeAlias",
+                CX_DeclKind_ObjCTypeParam => "ObjCTypeParam",
+                CX_DeclKind_TemplateTypeParm => "TemplateTypeParm",
+                CX_DeclKind_TemplateTemplateParm => "TemplateTemplateParm",
+                CX_DeclKind_VarTemplate => "VarTemplate",
+                CX_DeclKind_TypeAliasTemplate => "TypeAliasTemplate",
+                CX_DeclKind_FunctionTemplate => "FunctionTemplate",
+                CX_DeclKind_ClassTemplate => "ClassTemplate",
+                CX_DeclKind_Concept => "Concept",
+                CX_DeclKind_BuiltinTemplate => "BuiltinTemplate",
+                CX_DeclKind_ObjCProperty => "ObjCProperty",
+                CX_DeclKind_ObjCCompatibleAlias => "ObjCCompatibleAlias",
+                CX_DeclKind_NamespaceAlias => "NamespaceAlias",
+                CX_DeclKind_Label => "Label",
+                CX_DeclKind_UsingEnum => "UsingEnum",
+                CX_DeclKind_Using => "Using",
+                CX_DeclKind_LifetimeExtendedTemporary => "LifetimeExtendedTemporary",
+                CX_DeclKind_Import => "Import",
+                CX_DeclKind_ImplicitConceptSpecialization => "ImplicitConceptSpecialization",
+                CX_DeclKind_FriendTemplate => "FriendTemplate",
+                CX_DeclKind_Friend => "Friend",
+                CX_DeclKind_FileScopeAsm => "FileScopeAsm",
+                CX_DeclKind_Empty => "Empty",
+                CX_DeclKind_AccessSpec => "AccessSpec",
                 _ => Kind.ToString()[12..],
             };
         }
@@ -778,7 +802,20 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor DecomposedDecl => clangsharp.Cursor_getDecomposedDecl(this);
 
-    public readonly CXCursor DefaultArg => clangsharp.Cursor_getDefaultArg(this);
+    public readonly CXCursor DefaultArg
+    {
+        get
+        {
+            if (DeclKind == CX_DeclKind_ParmVar)
+            {
+                if (HasUnparsedDefaultArg || HasUninstantiatedDefaultArg)
+                {
+                    return CXCursor.Null;
+                }
+            }
+            return clangsharp.Cursor_getDefaultArg(this);
+        }
+    }
 
     public readonly CXType DefaultArgType => clangsharp.Cursor_getDefaultArgType(this);
 
@@ -863,6 +900,10 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly uint Hash => clang.hashCursor(this);
 
     public readonly bool HasTemplateKeyword => clangsharp.Cursor_getHasTemplateKeyword(this) != 0;
+
+    public readonly bool HasUninstantiatedDefaultArg => clangsharp.Cursor_getHasUninstantiatedDefaultArg(this) != 0;
+
+    public readonly bool HasUnparsedDefaultArg => clangsharp.Cursor_getHasUnparsedDefaultArg(this) != 0;
 
     public readonly bool HasUserDeclaredConstructor => clangsharp.Cursor_getHasUserDeclaredConstructor(this) != 0;
 
@@ -1024,7 +1065,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsPreprocessing => clang.isPreprocessing(Kind) != 0;
 
-    public readonly bool IsPure => clangsharp.Cursor_getIsPure(this) != 0;
+    public readonly bool IsPureVirtual => clangsharp.Cursor_getIsPureVirtual(this) != 0;
 
     public readonly bool IsReference => clang.isReference(Kind) != 0;
 
@@ -1238,304 +1279,307 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     {
         get
         {
-            Debug.Assert(CX_StmtClass_FirstAsmStmt == CX_StmtClass_GCCAsmStmt);
-            Debug.Assert(CX_StmtClass_LastAsmStmt == CX_StmtClass_MSAsmStmt);
+            Debug.Assert(CX_StmtClass_FirstOverloadExpr == CX_StmtClass_UnresolvedMemberExpr);
+            Debug.Assert(CX_StmtClass_LastOverloadExpr == CX_StmtClass_UnresolvedLookupExpr);
 
-            Debug.Assert(CX_StmtClass_FirstOMPLoopDirective == CX_StmtClass_OMPDistributeDirective);
-            Debug.Assert(CX_StmtClass_LastOMPLoopDirective == CX_StmtClass_OMPTeamsGenericLoopDirective);
+            Debug.Assert(CX_StmtClass_FirstFullExpr == CX_StmtClass_ExprWithCleanups);
+            Debug.Assert(CX_StmtClass_LastFullExpr == CX_StmtClass_ConstantExpr);
 
-            Debug.Assert(CX_StmtClass_FirstOMPLoopTransformationDirective == CX_StmtClass_OMPTileDirective);
-            Debug.Assert(CX_StmtClass_LastOMPLoopTransformationDirective == CX_StmtClass_OMPUnrollDirective);
+            Debug.Assert(CX_StmtClass_FirstCoroutineSuspendExpr == CX_StmtClass_CoyieldExpr);
+            Debug.Assert(CX_StmtClass_LastCoroutineSuspendExpr == CX_StmtClass_CoawaitExpr);
 
-            Debug.Assert(CX_StmtClass_FirstOMPLoopBasedDirective == CX_StmtClass_OMPDistributeDirective);
-            Debug.Assert(CX_StmtClass_LastOMPLoopBasedDirective == CX_StmtClass_OMPUnrollDirective);
+            Debug.Assert(CX_StmtClass_FirstCXXNamedCastExpr == CX_StmtClass_CXXStaticCastExpr);
+            Debug.Assert(CX_StmtClass_LastCXXNamedCastExpr == CX_StmtClass_CXXAddrspaceCastExpr);
 
-            Debug.Assert(CX_StmtClass_FirstOMPExecutableDirective == CX_StmtClass_OMPAtomicDirective);
-            Debug.Assert(CX_StmtClass_LastOMPExecutableDirective == CX_StmtClass_OMPTeamsDirective);
+            Debug.Assert(CX_StmtClass_FirstExplicitCastExpr == CX_StmtClass_ObjCBridgedCastExpr);
+            Debug.Assert(CX_StmtClass_LastExplicitCastExpr == CX_StmtClass_BuiltinBitCastExpr);
 
-            Debug.Assert(CX_StmtClass_FirstSwitchCase == CX_StmtClass_CaseStmt);
-            Debug.Assert(CX_StmtClass_LastSwitchCase == CX_StmtClass_DefaultStmt);
+            Debug.Assert(CX_StmtClass_FirstCastExpr == CX_StmtClass_ImplicitCastExpr);
+            Debug.Assert(CX_StmtClass_LastCastExpr == CX_StmtClass_BuiltinBitCastExpr);
 
-            Debug.Assert(CX_StmtClass_FirstAbstractConditionalOperator == CX_StmtClass_BinaryConditionalOperator);
-            Debug.Assert(CX_StmtClass_LastAbstractConditionalOperator == CX_StmtClass_ConditionalOperator);
-
-            Debug.Assert(CX_StmtClass_FirstBinaryOperator == CX_StmtClass_BinaryOperator);
-            Debug.Assert(CX_StmtClass_LastBinaryOperator == CX_StmtClass_CompoundAssignOperator);
+            Debug.Assert(CX_StmtClass_FirstCallExpr == CX_StmtClass_CallExpr);
+            Debug.Assert(CX_StmtClass_LastCallExpr == CX_StmtClass_CUDAKernelCallExpr);
 
             Debug.Assert(CX_StmtClass_FirstCXXConstructExpr == CX_StmtClass_CXXConstructExpr);
             Debug.Assert(CX_StmtClass_LastCXXConstructExpr == CX_StmtClass_CXXTemporaryObjectExpr);
 
-            Debug.Assert(CX_StmtClass_FirstCallExpr == CX_StmtClass_CallExpr);
-            Debug.Assert(CX_StmtClass_LastCallExpr == CX_StmtClass_UserDefinedLiteral);
+            Debug.Assert(CX_StmtClass_FirstBinaryOperator == CX_StmtClass_BinaryOperator);
+            Debug.Assert(CX_StmtClass_LastBinaryOperator == CX_StmtClass_CompoundAssignOperator);
 
-            Debug.Assert(CX_StmtClass_FirstCXXNamedCastExpr == CX_StmtClass_CXXAddrspaceCastExpr);
-            Debug.Assert(CX_StmtClass_LastCXXNamedCastExpr == CX_StmtClass_CXXStaticCastExpr);
+            Debug.Assert(CX_StmtClass_FirstAbstractConditionalOperator == CX_StmtClass_ConditionalOperator);
+            Debug.Assert(CX_StmtClass_LastAbstractConditionalOperator == CX_StmtClass_BinaryConditionalOperator);
 
-            Debug.Assert(CX_StmtClass_FirstExplicitCastExpr == CX_StmtClass_BuiltinBitCastExpr);
-            Debug.Assert(CX_StmtClass_LastExplicitCastExpr == CX_StmtClass_ObjCBridgedCastExpr);
+            Debug.Assert(CX_StmtClass_FirstExpr == CX_StmtClass_VAArgExpr);
+            Debug.Assert(CX_StmtClass_LastExpr == CX_StmtClass_BinaryConditionalOperator);
 
-            Debug.Assert(CX_StmtClass_FirstCastExpr == CX_StmtClass_BuiltinBitCastExpr);
-            Debug.Assert(CX_StmtClass_LastCastExpr == CX_StmtClass_ImplicitCastExpr);
+            Debug.Assert(CX_StmtClass_FirstValueStmt == CX_StmtClass_LabelStmt);
+            Debug.Assert(CX_StmtClass_LastValueStmt == CX_StmtClass_AttributedStmt);
 
-            Debug.Assert(CX_StmtClass_FirstCoroutineSuspendExpr == CX_StmtClass_CoawaitExpr);
-            Debug.Assert(CX_StmtClass_LastCoroutineSuspendExpr == CX_StmtClass_CoyieldExpr);
+            Debug.Assert(CX_StmtClass_FirstSwitchCase == CX_StmtClass_DefaultStmt);
+            Debug.Assert(CX_StmtClass_LastSwitchCase == CX_StmtClass_CaseStmt);
 
-            Debug.Assert(CX_StmtClass_FirstFullExpr == CX_StmtClass_ConstantExpr);
-            Debug.Assert(CX_StmtClass_LastFullExpr == CX_StmtClass_ExprWithCleanups);
+            Debug.Assert(CX_StmtClass_FirstOMPLoopTransformationDirective == CX_StmtClass_OMPUnrollDirective);
+            Debug.Assert(CX_StmtClass_LastOMPLoopTransformationDirective == CX_StmtClass_OMPTileDirective);
 
-            Debug.Assert(CX_StmtClass_FirstOverloadExpr == CX_StmtClass_UnresolvedLookupExpr);
-            Debug.Assert(CX_StmtClass_LastOverloadExpr == CX_StmtClass_UnresolvedMemberExpr);
+            Debug.Assert(CX_StmtClass_FirstOMPLoopDirective == CX_StmtClass_OMPTeamsGenericLoopDirective);
+            Debug.Assert(CX_StmtClass_LastOMPLoopDirective == CX_StmtClass_OMPDistributeDirective);
 
-            Debug.Assert(CX_StmtClass_FirstExpr == CX_StmtClass_BinaryConditionalOperator);
-            Debug.Assert(CX_StmtClass_LastExpr == CX_StmtClass_VAArgExpr);
+            Debug.Assert(CX_StmtClass_FirstOMPLoopBasedDirective == CX_StmtClass_OMPUnrollDirective);
+            Debug.Assert(CX_StmtClass_LastOMPLoopBasedDirective == CX_StmtClass_OMPDistributeDirective);
 
-            Debug.Assert(CX_StmtClass_FirstValueStmt == CX_StmtClass_AttributedStmt);
-            Debug.Assert(CX_StmtClass_LastValueStmt == CX_StmtClass_LabelStmt);
+            Debug.Assert(CX_StmtClass_FirstOMPExecutableDirective == CX_StmtClass_OMPTeamsDirective);
+            Debug.Assert(CX_StmtClass_LastOMPExecutableDirective == CX_StmtClass_OMPAtomicDirective);
 
-            Debug.Assert(CX_StmtClass_FirstStmt == CX_StmtClass_GCCAsmStmt);
-            Debug.Assert(CX_StmtClass_LastStmt == CX_StmtClass_WhileStmt);
+            Debug.Assert(CX_StmtClass_FirstAsmStmt == CX_StmtClass_MSAsmStmt);
+            Debug.Assert(CX_StmtClass_LastAsmStmt == CX_StmtClass_GCCAsmStmt);
+
+            Debug.Assert(CX_StmtClass_FirstStmt == CX_StmtClass_WhileStmt);
+            Debug.Assert(CX_StmtClass_LastStmt == CX_StmtClass_GCCAsmStmt);
 
             return StmtClass switch {
                 CX_StmtClass_Invalid => "Invalid",
-                CX_StmtClass_GCCAsmStmt => "GCCAsmStmt",
-                CX_StmtClass_MSAsmStmt => "MSAsmStmt",
-                CX_StmtClass_BreakStmt => "BreakStmt",
-                CX_StmtClass_CXXCatchStmt => "CXXCatchStmt",
-                CX_StmtClass_CXXForRangeStmt => "CXXForRangeStmt",
-                CX_StmtClass_CXXTryStmt => "CXXTryStmt",
-                CX_StmtClass_CapturedStmt => "CapturedStmt",
-                CX_StmtClass_CompoundStmt => "CompoundStmt",
-                CX_StmtClass_ContinueStmt => "ContinueStmt",
-                CX_StmtClass_CoreturnStmt => "CoreturnStmt",
-                CX_StmtClass_CoroutineBodyStmt => "CoroutineBodyStmt",
-                CX_StmtClass_DeclStmt => "DeclStmt",
-                CX_StmtClass_DoStmt => "DoStmt",
-                CX_StmtClass_ForStmt => "ForStmt",
-                CX_StmtClass_GotoStmt => "GotoStmt",
-                CX_StmtClass_IfStmt => "IfStmt",
-                CX_StmtClass_IndirectGotoStmt => "IndirectGotoStmt",
-                CX_StmtClass_MSDependentExistsStmt => "MSDependentExistsStmt",
-                CX_StmtClass_NullStmt => "NullStmt",
-                CX_StmtClass_OMPCanonicalLoop => "OMPCanonicalLoop",
-                CX_StmtClass_OMPAtomicDirective => "OMPAtomicDirective",
-                CX_StmtClass_OMPBarrierDirective => "OMPBarrierDirective",
-                CX_StmtClass_OMPCancelDirective => "OMPCancelDirective",
-                CX_StmtClass_OMPCancellationPointDirective => "OMPCancellationPointDirective",
-                CX_StmtClass_OMPCriticalDirective => "OMPCriticalDirective",
-                CX_StmtClass_OMPDepobjDirective => "OMPDepobjDirective",
-                CX_StmtClass_OMPDispatchDirective => "OMPDispatchDirective",
-                CX_StmtClass_OMPErrorDirective => "OMPErrorDirective",
-                CX_StmtClass_OMPFlushDirective => "OMPFlushDirective",
-                CX_StmtClass_OMPInteropDirective => "OMPInteropDirective",
-                CX_StmtClass_OMPDistributeDirective => "OMPDistributeDirective",
-                CX_StmtClass_OMPDistributeParallelForDirective => "OMPDistributeParallelForDirective",
-                CX_StmtClass_OMPDistributeParallelForSimdDirective => "OMPDistributeParallelForSimdDirective",
-                CX_StmtClass_OMPDistributeSimdDirective => "OMPDistributeSimdDirective",
-                CX_StmtClass_OMPForDirective => "OMPForDirective",
-                CX_StmtClass_OMPForSimdDirective => "OMPForSimdDirective",
-                CX_StmtClass_OMPGenericLoopDirective => "OMPGenericLoopDirective",
-                CX_StmtClass_OMPMaskedTaskLoopDirective => "OMPMaskedTaskLoopDirective",
-                CX_StmtClass_OMPMaskedTaskLoopSimdDirective => "OMPMaskedTaskLoopSimdDirective",
-                CX_StmtClass_OMPMasterTaskLoopDirective => "OMPMasterTaskLoopDirective",
-                CX_StmtClass_OMPMasterTaskLoopSimdDirective => "OMPMasterTaskLoopSimdDirective",
-                CX_StmtClass_OMPParallelForDirective => "OMPParallelForDirective",
-                CX_StmtClass_OMPParallelForSimdDirective => "OMPParallelForSimdDirective",
-                CX_StmtClass_OMPParallelGenericLoopDirective => "OMPParallelGenericLoopDirective",
-                CX_StmtClass_OMPParallelMaskedTaskLoopDirective => "OMPParallelMaskedTaskLoopDirective",
-                CX_StmtClass_OMPParallelMaskedTaskLoopSimdDirective => "OMPParallelMaskedTaskLoopSimdDirective",
-                CX_StmtClass_OMPParallelMasterTaskLoopDirective => "OMPParallelMasterTaskLoopDirective",
-                CX_StmtClass_OMPParallelMasterTaskLoopSimdDirective => "OMPParallelMasterTaskLoopSimdDirective",
-                CX_StmtClass_OMPSimdDirective => "OMPSimdDirective",
-                CX_StmtClass_OMPTargetParallelForSimdDirective => "OMPTargetParallelForSimdDirective",
-                CX_StmtClass_OMPTargetParallelGenericLoopDirective => "OMPTargetParallelGenericLoopDirective",
-                CX_StmtClass_OMPTargetSimdDirective => "OMPTargetSimdDirective",
-                CX_StmtClass_OMPTargetTeamsDistributeDirective => "OMPTargetTeamsDistributeDirective",
-                CX_StmtClass_OMPTargetTeamsDistributeParallelForDirective => "OMPTargetTeamsDistributeParallelForDirective",
-                CX_StmtClass_OMPTargetTeamsDistributeParallelForSimdDirective => "OMPTargetTeamsDistributeParallelForSimdDirective",
-                CX_StmtClass_OMPTargetTeamsDistributeSimdDirective => "OMPTargetTeamsDistributeSimdDirective",
-                CX_StmtClass_OMPTargetTeamsGenericLoopDirective => "OMPTargetTeamsGenericLoopDirective",
-                CX_StmtClass_OMPTaskLoopDirective => "OMPTaskLoopDirective",
-                CX_StmtClass_OMPTaskLoopSimdDirective => "OMPTaskLoopSimdDirective",
-                CX_StmtClass_OMPTeamsDistributeDirective => "OMPTeamsDistributeDirective",
-                CX_StmtClass_OMPTeamsDistributeParallelForDirective => "OMPTeamsDistributeParallelForDirective",
-                CX_StmtClass_OMPTeamsDistributeParallelForSimdDirective => "OMPTeamsDistributeParallelForSimdDirective",
-                CX_StmtClass_OMPTeamsDistributeSimdDirective => "OMPTeamsDistributeSimdDirective",
-                CX_StmtClass_OMPTeamsGenericLoopDirective => "OMPTeamsGenericLoopDirective",
-                CX_StmtClass_OMPTileDirective => "OMPTileDirective",
-                CX_StmtClass_OMPUnrollDirective => "OMPUnrollDirective",
-                CX_StmtClass_OMPMaskedDirective => "OMPMaskedDirective",
-                CX_StmtClass_OMPMasterDirective => "OMPMasterDirective",
-                CX_StmtClass_OMPMetaDirective => "OMPMetaDirective",
-                CX_StmtClass_OMPOrderedDirective => "OMPOrderedDirective",
-                CX_StmtClass_OMPParallelDirective => "OMPParallelDirective",
-                CX_StmtClass_OMPParallelMaskedDirective => "OMPParallelMaskedDirective",
-                CX_StmtClass_OMPParallelMasterDirective => "OMPParallelMasterDirective",
-                CX_StmtClass_OMPParallelSectionsDirective => "OMPParallelSectionsDirective",
-                CX_StmtClass_OMPScanDirective => "OMPScanDirective",
-                CX_StmtClass_OMPSectionDirective => "OMPSectionDirective",
-                CX_StmtClass_OMPSectionsDirective => "OMPSectionsDirective",
-                CX_StmtClass_OMPSingleDirective => "OMPSingleDirective",
-                CX_StmtClass_OMPTargetDataDirective => "OMPTargetDataDirective",
-                CX_StmtClass_OMPTargetDirective => "OMPTargetDirective",
-                CX_StmtClass_OMPTargetEnterDataDirective => "OMPTargetEnterDataDirective",
-                CX_StmtClass_OMPTargetExitDataDirective => "OMPTargetExitDataDirective",
-                CX_StmtClass_OMPTargetParallelDirective => "OMPTargetParallelDirective",
-                CX_StmtClass_OMPTargetParallelForDirective => "OMPTargetParallelForDirective",
-                CX_StmtClass_OMPTargetTeamsDirective => "OMPTargetTeamsDirective",
-                CX_StmtClass_OMPTargetUpdateDirective => "OMPTargetUpdateDirective",
-                CX_StmtClass_OMPTaskDirective => "OMPTaskDirective",
-                CX_StmtClass_OMPTaskgroupDirective => "OMPTaskgroupDirective",
-                CX_StmtClass_OMPTaskwaitDirective => "OMPTaskwaitDirective",
-                CX_StmtClass_OMPTaskyieldDirective => "OMPTaskyieldDirective",
-                CX_StmtClass_OMPTeamsDirective => "OMPTeamsDirective",
-                CX_StmtClass_ObjCAtCatchStmt => "ObjCAtCatchStmt",
-                CX_StmtClass_ObjCAtFinallyStmt => "ObjCAtFinallyStmt",
-                CX_StmtClass_ObjCAtSynchronizedStmt => "ObjCAtSynchronizedStmt",
-                CX_StmtClass_ObjCAtThrowStmt => "ObjCAtThrowStmt",
-                CX_StmtClass_ObjCAtTryStmt => "ObjCAtTryStmt",
-                CX_StmtClass_ObjCAutoreleasePoolStmt => "ObjCAutoreleasePoolStmt",
-                CX_StmtClass_ObjCForCollectionStmt => "ObjCForCollectionStmt",
-                CX_StmtClass_ReturnStmt => "ReturnStmt",
-                CX_StmtClass_SEHExceptStmt => "SEHExceptStmt",
-                CX_StmtClass_SEHFinallyStmt => "SEHFinallyStmt",
-                CX_StmtClass_SEHLeaveStmt => "SEHLeaveStmt",
-                CX_StmtClass_SEHTryStmt => "SEHTryStmt",
-                CX_StmtClass_CaseStmt => "CaseStmt",
-                CX_StmtClass_DefaultStmt => "DefaultStmt",
-                CX_StmtClass_SwitchStmt => "SwitchStmt",
-                CX_StmtClass_AttributedStmt => "AttributedStmt",
-                CX_StmtClass_BinaryConditionalOperator => "BinaryConditionalOperator",
-                CX_StmtClass_ConditionalOperator => "ConditionalOperator",
-                CX_StmtClass_AddrLabelExpr => "AddrLabelExpr",
-                CX_StmtClass_ArrayInitIndexExpr => "ArrayInitIndexExpr",
-                CX_StmtClass_ArrayInitLoopExpr => "ArrayInitLoopExpr",
-                CX_StmtClass_ArraySubscriptExpr => "ArraySubscriptExpr",
-                CX_StmtClass_ArrayTypeTraitExpr => "ArrayTypeTraitExpr",
-                CX_StmtClass_AsTypeExpr => "AsTypeExpr",
-                CX_StmtClass_AtomicExpr => "AtomicExpr",
-                CX_StmtClass_BinaryOperator => "BinaryOperator",
-                CX_StmtClass_CompoundAssignOperator => "CompoundAssignOperator",
-                CX_StmtClass_BlockExpr => "BlockExpr",
-                CX_StmtClass_CXXBindTemporaryExpr => "CXXBindTemporaryExpr",
-                CX_StmtClass_CXXBoolLiteralExpr => "CXXBoolLiteralExpr",
+                CX_StmtClass_WhileStmt => "WhileStmt",
+                CX_StmtClass_LabelStmt => "LabelStmt",
+                CX_StmtClass_VAArgExpr => "VAArgExpr",
+                CX_StmtClass_UnaryOperator => "UnaryOperator",
+                CX_StmtClass_UnaryExprOrTypeTraitExpr => "UnaryExprOrTypeTraitExpr",
+                CX_StmtClass_TypoExpr => "TypoExpr",
+                CX_StmtClass_TypeTraitExpr => "TypeTraitExpr",
+                CX_StmtClass_SubstNonTypeTemplateParmPackExpr => "SubstNonTypeTemplateParmPackExpr",
+                CX_StmtClass_SubstNonTypeTemplateParmExpr => "SubstNonTypeTemplateParmExpr",
+                CX_StmtClass_StringLiteral => "StringLiteral",
+                CX_StmtClass_StmtExpr => "StmtExpr",
+                CX_StmtClass_SourceLocExpr => "SourceLocExpr",
+                CX_StmtClass_SizeOfPackExpr => "SizeOfPackExpr",
+                CX_StmtClass_ShuffleVectorExpr => "ShuffleVectorExpr",
+                CX_StmtClass_SYCLUniqueStableNameExpr => "SYCLUniqueStableNameExpr",
+                CX_StmtClass_RequiresExpr => "RequiresExpr",
+                CX_StmtClass_RecoveryExpr => "RecoveryExpr",
+                CX_StmtClass_PseudoObjectExpr => "PseudoObjectExpr",
+                CX_StmtClass_PredefinedExpr => "PredefinedExpr",
+                CX_StmtClass_ParenListExpr => "ParenListExpr",
+                CX_StmtClass_ParenExpr => "ParenExpr",
+                CX_StmtClass_PackExpansionExpr => "PackExpansionExpr",
+                CX_StmtClass_UnresolvedMemberExpr => "UnresolvedMemberExpr",
+                CX_StmtClass_UnresolvedLookupExpr => "UnresolvedLookupExpr",
+                CX_StmtClass_OpaqueValueExpr => "OpaqueValueExpr",
+                CX_StmtClass_OffsetOfExpr => "OffsetOfExpr",
+                CX_StmtClass_ObjCSubscriptRefExpr => "ObjCSubscriptRefExpr",
+                CX_StmtClass_ObjCStringLiteral => "ObjCStringLiteral",
+                CX_StmtClass_ObjCSelectorExpr => "ObjCSelectorExpr",
+                CX_StmtClass_ObjCProtocolExpr => "ObjCProtocolExpr",
+                CX_StmtClass_ObjCPropertyRefExpr => "ObjCPropertyRefExpr",
+                CX_StmtClass_ObjCMessageExpr => "ObjCMessageExpr",
+                CX_StmtClass_ObjCIvarRefExpr => "ObjCIvarRefExpr",
+                CX_StmtClass_ObjCIsaExpr => "ObjCIsaExpr",
+                CX_StmtClass_ObjCIndirectCopyRestoreExpr => "ObjCIndirectCopyRestoreExpr",
+                CX_StmtClass_ObjCEncodeExpr => "ObjCEncodeExpr",
+                CX_StmtClass_ObjCDictionaryLiteral => "ObjCDictionaryLiteral",
+                CX_StmtClass_ObjCBoxedExpr => "ObjCBoxedExpr",
+                CX_StmtClass_ObjCBoolLiteralExpr => "ObjCBoolLiteralExpr",
+                CX_StmtClass_ObjCAvailabilityCheckExpr => "ObjCAvailabilityCheckExpr",
+                CX_StmtClass_ObjCArrayLiteral => "ObjCArrayLiteral",
+                CX_StmtClass_OMPIteratorExpr => "OMPIteratorExpr",
+                CX_StmtClass_OMPArrayShapingExpr => "OMPArrayShapingExpr",
+                CX_StmtClass_OMPArraySectionExpr => "OMPArraySectionExpr",
+                CX_StmtClass_NoInitExpr => "NoInitExpr",
+                CX_StmtClass_MemberExpr => "MemberExpr",
+                CX_StmtClass_MatrixSubscriptExpr => "MatrixSubscriptExpr",
+                CX_StmtClass_MaterializeTemporaryExpr => "MaterializeTemporaryExpr",
+                CX_StmtClass_MSPropertySubscriptExpr => "MSPropertySubscriptExpr",
+                CX_StmtClass_MSPropertyRefExpr => "MSPropertyRefExpr",
+                CX_StmtClass_LambdaExpr => "LambdaExpr",
+                CX_StmtClass_IntegerLiteral => "IntegerLiteral",
+                CX_StmtClass_InitListExpr => "InitListExpr",
+                CX_StmtClass_ImplicitValueInitExpr => "ImplicitValueInitExpr",
+                CX_StmtClass_ImaginaryLiteral => "ImaginaryLiteral",
+                CX_StmtClass_GenericSelectionExpr => "GenericSelectionExpr",
+                CX_StmtClass_GNUNullExpr => "GNUNullExpr",
+                CX_StmtClass_FunctionParmPackExpr => "FunctionParmPackExpr",
+                CX_StmtClass_ExprWithCleanups => "ExprWithCleanups",
+                CX_StmtClass_ConstantExpr => "ConstantExpr",
+                CX_StmtClass_FloatingLiteral => "FloatingLiteral",
+                CX_StmtClass_FixedPointLiteral => "FixedPointLiteral",
+                CX_StmtClass_ExtVectorElementExpr => "ExtVectorElementExpr",
+                CX_StmtClass_ExpressionTraitExpr => "ExpressionTraitExpr",
+                CX_StmtClass_DesignatedInitUpdateExpr => "DesignatedInitUpdateExpr",
+                CX_StmtClass_DesignatedInitExpr => "DesignatedInitExpr",
+                CX_StmtClass_DependentScopeDeclRefExpr => "DependentScopeDeclRefExpr",
+                CX_StmtClass_DependentCoawaitExpr => "DependentCoawaitExpr",
+                CX_StmtClass_DeclRefExpr => "DeclRefExpr",
+                CX_StmtClass_CoyieldExpr => "CoyieldExpr",
+                CX_StmtClass_CoawaitExpr => "CoawaitExpr",
+                CX_StmtClass_ConvertVectorExpr => "ConvertVectorExpr",
+                CX_StmtClass_ConceptSpecializationExpr => "ConceptSpecializationExpr",
+                CX_StmtClass_CompoundLiteralExpr => "CompoundLiteralExpr",
+                CX_StmtClass_ChooseExpr => "ChooseExpr",
+                CX_StmtClass_CharacterLiteral => "CharacterLiteral",
+                CX_StmtClass_ImplicitCastExpr => "ImplicitCastExpr",
+                CX_StmtClass_ObjCBridgedCastExpr => "ObjCBridgedCastExpr",
+                CX_StmtClass_CXXStaticCastExpr => "CXXStaticCastExpr",
+                CX_StmtClass_CXXReinterpretCastExpr => "CXXReinterpretCastExpr",
+                CX_StmtClass_CXXDynamicCastExpr => "CXXDynamicCastExpr",
+                CX_StmtClass_CXXConstCastExpr => "CXXConstCastExpr",
+                CX_StmtClass_CXXAddrspaceCastExpr => "CXXAddrspaceCastExpr",
+                CX_StmtClass_CXXFunctionalCastExpr => "CXXFunctionalCastExpr",
+                CX_StmtClass_CStyleCastExpr => "CStyleCastExpr",
+                CX_StmtClass_BuiltinBitCastExpr => "BuiltinBitCastExpr",
+                CX_StmtClass_CallExpr => "CallExpr",
+                CX_StmtClass_UserDefinedLiteral => "UserDefinedLiteral",
+                CX_StmtClass_CXXOperatorCallExpr => "CXXOperatorCallExpr",
+                CX_StmtClass_CXXMemberCallExpr => "CXXMemberCallExpr",
+                CX_StmtClass_CUDAKernelCallExpr => "CUDAKernelCallExpr",
+                CX_StmtClass_CXXUuidofExpr => "CXXUuidofExpr",
+                CX_StmtClass_CXXUnresolvedConstructExpr => "CXXUnresolvedConstructExpr",
+                CX_StmtClass_CXXTypeidExpr => "CXXTypeidExpr",
+                CX_StmtClass_CXXThrowExpr => "CXXThrowExpr",
+                CX_StmtClass_CXXThisExpr => "CXXThisExpr",
+                CX_StmtClass_CXXStdInitializerListExpr => "CXXStdInitializerListExpr",
+                CX_StmtClass_CXXScalarValueInitExpr => "CXXScalarValueInitExpr",
+                CX_StmtClass_CXXRewrittenBinaryOperator => "CXXRewrittenBinaryOperator",
+                CX_StmtClass_CXXPseudoDestructorExpr => "CXXPseudoDestructorExpr",
+                CX_StmtClass_CXXParenListInitExpr => "CXXParenListInitExpr",
+                CX_StmtClass_CXXNullPtrLiteralExpr => "CXXNullPtrLiteralExpr",
+                CX_StmtClass_CXXNoexceptExpr => "CXXNoexceptExpr",
+                CX_StmtClass_CXXNewExpr => "CXXNewExpr",
+                CX_StmtClass_CXXInheritedCtorInitExpr => "CXXInheritedCtorInitExpr",
+                CX_StmtClass_CXXFoldExpr => "CXXFoldExpr",
+                CX_StmtClass_CXXDependentScopeMemberExpr => "CXXDependentScopeMemberExpr",
+                CX_StmtClass_CXXDeleteExpr => "CXXDeleteExpr",
+                CX_StmtClass_CXXDefaultInitExpr => "CXXDefaultInitExpr",
+                CX_StmtClass_CXXDefaultArgExpr => "CXXDefaultArgExpr",
                 CX_StmtClass_CXXConstructExpr => "CXXConstructExpr",
                 CX_StmtClass_CXXTemporaryObjectExpr => "CXXTemporaryObjectExpr",
-                CX_StmtClass_CXXDefaultArgExpr => "CXXDefaultArgExpr",
-                CX_StmtClass_CXXDefaultInitExpr => "CXXDefaultInitExpr",
-                CX_StmtClass_CXXDeleteExpr => "CXXDeleteExpr",
-                CX_StmtClass_CXXDependentScopeMemberExpr => "CXXDependentScopeMemberExpr",
-                CX_StmtClass_CXXFoldExpr => "CXXFoldExpr",
-                CX_StmtClass_CXXInheritedCtorInitExpr => "CXXInheritedCtorInitExpr",
-                CX_StmtClass_CXXNewExpr => "CXXNewExpr",
-                CX_StmtClass_CXXNoexceptExpr => "CXXNoexceptExpr",
-                CX_StmtClass_CXXNullPtrLiteralExpr => "CXXNullPtrLiteralExpr",
-                CX_StmtClass_CXXParenListInitExpr => "CXXParenListInitExpr",
-                CX_StmtClass_CXXPseudoDestructorExpr => "CXXPseudoDestructorExpr",
-                CX_StmtClass_CXXRewrittenBinaryOperator => "CXXRewrittenBinaryOperator",
-                CX_StmtClass_CXXScalarValueInitExpr => "CXXScalarValueInitExpr",
-                CX_StmtClass_CXXStdInitializerListExpr => "CXXStdInitializerListExpr",
-                CX_StmtClass_CXXThisExpr => "CXXThisExpr",
-                CX_StmtClass_CXXThrowExpr => "CXXThrowExpr",
-                CX_StmtClass_CXXTypeidExpr => "CXXTypeidExpr",
-                CX_StmtClass_CXXUnresolvedConstructExpr => "CXXUnresolvedConstructExpr",
-                CX_StmtClass_CXXUuidofExpr => "CXXUuidofExpr",
-                CX_StmtClass_CallExpr => "CallExpr",
-                CX_StmtClass_CUDAKernelCallExpr => "CUDAKernelCallExpr",
-                CX_StmtClass_CXXMemberCallExpr => "CXXMemberCallExpr",
-                CX_StmtClass_CXXOperatorCallExpr => "CXXOperatorCallExpr",
-                CX_StmtClass_UserDefinedLiteral => "UserDefinedLiteral",
-                CX_StmtClass_BuiltinBitCastExpr => "BuiltinBitCastExpr",
-                CX_StmtClass_CStyleCastExpr => "CStyleCastExpr",
-                CX_StmtClass_CXXFunctionalCastExpr => "CXXFunctionalCastExpr",
-                CX_StmtClass_CXXAddrspaceCastExpr => "CXXAddrspaceCastExpr",
-                CX_StmtClass_CXXConstCastExpr => "CXXConstCastExpr",
-                CX_StmtClass_CXXDynamicCastExpr => "CXXDynamicCastExpr",
-                CX_StmtClass_CXXReinterpretCastExpr => "CXXReinterpretCastExpr",
-                CX_StmtClass_CXXStaticCastExpr => "CXXStaticCastExpr",
-                CX_StmtClass_ObjCBridgedCastExpr => "ObjCBridgedCastExpr",
-                CX_StmtClass_ImplicitCastExpr => "ImplicitCastExpr",
-                CX_StmtClass_CharacterLiteral => "CharacterLiteral",
-                CX_StmtClass_ChooseExpr => "ChooseExpr",
-                CX_StmtClass_CompoundLiteralExpr => "CompoundLiteralExpr",
-                CX_StmtClass_ConceptSpecializationExpr => "ConceptSpecializationExpr",
-                CX_StmtClass_ConvertVectorExpr => "ConvertVectorExpr",
-                CX_StmtClass_CoawaitExpr => "CoawaitExpr",
-                CX_StmtClass_CoyieldExpr => "CoyieldExpr",
-                CX_StmtClass_DeclRefExpr => "DeclRefExpr",
-                CX_StmtClass_DependentCoawaitExpr => "DependentCoawaitExpr",
-                CX_StmtClass_DependentScopeDeclRefExpr => "DependentScopeDeclRefExpr",
-                CX_StmtClass_DesignatedInitExpr => "DesignatedInitExpr",
-                CX_StmtClass_DesignatedInitUpdateExpr => "DesignatedInitUpdateExpr",
-                CX_StmtClass_ExpressionTraitExpr => "ExpressionTraitExpr",
-                CX_StmtClass_ExtVectorElementExpr => "ExtVectorElementExpr",
-                CX_StmtClass_FixedPointLiteral => "FixedPointLiteral",
-                CX_StmtClass_FloatingLiteral => "FloatingLiteral",
-                CX_StmtClass_ConstantExpr => "ConstantExpr",
-                CX_StmtClass_ExprWithCleanups => "ExprWithCleanups",
-                CX_StmtClass_FunctionParmPackExpr => "FunctionParmPackExpr",
-                CX_StmtClass_GNUNullExpr => "GNUNullExpr",
-                CX_StmtClass_GenericSelectionExpr => "GenericSelectionExpr",
-                CX_StmtClass_ImaginaryLiteral => "ImaginaryLiteral",
-                CX_StmtClass_ImplicitValueInitExpr => "ImplicitValueInitExpr",
-                CX_StmtClass_InitListExpr => "InitListExpr",
-                CX_StmtClass_IntegerLiteral => "IntegerLiteral",
-                CX_StmtClass_LambdaExpr => "LambdaExpr",
-                CX_StmtClass_MSPropertyRefExpr => "MSPropertyRefExpr",
-                CX_StmtClass_MSPropertySubscriptExpr => "MSPropertySubscriptExpr",
-                CX_StmtClass_MaterializeTemporaryExpr => "MaterializeTemporaryExpr",
-                CX_StmtClass_MatrixSubscriptExpr => "MatrixSubscriptExpr",
-                CX_StmtClass_MemberExpr => "MemberExpr",
-                CX_StmtClass_NoInitExpr => "NoInitExpr",
-                CX_StmtClass_OMPArraySectionExpr => "OMPArraySectionExpr",
-                CX_StmtClass_OMPArrayShapingExpr => "OMPArrayShapingExpr",
-                CX_StmtClass_OMPIteratorExpr => "OMPIteratorExpr",
-                CX_StmtClass_ObjCArrayLiteral => "ObjCArrayLiteral",
-                CX_StmtClass_ObjCAvailabilityCheckExpr => "ObjCAvailabilityCheckExpr",
-                CX_StmtClass_ObjCBoolLiteralExpr => "ObjCBoolLiteralExpr",
-                CX_StmtClass_ObjCBoxedExpr => "ObjCBoxedExpr",
-                CX_StmtClass_ObjCDictionaryLiteral => "ObjCDictionaryLiteral",
-                CX_StmtClass_ObjCEncodeExpr => "ObjCEncodeExpr",
-                CX_StmtClass_ObjCIndirectCopyRestoreExpr => "ObjCIndirectCopyRestoreExpr",
-                CX_StmtClass_ObjCIsaExpr => "ObjCIsaExpr",
-                CX_StmtClass_ObjCIvarRefExpr => "ObjCIvarRefExpr",
-                CX_StmtClass_ObjCMessageExpr => "ObjCMessageExpr",
-                CX_StmtClass_ObjCPropertyRefExpr => "ObjCPropertyRefExpr",
-                CX_StmtClass_ObjCProtocolExpr => "ObjCProtocolExpr",
-                CX_StmtClass_ObjCSelectorExpr => "ObjCSelectorExpr",
-                CX_StmtClass_ObjCStringLiteral => "ObjCStringLiteral",
-                CX_StmtClass_ObjCSubscriptRefExpr => "ObjCSubscriptRefExpr",
-                CX_StmtClass_OffsetOfExpr => "OffsetOfExpr",
-                CX_StmtClass_OpaqueValueExpr => "OpaqueValueExpr",
-                CX_StmtClass_UnresolvedLookupExpr => "UnresolvedLookupExpr",
-                CX_StmtClass_UnresolvedMemberExpr => "UnresolvedMemberExpr",
-                CX_StmtClass_PackExpansionExpr => "PackExpansionExpr",
-                CX_StmtClass_ParenExpr => "ParenExpr",
-                CX_StmtClass_ParenListExpr => "ParenListExpr",
-                CX_StmtClass_PredefinedExpr => "PredefinedExpr",
-                CX_StmtClass_PseudoObjectExpr => "PseudoObjectExpr",
-                CX_StmtClass_RecoveryExpr => "RecoveryExpr",
-                CX_StmtClass_RequiresExpr => "RequiresExpr",
-                CX_StmtClass_SYCLUniqueStableNameExpr => "SYCLUniqueStableNameExpr",
-                CX_StmtClass_ShuffleVectorExpr => "ShuffleVectorExpr",
-                CX_StmtClass_SizeOfPackExpr => "SizeOfPackExpr",
-                CX_StmtClass_SourceLocExpr => "SourceLocExpr",
-                CX_StmtClass_StmtExpr => "StmtExpr",
-                CX_StmtClass_StringLiteral => "StringLiteral",
-                CX_StmtClass_SubstNonTypeTemplateParmExpr => "SubstNonTypeTemplateParmExpr",
-                CX_StmtClass_SubstNonTypeTemplateParmPackExpr => "SubstNonTypeTemplateParmPackExpr",
-                CX_StmtClass_TypeTraitExpr => "TypeTraitExpr",
-                CX_StmtClass_TypoExpr => "TypoExpr",
-                CX_StmtClass_UnaryExprOrTypeTraitExpr => "UnaryExprOrTypeTraitExpr",
-                CX_StmtClass_UnaryOperator => "UnaryOperator",
-                CX_StmtClass_VAArgExpr => "VAArgExpr",
-                CX_StmtClass_LabelStmt => "LabelStmt",
-                CX_StmtClass_WhileStmt => "WhileStmt",
+                CX_StmtClass_CXXBoolLiteralExpr => "CXXBoolLiteralExpr",
+                CX_StmtClass_CXXBindTemporaryExpr => "CXXBindTemporaryExpr",
+                CX_StmtClass_BlockExpr => "BlockExpr",
+                CX_StmtClass_BinaryOperator => "BinaryOperator",
+                CX_StmtClass_CompoundAssignOperator => "CompoundAssignOperator",
+                CX_StmtClass_AtomicExpr => "AtomicExpr",
+                CX_StmtClass_AsTypeExpr => "AsTypeExpr",
+                CX_StmtClass_ArrayTypeTraitExpr => "ArrayTypeTraitExpr",
+                CX_StmtClass_ArraySubscriptExpr => "ArraySubscriptExpr",
+                CX_StmtClass_ArrayInitLoopExpr => "ArrayInitLoopExpr",
+                CX_StmtClass_ArrayInitIndexExpr => "ArrayInitIndexExpr",
+                CX_StmtClass_AddrLabelExpr => "AddrLabelExpr",
+                CX_StmtClass_ConditionalOperator => "ConditionalOperator",
+                CX_StmtClass_BinaryConditionalOperator => "BinaryConditionalOperator",
+                CX_StmtClass_AttributedStmt => "AttributedStmt",
+                CX_StmtClass_SwitchStmt => "SwitchStmt",
+                CX_StmtClass_DefaultStmt => "DefaultStmt",
+                CX_StmtClass_CaseStmt => "CaseStmt",
+                CX_StmtClass_SEHTryStmt => "SEHTryStmt",
+                CX_StmtClass_SEHLeaveStmt => "SEHLeaveStmt",
+                CX_StmtClass_SEHFinallyStmt => "SEHFinallyStmt",
+                CX_StmtClass_SEHExceptStmt => "SEHExceptStmt",
+                CX_StmtClass_ReturnStmt => "ReturnStmt",
+                CX_StmtClass_ObjCForCollectionStmt => "ObjCForCollectionStmt",
+                CX_StmtClass_ObjCAutoreleasePoolStmt => "ObjCAutoreleasePoolStmt",
+                CX_StmtClass_ObjCAtTryStmt => "ObjCAtTryStmt",
+                CX_StmtClass_ObjCAtThrowStmt => "ObjCAtThrowStmt",
+                CX_StmtClass_ObjCAtSynchronizedStmt => "ObjCAtSynchronizedStmt",
+                CX_StmtClass_ObjCAtFinallyStmt => "ObjCAtFinallyStmt",
+                CX_StmtClass_ObjCAtCatchStmt => "ObjCAtCatchStmt",
+                CX_StmtClass_OMPTeamsDirective => "OMPTeamsDirective",
+                CX_StmtClass_OMPTaskyieldDirective => "OMPTaskyieldDirective",
+                CX_StmtClass_OMPTaskwaitDirective => "OMPTaskwaitDirective",
+                CX_StmtClass_OMPTaskgroupDirective => "OMPTaskgroupDirective",
+                CX_StmtClass_OMPTaskDirective => "OMPTaskDirective",
+                CX_StmtClass_OMPTargetUpdateDirective => "OMPTargetUpdateDirective",
+                CX_StmtClass_OMPTargetTeamsDirective => "OMPTargetTeamsDirective",
+                CX_StmtClass_OMPTargetParallelForDirective => "OMPTargetParallelForDirective",
+                CX_StmtClass_OMPTargetParallelDirective => "OMPTargetParallelDirective",
+                CX_StmtClass_OMPTargetExitDataDirective => "OMPTargetExitDataDirective",
+                CX_StmtClass_OMPTargetEnterDataDirective => "OMPTargetEnterDataDirective",
+                CX_StmtClass_OMPTargetDirective => "OMPTargetDirective",
+                CX_StmtClass_OMPTargetDataDirective => "OMPTargetDataDirective",
+                CX_StmtClass_OMPSingleDirective => "OMPSingleDirective",
+                CX_StmtClass_OMPSectionsDirective => "OMPSectionsDirective",
+                CX_StmtClass_OMPSectionDirective => "OMPSectionDirective",
+                CX_StmtClass_OMPScopeDirective => "OMPScopeDirective",
+                CX_StmtClass_OMPScanDirective => "OMPScanDirective",
+                CX_StmtClass_OMPParallelSectionsDirective => "OMPParallelSectionsDirective",
+                CX_StmtClass_OMPParallelMasterDirective => "OMPParallelMasterDirective",
+                CX_StmtClass_OMPParallelMaskedDirective => "OMPParallelMaskedDirective",
+                CX_StmtClass_OMPParallelDirective => "OMPParallelDirective",
+                CX_StmtClass_OMPOrderedDirective => "OMPOrderedDirective",
+                CX_StmtClass_OMPMetaDirective => "OMPMetaDirective",
+                CX_StmtClass_OMPMasterDirective => "OMPMasterDirective",
+                CX_StmtClass_OMPMaskedDirective => "OMPMaskedDirective",
+                CX_StmtClass_OMPUnrollDirective => "OMPUnrollDirective",
+                CX_StmtClass_OMPTileDirective => "OMPTileDirective",
+                CX_StmtClass_OMPTeamsGenericLoopDirective => "OMPTeamsGenericLoopDirective",
+                CX_StmtClass_OMPTeamsDistributeSimdDirective => "OMPTeamsDistributeSimdDirective",
+                CX_StmtClass_OMPTeamsDistributeParallelForSimdDirective => "OMPTeamsDistributeParallelForSimdDirective",
+                CX_StmtClass_OMPTeamsDistributeParallelForDirective => "OMPTeamsDistributeParallelForDirective",
+                CX_StmtClass_OMPTeamsDistributeDirective => "OMPTeamsDistributeDirective",
+                CX_StmtClass_OMPTaskLoopSimdDirective => "OMPTaskLoopSimdDirective",
+                CX_StmtClass_OMPTaskLoopDirective => "OMPTaskLoopDirective",
+                CX_StmtClass_OMPTargetTeamsGenericLoopDirective => "OMPTargetTeamsGenericLoopDirective",
+                CX_StmtClass_OMPTargetTeamsDistributeSimdDirective => "OMPTargetTeamsDistributeSimdDirective",
+                CX_StmtClass_OMPTargetTeamsDistributeParallelForSimdDirective => "OMPTargetTeamsDistributeParallelForSimdDirective",
+                CX_StmtClass_OMPTargetTeamsDistributeParallelForDirective => "OMPTargetTeamsDistributeParallelForDirective",
+                CX_StmtClass_OMPTargetTeamsDistributeDirective => "OMPTargetTeamsDistributeDirective",
+                CX_StmtClass_OMPTargetSimdDirective => "OMPTargetSimdDirective",
+                CX_StmtClass_OMPTargetParallelGenericLoopDirective => "OMPTargetParallelGenericLoopDirective",
+                CX_StmtClass_OMPTargetParallelForSimdDirective => "OMPTargetParallelForSimdDirective",
+                CX_StmtClass_OMPSimdDirective => "OMPSimdDirective",
+                CX_StmtClass_OMPParallelMasterTaskLoopSimdDirective => "OMPParallelMasterTaskLoopSimdDirective",
+                CX_StmtClass_OMPParallelMasterTaskLoopDirective => "OMPParallelMasterTaskLoopDirective",
+                CX_StmtClass_OMPParallelMaskedTaskLoopSimdDirective => "OMPParallelMaskedTaskLoopSimdDirective",
+                CX_StmtClass_OMPParallelMaskedTaskLoopDirective => "OMPParallelMaskedTaskLoopDirective",
+                CX_StmtClass_OMPParallelGenericLoopDirective => "OMPParallelGenericLoopDirective",
+                CX_StmtClass_OMPParallelForSimdDirective => "OMPParallelForSimdDirective",
+                CX_StmtClass_OMPParallelForDirective => "OMPParallelForDirective",
+                CX_StmtClass_OMPMasterTaskLoopSimdDirective => "OMPMasterTaskLoopSimdDirective",
+                CX_StmtClass_OMPMasterTaskLoopDirective => "OMPMasterTaskLoopDirective",
+                CX_StmtClass_OMPMaskedTaskLoopSimdDirective => "OMPMaskedTaskLoopSimdDirective",
+                CX_StmtClass_OMPMaskedTaskLoopDirective => "OMPMaskedTaskLoopDirective",
+                CX_StmtClass_OMPGenericLoopDirective => "OMPGenericLoopDirective",
+                CX_StmtClass_OMPForSimdDirective => "OMPForSimdDirective",
+                CX_StmtClass_OMPForDirective => "OMPForDirective",
+                CX_StmtClass_OMPDistributeSimdDirective => "OMPDistributeSimdDirective",
+                CX_StmtClass_OMPDistributeParallelForSimdDirective => "OMPDistributeParallelForSimdDirective",
+                CX_StmtClass_OMPDistributeParallelForDirective => "OMPDistributeParallelForDirective",
+                CX_StmtClass_OMPDistributeDirective => "OMPDistributeDirective",
+                CX_StmtClass_OMPInteropDirective => "OMPInteropDirective",
+                CX_StmtClass_OMPFlushDirective => "OMPFlushDirective",
+                CX_StmtClass_OMPErrorDirective => "OMPErrorDirective",
+                CX_StmtClass_OMPDispatchDirective => "OMPDispatchDirective",
+                CX_StmtClass_OMPDepobjDirective => "OMPDepobjDirective",
+                CX_StmtClass_OMPCriticalDirective => "OMPCriticalDirective",
+                CX_StmtClass_OMPCancellationPointDirective => "OMPCancellationPointDirective",
+                CX_StmtClass_OMPCancelDirective => "OMPCancelDirective",
+                CX_StmtClass_OMPBarrierDirective => "OMPBarrierDirective",
+                CX_StmtClass_OMPAtomicDirective => "OMPAtomicDirective",
+                CX_StmtClass_OMPCanonicalLoop => "OMPCanonicalLoop",
+                CX_StmtClass_NullStmt => "NullStmt",
+                CX_StmtClass_MSDependentExistsStmt => "MSDependentExistsStmt",
+                CX_StmtClass_IndirectGotoStmt => "IndirectGotoStmt",
+                CX_StmtClass_IfStmt => "IfStmt",
+                CX_StmtClass_GotoStmt => "GotoStmt",
+                CX_StmtClass_ForStmt => "ForStmt",
+                CX_StmtClass_DoStmt => "DoStmt",
+                CX_StmtClass_DeclStmt => "DeclStmt",
+                CX_StmtClass_CoroutineBodyStmt => "CoroutineBodyStmt",
+                CX_StmtClass_CoreturnStmt => "CoreturnStmt",
+                CX_StmtClass_ContinueStmt => "ContinueStmt",
+                CX_StmtClass_CompoundStmt => "CompoundStmt",
+                CX_StmtClass_CapturedStmt => "CapturedStmt",
+                CX_StmtClass_CXXTryStmt => "CXXTryStmt",
+                CX_StmtClass_CXXForRangeStmt => "CXXForRangeStmt",
+                CX_StmtClass_CXXCatchStmt => "CXXCatchStmt",
+                CX_StmtClass_BreakStmt => "BreakStmt",
+                CX_StmtClass_MSAsmStmt => "MSAsmStmt",
+                CX_StmtClass_GCCAsmStmt => "GCCAsmStmt",
                 _ => StmtClass.ToString()[13..],
             };
         }
     }
 
     public readonly CX_StorageClass StorageClass => clang.Cursor_getStorageClass(this);
+
+    public readonly CX_StringKind StringLiteralKind => clangsharp.Cursor_getStringLiteralKind(this);
 
     public readonly CXString StringLiteralValue => clangsharp.Cursor_getStringLiteralValue(this);
 
@@ -1583,7 +1627,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXUnaryOperatorKind UnaryOperatorKind => clang.getCursorUnaryOperatorKind(this);
 
-    public readonly CXString UnaryOperatorKindSpelling => clang.getUnaryOperatorKindSpelling(UnaryOperatorKind);
+    public readonly CXString UnaryOperatorKindSpelling
+        => (UnaryOperatorKind != CXUnaryOperator_Invalid) ? clang.getUnaryOperatorKindSpelling(UnaryOperatorKind) : default;
 
     public readonly CXCursor UnderlyingDecl => clangsharp.Cursor_getUnderlyingDecl(this);
 

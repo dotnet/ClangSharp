@@ -87,8 +87,6 @@ public sealed class XmlDefaultWindows_EnumDeclarationTest : EnumDeclarationTest
 ";
 
         var expectedOutputContents = string.Empty;
-
-        var excludedNames = new string[] { "MyEnum" };
         return ValidateGeneratedXmlDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
     }
 
@@ -230,7 +228,7 @@ enum MyEnum2 : int
 
         var withAttributes = new Dictionary<string, IReadOnlyList<string>>
         {
-            ["MyEnum1"] = new List<string>() { "Flags" }
+            ["MyEnum1"] = ["Flags"]
         };
         return ValidateGeneratedXmlDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
     }
@@ -275,7 +273,7 @@ enum MyEnum2 : int
 
         var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
         {
-            ["MyEnum1"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
+            ["MyEnum1"] = ["static ClangSharp.Test.MyEnum1"]
         };
         return ValidateGeneratedXmlDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
     }
@@ -320,7 +318,7 @@ enum MyEnum2 : int
 
         var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
         {
-            ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" }
+            ["*"] = ["static ClangSharp.Test.MyEnum1"]
         };
         return ValidateGeneratedXmlDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
     }
@@ -365,8 +363,8 @@ enum MyEnum2 : int
 
         var withNamespaces = new Dictionary<string, IReadOnlyList<string>>
         {
-            ["*"] = new List<string>() { "static ClangSharp.Test.MyEnum1" },
-            ["MyEnum2"] = new List<string>() { "System" }
+            ["*"] = ["static ClangSharp.Test.MyEnum1"],
+            ["MyEnum2"] = ["System"]
         };
         return ValidateGeneratedXmlDefaultWindowsBindingsAsync(inputContents, expectedOutputContents, withUsings: withNamespaces);
     }

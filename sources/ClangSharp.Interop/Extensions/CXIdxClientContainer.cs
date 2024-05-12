@@ -4,14 +4,9 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXIdxClientContainer : IEquatable<CXIdxClientContainer>
+public unsafe partial struct CXIdxClientContainer(IntPtr handle) : IEquatable<CXIdxClientContainer>
 {
-    public CXIdxClientContainer(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public static explicit operator CXIdxClientContainer(void* value) => new CXIdxClientContainer((IntPtr)value);
 

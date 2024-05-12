@@ -26,7 +26,7 @@ public sealed class DeclTest : TranslationUnitTest
         var recordDecl = translationUnit.TranslationUnitDecl.Decls.OfType<RecordDecl>().Where((recordDecl) => recordDecl.Name.Equals("MyStruct", StringComparison.Ordinal)).Single();
         var accessSpecDecl = recordDecl.Decls.OfType<AccessSpecDecl>().Single();
 
-        Assert.AreEqual(expectedAccessSpecifier, accessSpecDecl.Access);
+        Assert.That(accessSpecDecl.Access, Is.EqualTo(expectedAccessSpecifier));
     }
 
     [Test]
@@ -42,10 +42,10 @@ class MyClass
         using var translationUnit = CreateTranslationUnit(inputContents);
 
         var classTemplateDecl = translationUnit.TranslationUnitDecl.Decls.OfType<ClassTemplateDecl>().Single();
-        Assert.AreEqual("MyClass", classTemplateDecl.Name);
+        Assert.That(classTemplateDecl.Name, Is.EqualTo("MyClass"));
 
         var templateParameter = classTemplateDecl.TemplateParameters.Single();
-        Assert.AreEqual("T", templateParameter.Name);
+        Assert.That(templateParameter.Name, Is.EqualTo("T"));
     }
 
     [Test]
@@ -69,9 +69,9 @@ class MyClass<int, U>
         using var translationUnit = CreateTranslationUnit(inputContents);
 
         var classTemplatePartialSpecializationDecl = translationUnit.TranslationUnitDecl.Decls.OfType<ClassTemplatePartialSpecializationDecl>().Single();
-        Assert.AreEqual("MyClass", classTemplatePartialSpecializationDecl.Name);
+        Assert.That(classTemplatePartialSpecializationDecl.Name, Is.EqualTo("MyClass"));
 
         var templateParameter = classTemplatePartialSpecializationDecl.TemplateParameters.Single();
-        Assert.AreEqual("U", templateParameter.Name);
+        Assert.That(templateParameter.Name, Is.EqualTo("U"));
     }
 }

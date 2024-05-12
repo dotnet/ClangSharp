@@ -16,10 +16,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ windows ]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: ./scripts/cibuild.cmd -configuration ${{ matrix.configuration }} -architecture ${{ matrix.architecture }}
       shell: cmd
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -36,10 +36,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ ubuntu ]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: ./scripts/cibuild.sh --configuration ${{ matrix.configuration }} --architecture ${{ matrix.architecture }}
       shell: bash
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -56,10 +56,10 @@ jobs:
         configuration: [ debug, release ]
         os: [ macos ]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: ./scripts/cibuild.sh --configuration ${{ matrix.configuration }} --architecture ${{ matrix.architecture }}
       shell: bash
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
         path: |
@@ -71,13 +71,13 @@ jobs:
   build-nuget-preview:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: ./scripts/cibuild.cmd -configuration release -architecture x64
       shell: cmd
       env:
         EXCLUDE_RUN_ID_FROM_PACKAGE: true
         EXCLUDE_SUFFIX_FROM_VERSION: false
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: nuget_preview
         path: |
@@ -93,17 +93,17 @@ jobs:
     permissions:
       id-token: write
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
       with:
         name: nuget_preview
         path: ./artifacts
-    - uses: actions/setup-dotnet@v3
+    - uses: actions/setup-dotnet@v4
       with:
         global-json-file: ./global.json
-    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.1-beta.23530.1
+    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.1-beta.24170.3
     - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --timestamp-url "http://timestamp.digicert.com" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileList.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-key-vault-certificate "${{ secrets.SC_KEY_VAULT_CERTIFICATE_ID }}" --azure-key-vault-client-id "${{ secrets.SC_AZURE_CLIENT_ID }}" --azure-key-vault-client-secret "${{ secrets.SC_AZURE_CLIENT_SECRET }}" --azure-key-vault-tenant-id "${{ secrets.SC_AZURE_TENANT_ID }}" --azure-key-vault-url "${{ secrets.SC_KEY_VAULT_URL }}"
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: sign_nuget_preview
         path: |
@@ -112,13 +112,13 @@ jobs:
   build-nuget-release:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: ./scripts/cibuild.cmd -configuration release -architecture x64
       shell: cmd
       env:
         EXCLUDE_RUN_ID_FROM_PACKAGE: true
         EXCLUDE_SUFFIX_FROM_VERSION: true
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: nuget_release
         path: |
@@ -134,17 +134,17 @@ jobs:
     permissions:
       id-token: write
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
       with:
         name: nuget_release
         path: ./artifacts
-    - uses: actions/setup-dotnet@v3
+    - uses: actions/setup-dotnet@v4
       with:
         global-json-file: ./global.json
-    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.1-beta.23530.1
+    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.1-beta.24170.3
     - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --timestamp-url "http://timestamp.digicert.com" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileList.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-key-vault-certificate "${{ secrets.SC_KEY_VAULT_CERTIFICATE_ID }}" --azure-key-vault-client-id "${{ secrets.SC_AZURE_CLIENT_ID }}" --azure-key-vault-client-secret "${{ secrets.SC_AZURE_CLIENT_SECRET }}" --azure-key-vault-tenant-id "${{ secrets.SC_AZURE_TENANT_ID }}" --azure-key-vault-url "${{ secrets.SC_KEY_VAULT_URL }}"
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: sign_nuget_release
         path: |
@@ -155,13 +155,13 @@ jobs:
     if: ${{ github.event_name == 'push' }}
     needs: [ windows-x64, linux-x64, macos-x64, sign-nuget-preview, sign-nuget-release ]
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: windows_release_x64
         path: ./artifacts
-    - uses: actions/setup-dotnet@v3
+    - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '6.0.x'
+        dotnet-version: '8.0.x'
         source-url: https://pkgs.clangsharp.dev/index.json
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.AZURE_DEVOPS_PAT }}
@@ -171,11 +171,11 @@ jobs:
     if: false
     needs: [ windows-x64, linux-x64, macos-x64, sign-nuget-preview, sign-nuget-release ]
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: windows_release_x64
         path: ./artifacts
-    - uses: actions/setup-dotnet@v3
+    - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '6.0.x'
+        dotnet-version: '8.0.x'
     - run: dotnet nuget push "./artifacts/pkg/Release/*.nupkg" --source https://nuget.pkg.github.com/dotnet/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

@@ -10,25 +10,38 @@ public unsafe struct MarshaledString : IDisposable
 {
     public MarshaledString(string? input)
     {
-        int length;
-        IntPtr value;
+        int valueLength;
+        sbyte* pValue;
 
         if (input is null)
         {
-            length = 0;
-            value = IntPtr.Zero;
+            valueLength = 0;
+            pValue = null;
         }
         else
         {
-            var valueBytes = (input.Length != 0) ? Encoding.UTF8.GetBytes(input) : [];
-            length = valueBytes.Length;
-            value = Marshal.AllocHGlobal(length + 1);
-            Marshal.Copy(valueBytes, 0, value, length);
-            Marshal.WriteByte(value, length, 0);
+            var maxValueLength = Encoding.UTF8.GetMaxByteCount(input.Length);
+            pValue = (sbyte*)NativeMemory.Alloc((uint)maxValueLength + 1);
+            valueLength = Encoding.UTF8.GetBytes(input, new Span<byte>(pValue, maxValueLength));
+            pValue[valueLength] = 0;
         }
 
-        Length = length;
-        Value = (sbyte*)value;
+        Length = valueLength;
+        Value = pValue;
+    }
+
+    public MarshaledString(ReadOnlySpan<char> input)
+    {
+        int valueLength;
+        sbyte* pValue;
+
+        var maxValueLength = Encoding.UTF8.GetMaxByteCount(input.Length);
+        pValue = (sbyte*)NativeMemory.Alloc((uint)maxValueLength + 1);
+        valueLength = Encoding.UTF8.GetBytes(input, new Span<byte>(pValue, maxValueLength));
+        pValue[valueLength] = 0;
+
+        Length = valueLength;
+        Value = pValue;
     }
 
     public readonly ReadOnlySpan<byte> AsSpan() => new ReadOnlySpan<byte>(Value, Length);
@@ -41,7 +54,7 @@ public unsafe struct MarshaledString : IDisposable
     {
         if (Value != null)
         {
-            Marshal.FreeHGlobal((IntPtr)Value);
+            NativeMemory.Free(Value);
             Value = null;
             Length = 0;
         }

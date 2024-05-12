@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
+// Copyright (c) .NET Foundation and Contributors. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ public sealed class OverloadedDeclRef : Ref
     internal OverloadedDeclRef(CXCursor handle) : base(handle, CXCursor_OverloadedDeclRef)
     {
         _overloadedDecls = new Lazy<IEnumerable<Decl>>(() => {
-            uint num = Handle.NumOverloadedDecls;
+            var num = Handle.NumOverloadedDecls;
             return Enumerable.Range(0, (int)num)
                 .Select(i => Handle.GetOverloadedDecl((uint)i))
                 .Select(c => TranslationUnit.GetOrCreate<Decl>(c))

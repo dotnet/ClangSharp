@@ -4,14 +4,9 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXTargetInfo : IDisposable, IEquatable<CXTargetInfo>
+public unsafe partial struct CXTargetInfo(IntPtr handle) : IDisposable, IEquatable<CXTargetInfo>
 {
-    public CXTargetInfo(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly int PointerWidth => clang.TargetInfo_getPointerWidth(this);
 

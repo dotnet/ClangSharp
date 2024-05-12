@@ -107,7 +107,7 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
 
     public bool IsOverloadedOperator => Handle.IsOverloadedOperator;
 
-    public bool IsPure => Handle.IsPure;
+    public bool IsPure => Handle.IsPureVirtual;
 
     public bool IsStatic => Handle.IsStatic;
 

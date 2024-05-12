@@ -212,14 +212,9 @@ public sealed class XmlLatestWindows_CXXMethodDeclarationTest : CXXMethodDeclara
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            if (!Environment.Is64BitProcess)
-            {
-                entryPoint = "?MyVoidMethod@MyStruct@@QAEXXZ";
-            }
-            else
-            {
-                entryPoint = "?MyVoidMethod@MyStruct@@QEAAXXZ";
-            }
+            entryPoint = Environment.Is64BitProcess
+                       ? "?MyVoidMethod@MyStruct@@QEAAXXZ"
+                       : "?MyVoidMethod@MyStruct@@QAEXXZ";
         }
 
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>

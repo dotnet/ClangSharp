@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXDiagnosticSet : IDisposable, IEquatable<CXDiagnosticSet>, IReadOnlyCollection<CXDiagnostic>
+public unsafe partial struct CXDiagnosticSet(IntPtr handle) : IDisposable, IEquatable<CXDiagnosticSet>, IReadOnlyCollection<CXDiagnostic>
 {
     public static CXDiagnosticSet Load(string file, out CXLoadDiag_Error error, out CXString errorString)
     {
@@ -19,16 +19,11 @@ public unsafe partial struct CXDiagnosticSet : IDisposable, IEquatable<CXDiagnos
         }
     }
 
-    public CXDiagnosticSet(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public readonly CXDiagnostic this[uint index] => GetDiagnostic(index);
 
     public readonly int Count => (int)NumDiagnostics;
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public readonly uint NumDiagnostics => clang.getNumDiagnosticsInSet(this);
 

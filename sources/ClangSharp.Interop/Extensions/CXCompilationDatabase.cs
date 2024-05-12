@@ -4,16 +4,11 @@ using System;
 
 namespace ClangSharp.Interop;
 
-public unsafe partial struct CXCompilationDatabase : IDisposable, IEquatable<CXCompilationDatabase>
+public unsafe partial struct CXCompilationDatabase(IntPtr handle) : IDisposable, IEquatable<CXCompilationDatabase>
 {
-    public CXCompilationDatabase(IntPtr handle)
-    {
-        Handle = handle;
-    }
-
     public readonly CXCompileCommands AllCompileCommands => (CXCompileCommands)clang.CompilationDatabase_getAllCompileCommands(this);
 
-    public IntPtr Handle { get; set; }
+    public IntPtr Handle { get; set; } = handle;
 
     public static explicit operator CXCompilationDatabase(void* value) => new CXCompilationDatabase((IntPtr)value);
 

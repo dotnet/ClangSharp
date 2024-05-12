@@ -1,6 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System;
 using System.IO;
 using ClangSharp.Interop;
 using NUnit.Framework;
@@ -27,9 +26,9 @@ public class CXTranslationUnitTest
             File.WriteAllText(file.FullName, "int main() { return 0; }");
 
             using var index = CXIndex.Create();
-            using var translationUnit = CXTranslationUnit.Parse(index, file.FullName, Array.Empty<string>(), Array.Empty<CXUnsavedFile>(), CXTranslationUnit_None);
+            using var translationUnit = CXTranslationUnit.Parse(index, file.FullName, [], [], CXTranslationUnit_None);
             var clangFile = translationUnit.GetFile(file.FullName);
-            Assert.AreEqual(file.FullName, clangFile.Name.CString);
+            Assert.That(clangFile.Name.CString, Is.EqualTo(file.FullName));
         }
         finally
         {
@@ -53,12 +52,12 @@ public class CXTranslationUnitTest
             File.WriteAllText(file.FullName, "int main() { return 0; }");
 
             var index = CXIndex.Create();
-            var translationUnit = CXTranslationUnit.Parse(index, file.FullName, Array.Empty<string>(), Array.Empty<CXUnsavedFile>(), CXTranslationUnit_None);
+            var translationUnit = CXTranslationUnit.Parse(index, file.FullName, [], [], CXTranslationUnit_None);
             var clangFile = translationUnit.GetFile(file.FullName);
             var clangFileName = clangFile.Name;
             var clangFileNameString = clangFileName.CString;
 
-            Assert.AreEqual(file.FullName, clangFileNameString);
+            Assert.That(clangFileNameString, Is.EqualTo(file.FullName));
         }
         finally
         {
