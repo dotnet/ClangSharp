@@ -416,4 +416,14 @@ namespace ClangSharp.Test
 
         return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents);
     }
+
+    protected override Task IntrinsicsTestImpl()
+    {
+        const string InputContents = @"extern ""C"" void __builtin_cpu_init();
+#pragma intrinsic(__builtin_cpu_init)";
+
+        const string ExpectedOutputContents = @"";
+
+        return ValidateGeneratedCSharpDefaultWindowsBindingsAsync(InputContents, ExpectedOutputContents);
+    }
 }
