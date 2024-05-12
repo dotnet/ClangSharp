@@ -21,8 +21,6 @@ public sealed class CXXDefaultArgExpr : Expr
         _usedContext = new Lazy<IDeclContext?>(() => TranslationUnit.GetOrCreate<Decl>(Handle.UsedContext) as IDeclContext);
     }
 
-    public Expr Expr => Param.DefaultArg;
-
     public ParmVarDecl Param => _param.Value;
 
     public IDeclContext? UsedContext => _usedContext.Value;

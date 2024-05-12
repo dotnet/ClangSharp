@@ -28,6 +28,10 @@ public sealed class ParmVarDecl : VarDecl
 
     public bool HasDefaultArg => Handle.HasDefaultArg;
 
+    public bool HasUnparsedDefaultArg => Handle.HasUnparsedDefaultArg;
+
+    public bool HasUninstantiatedDefaultArg => Handle.HasUninstantiatedDefaultArg;
+
     public bool HasInheritedDefaultArg => Handle.HasInheritedDefaultArg;
 
     public Type OriginalType => _originalType.Value;

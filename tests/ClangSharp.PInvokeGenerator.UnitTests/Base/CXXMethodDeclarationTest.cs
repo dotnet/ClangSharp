@@ -17,6 +17,9 @@ public abstract class CXXMethodDeclarationTest : PInvokeGeneratorTest
     public Task ConversionTest() => ConversionTestImpl();
 
     [Test]
+    public Task DefaultParameterInheritedFromTemplateTest() => DefaultParameterInheritedFromTemplateTestImpl();
+
+    [Test]
     public Task DestructorTest() => DestructorTestImpl();
 
     [Test]
@@ -106,6 +109,8 @@ int buf_close(void *pContext)
     protected abstract Task ConstructorWithInitializeTestImpl();
 
     protected abstract Task ConversionTestImpl();
+
+    protected abstract Task DefaultParameterInheritedFromTemplateTestImpl();
 
     protected abstract Task DestructorTestImpl();
 
