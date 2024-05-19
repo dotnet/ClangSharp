@@ -1454,18 +1454,18 @@ public sealed partial class PInvokeGenerator : IDisposable
                 return type.Contains('*', StringComparison.Ordinal)
                      ? (8, 4, +1)
                      : type switch {
-                        "sbyte" => (1, 1, -1),
-                        "byte" => (1, 1, +1),
-                        "short" => (2, 2, -1),
-                        "ushort" => (2, 2, +1),
-                        "int" => (4, 4, -1),
-                        "uint" => (4, 4, +1),
-                        "nint" => (8, 4, -1),
-                        "nuint" => (8, 4, +1),
-                        "long" => (8, 8, -1),
-                        "ulong" => (8, 8, +1),
-                        _ => (0, 0, 0),
-                    };
+                         "sbyte" => (1, 1, -1),
+                         "byte" => (1, 1, +1),
+                         "short" => (2, 2, -1),
+                         "ushort" => (2, 2, +1),
+                         "int" => (4, 4, -1),
+                         "uint" => (4, 4, +1),
+                         "nint" => (8, 4, -1),
+                         "nuint" => (8, 4, +1),
+                         "long" => (8, 8, -1),
+                         "ulong" => (8, 8, +1),
+                         _ => (0, 0, 0),
+                     };
             }
 
             static void OutputConversions(StreamWriter sw, string indentString, string name, string type, PInvokeGeneratorTransparentStructKind kind, string target)
@@ -5403,7 +5403,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         => kind is PInvokeGeneratorTransparentStructKind.Boolean;
 
     private static bool IsTransparentStructHandle(PInvokeGeneratorTransparentStructKind kind)
-         =>  kind is PInvokeGeneratorTransparentStructKind.Handle
+         => kind is PInvokeGeneratorTransparentStructKind.Handle
                   or PInvokeGeneratorTransparentStructKind.HandleWin32;
 
     private static bool IsTransparentStructHexBased(PInvokeGeneratorTransparentStructKind kind)
@@ -6149,7 +6149,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private static bool NeedsNewKeyword(string name)
     {
-        return name.Equals("Equals",StringComparison.Ordinal)
+        return name.Equals("Equals", StringComparison.Ordinal)
             || name.Equals("GetHashCode", StringComparison.Ordinal)
             || name.Equals("GetType", StringComparison.Ordinal)
             || name.Equals("MemberwiseClone", StringComparison.Ordinal)
@@ -6215,7 +6215,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             return nameSpan.ToString();
         }
         return name;
-        }
+    }
 
     private string PrefixAndStripMethodName(string name, uint overloadIndex)
     {
