@@ -970,7 +970,7 @@ public partial class PInvokeGenerator
 
             if (declRefExpr.Decl is FunctionDecl)
             {
-                escapedName = EscapeAndStripName(name);
+                escapedName = EscapeAndStripMethodName(name);
             }
         }
 

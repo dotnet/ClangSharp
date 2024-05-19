@@ -297,9 +297,7 @@ public partial class PInvokeGenerator
 
         if (Config.StripEnumMemberTypeName)
         {
-            Regex stripParentNameRegex = new($"^{Regex.Escape(parentName)}_*", RegexOptions.IgnoreCase);
-            var strippedName = stripParentNameRegex.Replace(escapedName, string.Empty);
-            escapedName = strippedName;
+            escapedName = PrefixAndStrip(escapedName, parentName, trimChar: '_');
         }
 
         var kind = isAnonymousEnum ? ValueKind.Primitive : ValueKind.Enumerator;
@@ -543,12 +541,12 @@ public partial class PInvokeGenerator
         if ((cxxMethodDecl is not null) && cxxMethodDecl.IsVirtual)
         {
             isVirtual = true;
-            escapedName = PrefixAndStripName(name, GetOverloadIndex(cxxMethodDecl));
+            escapedName = PrefixAndStripMethodName(name, GetOverloadIndex(cxxMethodDecl));
         }
         else
         {
             isVirtual = false;
-            escapedName = EscapeAndStripName(name);
+            escapedName = EscapeAndStripMethodName(name);
         }
 
         var returnType = functionDecl.ReturnType;
@@ -2032,7 +2030,7 @@ public partial class PInvokeGenerator
 
             var desc = new FunctionOrDelegateDesc {
                 AccessSpecifier = AccessSpecifier.Public,
-                EscapedName = EscapeAndStripName(name),
+                EscapedName = EscapeAndStripMethodName(name),
                 IsMemberFunction = true,
                 NativeTypeName = nativeTypeName,
                 HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
@@ -2120,7 +2118,7 @@ public partial class PInvokeGenerator
             }
 
             var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
-            var escapedName = EscapeAndStripName(remappedName);
+            var escapedName = EscapeAndStripMethodName(remappedName);
 
             var desc = new FieldDesc
             {
@@ -2189,7 +2187,7 @@ public partial class PInvokeGenerator
             var desc = new FunctionOrDelegateDesc {
                 AccessSpecifier = AccessSpecifier.Public,
                 IsAggressivelyInlined = _config.GenerateAggressiveInlining,
-                EscapedName = EscapeAndStripName(name),
+                EscapedName = EscapeAndStripMethodName(name),
                 ParentName = parentName,
                 IsMemberFunction = true,
                 IsInherited = isInherited,
@@ -2269,7 +2267,7 @@ public partial class PInvokeGenerator
             {
                 body.Write("Marshal.GetDelegateForFunctionPointer<");
                 body.BeginMarker("delegate");
-                body.Write(PrefixAndStripName(name, GetOverloadIndex(cxxMethodDecl)));
+                body.Write(PrefixAndStripMethodName(name, GetOverloadIndex(cxxMethodDecl)));
                 body.EndMarker("delegate");
                 body.Write(">(");
             }
@@ -2278,7 +2276,7 @@ public partial class PInvokeGenerator
             {
                 body.Write("lpVtbl->");
                 body.BeginMarker("vtbl", new KeyValuePair<string, object>("explicit", true));
-                body.Write(EscapeAndStripName(remappedName));
+                body.Write(EscapeAndStripMethodName(remappedName));
                 body.EndMarker("vtbl");
             }
             else
