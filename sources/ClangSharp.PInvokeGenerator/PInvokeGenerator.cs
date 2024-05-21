@@ -65,6 +65,8 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly HashSet<string> _usedRemappings;
     private readonly string _placeholderMacroType;
 
+    private bool _hasAnnotateAttr;
+
     private string _filePath;
     private string[] _clangCommandLineArgs;
     private CXTranslationUnit_Flags _translationFlags;
@@ -435,6 +437,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             GenerateNativeBitfieldAttribute(this, stream, leaveStreamOpen);
             GenerateNativeInheritanceAttribute(this, stream, leaveStreamOpen);
             GenerateNativeTypeNameAttribute(this, stream, leaveStreamOpen);
+            GenerateNativeAnnotationAttribute(this, stream, leaveStreamOpen);
             GenerateSetsLastSystemErrorAttribute(this, stream, leaveStreamOpen);
             GenerateVtblIndexAttribute(this, stream, leaveStreamOpen);
             GenerateTransparentStructs(this, stream, leaveStreamOpen);
@@ -781,6 +784,94 @@ public sealed partial class PInvokeGenerator : IDisposable
             sw.WriteLine("    /// <summary>Gets the name of the type that was used in the native signature.</summary>");
             sw.Write(indentString);
             sw.WriteLine("    public string Name => _name;");
+            sw.Write(indentString);
+            sw.WriteLine('}');
+
+            if (!generator.Config.GenerateFileScopedNamespaces)
+            {
+                sw.WriteLine('}');
+            }
+
+            if (!leaveStreamOpen)
+            {
+                stream = null;
+            }
+        }
+
+        static void GenerateNativeAnnotationAttribute(PInvokeGenerator generator, Stream? stream, bool leaveStreamOpen)
+        {
+            var config = generator.Config;
+
+            if (!generator._hasAnnotateAttr)
+            {
+                return;
+            }
+
+            if (stream is null)
+            {
+                var outputPath = Path.Combine(config.OutputLocation, "NativeAnnotationAttribute.cs");
+                stream = generator._outputStreamFactory(outputPath);
+            }
+
+            using var sw = new StreamWriter(stream, s_defaultStreamWriterEncoding, DefaultStreamWriterBufferSize, leaveStreamOpen);
+            sw.NewLine = "\n";
+
+            if (!string.IsNullOrEmpty(config.HeaderText))
+            {
+                sw.WriteLine(config.HeaderText);
+            }
+
+            var indentString = "    ";
+
+            sw.WriteLine("using System;");
+            sw.WriteLine("using System.Diagnostics;");
+            sw.WriteLine();
+
+            sw.Write("namespace ");
+            sw.Write(generator.GetNamespace("NativeAnnotationAttribute"));
+
+            if (generator.Config.GenerateFileScopedNamespaces)
+            {
+                sw.WriteLine(';');
+                sw.WriteLine();
+                indentString = "";
+            }
+            else
+            {
+                sw.WriteLine();
+                sw.WriteLine('{');
+            }
+
+            sw.Write(indentString);
+            sw.WriteLine("/// <summary>Defines the annotation found in a native declaration.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("[AttributeUsage(AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]");
+            sw.Write(indentString);
+            sw.WriteLine("[Conditional(\"DEBUG\")]");
+            sw.Write(indentString);
+            sw.WriteLine("internal sealed partial class NativeAnnotationAttribute : Attribute");
+            sw.Write(indentString);
+            sw.WriteLine('{');
+            sw.Write(indentString);
+            sw.WriteLine("    private readonly string _annotation;");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    /// <summary>Initializes a new instance of the <see cref=\"NativeAnnotationAttribute\" /> class.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("    /// <param name=\"annotation\">The annotation that was used in the native declaration.</param>");
+            sw.Write(indentString);
+            sw.WriteLine("    public NativeAnnotationAttribute(string annotation)");
+            sw.Write(indentString);
+            sw.WriteLine("    {");
+            sw.Write(indentString);
+            sw.WriteLine("        _annotation = annotation;");
+            sw.Write(indentString);
+            sw.WriteLine("    }");
+            sw.WriteLine();
+            sw.Write(indentString);
+            sw.WriteLine("    /// <summary>Gets the annotation that was used in the native declaration.</summary>");
+            sw.Write(indentString);
+            sw.WriteLine("    public string Annotation => _annotation;");
             sw.Write(indentString);
             sw.WriteLine('}');
 
@@ -6721,6 +6812,14 @@ public sealed partial class PInvokeGenerator : IDisposable
                             outputBuilder.WriteCustomAttribute($"Obsolete");
                         }
                         obsoleteEmitted = true;
+                        break;
+                    }
+
+                    case CX_AttrKind_Annotate:
+                    {
+                        _hasAnnotateAttr = true;
+                        var annotationText = attr.Spelling;
+                        outputBuilder.WriteCustomAttribute($"""NativeAnnotation("{annotationText}")""");
                         break;
                     }
 
