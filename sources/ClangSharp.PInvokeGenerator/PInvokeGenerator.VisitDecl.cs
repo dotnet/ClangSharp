@@ -273,7 +273,6 @@ public partial class PInvokeGenerator
 
         var accessSpecifier = AccessSpecifier.None;
         var name = GetRemappedCursorName(enumConstantDecl);
-        var escapedName = EscapeName(name);
         var typeName = GetTargetTypeName(enumConstantDecl, out _);
         var isAnonymousEnum = false;
         var parentName = "";
@@ -295,10 +294,7 @@ public partial class PInvokeGenerator
             parentName = _outputBuilder.Name;
         }
 
-        if (Config.StripEnumMemberTypeName)
-        {
-            escapedName = PrefixAndStrip(escapedName, parentName, trimChar: '_');
-        }
+        var escapedName = EscapeAndStripEnumMemberName(name, parentName);
 
         var kind = isAnonymousEnum ? ValueKind.Primitive : ValueKind.Enumerator;
         var flags = ValueFlags.Constant;
