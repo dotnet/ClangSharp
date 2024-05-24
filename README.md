@@ -256,6 +256,10 @@ Options:
   generate-unmanaged-constants           Unmanaged constants should be generated using static ref readonly properties. This is currently experimental.
   generate-vtbl-index-attribute          [VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method.
 
+  # Stripping Options
+
+  strip-enum-member-type-name            Strips the enum type name from the beginning of its member names.
+
   # Logging Options
 
   log-exclusions                         A list of excluded declaration types should be generated. This will also log if the exclusion was due to an exact or partial match.

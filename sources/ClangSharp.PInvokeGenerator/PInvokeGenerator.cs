@@ -1454,18 +1454,18 @@ public sealed partial class PInvokeGenerator : IDisposable
                 return type.Contains('*', StringComparison.Ordinal)
                      ? (8, 4, +1)
                      : type switch {
-                        "sbyte" => (1, 1, -1),
-                        "byte" => (1, 1, +1),
-                        "short" => (2, 2, -1),
-                        "ushort" => (2, 2, +1),
-                        "int" => (4, 4, -1),
-                        "uint" => (4, 4, +1),
-                        "nint" => (8, 4, -1),
-                        "nuint" => (8, 4, +1),
-                        "long" => (8, 8, -1),
-                        "ulong" => (8, 8, +1),
-                        _ => (0, 0, 0),
-                    };
+                         "sbyte" => (1, 1, -1),
+                         "byte" => (1, 1, +1),
+                         "short" => (2, 2, -1),
+                         "ushort" => (2, 2, +1),
+                         "int" => (4, 4, -1),
+                         "uint" => (4, 4, +1),
+                         "nint" => (8, 4, -1),
+                         "nuint" => (8, 4, +1),
+                         "long" => (8, 8, -1),
+                         "ulong" => (8, 8, +1),
+                         _ => (0, 0, 0),
+                     };
             }
 
             static void OutputConversions(StreamWriter sw, string indentString, string name, string type, PInvokeGeneratorTransparentStructKind kind, string target)
@@ -2326,13 +2326,9 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private string EscapeAndStripName(string name)
+    private string EscapeAndStripMethodName(string name)
     {
-        if (name.StartsWith(_config.MethodPrefixToStrip, StringComparison.Ordinal))
-        {
-            name = name[_config.MethodPrefixToStrip.Length..];
-        }
-
+        name = PrefixAndStrip(name, _config.MethodPrefixToStrip);
         return EscapeName(name);
     }
 
@@ -5407,7 +5403,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         => kind is PInvokeGeneratorTransparentStructKind.Boolean;
 
     private static bool IsTransparentStructHandle(PInvokeGeneratorTransparentStructKind kind)
-         =>  kind is PInvokeGeneratorTransparentStructKind.Handle
+         => kind is PInvokeGeneratorTransparentStructKind.Handle
                   or PInvokeGeneratorTransparentStructKind.HandleWin32;
 
     private static bool IsTransparentStructHexBased(PInvokeGeneratorTransparentStructKind kind)
@@ -6153,7 +6149,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private static bool NeedsNewKeyword(string name)
     {
-        return name.Equals("Equals",StringComparison.Ordinal)
+        return name.Equals("Equals", StringComparison.Ordinal)
             || name.Equals("GetHashCode", StringComparison.Ordinal)
             || name.Equals("GetType", StringComparison.Ordinal)
             || name.Equals("MemberwiseClone", StringComparison.Ordinal)
@@ -6198,13 +6194,32 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
-    private string PrefixAndStripName(string name, uint overloadIndex)
+    /// <summary>
+    /// Checks whether the specified name starts with a prefix, optionally trims a separator character following the prefix and returns the remainder.
+    /// </summary>
+    /// <param name="name">The name to strip.</param>
+    /// <param name="prefix">The prefix to strip from <paramref name="name"/>.</param>
+    /// <param name="trimChar">Additional separator that may follow <paramref name="prefix"/> which should also be trimmed away.</param>
+    /// <returns>
+    /// <paramref name="name"/> if it does not start with <paramref name="prefix"/>;
+    /// otherwise,
+    /// the remainder of <paramref name="name"/> after stripping <paramref name="prefix"/> and all immediate following occurences of <paramref name="trimChar"/> from it beginning.
+    /// </returns>
+    private static string PrefixAndStrip(string name, string prefix, char trimChar = '\0')
     {
-        if (name.StartsWith(_config.MethodPrefixToStrip, StringComparison.Ordinal))
+        var nameSpan = name.AsSpan();
+        if (nameSpan.StartsWith(prefix, StringComparison.Ordinal))
         {
-            name = name[_config.MethodPrefixToStrip.Length..];
+            nameSpan = nameSpan[prefix.Length..];
+            nameSpan = nameSpan.TrimStart(trimChar);
+            return nameSpan.ToString();
         }
+        return name;
+    }
 
+    private string PrefixAndStripMethodName(string name, uint overloadIndex)
+    {
+        name = PrefixAndStrip(name, _config.MethodPrefixToStrip);
         return $"_{name}{((overloadIndex != 0) ? overloadIndex.ToString(CultureInfo.InvariantCulture) : "")}";
     }
 

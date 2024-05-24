@@ -178,6 +178,12 @@ public static class Program
         new TwoColumnHelpRow("generate-vtbl-index-attribute", "[VtblIndex(#)] attribute should be generated to document the underlying VTBL index for a helper method."),
 
         new TwoColumnHelpRow("", ""),
+        new TwoColumnHelpRow("# Stripping Options", ""),
+        new TwoColumnHelpRow("", ""),
+
+        new TwoColumnHelpRow("strip-enum-member-type-name", "Strips the enum type name from the beginning of its member names."),
+
+        new TwoColumnHelpRow("", ""),
         new TwoColumnHelpRow("# Logging Options", ""),
         new TwoColumnHelpRow("", ""),
 
@@ -614,6 +620,14 @@ public static class Program
                 case "log-visited-files":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.LogVisitedFiles;
+                    break;
+                }
+
+                // Strip Options
+
+                case "strip-enum-member-type-name":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.StripEnumMemberTypeName;
                     break;
                 }
 
