@@ -2332,6 +2332,20 @@ public sealed partial class PInvokeGenerator : IDisposable
         return EscapeName(name);
     }
 
+    private string EscapeAndStripEnumMemberName(string name, string enumTypeName)
+    {
+        if (Config.StripEnumMemberTypeName)
+        {
+            var escapedName = PrefixAndStrip(name, enumTypeName, trimChar: '_');
+            if (escapedName.Length > 0 && char.IsAsciiDigit(escapedName[0]))
+            {
+                escapedName = '_' + escapedName;
+            }
+            return escapedName;
+        }
+        return EscapeName(name);
+    }
+
     internal static string EscapeCharacter(char value) => value switch {
         '\0' => @"\0",
         '\\' => @"\\",
