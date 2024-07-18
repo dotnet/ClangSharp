@@ -155,32 +155,33 @@ Options:
   -e, --exclude <exclude>                                          A declaration name to exclude from binding generation. []
   -f, --file <file>                                                A file to parse and generate bindings for. []
   -F, --file-directory <file-directory>                            The base path for files to parse. []
-  -h, --headerFile <headerFile>                                    A file which contains the header to prefix every generated file with. []
+  -hf, --headerFile <headerFile>                                   A file which contains the header to prefix every generated file with. []
   -i, --include <include>                                          A declaration name to include in binding generation. []
   -I, --include-directory <include-directory>                      Add directory to include search path. []
-  -x, --language <language>                                        Treat subsequent input files as having type <language>. [default: c++]
+  -x, --language <c|c++>                                           Treat subsequent input files as having type <language>. [default: c++]
   -l, --libraryPath <libraryPath>                                  The string to use in the DllImport attribute used when generating bindings. []
   -m, --methodClassName <methodClassName>                          The name of the static class that will contain the generated method bindings. [default: Methods]
   -n, --namespace <namespace>                                      The namespace in which to place the generated bindings. []
-  --nativeTypeNamesToStrip                                         The contents to strip from the generated NativeTypeName attributes.
   -om, --output-mode <CSharp|Xml>                                  The mode describing how the information collected from the headers are presented in the resultant bindings. [default: CSharp]
-  -o,  --output <output>                                            The output location to write the generated bindings to. []
+  -o, --output <output>                                            The output location to write the generated bindings to. []
   -p, --prefixStrip <prefixStrip>                                  The prefix to strip from the generated method bindings. []
+  --nativeTypeNamesToStrip <nativeTypeNamesToStrip>                The contents to strip from the generated NativeTypeName attributes. []
   -r, --remap <remap>                                              A declaration name to be remapped to another name during binding generation. []
-  -std, --std <std>                                                Language standard to compile for. []
+  -std <std>                                                       Language standard to compile for. []
   -to, --test-output <test-output>                                 The output location to write the generated tests to. []
   -t, --traverse <traverse>                                        A file name included either directly or indirectly by -f that should be traversed during binding generation. []
-  -v, --version <version>                                          Prints the current version information for the tool and its native dependencies.
+  -v, --version                                                    Prints the current version information for the tool and its native dependencies.
   -was, --with-access-specifier <with-access-specifier>            An access specifier to be used with the given qualified or remapped declaration name during binding generation. Supports wildcards. []
   -wa, --with-attribute <with-attribute>                           An attribute to be added to the given remapped declaration name during binding generation. Supports wildcards. []
   -wcc, --with-callconv <with-callconv>                            A calling convention to be used for the given declaration during binding generation. Supports wildcards. []
   -wc, --with-class <with-class>                                   A class to be used for the given remapped constant or function declaration name during binding generation. Supports wildcards. []
   -wg, --with-guid <with-guid>                                     A GUID to be used for the given declaration during binding generation. Supports wildcards. []
+  -wl, --with-length <with-length>                                 A length to be used for the given declaration during binding generation. Supports wildcards. []
   -wlb, --with-librarypath <with-librarypath>                      A library path to be used for the given declaration during binding generation. Supports wildcards. []
   -wmi, --with-manual-import <with-manual-import>                  A remapped function name to be treated as a manual import during binding generation. Supports wildcards. []
   -wn, --with-namespace <with-namespace>                           A namespace to be used for the given remapped declaration name during binding generation. Supports wildcards. []
   -wp, --with-packing <with-packing>                               Overrides the StructLayoutAttribute.Pack property for the given type. Supports wildcards. []
-  -wsle, --with-setlasterror <with-setlasterror>                   Add the SetLastError=true modifier to a given DllImport or UnmanagedFunctionPointer. Supports wildcards. []
+  -wsle, --with-setlasterror <with-setlasterror>                   Add the SetLastError=true modifier or SetsSystemLastError attribute to a given DllImport or UnmanagedFunctionPointer. Supports wildcards. []
   -wsgct, --with-suppressgctransition <with-suppressgctransition>  Add the SuppressGCTransition calling convention to a given DllImport or UnmanagedFunctionPointer. Supports wildcards. []
   -wts, --with-transparent-struct <with-transparent-struct>        A remapped type name to be treated as a transparent wrapper during binding generation. Supports wildcards. []
   -wt, --with-type <with-type>                                     A type to be used for the given enum declaration during binding generation. Supports wildcards. []
@@ -218,7 +219,7 @@ Options:
   # Exclusion Options
 
   exclude-anonymous-field-helpers        The helper ref properties generated for fields in nested anonymous structs and unions should not be generated.
-  exclude-com-proxies                    Types recognized as COM proxies should not have bindings generated. Thes are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub.
+  exclude-com-proxies                    Types recognized as COM proxies should not have bindings generated. These are currently function declarations ending with _UserFree, _UserMarshal, _UserSize, _UserUnmarshal, _Proxy, or _Stub.
   exclude-default-remappings             Default remappings for well known types should not be added. This currently includes intptr_t, ptrdiff_t, size_t, and uintptr_t
   exclude-empty-records                  Bindings for records that contain no members should not be generated. These are commonly encountered for opaque handle like types such as HWND.
   exclude-enum-operators                 Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default.
@@ -243,14 +244,15 @@ Options:
   generate-callconv-member-function      Instance function pointers should use [CallConvMemberFunction] where applicable.
   generate-cpp-attributes                [CppAttributeList("")] should be generated to document the encountered C++ attributes.
   generate-disable-runtime-marshalling   [assembly: DisableRuntimeMarshalling] should be generated.
-  generate-doc-includes                  &lt;include&gt; xml documentation tags should be generated for declarations.
+  generate-doc-includes                  <include> xml documentation tags should be generated for declarations.
   generate-file-scoped-namespaces        Namespaces should be scoped to the file to reduce nesting.
   generate-guid-member                   Types with an associated GUID should have a corresponding member generated.
   generate-helper-types                  Code files should be generated for various helper attributes and declared transparent structs.
   generate-macro-bindings                Bindings for macro-definitions should be generated. This currently only works with value like macros and not function-like ones.
   generate-marker-interfaces             Bindings for marker interfaces representing native inheritance hierarchies should be generated.
-  generate-native-bitfield-attribute     [NativeBitfield(\"\", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout.
+  generate-native-bitfield-attribute     [NativeBitfield("", offset: #, length: #)] attribute should be generated to document the encountered bitfield layout.
   generate-native-inheritance-attribute  [NativeInheritance("")] attribute should be generated to document the encountered C++ base type.
+  generate-generic-pointer-wrapper       Pointer<T> should be used for limited generic type support.
   generate-setslastsystemerror-attribute [SetsLastSystemError] attribute should be generated rather than using SetLastError = true.
   generate-template-bindings             Bindings for template-definitions should be generated. This is currently experimental.
   generate-unmanaged-constants           Unmanaged constants should be generated using static ref readonly properties. This is currently experimental.

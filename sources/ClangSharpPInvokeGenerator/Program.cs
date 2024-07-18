@@ -28,7 +28,7 @@ public static class Program
     private static readonly string[] s_excludeOptionAliases = ["--exclude", "-e"];
     private static readonly string[] s_fileOptionAliases = ["--file", "-f"];
     private static readonly string[] s_fileDirectionOptionAliases = ["--file-directory", "-F"];
-    private static readonly string[] s_headerOptionAliases = ["--headerFile", "-h"];
+    private static readonly string[] s_headerOptionAliases = ["--headerFile", "-hf"];
     private static readonly string[] s_includeOptionAliases = ["--include", "-i"];
     private static readonly string[] s_includeDirectoryOptionAliases = ["--include-directory", "-I"];
     private static readonly string[] s_languageOptionAliases = ["--language", "-x"];
