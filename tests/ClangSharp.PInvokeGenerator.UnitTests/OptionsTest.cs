@@ -54,4 +54,41 @@ namespace ClangSharp.Test
 
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, withUsings: withUsings);
     }
+
+    [Test]
+    public Task WithAttributes()
+    {
+        var inputContents = @"struct StructA {}; struct StructB {}; struct StructC {}; struct StructD {};";
+        var expectedOutputContents =
+@"namespace ClangSharp.Test
+{
+    [A]
+    public partial struct StructA
+    {
+    }
+
+    [B]
+    public partial struct StructB
+    {
+    }
+
+    [Star]
+    public partial struct StructC
+    {
+    }
+
+    [Star]
+    public partial struct StructD
+    {
+    }
+}
+";
+        var withAttributes = new Dictionary<string, IReadOnlyList<string>> {
+            ["StructA"] = [@"A"],
+            ["StructB"] = [@"B"],
+            ["*"] = [@"Star"],
+        };
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, withAttributes: withAttributes);
+    }
 }
