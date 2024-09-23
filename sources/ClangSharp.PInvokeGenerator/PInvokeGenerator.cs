@@ -6817,7 +6817,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                     case CX_AttrKind_Annotate:
                     {
-                        var annotationText = attr.Spelling;
+                        var annotationText = EscapeString(attr.Spelling);
                         outputBuilder.WriteCustomAttribute($"""NativeAnnotation("{annotationText}")""");
                         break;
                     }
