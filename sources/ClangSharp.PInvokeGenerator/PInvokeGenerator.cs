@@ -6765,7 +6765,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         var outputBuilder = isTestOutput ? _testOutputBuilder : _outputBuilder;
         Debug.Assert(outputBuilder is not null);
 
-        if (TryGetRemappedValue(namedDecl, _config.WithAttributes, out var attributes))
+        if (TryGetRemappedValue(namedDecl, _config.WithAttributes, out var attributes, matchStar: true))
         {
             foreach (var attribute in attributes.Where((a) => !onlySupportedOSPlatform || a.StartsWith("SupportedOSPlatform(", StringComparison.Ordinal)))
             {
