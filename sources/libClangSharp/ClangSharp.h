@@ -841,6 +841,8 @@ CLANGSHARP_LINKAGE int clangsharp_Type_getNumRows(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getOriginalType(CXType CT);
 
+CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getSubstTemplateTypeParamAssociatedDecl(CXType CT);
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_Type_getOwnedTagDecl(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getPointeeType(CXType CT);
