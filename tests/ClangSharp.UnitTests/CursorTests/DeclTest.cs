@@ -74,4 +74,26 @@ class MyClass<int, U>
         var templateParameter = classTemplatePartialSpecializationDecl.TemplateParameters.Single();
         Assert.That(templateParameter.Name, Is.EqualTo("U"));
     }
+
+    [Test]
+    public void TemplateParameterPackTest()
+    {
+        var inputContents = $@"template<class... Types>
+class tuple;
+
+tuple<int, long> SomeFunction();
+";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var functionDecl = translationUnit.TranslationUnitDecl.Decls.OfType<FunctionDecl>().Single();
+        var tupleDecl = functionDecl.ReturnType.AsCXXRecordDecl as ClassTemplateSpecializationDecl;
+        Assert.That(tupleDecl, Is.Not.Null);
+        Assert.That(tupleDecl!.TemplateArgs.Count, Is.EqualTo(1));
+
+        var packElements = tupleDecl.TemplateArgs[0].PackElements;
+        Assert.That(packElements.Count, Is.EqualTo(2));
+        Assert.That(packElements[0].AsType.AsString, Is.EqualTo("int"));
+        Assert.That(packElements[1].AsType.AsString, Is.EqualTo("long"));
+    }
 }

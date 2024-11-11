@@ -26,10 +26,38 @@ using namespace clang::cxstring;
 using namespace clang::cxtu;
 using namespace clang::cxtype;
 
+CXTemplateArgumentKind ConvertTemplateArgumentKind(TemplateArgument::ArgKind kind) {
+    switch (kind) {
+    case TemplateArgument::Null:
+        return CXTemplateArgumentKind_Null;
+    case TemplateArgument::Type:
+        return CXTemplateArgumentKind_Type;
+    case TemplateArgument::Declaration:
+        return CXTemplateArgumentKind_Declaration;
+    case TemplateArgument::NullPtr:
+        return CXTemplateArgumentKind_NullPtr;
+    case TemplateArgument::Integral:
+        return CXTemplateArgumentKind_Integral;
+    case TemplateArgument::StructuralValue:
+        // Does not exist in CXTemplateArgumentKind
+        return CXTemplateArgumentKind_Invalid;
+    case TemplateArgument::Template:
+        return CXTemplateArgumentKind_Template;
+    case TemplateArgument::TemplateExpansion:
+        return CXTemplateArgumentKind_TemplateExpansion;
+    case TemplateArgument::Expression:
+        return CXTemplateArgumentKind_Expression;
+    case TemplateArgument::Pack:
+        return CXTemplateArgumentKind_Pack;
+    default:
+        return CXTemplateArgumentKind_Invalid;
+    }
+}
+
 CX_TemplateArgument MakeCXTemplateArgument(const TemplateArgument* TA, CXTranslationUnit TU, bool needsDispose = false) {
     if (TA) {
         assert(TU && "Invalid arguments!");
-        return { static_cast<CXTemplateArgumentKind>(TA->getKind()), (needsDispose ? 1 : 0), TA, TU };
+        return { ConvertTemplateArgumentKind(TA->getKind()), (needsDispose ? 1 : 0), TA, TU };
     }
 
     return { };
