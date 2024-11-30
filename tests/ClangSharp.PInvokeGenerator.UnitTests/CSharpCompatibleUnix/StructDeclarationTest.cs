@@ -11,6 +11,41 @@ namespace ClangSharp.UnitTests;
 [Platform("unix")]
 public sealed class CSharpCompatibleUnix_StructDeclarationTest : StructDeclarationTest
 {
+    public Task NestedStructTest(string nativeType, string expectedManagedType)
+    {
+        var inputContents = $@"struct A
+{{
+    struct Inner {{}};
+}};
+struct B
+{{
+    virtual void Method(A::Inner& inner);
+}};
+";
+
+        var expectedOutputContents = $@"namespace Bug
+{{
+    public partial struct A
+    {{
+
+        public partial struct Inner
+        {{
+        }}
+    }}
+    public unsafe partial struct B
+    {{
+        public void** lpVtbl;
+
+        public void Method([NativeTypeName(""A::Inner &"")] A.Inner* inner)
+        {{
+            ((delegate* unmanaged[Thiscall]<B*, Inner*, void>)(lpVtbl[0]))((B*)Unsafe.AsPointer(ref this), inner);
+        }}
+    }}
+}}
+";
+
+        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
     protected override Task IncompleteArraySizeTestImpl(string nativeType, string expectedManagedType)
     {
         var inputContents = $@"struct MyStruct
