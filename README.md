@@ -169,7 +169,7 @@ Options:
   -r, --remap <remap>                                              A declaration name to be remapped to another name during binding generation. []
   -std <std>                                                       Language standard to compile for. []
   -to, --test-output <test-output>                                 The output location to write the generated tests to. []
-  -t, --traverse <traverse>                                        A file name included either directly or indirectly by -f that should be traversed during binding generation. []
+  -t, --traverse <traverse>                                        A glob used to filter file names included either directly or indirectly by -f that will be traversed during binding generation. []
   -v, --version                                                    Prints the current version information for the tool and its native dependencies.
   -was, --with-access-specifier <with-access-specifier>            An access specifier to be used with the given qualified or remapped declaration name during binding generation. Supports wildcards. []
   -wa, --with-attribute <with-attribute>                           An attribute to be added to the given remapped declaration name during binding generation. Supports wildcards. []

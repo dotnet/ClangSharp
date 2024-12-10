@@ -14,6 +14,7 @@ using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 using ClangSharp.Interop;
 using ClangSharp.XML;
+using DotNet.Globbing;
 using static ClangSharp.Interop.CX_AttrKind;
 using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
@@ -64,6 +65,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly HashSet<string> _topLevelClassNames;
     private readonly HashSet<string> _usedRemappings;
     private readonly string _placeholderMacroType;
+    private readonly List<Glob> _traversalGlobs;
 
     private string _filePath;
     private string[] _clangCommandLineArgs;
@@ -163,6 +165,20 @@ public sealed partial class PInvokeGenerator : IDisposable
             _filePath = "";
             _clangCommandLineArgs = [];
             _placeholderMacroType = GetPlaceholderMacroType();
+
+            _traversalGlobs = [];
+            if (config.TraversalNames.Count > 0)
+            {
+                var options = new GlobOptions();
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    options.Evaluation.CaseInsensitive = true;
+                }
+                foreach (var item in config.TraversalNames)
+                {
+                    _traversalGlobs.Add(Glob.Parse(item, options));
+                }
+            }
         }
         else
         {
@@ -4715,7 +4731,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             declLocation.GetExpansionLocation(out var expansionFile, out var expansionLine, out var expansionColumn, out _);
 
-            if ((expansionFile == file) && (expansionLine == line) && (expansionColumn == column) && _config.TraversalNames.Count != 0)
+            if ((expansionFile == file) && (expansionLine == line) && (expansionColumn == column) && _traversalGlobs.Count != 0)
             {
                 // clang_getLocation is a very expensive call, so exit early if the expansion file is the same
                 // However, if we are not explicitly specifying traversal names, its possible the expansion location
@@ -4908,26 +4924,34 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         bool IsIncludedFileOrLocation(Cursor cursor, CXFile file, CXSourceLocation location)
         {
-            // Use case insensitive comparison on Windows
-            var equalityComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
-
-            // Normalize paths to be '/' for comparison
-            var fileName = file.Name.ToString().NormalizePath();
+            var fileName = file.Name.CString;
 
             if (_visitedFiles.Add(fileName) && _config.LogVisitedFiles)
             {
                 AddDiagnostic(DiagnosticLevel.Info, $"Visiting {fileName}");
             }
 
-            if (_config.TraversalNames.Contains(fileName, equalityComparer))
+            // If there is no source file, then exclude it.
+            if (string.IsNullOrEmpty(fileName))
             {
-                return true;
+                return false;
             }
-            else if (_config.TraversalNames.Contains(fileName.NormalizeFullPath(), equalityComparer))
+
+            // If the user has specified a set of headers to include, then use that.
+            if (_traversalGlobs.Count > 0)
             {
-                return true;
+                if (_traversalGlobs.Any(glob => glob.IsMatch(fileName)))
+                {
+                    return true;
+                }
+                var fullPath = Path.GetFullPath(fileName);
+                if (_traversalGlobs.Any(glob => glob.IsMatch(fullPath)))
+                {
+                    return true;
+                }
             }
-            else if (_config.TraversalNames.Count == 0 && location.IsFromMainFile)
+            // Otherwise, only include items from the main file.
+            else if (location.IsFromMainFile)
             {
                 return true;
             }

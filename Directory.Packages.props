@@ -12,6 +12,7 @@
 
   <!-- Package versions for package references across all projects -->
   <ItemGroup>
+    <PackageVersion Include="DotNet.Glob" Version="3.1.3" />
     <PackageVersion Include="libClang" Version="18.1.3.2" />
     <PackageVersion Include="libClangSharp" Version="18.1.3.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
