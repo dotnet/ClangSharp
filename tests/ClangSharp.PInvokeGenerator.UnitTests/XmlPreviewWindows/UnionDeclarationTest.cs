@@ -1223,4 +1223,95 @@ union MyUnion
 
         return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
     }
+
+    protected override Task UnionWithAnonStructWithAnonUnionImpl()
+    {
+        var inputContents = $@"typedef union _MY_UNION
+{{
+    long AsArray[2];
+    struct
+    {{
+        long First;
+        union
+        {{
+            struct
+            {{
+                long Second;
+            }} A;
+
+            struct
+            {{
+                long Second;
+            }} B;
+        }};
+    }};
+}} MY_UNION;";
+
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""_MY_UNION"" access=""public"" layout=""Explicit"">
+      <field name=""AsArray"" access=""public"" offset=""0"">
+        <type native=""long[2]"" count=""2"" fixed=""_AsArray_e__FixedBuffer"">int</type>
+      </field>
+      <field name=""Anonymous"" access=""public"" offset=""0"">
+        <type native=""__AnonymousRecord_ClangUnsavedFile_L4_C5"">_Anonymous_e__Struct</type>
+      </field>
+      <field name=""First"" access=""public"">
+        <type>ref int</type>
+        <get>
+          <code>return ref Anonymous.First;</code>
+        </get>
+      </field>
+      <field name=""A"" access=""public"">
+        <type>ref _Anonymous_e__Struct._Anonymous_e__Union._A_e__Struct</type>
+        <get>
+          <code>return ref Anonymous.Anonymous.A;</code>
+        </get>
+      </field>
+      <field name=""B"" access=""public"">
+        <type>ref _Anonymous_e__Struct._Anonymous_e__Union._B_e__Struct</type>
+        <get>
+          <code>return ref Anonymous.Anonymous.B;</code>
+        </get>
+      </field>
+      <struct name=""_Anonymous_e__Struct"" access=""public"">
+        <field name=""First"" access=""public"">
+          <type native=""long"">int</type>
+        </field>
+        <field name=""Anonymous"" access=""public"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L7_C9"">_Anonymous_e__Union</type>
+        </field>
+        <struct name=""_Anonymous_e__Union"" access=""public"" layout=""Explicit"">
+          <field name=""A"" access=""public"" offset=""0"">
+            <type native=""__AnonymousRecord_ClangUnsavedFile_L9_C13"">_A_e__Struct</type>
+          </field>
+          <field name=""B"" access=""public"" offset=""0"">
+            <type native=""__AnonymousRecord_ClangUnsavedFile_L14_C13"">_B_e__Struct</type>
+          </field>
+          <struct name=""_A_e__Struct"" access=""public"">
+            <field name=""Second"" access=""public"">
+              <type native=""long"">int</type>
+            </field>
+          </struct>
+          <struct name=""_B_e__Struct"" access=""public"">
+            <field name=""Second"" access=""public"">
+              <type native=""long"">int</type>
+            </field>
+          </struct>
+        </struct>
+      </struct>
+      <struct name=""_AsArray_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(2)</attribute>
+        <field name=""e0"" access=""public"">
+          <type>int</type>
+        </field>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+        return ValidateGeneratedXmlPreviewWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
 }

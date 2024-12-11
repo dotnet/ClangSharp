@@ -182,6 +182,9 @@ public abstract class UnionDeclarationTest : PInvokeGeneratorTest
     [TestCase("bool", "byte")]
     public Task TypedefTest(string nativeType, string expectedManagedType) => TypedefTestImpl(nativeType, expectedManagedType);
 
+    [Test]
+    public Task UnionWithAnonStructWithAnonUnion() => UnionWithAnonStructWithAnonUnionImpl();
+
     protected abstract Task BasicTestImpl(string nativeType, string expectedManagedType);
 
     protected abstract Task BasicTestInCModeImpl(string nativeType, string expectedManagedType);
@@ -237,4 +240,6 @@ public abstract class UnionDeclarationTest : PInvokeGeneratorTest
     protected abstract Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType);
 
     protected abstract Task TypedefTestImpl(string nativeType, string expectedManagedType);
+
+    protected abstract Task UnionWithAnonStructWithAnonUnionImpl();
 }
