@@ -969,12 +969,7 @@ public partial class PInvokeGenerator
 
         var isFixedSizedBuffer = IsTypeConstantOrIncompleteArray(indirectFieldDecl, type);
         var generateCompatibleCode = _config.GenerateCompatibleCode;
-        var typeString = string.Empty;
-
-        if (!fieldDecl.IsBitField && (!isFixedSizedBuffer || generateCompatibleCode))
-        {
-            typeString = "ref ";
-        }
+        var typeStringBuilder = new StringBuilder();
 
         if (IsType<RecordType>(indirectFieldDecl, type, out var recordType))
         {
@@ -985,10 +980,15 @@ public partial class PInvokeGenerator
                 var parentRecordDeclName = GetRemappedCursorName(parentRecordDecl);
                 var escapedParentRecordDeclName = EscapeName(parentRecordDeclName);
 
-                typeString += escapedParentRecordDeclName + '.';
+                _ = typeStringBuilder.Insert(0, '.').Insert(0, escapedParentRecordDeclName);
 
                 recordDecl = parentRecordDecl;
             }
+        }
+
+        if (!fieldDecl.IsBitField && (!isFixedSizedBuffer || generateCompatibleCode))
+        {
+            _ = typeStringBuilder.Insert(0, "ref ");
         }
 
         var isSupportedFixedSizedBufferType = isFixedSizedBuffer && IsSupportedFixedSizedBufferType(typeName);
@@ -998,21 +998,22 @@ public partial class PInvokeGenerator
             if (!generateCompatibleCode)
             {
                 _outputBuilder.EmitSystemSupport();
-                typeString += "Span<";
+                _ = typeStringBuilder.Append("Span<");
             }
             else if (!isSupportedFixedSizedBufferType)
             {
-                typeString += contextType + '.';
+                _ = typeStringBuilder.Append(contextType).Append('.');
                 typeName = GetArtificialFixedSizedBufferName(fieldDecl);
             }
         }
 
-        typeString += typeName;
+        _ = typeStringBuilder.Append(typeName);
         if (isFixedSizedBuffer && !generateCompatibleCode)
         {
-            typeString += '>';
+            _ = typeStringBuilder.Append('>');
         }
 
+        var typeString = typeStringBuilder.ToString();
         _outputBuilder.WriteRegularField(typeString, escapedName);
 
         var isIndirectPointerField = IsTypePointerOrReference(indirectFieldDecl, type) && !typeName.Equals("IntPtr", StringComparison.Ordinal) && !typeName.Equals("UIntPtr", StringComparison.Ordinal);

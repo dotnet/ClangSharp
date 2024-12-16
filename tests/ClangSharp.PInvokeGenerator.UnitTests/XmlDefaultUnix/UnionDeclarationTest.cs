@@ -1328,4 +1328,110 @@ union MyUnion
 
         return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
     }
+
+    protected override Task UnionWithAnonStructWithAnonUnionImpl()
+    {
+        var inputContents = $@"typedef union _MY_UNION
+{{
+    long AsArray[2];
+    struct
+    {{
+        long First;
+        union
+        {{
+            struct
+            {{
+                long Second;
+            }} A;
+
+            struct
+            {{
+                long Second;
+            }} B;
+        }};
+    }};
+}} MY_UNION;";
+
+        var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""_MY_UNION"" access=""public"" layout=""Explicit"">
+      <field name=""AsArray"" access=""public"" offset=""0"">
+        <type native=""long[2]"" count=""2"" fixed=""_AsArray_e__FixedBuffer"">nint</type>
+      </field>
+      <field name=""Anonymous"" access=""public"" offset=""0"">
+        <type native=""__AnonymousRecord_ClangUnsavedFile_L4_C5"">_Anonymous_e__Struct</type>
+      </field>
+      <field name=""First"" access=""public"">
+        <type>ref nint</type>
+        <get>
+          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.First, 1));</code>
+        </get>
+      </field>
+      <field name=""A"" access=""public"">
+        <type>ref _Anonymous_e__Struct._Anonymous_e__Union._A_e__Struct</type>
+        <get>
+          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.A, 1));</code>
+        </get>
+      </field>
+      <field name=""B"" access=""public"">
+        <type>ref _Anonymous_e__Struct._Anonymous_e__Union._B_e__Struct</type>
+        <get>
+          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.B, 1));</code>
+        </get>
+      </field>
+      <struct name=""_Anonymous_e__Struct"" access=""public"">
+        <field name=""First"" access=""public"">
+          <type native=""long"">nint</type>
+        </field>
+        <field name=""Anonymous"" access=""public"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L7_C9"">_Anonymous_e__Union</type>
+        </field>
+        <struct name=""_Anonymous_e__Union"" access=""public"" layout=""Explicit"">
+          <field name=""A"" access=""public"" offset=""0"">
+            <type native=""__AnonymousRecord_ClangUnsavedFile_L9_C13"">_A_e__Struct</type>
+          </field>
+          <field name=""B"" access=""public"" offset=""0"">
+            <type native=""__AnonymousRecord_ClangUnsavedFile_L14_C13"">_B_e__Struct</type>
+          </field>
+          <struct name=""_A_e__Struct"" access=""public"">
+            <field name=""Second"" access=""public"">
+              <type native=""long"">nint</type>
+            </field>
+          </struct>
+          <struct name=""_B_e__Struct"" access=""public"">
+            <field name=""Second"" access=""public"">
+              <type native=""long"">nint</type>
+            </field>
+          </struct>
+        </struct>
+      </struct>
+      <struct name=""_AsArray_e__FixedBuffer"" access=""public"">
+        <field name=""e0"" access=""public"">
+          <type>nint</type>
+        </field>
+        <field name=""e1"" access=""public"">
+          <type>nint</type>
+        </field>
+        <indexer access=""public"">
+          <type>ref nint</type>
+          <param name=""index"">
+            <type>int</type>
+          </param>
+          <get>
+            <code>return ref AsSpan()[index];</code>
+          </get>
+        </indexer>
+        <function name=""AsSpan"" access=""public"">
+          <type>Span&lt;nint&gt;</type>
+          <code>MemoryMarshal.CreateSpan(ref e0, 2);</code>
+        </function>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+    }
 }
