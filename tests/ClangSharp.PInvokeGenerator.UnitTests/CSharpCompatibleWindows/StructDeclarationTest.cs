@@ -1169,7 +1169,7 @@ namespace ClangSharp.Test
         {{
             get
             {{
-                fixed (_Anonymous_e__Struct._Anonymous1_e__Struct* pField = &Anonymous.Anonymous1)
+                fixed (_Anonymous_e__Struct._Anonymous2_1_e__Struct* pField = &Anonymous.Anonymous2_1)
                 {{
                     return ref pField->value1;
                 }}
@@ -1180,7 +1180,7 @@ namespace ClangSharp.Test
         {{
             get
             {{
-                fixed (_Anonymous_e__Struct._Anonymous1_e__Struct._Anonymous_e__Struct* pField = &Anonymous.Anonymous1.Anonymous)
+                fixed (_Anonymous_e__Struct._Anonymous2_1_e__Struct._Anonymous_2_e__Struct* pField = &Anonymous.Anonymous2_1.Anonymous_2)
                 {{
                     return ref pField->value;
                 }}
@@ -1191,7 +1191,7 @@ namespace ClangSharp.Test
         {{
             get
             {{
-                fixed (_Anonymous_e__Struct._Anonymous2_e__Union* pField = &Anonymous.Anonymous2)
+                fixed (_Anonymous_e__Struct._Anonymous3_1_e__Union* pField = &Anonymous.Anonymous3_1)
                 {{
                     return ref pField->value2;
                 }}
@@ -1239,10 +1239,10 @@ namespace ClangSharp.Test
             public _w_e__Struct w;
 
             [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L19_C9"")]
-            public _Anonymous1_e__Struct Anonymous1;
+            public _Anonymous2_1_e__Struct Anonymous2_1;
 
             [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L29_C9"")]
-            public _Anonymous2_e__Union Anonymous2;
+            public _Anonymous3_1_e__Union Anonymous3_1;
 
             public MyUnion u;
 
@@ -1257,21 +1257,21 @@ namespace ClangSharp.Test
                 public {expectedManagedType} value;
             }}
 
-            public unsafe partial struct _Anonymous1_e__Struct
+            public unsafe partial struct _Anonymous2_1_e__Struct
             {{
                 public {expectedManagedType} value1;
 
                 [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L23_C13"")]
-                public _Anonymous_e__Struct Anonymous;
+                public _Anonymous_2_e__Struct Anonymous_2;
 
-                public partial struct _Anonymous_e__Struct
+                public partial struct _Anonymous_2_e__Struct
                 {{
                     public {expectedManagedType} value;
                 }}
             }}
 
             [StructLayout(LayoutKind.Explicit)]
-            public partial struct _Anonymous2_e__Union
+            public partial struct _Anonymous3_1_e__Union
             {{
                 [FieldOffset(0)]
                 public {expectedManagedType} value2;
@@ -1350,7 +1350,7 @@ namespace ClangSharp.Test
         {
             get
             {
-                fixed (_Anonymous_e__Struct._Anonymous_e__Struct* pField = &Anonymous.Anonymous)
+                fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct* pField = &Anonymous.Anonymous_1)
                 {
                     return ref pField->w;
                 }
@@ -1361,12 +1361,12 @@ namespace ClangSharp.Test
         {
             get
             {
-                return Anonymous.Anonymous.o0_b0_16;
+                return Anonymous.Anonymous_1.o0_b0_16;
             }
 
             set
             {
-                Anonymous.Anonymous.o0_b0_16 = value;
+                Anonymous.Anonymous_1.o0_b0_16 = value;
             }
         }
 
@@ -1374,12 +1374,12 @@ namespace ClangSharp.Test
         {
             get
             {
-                return Anonymous.Anonymous.o0_b16_4;
+                return Anonymous.Anonymous_1.o0_b16_4;
             }
 
             set
             {
-                Anonymous.Anonymous.o0_b16_4 = value;
+                Anonymous.Anonymous_1.o0_b16_4 = value;
             }
         }
 
@@ -1388,9 +1388,9 @@ namespace ClangSharp.Test
             public int z;
 
             [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L10_C9"")]
-            public _Anonymous_e__Struct Anonymous;
+            public _Anonymous_1_e__Struct Anonymous_1;
 
-            public partial struct _Anonymous_e__Struct
+            public partial struct _Anonymous_1_e__Struct
             {
                 public int w;
 
@@ -2023,5 +2023,137 @@ namespace ClangSharp.Test
 ";
 
         return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
+    }
+
+    protected override Task AnonStructAndAnonStructArrayImpl()
+    {
+        var inputContents = @"typedef struct _MyStruct
+{
+    struct { int First; };
+    struct { int Second; } MyArray[2];
+} MyStruct;";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public unsafe partial struct _MyStruct
+    {
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L3_C5"")]
+        public _Anonymous1_e__Struct Anonymous1;
+
+        [NativeTypeName(""struct (anonymous struct at ClangUnsavedFile.h:4:5)[2]"")]
+        public _MyArray_e__FixedBuffer MyArray;
+
+        public ref int First
+        {
+            get
+            {
+                fixed (_Anonymous1_e__Struct* pField = &Anonymous1)
+                {
+                    return ref pField->First;
+                }
+            }
+        }
+
+        public partial struct _Anonymous1_e__Struct
+        {
+            public int First;
+        }
+
+        public partial struct _Anonymous2_e__Struct
+        {
+            public int Second;
+        }
+
+        public partial struct _MyArray_e__FixedBuffer
+        {
+            public _Anonymous2_e__Struct e0;
+            public _Anonymous2_e__Struct e1;
+
+            public unsafe ref _Anonymous2_e__Struct this[int index]
+            {
+                get
+                {
+                    fixed (_Anonymous2_e__Struct* pThis = &e0)
+                    {
+                        return ref pThis[index];
+                    }
+                }
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
+
+    protected override Task DeeplyNestedAnonStructsImpl()
+    {
+        var inputContents = @"typedef struct _MyStruct
+{
+    struct { struct {
+        struct { int Value1; };
+        struct { int Value2; };
+    }; };
+} MyStruct;";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public unsafe partial struct _MyStruct
+    {
+        [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L3_C5"")]
+        public _Anonymous_e__Struct Anonymous;
+
+        public ref int Value1
+        {
+            get
+            {
+                fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct._Anonymous1_2_e__Struct* pField = &Anonymous.Anonymous_1.Anonymous1_2)
+                {
+                    return ref pField->Value1;
+                }
+            }
+        }
+
+        public ref int Value2
+        {
+            get
+            {
+                fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct._Anonymous2_2_e__Struct* pField = &Anonymous.Anonymous_1.Anonymous2_2)
+                {
+                    return ref pField->Value2;
+                }
+            }
+        }
+
+        public unsafe partial struct _Anonymous_e__Struct
+        {
+            [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L3_C14"")]
+            public _Anonymous_1_e__Struct Anonymous_1;
+
+            public unsafe partial struct _Anonymous_1_e__Struct
+            {
+                [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L4_C9"")]
+                public _Anonymous1_2_e__Struct Anonymous1_2;
+
+                [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L5_C9"")]
+                public _Anonymous2_2_e__Struct Anonymous2_2;
+
+                public partial struct _Anonymous1_2_e__Struct
+                {
+                    public int Value1;
+                }
+
+                public partial struct _Anonymous2_2_e__Struct
+                {
+                    public int Value2;
+                }
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
     }
 }
