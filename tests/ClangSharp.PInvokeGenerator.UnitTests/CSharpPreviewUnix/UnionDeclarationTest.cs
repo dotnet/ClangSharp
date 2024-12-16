@@ -867,7 +867,7 @@ namespace ClangSharp.Test
         {
             get
             {
-                return ref Anonymous.Anonymous.w;
+                return ref Anonymous.Anonymous_1.w;
             }
         }
 
@@ -875,12 +875,12 @@ namespace ClangSharp.Test
         {
             readonly get
             {
-                return Anonymous.Anonymous.o0_b0_16;
+                return Anonymous.Anonymous_1.o0_b0_16;
             }
 
             set
             {
-                Anonymous.Anonymous.o0_b0_16 = value;
+                Anonymous.Anonymous_1.o0_b0_16 = value;
             }
         }
 
@@ -888,12 +888,12 @@ namespace ClangSharp.Test
         {
             readonly get
             {
-                return Anonymous.Anonymous.o0_b16_4;
+                return Anonymous.Anonymous_1.o0_b16_4;
             }
 
             set
             {
-                Anonymous.Anonymous.o0_b16_4 = value;
+                Anonymous.Anonymous_1.o0_b16_4 = value;
             }
         }
 
@@ -905,10 +905,10 @@ namespace ClangSharp.Test
 
             [FieldOffset(0)]
             [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L10_C9"")]
-            public _Anonymous_e__Union Anonymous;
+            public _Anonymous_1_e__Union Anonymous_1;
 
             [StructLayout(LayoutKind.Explicit)]
-            public partial struct _Anonymous_e__Union
+            public partial struct _Anonymous_1_e__Union
             {
                 [FieldOffset(0)]
                 public int w;
@@ -1449,20 +1449,20 @@ namespace ClangSharp.Test
         }}
 
         [UnscopedRef]
-        public ref _Anonymous_e__Struct._Anonymous_e__Union._A_e__Struct A
+        public ref _Anonymous_e__Struct._Anonymous_1_e__Union._A_e__Struct A
         {{
             get
             {{
-                return ref Anonymous.Anonymous.A;
+                return ref Anonymous.Anonymous_1.A;
             }}
         }}
 
         [UnscopedRef]
-        public ref _Anonymous_e__Struct._Anonymous_e__Union._B_e__Struct B
+        public ref _Anonymous_e__Struct._Anonymous_1_e__Union._B_e__Struct B
         {{
             get
             {{
-                return ref Anonymous.Anonymous.B;
+                return ref Anonymous.Anonymous_1.B;
             }}
         }}
 
@@ -1472,10 +1472,10 @@ namespace ClangSharp.Test
             public nint First;
 
             [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L7_C9"")]
-            public _Anonymous_e__Union Anonymous;
+            public _Anonymous_1_e__Union Anonymous_1;
 
             [StructLayout(LayoutKind.Explicit)]
-            public partial struct _Anonymous_e__Union
+            public partial struct _Anonymous_1_e__Union
             {{
                 [FieldOffset(0)]
                 [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L9_C13"")]

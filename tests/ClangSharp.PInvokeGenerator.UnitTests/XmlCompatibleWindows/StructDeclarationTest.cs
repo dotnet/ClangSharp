@@ -1292,7 +1292,7 @@ struct MyStruct
       <field name=""w"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>fixed (_Anonymous_e__Struct._Anonymous_e__Struct* pField = &amp;Anonymous.Anonymous)
+          <code>fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct* pField = &amp;Anonymous.Anonymous_1)
     {
         return ref pField-&gt;w;
     }</code>
@@ -1301,29 +1301,29 @@ struct MyStruct
       <field name=""o0_b0_16"" access=""public"">
         <type>int</type>
         <get>
-          <code>return Anonymous.Anonymous.o0_b0_16;</code>
+          <code>return Anonymous.Anonymous_1.o0_b0_16;</code>
         </get>
         <set>
-          <code>Anonymous.Anonymous.o0_b0_16 = value;</code>
+          <code>Anonymous.Anonymous_1.o0_b0_16 = value;</code>
         </set>
       </field>
       <field name=""o0_b16_4"" access=""public"">
         <type>int</type>
         <get>
-          <code>return Anonymous.Anonymous.o0_b16_4;</code>
+          <code>return Anonymous.Anonymous_1.o0_b16_4;</code>
         </get>
         <set>
-          <code>Anonymous.Anonymous.o0_b16_4 = value;</code>
+          <code>Anonymous.Anonymous_1.o0_b16_4 = value;</code>
         </set>
       </field>
       <struct name=""_Anonymous_e__Struct"" access=""public"" unsafe=""true"">
         <field name=""z"" access=""public"">
           <type>int</type>
         </field>
-        <field name=""Anonymous"" access=""public"">
-          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous_e__Struct</type>
+        <field name=""Anonymous_1"" access=""public"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous_1_e__Struct</type>
         </field>
-        <struct name=""_Anonymous_e__Struct"" access=""public"">
+        <struct name=""_Anonymous_1_e__Struct"" access=""public"">
           <field name=""w"" access=""public"">
             <type>int</type>
           </field>
@@ -1991,5 +1991,136 @@ struct MyStruct3
 ";
 
         return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
+    }
+
+    protected override Task AnonStructAndAnonStructArrayImpl()
+    {
+        var inputContents = @"typedef struct _MyStruct
+{
+    struct { int First; };
+    struct { int Second; } MyArray[2];
+} MyStruct;";
+
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""_MyStruct"" access=""public"" unsafe=""true"">
+      <field name=""Anonymous1"" access=""public"">
+        <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C5"">_Anonymous1_e__Struct</type>
+      </field>
+      <field name=""MyArray"" access=""public"">
+        <type native=""struct (anonymous struct at ClangUnsavedFile.h:4:5)[2]"" count=""2"" fixed=""_MyArray_e__FixedBuffer"">_Anonymous2_e__Struct</type>
+      </field>
+      <field name=""First"" access=""public"">
+        <type>ref int</type>
+        <get>
+          <code>fixed (_Anonymous1_e__Struct* pField = &amp;Anonymous1)
+    {
+        return ref pField-&gt;First;
+    }</code>
+        </get>
+      </field>
+      <struct name=""_Anonymous1_e__Struct"" access=""public"">
+        <field name=""First"" access=""public"">
+          <type>int</type>
+        </field>
+      </struct>
+      <struct name=""_Anonymous2_e__Struct"" access=""public"">
+        <field name=""Second"" access=""public"">
+          <type>int</type>
+        </field>
+      </struct>
+      <struct name=""_MyArray_e__FixedBuffer"" access=""public"">
+        <field name=""e0"" access=""public"">
+          <type>_Anonymous2_e__Struct</type>
+        </field>
+        <field name=""e1"" access=""public"">
+          <type>_Anonymous2_e__Struct</type>
+        </field>
+        <indexer access=""public"" unsafe=""true"">
+          <type>ref _Anonymous2_e__Struct</type>
+          <param name=""index"">
+            <type>int</type>
+          </param>
+          <get>
+            <code>fixed (_Anonymous2_e__Struct* pThis = &amp;e0)
+    {
+        return ref pThis[index];
+    }</code>
+          </get>
+        </indexer>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
+    }
+
+    protected override Task DeeplyNestedAnonStructsImpl()
+    {
+        var inputContents = @"typedef struct _MyStruct
+{
+    struct { struct {
+        struct { int Value1; };
+        struct { int Value2; };
+    }; };
+} MyStruct;";
+
+        var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
+<bindings>
+  <namespace name=""ClangSharp.Test"">
+    <struct name=""_MyStruct"" access=""public"" unsafe=""true"">
+      <field name=""Anonymous"" access=""public"">
+        <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C5"">_Anonymous_e__Struct</type>
+      </field>
+      <field name=""Value1"" access=""public"">
+        <type>ref int</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct._Anonymous1_2_e__Struct* pField = &amp;Anonymous.Anonymous_1.Anonymous1_2)
+    {
+        return ref pField-&gt;Value1;
+    }</code>
+        </get>
+      </field>
+      <field name=""Value2"" access=""public"">
+        <type>ref int</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct._Anonymous2_2_e__Struct* pField = &amp;Anonymous.Anonymous_1.Anonymous2_2)
+    {
+        return ref pField-&gt;Value2;
+    }</code>
+        </get>
+      </field>
+      <struct name=""_Anonymous_e__Struct"" access=""public"" unsafe=""true"">
+        <field name=""Anonymous_1"" access=""public"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C14"">_Anonymous_1_e__Struct</type>
+        </field>
+        <struct name=""_Anonymous_1_e__Struct"" access=""public"" unsafe=""true"">
+          <field name=""Anonymous1_2"" access=""public"">
+            <type native=""__AnonymousRecord_ClangUnsavedFile_L4_C9"">_Anonymous1_2_e__Struct</type>
+          </field>
+          <field name=""Anonymous2_2"" access=""public"">
+            <type native=""__AnonymousRecord_ClangUnsavedFile_L5_C9"">_Anonymous2_2_e__Struct</type>
+          </field>
+          <struct name=""_Anonymous1_2_e__Struct"" access=""public"">
+            <field name=""Value1"" access=""public"">
+              <type>int</type>
+            </field>
+          </struct>
+          <struct name=""_Anonymous2_2_e__Struct"" access=""public"">
+            <field name=""Value2"" access=""public"">
+              <type>int</type>
+            </field>
+          </struct>
+        </struct>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>
+";
+
+        return ValidateGeneratedXmlCompatibleWindowsBindingsAsync(inputContents, expectedOutputContents);
     }
 }
