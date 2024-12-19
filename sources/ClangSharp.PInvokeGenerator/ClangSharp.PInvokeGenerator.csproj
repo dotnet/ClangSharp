@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNet.Glob" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ClangSharp\ClangSharp.csproj" />
   </ItemGroup>
 
