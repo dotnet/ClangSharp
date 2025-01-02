@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public" native="struct MyStruct : MyTemplate&lt;int&gt;" unsafe="true">
+      <function name="DoWork" access="public" lib="ClangSharpPInvokeGenerator" convention="ThisCall" entrypoint="?DoWork@?$MyTemplate@H@@QEAAPEAHPEAH@Z" static="true" unsafe="true">
+        <type>int*</type>
+        <param name="pThis">
+          <type>MyStruct*</type>
+        </param>
+        <param name="value">
+          <type>int*</type>
+          <init>
+            <code>null</code>
+          </init>
+        </param>
+      </function>
+    </struct>
+  </namespace>
+</bindings>

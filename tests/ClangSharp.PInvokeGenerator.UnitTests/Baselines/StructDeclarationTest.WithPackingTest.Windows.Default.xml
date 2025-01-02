@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public" layout="Sequential" pack="CustomPackValue">
+      <field name="FixedBuffer" access="public">
+        <type native="size_t[2]" count="2" fixed="_FixedBuffer_e__FixedBuffer">nuint</type>
+      </field>
+      <struct name="_FixedBuffer_e__FixedBuffer" access="public">
+        <field name="e0" access="public">
+          <type>nuint</type>
+        </field>
+        <field name="e1" access="public">
+          <type>nuint</type>
+        </field>
+        <indexer access="public">
+          <type>ref nuint</type>
+          <param name="index">
+            <type>int</type>
+          </param>
+          <get>
+            <code>return ref AsSpan()[index];</code>
+          </get>
+        </indexer>
+        <function name="AsSpan" access="public">
+          <type>Span&lt;nuint&gt;</type>
+          <code>MemoryMarshal.CreateSpan(ref e0, 2);</code>
+        </function>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

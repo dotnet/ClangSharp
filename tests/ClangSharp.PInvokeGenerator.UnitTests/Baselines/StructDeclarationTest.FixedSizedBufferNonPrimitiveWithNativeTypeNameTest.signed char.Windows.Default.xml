@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="value" access="public">
+        <type native="signed char">sbyte</type>
+      </field>
+    </struct>
+    <struct name="MyOtherStruct" access="public">
+      <field name="c" access="public">
+        <type native="MyStruct[3]" count="3" fixed="_c_e__FixedBuffer">MyStruct</type>
+      </field>
+      <struct name="_c_e__FixedBuffer" access="public">
+        <field name="e0" access="public">
+          <type>MyStruct</type>
+        </field>
+        <field name="e1" access="public">
+          <type>MyStruct</type>
+        </field>
+        <field name="e2" access="public">
+          <type>MyStruct</type>
+        </field>
+        <indexer access="public">
+          <type>ref MyStruct</type>
+          <param name="index">
+            <type>int</type>
+          </param>
+          <get>
+            <code>return ref AsSpan()[index];</code>
+          </get>
+        </indexer>
+        <function name="AsSpan" access="public">
+          <type>Span&lt;MyStruct&gt;</type>
+          <code>MemoryMarshal.CreateSpan(ref e0, 3);</code>
+        </function>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

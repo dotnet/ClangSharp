@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true">
+        <type>int</type>
+        <param name="condition">
+          <type>bool</type>
+        </param>
+        <param name="lhs">
+          <type>int</type>
+        </param>
+        <param name="rhs">
+          <type>int</type>
+        </param>
+        <code>if (condition)
+      {
+          return lhs;
+      }
+      else
+      {
+          return rhs;
+      }</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

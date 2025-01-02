@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyUnion" access="public" layout="Explicit">
+      <field name="value" access="public" offset="0">
+        <type>double</type>
+      </field>
+    </struct>
+    <struct name="MyOtherUnion" access="public" layout="Explicit">
+      <field name="c" access="public" offset="0">
+        <type native="MyUnion[3]" count="3" fixed="_c_e__FixedBuffer">MyUnion</type>
+      </field>
+      <struct name="_c_e__FixedBuffer" access="public">
+        <field name="e0" access="public">
+          <type>MyUnion</type>
+        </field>
+        <field name="e1" access="public">
+          <type>MyUnion</type>
+        </field>
+        <field name="e2" access="public">
+          <type>MyUnion</type>
+        </field>
+        <indexer access="public">
+          <type>ref MyUnion</type>
+          <param name="index">
+            <type>int</type>
+          </param>
+          <get>
+            <code>return ref AsSpan()[index];</code>
+          </get>
+        </indexer>
+        <function name="AsSpan" access="public">
+          <type>Span&lt;MyUnion&gt;</type>
+          <code>MemoryMarshal.CreateSpan(ref e0, 3);</code>
+        </function>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

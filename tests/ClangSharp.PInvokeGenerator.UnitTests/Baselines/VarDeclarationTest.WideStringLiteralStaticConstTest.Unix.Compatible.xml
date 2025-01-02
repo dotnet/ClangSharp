@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <constant name="MyConst1" access="public">
+        <type primitive="True">string</type>
+        <value>
+          <code>"Test\0\\\r\n\t\""</code>
+        </value>
+      </constant>
+      <field name="MyConst2" access="public">
+        <type primitive="True">string</type>
+        <value>
+          <code>"Test\0\\\r\n\t\""</code>
+        </value>
+      </field>
+      <constant name="MyConst3" access="public">
+        <type primitive="True">string</type>
+        <value>
+          <code>"Test\0\\\r\n\t\""</code>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>

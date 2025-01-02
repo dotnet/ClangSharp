@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct1" access="public" uuid="00000000-0000-0000-c000-000000000046">
+      <field name="x" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <struct name="MyStruct2" access="public" uuid="00000000-0000-0000-c000-000000000047">
+      <field name="x" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <iid name="IID_MyStruct1" value="0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46" />
+      <iid name="IID_MyStruct2" value="0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x47" />
+    </class>
+  </namespace>
+</bindings>

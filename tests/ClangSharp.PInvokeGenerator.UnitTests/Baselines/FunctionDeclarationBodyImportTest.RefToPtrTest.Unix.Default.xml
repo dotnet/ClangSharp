@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true" unsafe="true">
+        <type>bool</type>
+        <param name="lhs">
+          <type>MyStruct*</type>
+        </param>
+        <param name="rhs">
+          <type>MyStruct*</type>
+        </param>
+        <code>return lhs-&gt;value == rhs-&gt;value;</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

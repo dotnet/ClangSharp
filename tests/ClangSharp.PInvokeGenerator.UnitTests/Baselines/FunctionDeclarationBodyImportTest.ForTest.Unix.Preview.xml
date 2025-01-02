@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true">
+        <type>int</type>
+        <param name="count">
+          <type>int</type>
+        </param>
+        <code>for (int i = 0; i &lt; count; i--)
+      {
+          i += 2;
+      }
+
+      int x;
+
+      for (x = 0; x &lt; count; x--)
+      {
+          x += 2;
+      }
+
+      x = 0;
+      for (; x &lt; count; x--)
+      {
+          x += 2;
+      }
+
+      for (int i = 0;; i--)
+      {
+          i += 2;
+      }
+
+      for (x = 0;; x--)
+      {
+          x += 2;
+      }
+
+      for (int i = 0; i &lt; count;)
+      {
+          i++;
+      }
+
+      for (x = 0; x &lt; count;)
+      {
+          x++;
+      }
+
+      x = 0;
+      for (; x &lt; count;)
+      {
+          x++;
+      }
+
+      for (int i = 0;;)
+      {
+          i++;
+      }
+
+      for (x = 0;;)
+      {
+          x++;
+      }
+
+      for (;;)
+      {
+          return -1;
+      }</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

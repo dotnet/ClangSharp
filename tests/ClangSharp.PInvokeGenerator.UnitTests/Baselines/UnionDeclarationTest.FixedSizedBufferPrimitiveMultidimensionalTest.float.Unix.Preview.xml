@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyUnion" access="public" layout="Explicit">
+      <field name="c" access="public" offset="0">
+        <type native="float[2][1][3][4]" count="2 * 1 * 3 * 4" fixed="_c_e__FixedBuffer">float</type>
+      </field>
+      <struct name="_c_e__FixedBuffer" access="public">
+        <attribute>InlineArray(2 * 1 * 3 * 4)</attribute>
+        <field name="e0_0_0_0" access="public">
+          <type>float</type>
+        </field>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

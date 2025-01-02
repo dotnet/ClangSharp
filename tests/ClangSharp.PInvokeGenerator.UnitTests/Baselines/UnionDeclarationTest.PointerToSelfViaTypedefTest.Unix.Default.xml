@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="example_s" access="public" unsafe="true" layout="Explicit">
+      <field name="next" access="public" offset="0">
+        <type native="example_t *">example_s*</type>
+      </field>
+      <field name="data" access="public" offset="0">
+        <type>void*</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

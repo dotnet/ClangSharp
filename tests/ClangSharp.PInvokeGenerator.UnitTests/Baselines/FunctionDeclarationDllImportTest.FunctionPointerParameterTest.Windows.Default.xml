@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" lib="ClangSharpPInvokeGenerator" convention="Cdecl" static="true" unsafe="true">
+        <type>void</type>
+        <param name="callback">
+          <type>delegate* unmanaged[Cdecl]&lt;void&gt;</type>
+        </param>
+      </function>
+    </class>
+  </namespace>
+</bindings>

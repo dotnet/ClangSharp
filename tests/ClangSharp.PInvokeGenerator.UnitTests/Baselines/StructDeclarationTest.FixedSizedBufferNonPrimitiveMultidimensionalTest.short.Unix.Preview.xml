@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="value" access="public">
+        <type>short</type>
+      </field>
+    </struct>
+    <struct name="MyOtherStruct" access="public">
+      <field name="c" access="public">
+        <type native="MyStruct[2][1][3][4]" count="2 * 1 * 3 * 4" fixed="_c_e__FixedBuffer">MyStruct</type>
+      </field>
+      <struct name="_c_e__FixedBuffer" access="public">
+        <attribute>InlineArray(2 * 1 * 3 * 4)</attribute>
+        <field name="e0_0_0_0" access="public">
+          <type>MyStruct</type>
+        </field>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

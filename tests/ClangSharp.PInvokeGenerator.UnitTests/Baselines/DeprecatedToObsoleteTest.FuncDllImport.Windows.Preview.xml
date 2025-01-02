@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction0" access="public" lib="ClangSharpPInvokeGenerator" convention="Cdecl" static="true">
+        <type>void</type>
+      </function>
+      <function name="MyFunction1" access="public" lib="ClangSharpPInvokeGenerator" convention="Cdecl" static="true">
+        <attribute>Obsolete</attribute>
+        <type>void</type>
+      </function>
+      <function name="MyFunction2" access="public" lib="ClangSharpPInvokeGenerator" convention="Cdecl" static="true">
+        <attribute>Obsolete("This is obsolete.")</attribute>
+        <type>void</type>
+      </function>
+      <function name="MyFunction3" access="public" lib="ClangSharpPInvokeGenerator" convention="Cdecl" static="true">
+        <type>void</type>
+      </function>
+    </class>
+  </namespace>
+</bindings>

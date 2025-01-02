@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyUnion" access="public" layout="Explicit">
+      <field name="value" access="public" offset="0">
+        <type>float</type>
+      </field>
+    </struct>
+    <struct name="MyStruct" access="public">
+      <field name="x" access="public">
+        <type>float</type>
+      </field>
+      <field name="y" access="public">
+        <type>float</type>
+      </field>
+      <field name="Anonymous" access="public">
+        <type native="__AnonymousRecord_ClangUnsavedFile_L10_C5">_Anonymous_e__Struct</type>
+      </field>
+      <field name="z" access="public">
+        <type>ref float</type>
+        <get>
+          <code>return ref Anonymous.z;</code>
+        </get>
+      </field>
+      <field name="w" access="public">
+        <type>ref _Anonymous_e__Struct._w_e__Struct</type>
+        <get>
+          <code>return ref Anonymous.w;</code>
+        </get>
+      </field>
+      <field name="value1" access="public">
+        <type>ref float</type>
+        <get>
+          <code>return ref Anonymous.Anonymous1.value1;</code>
+        </get>
+      </field>
+      <field name="value" access="public">
+        <type>ref float</type>
+        <get>
+          <code>return ref Anonymous.Anonymous1.Anonymous.value;</code>
+        </get>
+      </field>
+      <field name="value2" access="public">
+        <type>ref float</type>
+        <get>
+          <code>return ref Anonymous.Anonymous2.value2;</code>
+        </get>
+      </field>
+      <field name="u" access="public">
+        <type>ref MyUnion</type>
+        <get>
+          <code>return ref Anonymous.u;</code>
+        </get>
+      </field>
+      <field name="buffer1" access="public">
+        <type>Span&lt;float&gt;</type>
+        <get>
+          <code>return Anonymous.buffer1;</code>
+        </get>
+      </field>
+      <field name="buffer2" access="public">
+        <type>Span&lt;MyUnion&gt;</type>
+        <get>
+          <code>return Anonymous.buffer2;</code>
+        </get>
+      </field>
+      <struct name="_Anonymous_e__Struct" access="public">
+        <field name="z" access="public">
+          <type>float</type>
+        </field>
+        <field name="w" access="public">
+          <type native="__AnonymousRecord_ClangUnsavedFile_L14_C9">_w_e__Struct</type>
+        </field>
+        <field name="Anonymous1" access="public">
+          <type native="__AnonymousRecord_ClangUnsavedFile_L19_C9">_Anonymous1_e__Struct</type>
+        </field>
+        <field name="Anonymous2" access="public">
+          <type native="__AnonymousRecord_ClangUnsavedFile_L29_C9">_Anonymous2_e__Union</type>
+        </field>
+        <field name="u" access="public">
+          <type>MyUnion</type>
+        </field>
+        <field name="buffer1" access="public">
+          <type native="float[4]" count="4" fixed="_buffer1_e__FixedBuffer">float</type>
+        </field>
+        <field name="buffer2" access="public">
+          <type native="MyUnion[4]" count="4" fixed="_buffer2_e__FixedBuffer">MyUnion</type>
+        </field>
+        <struct name="_w_e__Struct" access="public">
+          <field name="value" access="public">
+            <type>float</type>
+          </field>
+        </struct>
+        <struct name="_Anonymous1_e__Struct" access="public">
+          <field name="value1" access="public">
+            <type>float</type>
+          </field>
+          <field name="Anonymous" access="public">
+            <type native="__AnonymousRecord_ClangUnsavedFile_L23_C13">_Anonymous_e__Struct</type>
+          </field>
+          <struct name="_Anonymous_e__Struct" access="public">
+            <field name="value" access="public">
+              <type>float</type>
+            </field>
+          </struct>
+        </struct>
+        <struct name="_Anonymous2_e__Union" access="public" layout="Explicit">
+          <field name="value2" access="public" offset="0">
+            <type>float</type>
+          </field>
+        </struct>
+        <struct name="_buffer1_e__FixedBuffer" access="public">
+          <attribute>InlineArray(4)</attribute>
+          <field name="e0" access="public">
+            <type>float</type>
+          </field>
+        </struct>
+        <struct name="_buffer2_e__FixedBuffer" access="public">
+          <attribute>InlineArray(4)</attribute>
+          <field name="e0" access="public">
+            <type>MyUnion</type>
+          </field>
+        </struct>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

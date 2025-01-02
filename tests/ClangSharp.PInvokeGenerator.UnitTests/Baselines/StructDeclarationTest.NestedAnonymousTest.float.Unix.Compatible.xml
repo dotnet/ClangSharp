@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyUnion" access="public" layout="Explicit">
+      <field name="value" access="public" offset="0">
+        <type>float</type>
+      </field>
+    </struct>
+    <struct name="MyStruct" access="public" unsafe="true">
+      <field name="x" access="public">
+        <type>float</type>
+      </field>
+      <field name="y" access="public">
+        <type>float</type>
+      </field>
+      <field name="Anonymous" access="public">
+        <type native="__AnonymousRecord_ClangUnsavedFile_L10_C5">_Anonymous_e__Struct</type>
+      </field>
+      <field name="z" access="public">
+        <type>ref float</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct* pField = &amp;Anonymous)
+    {
+        return ref pField-&gt;z;
+    }</code>
+        </get>
+      </field>
+      <field name="w" access="public">
+        <type>ref _Anonymous_e__Struct._w_e__Struct</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct* pField = &amp;Anonymous)
+    {
+        return ref pField-&gt;w;
+    }</code>
+        </get>
+      </field>
+      <field name="value1" access="public">
+        <type>ref float</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct._Anonymous1_e__Struct* pField = &amp;Anonymous.Anonymous1)
+    {
+        return ref pField-&gt;value1;
+    }</code>
+        </get>
+      </field>
+      <field name="value" access="public">
+        <type>ref float</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct._Anonymous1_e__Struct._Anonymous_e__Struct* pField = &amp;Anonymous.Anonymous1.Anonymous)
+    {
+        return ref pField-&gt;value;
+    }</code>
+        </get>
+      </field>
+      <field name="value2" access="public">
+        <type>ref float</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct._Anonymous2_e__Union* pField = &amp;Anonymous.Anonymous2)
+    {
+        return ref pField-&gt;value2;
+    }</code>
+        </get>
+      </field>
+      <field name="u" access="public">
+        <type>ref MyUnion</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct* pField = &amp;Anonymous)
+    {
+        return ref pField-&gt;u;
+    }</code>
+        </get>
+      </field>
+      <field name="buffer1" access="public">
+        <type>ref float</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct* pField = &amp;Anonymous)
+    {
+        return ref pField-&gt;buffer1[0];
+    }</code>
+        </get>
+      </field>
+      <field name="buffer2" access="public">
+        <type>ref _Anonymous_e__Struct._buffer2_e__FixedBuffer</type>
+        <get>
+          <code>fixed (_Anonymous_e__Struct* pField = &amp;Anonymous)
+    {
+        return ref pField-&gt;buffer2;
+    }</code>
+        </get>
+      </field>
+      <struct name="_Anonymous_e__Struct" access="public" unsafe="true">
+        <field name="z" access="public">
+          <type>float</type>
+        </field>
+        <field name="w" access="public">
+          <type native="__AnonymousRecord_ClangUnsavedFile_L14_C9">_w_e__Struct</type>
+        </field>
+        <field name="Anonymous1" access="public">
+          <type native="__AnonymousRecord_ClangUnsavedFile_L19_C9">_Anonymous1_e__Struct</type>
+        </field>
+        <field name="Anonymous2" access="public">
+          <type native="__AnonymousRecord_ClangUnsavedFile_L29_C9">_Anonymous2_e__Union</type>
+        </field>
+        <field name="u" access="public">
+          <type>MyUnion</type>
+        </field>
+        <field name="buffer1" access="public">
+          <type native="float[4]" count="4" fixed="_buffer1_e__FixedBuffer">float</type>
+        </field>
+        <field name="buffer2" access="public">
+          <type native="MyUnion[4]" count="4" fixed="_buffer2_e__FixedBuffer">MyUnion</type>
+        </field>
+        <struct name="_w_e__Struct" access="public">
+          <field name="value" access="public">
+            <type>float</type>
+          </field>
+        </struct>
+        <struct name="_Anonymous1_e__Struct" access="public" unsafe="true">
+          <field name="value1" access="public">
+            <type>float</type>
+          </field>
+          <field name="Anonymous" access="public">
+            <type native="__AnonymousRecord_ClangUnsavedFile_L23_C13">_Anonymous_e__Struct</type>
+          </field>
+          <struct name="_Anonymous_e__Struct" access="public">
+            <field name="value" access="public">
+              <type>float</type>
+            </field>
+          </struct>
+        </struct>
+        <struct name="_Anonymous2_e__Union" access="public" layout="Explicit">
+          <field name="value2" access="public" offset="0">
+            <type>float</type>
+          </field>
+        </struct>
+        <struct name="_buffer2_e__FixedBuffer" access="public">
+          <field name="e0" access="public">
+            <type>MyUnion</type>
+          </field>
+          <field name="e1" access="public">
+            <type>MyUnion</type>
+          </field>
+          <field name="e2" access="public">
+            <type>MyUnion</type>
+          </field>
+          <field name="e3" access="public">
+            <type>MyUnion</type>
+          </field>
+          <indexer access="public" unsafe="true">
+            <type>ref MyUnion</type>
+            <param name="index">
+              <type>int</type>
+            </param>
+            <get>
+              <code>fixed (MyUnion* pThis = &amp;e0)
+    {
+        return ref pThis[index];
+    }</code>
+            </get>
+          </indexer>
+        </struct>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

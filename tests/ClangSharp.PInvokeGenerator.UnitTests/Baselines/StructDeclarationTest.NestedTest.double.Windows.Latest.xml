@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="r" access="public">
+        <type>double</type>
+      </field>
+      <field name="g" access="public">
+        <type>double</type>
+      </field>
+      <field name="b" access="public">
+        <type>double</type>
+      </field>
+      <struct name="MyNestedStruct" access="public">
+        <field name="r" access="public">
+          <type>double</type>
+        </field>
+        <field name="g" access="public">
+          <type>double</type>
+        </field>
+        <field name="b" access="public">
+          <type>double</type>
+        </field>
+        <field name="a" access="public">
+          <type>double</type>
+        </field>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

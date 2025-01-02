@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct0" access="public" unsafe="true">
+      <field name="_callback" access="public">
+        <type native="Callback0">delegate* unmanaged[Cdecl]&lt;void&gt;</type>
+      </field>
+    </struct>
+    <struct name="MyStruct1" access="public" unsafe="true">
+      <field name="_callback" access="public">
+        <attribute>Obsolete</attribute>
+        <type native="Callback1">delegate* unmanaged[Cdecl]&lt;void&gt;</type>
+      </field>
+    </struct>
+    <struct name="MyStruct2" access="public" unsafe="true">
+      <field name="_callback" access="public">
+        <attribute>Obsolete("This is obsolete.")</attribute>
+        <type native="Callback2">delegate* unmanaged[Cdecl]&lt;void&gt;</type>
+      </field>
+    </struct>
+    <struct name="MyStruct3" access="public" unsafe="true">
+      <field name="_callback" access="public">
+        <type native="Callback3">delegate* unmanaged[Cdecl]&lt;void&gt;</type>
+      </field>
+    </struct>
+  </namespace>
+</bindings>

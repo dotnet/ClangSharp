@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyCalledFunction" access="public" static="true">
+        <type>void</type>
+        <param name="x">
+          <type>int</type>
+        </param>
+        <param name="y">
+          <type>int</type>
+        </param>
+        <code></code>
+      </function>
+      <function name="MyFunction" access="public" static="true">
+        <type>void</type>
+        <code>MyCalledFunction(0, 1);</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>
