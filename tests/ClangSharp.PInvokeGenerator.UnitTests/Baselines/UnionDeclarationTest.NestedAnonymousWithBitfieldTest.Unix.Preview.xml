@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyUnion" access="public" layout="Explicit">
+      <field name="x" access="public" offset="0">
+        <type>int</type>
+      </field>
+      <field name="y" access="public" offset="0">
+        <type>int</type>
+      </field>
+      <field name="Anonymous" access="public" offset="0">
+        <type native="__AnonymousRecord_ClangUnsavedFile_L6_C5">_Anonymous_e__Union</type>
+      </field>
+      <field name="z" access="public">
+        <type>ref int</type>
+        <get>
+          <code>return ref Anonymous.z;</code>
+        </get>
+      </field>
+      <field name="w" access="public">
+        <type>ref int</type>
+        <get>
+          <code>return ref Anonymous.Anonymous.w;</code>
+        </get>
+      </field>
+      <field name="o0_b0_16" access="public">
+        <type>int</type>
+        <get>
+          <code>return Anonymous.Anonymous.o0_b0_16;</code>
+        </get>
+        <set>
+          <code>Anonymous.Anonymous.o0_b0_16 = value;</code>
+        </set>
+      </field>
+      <field name="o0_b16_4" access="public">
+        <type>int</type>
+        <get>
+          <code>return Anonymous.Anonymous.o0_b16_4;</code>
+        </get>
+        <set>
+          <code>Anonymous.Anonymous.o0_b16_4 = value;</code>
+        </set>
+      </field>
+      <struct name="_Anonymous_e__Union" access="public" layout="Explicit">
+        <field name="z" access="public" offset="0">
+          <type>int</type>
+        </field>
+        <field name="Anonymous" access="public" offset="0">
+          <type native="__AnonymousRecord_ClangUnsavedFile_L10_C9">_Anonymous_e__Union</type>
+        </field>
+        <struct name="_Anonymous_e__Union" access="public" layout="Explicit">
+          <field name="w" access="public" offset="0">
+            <type>int</type>
+          </field>
+          <field name="_bitfield" access="public" offset="0">
+            <type>int</type>
+          </field>
+          <field name="o0_b0_16" access="public">
+            <type native="int : 16">int</type>
+            <get>
+              <code>return (<bitfieldName>_bitfield</bitfieldName> &lt;&lt; <remainingBitsMinusBitWidth>16</remainingBitsMinusBitWidth>) &gt;&gt; <currentSizeMinusBitWidth>16</currentSizeMinusBitWidth>;</code>
+            </get>
+            <set>
+              <code>
+                <bitfieldName>_bitfield</bitfieldName> = (_bitfield &amp; ~0x<bitwidthHexStringBacking>FFFF</bitwidthHexStringBacking>) | (value &amp; 0x<bitwidthHexString>FFFF</bitwidthHexString>);</code>
+            </set>
+          </field>
+          <field name="o0_b16_4" access="public">
+            <type native="int : 4">int</type>
+            <get>
+              <code>return (<bitfieldName>_bitfield</bitfieldName> &lt;&lt; <remainingBitsMinusBitWidth>12</remainingBitsMinusBitWidth>) &gt;&gt; <currentSizeMinusBitWidth>28</currentSizeMinusBitWidth>;</code>
+            </get>
+            <set>
+              <code>
+                <bitfieldName>_bitfield</bitfieldName> = (_bitfield &amp; ~(0x<bitwidthHexStringBacking>F</bitwidthHexStringBacking> &lt;&lt; <bitfieldOffset>16</bitfieldOffset>)) | ((value &amp; 0x<bitwidthHexString>F</bitwidthHexString>) &lt;&lt; 16);</code>
+            </set>
+          </field>
+        </struct>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

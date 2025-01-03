@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="value" access="public">
+        <type>float</type>
+      </field>
+    </struct>
+    <struct name="MyUnion" access="public" unsafe="true" layout="Explicit">
+      <field name="r" access="public" offset="0">
+        <type>float</type>
+      </field>
+      <field name="g" access="public" offset="0">
+        <type>float</type>
+      </field>
+      <field name="b" access="public" offset="0">
+        <type>float</type>
+      </field>
+      <field name="Anonymous" access="public" offset="0">
+        <type native="__AnonymousRecord_ClangUnsavedFile_L11_C5">_Anonymous_e__Union</type>
+      </field>
+      <field name="a" access="public">
+        <type>ref float</type>
+        <get>
+          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));</code>
+        </get>
+      </field>
+      <field name="s" access="public">
+        <type>ref MyStruct</type>
+        <get>
+          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.s, 1));</code>
+        </get>
+      </field>
+      <field name="buffer" access="public">
+        <type>Span&lt;float&gt;</type>
+        <get>
+          <code>return MemoryMarshal.CreateSpan(ref Anonymous.buffer[0], 4);</code>
+        </get>
+      </field>
+      <struct name="_Anonymous_e__Union" access="public" unsafe="true" layout="Explicit">
+        <field name="a" access="public" offset="0">
+          <type>float</type>
+        </field>
+        <field name="s" access="public" offset="0">
+          <type>MyStruct</type>
+        </field>
+        <field name="buffer" access="public" offset="0">
+          <type native="float[4]" count="4" fixed="_buffer_e__FixedBuffer">float</type>
+        </field>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

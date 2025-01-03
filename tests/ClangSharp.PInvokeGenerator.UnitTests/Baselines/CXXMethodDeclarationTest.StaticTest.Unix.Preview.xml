@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public" unsafe="true">
+      <function name="MyVoidMethod" access="public" lib="ClangSharpPInvokeGenerator" convention="Cdecl" entrypoint="_ZN8MyStruct12MyVoidMethodEv" static="true">
+        <type>void</type>
+      </function>
+      <function name="MyInt32Method" access="public" static="true">
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="MyVoidStarMethod" access="public" static="true" unsafe="true">
+        <type>void*</type>
+        <code>return null;</code>
+      </function>
+    </struct>
+  </namespace>
+</bindings>

@@ -1,35 +1,38 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using ClangSharp.Interop;
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using NUnit.Framework;
-using System.Xml.Linq;
-using ClangSharp.Interop;
 using static ClangSharp.Interop.CXTranslationUnit_Flags;
 
 namespace ClangSharp.UnitTests;
 
-public abstract class PInvokeGeneratorTest
+[Parallelizable(ParallelScope.All)]
+public abstract class PInvokeGeneratorTest(PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions outputVersion)
 {
-    protected const string DefaultInputFileName = "ClangUnsavedFile.h";
-    protected const string DefaultLibraryPath = "ClangSharpPInvokeGenerator";
-    protected const string DefaultNamespaceName = "ClangSharp.Test";
+    private readonly PInvokeGeneratorOutputMode _outputMode = outputMode;
+    private readonly string _baselineFileExtension = outputMode == PInvokeGeneratorOutputMode.CSharp ? "cs" : "xml";
+    private readonly PInvokeGeneratorConfigurationOptions _outputVersion = outputVersion;
+    private readonly string _outputVersionAsString = OutputVersionToString(outputVersion);
 
-    protected const CXTranslationUnit_Flags DefaultTranslationUnitFlags = CXTranslationUnit_IncludeAttributedTypes          // Include attributed types in CXType
+    private const string UpdateBaselineEnvVar = "AUTO_UPDATE_BASELINE";
+
+    private const string DefaultInputFileName = "ClangUnsavedFile.h";
+    private const string DefaultLibraryPath = "ClangSharpPInvokeGenerator";
+    private const string DefaultNamespaceName = "ClangSharp.Test";
+
+    private const CXTranslationUnit_Flags DefaultTranslationUnitFlags = CXTranslationUnit_IncludeAttributedTypes          // Include attributed types in CXType
                                                                         | CXTranslationUnit_VisitImplicitAttributes         // Implicit attributes should be visited
                                                                         | CXTranslationUnit_DetailedPreprocessingRecord;
-    protected const string DefaultCStandard = "c17";
-    protected const string DefaultCppStandard = "c++17";
+    private const string DefaultCppStandard = "c++17";
 
-    protected static readonly string[] DefaultCClangCommandLineArgs =
-    [
-        $"-std={DefaultCStandard}",                             // The input files should be compiled for C 17
-        "-xc",                                  // The input files are C
-    ];
-
-    protected static readonly string[] DefaultCppClangCommandLineArgs =
+    private static readonly string[] s_defaultCppClangCommandLineArgs =
     [
         $"-std={DefaultCppStandard}",                           // The input files should be compiled for C++ 17
         "-xc++",                                // The input files are C++
@@ -37,68 +40,104 @@ public abstract class PInvokeGeneratorTest
         "-Wno-c++11-narrowing"
     ];
 
-    protected static string EscapeXml(string value) => new XText(value).ToString();
+    private static readonly string s_osName = OperatingSystem.IsWindows() ? "Windows" : "Unix";
 
-    protected static Task ValidateGeneratedCSharpPreviewWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GeneratePreviewCode | PInvokeGeneratorConfigurationOptions.None | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
+    private static readonly bool s_autoUpdateBaselines = Environment.GetEnvironmentVariable(UpdateBaselineEnvVar) == "1";
+    private static readonly string s_baselineDirectory = FindBaselineDirectory();
 
-    protected static Task ValidateGeneratedCSharpPreviewUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GeneratePreviewCode | PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
+    protected static IEnumerable<object[]> FixtureArgs()
+    {
+        foreach (var outputLang in new[] { PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorOutputMode.Xml })
+        {
+            foreach (var outputVersion in new[] {
+                PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode,
+                PInvokeGeneratorConfigurationOptions.None,
+                PInvokeGeneratorConfigurationOptions.GenerateLatestCode,
+                PInvokeGeneratorConfigurationOptions.GeneratePreviewCode })
+            {
+                yield return new object[] { outputLang, outputVersion }; 
+            }
+        }
+    }
 
-    protected static Task ValidateGeneratedCSharpLatestWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GenerateLatestCode | PInvokeGeneratorConfigurationOptions.None | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
+    private static string FindBaselineDirectory()
+    {
+        var currentDirectory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
+        do 
+        {
+            if (File.Exists(Path.Join(currentDirectory.FullName, "ClangSharp.sln")))
+            {
+                return Path.Join(currentDirectory.FullName, "tests", "ClangSharp.PInvokeGenerator.UnitTests", "Baselines");
+            }
+            currentDirectory = currentDirectory.Parent;
+        } while (currentDirectory != null);
 
-    protected static Task ValidateGeneratedCSharpLatestUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GenerateLatestCode | PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
+        Assert.Fail("Could not find ClangSharp.sln, test artifacts must be in a child directory of the source");
+        return string.Empty;
+    }
 
-    protected static Task ValidateGeneratedCSharpDefaultWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.None | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
+    private static string OutputVersionToString(PInvokeGeneratorConfigurationOptions outputVersion)
+    {
+        switch (outputVersion)
+        {
+            case PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode:
+                return "Compatible";
+            case PInvokeGeneratorConfigurationOptions.None:
+                return "Default";
+            case PInvokeGeneratorConfigurationOptions.GenerateLatestCode:
+                return "Latest";
+            case PInvokeGeneratorConfigurationOptions.GeneratePreviewCode:
+                return "Preview";
+            default:
+                Assert.Fail("Unknown output version");
+                return string.Empty;
+        }
+    }
 
-    protected static Task ValidateGeneratedCSharpDefaultUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
+    private static async ValueTask<bool> UpdateBaselineIfRequestedAsync(string path, string contents)
+    {
+        if (s_autoUpdateBaselines)
+        {
+            TestContext.WriteLine($"Updating baseline {Path.GetFileName(path)}.");
+            await File.WriteAllTextAsync(path, contents).ConfigureAwait(false);
+            return true;
+        }
+        return false;
+    }
 
-    protected static Task ValidateGeneratedCSharpCompatibleWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
-
-    protected static Task ValidateGeneratedCSharpCompatibleUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.CSharp, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode | PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
-
-    protected static Task ValidateGeneratedXmlPreviewWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.GeneratePreviewCode | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
-
-    protected static Task ValidateGeneratedXmlPreviewUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.GeneratePreviewCode | PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
-
-    protected static Task ValidateGeneratedXmlLatestWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.GenerateLatestCode | PInvokeGeneratorConfigurationOptions.None | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
-
-    protected static Task ValidateGeneratedXmlLatestUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.GenerateLatestCode | PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
-
-    protected static Task ValidateGeneratedXmlDefaultWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.None | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
-
-    protected static Task ValidateGeneratedXmlDefaultUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
-
-    protected static Task ValidateGeneratedXmlCompatibleWindowsBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
-
-    protected static Task ValidateGeneratedXmlCompatibleUnixBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None, string[]? excludedNames = null, IReadOnlyDictionary<string, string>? remappedNames = null, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null, IReadOnlyDictionary<string, string>? withCallConvs = null, IReadOnlyDictionary<string, string>? withClasses = null, IReadOnlyDictionary<string, string>? withLibraryPaths = null, IReadOnlyDictionary<string, string>? withNamespaces = null, string[]? withSetLastErrors = null, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null, IReadOnlyDictionary<string, string>? withTypes = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null, IReadOnlyDictionary<string, string>? withPackings = null, IEnumerable<Diagnostic>? expectedDiagnostics = null, string libraryPath = DefaultLibraryPath, string[]? commandLineArgs = null, string language = "c++", string languageStandard = DefaultCppStandard)
-        => ValidateGeneratedBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorOutputMode.Xml, PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode | PInvokeGeneratorConfigurationOptions.GenerateUnixTypes | additionalConfigOptions, excludedNames, remappedNames, withAccessSpecifiers, withAttributes, withCallConvs, withClasses, withLibraryPaths, withNamespaces, withSetLastErrors, withTransparentStructs, withTypes, withUsings, withPackings, expectedDiagnostics, libraryPath, commandLineArgs, language, languageStandard);
-
-    private static async Task ValidateGeneratedBindingsAsync(string inputContents, string expectedOutputContents, PInvokeGeneratorOutputMode outputMode, PInvokeGeneratorConfigurationOptions configOptions, string[]? excludedNames, IReadOnlyDictionary<string, string>? remappedNames, IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers, IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes, IReadOnlyDictionary<string, string>? withCallConvs, IReadOnlyDictionary<string, string>? withClasses, IReadOnlyDictionary<string, string>? withLibraryPaths, IReadOnlyDictionary<string, string>? withNamespaces, string[]? withSetLastErrors, IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs, IReadOnlyDictionary<string, string>? withTypes, IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings, IReadOnlyDictionary<string, string>? withPackings, IEnumerable<Diagnostic>? expectedDiagnostics, string libraryPath, string[]? commandLineArgs, string language, string languageStandard)
+    protected async Task ValidateGeneratedBindingsAsync(
+        string inputContents,
+        PInvokeGeneratorConfigurationOptions additionalConfigOptions = PInvokeGeneratorConfigurationOptions.None,
+        string[]? excludedNames = null,
+        IReadOnlyDictionary<string, string>? remappedNames = null,
+        IReadOnlyDictionary<string, AccessSpecifier>? withAccessSpecifiers = null,
+        IReadOnlyDictionary<string, IReadOnlyList<string>>? withAttributes = null,
+        IReadOnlyDictionary<string, string>? withCallConvs = null,
+        IReadOnlyDictionary<string, string>? withClasses = null,
+        IReadOnlyDictionary<string, string>? withLibraryPaths = null,
+        IReadOnlyDictionary<string, string>? withNamespaces = null,
+        string[]? withSetLastErrors = null,
+        IReadOnlyDictionary<string, (string, PInvokeGeneratorTransparentStructKind)>? withTransparentStructs = null,
+        IReadOnlyDictionary<string, string>? withTypes = null,
+        IReadOnlyDictionary<string, IReadOnlyList<string>>? withUsings = null,
+        IReadOnlyDictionary<string, string>? withPackings = null,
+        IEnumerable<Diagnostic>? expectedDiagnostics = null,
+        string libraryPath = DefaultLibraryPath,
+        string[]? commandLineArgs = null,
+        string language = "c++",
+        string languageStandard = DefaultCppStandard,
+        Func<string, string>? osxTransform = null)
     {
         Assert.That(DefaultInputFileName, Does.Exist);
-        commandLineArgs ??= DefaultCppClangCommandLineArgs;
+        commandLineArgs ??= s_defaultCppClangCommandLineArgs;
 
-        configOptions |= PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
+        var configOptions = additionalConfigOptions | _outputVersion | PInvokeGeneratorConfigurationOptions.GenerateMacroBindings;
 
         using var outputStream = new MemoryStream();
         using var unsavedFile = CXUnsavedFile.Create(DefaultInputFileName, inputContents);
 
         var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
-        var config = new PInvokeGeneratorConfiguration(language, languageStandard, DefaultNamespaceName, Path.GetRandomFileName(), headerFile: null, outputMode, configOptions) {
+        var config = new PInvokeGeneratorConfiguration(language, languageStandard, DefaultNamespaceName, Path.GetRandomFileName(), headerFile: null, _outputMode, configOptions) {
             DefaultClass = null,
             ExcludedNames = excludedNames,
             IncludedNames = null,
@@ -144,6 +183,53 @@ public abstract class PInvokeGeneratorTest
 
         using var streamReader = new StreamReader(outputStream);
         var actualOutputContents = await streamReader.ReadToEndAsync().ConfigureAwait(false);
-        Assert.That(actualOutputContents, Is.EqualTo(expectedOutputContents));
+
+        if (osxTransform is not null && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            actualOutputContents = osxTransform(actualOutputContents);
+        }
+
+        var testClassName = TestContext.CurrentContext.Test.ClassName?.Substring((TestContext.CurrentContext.Test.Namespace?.Length ?? -1) + 1) ?? "";
+        var arguments = string.Empty;
+        foreach (var arg in TestContext.CurrentContext.Test.Arguments)
+        {
+            arguments += string.Format(CultureInfo.InvariantCulture, ".{0}", arg);
+        }
+        arguments = arguments.Replace("<", "__lt", StringComparison.Ordinal)
+            .Replace(">", "__gt", StringComparison.Ordinal)
+            .Replace(":", "__cln", StringComparison.Ordinal)
+            .Replace("\"", "__quot", StringComparison.Ordinal)
+            .Replace("/", "__fs", StringComparison.Ordinal)
+            .Replace("\\", "__bs", StringComparison.Ordinal)
+            .Replace("|", "__vl", StringComparison.Ordinal)
+            .Replace("?", "__qm", StringComparison.Ordinal)
+            .Replace("*", "__ast", StringComparison.Ordinal);
+        var testFilename = $"{testClassName}.{TestContext.CurrentContext.Test.MethodName}{arguments}.{s_osName}.{_outputVersionAsString}.{_baselineFileExtension}";
+        var expectedOutputPath = Path.Join(s_baselineDirectory, testFilename);
+
+        if (!File.Exists(expectedOutputPath))
+        {
+            if (!await UpdateBaselineIfRequestedAsync(expectedOutputPath, actualOutputContents).ConfigureAwait(true))
+            {
+                Assert.Fail($"Baseline does not exist. Set {UpdateBaselineEnvVar}=1 to automatically generate it.");
+            }
+        }
+        else
+        {
+            var expectedOutputContents = await File.ReadAllTextAsync(expectedOutputPath).ConfigureAwait(false);
+            if (expectedOutputContents != actualOutputContents)
+            {
+                if (!await UpdateBaselineIfRequestedAsync(expectedOutputPath, actualOutputContents).ConfigureAwait(true))
+                {
+                    // Write the actual output and attach it to the test: this allows us to gather the actual output
+                    // from CI.
+                    var actualOutputPath = Path.Join(TestContext.CurrentContext.WorkDirectory, testFilename);
+                    await File.WriteAllTextAsync(actualOutputPath, actualOutputContents).ConfigureAwait(false);
+                    TestContext.AddTestAttachment(actualOutputPath);
+
+                    Assert.That(actualOutputContents, Is.EqualTo(expectedOutputContents));
+                }
+            }
+        }
     }
 }

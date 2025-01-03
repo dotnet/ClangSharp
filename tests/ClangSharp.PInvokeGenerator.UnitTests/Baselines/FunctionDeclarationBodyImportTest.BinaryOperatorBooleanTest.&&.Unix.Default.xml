@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true">
+        <type>bool</type>
+        <param name="x">
+          <type>bool</type>
+        </param>
+        <param name="y">
+          <type>bool</type>
+        </param>
+        <code>return x &amp;&amp; y;</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

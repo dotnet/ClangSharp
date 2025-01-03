@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <constant name="MyMacro1" access="public">
+        <type primitive="True">int</type>
+        <value>
+          <unchecked>
+            <value>
+              <code>(int)(<value>0x80000000</value>)</code>
+            </value>
+          </unchecked>
+        </value>
+      </constant>
+      <constant name="MyMacro2" access="public">
+        <type primitive="True">int</type>
+        <value>
+          <unchecked>
+            <value>
+              <code>(int)(<value>0x80000000</value>)</code>
+            </value>
+          </unchecked>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>

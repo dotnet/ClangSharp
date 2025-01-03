@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true" unsafe="true">
+        <type>int</type>
+        <param name="pData">
+          <type>int*</type>
+        </param>
+        <param name="index">
+          <type>int</type>
+        </param>
+        <code>return pData[index];</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

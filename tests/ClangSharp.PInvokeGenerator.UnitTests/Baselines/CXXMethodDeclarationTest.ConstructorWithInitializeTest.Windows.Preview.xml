@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="_x" access="public">
+        <type>int</type>
+      </field>
+      <field name="_y" access="public">
+        <type>int</type>
+      </field>
+      <field name="_z" access="public">
+        <type>int</type>
+      </field>
+      <function name="MyStruct" access="public">
+        <type>void</type>
+        <param name="x">
+          <type>int</type>
+        </param>
+        <init field="_x" hint="x">
+          <code>x</code>
+        </init>
+        <code></code>
+      </function>
+      <function name="MyStruct" access="public">
+        <type>void</type>
+        <param name="x">
+          <type>int</type>
+        </param>
+        <param name="y">
+          <type>int</type>
+        </param>
+        <init field="_x" hint="x">
+          <code>x</code>
+        </init>
+        <init field="_y" hint="y">
+          <code>y</code>
+        </init>
+        <code></code>
+      </function>
+      <function name="MyStruct" access="public">
+        <type>void</type>
+        <param name="x">
+          <type>int</type>
+        </param>
+        <param name="y">
+          <type>int</type>
+        </param>
+        <param name="z">
+          <type>int</type>
+        </param>
+        <init field="_x" hint="x">
+          <code>x</code>
+        </init>
+        <init field="_y" hint="y">
+          <code>y</code>
+        </init>
+        <code></code>
+      </function>
+    </struct>
+  </namespace>
+</bindings>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true" unsafe="true">
+      <constant name="Macro1" access="public">
+        <type primitive="True">int*</type>
+        <value>
+          <unchecked>
+            <value>
+              <code>(int*)(<value>-1</value>)</code>
+            </value>
+          </unchecked>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>

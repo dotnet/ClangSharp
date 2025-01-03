@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="value" access="public">
+        <type>int</type>
+      </field>
+      <function name="MyStruct" access="public">
+        <type>void</type>
+        <param name="value">
+          <type>int</type>
+        </param>
+        <init field="value" hint="value">
+          <code>value</code>
+        </init>
+        <code></code>
+      </function>
+      <function name="Add" access="public">
+        <type>MyStruct</type>
+        <param name="rhs">
+          <type>MyStruct</type>
+        </param>
+        <code>return new MyStruct(value + rhs.value);</code>
+      </function>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <function name="Subtract" access="public" static="true">
+        <type>MyStruct</type>
+        <param name="lhs">
+          <type>MyStruct</type>
+        </param>
+        <param name="rhs">
+          <type>MyStruct</type>
+        </param>
+        <code>return new MyStruct(lhs.value - rhs.value);</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

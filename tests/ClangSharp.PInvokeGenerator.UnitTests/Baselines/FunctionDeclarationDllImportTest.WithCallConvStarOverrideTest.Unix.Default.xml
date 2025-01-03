@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction1" access="public" lib="ClangSharpPInvokeGenerator" static="true">
+        <type>void</type>
+        <param name="value">
+          <type>int</type>
+        </param>
+      </function>
+      <function name="MyFunction2" access="public" lib="ClangSharpPInvokeGenerator" convention="StdCall" static="true">
+        <type>void</type>
+        <param name="value">
+          <type>int</type>
+        </param>
+      </function>
+    </class>
+  </namespace>
+</bindings>

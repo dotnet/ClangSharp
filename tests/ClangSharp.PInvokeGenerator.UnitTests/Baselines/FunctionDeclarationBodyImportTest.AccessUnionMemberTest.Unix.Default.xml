@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyUnion" access="public" layout="Explicit">
+      <field name="Anonymous" access="public" offset="0">
+        <type native="__AnonymousRecord_ClangUnsavedFile_L3_C5">_Anonymous_e__Struct</type>
+      </field>
+      <field name="a" access="public">
+        <type>ref int</type>
+        <get>
+          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));</code>
+        </get>
+      </field>
+      <struct name="_Anonymous_e__Struct" access="public">
+        <field name="a" access="public">
+          <type>int</type>
+        </field>
+      </struct>
+    </struct>
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" static="true">
+        <type>void</type>
+        <code>MyUnion myUnion = new MyUnion();
+
+      myUnion.Anonymous.a = 10;</code>
+      </function>
+    </class>
+  </namespace>
+</bindings>

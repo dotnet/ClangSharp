@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyUnion" access="public" layout="Explicit">
+      <field name="r" access="public" offset="0">
+        <type>float</type>
+      </field>
+      <field name="g" access="public" offset="0">
+        <type>float</type>
+      </field>
+      <field name="b" access="public" offset="0">
+        <type>float</type>
+      </field>
+      <struct name="MyNestedUnion" access="public" layout="Explicit">
+        <field name="r" access="public" offset="0">
+          <type>float</type>
+        </field>
+        <field name="g" access="public" offset="0">
+          <type>float</type>
+        </field>
+        <field name="b" access="public" offset="0">
+          <type>float</type>
+        </field>
+        <field name="a" access="public" offset="0">
+          <type>float</type>
+        </field>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

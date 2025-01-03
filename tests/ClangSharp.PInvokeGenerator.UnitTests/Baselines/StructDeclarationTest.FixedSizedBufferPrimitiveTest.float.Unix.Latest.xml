@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="c" access="public">
+        <type native="float[3]" count="3" fixed="_c_e__FixedBuffer">float</type>
+      </field>
+      <struct name="_c_e__FixedBuffer" access="public">
+        <attribute>InlineArray(3)</attribute>
+        <field name="e0" access="public">
+          <type>float</type>
+        </field>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

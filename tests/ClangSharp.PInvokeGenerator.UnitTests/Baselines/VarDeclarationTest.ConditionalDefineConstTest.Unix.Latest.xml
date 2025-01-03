@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <constant name="ADDRESS_IN_USE" access="public">
+        <type primitive="True">int</type>
+        <value>
+          <unchecked>
+            <code>((int)(10048) &lt;= 0 ? ((int)(10048)) : ((int)(((10048) &amp; 0x0000FFFF) | (7 &lt;&lt; 16) | 0x80000000)))</code>
+          </unchecked>
+        </value>
+      </constant>
+    </class>
+  </namespace>
+</bindings>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <function name="MyFunction" access="public" lib="ClangSharpPInvokeGenerator" convention="Cdecl" entrypoint="_ZN11MyNamespace10MyFunctionEv" static="true">
+        <type>void</type>
+      </function>
+    </class>
+  </namespace>
+</bindings>

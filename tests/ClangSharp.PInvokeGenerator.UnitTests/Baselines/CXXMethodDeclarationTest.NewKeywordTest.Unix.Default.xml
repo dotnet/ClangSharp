@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <function name="Equals" access="public">
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="Equals" access="public">
+        <type>int</type>
+        <param name="obj">
+          <type>int</type>
+        </param>
+        <code>return 0;</code>
+      </function>
+      <function name="Dispose" access="public">
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="Dispose" access="public">
+        <type>int</type>
+        <param name="obj">
+          <type>int</type>
+        </param>
+        <code>return 0;</code>
+      </function>
+      <function name="GetHashCode" access="public">
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="GetHashCode" access="public">
+        <type>int</type>
+        <param name="obj">
+          <type>int</type>
+        </param>
+        <code>return 0;</code>
+      </function>
+      <function name="GetType" access="public">
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="GetType" access="public">
+        <type>int</type>
+        <param name="obj">
+          <type>int</type>
+        </param>
+        <code>return 0;</code>
+      </function>
+      <function name="MemberwiseClone" access="public">
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="MemberwiseClone" access="public">
+        <type>int</type>
+        <param name="obj">
+          <type>int</type>
+        </param>
+        <code>return 0;</code>
+      </function>
+      <function name="ReferenceEquals" access="public">
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="ReferenceEquals" access="public">
+        <type>int</type>
+        <param name="obj">
+          <type>int</type>
+        </param>
+        <code>return 0;</code>
+      </function>
+      <function name="ToString" access="public">
+        <type>int</type>
+        <code>return 0;</code>
+      </function>
+      <function name="ToString" access="public">
+        <type>int</type>
+        <param name="obj">
+          <type>int</type>
+        </param>
+        <code>return 0;</code>
+      </function>
+    </struct>
+  </namespace>
+</bindings>

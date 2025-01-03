@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct" access="public">
+      <field name="c" access="public">
+        <type native="float *[3]" count="3" fixed="_c_e__FixedBuffer">float*</type>
+      </field>
+      <struct name="_c_e__FixedBuffer" access="public" unsafe="true">
+        <field name="e0" access="public">
+          <type>float*</type>
+        </field>
+        <field name="e1" access="public">
+          <type>float*</type>
+        </field>
+        <field name="e2" access="public">
+          <type>float*</type>
+        </field>
+        <indexer access="public">
+          <type>ref float*</type>
+          <param name="index">
+            <type>int</type>
+          </param>
+          <get>
+            <code>fixed (float** pThis = &amp;e0)
+    {
+        return ref pThis[index];
+    }</code>
+          </get>
+        </indexer>
+      </struct>
+    </struct>
+  </namespace>
+</bindings>

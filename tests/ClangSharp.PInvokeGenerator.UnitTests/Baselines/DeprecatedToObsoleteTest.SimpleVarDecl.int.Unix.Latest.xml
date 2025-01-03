@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <class name="Methods" access="public" static="true">
+      <field name="MyVariable0" access="public">
+        <type primitive="True">int</type>
+        <value>
+          <code>0</code>
+        </value>
+      </field>
+      <field name="MyVariable1" access="public">
+        <attribute>Obsolete</attribute>
+        <type primitive="True">int</type>
+        <value>
+          <code>0</code>
+        </value>
+      </field>
+      <field name="MyVariable2" access="public">
+        <attribute>Obsolete("This is obsolete.")</attribute>
+        <type primitive="True">int</type>
+        <value>
+          <code>0</code>
+        </value>
+      </field>
+      <field name="MyVariable3" access="public">
+        <type primitive="True">int</type>
+        <value>
+          <code>0</code>
+        </value>
+      </field>
+    </class>
+  </namespace>
+</bindings>

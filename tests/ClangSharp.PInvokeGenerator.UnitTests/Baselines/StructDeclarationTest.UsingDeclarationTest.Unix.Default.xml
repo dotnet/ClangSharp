@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <struct name="MyStruct1A" access="public">
+      <function name="MyMethod" access="public">
+        <type>void</type>
+        <code></code>
+      </function>
+    </struct>
+    <struct name="MyStruct1B" access="public" native="struct MyStruct1B : MyStruct1A">
+      <function name="MyMethod" access="public">
+        <type>void</type>
+        <code></code>
+      </function>
+    </struct>
+  </namespace>
+</bindings>

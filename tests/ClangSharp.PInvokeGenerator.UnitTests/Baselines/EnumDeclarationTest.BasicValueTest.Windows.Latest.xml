@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<bindings>
+  <namespace name="ClangSharp.Test">
+    <enumeration name="MyEnum" access="public">
+      <type>int</type>
+      <enumerator name="MyEnum_Value1" access="public">
+        <type primitive="False">int</type>
+        <value>
+          <code>1</code>
+        </value>
+      </enumerator>
+      <enumerator name="MyEnum_Value2" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+      <enumerator name="MyEnum_Value3" access="public">
+        <type primitive="False">int</type>
+      </enumerator>
+    </enumeration>
+  </namespace>
+</bindings>
