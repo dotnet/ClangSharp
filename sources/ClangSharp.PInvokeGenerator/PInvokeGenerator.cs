@@ -2805,9 +2805,11 @@ public sealed partial class PInvokeGenerator : IDisposable
                 Debug.Assert(parent is not null);
                 name = GetCursorName(parent);
             }
-            else if (namedDecl is CXXDestructorDecl)
+            else if (namedDecl is CXXDestructorDecl cxxDestructorDecl)
             {
-                name = "Dispose";
+                var parent = cxxDestructorDecl.Parent;
+                Debug.Assert(parent is not null);
+                name = $"~{GetCursorName(parent)}";
             }
             else if (string.IsNullOrWhiteSpace(name) || name.StartsWith('('))
             {
@@ -3159,6 +3161,10 @@ public sealed partial class PInvokeGenerator : IDisposable
             var parent = cxxConstructorDecl.Parent;
             Debug.Assert(parent is not null);
             remappedName = GetRemappedCursorName(parent);
+        }
+        else if (namedDecl is CXXDestructorDecl)
+        {
+            remappedName = "Dispose";
         }
         else if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith("__AnonymousFieldDecl_", StringComparison.Ordinal))
         {
