@@ -1237,7 +1237,7 @@ public static class Program
     {
         return new Option<string[]>(
             aliases: s_traverseOptionAliases,
-            description: "A file name included either directly or indirectly by -f that should be traversed during binding generation.",
+            description: "A glob used to filter file names included either directly or indirectly by -f that will be traversed during binding generation.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true
