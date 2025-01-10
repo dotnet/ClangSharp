@@ -3166,9 +3166,19 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             remappedName = "Dispose";
         }
-        else if (namedDecl is FieldDecl fieldDecl)
+        else if ((namedDecl is FieldDecl fieldDecl) && name.StartsWith("__AnonymousFieldDecl_", StringComparison.Ordinal))
         {
-            if (name.StartsWith("__AnonymousFieldDecl_", StringComparison.Ordinal))
+            if (fieldDecl.Type.AsCXXRecordDecl?.IsAnonymous == true)
+            {
+                // For fields of anonymous types, use the name of the type but clean off the type
+                // kind tag at the end.
+                var typeName = GetRemappedNameForAnonymousRecord(fieldDecl.Type.AsCXXRecordDecl);
+                var tagIndex = typeName.LastIndexOf("_e__", StringComparison.Ordinal);
+                Debug.Assert(typeName[0] == '_');
+                Debug.Assert(tagIndex >= 0);
+                remappedName = typeName.Substring(1, tagIndex - 1);
+            }
+            else
             {
                 remappedName = "Anonymous";
 
@@ -3184,28 +3194,62 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
         else if ((namedDecl is RecordDecl recordDecl) && name.StartsWith("__AnonymousRecord_", StringComparison.Ordinal))
         {
-            if (recordDecl.Parent is RecordDecl parentRecordDecl)
-            {
-                remappedName = "_Anonymous";
-
-                var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordDecl.TypeForDecl.CanonicalType).FirstOrDefault();
-
-                if (matchingField is not null)
-                {
-                    remappedName = "_";
-                    remappedName += GetRemappedCursorName(matchingField);
-                }
-                else if (parentRecordDecl.AnonymousRecords.Count > 1)
-                {
-                    var index = parentRecordDecl.AnonymousRecords.IndexOf(recordDecl) + 1;
-                    remappedName += index.ToString(CultureInfo.InvariantCulture);
-                }
-
-                remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
-            }
+            remappedName = GetRemappedNameForAnonymousRecord(recordDecl);
         }
 
         return remappedName;
+    }
+
+    private string GetRemappedNameForAnonymousRecord(RecordDecl recordDecl)
+    {
+        if (recordDecl.Parent is RecordDecl parentRecordDecl)
+        {
+            var remappedNameBuilder = new StringBuilder();
+            var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordDecl.TypeForDecl.CanonicalType).FirstOrDefault();
+
+            if ((matchingField is not null) && !matchingField.IsAnonymousField)
+            {
+                _ = remappedNameBuilder.Append('_');
+                _ = remappedNameBuilder.Append(GetRemappedCursorName(matchingField));
+            }
+            else
+            {
+                _ = remappedNameBuilder.Append("_Anonymous");
+
+                // If there is more than one anonymous type, then add a numeral to differentiate.
+                if (parentRecordDecl.AnonymousRecords.Count > 1)
+                {
+                    var index = parentRecordDecl.AnonymousRecords.IndexOf(recordDecl) + 1;
+                    Debug.Assert(index > 0);
+                    _ = remappedNameBuilder.Append(index);
+                }
+
+                // C# doesn't allow a nested type to have the same name as the parent, so if the
+                // parent is also anonymous, add the nesting depth as a way to avoid conflicts with
+                // the parent's name.
+                if (parentRecordDecl.IsAnonymous)
+                {
+                    var depth = 1;
+                    var currentParent = parentRecordDecl.Parent;
+                    while ((currentParent is RecordDecl currentParentRecordDecl) && currentParentRecordDecl.IsAnonymous)
+                    {
+                        depth++;
+                        currentParent = currentParentRecordDecl.Parent;
+                    }
+                    _ = remappedNameBuilder.Append('_');
+                    _ = remappedNameBuilder.Append(depth);
+                }
+            }
+
+            // Add the type kind tag.
+            _ = remappedNameBuilder.Append("_e__");
+            _ = remappedNameBuilder.Append(recordDecl.IsUnion ? "Union" : "Struct");
+            return remappedNameBuilder.ToString();
+        }
+        else
+        {
+            return $"_Anonymous_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
+        }
     }
 
     private string GetRemappedName(string name, Cursor? cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
@@ -3304,48 +3348,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     if (IsType<RecordType>(cursor, type, out var recordType) && remappedName.StartsWith("__AnonymousRecord_", StringComparison.Ordinal))
                     {
                         var recordDecl = recordType.Decl;
-                        remappedName = "_Anonymous";
-
-                        if (recordDecl.Parent is RecordDecl parentRecordDecl)
-                        {
-                            var matchingField = parentRecordDecl.Fields.Where((fieldDecl) => fieldDecl.Type.CanonicalType == recordType).FirstOrDefault();
-
-                            if (matchingField is not null)
-                            {
-                                remappedName = "_";
-                                remappedName += GetRemappedCursorName(matchingField);
-                            }
-                            else
-                            {
-                                var index = 0;
-
-                                if (parentRecordDecl.AnonymousRecords.Count > 1)
-                                {
-                                    index = parentRecordDecl.AnonymousRecords.IndexOf(cursor) + 1;
-                                }
-
-                                while (parentRecordDecl.IsAnonymousStructOrUnion && (parentRecordDecl.IsUnion == recordType.Decl.IsUnion))
-                                {
-                                    index += 1;
-
-                                    if (parentRecordDecl.Parent is RecordDecl parentRecordDeclParent)
-                                    {
-                                        if (parentRecordDeclParent.AnonymousRecords.Count > 0)
-                                        {
-                                            index += parentRecordDeclParent.AnonymousRecords.Count - 1;
-                                        }
-                                        parentRecordDecl = parentRecordDeclParent;
-                                    }
-                                }
-
-                                if (index != 0)
-                                {
-                                    remappedName += index.ToString(CultureInfo.InvariantCulture);
-                                }
-                            }
-                        }
-
-                        remappedName += $"_e__{(recordDecl.IsUnion ? "Union" : "Struct")}";
+                        remappedName = GetRemappedNameForAnonymousRecord(recordDecl);
                     }
                     else if (IsType<EnumType>(cursor, type, out var enumType) && remappedName.StartsWith("__AnonymousEnum_", StringComparison.Ordinal))
                     {
@@ -4572,7 +4575,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool HasField(RecordDecl recordDecl)
     {
-        var hasField = recordDecl.Fields.Any() || recordDecl.Decls.Any((decl) => (decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && HasField(nestedRecordDecl));
+        var hasField = recordDecl.Fields.Any() || recordDecl.Decls.Any((decl) => (decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymous && HasField(nestedRecordDecl));
 
         if (!hasField && (recordDecl is CXXRecordDecl cxxRecordDecl))
         {
@@ -5123,7 +5126,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             foreach (var decl in recordDecl.Decls)
             {
-                if ((decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && !IsEmptyRecord(nestedRecordDecl))
+                if ((decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymous && !IsEmptyRecord(nestedRecordDecl))
                 {
                     return false;
                 }
@@ -6150,7 +6153,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 return true;
             }
-            else if ((decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymousStructOrUnion && (IsUnsafe(nestedRecordDecl) || Config.GenerateCompatibleCode))
+            else if ((decl is RecordDecl nestedRecordDecl) && nestedRecordDecl.IsAnonymous && (IsUnsafe(nestedRecordDecl) || Config.GenerateCompatibleCode))
             {
                 return true;
             }

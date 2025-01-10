@@ -860,35 +860,35 @@ union MyUnion
       <field name=""w"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.w, 1));</code>
+          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous_1.w, 1));</code>
         </get>
       </field>
       <field name=""o0_b0_16"" access=""public"">
         <type>int</type>
         <get>
-          <code>return Anonymous.Anonymous.o0_b0_16;</code>
+          <code>return Anonymous.Anonymous_1.o0_b0_16;</code>
         </get>
         <set>
-          <code>Anonymous.Anonymous.o0_b0_16 = value;</code>
+          <code>Anonymous.Anonymous_1.o0_b0_16 = value;</code>
         </set>
       </field>
       <field name=""o0_b16_4"" access=""public"">
         <type>int</type>
         <get>
-          <code>return Anonymous.Anonymous.o0_b16_4;</code>
+          <code>return Anonymous.Anonymous_1.o0_b16_4;</code>
         </get>
         <set>
-          <code>Anonymous.Anonymous.o0_b16_4 = value;</code>
+          <code>Anonymous.Anonymous_1.o0_b16_4 = value;</code>
         </set>
       </field>
       <struct name=""_Anonymous_e__Union"" access=""public"" layout=""Explicit"">
         <field name=""z"" access=""public"" offset=""0"">
           <type>int</type>
         </field>
-        <field name=""Anonymous"" access=""public"" offset=""0"">
-          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous_e__Union</type>
+        <field name=""Anonymous_1"" access=""public"" offset=""0"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous_1_e__Union</type>
         </field>
-        <struct name=""_Anonymous_e__Union"" access=""public"" layout=""Explicit"">
+        <struct name=""_Anonymous_1_e__Union"" access=""public"" layout=""Explicit"">
           <field name=""w"" access=""public"" offset=""0"">
             <type>int</type>
           </field>
@@ -1369,25 +1369,25 @@ union MyUnion
         </get>
       </field>
       <field name=""A"" access=""public"">
-        <type>ref _Anonymous_e__Struct._Anonymous_e__Union._A_e__Struct</type>
+        <type>ref _Anonymous_e__Struct._Anonymous_1_e__Union._A_e__Struct</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.A, 1));</code>
+          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous_1.A, 1));</code>
         </get>
       </field>
       <field name=""B"" access=""public"">
-        <type>ref _Anonymous_e__Struct._Anonymous_e__Union._B_e__Struct</type>
+        <type>ref _Anonymous_e__Struct._Anonymous_1_e__Union._B_e__Struct</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous.B, 1));</code>
+          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous_1.B, 1));</code>
         </get>
       </field>
       <struct name=""_Anonymous_e__Struct"" access=""public"">
         <field name=""First"" access=""public"">
           <type native=""long"">nint</type>
         </field>
-        <field name=""Anonymous"" access=""public"">
-          <type native=""__AnonymousRecord_ClangUnsavedFile_L7_C9"">_Anonymous_e__Union</type>
+        <field name=""Anonymous_1"" access=""public"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L7_C9"">_Anonymous_1_e__Union</type>
         </field>
-        <struct name=""_Anonymous_e__Union"" access=""public"" layout=""Explicit"">
+        <struct name=""_Anonymous_1_e__Union"" access=""public"" layout=""Explicit"">
           <field name=""A"" access=""public"" offset=""0"">
             <type native=""__AnonymousRecord_ClangUnsavedFile_L9_C13"">_A_e__Struct</type>
           </field>
