@@ -622,6 +622,7 @@ public partial class PInvokeGenerator
                 }
             },
             CustomAttrGeneratorData = (functionDecl, _outputBuilder, this),
+            ParameterTypes = functionDecl.Parameters.Select(param => GetTargetTypeName(param, out var _)).ToArray(),
         };
         Debug.Assert(_outputBuilder is not null);
 
