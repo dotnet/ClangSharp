@@ -501,12 +501,15 @@ public partial class PInvokeGenerator
         var name = GetRemappedCursorName(functionDecl);
 
         var cxxMethodDecl = functionDecl as CXXMethodDecl;
+        uint overloadCount = 0;
 
         if (cxxMethodDecl is not null and CXXConstructorDecl)
         {
             var parent = cxxMethodDecl.Parent;
             Debug.Assert(parent is not null);
             name = GetRemappedCursorName(parent);
+
+            overloadCount = GetOverloadCount(cxxMethodDecl);
         }
 
         var isManualImport = _config.WithManualImports.Contains(name);
@@ -622,7 +625,7 @@ public partial class PInvokeGenerator
                 }
             },
             CustomAttrGeneratorData = (functionDecl, _outputBuilder, this),
-            ParameterTypes = functionDecl.Parameters.Select(param => GetTargetTypeName(param, out var _)).ToArray(),
+            ParameterTypes = overloadCount > 1 ? functionDecl.Parameters.Select(param => GetTargetTypeName(param, out var _)).ToArray() : null,
         };
         Debug.Assert(_outputBuilder is not null);
 

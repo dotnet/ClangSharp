@@ -372,9 +372,12 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
                 Write(desc.ParentName);
                 Write('.');
                 Write(desc.EscapedName);
-                Write('(');
-                Write(string.Join(", ", desc.ParameterTypes));
-                Write(')');
+                if (desc.ParameterTypes is not null && desc.ParameterTypes.Length > 0)
+                {
+                    Write('(');
+                    Write(string.Join(", ", desc.ParameterTypes));
+                    Write(')');
+                }
                 WriteLine("\" />");
             }
             else
