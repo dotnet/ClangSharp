@@ -3096,6 +3096,39 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
+    private uint GetOverloadCount(CXXMethodDecl cxxMethodDeclToMatch)
+    {
+        var parent = cxxMethodDeclToMatch.Parent;
+        Debug.Assert(parent is not null);
+
+        return GetOverloadIndex(cxxMethodDeclToMatch, parent, baseCount: 0);
+
+        uint GetOverloadIndex(CXXMethodDecl cxxMethodDeclToMatch, CXXRecordDecl cxxRecordDecl, uint baseCount)
+        {
+            var count = baseCount;
+
+            foreach (var cxxBaseSpecifier in cxxRecordDecl.Bases)
+            {
+                var baseCxxRecordDecl = GetRecordDecl(cxxBaseSpecifier);
+                count = GetOverloadIndex(cxxMethodDeclToMatch, baseCxxRecordDecl, count);
+            }
+
+            foreach (var cxxMethodDecl in cxxRecordDecl.Methods)
+            {
+                if (IsExcluded(cxxMethodDecl))
+                {
+                    continue;
+                }
+                else if (cxxMethodDecl.Name == cxxMethodDeclToMatch.Name)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+    }
+
     private CXXRecordDecl GetRecordDecl(CXXBaseSpecifier cxxBaseSpecifier)
     {
         var baseType = cxxBaseSpecifier.Type;
