@@ -508,7 +508,10 @@ public partial class PInvokeGenerator
             var parent = cxxMethodDecl.Parent;
             Debug.Assert(parent is not null);
             name = GetRemappedCursorName(parent);
+        }
 
+        if (cxxMethodDecl is not null)
+        {
             overloadCount = GetOverloadCount(cxxMethodDecl);
         }
 
