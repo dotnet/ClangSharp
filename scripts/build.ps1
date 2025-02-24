@@ -20,7 +20,7 @@ $ErrorActionPreference = "Stop"
 
 function Build() {
   $logFile = Join-Path -Path $LogDir -ChildPath "$configuration\build.binlog"
-  & dotnet build -c "$configuration" --no-restore -v "$verbosity" /bl:"$logFile" /err "$properties" "$solution"
+  & dotnet build -c "$configuration" --no-restore -v "$verbosity" /bl:"$logFile" /err $properties "$solution"
 
   if ($LastExitCode -ne 0) {
     throw "'Build' failed for '$solution'"
@@ -57,7 +57,7 @@ function Help() {
 
 function Pack() {
   $logFile = Join-Path -Path $LogDir -ChildPath "$configuration\pack.binlog"
-  & dotnet pack -c "$configuration" --no-build --no-restore -v "$verbosity" /bl:"$logFile" /err "$properties" "$solution"
+  & dotnet pack -c "$configuration" --no-build --no-restore -v "$verbosity" /bl:"$logFile" /err $properties "$solution"
 
   if ($LastExitCode -ne 0) {
     throw "'Pack' failed for '$solution'"
@@ -66,7 +66,7 @@ function Pack() {
 
 function Restore() {
   $logFile = Join-Path -Path $LogDir -ChildPath "$configuration\restore.binlog"
-  & dotnet restore -v "$verbosity" /bl:"$logFile" /err "$properties" "$solution"
+  & dotnet restore -v "$verbosity" /bl:"$logFile" /err $properties "$solution"
 
   if ($LastExitCode -ne 0) {
     throw "'Restore' failed for '$solution'"
@@ -75,7 +75,7 @@ function Restore() {
 
 function Test() {
   $logFile = Join-Path -Path $LogDir -ChildPath "$configuration\test.binlog"
-  & dotnet test -c "$configuration" --no-build --no-restore -v "$verbosity" /bl:"$logFile" /err "$properties" "$solution"
+  & dotnet test -c "$configuration" --no-build --no-restore -v "$verbosity" /bl:"$logFile" /err $properties "$solution"
 
   if ($LastExitCode -ne 0) {
     throw "'Test' failed for '$solution'"
