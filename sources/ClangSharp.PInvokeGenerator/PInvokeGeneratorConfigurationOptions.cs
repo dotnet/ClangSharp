@@ -88,4 +88,6 @@ public enum PInvokeGeneratorConfigurationOptions : long
     GenerateGenericPointerWrapper = 1L << 38,
 
     StripEnumMemberTypeName = 1L << 39,
+
+    DontUseUsingStaticsForGuidMember = 1L << 40,
 }
