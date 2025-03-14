@@ -444,6 +444,13 @@ public static class Program
                     break;
                 }
 
+                case "exclude-using-statics-for-guid-members":
+                case "dont-use-using-statics-for-guid-members":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForGuidMember;
+                    break;
+                }
+
                 // VTBL Options
 
                 case "explicit-vtbls":
