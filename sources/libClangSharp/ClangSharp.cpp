@@ -5401,6 +5401,17 @@ CXType clangsharp_Type_getOriginalType(CXType CT) {
     return MakeCXType(QualType(), GetTypeTU(CT));
 }
 
+CXCursor clangsharp_Type_getSubstTemplateTypeParamAssociatedDecl(CXType CT) {
+    QualType T = GetQualType(CT);
+    const Type* TP = T.getTypePtrOrNull();
+
+    if (const SubstTemplateTypeParmType* STTPT = dyn_cast<SubstTemplateTypeParmType>(TP)) {
+        return MakeCXCursor(STTPT->getAssociatedDecl(), GetTypeTU(CT));
+    }
+
+    clang_getNullCursor();
+}
+
 CXCursor clangsharp_Type_getOwnedTagDecl(CXType CT) {
     QualType T = GetQualType(CT);
     const Type* TP = T.getTypePtrOrNull();
