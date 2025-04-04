@@ -1411,7 +1411,15 @@ public partial class PInvokeGenerator
                     var className = GetClass(uuidName);
 
                     _testOutputBuilder.AddUsingDirective("System");
-                    _testOutputBuilder.AddUsingDirective($"static {GetNamespace(className)}.{className}");
+
+                    if (_config.DontUseUsingStaticsForGuidMember)
+                    {
+                        _testOutputBuilder.AddUsingDirective($"{GetNamespace(className)}");
+                    }
+                    else
+                    {
+                        _testOutputBuilder.AddUsingDirective($"static {GetNamespace(className)}.{className}");
+                    }
 
                     _testOutputBuilder.WriteIndented("/// <summary>Validates that the <see cref=\"Guid\" /> of the <see cref=\"");
                     _testOutputBuilder.Write(escapedName);
@@ -1440,7 +1448,13 @@ public partial class PInvokeGenerator
                         _testOutputBuilder.Write("Is.EqualTo(");
                     }
 
-                    _testOutputBuilder.Write(uuidName);
+                    var usableUuidName = uuidName;
+                    if (_config.DontUseUsingStaticsForGuidMember)
+                    {
+                        usableUuidName = $"{className}.{usableUuidName}";
+                    }
+
+                    _testOutputBuilder.Write(usableUuidName);
 
                     if (_config.GenerateTestsNUnit)
                     {
@@ -1626,12 +1640,26 @@ public partial class PInvokeGenerator
                 _outputBuilder.EmitUsingDirective("System");
                 _outputBuilder.EmitUsingDirective("System.Runtime.CompilerServices");
 
-                _outputBuilder.EmitUsingDirective($"static {GetNamespace(uuidClassName)}.{uuidClassName}");
+                if (_config.DontUseUsingStaticsForGuidMember)
+                {
+                    _outputBuilder.EmitUsingDirective($"{GetNamespace(uuidClassName)}");
+                }
+                else
+                {
+                    _outputBuilder.EmitUsingDirective($"static {GetNamespace(uuidClassName)}.{uuidClassName}");
+                }
+
+                var usableUuidName = uuidName;
+                if (_config.DontUseUsingStaticsForGuidMember)
+                {
+                    usableUuidName = $"{uuidClassName}.{usableUuidName}";
+                }
+
                 _outputBuilder.BeginValue(in valueDesc);
 
                 var code = _outputBuilder.BeginCSharpCode();
                 code.Write("(Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in ");
-                code.Write(uuidName);
+                code.Write(usableUuidName);
                 code.Write("))");
                 _outputBuilder.EndCSharpCode(code);
 

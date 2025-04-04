@@ -267,6 +267,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool StripEnumMemberTypeName => _options.HasFlag(PInvokeGeneratorConfigurationOptions.StripEnumMemberTypeName);
 
+    public bool DontUseUsingStaticsForGuidMember => _options.HasFlag(PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForGuidMember);
+
     public string HeaderText => _headerText;
 
     [AllowNull]
