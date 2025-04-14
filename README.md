@@ -13,7 +13,7 @@ A convenience package which provides the native libClang library for several pla
 
 A helper package which exposes many Clang APIs missing from libClang is provided here: https://www.nuget.org/packages/libClangSharp
 
-**NOTE:** libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/18.1.3); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
+**NOTE:** libclang and libClangSharp are meta-packages which point to the platform-specific runtime packages ([e.g.](https://www.nuget.org/packages/libClangSharp.runtime.win-x64/20.1.2); see others owned by [tannergooding](https://www.nuget.org/profiles/tannergooding)). Several manual steps may be required to use them, see discussion in [#46](https://github.com/dotnet/ClangSharp/issues/46) and [#118](https://github.com/dotnet/ClangSharp/issues/118).
 
 Nightly packages are available via the NuGet Feed URL: https://pkgs.clangsharp.dev/index.json
 
@@ -77,7 +77,7 @@ To successfully build `libClangSharp` you must first build Clang (https://clang.
 
 The process done on Windows is roughly:
 ```cmd
-git clone --single-branch --branch llvmorg-18.1.3 https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-20.1.2 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir artifacts/bin
 cd artifacts/bin
@@ -101,7 +101,7 @@ You can then open `libClangSharp.sln` in Visual Studio, change the configuration
 
 The process done on Linux is roughly:
 ```bash
-git clone --single-branch --branch llvmorg-18.1.3 https://github.com/llvm/llvm-project
+git clone --single-branch --branch llvmorg-20.1.2 https://github.com/llvm/llvm-project
 cd llvm-project
 mkdir -p artifacts/bin
 cd artifacts/bin
@@ -133,7 +133,7 @@ This program will take a given set of C or C++ header files and generate C# bind
 
 The simplest and recommended setup is to install the generator as a .NET tool and then use response files:
 ```
-dotnet tool install --global ClangSharpPInvokeGenerator --version 18.1.0
+dotnet tool install --global ClangSharpPInvokeGenerator --version 20.1.2
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 
