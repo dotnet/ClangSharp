@@ -374,8 +374,7 @@ public partial class PInvokeGenerator
             {
                 var typeName = GetRemappedTypeName(enumDecl, context: null, enumDecl.IntegerType, out var nativeTypeName);
 
-                desc = new EnumDesc()
-                {
+                desc = new EnumDesc() {
                     AccessSpecifier = accessSpecifier,
                     TypeName = typeName,
                     EscapedName = escapedName,
@@ -662,8 +661,7 @@ public partial class PInvokeGenerator
             if (needsReturnFixup)
             {
                 _outputBuilder.WriteParameterSeparator();
-                parameterDesc = new()
-                {
+                parameterDesc = new() {
                     Name = "_result",
                     Type = $"{returnTypeName}*"
                 };
@@ -685,8 +683,7 @@ public partial class PInvokeGenerator
             {
                 _outputBuilder.WriteParameterSeparator();
             }
-            var parameterDesc = new ParameterDesc
-            {
+            var parameterDesc = new ParameterDesc {
                 Name = "",
                 Type = "__arglist"
             };
@@ -815,9 +812,11 @@ public partial class PInvokeGenerator
                 {
                     continue;
                 }
-
-                var memberRef = (Ref)cxxConstructorDecl.CursorChildren[i];
-                var memberInit = (Stmt)cxxConstructorDecl.CursorChildren[++i];
+                if (cxxConstructorDecl.CursorChildren[i] is not Ref memberRef
+                    || cxxConstructorDecl.CursorChildren[++i] is not Stmt memberInit)
+                {
+                    continue;
+                }
 
                 if (memberInit is ImplicitValueInitExpr)
                 {
@@ -827,7 +826,7 @@ public partial class PInvokeGenerator
                 var memberRefName = GetRemappedCursorName(memberRef.Referenced);
                 var memberInitName = memberInit.Spelling;
 
-                if (memberInit is CastExpr {SubExprAsWritten: DeclRefExpr declRefExpr})
+                if (memberInit is CastExpr { SubExprAsWritten: DeclRefExpr declRefExpr })
                 {
                     memberInitName = GetRemappedCursorName(declRefExpr.Decl);
                 }
@@ -859,6 +858,7 @@ public partial class PInvokeGenerator
                 {
                     _outputBuilder.EndConstructorInitializer();
                 }
+
             }
         }
     }
@@ -1319,8 +1319,7 @@ public partial class PInvokeGenerator
                 escapedName += index;
             }
 
-            var desc = new ParameterDesc
-            {
+            var desc = new ParameterDesc {
                 Name = escapedName,
                 Type = typeName,
                 NativeTypeName = nativeTypeName,
@@ -2139,8 +2138,7 @@ public partial class PInvokeGenerator
             var remappedName = FixupNameForMultipleHits(cxxMethodDecl);
             var escapedName = EscapeAndStripMethodName(remappedName);
 
-            var desc = new FieldDesc
-            {
+            var desc = new FieldDesc {
                 AccessSpecifier = AccessSpecifier.Public,
                 NativeTypeName = nativeTypeName,
                 EscapedName = escapedName,
@@ -2954,7 +2952,7 @@ public partial class PInvokeGenerator
             var arraySize = Math.Max((arrayType as ConstantArrayType)?.Size ?? 0, 1);
             var totalSize = arraySize;
             var totalSizeString = $"{arraySize}";
-            var sizePerDimension = new List<(long index, long size)>() {(0, arraySize) };
+            var sizePerDimension = new List<(long index, long size)>() { (0, arraySize) };
 
             while (IsTypeConstantOrIncompleteArray(recordDecl, elementType, out var subArrayType))
             {
