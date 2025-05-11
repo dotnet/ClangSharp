@@ -69,6 +69,8 @@ namespace clang::cxtype {
             BTCASE(OCLEvent);
             BTCASE(OCLQueue);
             BTCASE(OCLReserveID);
+#define HLSL_INTANGIBLE_TYPE(Name, Id, SingletonId) BTCASE(Id);
+#include "clang/Basic/HLSLIntangibleTypes.def"
         default:
             return CXType_Unexposed;
         }

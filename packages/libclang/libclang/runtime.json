@@ -15,11 +15,6 @@
         "libclang.runtime.osx-arm64": "20.1.2"
       }
     },
-    "osx-x64": {
-      "libclang": {
-        "libclang.runtime.osx-x64": "20.1.2"
-      }
-    },
     "win-arm64": {
       "libclang": {
         "libclang.runtime.win-arm64": "20.1.2"

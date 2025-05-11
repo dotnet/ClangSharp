@@ -71,4 +71,6 @@ public enum CX_CastKind
     CX_CK_ZeroToOCLOpaqueType,
     CX_CK_AddressSpaceConversion,
     CX_CK_IntToOCLSampler,
+    CX_CK_HLSLVectorTruncation,
+    CX_CK_HLSLArrayRValue,
 }

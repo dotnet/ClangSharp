@@ -15,11 +15,6 @@
         "libClangSharp.runtime.osx-arm64": "20.1.2"
       }
     },
-    "osx-x64": {
-      "libClangSharp": {
-        "libClangSharp.runtime.osx-x64": "20.1.2"
-      }
-    },
     "win-arm64": {
       "libClangSharp": {
         "libClangSharp.runtime.win-arm64": "20.1.2"

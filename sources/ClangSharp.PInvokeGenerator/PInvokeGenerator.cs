@@ -5803,7 +5803,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
 
             // case CX_StmtClass_NoInitExpr:
-            // case CX_StmtClass_OMPArraySectionExpr:
+            // case CX_StmtClass_ArraySectionExpr:
             // case CX_StmtClass_ObjCArrayLiteral:
             // case CX_StmtClass_ObjCAvailabilityCheckExpr:
             // case CX_StmtClass_ObjCBoolLiteralExpr:

@@ -31,7 +31,9 @@ public sealed class AtomicExpr : Expr
 
     public Expr Ptr => SubExprs[0];
 
-    public Expr? Scope => (Op is >= CX_AO__opencl_atomic_load and <= CX_AO__opencl_atomic_fetch_max) ? SubExprs[(int)(NumSubExprs - 1)] : null;
+    public Expr? Scope => (Op is (>= CX_AO__opencl_atomic_compare_exchange_strong and <= CX_AO__opencl_atomic_store and not CX_AO__opencl_atomic_init)
+                              or (>= CX_AO__hip_atomic_compare_exchange_strong and <= CX_AO__hip_atomic_store)
+                              or (>= CX_AO__scoped_atomic_add_fetch and <= CX_AO__scoped_atomic_xor_fetch)) ? SubExprs[(int)(NumSubExprs - 1)] : null;
 
     public IReadOnlyList<Expr> SubExprs => _subExprs.Value;
 

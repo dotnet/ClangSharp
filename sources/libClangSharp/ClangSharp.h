@@ -32,7 +32,7 @@ enum CX_AtomicOperatorKind {
     CX_AO_Invalid,
 #define BUILTIN(ID, TYPE, ATTRS)
 #define ATOMIC_BUILTIN(ID, TYPE, ATTRS) CX_AO##ID,
-#include <clang/Basic/Builtins.def>
+#include <clang/Basic/Builtins.inc>
 };
 
 enum CX_AttrKind {
@@ -106,12 +106,19 @@ enum CX_FloatingSemantics {
     CX_FLK_IEEEdouble = llvm::APFloatBase::S_IEEEdouble + 1,
     CX_FLK_IEEEquad = llvm::APFloatBase::S_IEEEquad + 1,
     CX_FLK_PPCDoubleDouble = llvm::APFloatBase::S_PPCDoubleDouble + 1,
+    CX_FLK_PPCDoubleDoubleLegacy = llvm::APFloatBase::S_PPCDoubleDoubleLegacy + 1,
     CX_FLK_Float8E5M2 = llvm::APFloatBase::S_Float8E5M2 + 1,
     CX_FLK_Float8E5M2FNUZ = llvm::APFloatBase::S_Float8E5M2FNUZ + 1,
+    CX_FLK_Float8E4M3 = llvm::APFloatBase::S_Float8E4M3 + 1,
     CX_FLK_Float8E4M3FN = llvm::APFloatBase::S_Float8E4M3FN + 1,
     CX_FLK_Float8E4M3FNUZ = llvm::APFloatBase::S_Float8E4M3FNUZ + 1,
     CX_FLK_Float8E4M3B11FNUZ = llvm::APFloatBase::S_Float8E4M3B11FNUZ + 1,
+    CX_FLK_Float8E3M4 = llvm::APFloatBase::S_Float8E3M4 + 1,
     CX_FLK_FloatTF32 = llvm::APFloatBase::S_FloatTF32 + 1,
+    CX_FLK_Float8E8M0FNU = llvm::APFloatBase::S_Float8E8M0FNU + 1,
+    CX_FLK_Float6E3M2FN = llvm::APFloatBase::S_Float6E3M2FN + 1,
+    CX_FLK_Float6E2M3FN = llvm::APFloatBase::S_Float6E2M3FN + 1,
+    CX_FLK_Float4E2M1FN = llvm::APFloatBase::S_Float4E2M1FN + 1,
     CX_FLK_x87DoubleExtended = llvm::APFloatBase::S_x87DoubleExtended + 1,
     CX_FLK_MaxSemantics = llvm::APFloatBase::S_MaxSemantics + 1,
 };
@@ -162,6 +169,7 @@ enum CX_TemplateNameKind {
     CX_TNK_SubstTemplateTemplateParm = clang::TemplateName::SubstTemplateTemplateParm + 1,
     CX_TNK_SubstTemplateTemplateParmPack = clang::TemplateName::SubstTemplateTemplateParmPack + 1,
     CX_TNK_UsingTemplate = clang::TemplateName::UsingTemplate + 1,
+    CX_TNK_DeducedTemplate = clang::TemplateName::DeducedTemplate + 1,
 };
 
 enum CX_TemplateSpecializationKind {

@@ -14,4 +14,5 @@ public enum CX_TemplateNameKind
     CX_TNK_SubstTemplateTemplateParm,
     CX_TNK_SubstTemplateTemplateParmPack,
     CX_TNK_UsingTemplate,
+    CX_TNK_DeducedTemplate,
 }

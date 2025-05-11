@@ -194,6 +194,10 @@ public static unsafe partial class @clang
     [return: NativeTypeName("unsigned int")]
     public static extern uint equalLocations(CXSourceLocation loc1, CXSourceLocation loc2);
 
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_isBeforeInTranslationUnit", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint isBeforeInTranslationUnit(CXSourceLocation loc1, CXSourceLocation loc2);
+
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Location_isInSystemHeader", ExactSpelling = true)]
     public static extern int Location_isInSystemHeader(CXSourceLocation location);
 
@@ -893,9 +897,20 @@ public static unsafe partial class @clang
     [return: NativeTypeName("unsigned int")]
     public static extern uint isVirtualBase(CXCursor param0);
 
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getOffsetOfBase", ExactSpelling = true)]
+    [return: NativeTypeName("long long")]
+    public static extern long getOffsetOfBase(CXCursor Parent, CXCursor Base);
+
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCXXAccessSpecifier", ExactSpelling = true)]
     [return: NativeTypeName("enum CX_CXXAccessSpecifier")]
     public static extern CX_CXXAccessSpecifier getCXXAccessSpecifier(CXCursor param0);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getBinaryOpcode", ExactSpelling = true)]
+    [return: NativeTypeName("enum CX_BinaryOperatorKind")]
+    public static extern CX_BinaryOperatorKind Cursor_getBinaryOpcode(CXCursor C);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getBinaryOpcodeStr", ExactSpelling = true)]
+    public static extern CXString Cursor_getBinaryOpcodeStr([NativeTypeName("enum CX_BinaryOperatorKind")] CX_BinaryOperatorKind Op);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Cursor_getStorageClass", ExactSpelling = true)]
     [return: NativeTypeName("enum CX_StorageClass")]
@@ -962,6 +977,9 @@ public static unsafe partial class @clang
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCursorPrettyPrinted", ExactSpelling = true)]
     public static extern CXString getCursorPrettyPrinted(CXCursor Cursor, [NativeTypeName("CXPrintingPolicy")] void* Policy);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getTypePrettyPrinted", ExactSpelling = true)]
+    public static extern CXString getTypePrettyPrinted(CXType CT, [NativeTypeName("CXPrintingPolicy")] void* cxPolicy);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getCursorDisplayName", ExactSpelling = true)]
     public static extern CXString getCursorDisplayName(CXCursor param0);
@@ -1398,6 +1416,10 @@ public static unsafe partial class @clang
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_Type_visitFields", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Type_visitFields(CXType T, [NativeTypeName("CXFieldVisitor")] delegate* unmanaged[Cdecl]<CXCursor, void*, CXVisitorResult> visitor, [NativeTypeName("CXClientData")] void* client_data);
+
+    [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_visitCXXBaseClasses", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint visitCXXBaseClasses(CXType T, [NativeTypeName("CXFieldVisitor")] delegate* unmanaged[Cdecl]<CXCursor, void*, CXVisitorResult> visitor, [NativeTypeName("CXClientData")] void* client_data);
 
     [DllImport("libclang", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clang_getBinaryOperatorKindSpelling", ExactSpelling = true)]
     public static extern CXString getBinaryOperatorKindSpelling([NativeTypeName("enum CXBinaryOperatorKind")] CXBinaryOperatorKind kind);

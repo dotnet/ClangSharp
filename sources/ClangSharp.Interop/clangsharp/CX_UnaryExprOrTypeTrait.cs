@@ -10,8 +10,9 @@ public enum CX_UnaryExprOrTypeTrait
     CX_UETT_DataSizeOf,
     CX_UETT_AlignOf,
     CX_UETT_PreferredAlignOf,
+    CX_UETT_PtrAuthTypeDiscriminator,
     CX_UETT_VecStep,
     CX_UETT_OpenMPRequiredSimdAlign,
     CX_UETT_VectorElements,
-    CX_UETT_Last = -1 + 1 + 1 + 1 + 1 + 1 + 1 + 1,
+    CX_UETT_Last = -1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1,
 }

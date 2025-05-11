@@ -1025,7 +1025,7 @@ CXCursor clangsharp_Cursor_getDefaultArg(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
-            return MakeCXCursor(NTTPD->getDefaultArgument(), NTTPD, getCursorTU(C));
+            return MakeCXCursor(NTTPD->getDefaultArgument().getSourceExpression(), NTTPD, getCursorTU(C));
         }
 
         if (const ParmVarDecl* PVD = dyn_cast<ParmVarDecl>(D)) {
@@ -1044,7 +1044,7 @@ CXType clangsharp_Cursor_getDefaultArgType(CXCursor C) {
 
         if (const TemplateTypeParmDecl* TTPD = dyn_cast<TemplateTypeParmDecl>(D)) {
             if (TTPD->hasDefaultArgument()) {
-                QT = TTPD->getDefaultArgument();
+                QT = TTPD->getDefaultArgument().getTypeSourceInfo()->getType();
             }
         }
     }
@@ -2783,7 +2783,7 @@ unsigned clangsharp_Cursor_getIsUnnamedBitfield(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const FieldDecl* FD = dyn_cast<FieldDecl>(D)) {
-            return FD->isUnnamedBitfield();
+            return FD->isUnnamedBitField();
         }
     }
 
@@ -3465,7 +3465,7 @@ int clangsharp_Cursor_getNumTemplateArguments(CXCursor C) {
         }
 
         if (FunctionTemplateDecl* FTD = const_cast<FunctionTemplateDecl*>(dyn_cast<FunctionTemplateDecl>(D))) {
-            return FTD->getInjectedTemplateArgs().size();
+            return FTD->getInjectedTemplateArgs(getCursorContext(C)).size();
         }
 
         if (const ImplicitConceptSpecializationDecl* ICSD = const_cast<ImplicitConceptSpecializationDecl*>(dyn_cast<ImplicitConceptSpecializationDecl>(D))) {
@@ -4061,7 +4061,7 @@ CXCursor clangsharp_Cursor_getSubDecl(CXCursor C, unsigned i) {
                 return MakeCXCursor(ND->getAnonymousNamespace(), getCursorTU(C));
             }
             else if (i == 1) {
-                return MakeCXCursor(ND->getOriginalNamespace(), getCursorTU(C));
+                return MakeCXCursor(ND->getFirstDecl(), getCursorTU(C));
             }
         }
 
@@ -4263,8 +4263,8 @@ CX_TemplateArgument clangsharp_Cursor_getTemplateArgument(CXCursor C, unsigned i
         }
 
         if (FunctionTemplateDecl* FTD = const_cast<FunctionTemplateDecl*>(dyn_cast<FunctionTemplateDecl>(D))) {
-            if (i < FTD->getInjectedTemplateArgs().size()) {
-                const TemplateArgument* TA = &FTD->getInjectedTemplateArgs()[i];
+            if (i < FTD->getInjectedTemplateArgs(getCursorContext(C)).size()) {
+                const TemplateArgument* TA = &FTD->getInjectedTemplateArgs(getCursorContext(C))[i];
                 return MakeCXTemplateArgument(TA, getCursorTU(C));
             }
         }
