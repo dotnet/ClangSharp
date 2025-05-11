@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-18.1.3/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-20.1.2/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 namespace ClangSharp.Interop;
@@ -115,7 +115,7 @@ public enum CXCursorKind
     CXCursor_LambdaExpr = 144,
     CXCursor_ObjCBoolLiteralExpr = 145,
     CXCursor_ObjCSelfExpr = 146,
-    CXCursor_OMPArraySectionExpr = 147,
+    CXCursor_ArraySectionExpr = 147,
     CXCursor_ObjCAvailabilityCheckExpr = 148,
     CXCursor_FixedPointLiteral = 149,
     CXCursor_OMPArrayShapingExpr = 150,
@@ -124,7 +124,8 @@ public enum CXCursorKind
     CXCursor_ConceptSpecializationExpr = 153,
     CXCursor_RequiresExpr = 154,
     CXCursor_CXXParenListInitExpr = 155,
-    CXCursor_LastExpr = CXCursor_CXXParenListInitExpr,
+    CXCursor_PackIndexingExpr = 156,
+    CXCursor_LastExpr = CXCursor_PackIndexingExpr,
     CXCursor_FirstStmt = 200,
     CXCursor_UnexposedStmt = 200,
     CXCursor_LabelStmt = 201,
@@ -234,7 +235,22 @@ public enum CXCursorKind
     CXCursor_OMPParallelMaskedTaskLoopSimdDirective = 304,
     CXCursor_OMPErrorDirective = 305,
     CXCursor_OMPScopeDirective = 306,
-    CXCursor_LastStmt = CXCursor_OMPScopeDirective,
+    CXCursor_OMPReverseDirective = 307,
+    CXCursor_OMPInterchangeDirective = 308,
+    CXCursor_OMPAssumeDirective = 309,
+    CXCursor_OpenACCComputeConstruct = 320,
+    CXCursor_OpenACCLoopConstruct = 321,
+    CXCursor_OpenACCCombinedConstruct = 322,
+    CXCursor_OpenACCDataConstruct = 323,
+    CXCursor_OpenACCEnterDataConstruct = 324,
+    CXCursor_OpenACCExitDataConstruct = 325,
+    CXCursor_OpenACCHostDataConstruct = 326,
+    CXCursor_OpenACCWaitConstruct = 327,
+    CXCursor_OpenACCInitConstruct = 328,
+    CXCursor_OpenACCShutdownConstruct = 329,
+    CXCursor_OpenACCSetConstruct = 330,
+    CXCursor_OpenACCUpdateConstruct = 331,
+    CXCursor_LastStmt = CXCursor_OpenACCUpdateConstruct,
     CXCursor_TranslationUnit = 350,
     CXCursor_FirstAttr = 400,
     CXCursor_UnexposedAttr = 400,

@@ -6,9 +6,9 @@ using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
-public sealed class OMPArraySectionExpr : Expr
+public sealed class PackIndexingExpr : Expr
 {
-    internal OMPArraySectionExpr(CXCursor handle) : base(handle, CXCursor_OMPArraySectionExpr, CX_StmtClass_OMPArraySectionExpr)
+    internal PackIndexingExpr(CXCursor handle) : base(handle, CXCursor_PackIndexingExpr, CX_StmtClass_PackIndexingExpr)
     {
     }
 }
