@@ -49,6 +49,7 @@ llvm-c/ExternC.h
 llvm-c/IRReader.h
 llvm-c/Linker.h
 llvm-c/LLJIT.h
+llvm-c/LLJITUtils.h
 llvm-c/lto.h
 llvm-c/Object.h
 llvm-c/Orc.h
@@ -88,14 +89,16 @@ llvm_blake3_version=@blake3_version
 LLVM_BLAKE3_VERSION_STRING=@BLAKE3_VERSION_STRING
 LLVMOpaqueValueMetadataEntry=LLVMValueMetadataEntry
 LLVMOpaqueModuleFlagEntry=LLVMModuleFlagEntry
-__AnonymousEnum_Core_L462_C1=@LLVMAttributeIndex
-__AnonymousEnum_Core_L486_C1=@LLVMFastMathFlags
-__AnonymousEnum_DebugInfo_L147_C1=@LLVMMetadataKind
+__AnonymousEnum_Core_L470_C1=@LLVMAttributeIndex
+__AnonymousEnum_Core_L494_C1=@LLVMFastMathFlags
+__AnonymousEnum_Core_L517_C1=@LLVMGEPNoWrapFlags
+__AnonymousEnum_DebugInfo_L161_C1=@LLVMMetadataKind
 --test-output
 ./tests/LLVMSharp.UnitTests/Interop
 --with-attribute
 LLVMDIFlags=Flags
 LLVMJITSymbolGenericFlags=Flags
 LLVMFastMathFlags=Flags
+LLVMGEPNoWrapFlags=Flags
 LLVMOrcJITDylibLookupFlags=Flags
 LLVMOrcSymbolLookupFlags=Flags
