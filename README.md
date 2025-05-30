@@ -84,7 +84,7 @@ cd artifacts/bin
 cmake -DCMAKE_INSTALL_PREFIX=../install -DLLVM_ENABLE_PROJECTS=clang -G "Visual Studio 17 2022" -A x64 -Thost=x64 ../../llvm
 ```
 
-You can then open `LLVM.sln` in Visual Studio, change the configuration to `Release` and build the `install` project.
+You can then open `LLVM.sln` in Visual Studio, change the configuration to `Release` and build the `INSTALL` project. You may need to build the `ALL_BUILD` first.
 
 Afterwards, you can then build `libClangSharp` where the process followed is roughly:
 ```cmd
@@ -92,10 +92,10 @@ git clone https://github.com/dotnet/clangsharp
 cd clangsharp
 mkdir artifacts/bin/native
 cd artifacts/bin/native
-cmake -DCMAKE_INSTALL_PREFIX=../install -DPATH_TO_LLVM=../../../../llvm-project/artifacts/install -G "Visual Studio 17 2022" -A x64 -Thost=x64 ../../..
+cmake -DCMAKE_INSTALL_PREFIX=../install -DPATH_TO_LLVM=absolute/path/to/repos/llvm-project/artifacts/install -G "Visual Studio 17 2022" -A x64 -Thost=x64 ../../..
 ```
 
-You can then open `libClangSharp.sln` in Visual Studio, change the configuration to `Release` and build the `install` project.
+You can then open `libClangSharp.sln` in Visual Studio, change the configuration to `Release` and build the `INSTALL` project.
 
 #### Linux
 
