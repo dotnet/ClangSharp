@@ -13,6 +13,10 @@
       "commandName": "Project",
       "commandLineArgs": "\"@$(MSBuildProjectDirectory)/Properties/GenerateLLVM.rsp\" --file-directory \"$(LLVMIncludePath)\" --include-directory \"$(LLVMIncludePath)\" --libraryPath $(LibLLVMName)"
     },
+    "GenerateLLVMSharp": {
+      "commandName": "Project",
+      "commandLineArgs": "\"@$(MSBuildProjectDirectory)/Properties/GenerateLLVMSharp.rsp\" --file-directory \"$(MSBuildProjectDirectory)/../../../LLVMSharp/sources\" --include-directory \"$(LLVMIncludePath)\" --libraryPath $(LibLLVMSharpName)"
+    },
     "GenerateLocal": {
       "commandName": "Project",
       "commandLineArgs": "@generate.rsp",
