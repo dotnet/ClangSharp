@@ -3121,6 +3121,7 @@ public partial class PInvokeGenerator
 
                 if (arraySize == 1)
                 {
+                    code.AddUsingDirective("System.Runtime.CompilerServices");
                     code.Write("Unsafe.Add(ref e0, index)");
                 }
                 else
