@@ -279,4 +279,22 @@ namespace ClangSharp.Test
 
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
+
+    [Test]
+    public Task UnsignedIntBitshiftTest()
+    {
+        var inputContents = @"#define BITSHIFT 1 << 1U";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""#define BITSHIFT 1 << 1U"")]
+        public const int BITSHIFT = 1 << (int)(1U);
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
 }
