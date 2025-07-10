@@ -283,14 +283,18 @@ namespace ClangSharp.Test
     [Test]
     public Task UnsignedIntBitshiftTest()
     {
-        var inputContents = @"#define BITSHIFT 1 << 1U";
+        var inputContents = @"#define LEFT 1 << 1U
+#define RIGHT 1 >> 1U";
 
         var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        [NativeTypeName(""#define BITSHIFT 1 << 1U"")]
-        public const int BITSHIFT = 1 << (int)(1U);
+        [NativeTypeName(""#define LEFT 1 << 1U"")]
+        public const int LEFT = 1 << (int)(1U);
+
+        [NativeTypeName(""#define RIGHT 1 >> 1U"")]
+        public const int RIGHT = 1 >> (int)(1U);
     }
 }
 ";
