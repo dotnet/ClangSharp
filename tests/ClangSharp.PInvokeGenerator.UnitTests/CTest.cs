@@ -284,7 +284,13 @@ namespace ClangSharp.Test
     public Task UnsignedIntBitshiftTest()
     {
         var inputContents = @"#define LEFT 1 << 1U
-#define RIGHT 1 >> 1U";
+#define RIGHT 1 >> 1U
+#define INT 1 << 1
+#define LONG 1 << 1L
+#define LONGLONG 1 << 1LL
+#define ULONG 1 << 1UL
+#define ULONGLONG 1 << 1ULL
+";
 
         var expectedOutputContents = @"namespace ClangSharp.Test
 {
@@ -295,6 +301,21 @@ namespace ClangSharp.Test
 
         [NativeTypeName(""#define RIGHT 1 >> 1U"")]
         public const int RIGHT = 1 >> (int)(1U);
+
+        [NativeTypeName(""#define INT 1 << 1"")]
+        public const int INT = 1 << 1;
+
+        [NativeTypeName(""#define LONG 1 << 1L"")]
+        public const int LONG = 1 << (int)(1);
+
+        [NativeTypeName(""#define LONGLONG 1 << 1LL"")]
+        public const int LONGLONG = 1 << (int)(1L);
+
+        [NativeTypeName(""#define ULONG 1 << 1UL"")]
+        public const int ULONG = 1 << (int)(1U);
+
+        [NativeTypeName(""#define ULONGLONG 1 << 1ULL"")]
+        public const int ULONGLONG = 1 << (int)(1UL);
     }
 }
 ";
