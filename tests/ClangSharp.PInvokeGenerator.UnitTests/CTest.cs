@@ -283,39 +283,67 @@ namespace ClangSharp.Test
     [Test]
     public Task UnsignedIntBitshiftTest()
     {
-        var inputContents = @"#define LEFT 1 << 1U
-#define RIGHT 1 >> 1U
-#define INT 1 << 1
-#define LONG 1 << 1L
-#define LONGLONG 1 << 1LL
-#define ULONG 1 << 1UL
-#define ULONGLONG 1 << 1ULL
+        var inputContents = @"
+const int Signed = 1;
+const unsigned int Unsigned = 1U;
+
+const int ShiftSigned = 1 << Signed;
+const int ShiftUnsigned = 1 << Unsigned;
+
+const int CInt = 1 << 1;
+const int CUint = 1 << 1U;
+
+#define Left 1 << 1U
+#define Right 1 >> 1U
+#define Int 1 << 1
+#define Long 1 << 1L
+#define LongLong 1 << 1LL
+#define ULong 1 << 1UL
+#define ULongLong 1 << 1ULL
 ";
 
         var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        [NativeTypeName(""#define LEFT 1 << 1U"")]
-        public const int LEFT = 1 << (int)(1U);
+        [NativeTypeName(""const int"")]
+        public const int Signed = 1;
 
-        [NativeTypeName(""#define RIGHT 1 >> 1U"")]
-        public const int RIGHT = 1 >> (int)(1U);
+        [NativeTypeName(""const unsigned int"")]
+        public const uint Unsigned = 1U;
 
-        [NativeTypeName(""#define INT 1 << 1"")]
-        public const int INT = 1 << 1;
+        [NativeTypeName(""const int"")]
+        public const int ShiftSigned = 1 << Signed;
 
-        [NativeTypeName(""#define LONG 1 << 1L"")]
-        public const int LONG = 1 << (int)(1);
+        [NativeTypeName(""const int"")]
+        public const int ShiftUnsigned = 1 << (int)(Unsigned);
 
-        [NativeTypeName(""#define LONGLONG 1 << 1LL"")]
-        public const int LONGLONG = 1 << (int)(1L);
+        [NativeTypeName(""const int"")]
+        public const int CInt = 1 << 1;
 
-        [NativeTypeName(""#define ULONG 1 << 1UL"")]
-        public const int ULONG = 1 << (int)(1U);
+        [NativeTypeName(""const int"")]
+        public const int CUint = 1 << (int)(1U);
 
-        [NativeTypeName(""#define ULONGLONG 1 << 1ULL"")]
-        public const int ULONGLONG = 1 << (int)(1UL);
+        [NativeTypeName(""#define Left 1 << 1U"")]
+        public const int Left = 1 << (int)(1U);
+
+        [NativeTypeName(""#define Right 1 >> 1U"")]
+        public const int Right = 1 >> (int)(1U);
+
+        [NativeTypeName(""#define Int 1 << 1"")]
+        public const int Int = 1 << 1;
+
+        [NativeTypeName(""#define Long 1 << 1L"")]
+        public const int Long = 1 << (int)(1);
+
+        [NativeTypeName(""#define LongLong 1 << 1LL"")]
+        public const int LongLong = 1 << (int)(1L);
+
+        [NativeTypeName(""#define ULong 1 << 1UL"")]
+        public const int ULong = 1 << (int)(1U);
+
+        [NativeTypeName(""#define ULongLong 1 << 1ULL"")]
+        public const int ULongLong = 1 << (int)(1UL);
     }
 }
 ";
