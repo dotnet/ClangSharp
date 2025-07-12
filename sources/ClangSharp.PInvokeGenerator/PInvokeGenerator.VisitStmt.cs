@@ -42,15 +42,25 @@ public partial class PInvokeGenerator
         outputBuilder.Write(binaryOperator.OpcodeStr);
         outputBuilder.Write(' ');
 
-        if ((binaryOperator.IsShiftOp || binaryOperator.IsShiftAssignOp) && binaryOperator.RHS.Type.Kind != CXType_Int)
+        if (binaryOperator.IsShiftOp || binaryOperator.IsShiftAssignOp)
         {
             // RHS of shift operation in C# must be an int
-            outputBuilder.Write("(int)");
-            outputBuilder.Write('(');
+            if (binaryOperator.RHS.Type.Kind is CXType_Int or CXType_Long)
+            {
+                Visit(binaryOperator.RHS);
+            }
+            else if (binaryOperator.RHS is IntegerLiteral literal)
+            {
+                outputBuilder.Write(literal.Value);
+            }
+            else
+            {
+                outputBuilder.Write("(int)");
 
-            Visit(binaryOperator.RHS);
-
-            outputBuilder.Write(')');
+                outputBuilder.Write('(');
+                Visit(binaryOperator.RHS);
+                outputBuilder.Write(')');
+            }
         }
         else
         {
