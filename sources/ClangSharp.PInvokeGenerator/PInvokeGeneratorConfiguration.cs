@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace ClangSharp;
 
@@ -37,8 +38,10 @@ public sealed class PInvokeGeneratorConfiguration
     private readonly SortedSet<string> _withSuppressGCTransitions;
 
     private readonly SortedDictionary<string, string> _remappedNames;
+    private readonly SortedDictionary<Regex, string> _remappedRegexNames;
     private readonly SortedDictionary<string, AccessSpecifier> _withAccessSpecifiers;
     private readonly SortedDictionary<string, IReadOnlyList<string>> _withAttributes;
+    private readonly SortedDictionary<Regex, IReadOnlyList<string>> _withAttributesRegex;
     private readonly SortedDictionary<string, string> _withCallConvs;
     private readonly SortedDictionary<string, string> _withClasses;
     private readonly SortedDictionary<string, Guid> _withGuids;
@@ -91,8 +94,10 @@ public sealed class PInvokeGeneratorConfiguration
         _withSuppressGCTransitions = [];
 
         _remappedNames = [];
+        _remappedRegexNames = new SortedDictionary<Regex, string>(new RegexComparer());
         _withAccessSpecifiers = [];
         _withAttributes = [];
+        _withAttributesRegex = new SortedDictionary<Regex, IReadOnlyList<string>>(new RegexComparer());
         _withCallConvs = [];
         _withClasses = [];
         _withGuids = [];
@@ -359,6 +364,20 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
+    public IReadOnlyDictionary<Regex, string> RemappedRegexNames
+    {
+        get
+        {
+            return _remappedRegexNames;
+        }
+
+        init
+        {
+            AddRange(_remappedRegexNames, value);
+        }
+    }
+
     public IReadOnlyCollection<string> ForceRemappedNames => _forceRemappedNames;
 
     [AllowNull]
@@ -415,6 +434,20 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_withAttributes, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyDictionary<Regex, IReadOnlyList<string>> WithAttributesRegex
+    {
+        get
+        {
+            return _withAttributesRegex;
+        }
+
+        init
+        {
+            AddRange(_withAttributesRegex, value);
         }
     }
 
@@ -612,7 +645,7 @@ public sealed class PInvokeGeneratorConfiguration
              : input.Equals("public", StringComparison.OrdinalIgnoreCase) ? AccessSpecifier.Public : AccessSpecifier.None;
     }
 
-    private static void AddRange<TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>>? keyValuePairs)
+    private static void AddRange<TValue,TKey>(SortedDictionary<TKey, TValue> dictionary, IEnumerable<KeyValuePair<TKey, TValue>>? keyValuePairs) where TKey : notnull
     {
         if (keyValuePairs != null)
         {
@@ -634,6 +667,19 @@ public sealed class PInvokeGeneratorConfiguration
                 // Use the indexer, rather than Add, so that any
                 // default mappings can be overwritten if desired.
                 dictionary[keyValuePair.Key] = convert(keyValuePair.Value);
+            }
+        }
+    }
+
+    private static void AddRange<TValue>(SortedDictionary<Regex, TValue> dictionary, IEnumerable<KeyValuePair<Regex, TValue>>? keyValuePairs)
+    {
+        if (keyValuePairs != null)
+        {
+            foreach (var keyValuePair in keyValuePairs)
+            {
+                // Use the indexer, rather than Add, so that any
+                // default mappings can be overwritten if desired.
+                dictionary[keyValuePair.Key] = keyValuePair.Value;
             }
         }
     }
