@@ -81,7 +81,7 @@ public static class Program
     private static readonly Option<string> s_outputLocation = GetOutputOption();
     private static readonly Option<PInvokeGeneratorOutputMode> s_outputMode = GetOutputModeOption();
     private static readonly Option<string[]> s_remappedNameValuePairs = GetRemapOption();
-    private static readonly Option<string[]> s_remappedRegexNameValuePairs = GetRemapRegexOption();
+    private static readonly Option<string[]> s_remappedRegexValuePairs = GetRemapRegexOption();
     private static readonly Option<string> s_std = GetStdOption();
     private static readonly Option<string> s_testOutputLocation = GetTestOutputOption();
     private static readonly Option<string[]> s_traversalNames = GetTraverseOption();
@@ -248,7 +248,7 @@ public static class Program
         var outputLocation = context.ParseResult.GetValueForOption(s_outputLocation) ?? "";
         var outputMode = context.ParseResult.GetValueForOption(s_outputMode);
         var remappedNameValuePairs = context.ParseResult.GetValueForOption(s_remappedNameValuePairs) ?? [];
-        var remappedRegexNameValuePairs = context.ParseResult.GetValueForOption(s_remappedRegexNameValuePairs) ?? [];
+        var remappedRegexValuePairs = context.ParseResult.GetValueForOption(s_remappedRegexValuePairs) ?? [];
         var std = context.ParseResult.GetValueForOption(s_std) ?? "";
         var testOutputLocation = context.ParseResult.GetValueForOption(s_testOutputLocation) ?? "";
         var traversalNames = context.ParseResult.GetValueForOption(s_traversalNames) ?? [];
@@ -298,7 +298,7 @@ public static class Program
         }
 
         ParseKeyValuePairs(remappedNameValuePairs, errorList, out Dictionary<string, string> remappedNames);
-        ParseRegexValuePairs(remappedRegexNameValuePairs, errorList, out Dictionary<Regex, string> remappedRegexNames);
+        ParseRegexValuePairs(remappedRegexValuePairs, errorList, out Dictionary<Regex, string> remappedRegexes);
         ParseKeyValuePairs(withAccessSpecifierNameValuePairs, errorList, out Dictionary<string, AccessSpecifier> withAccessSpecifiers);
         ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
         ParseKeyValuePairs(withAttributeRegexNameValuePairs, errorList, out Dictionary<Regex, IReadOnlyList<string>> withAttributesRegex);
@@ -727,7 +727,7 @@ public static class Program
             MethodPrefixToStrip = methodPrefixToStrip,
             NativeTypeNamesToStrip = nativeTypeNamesToStrip,
             RemappedNames = remappedNames,
-            RemappedRegexNames = remappedRegexNames,
+            RemappedRegexes = remappedRegexes,
             TraversalNames = traversalNames,
             TestOutputLocation = testOutputLocation,
             WithAccessSpecifiers = withAccessSpecifiers,
@@ -1263,7 +1263,7 @@ public static class Program
             s_methodPrefixToStrip,
             s_nativeTypeNamesToStrip,
             s_remappedNameValuePairs,
-            s_remappedRegexNameValuePairs,
+            s_remappedRegexValuePairs,
             s_std,
             s_testOutputLocation,
             s_traversalNames,

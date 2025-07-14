@@ -62,7 +62,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly Dictionary<string, HashSet<string>> _topLevelClassUsings;
     private readonly Dictionary<string, List<string>> _topLevelClassAttributes;
     private readonly HashSet<string> _topLevelClassNames;
-    private readonly HashSet<string> _usedRemappings;
+    private readonly SortedDictionary<string,string> _usedRemappings;
     private readonly string _placeholderMacroType;
 
     private string _filePath;
@@ -1747,7 +1747,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         }
                     }
 
-                    if (!_config.RemappedNames.TryGetValue(name, out _))
+                    if (!(_config.RemappedNames.TryGetValue(name, out _) || TryRemapRegex(name,out _)))
                     {
                         var addDiag = false;
 
@@ -1769,9 +1769,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                             addDiag = true;
                         }
 
-                        if (!addDiag && !_config.RemappedNames.TryGetValue(altName, out _))
+                        if (!addDiag && !(_config.RemappedNames.TryGetValue(altName, out _)  || TryRemapRegex(altName,out _)))
                         {
-                            if (!_config.RemappedNames.TryGetValue(smlName, out _))
+                            if (!(_config.RemappedNames.TryGetValue(smlName, out _) || TryRemapRegex(smlName,out _)))
                             {
                                 addDiag = true;
                             }
@@ -1789,7 +1789,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     var name = kvp.Key;
                     var remappings = kvp.Value;
 
-                    if (_config.RemappedNames.TryGetValue(name, out var remappedName) && !remappings.Contains(remappedName) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                    if ((_config.RemappedNames.TryGetValue(name, out var remappedName) || TryRemapRegex(name, out remappedName)) && !remappings.Contains(remappedName) && (name != remappedName) && !(_config.ForceRemappedNames.Contains(name) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(name))))
                     {
                         var addDiag = false;
 
@@ -1811,9 +1811,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                             addDiag = true;
                         }
 
-                        if (!addDiag && _config.RemappedNames.TryGetValue(altName, out remappedName) && !remappings.Contains(remappedName) && (altName != remappedName) && !_config.ForceRemappedNames.Contains(altName))
+                        if (!addDiag && (_config.RemappedNames.TryGetValue(altName, out remappedName) || TryRemapRegex(altName,out remappedName)) && !remappings.Contains(remappedName) && (altName != remappedName) && !(_config.ForceRemappedNames.Contains(altName) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(altName))))
                         {
-                            if (_config.RemappedNames.TryGetValue(smlName, out remappedName) && !remappings.Contains(remappedName) && (smlName != remappedName) && !_config.ForceRemappedNames.Contains(smlName))
+                            if ((_config.RemappedNames.TryGetValue(smlName, out remappedName)  || TryRemapRegex(smlName,out remappedName)) && !remappings.Contains(remappedName) && (smlName != remappedName) && !(_config.ForceRemappedNames.Contains(smlName) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(smlName))))
                             {
                                 addDiag = true;
                             }
@@ -1826,11 +1826,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                     }
                 }
 
-                foreach (var name in _usedRemappings)
+                foreach (var (name,remappedName) in _usedRemappings)
                 {
-                    var remappedName = _config.RemappedNames[name];
-
-                    if (!_allValidNameRemappings.ContainsKey(name) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                    if (!_allValidNameRemappings.ContainsKey(name) && (name != remappedName) && !(_config.ForceRemappedNames.Contains(name) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(name))))
                     {
                         var addDiag = false;
 
@@ -1852,9 +1850,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                             addDiag = true;
                         }
 
-                        if (!addDiag && !_allValidNameRemappings.ContainsKey(altName) && (altName != remappedName) && !_config.ForceRemappedNames.Contains(altName))
+                        if (!addDiag && !_allValidNameRemappings.ContainsKey(altName) && (altName != remappedName) && !(_config.ForceRemappedNames.Contains(altName) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(altName))))
                         {
-                            if (!_allValidNameRemappings.ContainsKey(smlName) && (smlName != remappedName) && !_config.ForceRemappedNames.Contains(smlName))
+                            if (!_allValidNameRemappings.ContainsKey(smlName) && (smlName != remappedName) && !(_config.ForceRemappedNames.Contains(smlName) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(smlName))))
                             {
                                 addDiag = true;
                             }
@@ -3290,7 +3288,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool TryRemapRegex(string name,[MaybeNullWhen(false)] out string remappedName)
     {
-        foreach (var remapRegex in _config.RemappedRegexNames.Keys)
+        foreach (var remapRegex in _config.RemappedRegexes.Keys)
         {
             var match = remapRegex.Match(name);
             if(!match.Success)
@@ -3299,7 +3297,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
 
             var groups = match.Groups.Values.Skip(1).Select(object (group) => group.Value).ToArray();
-            remappedName = string.Format(CultureInfo.InvariantCulture,_config.RemappedRegexNames[remapRegex],groups);
+            remappedName = string.Format(CultureInfo.InvariantCulture,_config.RemappedRegexes[remapRegex],groups);
             return true;
         }
 
@@ -3311,7 +3309,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         if (_config.RemappedNames.TryGetValue(name, out var remappedName) || TryRemapRegex(name, out remappedName))
         {
             wasRemapped = true;
-            _ = _usedRemappings.Add(name);
+            _ = _usedRemappings.TryAdd(name,remappedName);
             return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
         }
 
@@ -3323,7 +3321,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
 
                 wasRemapped = true;
-                _ = _usedRemappings.Add(tmpName);
+                _ = _usedRemappings.TryAdd(tmpName,remappedName);
                 return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
         }

@@ -2722,7 +2722,7 @@ public partial class PInvokeGenerator
             var recordDeclName = GetCursorName(recordDecl);
 
             var isSmallType = currentSize < 4;
-            var isRemappedToSelf = _config.RemappedNames.TryGetValue(typeName, out var remappedTypeName) && typeName.Equals(remappedTypeName, StringComparison.Ordinal);
+            var isRemappedToSelf = (_config.RemappedNames.TryGetValue(typeName, out var remappedTypeName) || TryRemapRegex(typeName,out remappedTypeName)) && typeName.Equals(remappedTypeName, StringComparison.Ordinal);
             var isTypeMismatch = type != builtinTypeBacking;
             var isUnsignedToSigned = !isTypeBackingSigned && isTypeSigned;
 
