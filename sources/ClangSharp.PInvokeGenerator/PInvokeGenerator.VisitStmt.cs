@@ -45,7 +45,7 @@ public partial class PInvokeGenerator
         if (binaryOperator.IsShiftOp || binaryOperator.IsShiftAssignOp)
         {
             // RHS of shift operation in C# must be an int
-            if (binaryOperator.RHS.Type.Kind is CXType_Int or CXType_Long)
+            if (binaryOperator.RHS.Type.Kind is CXType_Int || (binaryOperator.RHS.Type.Kind is CXType_Long && !_config.GenerateUnixTypes))
             {
                 Visit(binaryOperator.RHS);
             }
