@@ -292,8 +292,26 @@ const int ShiftSigned = 1 << Signed;
 const int ShiftSignedLong = 1 << SignedLong;
 const int ShiftUnsigned = 1 << Unsigned;
 
+const int Char = 1 << (signed char)1;
+const int UChar = 1 << (unsigned char)1;
+
 const int CInt = 1 << 1;
 const int CUint = 1 << 1U;
+
+const int Negative = 1 << -1;
+
+const int OutOfRangePos = 1 << 10000000000;
+const int OutOfRangeNeg = 1 << -10000000000;
+
+const int IntMax = 1 << 2147483647;
+const int IntMin = 1 << -2147483648;
+
+const int LongMax = 1 << 9223372036854775807;
+const int LongMin = 1 << -9223372036854775808;
+
+const int ULongMax = 1 << 18446744073709551615;
+
+const int Hexadecimal = 1 << 0x01;
 
 #define Left 1 << 1U
 #define Right 1 >> 1U
@@ -307,6 +325,11 @@ const int CUint = 1 << 1U;
 #define Complex ((((unsigned int)(0)) << 29U) | (((unsigned int)(1)) << 22U) | (((unsigned int)(0)) << 12U) | ((unsigned int)(0)))
 ";
 
+        // Non-ideal cases:
+        // UChar
+        // IntMin
+        // ULongMax
+        // Hexadecimal
         var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
@@ -330,10 +353,43 @@ const int CUint = 1 << 1U;
         public const int ShiftUnsigned = 1 << (int)(Unsigned);
 
         [NativeTypeName(""const int"")]
+        public const int Char = 1 << (sbyte)(1);
+
+        [NativeTypeName(""const int"")]
+        public const int UChar = unchecked(1 << (byte)(1));
+
+        [NativeTypeName(""const int"")]
         public const int CInt = 1 << 1;
 
         [NativeTypeName(""const int"")]
         public const int CUint = 1 << 1;
+
+        [NativeTypeName(""const int"")]
+        public const int Negative = 1 << -1;
+
+        [NativeTypeName(""const int"")]
+        public const int OutOfRangePos = unchecked(1 << (int)(10000000000));
+
+        [NativeTypeName(""const int"")]
+        public const int OutOfRangeNeg = unchecked(1 << (int)(-10000000000));
+
+        [NativeTypeName(""const int"")]
+        public const int IntMax = 1 << 2147483647;
+
+        [NativeTypeName(""const int"")]
+        public const int IntMin = unchecked(1 << -2147483648);
+
+        [NativeTypeName(""const int"")]
+        public const int LongMax = unchecked(1 << (int)(9223372036854775807));
+
+        [NativeTypeName(""const int"")]
+        public const int LongMin = unchecked(1 << (int)(-9223372036854775808));
+
+        [NativeTypeName(""const int"")]
+        public const int ULongMax = 1 << -1;
+
+        [NativeTypeName(""const int"")]
+        public const int Hexadecimal = 1 << 1;
 
         [NativeTypeName(""#define Left 1 << 1U"")]
         public const int Left = 1 << 1;
