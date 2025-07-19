@@ -297,11 +297,14 @@ const int CUint = 1 << 1U;
 
 #define Left 1 << 1U
 #define Right 1 >> 1U
+
 #define Int 1 << 1
 #define Long 1 << 1L
 #define LongLong 1 << 1LL
 #define ULong 1 << 1UL
 #define ULongLong 1 << 1ULL
+
+#define Complex ((((unsigned int)(0)) << 29U) | (((unsigned int)(1)) << 22U) | (((unsigned int)(0)) << 12U) | ((unsigned int)(0)))
 ";
 
         var expectedOutputContents = @"namespace ClangSharp.Test
@@ -352,6 +355,9 @@ const int CUint = 1 << 1U;
 
         [NativeTypeName(""#define ULongLong 1 << 1ULL"")]
         public const int ULongLong = 1 << 1;
+
+        [NativeTypeName(""#define Complex ((((unsigned int)(0)) << 29U) | (((unsigned int)(1)) << 22U) | (((unsigned int)(0)) << 12U) | ((unsigned int)(0)))"")]
+        public const uint Complex = ((((uint)(0)) << 29) | (((uint)(1)) << 22) | (((uint)(0)) << 12) | ((uint)(0)));
     }
 }
 ";
