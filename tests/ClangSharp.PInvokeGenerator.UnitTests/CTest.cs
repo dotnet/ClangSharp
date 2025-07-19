@@ -292,8 +292,10 @@ const int ShiftSigned = 1 << Signed;
 const int ShiftSignedLong = 1 << SignedLong;
 const int ShiftUnsigned = 1 << Unsigned;
 
-const int Char = 1 << (signed char)1;
-const int UChar = 1 << (unsigned char)1;
+const int Char = 1 << 'a';
+
+const int Byte = 1 << (signed char)1;
+const int UByte = 1 << (unsigned char)1;
 
 const int CInt = 1 << 1;
 const int CUint = 1 << 1U;
@@ -353,10 +355,13 @@ const int Hexadecimal = 1 << 0x01;
         public const int ShiftUnsigned = 1 << (int)(Unsigned);
 
         [NativeTypeName(""const int"")]
-        public const int Char = 1 << (sbyte)(1);
+        public const int Char = 1 << (sbyte)('a');
 
         [NativeTypeName(""const int"")]
-        public const int UChar = unchecked(1 << (byte)(1));
+        public const int Byte = 1 << (sbyte)(1);
+
+        [NativeTypeName(""const int"")]
+        public const int UByte = unchecked(1 << (byte)(1));
 
         [NativeTypeName(""const int"")]
         public const int CInt = 1 << 1;
