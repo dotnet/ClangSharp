@@ -328,7 +328,7 @@ const int Hexadecimal = 1 << 0x01;
 ";
 
         // Non-ideal cases:
-        // UChar
+        // UByte
         // IntMin
         // ULongMax
         // Hexadecimal
