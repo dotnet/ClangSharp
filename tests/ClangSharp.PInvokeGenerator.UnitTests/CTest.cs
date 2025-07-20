@@ -425,4 +425,29 @@ const int Hexadecimal = 1 << 0x01;
 
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
+
+
+    [Test]
+    public Task UnsignedIntBitshiftTestUnix()
+    {
+        var inputContents = @"
+const long SignedLong = 1;
+const int ShiftSignedLong = 1 << SignedLong;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""const long"")]
+        public const nint SignedLong = 1;
+
+        [NativeTypeName(""const int"")]
+        public const int ShiftSignedLong = 1 << (int)(SignedLong);
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
 }
