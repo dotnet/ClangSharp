@@ -41,7 +41,60 @@ public partial class PInvokeGenerator
         outputBuilder.Write(' ');
         outputBuilder.Write(binaryOperator.OpcodeStr);
         outputBuilder.Write(' ');
-        Visit(binaryOperator.RHS);
+
+        if (binaryOperator.IsShiftOp || binaryOperator.IsShiftAssignOp)
+        {
+            // RHS of shift operation in C# must be an int
+
+            // Negative shifts are undefined behavior in C/C++, but still needs to have a compilable output
+            var isNegated = binaryOperator.RHS is UnaryOperator { Opcode: CXUnaryOperator_Minus };
+            var sign = isNegated ? -1 : 1;
+
+            var rhs = isNegated ? ((UnaryOperator)binaryOperator.RHS).SubExpr : binaryOperator.RHS;
+            switch (rhs)
+            {
+                case IntegerLiteral literal:
+                {
+                    var value = sign * literal.Value;
+                    if (value is > int.MaxValue or < int.MinValue)
+                    {
+                        // Literal is in int32 range
+                        outputBuilder.Write("(int)(");
+                        outputBuilder.Write(sign * literal.Value);
+                        outputBuilder.Write(")");
+                    }
+                    else
+                    {
+                        // Literal is not in int32 range
+                        outputBuilder.Write(sign * literal.Value);
+                    }
+
+                    break;
+                }
+                // Already the correct type or implicitly castable
+                case { Type.Kind: CXType_Int or CXType_UShort or CXType_Short or CXType_Char_U or CXType_Char_S or CXType_UChar or CXType_SChar }:
+                case { Type.Kind: CXType_Long } when _config is { GenerateUnixTypes: false }:
+                case { Type.Kind: CXType_Char16 } when _config is { GenerateDisableRuntimeMarshalling: false }:
+                case { Type.Kind: CXType_WChar } when _config is { GenerateDisableRuntimeMarshalling: false, GenerateUnixTypes: false }:
+                {
+                    Visit(binaryOperator.RHS);
+                    break;
+                }
+                // Fallback
+                default:
+                {
+                    outputBuilder.Write("(int)(");
+                    Visit(binaryOperator.RHS);
+                    outputBuilder.Write(")");
+                    break;
+                }
+            }
+        }
+        else
+        {
+            Visit(binaryOperator.RHS);
+        }
+
         StopCSharpCode();
     }
 
