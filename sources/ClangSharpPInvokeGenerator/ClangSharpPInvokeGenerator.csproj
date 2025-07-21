@@ -32,8 +32,6 @@
   <PropertyGroup>
     <LibClangName Condition="'$(LibClangName)' == ''">libclang</LibClangName>
     <LibClangSharpName Condition="'$(LibClangSharpName)' == ''">libClangSharp</LibClangSharpName>
-    <LibLLVMName Condition="'$(LibLLVMName)' == ''">libLLVM</LibLLVMName>
-    <LibLLVMSharpName Condition="'$(LibLLVMSharpName)' == ''">libLLVMSharp</LibLLVMSharpName>
   </PropertyGroup>
 
   <!-- Auto-detect LLVM... more or less -->
