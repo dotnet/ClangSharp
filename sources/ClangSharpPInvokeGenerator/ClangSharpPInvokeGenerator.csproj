@@ -14,10 +14,6 @@
     <None Include="Properties/GenerateClang-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Properties/GenerateClangSharp.rsp" />
     <None Include="Properties/GenerateClangSharp-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="Properties/GenerateLLVM.rsp" />
-    <None Include="Properties/GenerateLLVM-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="Properties/GenerateLLVMSharp.rsp" />
-    <None Include="Properties/GenerateLLVMSharp-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Properties/launchsettings.json" />
   </ItemGroup>
 
