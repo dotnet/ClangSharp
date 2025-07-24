@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXDiagnosticSeverity;
@@ -40,12 +41,14 @@ public static class Program
     private static readonly string[] s_outputOptionAliases = ["--output", "-o"];
     private static readonly string[] s_prefixStripOptionAliases = ["--prefixStrip", "-p"];
     private static readonly string[] s_remapOptionAliases = ["--remap", "-r"];
+    private static readonly string[] s_remapRegexOptionAliases = ["--remap-regex", "-rr"];
     private static readonly string[] s_stdOptionAliases = ["--std", "-std"];
     private static readonly string[] s_testOutputOptionAliases = ["--test-output", "-to"];
     private static readonly string[] s_traverseOptionAliases = ["--traverse", "-t"];
     private static readonly string[] s_versionOptionAliases = ["--version", "-v"];
     private static readonly string[] s_withAccessSpecifierOptionAliases = ["--with-access-specifier", "-was"];
     private static readonly string[] s_withAttributeOptionAliases = ["--with-attribute", "-wa"];
+    private static readonly string[] s_withAttributeRegexOptionAliases = ["--with-attribute-regex", "-war"];
     private static readonly string[] s_withCallConvOptionAliases = ["--with-callconv", "-wcc"];
     private static readonly string[] s_withClassOptionAliases = ["--with-class", "-wc"];
     private static readonly string[] s_withGuidOptionAliases = ["--with-guid", "-wg"];
@@ -78,12 +81,14 @@ public static class Program
     private static readonly Option<string> s_outputLocation = GetOutputOption();
     private static readonly Option<PInvokeGeneratorOutputMode> s_outputMode = GetOutputModeOption();
     private static readonly Option<string[]> s_remappedNameValuePairs = GetRemapOption();
+    private static readonly Option<string[]> s_remappedRegexValuePairs = GetRemapRegexOption();
     private static readonly Option<string> s_std = GetStdOption();
     private static readonly Option<string> s_testOutputLocation = GetTestOutputOption();
     private static readonly Option<string[]> s_traversalNames = GetTraverseOption();
     private static readonly Option<bool> s_versionOption = GetVersionOption();
     private static readonly Option<string[]> s_withAccessSpecifierNameValuePairs = GetWithAccessSpecifierOption();
     private static readonly Option<string[]> s_withAttributeNameValuePairs = GetWithAttributeOption();
+    private static readonly Option<string[]> s_withAttributeRegexNameValuePairs = GetWithAttributeRegexOption();
     private static readonly Option<string[]> s_withCallConvNameValuePairs = GetWithCallConvOption();
     private static readonly Option<string[]> s_withClassNameValuePairs = GetWithClassOption();
     private static readonly Option<string[]> s_withGuidNameValuePairs = GetWithGuidOption();
@@ -243,11 +248,13 @@ public static class Program
         var outputLocation = context.ParseResult.GetValueForOption(s_outputLocation) ?? "";
         var outputMode = context.ParseResult.GetValueForOption(s_outputMode);
         var remappedNameValuePairs = context.ParseResult.GetValueForOption(s_remappedNameValuePairs) ?? [];
+        var remappedRegexValuePairs = context.ParseResult.GetValueForOption(s_remappedRegexValuePairs) ?? [];
         var std = context.ParseResult.GetValueForOption(s_std) ?? "";
         var testOutputLocation = context.ParseResult.GetValueForOption(s_testOutputLocation) ?? "";
         var traversalNames = context.ParseResult.GetValueForOption(s_traversalNames) ?? [];
         var withAccessSpecifierNameValuePairs = context.ParseResult.GetValueForOption(s_withAccessSpecifierNameValuePairs) ?? [];
         var withAttributeNameValuePairs = context.ParseResult.GetValueForOption(s_withAttributeNameValuePairs) ?? [];
+        var withAttributeRegexNameValuePairs = context.ParseResult.GetValueForOption(s_withAttributeRegexNameValuePairs) ?? [];
         var withCallConvNameValuePairs = context.ParseResult.GetValueForOption(s_withCallConvNameValuePairs) ?? [];
         var withClassNameValuePairs = context.ParseResult.GetValueForOption(s_withClassNameValuePairs) ?? [];
         var withGuidNameValuePairs = context.ParseResult.GetValueForOption(s_withGuidNameValuePairs) ?? [];
@@ -291,8 +298,10 @@ public static class Program
         }
 
         ParseKeyValuePairs(remappedNameValuePairs, errorList, out Dictionary<string, string> remappedNames);
+        ParseRegexValuePairs(remappedRegexValuePairs, errorList, out Dictionary<Regex, string> remappedRegexes);
         ParseKeyValuePairs(withAccessSpecifierNameValuePairs, errorList, out Dictionary<string, AccessSpecifier> withAccessSpecifiers);
         ParseKeyValuePairs(withAttributeNameValuePairs, errorList, out Dictionary<string, IReadOnlyList<string>> withAttributes);
+        ParseKeyValuePairs(withAttributeRegexNameValuePairs, errorList, out Dictionary<Regex, IReadOnlyList<string>> withAttributesRegex);
         ParseKeyValuePairs(withCallConvNameValuePairs, errorList, out Dictionary<string, string> withCallConvs);
         ParseKeyValuePairs(withClassNameValuePairs, errorList, out Dictionary<string, string> withClasses);
         ParseKeyValuePairs(withGuidNameValuePairs, errorList, out Dictionary<string, Guid> withGuids);
@@ -718,10 +727,12 @@ public static class Program
             MethodPrefixToStrip = methodPrefixToStrip,
             NativeTypeNamesToStrip = nativeTypeNamesToStrip,
             RemappedNames = remappedNames,
+            RemappedRegexes = remappedRegexes,
             TraversalNames = traversalNames,
             TestOutputLocation = testOutputLocation,
             WithAccessSpecifiers = withAccessSpecifiers,
             WithAttributes = withAttributes,
+            WithAttributesRegex = withAttributesRegex,
             WithCallConvs = withCallConvs,
             WithClasses = withClasses,
             WithGuids = withGuids,
@@ -861,6 +872,32 @@ public static class Program
         }
     }
 
+    private static void ParseRegexValuePairs(IEnumerable<string> keyValuePairs, List<string> errorList, out Dictionary<Regex, string> result)
+    {
+        result = [];
+
+        foreach (var keyValuePair in keyValuePairs)
+        {
+            var parts = keyValuePair.Split('=', 2);
+
+            if (parts.Length < 2)
+            {
+                errorList.Add($"Error: Invalid regex/value pair argument: {keyValuePair}. Expected 'name=value'");
+                continue;
+            }
+
+            var key = new Regex(string.Join('=',parts[..^1]).TrimEnd(),RegexOptions.Compiled);
+
+            if (result.TryGetValue(key, out var value))
+            {
+                errorList.Add($"Error: A regex with the given name already exists: {key}. Existing: {value}");
+                continue;
+            }
+
+            result.Add(key, parts[^1].TrimStart());
+        }
+    }
+
     private static void ParseKeyValuePairs(IEnumerable<string> keyValuePairs, List<string> errorList, out Dictionary<string, AccessSpecifier> result)
     {
         result = [];
@@ -956,6 +993,33 @@ public static class Program
                 errorList.Add($"Error: Invalid key/value pair argument: {keyValuePair}. Expected 'name=value' or 'name=value;kind'");
                 continue;
             }
+        }
+    }
+
+    private static void ParseKeyValuePairs(IEnumerable<string> keyValuePairs, List<string> errorList, out Dictionary<Regex, IReadOnlyList<string>> result)
+    {
+        result = [];
+
+        foreach (var keyValuePair in keyValuePairs)
+        {
+            var parts = keyValuePair.Split('=');
+
+            if (parts.Length != 2)
+            {
+                errorList.Add($"Error: Invalid key/value pair argument: {keyValuePair}. Expected 'name=value'");
+                continue;
+            }
+
+            var key = new Regex(string.Join('=',parts[..^1]).TrimEnd(),RegexOptions.Compiled);
+
+            if (!result.TryGetValue(key, out var value))
+            {
+                value = new List<string>();
+                result.Add(key, value);
+            }
+
+            var list = (List<string>)value;
+            list.Add(parts[^1].TrimStart());
         }
     }
 
@@ -1166,6 +1230,17 @@ public static class Program
         };
     }
 
+    private static Option<string[]> GetRemapRegexOption()
+    {
+        return new Option<string[]>(
+            aliases: s_remapRegexOptionAliases,
+            description: "A declaration name to be remapped to another name using regex during binding generation.",
+            getDefaultValue: Array.Empty<string>
+        ) {
+            AllowMultipleArgumentsPerToken = true
+        };
+    }
+
     private static RootCommand GetRootCommand()
     {
         var rootCommand = new RootCommand("ClangSharp P/Invoke Binding Generator")
@@ -1188,12 +1263,14 @@ public static class Program
             s_methodPrefixToStrip,
             s_nativeTypeNamesToStrip,
             s_remappedNameValuePairs,
+            s_remappedRegexValuePairs,
             s_std,
             s_testOutputLocation,
             s_traversalNames,
             s_versionOption,
             s_withAccessSpecifierNameValuePairs,
             s_withAttributeNameValuePairs,
+            s_withAttributeRegexNameValuePairs,
             s_withCallConvNameValuePairs,
             s_withClassNameValuePairs,
             s_withGuidNameValuePairs,
@@ -1267,6 +1344,17 @@ public static class Program
         return new Option<string[]>(
             aliases: s_withAttributeOptionAliases,
             description: "An attribute to be added to the given remapped declaration name during binding generation. Supports wildcards.",
+            getDefaultValue: Array.Empty<string>
+        ) {
+            AllowMultipleArgumentsPerToken = true
+        };
+    }
+
+    private static Option<string[]> GetWithAttributeRegexOption()
+    {
+        return new Option<string[]>(
+            aliases: s_withAttributeRegexOptionAliases,
+            description: "An attribute to be added to the given remapped declaration name during binding generation. Supports regex.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true

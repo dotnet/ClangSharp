@@ -62,7 +62,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly Dictionary<string, HashSet<string>> _topLevelClassUsings;
     private readonly Dictionary<string, List<string>> _topLevelClassAttributes;
     private readonly HashSet<string> _topLevelClassNames;
-    private readonly HashSet<string> _usedRemappings;
+    private readonly SortedDictionary<string,string> _usedRemappings;
     private readonly string _placeholderMacroType;
 
     private string _filePath;
@@ -1747,7 +1747,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         }
                     }
 
-                    if (!_config.RemappedNames.TryGetValue(name, out _))
+                    if (!(_config.RemappedNames.TryGetValue(name, out _) || TryRemapRegex(name,out _)))
                     {
                         var addDiag = false;
 
@@ -1769,9 +1769,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                             addDiag = true;
                         }
 
-                        if (!addDiag && !_config.RemappedNames.TryGetValue(altName, out _))
+                        if (!addDiag && !(_config.RemappedNames.TryGetValue(altName, out _)  || TryRemapRegex(altName,out _)))
                         {
-                            if (!_config.RemappedNames.TryGetValue(smlName, out _))
+                            if (!(_config.RemappedNames.TryGetValue(smlName, out _) || TryRemapRegex(smlName,out _)))
                             {
                                 addDiag = true;
                             }
@@ -1789,7 +1789,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     var name = kvp.Key;
                     var remappings = kvp.Value;
 
-                    if (_config.RemappedNames.TryGetValue(name, out var remappedName) && !remappings.Contains(remappedName) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                    if ((_config.RemappedNames.TryGetValue(name, out var remappedName) || TryRemapRegex(name, out remappedName)) && !remappings.Contains(remappedName) && (name != remappedName) && !(_config.ForceRemappedNames.Contains(name) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(name))))
                     {
                         var addDiag = false;
 
@@ -1811,9 +1811,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                             addDiag = true;
                         }
 
-                        if (!addDiag && _config.RemappedNames.TryGetValue(altName, out remappedName) && !remappings.Contains(remappedName) && (altName != remappedName) && !_config.ForceRemappedNames.Contains(altName))
+                        if (!addDiag && (_config.RemappedNames.TryGetValue(altName, out remappedName) || TryRemapRegex(altName,out remappedName)) && !remappings.Contains(remappedName) && (altName != remappedName) && !(_config.ForceRemappedNames.Contains(altName) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(altName))))
                         {
-                            if (_config.RemappedNames.TryGetValue(smlName, out remappedName) && !remappings.Contains(remappedName) && (smlName != remappedName) && !_config.ForceRemappedNames.Contains(smlName))
+                            if ((_config.RemappedNames.TryGetValue(smlName, out remappedName)  || TryRemapRegex(smlName,out remappedName)) && !remappings.Contains(remappedName) && (smlName != remappedName) && !(_config.ForceRemappedNames.Contains(smlName) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(smlName))))
                             {
                                 addDiag = true;
                             }
@@ -1826,11 +1826,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                     }
                 }
 
-                foreach (var name in _usedRemappings)
+                foreach (var (name,remappedName) in _usedRemappings)
                 {
-                    var remappedName = _config.RemappedNames[name];
-
-                    if (!_allValidNameRemappings.ContainsKey(name) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                    if (!_allValidNameRemappings.ContainsKey(name) && (name != remappedName) && !(_config.ForceRemappedNames.Contains(name) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(name))))
                     {
                         var addDiag = false;
 
@@ -1852,9 +1850,9 @@ public sealed partial class PInvokeGenerator : IDisposable
                             addDiag = true;
                         }
 
-                        if (!addDiag && !_allValidNameRemappings.ContainsKey(altName) && (altName != remappedName) && !_config.ForceRemappedNames.Contains(altName))
+                        if (!addDiag && !_allValidNameRemappings.ContainsKey(altName) && (altName != remappedName) && !(_config.ForceRemappedNames.Contains(altName) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(altName))))
                         {
-                            if (!_allValidNameRemappings.ContainsKey(smlName) && (smlName != remappedName) && !_config.ForceRemappedNames.Contains(smlName))
+                            if (!_allValidNameRemappings.ContainsKey(smlName) && (smlName != remappedName) && !(_config.ForceRemappedNames.Contains(smlName) || _config.ForceRemappedRegexes.Any(c => c.IsMatch(smlName))))
                             {
                                 addDiag = true;
                             }
@@ -3288,12 +3286,30 @@ public sealed partial class PInvokeGenerator : IDisposable
     private string GetRemappedName(string name, Cursor? cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing = false)
         => GetRemappedName(name, cursor, tryRemapOperatorName, out wasRemapped, skipUsing, skipUsingIfNotRemapped: skipUsing);
 
+    private bool TryRemapRegex(string name,[MaybeNullWhen(false)] out string remappedName)
+    {
+        foreach (var remapRegex in _config.RemappedRegexes.Keys)
+        {
+            var match = remapRegex.Match(name);
+            if(!match.Success)
+            {
+                continue;
+            }
+
+            var groups = match.Groups.Values.Skip(1).Select(object (group) => group.Value).ToArray();
+            remappedName = string.Format(CultureInfo.InvariantCulture,_config.RemappedRegexes[remapRegex],groups);
+            return true;
+        }
+
+        remappedName = null;
+        return false;
+    }
     private string GetRemappedName(string name, Cursor? cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing, bool skipUsingIfNotRemapped)
     {
-        if (_config.RemappedNames.TryGetValue(name, out var remappedName))
+        if (_config.RemappedNames.TryGetValue(name, out var remappedName) || TryRemapRegex(name, out remappedName))
         {
             wasRemapped = true;
-            _ = _usedRemappings.Add(name);
+            _ = _usedRemappings.TryAdd(name,remappedName);
             return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
         }
 
@@ -3301,11 +3317,11 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             var tmpName = name[6..];
 
-            if (_config.RemappedNames.TryGetValue(tmpName, out remappedName))
+            if (_config.RemappedNames.TryGetValue(tmpName, out remappedName)  || TryRemapRegex(tmpName, out remappedName))
             {
 
                 wasRemapped = true;
-                _ = _usedRemappings.Add(tmpName);
+                _ = _usedRemappings.TryAdd(tmpName,remappedName);
                 return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
         }
@@ -6807,11 +6823,23 @@ public sealed partial class PInvokeGenerator : IDisposable
         var outputBuilder = isTestOutput ? _testOutputBuilder : _outputBuilder;
         Debug.Assert(outputBuilder is not null);
 
-        if (TryGetRemappedValue(namedDecl, _config.WithAttributes, out var attributes, matchStar: true))
         {
-            foreach (var attribute in attributes.Where((a) => !onlySupportedOSPlatform || a.StartsWith("SupportedOSPlatform(", StringComparison.Ordinal)))
+            if (TryGetRemappedValue(namedDecl, _config.WithAttributes, out var attributes, matchStar: true))
             {
-                outputBuilder.WriteCustomAttribute(attribute);
+                foreach (var attribute in attributes.Where((a) => !onlySupportedOSPlatform || a.StartsWith("SupportedOSPlatform(", StringComparison.Ordinal)))
+                {
+                    outputBuilder.WriteCustomAttribute(attribute);
+                }
+            }
+        }
+
+        {
+            if (TryGetRemappedValueRegex(namedDecl, _config.WithAttributesRegex, out var attributes))
+            {
+                foreach (var attribute in attributes.Where((a) => !onlySupportedOSPlatform || a.StartsWith("SupportedOSPlatform(", StringComparison.Ordinal)))
+                {
+                    outputBuilder.WriteCustomAttribute(attribute);
+                }
             }
         }
 
@@ -7083,6 +7111,92 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (matchStar && remappings.TryGetValue("*", out value))
         {
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private bool TryGetRemappedValueRegex<T>(NamedDecl namedDecl, IReadOnlyDictionary<Regex, T> remappings, [MaybeNullWhen(false)] out T value)
+    {
+        var name = GetCursorQualifiedName(namedDecl);
+
+        if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
+        {
+            name = name["ClangSharpMacro_".Length..];
+        }
+
+        foreach (var regex in remappings.Keys)
+        {
+            if (!regex.IsMatch(name))
+            {
+                continue;
+            }
+
+            value = remappings[regex];
+            return true;
+        }
+
+        name = name.Replace("::", ".", StringComparison.Ordinal);
+
+        foreach (var regex in remappings.Keys)
+        {
+            if (!regex.IsMatch(name))
+            {
+                continue;
+            }
+
+            value = remappings[regex];
+            return true;
+        }
+
+        name = GetCursorQualifiedName(namedDecl, truncateParameters: true);
+
+        if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
+        {
+            name = name["ClangSharpMacro_".Length..];
+        }
+
+        foreach (var regex in remappings.Keys)
+        {
+            if (!regex.IsMatch(name))
+            {
+                continue;
+            }
+
+            value = remappings[regex];
+            return true;
+        }
+
+        name = name.Replace("::", ".", StringComparison.Ordinal);
+
+        foreach (var regex in remappings.Keys)
+        {
+            if (!regex.IsMatch(name))
+            {
+                continue;
+            }
+
+            value = remappings[regex];
+            return true;
+        }
+
+        name = GetRemappedCursorName(namedDecl);
+
+        if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
+        {
+            name = name["ClangSharpMacro_".Length..];
+        }
+
+        foreach (var regex in remappings.Keys)
+        {
+            if (!regex.IsMatch(name))
+            {
+                continue;
+            }
+
+            value = remappings[regex];
             return true;
         }
 

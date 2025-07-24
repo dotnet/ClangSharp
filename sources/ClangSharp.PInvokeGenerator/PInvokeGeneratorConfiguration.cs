@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace ClangSharp;
 
@@ -29,6 +30,7 @@ public sealed class PInvokeGeneratorConfiguration
 
     private readonly SortedSet<string> _excludedNames;
     private readonly SortedSet<string> _forceRemappedNames;
+    private readonly SortedSet<Regex> _forceRemappedRegexes;
     private readonly SortedSet<string> _includedNames;
     private readonly SortedSet<string> _nativeTypeNamesToStrip;
     private readonly SortedSet<string> _withManualImports;
@@ -37,8 +39,10 @@ public sealed class PInvokeGeneratorConfiguration
     private readonly SortedSet<string> _withSuppressGCTransitions;
 
     private readonly SortedDictionary<string, string> _remappedNames;
+    private readonly SortedDictionary<Regex, string> _remappedRegexes;
     private readonly SortedDictionary<string, AccessSpecifier> _withAccessSpecifiers;
     private readonly SortedDictionary<string, IReadOnlyList<string>> _withAttributes;
+    private readonly SortedDictionary<Regex, IReadOnlyList<string>> _withAttributesRegex;
     private readonly SortedDictionary<string, string> _withCallConvs;
     private readonly SortedDictionary<string, string> _withClasses;
     private readonly SortedDictionary<string, Guid> _withGuids;
@@ -83,6 +87,7 @@ public sealed class PInvokeGeneratorConfiguration
 
         _excludedNames = [];
         _forceRemappedNames = [];
+        _forceRemappedRegexes = new SortedSet<Regex>(new RegexComparer());
         _includedNames = [];
         _nativeTypeNamesToStrip = [];
         _withManualImports = [];
@@ -91,8 +96,10 @@ public sealed class PInvokeGeneratorConfiguration
         _withSuppressGCTransitions = [];
 
         _remappedNames = [];
+        _remappedRegexes = new SortedDictionary<Regex, string>(new RegexComparer());
         _withAccessSpecifiers = [];
         _withAttributes = [];
+        _withAttributesRegex = new SortedDictionary<Regex, IReadOnlyList<string>>(new RegexComparer());
         _withCallConvs = [];
         _withClasses = [];
         _withGuids = [];
@@ -359,7 +366,23 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
+    [AllowNull]
+    public IReadOnlyDictionary<Regex, string> RemappedRegexes
+    {
+        get
+        {
+            return _remappedRegexes;
+        }
+
+        init
+        {
+            AddRange(_forceRemappedRegexes, value,ValueStartsWithAt);
+            AddRange(_remappedRegexes, value,RemoveAtPrefix);
+        }
+    }
+
     public IReadOnlyCollection<string> ForceRemappedNames => _forceRemappedNames;
+    public IReadOnlyCollection<Regex> ForceRemappedRegexes => _forceRemappedRegexes;
 
     [AllowNull]
     public string TestOutputLocation
@@ -415,6 +438,20 @@ public sealed class PInvokeGeneratorConfiguration
         init
         {
             AddRange(_withAttributes, value);
+        }
+    }
+
+    [AllowNull]
+    public IReadOnlyDictionary<Regex, IReadOnlyList<string>> WithAttributesRegex
+    {
+        get
+        {
+            return _withAttributesRegex;
+        }
+
+        init
+        {
+            AddRange(_withAttributesRegex, value);
         }
     }
 
@@ -612,7 +649,7 @@ public sealed class PInvokeGeneratorConfiguration
              : input.Equals("public", StringComparison.OrdinalIgnoreCase) ? AccessSpecifier.Public : AccessSpecifier.None;
     }
 
-    private static void AddRange<TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>>? keyValuePairs)
+    private static void AddRange<TValue,TKey>(SortedDictionary<TKey, TValue> dictionary, IEnumerable<KeyValuePair<TKey, TValue>>? keyValuePairs) where TKey : notnull
     {
         if (keyValuePairs != null)
         {
@@ -626,6 +663,19 @@ public sealed class PInvokeGeneratorConfiguration
     }
 
     private static void AddRange<TInput, TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TInput>>? keyValuePairs, Func<TInput, TValue> convert)
+    {
+        if (keyValuePairs != null)
+        {
+            foreach (var keyValuePair in keyValuePairs)
+            {
+                // Use the indexer, rather than Add, so that any
+                // default mappings can be overwritten if desired.
+                dictionary[keyValuePair.Key] = convert(keyValuePair.Value);
+            }
+        }
+    }
+
+    private static void AddRange<TInput, TValue>(SortedDictionary<Regex, TValue> dictionary, IEnumerable<KeyValuePair<Regex, TInput>>? keyValuePairs, Func<TInput, TValue> convert)
     {
         if (keyValuePairs != null)
         {
@@ -661,6 +711,20 @@ public sealed class PInvokeGeneratorConfiguration
     }
 
     private static void AddRange<TInput>(SortedSet<string> hashSet, IEnumerable<KeyValuePair<string, TInput>>? keyValuePairs, Func<TInput, bool> shouldAdd)
+    {
+        if (keyValuePairs != null)
+        {
+            foreach (var keyValuePair in keyValuePairs)
+            {
+                if (shouldAdd(keyValuePair.Value))
+                {
+                    _ = hashSet.Add(keyValuePair.Key);
+                }
+            }
+        }
+    }
+
+    private static void AddRange<TInput>(SortedSet<Regex> hashSet, IEnumerable<KeyValuePair<Regex, TInput>>? keyValuePairs, Func<TInput, bool> shouldAdd)
     {
         if (keyValuePairs != null)
         {
