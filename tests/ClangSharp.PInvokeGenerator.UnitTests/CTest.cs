@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -449,5 +450,134 @@ const int ShiftSignedLong = 1 << SignedLong;
 ";
 
         return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    public Task BitfieldEnumPropertyTypeCastTest()
+    {
+        var inputContents = @"
+typedef enum Flags {
+    Member = 0x7FFFFFFF
+} Flags;
+
+typedef struct Bitfield {
+    unsigned int bits : 8;
+    Flags flags : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    [NativeTypeName(""unsigned int"")]
+    public enum Flags : uint
+    {
+        Member = 0x7FFFFFFF,
+    }
+
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""Flags : 8"")]
+        public Flags flags
+        {
+            readonly get
+            {
+                return (Flags)((_bitfield >> 8) & 0xFFu);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFFu) << 8);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+
+    [Test]
+    public Task BitfieldEnumPropertyTypeCastWithRemappingTest()
+    {
+        var inputContents = @"
+typedef enum FlagBits {
+    Member = 0x7FFFFFFF
+} FlagBits;
+typedef unsigned int Flags;
+
+typedef struct Bitfield {
+    unsigned int bits : 8;
+    Flags flags : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    [NativeTypeName(""unsigned int"")]
+    public enum FlagBits : uint
+    {
+        Member = 0x7FFFFFFF,
+    }
+
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""Flags : 8"")]
+        public FlagBits flags
+        {
+            readonly get
+            {
+                return (FlagBits)((_bitfield >> 8) & 0xFFu);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFFu) << 8);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents,
+            commandLineArgs: DefaultCClangCommandLineArgs,
+            language: "c",
+            languageStandard: DefaultCStandard,
+            remappedNames: new Dictionary<string, string>()
+            {
+                { "Flags", "FlagBits" }
+            });
     }
 }
