@@ -38,7 +38,7 @@ internal sealed class LazyList<T, [DynamicallyAccessedMembers(DynamicallyAccesse
 
             if (item is null)
             {
-                item = _valueFactory(index);
+                item = _valueFactory(index + _start);
                 items[index] = item;
             }
 
@@ -68,7 +68,7 @@ internal sealed class LazyList<T, [DynamicallyAccessedMembers(DynamicallyAccesse
 
             if (currentItem is null)
             {
-                currentItem = _valueFactory(i);
+                currentItem = _valueFactory(i + _start);
                 items[i] = currentItem;
             }
 
@@ -88,7 +88,7 @@ internal sealed class LazyList<T, [DynamicallyAccessedMembers(DynamicallyAccesse
 
             if (currentItem is null)
             {
-                currentItem = _valueFactory(i);
+                currentItem = _valueFactory(i + _start);
                 items[i] = currentItem;
             }
 

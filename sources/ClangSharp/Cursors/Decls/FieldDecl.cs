@@ -28,9 +28,9 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
         _bitWidth = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.BitWidth));
         _inClassInitializer = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.InClassInitializer));
         _isAnonymousField = new ValueLazy<bool>(() => {
-            var name = Name;
+            var name = Name.AsSpan();
 
-            if (string.IsNullOrWhiteSpace(name))
+            if (name.IsWhiteSpace())
             {
                 return true;
             }

@@ -1116,7 +1116,7 @@ public partial class PInvokeGenerator
 
                         if (arraySize == 1)
                         {
-                            if (TryGetRemappedValue(indirectFieldDecl, _config.WithLengths, out var length))
+                            if (TryGetRemappedValue(indirectFieldDecl, _config._withLengths, out var length))
                             {
                                 code.Write(length);
                             }
@@ -1510,7 +1510,7 @@ public partial class PInvokeGenerator
                 baseTypeNames = [.. baseTypeNamesBuilder];
             }
 
-            if (!TryGetRemappedValue(recordDecl, _config.WithPackings, out var pack))
+            if (!TryGetRemappedValue(recordDecl, _config._withPackings, out var pack))
             {
                 pack = alignment < maxAlignm ? alignment.ToString(CultureInfo.InvariantCulture) : null;
             }
@@ -3310,7 +3310,7 @@ public partial class PInvokeGenerator
                 {
                     if (!_allValidNameRemappings.TryGetValue(underlyingName, out var allRemappings))
                     {
-                        allRemappings = new HashSet<string>(StringComparer.Ordinal);
+                        allRemappings = new HashSet<string>(QualifiedNameComparer.Default);
                         _allValidNameRemappings[underlyingName] = allRemappings;
                     }
                     _ = allRemappings.Add(typedefName);
@@ -3320,7 +3320,7 @@ public partial class PInvokeGenerator
                     {
                         if (!_traversedValidNameRemappings.TryGetValue(underlyingName, out var traversedRemappings))
                         {
-                            traversedRemappings = new HashSet<string>(StringComparer.Ordinal);
+                            traversedRemappings = new HashSet<string>(QualifiedNameComparer.Default);
                             _traversedValidNameRemappings[underlyingName] = traversedRemappings;
                         }
                         _ = traversedRemappings.Add(typedefName);

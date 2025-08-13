@@ -80,6 +80,8 @@ internal sealed partial class CSharpOutputBuilder(string name, PInvokeGenerator 
 
     public void Write<T>(T value) => _ = _currentLine.Append(value);
 
+    public void Write(ReadOnlySpan<char> value) => _ = _currentLine.Append(value);
+
     public void WriteIndentation()
     {
         WriteNewlineIfNeeded();
