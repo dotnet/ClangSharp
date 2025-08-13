@@ -14,8 +14,6 @@
     <None Include="Properties/GenerateClang-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Properties/GenerateClangSharp.rsp" />
     <None Include="Properties/GenerateClangSharp-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="Properties/GenerateLLVM.rsp" />
-    <None Include="Properties/GenerateLLVM-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Properties/launchsettings.json" />
   </ItemGroup>
 
@@ -30,7 +28,6 @@
   <PropertyGroup>
     <LibClangName Condition="'$(LibClangName)' == ''">libclang</LibClangName>
     <LibClangSharpName Condition="'$(LibClangSharpName)' == ''">libClangSharp</LibClangSharpName>
-    <LibLLVMName Condition="'$(LibLLVMName)' == ''">libLLVM</LibLLVMName>
   </PropertyGroup>
 
   <!-- Auto-detect LLVM... more or less -->

@@ -279,4 +279,175 @@ namespace ClangSharp.Test
 
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
+
+    [Test]
+    public Task UnsignedIntBitshiftTest()
+    {
+        var inputContents = @"
+const int Signed = 1;
+const long SignedLong = 1;
+const unsigned int Unsigned = 1;
+
+const int ShiftSigned = 1 << Signed;
+const int ShiftSignedLong = 1 << SignedLong;
+const int ShiftUnsigned = 1 << Unsigned;
+
+const int Char = 1 << 'a';
+
+const int Byte = 1 << (signed char)1;
+const int UByte = 1 << (unsigned char)1;
+
+const int CInt = 1 << 1;
+const int CUint = 1 << 1U;
+
+const int Negative = 1 << -1;
+
+const int OutOfRangePos = 1 << 10000000000;
+const int OutOfRangeNeg = 1 << -10000000000;
+
+const int IntMax = 1 << 2147483647;
+const int IntMin = 1 << -2147483648;
+
+const int LongMax = 1 << 9223372036854775807;
+const int LongMin = 1 << -9223372036854775808;
+
+const int ULongMax = 1 << 18446744073709551615;
+
+const int Hexadecimal = 1 << 0x01;
+
+#define Left 1 << 1U
+#define Right 1 >> 1U
+
+#define Int 1 << 1
+#define Long 1 << 1L
+#define LongLong 1 << 1LL
+#define ULong 1 << 1UL
+#define ULongLong 1 << 1ULL
+
+#define Complex ((((unsigned int)(0)) << 29U) | (((unsigned int)(1)) << 22U) | (((unsigned int)(0)) << 12U) | ((unsigned int)(0)))
+";
+
+        // Non-ideal cases:
+        // UByte
+        // IntMin
+        // ULongMax
+        // Hexadecimal
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""const int"")]
+        public const int Signed = 1;
+
+        [NativeTypeName(""const long"")]
+        public const int SignedLong = 1;
+
+        [NativeTypeName(""const unsigned int"")]
+        public const uint Unsigned = 1;
+
+        [NativeTypeName(""const int"")]
+        public const int ShiftSigned = 1 << Signed;
+
+        [NativeTypeName(""const int"")]
+        public const int ShiftSignedLong = 1 << SignedLong;
+
+        [NativeTypeName(""const int"")]
+        public const int ShiftUnsigned = 1 << (int)(Unsigned);
+
+        [NativeTypeName(""const int"")]
+        public const int Char = 1 << (sbyte)('a');
+
+        [NativeTypeName(""const int"")]
+        public const int Byte = 1 << (sbyte)(1);
+
+        [NativeTypeName(""const int"")]
+        public const int UByte = unchecked(1 << (byte)(1));
+
+        [NativeTypeName(""const int"")]
+        public const int CInt = 1 << 1;
+
+        [NativeTypeName(""const int"")]
+        public const int CUint = 1 << 1;
+
+        [NativeTypeName(""const int"")]
+        public const int Negative = 1 << -1;
+
+        [NativeTypeName(""const int"")]
+        public const int OutOfRangePos = unchecked(1 << (int)(10000000000));
+
+        [NativeTypeName(""const int"")]
+        public const int OutOfRangeNeg = unchecked(1 << (int)(-10000000000));
+
+        [NativeTypeName(""const int"")]
+        public const int IntMax = 1 << 2147483647;
+
+        [NativeTypeName(""const int"")]
+        public const int IntMin = unchecked(1 << -2147483648);
+
+        [NativeTypeName(""const int"")]
+        public const int LongMax = unchecked(1 << (int)(9223372036854775807));
+
+        [NativeTypeName(""const int"")]
+        public const int LongMin = unchecked(1 << (int)(-9223372036854775808));
+
+        [NativeTypeName(""const int"")]
+        public const int ULongMax = 1 << -1;
+
+        [NativeTypeName(""const int"")]
+        public const int Hexadecimal = 1 << 1;
+
+        [NativeTypeName(""#define Left 1 << 1U"")]
+        public const int Left = 1 << 1;
+
+        [NativeTypeName(""#define Right 1 >> 1U"")]
+        public const int Right = 1 >> 1;
+
+        [NativeTypeName(""#define Int 1 << 1"")]
+        public const int Int = 1 << 1;
+
+        [NativeTypeName(""#define Long 1 << 1L"")]
+        public const int Long = 1 << 1;
+
+        [NativeTypeName(""#define LongLong 1 << 1LL"")]
+        public const int LongLong = 1 << 1;
+
+        [NativeTypeName(""#define ULong 1 << 1UL"")]
+        public const int ULong = 1 << 1;
+
+        [NativeTypeName(""#define ULongLong 1 << 1ULL"")]
+        public const int ULongLong = 1 << 1;
+
+        [NativeTypeName(""#define Complex ((((unsigned int)(0)) << 29U) | (((unsigned int)(1)) << 22U) | (((unsigned int)(0)) << 12U) | ((unsigned int)(0)))"")]
+        public const uint Complex = ((((uint)(0)) << 29) | (((uint)(1)) << 22) | (((uint)(0)) << 12) | ((uint)(0)));
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+
+    [Test]
+    public Task UnsignedIntBitshiftTestUnix()
+    {
+        var inputContents = @"
+const long SignedLong = 1;
+const int ShiftSignedLong = 1 << SignedLong;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""const long"")]
+        public const nint SignedLong = 1;
+
+        [NativeTypeName(""const int"")]
+        public const int ShiftSignedLong = 1 << (int)(SignedLong);
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
 }
