@@ -627,7 +627,7 @@ public partial class PInvokeGenerator
                 }
             },
             CustomAttrGeneratorData = (functionDecl, _outputBuilder, this),
-            ParameterTypes = overloadCount > 1 ? functionDecl.Parameters.Select(param => GetTargetTypeName(param, out var _)).ToArray() : null,
+            ParameterTypes = overloadCount > 1 ? [.. functionDecl.Parameters.Select(param => GetTargetTypeName(param, out var _))] : null,
         };
         Debug.Assert(_outputBuilder is not null);
 

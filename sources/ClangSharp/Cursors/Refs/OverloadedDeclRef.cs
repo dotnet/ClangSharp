@@ -16,10 +16,9 @@ public sealed class OverloadedDeclRef : Ref
     {
         _overloadedDecls = new ValueLazy<IEnumerable<Decl>>(() => {
             var num = Handle.NumOverloadedDecls;
-            return Enumerable.Range(0, (int)num)
+            return [.. Enumerable.Range(0, (int)num)
                 .Select(i => Handle.GetOverloadedDecl((uint)i))
-                .Select(c => TranslationUnit.GetOrCreate<Decl>(c))
-                .ToArray();
+                .Select(c => TranslationUnit.GetOrCreate<Decl>(c))];
         });
     }
 

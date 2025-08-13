@@ -4,17 +4,18 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXTypeKind;
-using static ClangSharp.Interop.CXTemplateArgumentKind;
 using static ClangSharp.Interop.CX_TemplateNameKind;
+using static ClangSharp.Interop.CXTemplateArgumentKind;
+using static ClangSharp.Interop.CXTypeKind;
 
 namespace ClangSharp;
 
 public sealed unsafe class TranslationUnit : IDisposable, IEquatable<TranslationUnit>
 {
     private static readonly ConcurrentDictionary<CXTranslationUnit, WeakReference<TranslationUnit>> s_createdTranslationUnits = new ConcurrentDictionary<CXTranslationUnit, WeakReference<TranslationUnit>>();
-    private static readonly object s_createTranslationUnitLock = new object();
+    private static readonly Lock s_createTranslationUnitLock = new Lock();
 
     private readonly Dictionary<CXCursor, WeakReference<Cursor>> _createdCursors;
     private readonly Dictionary<CX_TemplateArgument, WeakReference<TemplateArgument>> _createdTemplateArguments;

@@ -20,7 +20,7 @@ using static ClangSharp.Interop.CXTranslationUnit_Flags;
 
 namespace ClangSharp;
 
-public static class Program
+internal static class Program
 {
     private static readonly string[] s_additionalOptionAliases = ["--additional", "-a"];
     private static readonly string[] s_configOptionAliases = ["--config", "-c"];
@@ -977,7 +977,7 @@ public static class Program
 
             if (!result.TryGetValue(key, out var value))
             {
-                value = new List<string>();
+                value = [];
                 result.Add(key, value);
             }
 

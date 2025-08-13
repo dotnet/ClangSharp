@@ -15,7 +15,7 @@ public sealed class SubstTemplateTypeParmType : Type
     internal SubstTemplateTypeParmType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_SubstTemplateTypeParm)
     {
         _associatedDecl = new ValueLazy<Decl?>(() => {
-            CXCursor cursor = clangsharp.Type_getSubstTemplateTypeParamAssociatedDecl(Handle);
+            var cursor = clangsharp.Type_getSubstTemplateTypeParamAssociatedDecl(Handle);
             return cursor.IsNull ? null : TranslationUnit.GetOrCreate<Decl>(cursor);
         });
         _replacedParameter = new ValueLazy<TemplateTypeParmType>(() => TranslationUnit.GetOrCreate<TemplateTypeParmType>(Handle.OriginalType));

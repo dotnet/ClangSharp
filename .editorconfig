@@ -244,7 +244,7 @@ dotnet_style_qualification_for_method = false:error
 dotnet_style_qualification_for_property = false:error
 
 dotnet_style_readonly_field = true:error
-dotnet_style_require_accessibility_modifiers = always:error
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:error
 
 ###############################################################################
 # Set dotnet style options to:
