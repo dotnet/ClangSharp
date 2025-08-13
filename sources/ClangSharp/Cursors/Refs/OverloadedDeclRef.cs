@@ -10,11 +10,11 @@ namespace ClangSharp;
 
 public sealed class OverloadedDeclRef : Ref
 {
-    private readonly Lazy<IEnumerable<Decl>> _overloadedDecls;
+    private readonly ValueLazy<IEnumerable<Decl>> _overloadedDecls;
 
     internal OverloadedDeclRef(CXCursor handle) : base(handle, CXCursor_OverloadedDeclRef)
     {
-        _overloadedDecls = new Lazy<IEnumerable<Decl>>(() => {
+        _overloadedDecls = new ValueLazy<IEnumerable<Decl>>(() => {
             var num = Handle.NumOverloadedDecls;
             return Enumerable.Range(0, (int)num)
                 .Select(i => Handle.GetOverloadedDecl((uint)i))

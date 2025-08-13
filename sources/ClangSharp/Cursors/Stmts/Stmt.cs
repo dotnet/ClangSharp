@@ -11,7 +11,7 @@ namespace ClangSharp;
 public class Stmt : Cursor
 {
     private protected readonly LazyList<Stmt> _children;
-    private readonly Lazy<IDeclContext> _declContext;
+    private readonly ValueLazy<IDeclContext> _declContext;
 
     private protected Stmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind)
     {
@@ -24,7 +24,7 @@ public class Stmt : Cursor
             var childHandle = Handle.GetChild(unchecked((uint)i));
             return !childHandle.IsNull ? TranslationUnit.GetOrCreate<Stmt>(childHandle) : null!;
         });
-        _declContext = new Lazy<IDeclContext>(() => {
+        _declContext = new ValueLazy<IDeclContext>(() => {
             var semanticParent = TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent);
 
             while (semanticParent is not IDeclContext and not null)

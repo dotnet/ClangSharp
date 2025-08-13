@@ -12,16 +12,16 @@ namespace ClangSharp;
 
 public sealed class CXXDependentScopeMemberExpr : Expr
 {
-    private readonly Lazy<Type> _baseType;
-    private readonly Lazy<NamedDecl> _firstQualifierFoundInScope;
+    private readonly ValueLazy<Type> _baseType;
+    private readonly ValueLazy<NamedDecl> _firstQualifierFoundInScope;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
     internal CXXDependentScopeMemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_CXXDependentScopeMemberExpr)
     {
         Debug.Assert(NumChildren is 0 or 1);
 
-        _baseType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        _firstQualifierFoundInScope = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(handle.Referenced));
+        _baseType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _firstQualifierFoundInScope = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(handle.Referenced));
         _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
     }
 

@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class UsingEnumDecl : BaseUsingDecl, IMergeable<UsingEnumDecl>
 {
-    private readonly Lazy<EnumDecl> _enumDecl;
+    private readonly ValueLazy<EnumDecl> _enumDecl;
 
     internal UsingEnumDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_UsingEnum)
     {
-        _enumDecl = new Lazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.Definition));
+        _enumDecl = new ValueLazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.Definition));
     }
 
     public new UsingEnumDecl CanonicalDecl => (UsingEnumDecl)base.CanonicalDecl;

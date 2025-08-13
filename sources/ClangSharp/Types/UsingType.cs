@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class UsingType : Type
 {
-    private readonly Lazy<UsingShadowDecl> _foundDecl;
+    private readonly ValueLazy<UsingShadowDecl> _foundDecl;
 
     internal UsingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_Using)
     {
-        _foundDecl = new Lazy<UsingShadowDecl>(() => TranslationUnit.GetOrCreate<UsingShadowDecl>(Handle.Declaration));
+        _foundDecl = new ValueLazy<UsingShadowDecl>(() => TranslationUnit.GetOrCreate<UsingShadowDecl>(Handle.Declaration));
     }
 
     public UsingShadowDecl FoundDecl => _foundDecl.Value;

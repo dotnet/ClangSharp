@@ -12,12 +12,12 @@ namespace ClangSharp;
 public sealed class TemplateTypeParmDecl : TypeDecl
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private readonly Lazy<Type?> _defaultArgument;
+    private readonly ValueLazy<Type?> _defaultArgument;
 
     internal TemplateTypeParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTypeParameter, CX_DeclKind_TemplateTypeParm)
     {
         _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
-        _defaultArgument = new Lazy<Type?>(() => {
+        _defaultArgument = new ValueLazy<Type?>(() => {
             var defaultArgType = Handle.DefaultArgType;
             return defaultArgType.kind == CXType_Invalid ? null : TranslationUnit.GetOrCreate<Type>(defaultArgType);
         });

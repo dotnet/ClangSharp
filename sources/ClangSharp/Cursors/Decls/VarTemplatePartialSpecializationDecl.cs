@@ -11,13 +11,13 @@ namespace ClangSharp;
 public class VarTemplatePartialSpecializationDecl : VarDecl
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private readonly Lazy<VarTemplatePartialSpecializationDecl> _instantiatedFromMember;
+    private readonly ValueLazy<VarTemplatePartialSpecializationDecl> _instantiatedFromMember;
     private readonly LazyList<NamedDecl> _templateParameters;
 
     internal VarTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplatePartialSpecialization)
     {
         _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
-        _instantiatedFromMember = new Lazy<VarTemplatePartialSpecializationDecl>(() => TranslationUnit.GetOrCreate<VarTemplatePartialSpecializationDecl>(Handle.InstantiatedFromMember));
+        _instantiatedFromMember = new ValueLazy<VarTemplatePartialSpecializationDecl>(() => TranslationUnit.GetOrCreate<VarTemplatePartialSpecializationDecl>(Handle.InstantiatedFromMember));
         _templateParameters = LazyList.Create<NamedDecl>(Handle.GetNumTemplateParameters(0), (i) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i))));
     }
 

@@ -11,12 +11,12 @@ namespace ClangSharp;
 
 public class ClassTemplateSpecializationDecl : CXXRecordDecl
 {
-    private readonly Lazy<ClassTemplateDecl> _specializedTemplate;
+    private readonly ValueLazy<ClassTemplateDecl> _specializedTemplate;
     private readonly LazyList<TemplateArgument> _templateArgs;
 
     internal ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_ClassTemplateSpecialization)
     {
-        _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
+        _specializedTemplate = new ValueLazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
         _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 
@@ -27,7 +27,7 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
+        _specializedTemplate = new ValueLazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
         _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 

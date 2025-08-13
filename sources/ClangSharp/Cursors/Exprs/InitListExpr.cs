@@ -10,14 +10,14 @@ namespace ClangSharp;
 
 public sealed class InitListExpr : Expr
 {
-    private readonly Lazy<Expr> _arrayFiller;
-    private readonly Lazy<FieldDecl> _initializedFieldInUnion;
+    private readonly ValueLazy<Expr> _arrayFiller;
+    private readonly ValueLazy<FieldDecl> _initializedFieldInUnion;
     private readonly LazyList<Expr, Stmt> _inits;
 
     internal InitListExpr(CXCursor handle) : base(handle, CXCursor_InitListExpr, CX_StmtClass_InitListExpr)
     {
-        _arrayFiller = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
-        _initializedFieldInUnion = new Lazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.Referenced));
+        _arrayFiller = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
+        _initializedFieldInUnion = new ValueLazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.Referenced));
         _inits = LazyList.Create<Expr, Stmt>(_children);
     }
 

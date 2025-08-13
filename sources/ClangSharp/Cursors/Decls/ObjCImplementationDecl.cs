@@ -12,14 +12,14 @@ namespace ClangSharp;
 public sealed class ObjCImplementationDecl : ObjCImplDecl
 {
     private readonly LazyList<Expr> _initExprs;
-    private readonly Lazy<List<ObjCIvarDecl>> _ivars;
-    private readonly Lazy<ObjCInterfaceDecl> _superClass;
+    private readonly ValueLazy<List<ObjCIvarDecl>> _ivars;
+    private readonly ValueLazy<ObjCInterfaceDecl> _superClass;
 
     internal ObjCImplementationDecl(CXCursor handle) : base(handle, CXCursor_ObjCImplementationDecl, CX_DeclKind_ObjCImplementation)
     {
         _initExprs = LazyList.Create<Expr>(Handle.NumExprs, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i))));
-        _ivars = new Lazy<List<ObjCIvarDecl>>(() => [.. Decls.OfType<ObjCIvarDecl>()]);
-        _superClass = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(1)));
+        _ivars = new ValueLazy<List<ObjCIvarDecl>>(() => [.. Decls.OfType<ObjCIvarDecl>()]);
+        _superClass = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(1)));
     }
 
     public IReadOnlyList<Expr> InitExprs => _initExprs;

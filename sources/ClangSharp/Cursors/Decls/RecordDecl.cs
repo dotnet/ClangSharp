@@ -11,11 +11,11 @@ namespace ClangSharp;
 
 public class RecordDecl : TagDecl
 {
-    private readonly Lazy<List<FieldDecl>> _anonymousFields;
-    private readonly Lazy<List<RecordDecl>> _anonymousRecords;
+    private readonly ValueLazy<List<FieldDecl>> _anonymousFields;
+    private readonly ValueLazy<List<RecordDecl>> _anonymousRecords;
     private readonly LazyList<FieldDecl> _fields;
-    private readonly Lazy<List<IndirectFieldDecl>> _indirectFields;
-    private readonly Lazy<RecordDecl?> _injectedClassName;
+    private readonly ValueLazy<List<IndirectFieldDecl>> _indirectFields;
+    private readonly ValueLazy<RecordDecl?> _injectedClassName;
     
 
     internal RecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_Record)
@@ -35,10 +35,10 @@ public class RecordDecl : TagDecl
         }
 
         _fields = LazyList.Create<FieldDecl>(Handle.NumFields, (i) => TranslationUnit.GetOrCreate<FieldDecl>(Handle.GetField(unchecked((uint)i))));
-        _anonymousFields = new Lazy<List<FieldDecl>>(() => [.. Decls.OfType<FieldDecl>().Where(decl => decl.IsAnonymousField)]);
-        _anonymousRecords = new Lazy<List<RecordDecl>>(() => [.. Decls.OfType<RecordDecl>().Where(decl => decl.IsAnonymous && !decl.IsInjectedClassName)]);
-        _indirectFields = new Lazy<List<IndirectFieldDecl>>(() => [.. Decls.OfType<IndirectFieldDecl>()]);
-        _injectedClassName = new Lazy<RecordDecl?>(() => Decls.OfType<RecordDecl>().Where(decl => decl.IsInjectedClassName).SingleOrDefault());
+        _anonymousFields = new ValueLazy<List<FieldDecl>>(() => [.. Decls.OfType<FieldDecl>().Where(decl => decl.IsAnonymousField)]);
+        _anonymousRecords = new ValueLazy<List<RecordDecl>>(() => [.. Decls.OfType<RecordDecl>().Where(decl => decl.IsAnonymous && !decl.IsInjectedClassName)]);
+        _indirectFields = new ValueLazy<List<IndirectFieldDecl>>(() => [.. Decls.OfType<IndirectFieldDecl>()]);
+        _injectedClassName = new ValueLazy<RecordDecl?>(() => Decls.OfType<RecordDecl>().Where(decl => decl.IsInjectedClassName).SingleOrDefault());
     }
 
     public bool IsAnonymous => Handle.IsAnonymous;

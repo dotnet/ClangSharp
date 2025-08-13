@@ -12,14 +12,14 @@ public partial class CapturedStmt
     {
         private readonly CapturedStmt _parentStmt;
         private readonly uint _index;
-        private readonly Lazy<VarDecl> _capturedVar;
+        private readonly ValueLazy<VarDecl> _capturedVar;
 
         internal Capture(CapturedStmt parentStmt, uint index)
         {
             _parentStmt = parentStmt;
             _index = index;
 
-            _capturedVar = new Lazy<VarDecl>(() => _parentStmt.TranslationUnit.GetOrCreate<VarDecl>(_parentStmt.Handle.GetCapturedVar(_index)));
+            _capturedVar = new ValueLazy<VarDecl>(() => _parentStmt.TranslationUnit.GetOrCreate<VarDecl>(_parentStmt.Handle.GetCapturedVar(_index)));
         }
 
         public VarDecl CapturedVar => _capturedVar.Value;

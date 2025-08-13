@@ -10,9 +10,9 @@ namespace ClangSharp;
 
 public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
 {
-    private readonly Lazy<TagDecl?> _definition;
+    private readonly ValueLazy<TagDecl?> _definition;
     private readonly LazyList<LazyList<NamedDecl>> _templateParameterLists;
-    private readonly Lazy<TypedefNameDecl?> _typedefNameForAnonDecl;
+    private readonly ValueLazy<TypedefNameDecl?> _typedefNameForAnonDecl;
 
     private protected TagDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -21,12 +21,12 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _definition = new Lazy<TagDecl?>(() => !Handle.Definition.IsNull ? TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition) : null);
+        _definition = new ValueLazy<TagDecl?>(() => !Handle.Definition.IsNull ? TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition) : null);
         _templateParameterLists = LazyList.Create<LazyList<NamedDecl>>(Handle.NumTemplateParameterLists, (listIndex) => {
             var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
             return LazyList.Create<NamedDecl>(numTemplateParameters, (parameterIndex) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex))));
         });
-        _typedefNameForAnonDecl = new Lazy<TypedefNameDecl?>(() => !Handle.TypedefNameForAnonDecl.IsNull ? TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.TypedefNameForAnonDecl) : null);
+        _typedefNameForAnonDecl = new ValueLazy<TypedefNameDecl?>(() => !Handle.TypedefNameForAnonDecl.IsNull ? TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.TypedefNameForAnonDecl) : null);
     }
 
     public new TagDecl CanonicalDecl => (TagDecl)base.CanonicalDecl;

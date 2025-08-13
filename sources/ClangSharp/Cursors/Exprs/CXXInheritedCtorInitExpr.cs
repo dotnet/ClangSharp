@@ -11,12 +11,12 @@ namespace ClangSharp;
 
 public sealed class CXXInheritedCtorInitExpr : Expr
 {
-    private readonly Lazy<CXXConstructorDecl> _constructor;
+    private readonly ValueLazy<CXXConstructorDecl> _constructor;
 
     internal CXXInheritedCtorInitExpr(CXCursor handle) : base(handle, CXCursor_CallExpr, CX_StmtClass_CXXInheritedCtorInitExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _constructor = new Lazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.Referenced));
+        _constructor = new ValueLazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.Referenced));
     }
 
     public CX_ConstructionKind ConstructionKind => ConstructsVBase ? CX_CK_VirtualBase : CX_CK_NonVirtualBase;

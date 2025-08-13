@@ -10,15 +10,15 @@ namespace ClangSharp;
 
 public sealed class CXXDeleteExpr : Expr
 {
-    private readonly Lazy<Type> _destroyedType;
-    private readonly Lazy<FunctionDecl> _operatorDelete;
+    private readonly ValueLazy<Type> _destroyedType;
+    private readonly ValueLazy<FunctionDecl> _operatorDelete;
 
     internal CXXDeleteExpr(CXCursor handle) : base(handle, CXCursor_CXXDeleteExpr, CX_StmtClass_CXXDeleteExpr)
     {
         Debug.Assert(NumChildren is 1);
 
-        _destroyedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        _operatorDelete = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.Referenced));
+        _destroyedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _operatorDelete = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.Referenced));
     }
 
     public Expr Argument => (Expr)Children[0];

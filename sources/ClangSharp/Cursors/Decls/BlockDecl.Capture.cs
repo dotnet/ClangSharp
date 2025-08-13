@@ -10,16 +10,16 @@ public partial class BlockDecl
     {
         private readonly Decl _parentDecl;
         private readonly uint _index;
-        private readonly Lazy<Expr> _copyExpr;
-        private readonly Lazy<VarDecl> _variable;
+        private readonly ValueLazy<Expr> _copyExpr;
+        private readonly ValueLazy<VarDecl> _variable;
 
         internal Capture(Decl parentDecl, uint index)
         {
             _parentDecl = parentDecl;
             _index = index;
 
-            _copyExpr = new Lazy<Expr>(() => _parentDecl.TranslationUnit.GetOrCreate<Expr>(_parentDecl.Handle.GetCaptureCopyExpr(_index)));
-            _variable = new Lazy<VarDecl>(() => _parentDecl.TranslationUnit.GetOrCreate<VarDecl>(_parentDecl.Handle.GetCaptureVariable(_index)));
+            _copyExpr = new ValueLazy<Expr>(() => _parentDecl.TranslationUnit.GetOrCreate<Expr>(_parentDecl.Handle.GetCaptureCopyExpr(_index)));
+            _variable = new ValueLazy<VarDecl>(() => _parentDecl.TranslationUnit.GetOrCreate<VarDecl>(_parentDecl.Handle.GetCaptureVariable(_index)));
         }
 
         public Expr CopyExpr => _copyExpr.Value;

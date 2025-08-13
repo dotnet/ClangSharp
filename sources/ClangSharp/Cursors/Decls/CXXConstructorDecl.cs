@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class CXXConstructorDecl : CXXMethodDecl
 {
-    private readonly Lazy<CXXConstructorDecl> _inheritedConstructor;
+    private readonly ValueLazy<CXXConstructorDecl> _inheritedConstructor;
     private readonly LazyList<Expr> _initExprs;
 
     internal CXXConstructorDecl(CXCursor handle) : base(handle, CXCursor_Constructor, CX_DeclKind_CXXConstructor)
     {
-        _inheritedConstructor = new Lazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.InheritedConstructor));
+        _inheritedConstructor = new ValueLazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.InheritedConstructor));
         _initExprs = LazyList.Create<Expr>(Handle.NumExprs , (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i))));
     }
 

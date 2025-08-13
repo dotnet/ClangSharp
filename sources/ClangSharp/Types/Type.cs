@@ -11,12 +11,12 @@ namespace ClangSharp;
 [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
 public unsafe class Type : IEquatable<Type>
 {
-    private readonly Lazy<string> _asString;
-    private readonly Lazy<Type> _canonicalType;
-    private readonly Lazy<Type> _desugar;
-    private readonly Lazy<string> _kindSpelling;
-    private readonly Lazy<Type> _pointeeType;
-    private readonly Lazy<TranslationUnit> _translationUnit;
+    private readonly ValueLazy<string> _asString;
+    private readonly ValueLazy<Type> _canonicalType;
+    private readonly ValueLazy<Type> _desugar;
+    private readonly ValueLazy<string> _kindSpelling;
+    private readonly ValueLazy<Type> _pointeeType;
+    private readonly ValueLazy<TranslationUnit> _translationUnit;
 
     protected Type(CXType handle, CXTypeKind expectedKind, CX_TypeClass expectedTypeClass)
     {
@@ -31,12 +31,12 @@ public unsafe class Type : IEquatable<Type>
         }
         Handle = handle;
 
-        _asString = new Lazy<string>(Handle.Spelling.ToString);
-        _canonicalType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CanonicalType));
-        _desugar = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar));
-        _kindSpelling = new Lazy<string>(Handle.KindSpelling.ToString);
-        _pointeeType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
-        _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate((CXTranslationUnit)Handle.data[1]));
+        _asString = new ValueLazy<string>(Handle.Spelling.ToString);
+        _canonicalType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CanonicalType));
+        _desugar = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Desugar));
+        _kindSpelling = new ValueLazy<string>(Handle.KindSpelling.ToString);
+        _pointeeType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
+        _translationUnit = new ValueLazy<TranslationUnit>(() => TranslationUnit.GetOrCreate((CXTranslationUnit)Handle.data[1]));
     }
 
     public CXXRecordDecl? AsCXXRecordDecl => AsTagDecl as CXXRecordDecl;

@@ -11,20 +11,20 @@ namespace ClangSharp;
 public sealed class ObjCMessageExpr : Expr
 {
     private readonly LazyList<Expr> _args;
-    private readonly Lazy<Type> _classReceiver;
-    private readonly Lazy<Expr> _instanceReceiver;
-    private readonly Lazy<ObjCMethodDecl> _methodDecl;
-    private readonly Lazy<Type> _receiverType;
-    private readonly Lazy<Type> _superType;
+    private readonly ValueLazy<Type> _classReceiver;
+    private readonly ValueLazy<Expr> _instanceReceiver;
+    private readonly ValueLazy<ObjCMethodDecl> _methodDecl;
+    private readonly ValueLazy<Type> _receiverType;
+    private readonly ValueLazy<Type> _superType;
 
     internal ObjCMessageExpr(CXCursor handle) : base(handle, CXCursor_ObjCMessageExpr, CX_StmtClass_ObjCMessageExpr)
     {
         _args = LazyList.Create<Expr>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetArgument(unchecked((uint)i))));
-        _classReceiver = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        _instanceReceiver = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
-        _methodDecl = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
-        _receiverType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReceiverType));
-        _superType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisObjectType));
+        _classReceiver = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _instanceReceiver = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
+        _methodDecl = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
+        _receiverType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReceiverType));
+        _superType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisObjectType));
     }
 
     public IReadOnlyList<Expr> Args => _args;

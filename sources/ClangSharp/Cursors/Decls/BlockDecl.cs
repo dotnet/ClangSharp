@@ -10,13 +10,13 @@ namespace ClangSharp;
 
 public sealed partial class BlockDecl : Decl, IDeclContext
 {
-    private readonly Lazy<Decl> _blockManglingContextDecl;
+    private readonly ValueLazy<Decl> _blockManglingContextDecl;
     private readonly LazyList<Capture> _captures;
     private readonly LazyList<ParmVarDecl> _parameters;
 
     internal BlockDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Block)
     {
-        _blockManglingContextDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.BlockManglingContextDecl));
+        _blockManglingContextDecl = new ValueLazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.BlockManglingContextDecl));
         _captures = LazyList.Create<Capture>(Handle.NumCaptures, (i) => new Capture(this, unchecked((uint)i)));
         _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
     }

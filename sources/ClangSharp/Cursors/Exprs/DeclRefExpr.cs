@@ -11,8 +11,8 @@ namespace ClangSharp;
 
 public sealed class DeclRefExpr : Expr
 {
-    private readonly Lazy<ValueDecl> _decl;
-    private readonly Lazy<NamedDecl> _foundDecl;
+    private readonly ValueLazy<ValueDecl> _decl;
+    private readonly ValueLazy<NamedDecl> _foundDecl;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
     internal DeclRefExpr(CXCursor handle) : base(handle, handle.Kind, CX_StmtClass_DeclRefExpr)
@@ -24,8 +24,8 @@ public sealed class DeclRefExpr : Expr
 
         Debug.Assert(NumChildren is 0);
 
-        _decl = new Lazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.Referenced));
-        _foundDecl = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.FoundDecl));
+        _decl = new ValueLazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.Referenced));
+        _foundDecl = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.FoundDecl));
         _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
     }
 

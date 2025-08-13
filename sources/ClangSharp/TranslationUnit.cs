@@ -21,7 +21,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
     private readonly Dictionary<CX_TemplateArgumentLoc, WeakReference<TemplateArgumentLoc>> _createdTemplateArgumentLocs;
     private readonly Dictionary<CX_TemplateName, WeakReference<TemplateName>> _createdTemplateNames;
     private readonly Dictionary<CXType, WeakReference<Type>> _createdTypes;
-    private readonly Lazy<TranslationUnitDecl> _translationUnitDecl;
+    private readonly ValueLazy<TranslationUnitDecl> _translationUnitDecl;
 
     private bool _isDisposed;
 
@@ -35,7 +35,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
         _createdTemplateNames = [];
         _createdTypes = [];
 
-        _translationUnitDecl = new Lazy<TranslationUnitDecl>(() => GetOrCreate<TranslationUnitDecl>(Handle.Cursor));
+        _translationUnitDecl = new ValueLazy<TranslationUnitDecl>(() => GetOrCreate<TranslationUnitDecl>(Handle.Cursor));
     }
 
     ~TranslationUnit()

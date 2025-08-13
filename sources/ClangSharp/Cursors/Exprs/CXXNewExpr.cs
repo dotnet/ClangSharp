@@ -10,14 +10,14 @@ namespace ClangSharp;
 
 public sealed class CXXNewExpr : Expr
 {
-    private readonly Lazy<FunctionDecl> _operatorDelete;
-    private readonly Lazy<FunctionDecl> _operatorNew;
+    private readonly ValueLazy<FunctionDecl> _operatorDelete;
+    private readonly ValueLazy<FunctionDecl> _operatorNew;
     private readonly LazyList<Expr, Stmt> _placementArgs;
 
     internal CXXNewExpr(CXCursor handle) : base(handle, CXCursor_CXXNewExpr, CX_StmtClass_CXXNewExpr)
     {
-        _operatorDelete = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(0)));
-        _operatorNew = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(1)));
+        _operatorDelete = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(0)));
+        _operatorNew = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(1)));
         _placementArgs = LazyList.Create<Expr, Stmt>(_children, skip: PlacementNewArgsOffset);
     }
 

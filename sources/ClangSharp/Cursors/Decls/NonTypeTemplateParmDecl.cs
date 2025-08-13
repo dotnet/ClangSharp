@@ -11,16 +11,16 @@ namespace ClangSharp;
 public sealed class NonTypeTemplateParmDecl : DeclaratorDecl, ITemplateParmPosition
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private readonly Lazy<Expr> _defaultArgument;
+    private readonly ValueLazy<Expr> _defaultArgument;
     private readonly LazyList<Type> _expansionTypes;
-    private readonly Lazy<Expr> _placeholderTypeConstraint;
+    private readonly ValueLazy<Expr> _placeholderTypeConstraint;
 
     internal NonTypeTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_NonTypeTemplateParameter, CX_DeclKind_NonTypeTemplateParm)
     {
         _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
-        _defaultArgument = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.DefaultArg));
+        _defaultArgument = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.DefaultArg));
         _expansionTypes = LazyList.Create<Type>(Handle.NumExpansionTypes, (i) => TranslationUnit.GetOrCreate<Type>(Handle.GetExpansionType(unchecked((uint)i))));
-        _placeholderTypeConstraint = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.PlaceholderTypeConstraint));
+        _placeholderTypeConstraint = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.PlaceholderTypeConstraint));
     }
 
     public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints;

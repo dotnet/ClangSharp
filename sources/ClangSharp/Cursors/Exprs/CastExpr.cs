@@ -12,7 +12,7 @@ namespace ClangSharp;
 public class CastExpr : Expr
 {
     private readonly LazyList<CXXBaseSpecifier> _path;
-    private readonly Lazy<FieldDecl> _targetUnionField;
+    private readonly ValueLazy<FieldDecl> _targetUnionField;
 
     private protected CastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
@@ -24,7 +24,7 @@ public class CastExpr : Expr
         Debug.Assert(NumChildren is 1);
 
         _path = LazyList.Create<CXXBaseSpecifier>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetArgument(unchecked((uint)i))));
-        _targetUnionField = new Lazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.TargetUnionField));
+        _targetUnionField = new ValueLazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.TargetUnionField));
     }
 
     public CX_CastKind CastKind => Handle.CastKind;

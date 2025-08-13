@@ -11,13 +11,13 @@ namespace ClangSharp;
 
 public sealed class CXXBoolLiteralExpr : Expr
 {
-    private readonly Lazy<string> _valueString;
+    private readonly ValueLazy<string> _valueString;
 
     internal CXXBoolLiteralExpr(CXCursor handle) : base(handle, CXCursor_CXXBoolLiteralExpr, CX_StmtClass_CXXBoolLiteralExpr)
     {
         Debug.Assert(NumChildren is 0);
 
-        _valueString = new Lazy<string>(() => {
+        _valueString = new ValueLazy<string>(() => {
             var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
             if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Keyword and not CXToken_Identifier))

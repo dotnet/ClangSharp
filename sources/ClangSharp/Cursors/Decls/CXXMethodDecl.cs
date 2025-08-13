@@ -11,8 +11,8 @@ namespace ClangSharp;
 public class CXXMethodDecl : FunctionDecl
 {
     private readonly LazyList<CXXMethodDecl> _overriddenMethods;
-    private readonly Lazy<Type> _thisType;
-    private readonly Lazy<Type> _thisObjectType;
+    private readonly ValueLazy<Type> _thisType;
+    private readonly ValueLazy<Type> _thisObjectType;
 
     internal CXXMethodDecl(CXCursor handle) : this(handle, CXCursor_CXXMethod, CX_DeclKind_CXXMethod)
     {
@@ -26,8 +26,8 @@ public class CXXMethodDecl : FunctionDecl
         }
 
         _overriddenMethods = LazyList.Create<CXXMethodDecl>(Handle.NumMethods, (i) => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.GetMethod(unchecked((uint)i))));
-        _thisType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisType));
-        _thisObjectType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisObjectType));
+        _thisType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisType));
+        _thisObjectType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisObjectType));
     }
 
     public new CXXMethodDecl CanonicalDecl => (CXXMethodDecl)base.CanonicalDecl;

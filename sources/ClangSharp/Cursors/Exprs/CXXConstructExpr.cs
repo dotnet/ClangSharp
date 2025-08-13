@@ -12,7 +12,7 @@ namespace ClangSharp;
 public class CXXConstructExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _args;
-    private readonly Lazy<CXXConstructorDecl> _constructor;
+    private readonly ValueLazy<CXXConstructorDecl> _constructor;
 
     internal CXXConstructExpr(CXCursor handle) : this(handle, CXCursor_CallExpr, CX_StmtClass_CXXConstructExpr)
     {
@@ -27,7 +27,7 @@ public class CXXConstructExpr : Expr
         Debug.Assert(NumChildren == NumArgs);
 
         _args = LazyList.Create<Expr, Stmt>(_children);
-        _constructor = new Lazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.Referenced));
+        _constructor = new ValueLazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.Referenced));
     }
 
     public IReadOnlyList<Expr> Args => _args;

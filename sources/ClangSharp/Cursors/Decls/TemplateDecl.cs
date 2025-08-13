@@ -10,7 +10,7 @@ namespace ClangSharp;
 public class TemplateDecl : NamedDecl
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private readonly Lazy<NamedDecl> _templatedDecl;
+    private readonly ValueLazy<NamedDecl> _templatedDecl;
     private readonly LazyList<NamedDecl> _templateParameters;
 
     private protected TemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
@@ -21,7 +21,7 @@ public class TemplateDecl : NamedDecl
         }
 
         _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
-        _templatedDecl = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.TemplatedDecl));
+        _templatedDecl = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.TemplatedDecl));
         _templateParameters = LazyList.Create<NamedDecl>(Handle.GetNumTemplateParameters(0), (i) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i))));
     }
 

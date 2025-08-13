@@ -11,18 +11,18 @@ namespace ClangSharp;
 public sealed class EnumDecl : TagDecl
 {
     private readonly LazyList<EnumConstantDecl> _enumerators;
-    private readonly Lazy<EnumDecl> _instantiatedFromMemberEnum;
-    private readonly Lazy<Type> _integerType;
-    private readonly Lazy<Type> _promotionType;
-    private readonly Lazy<EnumDecl> _templateInstantiationPattern;
+    private readonly ValueLazy<EnumDecl> _instantiatedFromMemberEnum;
+    private readonly ValueLazy<Type> _integerType;
+    private readonly ValueLazy<Type> _promotionType;
+    private readonly ValueLazy<EnumDecl> _templateInstantiationPattern;
 
     internal EnumDecl(CXCursor handle) : base(handle, CXCursor_EnumDecl, CX_DeclKind_Enum)
     {
         _enumerators = LazyList.Create<EnumConstantDecl>(Handle.NumEnumerators, (i) => TranslationUnit.GetOrCreate<EnumConstantDecl>(Handle.GetEnumerator(unchecked((uint)i))));
-        _instantiatedFromMemberEnum = new Lazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.InstantiatedFromMember));
-        _integerType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EnumDecl_IntegerType));
-        _promotionType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EnumDecl_PromotionType));
-        _templateInstantiationPattern = new Lazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.TemplateInstantiationPattern));
+        _instantiatedFromMemberEnum = new ValueLazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.InstantiatedFromMember));
+        _integerType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EnumDecl_IntegerType));
+        _promotionType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EnumDecl_PromotionType));
+        _templateInstantiationPattern = new ValueLazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.TemplateInstantiationPattern));
     }
 
     public new EnumDecl CanonicalDecl => (EnumDecl)base.CanonicalDecl;

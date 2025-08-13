@@ -10,7 +10,7 @@ namespace ClangSharp;
 public class OverloadExpr : Expr
 {
     private readonly LazyList<Decl> _decls;
-    private readonly Lazy<CXXRecordDecl> _namingClass;
+    private readonly ValueLazy<CXXRecordDecl> _namingClass;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
     private protected OverloadExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
@@ -21,7 +21,7 @@ public class OverloadExpr : Expr
         }
 
         _decls = LazyList.Create<Decl>(Handle.NumDecls, (i) => TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i))));
-        _namingClass = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.Referenced));
+        _namingClass = new ValueLazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.Referenced));
         _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
     }
 

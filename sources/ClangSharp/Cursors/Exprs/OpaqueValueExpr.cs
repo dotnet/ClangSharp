@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class OpaqueValueExpr : Expr
 {
-    private readonly Lazy<Expr> _sourceExpr;
+    private readonly ValueLazy<Expr> _sourceExpr;
 
     internal OpaqueValueExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_OpaqueValueExpr)
     {
-        _sourceExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.SubExpr));
+        _sourceExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.SubExpr));
     }
 
     public Expr SourceExpr => _sourceExpr.Value;

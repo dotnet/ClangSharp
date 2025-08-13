@@ -11,21 +11,21 @@ namespace ClangSharp;
 
 public sealed class ObjCCategoryDecl : ObjCContainerDecl
 {
-    private readonly Lazy<ObjCInterfaceDecl> _classInterface;
-    private readonly Lazy<ObjCCategoryImplDecl> _implementation;
-    private readonly Lazy<List<ObjCIvarDecl>> _ivars;
-    private readonly Lazy<ObjCCategoryDecl> _nextClassCategory;
-    private readonly Lazy<ObjCCategoryDecl> _nextClassCategoryRaw;
+    private readonly ValueLazy<ObjCInterfaceDecl> _classInterface;
+    private readonly ValueLazy<ObjCCategoryImplDecl> _implementation;
+    private readonly ValueLazy<List<ObjCIvarDecl>> _ivars;
+    private readonly ValueLazy<ObjCCategoryDecl> _nextClassCategory;
+    private readonly ValueLazy<ObjCCategoryDecl> _nextClassCategoryRaw;
     private readonly LazyList<ObjCProtocolDecl> _protocols;
     private readonly LazyList<ObjCTypeParamDecl> _typeParamList;
 
     internal ObjCCategoryDecl(CXCursor handle) : base(handle, CXCursor_ObjCCategoryDecl, CX_DeclKind_ObjCCategory)
     {
-        _classInterface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
-        _implementation = new Lazy<ObjCCategoryImplDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryImplDecl>(Handle.GetSubDecl(1)));
-        _ivars = new Lazy<List<ObjCIvarDecl>>(() => [.. Decls.OfType<ObjCIvarDecl>()]);
-        _nextClassCategory = new Lazy<ObjCCategoryDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryDecl>(Handle.GetSubDecl(2)));
-        _nextClassCategoryRaw = new Lazy<ObjCCategoryDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryDecl>(Handle.GetSubDecl(3)));
+        _classInterface = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
+        _implementation = new ValueLazy<ObjCCategoryImplDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryImplDecl>(Handle.GetSubDecl(1)));
+        _ivars = new ValueLazy<List<ObjCIvarDecl>>(() => [.. Decls.OfType<ObjCIvarDecl>()]);
+        _nextClassCategory = new ValueLazy<ObjCCategoryDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryDecl>(Handle.GetSubDecl(2)));
+        _nextClassCategoryRaw = new ValueLazy<ObjCCategoryDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryDecl>(Handle.GetSubDecl(3)));
         _protocols = LazyList.Create<ObjCProtocolDecl>(Handle.NumProtocols, (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i))));
         _typeParamList = LazyList.Create<ObjCTypeParamDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetArgument(unchecked((uint)i))));
     }

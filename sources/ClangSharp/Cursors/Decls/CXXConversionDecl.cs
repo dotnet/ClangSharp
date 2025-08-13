@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class CXXConversionDecl : CXXMethodDecl
 {
-    private readonly Lazy<Type> _conversionType;
+    private readonly ValueLazy<Type> _conversionType;
 
     internal CXXConversionDecl(CXCursor handle) : base(handle, CXCursor_ConversionFunction, CX_DeclKind_CXXConversion)
     {
-        _conversionType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _conversionType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
     public new CXXConversionDecl CanonicalDecl => (CXXConversionDecl)base.CanonicalDecl;

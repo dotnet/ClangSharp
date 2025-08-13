@@ -10,8 +10,8 @@ namespace ClangSharp;
 
 public class ObjCImplDecl : ObjCContainerDecl
 {
-    private readonly Lazy<ObjCInterfaceDecl> _classInterface;
-    private readonly Lazy<List<ObjCPropertyImplDecl>> _propertyImpls;
+    private readonly ValueLazy<ObjCInterfaceDecl> _classInterface;
+    private readonly ValueLazy<List<ObjCPropertyImplDecl>> _propertyImpls;
 
     private protected ObjCImplDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -20,8 +20,8 @@ public class ObjCImplDecl : ObjCContainerDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _classInterface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
-        _propertyImpls = new Lazy<List<ObjCPropertyImplDecl>>(() => [.. Decls.OfType<ObjCPropertyImplDecl>()]);
+        _classInterface = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
+        _propertyImpls = new ValueLazy<List<ObjCPropertyImplDecl>>(() => [.. Decls.OfType<ObjCPropertyImplDecl>()]);
     }
 
     public ObjCInterfaceDecl ClassInterface => _classInterface.Value;

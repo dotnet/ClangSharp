@@ -9,21 +9,21 @@ namespace ClangSharp;
 
 public sealed class ObjCPropertyRefExpr : Expr
 {
-    private readonly Lazy<Expr> _base;
-    private readonly Lazy<ObjCInterfaceDecl> _classReceiver;
-    private readonly Lazy<ObjCPropertyDecl> _explicitProperty;
-    private readonly Lazy<ObjCMethodDecl> _implicitPropertyGetter;
-    private readonly Lazy<ObjCMethodDecl> _implicitPropertySetter;
-    private readonly Lazy<Type> _superReceiverType;
+    private readonly ValueLazy<Expr> _base;
+    private readonly ValueLazy<ObjCInterfaceDecl> _classReceiver;
+    private readonly ValueLazy<ObjCPropertyDecl> _explicitProperty;
+    private readonly ValueLazy<ObjCMethodDecl> _implicitPropertyGetter;
+    private readonly ValueLazy<ObjCMethodDecl> _implicitPropertySetter;
+    private readonly ValueLazy<Type> _superReceiverType;
 
     internal ObjCPropertyRefExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_ObjCPropertyRefExpr)
     {
-        _base = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
-        _classReceiver = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetDecl(0)));
-        _explicitProperty = new Lazy<ObjCPropertyDecl>(() => TranslationUnit.GetOrCreate<ObjCPropertyDecl>(Handle.GetDecl(1)));
-        _implicitPropertyGetter = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetDecl(2)));
-        _implicitPropertySetter = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetDecl(3)));
-        _superReceiverType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _base = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
+        _classReceiver = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetDecl(0)));
+        _explicitProperty = new ValueLazy<ObjCPropertyDecl>(() => TranslationUnit.GetOrCreate<ObjCPropertyDecl>(Handle.GetDecl(1)));
+        _implicitPropertyGetter = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetDecl(2)));
+        _implicitPropertySetter = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetDecl(3)));
+        _superReceiverType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
 

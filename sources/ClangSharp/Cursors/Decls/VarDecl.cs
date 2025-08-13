@@ -9,9 +9,9 @@ namespace ClangSharp;
 
 public class VarDecl : DeclaratorDecl, IRedeclarable<VarDecl>
 {
-    private readonly Lazy<VarDecl> _definition;
-    private readonly Lazy<Expr> _init;
-    private readonly Lazy<VarDecl> _instantiatedFromStaticDataMember;
+    private readonly ValueLazy<VarDecl> _definition;
+    private readonly ValueLazy<Expr> _init;
+    private readonly ValueLazy<VarDecl> _instantiatedFromStaticDataMember;
 
     internal VarDecl(CXCursor handle) : this(handle, CXCursor_VarDecl, CX_DeclKind_Var)
     {
@@ -24,9 +24,9 @@ public class VarDecl : DeclaratorDecl, IRedeclarable<VarDecl>
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _definition = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Definition));
-        _init = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.InitExpr));
-        _instantiatedFromStaticDataMember = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.InstantiatedFromMember));
+        _definition = new ValueLazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Definition));
+        _init = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.InitExpr));
+        _instantiatedFromStaticDataMember = new ValueLazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.InstantiatedFromMember));
     }
 
     public new VarDecl CanonicalDecl => (VarDecl)base.CanonicalDecl;

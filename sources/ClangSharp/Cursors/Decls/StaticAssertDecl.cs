@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class StaticAssertDecl : Decl
 {
-    private readonly Lazy<Expr> _assertExpr;
-    private readonly Lazy<StringLiteral> _message;
+    private readonly ValueLazy<Expr> _assertExpr;
+    private readonly ValueLazy<StringLiteral> _message;
 
     internal StaticAssertDecl(CXCursor handle) : base(handle, CXCursor_StaticAssert, CX_DeclKind_StaticAssert)
     {
-        _assertExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
-        _message = new Lazy<StringLiteral>(() => TranslationUnit.GetOrCreate<StringLiteral>(Handle.GetExpr(1)));
+        _assertExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
+        _message = new ValueLazy<StringLiteral>(() => TranslationUnit.GetOrCreate<StringLiteral>(Handle.GetExpr(1)));
     }
 
     public Expr AssertExpr => _assertExpr.Value;

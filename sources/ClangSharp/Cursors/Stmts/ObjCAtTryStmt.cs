@@ -11,14 +11,14 @@ namespace ClangSharp;
 
 public sealed class ObjCAtTryStmt : Stmt
 {
-    private readonly Lazy<LazyList<ObjCAtCatchStmt, Stmt>> _catchStmts;
-    private readonly Lazy<ObjCAtFinallyStmt?> _finallyStmt;
+    private readonly ValueLazy<LazyList<ObjCAtCatchStmt, Stmt>> _catchStmts;
+    private readonly ValueLazy<ObjCAtFinallyStmt?> _finallyStmt;
 
     internal ObjCAtTryStmt(CXCursor handle) : base(handle, CXCursor_ObjCAtTryStmt, CX_StmtClass_ObjCAtTryStmt)
     {
         Debug.Assert(NumChildren is >= 1);
 
-        _catchStmts = new Lazy<LazyList<ObjCAtCatchStmt, Stmt>>(() => {
+        _catchStmts = new ValueLazy<LazyList<ObjCAtCatchStmt, Stmt>>(() => {
             var children = _children;
             var skipLast = 0;
 
@@ -31,7 +31,7 @@ public sealed class ObjCAtTryStmt : Stmt
             return LazyList.Create<ObjCAtCatchStmt, Stmt>(_children, skip: 1, take);
         });
 
-        _finallyStmt = new Lazy<ObjCAtFinallyStmt?>(() => {
+        _finallyStmt = new ValueLazy<ObjCAtFinallyStmt?>(() => {
             var children = Children;
 
             return (children[children.Count - 1] is ObjCAtFinallyStmt finallyStmt) ? finallyStmt : null;

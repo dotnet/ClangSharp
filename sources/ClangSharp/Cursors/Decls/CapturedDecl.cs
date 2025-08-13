@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class CapturedDecl : Decl, IDeclContext
 {
-    private readonly Lazy<ImplicitParamDecl> _contextParam;
+    private readonly ValueLazy<ImplicitParamDecl> _contextParam;
     private readonly LazyList<ImplicitParamDecl> _parameters;
 
     internal CapturedDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Captured)
     {
-        _contextParam = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.ContextParam));
+        _contextParam = new ValueLazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.ContextParam));
         _parameters = LazyList.Create<ImplicitParamDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetArgument(unchecked((uint)i))));
     }
 

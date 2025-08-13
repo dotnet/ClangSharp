@@ -11,12 +11,12 @@ namespace ClangSharp;
 public sealed class CXXUnresolvedConstructExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _args;
-    private readonly Lazy<Type> _typeAsWritten;
+    private readonly ValueLazy<Type> _typeAsWritten;
 
     internal CXXUnresolvedConstructExpr(CXCursor handle) : base(handle, CXCursor_CallExpr, CX_StmtClass_CXXUnresolvedConstructExpr)
     {
         _args = LazyList.Create<Expr, Stmt>(_children);
-        _typeAsWritten = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _typeAsWritten = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
     public IReadOnlyList<Expr> Args => _args;

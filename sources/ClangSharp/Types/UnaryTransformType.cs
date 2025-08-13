@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public class UnaryTransformType : Type
 {
-    private readonly Lazy<Type> _baseType;
-    private readonly Lazy<Type> _underlyingType;
+    private readonly ValueLazy<Type> _baseType;
+    private readonly ValueLazy<Type> _underlyingType;
 
     internal UnaryTransformType(CXType handle) : this(handle, CXType_Unexposed, CX_TypeClass_UnaryTransform)
     {
@@ -18,8 +18,8 @@ public class UnaryTransformType : Type
 
     private protected UnaryTransformType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        _baseType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.BaseType));
-        _underlyingType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
+        _baseType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.BaseType));
+        _underlyingType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
     }
 
     public Type BaseType => _baseType.Value;

@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class TopLevelStmtDecl : Decl
 {
-    private readonly Lazy<LabelStmt> _stmt;
+    private readonly ValueLazy<LabelStmt> _stmt;
 
     internal TopLevelStmtDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_TopLevelStmt)
     {
-        _stmt = new Lazy<LabelStmt>(() => TranslationUnit.GetOrCreate<LabelStmt>(Handle.GetExpr(0)));
+        _stmt = new ValueLazy<LabelStmt>(() => TranslationUnit.GetOrCreate<LabelStmt>(Handle.GetExpr(0)));
     }
 
     public LabelStmt Stmt => _stmt.Value;

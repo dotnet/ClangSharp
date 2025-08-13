@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class SizeOfPackExpr : Expr
 {
-    private readonly Lazy<NamedDecl> _pack;
+    private readonly ValueLazy<NamedDecl> _pack;
     private readonly LazyList<TemplateArgument> _partialArguments;
 
     internal SizeOfPackExpr(CXCursor handle) : base(handle, CXCursor_SizeOfPackExpr, CX_StmtClass_SizeOfPackExpr)
     {
-        _pack = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.Referenced));
+        _pack = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.Referenced));
         _partialArguments = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 

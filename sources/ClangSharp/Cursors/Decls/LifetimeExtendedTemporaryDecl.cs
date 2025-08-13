@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class LifetimeExtendedTemporaryDecl : Decl, IMergeable<LifetimeExtendedTemporaryDecl>
 {
-    private readonly Lazy<ValueDecl> _extendingDecl;
-    private readonly Lazy<Expr> _temporaryExpr;
+    private readonly ValueLazy<ValueDecl> _extendingDecl;
+    private readonly ValueLazy<Expr> _temporaryExpr;
 
     internal LifetimeExtendedTemporaryDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_LifetimeExtendedTemporary)
     {
-        _extendingDecl = new Lazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.GetSubDecl(1)));
-        _temporaryExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
+        _extendingDecl = new ValueLazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.GetSubDecl(1)));
+        _temporaryExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
     }
 
     public ValueDecl ExtendingDecl => _extendingDecl.Value;

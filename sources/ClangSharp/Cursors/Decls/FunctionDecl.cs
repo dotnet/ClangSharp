@@ -10,15 +10,15 @@ namespace ClangSharp;
 
 public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<FunctionDecl>
 {
-    private readonly Lazy<Type> _callResultType;
-    private readonly Lazy<Type> _declaredReturnType;
-    private readonly Lazy<FunctionDecl> _definition;
-    private readonly Lazy<FunctionTemplateDecl> _describedFunctionDecl;
-    private readonly Lazy<FunctionDecl> _instantiatedFromMemberFunction;
+    private readonly ValueLazy<Type> _callResultType;
+    private readonly ValueLazy<Type> _declaredReturnType;
+    private readonly ValueLazy<FunctionDecl> _definition;
+    private readonly ValueLazy<FunctionTemplateDecl> _describedFunctionDecl;
+    private readonly ValueLazy<FunctionDecl> _instantiatedFromMemberFunction;
     private readonly LazyList<ParmVarDecl> _parameters;
-    private readonly Lazy<FunctionTemplateDecl> _primaryTemplate;
-    private readonly Lazy<Type> _returnType;
-    private readonly Lazy<FunctionDecl> _templateInstantiationPattern;
+    private readonly ValueLazy<FunctionTemplateDecl> _primaryTemplate;
+    private readonly ValueLazy<Type> _returnType;
+    private readonly ValueLazy<FunctionDecl> _templateInstantiationPattern;
     private readonly LazyList<TemplateArgument> _templateSpecializationArgs;
 
     internal FunctionDecl(CXCursor handle) : this(handle, CXCursor_FunctionDecl, CX_DeclKind_Function)
@@ -32,15 +32,15 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _callResultType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CallResultType));
-        _declaredReturnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.DeclaredReturnType));
-        _definition = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.Definition));
-        _describedFunctionDecl = new Lazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.DescribedCursorTemplate));
-        _instantiatedFromMemberFunction = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.InstantiatedFromMember));
+        _callResultType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.CallResultType));
+        _declaredReturnType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.DeclaredReturnType));
+        _definition = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.Definition));
+        _describedFunctionDecl = new ValueLazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.DescribedCursorTemplate));
+        _instantiatedFromMemberFunction = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.InstantiatedFromMember));
         _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
-        _primaryTemplate = new Lazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.PrimaryTemplate));
-        _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
-        _templateInstantiationPattern = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.TemplateInstantiationPattern));
+        _primaryTemplate = new ValueLazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.PrimaryTemplate));
+        _returnType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
+        _templateInstantiationPattern = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.TemplateInstantiationPattern));
         _templateSpecializationArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 

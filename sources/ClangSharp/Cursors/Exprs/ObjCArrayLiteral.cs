@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class ObjCArrayLiteral : Expr
 {
-    private readonly Lazy<ObjCMethodDecl> _arrayWithObjectsMethod;
+    private readonly ValueLazy<ObjCMethodDecl> _arrayWithObjectsMethod;
     private readonly LazyList<Expr, Stmt> _elements;
 
     internal ObjCArrayLiteral(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCArrayLiteral)
     {
-        _arrayWithObjectsMethod = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
+        _arrayWithObjectsMethod = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
         _elements = LazyList.Create<Expr, Stmt>(_children);
     }
 

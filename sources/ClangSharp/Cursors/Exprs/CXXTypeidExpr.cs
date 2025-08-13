@@ -11,12 +11,12 @@ namespace ClangSharp;
 
 public sealed class CXXTypeidExpr : Expr
 {
-    private readonly Lazy<Type> _typeOperand;
+    private readonly ValueLazy<Type> _typeOperand;
 
     internal CXXTypeidExpr(CXCursor handle) : base(handle, CXCursor_CXXTypeidExpr, CX_StmtClass_CXXTypeidExpr)
     {
         Debug.Assert(NumChildren is 0 or 1);
-        _typeOperand = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(handle.TypeOperand));
+        _typeOperand = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(handle.TypeOperand));
     }
 
     public Expr? ExprOperand => (Expr?)Children.SingleOrDefault();

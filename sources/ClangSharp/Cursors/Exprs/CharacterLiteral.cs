@@ -12,13 +12,13 @@ namespace ClangSharp;
 
 public sealed class CharacterLiteral : Expr
 {
-    private readonly Lazy<string> _valueString;
+    private readonly ValueLazy<string> _valueString;
 
     internal CharacterLiteral(CXCursor handle) : base(handle, CXCursor_CharacterLiteral, CX_StmtClass_CharacterLiteral)
     {
         Debug.Assert(NumChildren is 0);
 
-        _valueString = new Lazy<string>(() => {
+        _valueString = new ValueLazy<string>(() => {
             var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
             if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Literal and not CXToken_Identifier))

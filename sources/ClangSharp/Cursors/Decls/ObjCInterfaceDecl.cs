@@ -11,22 +11,22 @@ namespace ClangSharp;
 
 public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInterfaceDecl>
 {
-    private readonly Lazy<List<ObjCCategoryDecl>> _categoryList;
-    private readonly Lazy<ObjCInterfaceDecl> _definition;
-    private readonly Lazy<ObjCImplementationDecl> _implementation;
-    private readonly Lazy<List<ObjCIvarDecl>> _ivars;
-    private readonly Lazy<List<ObjCCategoryDecl>> _knownExtensions;
+    private readonly ValueLazy<List<ObjCCategoryDecl>> _categoryList;
+    private readonly ValueLazy<ObjCInterfaceDecl> _definition;
+    private readonly ValueLazy<ObjCImplementationDecl> _implementation;
+    private readonly ValueLazy<List<ObjCIvarDecl>> _ivars;
+    private readonly ValueLazy<List<ObjCCategoryDecl>> _knownExtensions;
     private readonly LazyList<ObjCProtocolDecl> _protocols;
-    private readonly Lazy<ObjCInterfaceDecl> _superClass;
-    private readonly Lazy<ObjCObjectType> _superClassType;
-    private readonly Lazy<Type> _typeForDecl;
+    private readonly ValueLazy<ObjCInterfaceDecl> _superClass;
+    private readonly ValueLazy<ObjCObjectType> _superClassType;
+    private readonly ValueLazy<Type> _typeForDecl;
     private readonly LazyList<ObjCTypeParamDecl> _typeParamList;
-    private readonly Lazy<List<ObjCCategoryDecl>> _visibleCategories;
-    private readonly Lazy<List<ObjCCategoryDecl>> _visibleExtensions;
+    private readonly ValueLazy<List<ObjCCategoryDecl>> _visibleCategories;
+    private readonly ValueLazy<List<ObjCCategoryDecl>> _visibleExtensions;
 
     internal ObjCInterfaceDecl(CXCursor handle) : base(handle, CXCursor_ObjCInterfaceDecl, CX_DeclKind_ObjCInterface)
     {
-        _categoryList = new Lazy<List<ObjCCategoryDecl>>(() => {
+        _categoryList = new ValueLazy<List<ObjCCategoryDecl>>(() => {
             var categories = new List<ObjCCategoryDecl>();
 
             var category = TranslationUnit.GetOrCreate<ObjCCategoryDecl>(handle.GetSubDecl(0));
@@ -40,17 +40,17 @@ public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInt
             return categories;
         });
 
-        _definition = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.Definition));
-        _implementation = new Lazy<ObjCImplementationDecl>(() => TranslationUnit.GetOrCreate<ObjCImplementationDecl>(Handle.GetSubDecl(1)));
-        _ivars = new Lazy<List<ObjCIvarDecl>>(() => [.. Decls.OfType<ObjCIvarDecl>()]);
-        _knownExtensions = new Lazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsClassExtension)]);
+        _definition = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.Definition));
+        _implementation = new ValueLazy<ObjCImplementationDecl>(() => TranslationUnit.GetOrCreate<ObjCImplementationDecl>(Handle.GetSubDecl(1)));
+        _ivars = new ValueLazy<List<ObjCIvarDecl>>(() => [.. Decls.OfType<ObjCIvarDecl>()]);
+        _knownExtensions = new ValueLazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsClassExtension)]);
         _protocols = LazyList.Create<ObjCProtocolDecl>(Handle.NumProtocols, (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i))));
-        _superClass = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(2)));
-        _superClassType = new Lazy<ObjCObjectType>(() => TranslationUnit.GetOrCreate<ObjCObjectType>(Handle.TypeOperand));
-        _typeForDecl = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisType));
+        _superClass = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(2)));
+        _superClassType = new ValueLazy<ObjCObjectType>(() => TranslationUnit.GetOrCreate<ObjCObjectType>(Handle.TypeOperand));
+        _typeForDecl = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisType));
         _typeParamList = LazyList.Create<ObjCTypeParamDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetArgument(unchecked((uint)i))));
-        _visibleCategories = new Lazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsUnconditionallyVisible)]);
-        _visibleExtensions = new Lazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsClassExtension && category.IsUnconditionallyVisible)]);
+        _visibleCategories = new ValueLazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsUnconditionallyVisible)]);
+        _visibleExtensions = new ValueLazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsClassExtension && category.IsUnconditionallyVisible)]);
     }
 
     public new ObjCInterfaceDecl CanonicalDecl => (ObjCInterfaceDecl)base.CanonicalDecl;

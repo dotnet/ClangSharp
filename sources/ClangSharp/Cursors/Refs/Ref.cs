@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public class Ref : Cursor
 {
-    private readonly Lazy<NamedDecl> _referenced;
-    private readonly Lazy<Type> _type;
+    private readonly ValueLazy<NamedDecl> _referenced;
+    private readonly ValueLazy<Type> _type;
 
     private protected Ref(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
     {
-        _referenced = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.Referenced));
-        _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
+        _referenced = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.Referenced));
+        _type = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
     }
 
     public NamedDecl Referenced => _referenced.Value;

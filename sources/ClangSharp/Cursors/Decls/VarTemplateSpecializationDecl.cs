@@ -10,7 +10,7 @@ namespace ClangSharp;
 
 public class VarTemplateSpecializationDecl : VarDecl
 {
-    private readonly Lazy<VarTemplateDecl> _specializedTemplate;
+    private readonly ValueLazy<VarTemplateDecl> _specializedTemplate;
     private readonly LazyList<TemplateArgument> _templateArgs;
 
     internal VarTemplateSpecializationDecl(CXCursor handle) : this(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplateSpecialization)
@@ -24,7 +24,7 @@ public class VarTemplateSpecializationDecl : VarDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _specializedTemplate = new Lazy<VarTemplateDecl>(() => TranslationUnit.GetOrCreate<VarTemplateDecl>(Handle.SpecializedCursorTemplate));
+        _specializedTemplate = new ValueLazy<VarTemplateDecl>(() => TranslationUnit.GetOrCreate<VarTemplateDecl>(Handle.SpecializedCursorTemplate));
         _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 

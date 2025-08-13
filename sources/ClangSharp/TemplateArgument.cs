@@ -11,36 +11,36 @@ namespace ClangSharp;
 
 public sealed unsafe class TemplateArgument : IDisposable
 {
-    private readonly Lazy<ValueDecl> _asDecl;
-    private readonly Lazy<Expr> _asExpr;
-    private readonly Lazy<TemplateName> _asTemplate;
-    private readonly Lazy<TemplateName> _asTemplateOrTemplatePattern;
-    private readonly Lazy<Type> _asType;
-    private readonly Lazy<Type> _integralType;
-    private readonly Lazy<Type> _nonTypeTemplateArgumentType;
-    private readonly Lazy<Type> _nullPtrType;
+    private readonly ValueLazy<ValueDecl> _asDecl;
+    private readonly ValueLazy<Expr> _asExpr;
+    private readonly ValueLazy<TemplateName> _asTemplate;
+    private readonly ValueLazy<TemplateName> _asTemplateOrTemplatePattern;
+    private readonly ValueLazy<Type> _asType;
+    private readonly ValueLazy<Type> _integralType;
+    private readonly ValueLazy<Type> _nonTypeTemplateArgumentType;
+    private readonly ValueLazy<Type> _nullPtrType;
     private readonly LazyList<TemplateArgument> _packElements;
-    private readonly Lazy<TemplateArgument> _packExpansionPattern;
-    private readonly Lazy<Type> _paramTypeForDecl;
-    private readonly Lazy<TranslationUnit> _translationUnit;
+    private readonly ValueLazy<TemplateArgument> _packExpansionPattern;
+    private readonly ValueLazy<Type> _paramTypeForDecl;
+    private readonly ValueLazy<TranslationUnit> _translationUnit;
 
     internal TemplateArgument(CX_TemplateArgument handle)
     {
         Handle = handle;
 
-        _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
+        _translationUnit = new ValueLazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
 
-        _asDecl = new Lazy<ValueDecl>(() =>  TranslationUnit.GetOrCreate<ValueDecl>(Handle.AsDecl));
-        _asExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.AsExpr));
-        _asTemplate = new Lazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.AsTemplate));
-        _asTemplateOrTemplatePattern = new Lazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.AsTemplateOrTemplatePattern));
-        _asType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.AsType));
-        _integralType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.IntegralType));
-        _nonTypeTemplateArgumentType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NonTypeTemplateArgumentType));
-        _nullPtrType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NullPtrType));
-        _packExpansionPattern = new Lazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.PackExpansionPattern));
+        _asDecl = new ValueLazy<ValueDecl>(() =>  TranslationUnit.GetOrCreate<ValueDecl>(Handle.AsDecl));
+        _asExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.AsExpr));
+        _asTemplate = new ValueLazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.AsTemplate));
+        _asTemplateOrTemplatePattern = new ValueLazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.AsTemplateOrTemplatePattern));
+        _asType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.AsType));
+        _integralType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.IntegralType));
+        _nonTypeTemplateArgumentType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NonTypeTemplateArgumentType));
+        _nullPtrType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NullPtrType));
+        _packExpansionPattern = new ValueLazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.PackExpansionPattern));
         _packElements = LazyList.Create<TemplateArgument>(Handle.NumPackElements, (i) => TranslationUnit.GetOrCreate(Handle.GetPackElement(unchecked((uint)i))));
-        _paramTypeForDecl = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ParamTypeForDecl));
+        _paramTypeForDecl = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ParamTypeForDecl));
     }
 
     ~TemplateArgument() => Dispose(isDisposing: false);

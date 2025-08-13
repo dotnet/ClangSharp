@@ -11,14 +11,14 @@ namespace ClangSharp;
 public sealed class OffsetOfExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _indexExprs;
-    private readonly Lazy<Cursor?> _referenced;
-    private readonly Lazy<Type> _typeSourceInfoType;
+    private readonly ValueLazy<Cursor?> _referenced;
+    private readonly ValueLazy<Type> _typeSourceInfoType;
 
     internal OffsetOfExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_OffsetOfExpr)
     {
         _indexExprs = LazyList.Create<Expr, Stmt>(_children);
-        _referenced = new Lazy<Cursor?>(() => !Handle.Referenced.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.Referenced) : null);
-        _typeSourceInfoType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _referenced = new ValueLazy<Cursor?>(() => !Handle.Referenced.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.Referenced) : null);
+        _typeSourceInfoType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
     public IReadOnlyList<Expr> IndexExprs => _indexExprs;

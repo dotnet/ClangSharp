@@ -12,14 +12,14 @@ namespace ClangSharp;
 public sealed class FunctionParmPackExpr : Expr
 {
     private readonly LazyList<VarDecl> _expansions;
-    private readonly Lazy<VarDecl> _parameterPack;
+    private readonly ValueLazy<VarDecl> _parameterPack;
 
     internal FunctionParmPackExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_FunctionParmPackExpr)
     {
         Debug.Assert(NumChildren is 0);
 
         _expansions = LazyList.Create<VarDecl>(Handle.NumDecls, (i) => TranslationUnit.GetOrCreate<VarDecl>(Handle.GetDecl(unchecked((uint)i))));
-        _parameterPack = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
+        _parameterPack = new ValueLazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
     }
 
     public IReadOnlyList<VarDecl> Expansions => _expansions;

@@ -10,9 +10,9 @@ namespace ClangSharp;
 
 public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
 {
-    private readonly Lazy<Expr> _bitWidth;
-    private readonly Lazy<Expr> _inClassInitializer;
-    private readonly Lazy<bool> _isAnonymousField;
+    private readonly ValueLazy<Expr> _bitWidth;
+    private readonly ValueLazy<Expr> _inClassInitializer;
+    private readonly ValueLazy<bool> _isAnonymousField;
 
     internal FieldDecl(CXCursor handle) : this(handle, CXCursor_FieldDecl, CX_DeclKind_Field)
     {
@@ -25,9 +25,9 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _bitWidth = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.BitWidth));
-        _inClassInitializer = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.InClassInitializer));
-        _isAnonymousField = new Lazy<bool>(() => {
+        _bitWidth = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.BitWidth));
+        _inClassInitializer = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.InClassInitializer));
+        _isAnonymousField = new ValueLazy<bool>(() => {
             var name = Name;
 
             if (string.IsNullOrWhiteSpace(name))

@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class BlockExpr : Expr
 {
-    private readonly Lazy<BlockDecl> _blockDecl;
+    private readonly ValueLazy<BlockDecl> _blockDecl;
 
     internal BlockExpr(CXCursor handle) : base(handle, CXCursor_BlockExpr, CX_StmtClass_BlockExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _blockDecl = new Lazy<BlockDecl>(() => TranslationUnit.GetOrCreate<BlockDecl>(Handle.Referenced));
+        _blockDecl = new ValueLazy<BlockDecl>(() => TranslationUnit.GetOrCreate<BlockDecl>(Handle.Referenced));
     }
 
     public BlockDecl BlockDecl => _blockDecl.Value;

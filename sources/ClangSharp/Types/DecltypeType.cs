@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class DecltypeType : Type
 {
-    private readonly Lazy<Expr> _underlyingExpr;
-    private readonly Lazy<Type> _underlyingType;
+    private readonly ValueLazy<Expr> _underlyingExpr;
+    private readonly ValueLazy<Type> _underlyingType;
 
     internal DecltypeType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_Decltype)
     {
-        _underlyingExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.UnderlyingExpr));
-        _underlyingType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
+        _underlyingExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.UnderlyingExpr));
+        _underlyingType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
     }
 
     public Expr UnderlyingExpr => _underlyingExpr.Value;

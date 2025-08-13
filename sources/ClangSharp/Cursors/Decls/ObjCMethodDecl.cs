@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
 {
-    private readonly Lazy<ObjCInterfaceDecl> _classInterface;
-    private readonly Lazy<ImplicitParamDecl> _cmdDecl;
+    private readonly ValueLazy<ObjCInterfaceDecl> _classInterface;
+    private readonly ValueLazy<ImplicitParamDecl> _cmdDecl;
     private readonly LazyList<ParmVarDecl> _parameters;
-    private readonly Lazy<Type> _returnType;
-    private readonly Lazy<ImplicitParamDecl> _selfDecl;
-    private readonly Lazy<Type> _sendResultType;
+    private readonly ValueLazy<Type> _returnType;
+    private readonly ValueLazy<ImplicitParamDecl> _selfDecl;
+    private readonly ValueLazy<Type> _sendResultType;
 
     internal ObjCMethodDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind_ObjCMethod)
     {
@@ -24,12 +24,12 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _classInterface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
-        _cmdDecl = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetSubDecl(1)));
+        _classInterface = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
+        _cmdDecl = new ValueLazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetSubDecl(1)));
         _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
-        _selfDecl = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetSubDecl(2)));
-        _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
-        _sendResultType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _selfDecl = new ValueLazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetSubDecl(2)));
+        _returnType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
+        _sendResultType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
     public new ObjCMethodDecl CanonicalDecl => (ObjCMethodDecl)base.CanonicalDecl;

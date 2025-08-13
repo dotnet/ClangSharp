@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class FriendDecl : Decl
 {
-    private readonly Lazy<NamedDecl> _friendNamedDecl;
+    private readonly ValueLazy<NamedDecl> _friendNamedDecl;
     private readonly LazyList<LazyList<NamedDecl>> _friendTypeTemplateParameterLists;
 
     internal FriendDecl(CXCursor handle) : base(handle, CXCursor_FriendDecl, CX_DeclKind_Friend)
     {
-        _friendNamedDecl = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.FriendDecl));
+        _friendNamedDecl = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.FriendDecl));
         _friendTypeTemplateParameterLists = LazyList.Create<LazyList<NamedDecl>>(Handle.NumTemplateParameterLists, (listIndex) => {
             var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
             return LazyList.Create<NamedDecl>(numTemplateParameters, (parameterIndex) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex))));
