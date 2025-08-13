@@ -4,37 +4,25 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXTypeKind;
 using static ClangSharp.Interop.CX_TypeClass;
+using static ClangSharp.Interop.CXTypeKind;
 
 namespace ClangSharp;
 
 public sealed class TemplateSpecializationType : Type
 {
-    private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
+    private readonly LazyList<TemplateArgument> _templateArgs;
     private readonly Lazy<TemplateName> _templateName;
 
     internal TemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TemplateSpecialization)
     {
-        _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
-            var templateArgCount = Handle.NumTemplateArguments;
-            var templateArgs = new List<TemplateArgument>(templateArgCount);
-
-            for (var i = 0; i < templateArgCount; i++)
-            {
-                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
-                templateArgs.Add(templateArg);
-            }
-
-            return templateArgs;
-        });
-
+        _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
         _templateName = new Lazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.TemplateName));
     }
 
     public Type? AliasedType => IsTypeAlias ? Desugar : null;
 
-    public IReadOnlyList<TemplateArgument> Args => _templateArgs.Value;
+    public IReadOnlyList<TemplateArgument> Args => _templateArgs;
 
     [MemberNotNullWhen(true, nameof(AliasedType))]
     public bool IsTypeAlias => Handle.IsTypeAlias;

@@ -12,9 +12,9 @@ public class ObjCObjectType : Type
 {
     private readonly Lazy<Type> _baseType;
     private readonly Lazy<ObjCInterfaceDecl> _interface;
-    private readonly Lazy<IReadOnlyList<ObjCProtocolDecl>> _protocols;
+    private readonly LazyList<ObjCProtocolDecl> _protocols;
     private readonly Lazy<Type> _superClassType;
-    private readonly Lazy<IReadOnlyList<Type>> _typeArgs;
+    private readonly LazyList<Type> _typeArgs;
 
     internal ObjCObjectType(CXType handle) : this(handle, CXType_ObjCObject, CX_TypeClass_ObjCObject)
     {
@@ -24,42 +24,18 @@ public class ObjCObjectType : Type
     {
         _baseType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ObjCObjectBaseType));
         _interface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.Declaration));
-
-        _protocols = new Lazy<IReadOnlyList<ObjCProtocolDecl>>(() => {
-            var numProtocols = unchecked((int)Handle.NumObjCProtocolRefs);
-            var protocols = new List<ObjCProtocolDecl>(numProtocols);
-
-            for (var i = 0; i < numProtocols; i++)
-            {
-                var protocol = TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetObjCProtocolDecl(unchecked((uint)i)));
-                protocols.Add(protocol);
-            }
-
-            return protocols;
-        });
-
+        _protocols = LazyList.Create<ObjCProtocolDecl>(unchecked((int)Handle.NumObjCProtocolRefs), (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetObjCProtocolDecl(unchecked((uint)i))));
         _superClassType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
-        _typeArgs = new Lazy<IReadOnlyList<Type>>(() => {
-            var numTypeArgs = unchecked((int)Handle.NumObjCTypeArgs);
-            var typeArgs = new List<Type>(numTypeArgs);
-
-            for (var i = 0; i < numTypeArgs; i++)
-            {
-                var typeArg = TranslationUnit.GetOrCreate<Type>(Handle.GetObjCTypeArg(unchecked((uint)i)));
-                typeArgs.Add(typeArg);
-            }
-
-            return typeArgs;
-        });
+        _typeArgs = LazyList.Create<Type>(unchecked((int)Handle.NumObjCTypeArgs), (i) => TranslationUnit.GetOrCreate<Type>(Handle.GetObjCTypeArg(unchecked((uint)i))));
     }
 
     public Type BaseType => _baseType.Value;
 
     public ObjCInterfaceDecl Interface => _interface.Value;
 
-    public IReadOnlyList<ObjCProtocolDecl> Protocols => _protocols.Value;
+    public IReadOnlyList<ObjCProtocolDecl> Protocols => _protocols;
 
     public Type SuperClassType => _superClassType.Value;
 
-    public IReadOnlyList<Type> TypeArgs => _typeArgs.Value;
+    public IReadOnlyList<Type> TypeArgs => _typeArgs;
 }

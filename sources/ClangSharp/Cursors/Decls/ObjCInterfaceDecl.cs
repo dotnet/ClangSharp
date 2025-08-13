@@ -1,32 +1,32 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System.Collections.Generic;
 using System;
-using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
-using static ClangSharp.Interop.CX_DeclKind;
+using System.Collections.Generic;
 using System.Linq;
+using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInterfaceDecl>
 {
-    private readonly Lazy<IReadOnlyList<ObjCCategoryDecl>> _categoryList;
+    private readonly Lazy<List<ObjCCategoryDecl>> _categoryList;
     private readonly Lazy<ObjCInterfaceDecl> _definition;
     private readonly Lazy<ObjCImplementationDecl> _implementation;
-    private readonly Lazy<IReadOnlyList<ObjCIvarDecl>> _ivars;
-    private readonly Lazy<IReadOnlyList<ObjCCategoryDecl>> _knownExtensions;
-    private readonly Lazy<IReadOnlyList<ObjCProtocolDecl>> _protocols;
+    private readonly Lazy<List<ObjCIvarDecl>> _ivars;
+    private readonly Lazy<List<ObjCCategoryDecl>> _knownExtensions;
+    private readonly LazyList<ObjCProtocolDecl> _protocols;
     private readonly Lazy<ObjCInterfaceDecl> _superClass;
     private readonly Lazy<ObjCObjectType> _superClassType;
     private readonly Lazy<Type> _typeForDecl;
-    private readonly Lazy<IReadOnlyList<ObjCTypeParamDecl>> _typeParamList;
-    private readonly Lazy<IReadOnlyList<ObjCCategoryDecl>> _visibleCategories;
-    private readonly Lazy<IReadOnlyList<ObjCCategoryDecl>> _visibleExtensions;
+    private readonly LazyList<ObjCTypeParamDecl> _typeParamList;
+    private readonly Lazy<List<ObjCCategoryDecl>> _visibleCategories;
+    private readonly Lazy<List<ObjCCategoryDecl>> _visibleExtensions;
 
     internal ObjCInterfaceDecl(CXCursor handle) : base(handle, CXCursor_ObjCInterfaceDecl, CX_DeclKind_ObjCInterface)
     {
-        _categoryList = new Lazy<IReadOnlyList<ObjCCategoryDecl>>(() => {
+        _categoryList = new Lazy<List<ObjCCategoryDecl>>(() => {
             var categories = new List<ObjCCategoryDecl>();
 
             var category = TranslationUnit.GetOrCreate<ObjCCategoryDecl>(handle.GetSubDecl(0));
@@ -42,41 +42,15 @@ public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInt
 
         _definition = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.Definition));
         _implementation = new Lazy<ObjCImplementationDecl>(() => TranslationUnit.GetOrCreate<ObjCImplementationDecl>(Handle.GetSubDecl(1)));
-        _ivars = new Lazy<IReadOnlyList<ObjCIvarDecl>>(() => Decls.OfType<ObjCIvarDecl>().ToList());
-        _knownExtensions = new Lazy<IReadOnlyList<ObjCCategoryDecl>>(() => CategoryList.Where((category) => category.IsClassExtension).ToList());
-
-        _protocols = new Lazy<IReadOnlyList<ObjCProtocolDecl>>(() => {
-            var numProtocols = Handle.NumProtocols;
-            var protocols = new List<ObjCProtocolDecl>(numProtocols);
-
-            for (var i = 0; i < numProtocols; i++)
-            {
-                var protocol = TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i)));
-                protocols.Add(protocol);
-            }
-
-            return protocols;
-        });
-
+        _ivars = new Lazy<List<ObjCIvarDecl>>(() => [.. Decls.OfType<ObjCIvarDecl>()]);
+        _knownExtensions = new Lazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsClassExtension)]);
+        _protocols = LazyList.Create<ObjCProtocolDecl>(Handle.NumProtocols, (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i))));
         _superClass = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(2)));
         _superClassType = new Lazy<ObjCObjectType>(() => TranslationUnit.GetOrCreate<ObjCObjectType>(Handle.TypeOperand));
         _typeForDecl = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisType));
-
-        _typeParamList = new Lazy<IReadOnlyList<ObjCTypeParamDecl>>(() => {
-            var numTypeParams = Handle.NumArguments;
-            var typeParams = new List<ObjCTypeParamDecl>(numTypeParams);
-
-            for (var i = 0; i < numTypeParams; i++)
-            {
-                var typeParam = TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetArgument(unchecked((uint)i)));
-                typeParams.Add(typeParam);
-            }
-
-            return typeParams;
-        });
-
-        _visibleCategories = new Lazy<IReadOnlyList<ObjCCategoryDecl>>(() => CategoryList.Where((category) => category.IsUnconditionallyVisible).ToList());
-        _visibleExtensions = new Lazy<IReadOnlyList<ObjCCategoryDecl>>(() => CategoryList.Where((category) => category.IsClassExtension && category.IsUnconditionallyVisible).ToList());
+        _typeParamList = LazyList.Create<ObjCTypeParamDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetArgument(unchecked((uint)i))));
+        _visibleCategories = new Lazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsUnconditionallyVisible)]);
+        _visibleExtensions = new Lazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsClassExtension && category.IsUnconditionallyVisible)]);
     }
 
     public new ObjCInterfaceDecl CanonicalDecl => (ObjCInterfaceDecl)base.CanonicalDecl;
@@ -99,11 +73,11 @@ public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInt
 
     public ObjCObjectType SuperClassType => _superClassType.Value;
 
-    public IReadOnlyList<ObjCProtocolDecl> Protocols => _protocols.Value;
+    public IReadOnlyList<ObjCProtocolDecl> Protocols => _protocols;
 
     public IReadOnlyList<ObjCProtocolDecl> ReferencedProtocols => Protocols;
 
-    public IReadOnlyList<ObjCTypeParamDecl> TypeParamList => _typeParamList.Value;
+    public IReadOnlyList<ObjCTypeParamDecl> TypeParamList => _typeParamList;
 
     public Type TypeForDecl => _typeForDecl.Value;
 

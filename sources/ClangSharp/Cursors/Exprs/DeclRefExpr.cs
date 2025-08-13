@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_StmtClass;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
@@ -13,7 +13,7 @@ public sealed class DeclRefExpr : Expr
 {
     private readonly Lazy<ValueDecl> _decl;
     private readonly Lazy<NamedDecl> _foundDecl;
-    private readonly Lazy<IReadOnlyList<TemplateArgumentLoc>> _templateArgs;
+    private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
     internal DeclRefExpr(CXCursor handle) : base(handle, handle.Kind, CX_StmtClass_DeclRefExpr)
     {
@@ -26,19 +26,7 @@ public sealed class DeclRefExpr : Expr
 
         _decl = new Lazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.Referenced));
         _foundDecl = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.FoundDecl));
-
-        _templateArgs = new Lazy<IReadOnlyList<TemplateArgumentLoc>>(() => {
-            var templateArgCount = Handle.NumTemplateArguments;
-            var templateArgs = new List<TemplateArgumentLoc>(templateArgCount);
-
-            for (var i = 0; i < templateArgCount; i++)
-            {
-                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
-                templateArgs.Add(templateArg);
-            }
-
-            return templateArgs;
-        });
+        _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
     }
 
     public ValueDecl Decl => _decl.Value;
@@ -55,5 +43,5 @@ public sealed class DeclRefExpr : Expr
 
     public uint NumTemplateArgs => unchecked((uint)Handle.NumTemplateArguments);
 
-    public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs.Value;
+    public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
 }

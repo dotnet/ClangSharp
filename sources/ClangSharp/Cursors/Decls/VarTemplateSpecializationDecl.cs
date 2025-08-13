@@ -3,15 +3,15 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public class VarTemplateSpecializationDecl : VarDecl
 {
     private readonly Lazy<VarTemplateDecl> _specializedTemplate;
-    private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
+    private readonly LazyList<TemplateArgument> _templateArgs;
 
     internal VarTemplateSpecializationDecl(CXCursor handle) : this(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplateSpecialization)
     {
@@ -25,23 +25,12 @@ public class VarTemplateSpecializationDecl : VarDecl
         }
 
         _specializedTemplate = new Lazy<VarTemplateDecl>(() => TranslationUnit.GetOrCreate<VarTemplateDecl>(Handle.SpecializedCursorTemplate));
-        _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
-            var templateArgCount = Handle.NumTemplateArguments;
-            var templateArgs = new List<TemplateArgument>(templateArgCount);
-
-            for (var i = 0; i < templateArgCount; i++)
-            {
-                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
-                templateArgs.Add(templateArg);
-            }
-
-            return templateArgs;
-        });
+        _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 
     public new VarTemplateSpecializationDecl MostRecentDecl => (VarTemplateSpecializationDecl)base.MostRecentDecl;
 
     public VarTemplateDecl SpecializedTemplate => _specializedTemplate.Value;
 
-    public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs.Value;
+    public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs;
 }

@@ -10,7 +10,7 @@ namespace ClangSharp;
 
 public sealed class EnumDecl : TagDecl
 {
-    private readonly Lazy<IReadOnlyList<EnumConstantDecl>> _enumerators;
+    private readonly LazyList<EnumConstantDecl> _enumerators;
     private readonly Lazy<EnumDecl> _instantiatedFromMemberEnum;
     private readonly Lazy<Type> _integerType;
     private readonly Lazy<Type> _promotionType;
@@ -18,19 +18,7 @@ public sealed class EnumDecl : TagDecl
 
     internal EnumDecl(CXCursor handle) : base(handle, CXCursor_EnumDecl, CX_DeclKind_Enum)
     {
-        _enumerators = new Lazy<IReadOnlyList<EnumConstantDecl>>(() => {
-            var numEnumerators = Handle.NumEnumerators;
-            var enumerators = new List<EnumConstantDecl>(numEnumerators);
-
-            for (var i = 0; i < numEnumerators; i++)
-            {
-                var enumerator = TranslationUnit.GetOrCreate<EnumConstantDecl>(Handle.GetEnumerator(unchecked((uint)i)));
-                enumerators.Add(enumerator);
-            }
-
-            return enumerators;
-        });
-
+        _enumerators = LazyList.Create<EnumConstantDecl>(Handle.NumEnumerators, (i) => TranslationUnit.GetOrCreate<EnumConstantDecl>(Handle.GetEnumerator(unchecked((uint)i))));
         _instantiatedFromMemberEnum = new Lazy<EnumDecl>(() => TranslationUnit.GetOrCreate<EnumDecl>(Handle.InstantiatedFromMember));
         _integerType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EnumDecl_IntegerType));
         _promotionType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EnumDecl_PromotionType));
@@ -41,7 +29,7 @@ public sealed class EnumDecl : TagDecl
 
     public new EnumDecl? Definition => (EnumDecl?)base.Definition;
 
-    public IReadOnlyList<EnumConstantDecl> Enumerators => _enumerators.Value;
+    public IReadOnlyList<EnumConstantDecl> Enumerators => _enumerators;
 
     public EnumDecl InstantiatedFromMemberEnum => _instantiatedFromMemberEnum.Value;
 

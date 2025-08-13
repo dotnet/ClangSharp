@@ -3,38 +3,27 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public sealed class CXXConstructorDecl : CXXMethodDecl
 {
     private readonly Lazy<CXXConstructorDecl> _inheritedConstructor;
-    private readonly Lazy<IReadOnlyList<Expr>> _initExprs;
+    private readonly LazyList<Expr> _initExprs;
 
     internal CXXConstructorDecl(CXCursor handle) : base(handle, CXCursor_Constructor, CX_DeclKind_CXXConstructor)
     {
         _inheritedConstructor = new Lazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.InheritedConstructor));
-        _initExprs = new Lazy<IReadOnlyList<Expr>>(() => {
-            var numInitExprs = Handle.NumExprs;
-            var initExprs = new List<Expr>(numInitExprs);
-
-            for (var i = 0; i < numInitExprs; i++)
-            {
-                var initExpr = TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i)));
-                initExprs.Add(initExpr);
-            }
-
-            return initExprs;
-        });
+        _initExprs = LazyList.Create<Expr>(Handle.NumExprs , (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(unchecked((uint)i))));
     }
 
     public new CXXConstructorDecl CanonicalDecl => (CXXConstructorDecl)base.CanonicalDecl;
 
     public CXXConstructorDecl InheritedConstructor => _inheritedConstructor.Value;
 
-    public IReadOnlyList<Expr> InitExprs => _initExprs.Value;
+    public IReadOnlyList<Expr> InitExprs => _initExprs;
 
     public bool IsConvertingConstructor => Handle.CXXConstructor_IsConvertingConstructor;
 

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_StmtClass;
@@ -12,7 +11,7 @@ namespace ClangSharp;
 
 public class CallExpr : Expr
 {
-    private readonly Lazy<IReadOnlyList<Expr>> _args;
+    private readonly LazyList<Expr, Stmt> _args;
     private readonly Lazy<Decl> _calleeDecl;
 
     internal CallExpr(CXCursor handle) : this(handle, CXCursor_CallExpr, CX_StmtClass_CallExpr)
@@ -28,11 +27,11 @@ public class CallExpr : Expr
 
         Debug.Assert(NumChildren >= 1);
 
-        _args = new Lazy<IReadOnlyList<Expr>>(() => Children.Skip(1).Take((int)NumArgs).Cast<Expr>().ToList());
+        _args = LazyList.Create<Expr, Stmt>(_children, skip: 1, take: (int)NumArgs);
         _calleeDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.Referenced));
     }
 
-    public IReadOnlyList<Expr> Args => _args.Value;
+    public IReadOnlyList<Expr> Args => _args;
 
     public Expr Callee => (Expr)Children[0];
 

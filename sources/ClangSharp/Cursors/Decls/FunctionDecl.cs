@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
@@ -15,11 +15,11 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
     private readonly Lazy<FunctionDecl> _definition;
     private readonly Lazy<FunctionTemplateDecl> _describedFunctionDecl;
     private readonly Lazy<FunctionDecl> _instantiatedFromMemberFunction;
-    private readonly Lazy<IReadOnlyList<ParmVarDecl>> _parameters;
+    private readonly LazyList<ParmVarDecl> _parameters;
     private readonly Lazy<FunctionTemplateDecl> _primaryTemplate;
     private readonly Lazy<Type> _returnType;
     private readonly Lazy<FunctionDecl> _templateInstantiationPattern;
-    private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateSpecializationArgs;
+    private readonly LazyList<TemplateArgument> _templateSpecializationArgs;
 
     internal FunctionDecl(CXCursor handle) : this(handle, CXCursor_FunctionDecl, CX_DeclKind_Function)
     {
@@ -37,36 +37,11 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
         _definition = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.Definition));
         _describedFunctionDecl = new Lazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.DescribedCursorTemplate));
         _instantiatedFromMemberFunction = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.InstantiatedFromMember));
-
-        _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => {
-            var parameterCount = Handle.NumArguments;
-            var parameters = new List<ParmVarDecl>(parameterCount);
-
-            for (var i = 0; i < parameterCount; i++)
-            {
-                var parameter = TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i)));
-                parameters.Add(parameter);
-            }
-
-            return parameters;
-        });
-
+        _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
         _primaryTemplate = new Lazy<FunctionTemplateDecl>(() => TranslationUnit.GetOrCreate<FunctionTemplateDecl>(Handle.PrimaryTemplate));
         _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
         _templateInstantiationPattern = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.TemplateInstantiationPattern));
-
-        _templateSpecializationArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
-            var templateArgCount = Handle.NumTemplateArguments;
-            var templateArgs = new List<TemplateArgument>(templateArgCount);
-
-            for (var i = 0; i < templateArgCount; i++)
-            {
-                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
-                templateArgs.Add(templateArg);
-            }
-
-            return templateArgs;
-        });
+        _templateSpecializationArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 
     public Type CallResultType => _callResultType.Value;
@@ -123,7 +98,7 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
 
     public CX_OverloadedOperatorKind OverloadedOperator => Handle.OverloadedOperatorKind;
 
-    public IReadOnlyList<ParmVarDecl> Parameters => _parameters.Value;
+    public IReadOnlyList<ParmVarDecl> Parameters => _parameters;
 
     public FunctionTemplateDecl PrimaryTemplate => _primaryTemplate.Value;
 
@@ -133,7 +108,7 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
 
     public FunctionDecl TemplateInstantiationPattern => _templateInstantiationPattern.Value;
 
-    public IReadOnlyList<TemplateArgument> TemplateSpecializationArgs => _templateSpecializationArgs.Value;
+    public IReadOnlyList<TemplateArgument> TemplateSpecializationArgs => _templateSpecializationArgs;
 
     public CX_TemplateSpecializationKind TemplateSpecializationKind => Handle.TemplateSpecializationKind;
 }

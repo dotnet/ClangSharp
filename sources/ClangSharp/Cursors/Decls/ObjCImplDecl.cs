@@ -11,7 +11,7 @@ namespace ClangSharp;
 public class ObjCImplDecl : ObjCContainerDecl
 {
     private readonly Lazy<ObjCInterfaceDecl> _classInterface;
-    private readonly Lazy<IReadOnlyList<ObjCPropertyImplDecl>> _propertyImpls;
+    private readonly Lazy<List<ObjCPropertyImplDecl>> _propertyImpls;
 
     private protected ObjCImplDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -21,7 +21,7 @@ public class ObjCImplDecl : ObjCContainerDecl
         }
 
         _classInterface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
-        _propertyImpls = new Lazy<IReadOnlyList<ObjCPropertyImplDecl>>(() => Decls.OfType<ObjCPropertyImplDecl>().ToList());
+        _propertyImpls = new Lazy<List<ObjCPropertyImplDecl>>(() => [.. Decls.OfType<ObjCPropertyImplDecl>()]);
     }
 
     public ObjCInterfaceDecl ClassInterface => _classInterface.Value;

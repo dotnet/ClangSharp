@@ -1,17 +1,17 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using ClangSharp.Interop;
-using static ClangSharp.Interop.CX_DeclKind;
 using System;
 using System.Collections.Generic;
+using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
 public class TemplateDecl : NamedDecl
 {
-    private readonly Lazy<IReadOnlyList<Expr>> _associatedConstraints;
+    private readonly LazyList<Expr> _associatedConstraints;
     private readonly Lazy<NamedDecl> _templatedDecl;
-    private readonly Lazy<IReadOnlyList<NamedDecl>> _templateParameters;
+    private readonly LazyList<NamedDecl> _templateParameters;
 
     private protected TemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -20,38 +20,16 @@ public class TemplateDecl : NamedDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _associatedConstraints = new Lazy<IReadOnlyList<Expr>>(() => {
-            var associatedConstraintCount = Handle.NumAssociatedConstraints;
-            var associatedConstraints = new List<Expr>(associatedConstraintCount);
-
-            for (var i = 0; i < associatedConstraintCount; i++)
-            {
-                var parameter = TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i)));
-                associatedConstraints.Add(parameter);
-            }
-
-            return associatedConstraints;
-        });
+        _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
         _templatedDecl = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.TemplatedDecl));
-        _templateParameters = new Lazy<IReadOnlyList<NamedDecl>>(() => {
-            var parameterCount = Handle.GetNumTemplateParameters(0);
-            var parameters = new List<NamedDecl>(parameterCount);
-
-            for (var i = 0; i < parameterCount; i++)
-            {
-                var parameter = TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i)));
-                parameters.Add(parameter);
-            }
-
-            return parameters;
-        });
+        _templateParameters = LazyList.Create<NamedDecl>(Handle.GetNumTemplateParameters(0), (i) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i))));
     }
 
-    public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints.Value;
+    public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints;
 
     public bool HasAssociatedConstraints => AssociatedConstraints.Count != 0;
 
     public NamedDecl TemplatedDecl => _templatedDecl.Value;
 
-    public IReadOnlyList<NamedDecl> TemplateParameters => _templateParameters.Value;
+    public IReadOnlyList<NamedDecl> TemplateParameters => _templateParameters;
 }

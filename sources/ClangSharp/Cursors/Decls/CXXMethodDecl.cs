@@ -3,14 +3,14 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public class CXXMethodDecl : FunctionDecl
 {
-    private readonly Lazy<IReadOnlyList<CXXMethodDecl>> _overriddenMethods;
+    private readonly LazyList<CXXMethodDecl> _overriddenMethods;
     private readonly Lazy<Type> _thisType;
     private readonly Lazy<Type> _thisObjectType;
 
@@ -25,19 +25,7 @@ public class CXXMethodDecl : FunctionDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _overriddenMethods = new Lazy<IReadOnlyList<CXXMethodDecl>>(() => {
-            var numOverriddenMethods = Handle.NumMethods;
-            var overriddenMethods = new List<CXXMethodDecl>(numOverriddenMethods);
-
-            for (var i = 0; i < numOverriddenMethods; i++)
-            {
-                var overriddenMethod = TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.GetMethod(unchecked((uint)i)));
-                overriddenMethods.Add(overriddenMethod);
-            }
-
-            return overriddenMethods;
-        });
-
+        _overriddenMethods = LazyList.Create<CXXMethodDecl>(Handle.NumMethods, (i) => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.GetMethod(unchecked((uint)i))));
         _thisType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisType));
         _thisObjectType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisObjectType));
     }
@@ -54,7 +42,7 @@ public class CXXMethodDecl : FunctionDecl
 
     public new CXXMethodDecl MostRecentDecl => (CXXMethodDecl)base.MostRecentDecl;
 
-    public IReadOnlyList<CXXMethodDecl> OverriddenMethods => _overriddenMethods.Value;
+    public IReadOnlyList<CXXMethodDecl> OverriddenMethods => _overriddenMethods;
 
     public new CXXRecordDecl? Parent => (CXXRecordDecl?)(base.Parent ?? ThisObjectType.AsCXXRecordDecl);
 

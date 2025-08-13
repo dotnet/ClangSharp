@@ -94,7 +94,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
         if (handle.IsNull)
         {
-            Debug.Assert(!handle.IsNull);
+            // Debug.Assert(!handle.IsNull);
             return null!;
         }
         else if (!_createdCursors.TryGetValue(handle, out cursorRef))

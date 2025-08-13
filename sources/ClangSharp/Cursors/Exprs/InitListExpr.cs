@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_StmtClass;
@@ -13,13 +12,13 @@ public sealed class InitListExpr : Expr
 {
     private readonly Lazy<Expr> _arrayFiller;
     private readonly Lazy<FieldDecl> _initializedFieldInUnion;
-    private readonly Lazy<IReadOnlyList<Expr>> _inits;
+    private readonly LazyList<Expr, Stmt> _inits;
 
     internal InitListExpr(CXCursor handle) : base(handle, CXCursor_InitListExpr, CX_StmtClass_InitListExpr)
     {
         _arrayFiller = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
         _initializedFieldInUnion = new Lazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.Referenced));
-        _inits = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());
+        _inits = LazyList.Create<Expr, Stmt>(_children);
     }
 
     public Expr ArrayFiller => _arrayFiller.Value;
@@ -28,7 +27,7 @@ public sealed class InitListExpr : Expr
 
     public FieldDecl InitializedFieldInUnion => _initializedFieldInUnion.Value;
 
-    public IReadOnlyList<Stmt> Inits => _inits.Value;
+    public IReadOnlyList<Stmt> Inits => _inits;
 
     public bool IsExplicit => !Handle.IsImplicit;
 

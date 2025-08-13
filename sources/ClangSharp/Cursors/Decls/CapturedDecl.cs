@@ -1,33 +1,22 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
-using static ClangSharp.Interop.CX_DeclKind;
 using System;
 using System.Collections.Generic;
+using ClangSharp.Interop;
+using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public sealed class CapturedDecl : Decl, IDeclContext
 {
     private readonly Lazy<ImplicitParamDecl> _contextParam;
-    private readonly Lazy<IReadOnlyList<ImplicitParamDecl>> _parameters;
+    private readonly LazyList<ImplicitParamDecl> _parameters;
 
     internal CapturedDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Captured)
     {
         _contextParam = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.ContextParam));
-        _parameters = new Lazy<IReadOnlyList<ImplicitParamDecl>>(() => {
-            var parameterCount = Handle.NumArguments;
-            var parameters = new List<ImplicitParamDecl>(parameterCount);
-
-            for (var i = 0; i < parameterCount; i++)
-            {
-                var parameter = TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetArgument(unchecked((uint)i)));
-                parameters.Add(parameter);
-            }
-
-            return parameters;
-        });
+        _parameters = LazyList.Create<ImplicitParamDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetArgument(unchecked((uint)i))));
     }
 
     public ImplicitParamDecl ContextParam => _contextParam.Value;
@@ -38,5 +27,5 @@ public sealed class CapturedDecl : Decl, IDeclContext
 
     public uint NumParams => unchecked((uint)Handle.NumArguments);
 
-    public IReadOnlyList<ImplicitParamDecl> Parameters => _parameters.Value;
+    public IReadOnlyList<ImplicitParamDecl> Parameters => _parameters;
 }

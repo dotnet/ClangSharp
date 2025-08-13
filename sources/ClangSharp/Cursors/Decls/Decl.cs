@@ -11,10 +11,10 @@ namespace ClangSharp;
 public class Decl : Cursor
 {
     private readonly Lazy<FunctionDecl> _asFunction;
-    private readonly Lazy<IReadOnlyList<Attr>> _attrs;
+    private readonly LazyList<Attr> _attrs;
     private readonly Lazy<Stmt?> _body;
     private readonly Lazy<Decl> _canonicalDecl;
-    private readonly Lazy<IReadOnlyList<Decl>> _decls;
+    private readonly LazyList<Decl> _decls;
     private readonly Lazy<TemplateDecl?> _describedTemplate;
     private readonly Lazy<Decl> _mostRecentDecl;
     private readonly Lazy<Decl> _nextDeclInContext;
@@ -32,39 +32,12 @@ public class Decl : Cursor
         }
 
         _asFunction = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.AsFunction));
-
-        _attrs = new Lazy<IReadOnlyList<Attr>>(() => {
-            var attrCount = Handle.NumAttrs;
-            var attrs = new List<Attr>(attrCount);
-
-            for (var i = 0; i < attrCount; i++)
-            {
-                var attr = TranslationUnit.GetOrCreate<Attr>(Handle.GetAttr(unchecked((uint)i)));
-                attrs.Add(attr);
-            }
-
-            return attrs;
-        });
-
+        _attrs = LazyList.Create<Attr>(Handle.NumAttrs, (i) => TranslationUnit.GetOrCreate<Attr>(Handle.GetAttr(unchecked((uint)i))));
         _body = new Lazy<Stmt?>(() => !Handle.Body.IsNull ? TranslationUnit.GetOrCreate<Stmt>(Handle.Body) : null);
         _canonicalDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
-
-        _decls = new Lazy<IReadOnlyList<Decl>>(() => {
-            var declCount = Handle.NumDecls;
-            var decls = new List<Decl>(declCount);
-
-            for (var i = 0; i < declCount; i++)
-            {
-                var decl = TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i)));
-                decls.Add(decl);
-            }
-
-            return decls;
-        });
-;
-        _describedTemplate = new Lazy<TemplateDecl?>(() =>
-        {
-            CXCursor describedTemplate = Handle.DescribedTemplate;
+        _decls = LazyList.Create<Decl>(Handle.NumDecls, (i) => TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i))));
+        _describedTemplate = new Lazy<TemplateDecl?>(() => {
+            var describedTemplate = Handle.DescribedTemplate;
             return describedTemplate.IsNull ? null : TranslationUnit.GetOrCreate<TemplateDecl>(describedTemplate);
         });
         _mostRecentDecl = new Lazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.MostRecentDecl));
@@ -80,7 +53,7 @@ public class Decl : Cursor
 
     public FunctionDecl AsFunction => _asFunction.Value;
 
-    public IReadOnlyList<Attr> Attrs => _attrs.Value;
+    public IReadOnlyList<Attr> Attrs => _attrs;
 
     public CXAvailabilityKind Availability => Handle.Availability;
 
@@ -92,7 +65,7 @@ public class Decl : Cursor
 
     public string DeclKindName => Handle.DeclKindSpelling;
 
-    public IReadOnlyList<Decl> Decls => _decls.Value;
+    public IReadOnlyList<Decl> Decls => _decls;
 
     /// <summary>
     /// Per clang documentation: This returns null for partial specializations, because they are not modeled as TemplateDecls.

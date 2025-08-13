@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
@@ -12,7 +12,7 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
 {
     private readonly Lazy<ObjCInterfaceDecl> _classInterface;
     private readonly Lazy<ImplicitParamDecl> _cmdDecl;
-    private readonly Lazy<IReadOnlyList<ParmVarDecl>> _parameters;
+    private readonly LazyList<ParmVarDecl> _parameters;
     private readonly Lazy<Type> _returnType;
     private readonly Lazy<ImplicitParamDecl> _selfDecl;
     private readonly Lazy<Type> _sendResultType;
@@ -26,20 +26,7 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
 
         _classInterface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
         _cmdDecl = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetSubDecl(1)));
-
-        _parameters = new Lazy<IReadOnlyList<ParmVarDecl>>(() => {
-            var parameterCount = Handle.NumArguments;
-            var parameters = new List<ParmVarDecl>(parameterCount);
-
-            for (var i = 0; i < parameterCount; i++)
-            {
-                var parameter = TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i)));
-                parameters.Add(parameter);
-            }
-
-            return parameters;
-        });
-
+        _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
         _selfDecl = new Lazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetSubDecl(2)));
         _returnType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
         _sendResultType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
@@ -59,7 +46,7 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
 
     public CXObjCDeclQualifierKind ObjCDeclQualifier => Handle.ObjCDeclQualifiers;
 
-    public IReadOnlyList<ParmVarDecl> Parameters => _parameters.Value;
+    public IReadOnlyList<ParmVarDecl> Parameters => _parameters;
 
     public Type ReturnType => _returnType.Value;
 

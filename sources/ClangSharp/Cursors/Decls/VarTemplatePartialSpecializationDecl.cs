@@ -3,51 +3,29 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public class VarTemplatePartialSpecializationDecl : VarDecl
 {
-    private readonly Lazy<IReadOnlyList<Expr>> _associatedConstraints;
+    private readonly LazyList<Expr> _associatedConstraints;
     private readonly Lazy<VarTemplatePartialSpecializationDecl> _instantiatedFromMember;
-    private readonly Lazy<IReadOnlyList<NamedDecl>> _templateParameters;
+    private readonly LazyList<NamedDecl> _templateParameters;
 
     internal VarTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplatePartialSpecialization)
     {
-        _associatedConstraints = new Lazy<IReadOnlyList<Expr>>(() => {
-            var associatedConstraintCount = Handle.NumAssociatedConstraints;
-            var associatedConstraints = new List<Expr>(associatedConstraintCount);
-
-            for (var i = 0; i < associatedConstraintCount; i++)
-            {
-                var parameter = TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i)));
-                associatedConstraints.Add(parameter);
-            }
-
-            return associatedConstraints;
-        });
+        _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
         _instantiatedFromMember = new Lazy<VarTemplatePartialSpecializationDecl>(() => TranslationUnit.GetOrCreate<VarTemplatePartialSpecializationDecl>(Handle.InstantiatedFromMember));
-        _templateParameters = new Lazy<IReadOnlyList<NamedDecl>>(() => {
-            var parameterCount = Handle.GetNumTemplateParameters(0);
-            var parameters = new List<NamedDecl>(parameterCount);
-
-            for (var i = 0; i < parameterCount; i++)
-            {
-                var parameter = TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i)));
-                parameters.Add(parameter);
-            }
-
-            return parameters;
-        });
+        _templateParameters = LazyList.Create<NamedDecl>(Handle.GetNumTemplateParameters(0), (i) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i))));
     }
 
-    public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints.Value;
+    public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints;
 
     public VarTemplatePartialSpecializationDecl InstantiatedFromMember => _instantiatedFromMember.Value;
 
     public new VarTemplatePartialSpecializationDecl MostRecentDecl => (VarTemplatePartialSpecializationDecl)base.MostRecentDecl;
 
-    public IReadOnlyList<NamedDecl> TemplateParameters => _templateParameters.Value;
+    public IReadOnlyList<NamedDecl> TemplateParameters => _templateParameters;
 }
