@@ -36,19 +36,19 @@ public sealed class PInvokeGeneratorConfiguration
     private readonly SortedSet<string> _withSetLastErrors;
     private readonly SortedSet<string> _withSuppressGCTransitions;
 
-    private readonly SortedDictionary<string, string> _remappedNames;
-    private readonly SortedDictionary<string, AccessSpecifier> _withAccessSpecifiers;
-    private readonly SortedDictionary<string, IReadOnlyList<string>> _withAttributes;
-    private readonly SortedDictionary<string, string> _withCallConvs;
-    private readonly SortedDictionary<string, string> _withClasses;
-    private readonly SortedDictionary<string, Guid> _withGuids;
-    private readonly SortedDictionary<string, string> _withLengths;
-    private readonly SortedDictionary<string, string> _withLibraryPaths;
-    private readonly SortedDictionary<string, string> _withNamespaces;
-    private readonly SortedDictionary<string, (string, PInvokeGeneratorTransparentStructKind)> _withTransparentStructs;
-    private readonly SortedDictionary<string, string> _withTypes;
-    private readonly SortedDictionary<string, IReadOnlyList<string>> _withUsings;
-    private readonly SortedDictionary<string, string> _withPackings;
+    private readonly Dictionary<string, string> _remappedNames;
+    private readonly Dictionary<string, AccessSpecifier> _withAccessSpecifiers;
+    private readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
+    private readonly Dictionary<string, string> _withCallConvs;
+    private readonly Dictionary<string, string> _withClasses;
+    private readonly Dictionary<string, Guid> _withGuids;
+    private readonly Dictionary<string, string> _withLengths;
+    private readonly Dictionary<string, string> _withLibraryPaths;
+    private readonly Dictionary<string, string> _withNamespaces;
+    private readonly Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> _withTransparentStructs;
+    private readonly Dictionary<string, string> _withTypes;
+    private readonly Dictionary<string, IReadOnlyList<string>> _withUsings;
+    private readonly Dictionary<string, string> _withPackings;
 
     private PInvokeGeneratorConfigurationOptions _options;
 
@@ -612,7 +612,7 @@ public sealed class PInvokeGeneratorConfiguration
              : input.Equals("public", StringComparison.OrdinalIgnoreCase) ? AccessSpecifier.Public : AccessSpecifier.None;
     }
 
-    private static void AddRange<TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>>? keyValuePairs)
+    private static void AddRange<TValue>(Dictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>>? keyValuePairs)
     {
         if (keyValuePairs != null)
         {
@@ -625,7 +625,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    private static void AddRange<TInput, TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TInput>>? keyValuePairs, Func<TInput, TValue> convert)
+    private static void AddRange<TInput, TValue>(Dictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TInput>>? keyValuePairs, Func<TInput, TValue> convert)
     {
         if (keyValuePairs != null)
         {
