@@ -9,12 +9,12 @@ namespace ClangSharp;
 
 public sealed class ObjCPropertyImplDecl : Decl
 {
-    private readonly Lazy<Expr> _getterCXXConstructor;
-    private readonly Lazy<ObjCMethodDecl> _getterMethodDecl;
-    private readonly Lazy<ObjCPropertyDecl> _propertyDecl;
-    private readonly Lazy<ObjCIvarDecl> _propertyIvarDecl;
-    private readonly Lazy<ObjCMethodDecl> _setterMethodDecl;
-    private readonly Lazy<Expr> _setterCXXAssignment;
+    private readonly ValueLazy<Expr> _getterCXXConstructor;
+    private readonly ValueLazy<ObjCMethodDecl> _getterMethodDecl;
+    private readonly ValueLazy<ObjCPropertyDecl> _propertyDecl;
+    private readonly ValueLazy<ObjCIvarDecl> _propertyIvarDecl;
+    private readonly ValueLazy<ObjCMethodDecl> _setterMethodDecl;
+    private readonly ValueLazy<Expr> _setterCXXAssignment;
 
     internal ObjCPropertyImplDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind_ObjCPropertyImpl)
     {
@@ -23,12 +23,12 @@ public sealed class ObjCPropertyImplDecl : Decl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _getterCXXConstructor = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
-        _getterMethodDecl = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(0)));
-        _propertyDecl = new Lazy<ObjCPropertyDecl>(() => TranslationUnit.GetOrCreate<ObjCPropertyDecl>(Handle.GetSubDecl(1)));
-        _propertyIvarDecl = new Lazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.GetSubDecl(2)));
-        _setterMethodDecl = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(3)));
-        _setterCXXAssignment = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(1)));
+        _getterCXXConstructor = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
+        _getterMethodDecl = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(0)));
+        _propertyDecl = new ValueLazy<ObjCPropertyDecl>(() => TranslationUnit.GetOrCreate<ObjCPropertyDecl>(Handle.GetSubDecl(1)));
+        _propertyIvarDecl = new ValueLazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.GetSubDecl(2)));
+        _setterMethodDecl = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(3)));
+        _setterCXXAssignment = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(1)));
     }
 
     public Expr GetterCXXConstructor => _getterCXXConstructor.Value;

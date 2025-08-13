@@ -9,9 +9,9 @@ namespace ClangSharp;
 
 public class OverloadExpr : Expr
 {
-    private readonly Lazy<IReadOnlyList<Decl>> _decls;
-    private readonly Lazy<CXXRecordDecl> _namingClass;
-    private readonly Lazy<IReadOnlyList<TemplateArgumentLoc>> _templateArgs;
+    private readonly LazyList<Decl> _decls;
+    private readonly ValueLazy<CXXRecordDecl> _namingClass;
+    private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
     private protected OverloadExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
@@ -20,36 +20,12 @@ public class OverloadExpr : Expr
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _decls = new Lazy<IReadOnlyList<Decl>>(() => {
-            var numDecls = Handle.NumDecls;
-            var decls = new List<Decl>(numDecls);
-
-            for (var i = 0; i < numDecls; i++)
-            {
-                var decl = TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i)));
-                decls.Add(decl);
-            }
-
-            return decls;
-        });
-
-        _namingClass = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.Referenced));
-
-        _templateArgs = new Lazy<IReadOnlyList<TemplateArgumentLoc>>(() => {
-            var templateArgCount = Handle.NumTemplateArguments;
-            var templateArgs = new List<TemplateArgumentLoc>(templateArgCount);
-
-            for (var i = 0; i < templateArgCount; i++)
-            {
-                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
-                templateArgs.Add(templateArg);
-            }
-
-            return templateArgs;
-        });
+        _decls = LazyList.Create<Decl>(Handle.NumDecls, (i) => TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i))));
+        _namingClass = new ValueLazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.Referenced));
+        _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
     }
 
-    public IReadOnlyList<Decl> Decls => _decls.Value;
+    public IReadOnlyList<Decl> Decls => _decls;
 
     public bool HasExplicitTemplateArgs => Handle.HasExplicitTemplateArgs;
 
@@ -63,5 +39,5 @@ public class OverloadExpr : Expr
 
     public uint NumTemplateArgs => unchecked((uint)Handle.NumTemplateArguments);
 
-    public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs.Value;
+    public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
 }

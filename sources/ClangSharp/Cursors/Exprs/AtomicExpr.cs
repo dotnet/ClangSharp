@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_AtomicOperatorKind;
@@ -12,13 +11,13 @@ namespace ClangSharp;
 
 public sealed class AtomicExpr : Expr
 {
-    private readonly Lazy<IReadOnlyList<Expr>> _subExprs;
-    private readonly Lazy<Type> _valueType;
+    private readonly LazyList<Expr, Stmt> _subExprs;
+    private readonly ValueLazy<Type> _valueType;
 
     internal AtomicExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_AtomicExpr)
     {
-        _subExprs = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());
-        _valueType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _subExprs = LazyList.Create<Expr, Stmt>(_children);
+        _valueType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
     public CX_AtomicOperatorKind Op => Handle.AtomicOperatorKind;
@@ -35,7 +34,7 @@ public sealed class AtomicExpr : Expr
                               or (>= CX_AO__hip_atomic_compare_exchange_strong and <= CX_AO__hip_atomic_store)
                               or (>= CX_AO__scoped_atomic_add_fetch and <= CX_AO__scoped_atomic_xor_fetch)) ? SubExprs[(int)(NumSubExprs - 1)] : null;
 
-    public IReadOnlyList<Expr> SubExprs => _subExprs.Value;
+    public IReadOnlyList<Expr> SubExprs => _subExprs;
 
     public Expr? Val1
     {

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_StmtClass;
@@ -11,15 +10,15 @@ namespace ClangSharp;
 
 public sealed class CXXNewExpr : Expr
 {
-    private readonly Lazy<FunctionDecl> _operatorDelete;
-    private readonly Lazy<FunctionDecl> _operatorNew;
-    private readonly Lazy<IReadOnlyList<Expr>> _placementArgs;
+    private readonly ValueLazy<FunctionDecl> _operatorDelete;
+    private readonly ValueLazy<FunctionDecl> _operatorNew;
+    private readonly LazyList<Expr, Stmt> _placementArgs;
 
     internal CXXNewExpr(CXCursor handle) : base(handle, CXCursor_CXXNewExpr, CX_StmtClass_CXXNewExpr)
     {
-        _operatorDelete = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(0)));
-        _operatorNew = new Lazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(1)));
-        _placementArgs = new Lazy<IReadOnlyList<Expr>>(() => Children.Skip(PlacementNewArgsOffset).Cast<Expr>().ToList());
+        _operatorDelete = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(0)));
+        _operatorNew = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetDecl(1)));
+        _placementArgs = LazyList.Create<Expr, Stmt>(_children, skip: PlacementNewArgsOffset);
     }
 
     public Type AllocatedType => ((PointerType)Type).PointeeType;
@@ -44,7 +43,7 @@ public sealed class CXXNewExpr : Expr
 
     public FunctionDecl OperatorNew => _operatorNew.Value;
 
-    public IReadOnlyList<Expr> PlacementArgs => _placementArgs.Value;
+    public IReadOnlyList<Expr> PlacementArgs => _placementArgs;
 
     private static int ArraySizeOffset => 0;
 

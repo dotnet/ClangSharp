@@ -804,7 +804,7 @@ public partial class PInvokeGenerator
                     {
                         Visit(args[0]);
                         outputBuilder.Write(' ');
-                        outputBuilder.Write(functionDeclName[8..]);
+                        outputBuilder.Write(functionDeclName.AsSpan()[8..]);
                         outputBuilder.Write(' ');
                         Visit(args[1]);
                         StopCSharpCode();
@@ -813,7 +813,7 @@ public partial class PInvokeGenerator
 
                     case "operator~":
                     {
-                        outputBuilder.Write(functionDeclName[8..]);
+                        outputBuilder.Write(functionDeclName.AsSpan()[8..]);
                         Visit(args[0]);
                         StopCSharpCode();
                         return;
@@ -1161,7 +1161,7 @@ public partial class PInvokeGenerator
         var outputBuilder = StartCSharpCode();
         if (floatingLiteral.ValueString.EndsWith(".f", StringComparison.Ordinal))
         {
-            outputBuilder.Write(floatingLiteral.ValueString[0..^1]);
+            outputBuilder.Write(floatingLiteral.ValueString.AsSpan()[..^1]);
             outputBuilder.Write("0f");
         }
         else
@@ -1954,67 +1954,76 @@ public partial class PInvokeGenerator
 
     private void VisitIntegerLiteral(IntegerLiteral integerLiteral)
     {
-        var valueString = integerLiteral.ValueString;
+        var valueString = integerLiteral.ValueString.AsSpan();
+        var valueSuffix = "";
 
         if (valueString.EndsWith("ui8", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^3];
+            valueString = valueString[..^3];
         }
         else if (valueString.EndsWith("i8", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^2];
+            valueString = valueString[..^2];
         }
         else if (valueString.EndsWith("ui16", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^4];
+            valueString = valueString[..^4];
         }
         else if (valueString.EndsWith("i16", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^3];
+            valueString = valueString[..^3];
         }
         else if (valueString.EndsWith("ui32", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^4] + "U";
+            valueString = valueString[..^4];
+            valueSuffix = "U";
         }
         else if (valueString.EndsWith("i32", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^3];
+            valueString = valueString[..^3];
         }
         else if (valueString.EndsWith("ui64", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^4] + "UL";
+            valueString = valueString[..^4];
+            valueSuffix = "UL";
         }
         else if (valueString.EndsWith("i64", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^3] + "L";
+            valueString = valueString[..^3];
+            valueSuffix = "L";
         }
         else if (
             valueString.EndsWith("ull", StringComparison.OrdinalIgnoreCase) ||
             valueString.EndsWith("llu", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^3] + "UL";
+            valueString = valueString[..^3];
+            valueSuffix = "UL";
         }
         else if (valueString.EndsWith("ll", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^2] + "L";
+            valueString = valueString[..^2];
+            valueSuffix = "L";
         }
         else if (
             valueString.EndsWith("ul", StringComparison.OrdinalIgnoreCase) ||
             valueString.EndsWith("lu", StringComparison.OrdinalIgnoreCase))
         {
-            valueString = valueString[0..^2] + "U";
+            valueString = valueString[..^2];
+            valueSuffix = "U";
         }
         else if (valueString.EndsWith('u') || valueString.EndsWith('U'))
         {
-            valueString = valueString[0..^1] + "U";
+            valueString = valueString[..^1];
+            valueSuffix = "U";
         }
         else if (valueString.EndsWith('l') || valueString.EndsWith('L'))
         {
-            valueString = valueString[0..^1];
+            valueString = valueString[..^1];
         }
         
         var outputBuilder = StartCSharpCode();
         outputBuilder.Write(valueString);
+        outputBuilder.Write(valueSuffix);
         StopCSharpCode();
     }
 
@@ -2997,12 +3006,12 @@ public partial class PInvokeGenerator
                     {
                         if ((parentType.Handle.SizeOf == 8) && IsPrevContextDecl<VarDecl>(out var varDecl, out _))
                         {
-                            var cursorName = GetCursorName(varDecl);
+                            var cursorName = GetCursorName(varDecl).AsSpan();
 
                             if (cursorName.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
                             {
                                 cursorName = cursorName["ClangSharpMacro_".Length..];
-                                parentTypeIsVariableSized |= _config.WithTypes.TryGetValue(cursorName, out var remappedTypeName) && (remappedTypeName.Equals("int", StringComparison.Ordinal) || remappedTypeName.Equals("uint", StringComparison.Ordinal));
+                                parentTypeIsVariableSized |= _config._withTypes.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(cursorName, out var remappedTypeName) && (remappedTypeName.Equals("int", StringComparison.Ordinal) || remappedTypeName.Equals("uint", StringComparison.Ordinal));
                             }
                         }
 

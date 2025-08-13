@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public class TypedefNameDecl : TypeDecl, IRedeclarable<TypedefNameDecl>
 {
-    private readonly Lazy<Type> _underlyingType;
+    private readonly ValueLazy<Type> _underlyingType;
 
     private protected TypedefNameDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -17,7 +17,7 @@ public class TypedefNameDecl : TypeDecl, IRedeclarable<TypedefNameDecl>
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _underlyingType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypedefDeclUnderlyingType));
+        _underlyingType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypedefDeclUnderlyingType));
     }
 
     public new TypedefNameDecl CanonicalDecl => (TypedefNameDecl)base.CanonicalDecl;

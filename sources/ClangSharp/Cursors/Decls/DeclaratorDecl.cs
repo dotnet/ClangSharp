@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public class DeclaratorDecl : ValueDecl
 {
-    private readonly Lazy<IReadOnlyList<IReadOnlyList<NamedDecl>>> _templateParameterLists;
-    private readonly Lazy<Expr> _trailingRequiresClause;
+    private readonly LazyList<LazyList<NamedDecl>> _templateParameterLists;
+    private readonly ValueLazy<Expr> _trailingRequiresClause;
 
     private protected DeclaratorDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -19,33 +19,16 @@ public class DeclaratorDecl : ValueDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _templateParameterLists = new Lazy<IReadOnlyList<IReadOnlyList<NamedDecl>>>(() => {
-            var numTemplateParameterLists = Handle.NumTemplateParameterLists;
-            var templateParameterLists = new List<IReadOnlyList<NamedDecl>>(numTemplateParameterLists);
-
-            for (var listIndex = 0; listIndex < numTemplateParameterLists; listIndex++)
-            {
-                var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
-                var templateParameterList = new List<NamedDecl>(numTemplateParameters);
-
-                for (var parameterIndex = 0; parameterIndex < numTemplateParameters; parameterIndex++)
-                {
-                    var templateParameter = TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex)));
-                    templateParameterList.Add(templateParameter);
-                }
-
-                templateParameterLists.Add(templateParameterList);
-            }
-
-            return templateParameterLists;
+        _templateParameterLists = LazyList.Create<LazyList<NamedDecl>>(Handle.NumTemplateParameterLists, (listIndex) => {
+            var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
+            return LazyList.Create<NamedDecl>(numTemplateParameters, (parameterIndex) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex))));
         });
-
-        _trailingRequiresClause = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.TrailingRequiresClause));
+        _trailingRequiresClause = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.TrailingRequiresClause));
     }
 
     public uint NumTemplateParameterLists => unchecked((uint)Handle.NumTemplateParameterLists);
 
-    public IReadOnlyList<IReadOnlyList<NamedDecl>> TemplateParameterLists => _templateParameterLists.Value;
+    public IReadOnlyList<IReadOnlyList<NamedDecl>> TemplateParameterLists => _templateParameterLists;
 
     public Expr TrailingRequiresClause => _trailingRequiresClause.Value;
 }

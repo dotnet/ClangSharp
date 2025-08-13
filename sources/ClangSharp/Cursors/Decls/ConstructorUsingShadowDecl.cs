@@ -9,17 +9,17 @@ namespace ClangSharp;
 
 public sealed class ConstructorUsingShadowDecl : UsingShadowDecl
 {
-    private readonly Lazy<CXXRecordDecl> _constructedBaseClass;
-    private readonly Lazy<ConstructorUsingShadowDecl> _constructedBaseClassShadowDecl;
-    private readonly Lazy<CXXRecordDecl> _nominatedBaseClass;
-    private readonly Lazy<ConstructorUsingShadowDecl> _nominatedBaseClassShadowDecl;
+    private readonly ValueLazy<CXXRecordDecl> _constructedBaseClass;
+    private readonly ValueLazy<ConstructorUsingShadowDecl> _constructedBaseClassShadowDecl;
+    private readonly ValueLazy<CXXRecordDecl> _nominatedBaseClass;
+    private readonly ValueLazy<ConstructorUsingShadowDecl> _nominatedBaseClassShadowDecl;
 
     internal ConstructorUsingShadowDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ConstructorUsingShadow)
     {
-        _constructedBaseClass = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.ConstructedBaseClass));
-        _constructedBaseClassShadowDecl = new Lazy<ConstructorUsingShadowDecl>(() => TranslationUnit.GetOrCreate<ConstructorUsingShadowDecl>(Handle.ConstructedBaseClassShadowDecl));
-        _nominatedBaseClass = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.NominatedBaseClass));
-        _nominatedBaseClassShadowDecl = new Lazy<ConstructorUsingShadowDecl>(() => TranslationUnit.GetOrCreate<ConstructorUsingShadowDecl>(Handle.NominatedBaseClassShadowDecl));
+        _constructedBaseClass = new ValueLazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.ConstructedBaseClass));
+        _constructedBaseClassShadowDecl = new ValueLazy<ConstructorUsingShadowDecl>(() => TranslationUnit.GetOrCreate<ConstructorUsingShadowDecl>(Handle.ConstructedBaseClassShadowDecl));
+        _nominatedBaseClass = new ValueLazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.NominatedBaseClass));
+        _nominatedBaseClassShadowDecl = new ValueLazy<ConstructorUsingShadowDecl>(() => TranslationUnit.GetOrCreate<ConstructorUsingShadowDecl>(Handle.NominatedBaseClassShadowDecl));
     }
 
     public CXXRecordDecl ConstructedBaseClass => _constructedBaseClass.Value;

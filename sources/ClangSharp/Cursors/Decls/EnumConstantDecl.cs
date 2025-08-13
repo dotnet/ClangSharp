@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class EnumConstantDecl : ValueDecl, IMergeable<EnumConstantDecl>
 {
-    private readonly Lazy<Expr?> _initExpr;
+    private readonly ValueLazy<Expr?> _initExpr;
 
     internal EnumConstantDecl(CXCursor handle) : base(handle, CXCursor_EnumConstantDecl, CX_DeclKind_EnumConstant)
     {
-        _initExpr = new Lazy<Expr?>(() => !Handle.InitExpr.IsNull ? TranslationUnit.GetOrCreate<Expr>(Handle.InitExpr) : null);
+        _initExpr = new ValueLazy<Expr?>(() => !Handle.InitExpr.IsNull ? TranslationUnit.GetOrCreate<Expr>(Handle.InitExpr) : null);
     }
 
     public new EnumConstantDecl CanonicalDecl => (EnumConstantDecl)base.CanonicalDecl;

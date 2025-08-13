@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public class ValueDecl : NamedDecl
 {
-    private readonly Lazy<Type> _type;
+    private readonly ValueLazy<Type> _type;
 
     private protected ValueDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -17,7 +17,7 @@ public class ValueDecl : NamedDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
+        _type = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
     }
 
     public Type Type => _type.Value;

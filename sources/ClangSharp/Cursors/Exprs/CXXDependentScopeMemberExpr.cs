@@ -5,35 +5,24 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_StmtClass;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public sealed class CXXDependentScopeMemberExpr : Expr
 {
-    private readonly Lazy<Type> _baseType;
-    private readonly Lazy<NamedDecl> _firstQualifierFoundInScope;
-    private readonly Lazy<IReadOnlyList<TemplateArgumentLoc>> _templateArgs;
+    private readonly ValueLazy<Type> _baseType;
+    private readonly ValueLazy<NamedDecl> _firstQualifierFoundInScope;
+    private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
     internal CXXDependentScopeMemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_CXXDependentScopeMemberExpr)
     {
         Debug.Assert(NumChildren is 0 or 1);
 
-        _baseType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        _firstQualifierFoundInScope = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(handle.Referenced));
-        _templateArgs = new Lazy<IReadOnlyList<TemplateArgumentLoc>>(() => {
-            var templateArgCount = Handle.NumTemplateArguments;
-            var templateArgs = new List<TemplateArgumentLoc>(templateArgCount);
-
-            for (var i = 0; i < templateArgCount; i++)
-            {
-                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
-                templateArgs.Add(templateArg);
-            }
-
-            return templateArgs;
-        });
+        _baseType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _firstQualifierFoundInScope = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(handle.Referenced));
+        _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
     }
 
     public Expr? Base => (Expr?)Children.SingleOrDefault();
@@ -54,5 +43,5 @@ public sealed class CXXDependentScopeMemberExpr : Expr
 
     public uint NumTemplateArgs => unchecked((uint)Handle.NumTemplateArguments);
 
-    public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs.Value;
+    public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
 }

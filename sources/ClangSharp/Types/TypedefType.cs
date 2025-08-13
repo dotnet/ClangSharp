@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class TypedefType : Type
 {
-    private readonly Lazy<TypedefNameDecl> _decl;
+    private readonly ValueLazy<TypedefNameDecl> _decl;
 
     internal TypedefType(CXType handle) : base(handle, CXType_Typedef, CX_TypeClass_Typedef)
     {
-        _decl = new Lazy<TypedefNameDecl>(() => TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.Declaration));
+        _decl = new ValueLazy<TypedefNameDecl>(() => TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.Declaration));
     }
 
     public TypedefNameDecl Decl => _decl.Value;

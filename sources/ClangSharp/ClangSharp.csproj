@@ -2,14 +2,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks>net10.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
     <!-- CA1034: Nested types should not be visible -->
     <!-- CA1040: Avoid empty interfaces -->
     <!-- CA1720: Identifiers should not contain type names -->
-    <NoWarn>$(NoWarn);CA1034;CA1040;CA1720</NoWarn>
+    <!-- IDE0130: Namespace does not match folder structure -->
+    <NoWarn>$(NoWarn);CA1034;CA1040;CA1720;IDE0130</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -27,28 +27,28 @@ public sealed class PInvokeGeneratorConfiguration
     private readonly string _methodPrefixToStrip;
     private readonly string _testOutputLocation;
 
-    private readonly SortedSet<string> _excludedNames;
-    private readonly SortedSet<string> _forceRemappedNames;
-    private readonly SortedSet<string> _includedNames;
-    private readonly SortedSet<string> _nativeTypeNamesToStrip;
-    private readonly SortedSet<string> _withManualImports;
-    private readonly SortedSet<string> _traversalNames;
-    private readonly SortedSet<string> _withSetLastErrors;
-    private readonly SortedSet<string> _withSuppressGCTransitions;
+    internal readonly HashSet<string> _excludedNames;
+    private readonly HashSet<string> _forceRemappedNames;
+    private readonly HashSet<string> _includedNames;
+    private readonly HashSet<string> _nativeTypeNamesToStrip;
+    private readonly HashSet<string> _withManualImports;
+    private readonly HashSet<string> _traversalNames;
+    internal readonly HashSet<string> _withSetLastErrors;
+    internal readonly HashSet<string> _withSuppressGCTransitions;
 
-    private readonly SortedDictionary<string, string> _remappedNames;
-    private readonly SortedDictionary<string, AccessSpecifier> _withAccessSpecifiers;
-    private readonly SortedDictionary<string, IReadOnlyList<string>> _withAttributes;
-    private readonly SortedDictionary<string, string> _withCallConvs;
-    private readonly SortedDictionary<string, string> _withClasses;
-    private readonly SortedDictionary<string, Guid> _withGuids;
-    private readonly SortedDictionary<string, string> _withLengths;
-    private readonly SortedDictionary<string, string> _withLibraryPaths;
-    private readonly SortedDictionary<string, string> _withNamespaces;
-    private readonly SortedDictionary<string, (string, PInvokeGeneratorTransparentStructKind)> _withTransparentStructs;
-    private readonly SortedDictionary<string, string> _withTypes;
-    private readonly SortedDictionary<string, IReadOnlyList<string>> _withUsings;
-    private readonly SortedDictionary<string, string> _withPackings;
+    internal readonly Dictionary<string, string> _remappedNames;
+    internal readonly Dictionary<string, AccessSpecifier> _withAccessSpecifiers;
+    internal readonly Dictionary<string, IReadOnlyList<string>> _withAttributes;
+    internal readonly Dictionary<string, string> _withCallConvs;
+    internal readonly Dictionary<string, string> _withClasses;
+    internal readonly Dictionary<string, Guid> _withGuids;
+    internal readonly Dictionary<string, string> _withLengths;
+    private readonly Dictionary<string, string> _withLibraryPaths;
+    internal readonly Dictionary<string, string> _withNamespaces;
+    private readonly Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)> _withTransparentStructs;
+    internal readonly Dictionary<string, string> _withTypes;
+    internal readonly Dictionary<string, IReadOnlyList<string>> _withUsings;
+    internal readonly Dictionary<string, string> _withPackings;
 
     private PInvokeGeneratorConfigurationOptions _options;
 
@@ -81,28 +81,28 @@ public sealed class PInvokeGeneratorConfiguration
         _methodPrefixToStrip = DefaultMethodPrefixToStripValue;
         _testOutputLocation = DefaultTestOutputLocationValue;
 
-        _excludedNames = [];
-        _forceRemappedNames = [];
-        _includedNames = [];
-        _nativeTypeNamesToStrip = [];
-        _withManualImports = [];
-        _traversalNames = [];
-        _withSetLastErrors = [];
-        _withSuppressGCTransitions = [];
+        _excludedNames = new HashSet<string>(QualifiedNameComparer.Default);
+        _forceRemappedNames = new HashSet<string>(QualifiedNameComparer.Default);
+        _includedNames = new HashSet<string>(QualifiedNameComparer.Default);
+        _nativeTypeNamesToStrip = new HashSet<string>(StringComparer.Ordinal);
+        _withManualImports = new HashSet<string>(StringComparer.Ordinal);
+        _traversalNames = new HashSet<string>(StringComparer.Ordinal);
+        _withSetLastErrors = new HashSet<string>(QualifiedNameComparer.Default);
+        _withSuppressGCTransitions = new HashSet<string>(QualifiedNameComparer.Default);
 
-        _remappedNames = [];
-        _withAccessSpecifiers = [];
-        _withAttributes = [];
-        _withCallConvs = [];
-        _withClasses = [];
-        _withGuids = [];
-        _withLengths = [];
-        _withLibraryPaths = [];
-        _withNamespaces = [];
-        _withTransparentStructs = [];
-        _withTypes = [];
-        _withUsings = [];
-        _withPackings = [];
+        _remappedNames = new Dictionary<string, string>(QualifiedNameComparer.Default);
+        _withAccessSpecifiers = new Dictionary<string, AccessSpecifier>(QualifiedNameComparer.Default);
+        _withAttributes = new Dictionary<string, IReadOnlyList<string>>(QualifiedNameComparer.Default);
+        _withCallConvs = new Dictionary<string, string>(QualifiedNameComparer.Default);
+        _withClasses = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withGuids = new Dictionary<string, Guid>(QualifiedNameComparer.Default);
+        _withLengths = new Dictionary<string, string>(QualifiedNameComparer.Default);
+        _withLibraryPaths = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withNamespaces = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withTransparentStructs = new Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)>(StringComparer.Ordinal);
+        _withTypes = new Dictionary<string, string>(QualifiedNameComparer.Default);
+        _withUsings = new Dictionary<string, IReadOnlyList<string>>(QualifiedNameComparer.Default);
+        _withPackings = new Dictionary<string, string>(QualifiedNameComparer.Default);
 
         if ((outputMode == PInvokeGeneratorOutputMode.Xml) && !options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles) && (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) || options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit)))
         {
@@ -612,7 +612,7 @@ public sealed class PInvokeGeneratorConfiguration
              : input.Equals("public", StringComparison.OrdinalIgnoreCase) ? AccessSpecifier.Public : AccessSpecifier.None;
     }
 
-    private static void AddRange<TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>>? keyValuePairs)
+    private static void AddRange<TValue>(Dictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TValue>>? keyValuePairs)
     {
         if (keyValuePairs != null)
         {
@@ -625,7 +625,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    private static void AddRange<TInput, TValue>(SortedDictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TInput>>? keyValuePairs, Func<TInput, TValue> convert)
+    private static void AddRange<TInput, TValue>(Dictionary<string, TValue> dictionary, IEnumerable<KeyValuePair<string, TInput>>? keyValuePairs, Func<TInput, TValue> convert)
     {
         if (keyValuePairs != null)
         {
@@ -638,7 +638,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    private static void AddRange<TInput>(SortedSet<TInput> hashSet, IEnumerable<TInput>? keys)
+    private static void AddRange<TInput>(HashSet<TInput> hashSet, IEnumerable<TInput>? keys)
     {
         if (keys != null)
         {
@@ -649,7 +649,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    private static void AddRange<TInput, TValue>(SortedSet<TValue> hashSet, IEnumerable<TInput>? keys, Func<TInput, TValue> convert)
+    private static void AddRange<TInput, TValue>(HashSet<TValue> hashSet, IEnumerable<TInput>? keys, Func<TInput, TValue> convert)
     {
         if (keys != null)
         {
@@ -660,7 +660,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    private static void AddRange<TInput>(SortedSet<string> hashSet, IEnumerable<KeyValuePair<string, TInput>>? keyValuePairs, Func<TInput, bool> shouldAdd)
+    private static void AddRange<TInput>(HashSet<string> hashSet, IEnumerable<KeyValuePair<string, TInput>>? keyValuePairs, Func<TInput, bool> shouldAdd)
     {
         if (keyValuePairs != null)
         {

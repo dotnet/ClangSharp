@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class TemplateTemplateParmDecl : TemplateDecl, ITemplateParmPosition
 {
-    private readonly Lazy<TemplateArgumentLoc> _defaultArgument;
+    private readonly ValueLazy<TemplateArgumentLoc> _defaultArgument;
 
     internal TemplateTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTemplateParameter, CX_DeclKind_TemplateTemplateParm)
     {
-        _defaultArgument = new Lazy<TemplateArgumentLoc>(() => TranslationUnit.GetOrCreate(handle.GetTemplateArgumentLoc(0)));
+        _defaultArgument = new ValueLazy<TemplateArgumentLoc>(() => TranslationUnit.GetOrCreate(handle.GetTemplateArgumentLoc(0)));
     }
 
     public TemplateArgumentLoc DefaultArgument => _defaultArgument.Value;

@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class CXXDeductionGuideDecl : FunctionDecl
 {
-    private readonly Lazy<TemplateDecl> _deducedTemplate;
+    private readonly ValueLazy<TemplateDecl> _deducedTemplate;
 
     internal CXXDeductionGuideDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_CXXDeductionGuide)
     {
-        _deducedTemplate = new Lazy<TemplateDecl>(() => TranslationUnit.GetOrCreate<TemplateDecl>(handle.TemplatedDecl));
+        _deducedTemplate = new ValueLazy<TemplateDecl>(() => TranslationUnit.GetOrCreate<TemplateDecl>(handle.TemplatedDecl));
     }
 
     public bool IsExplicit => !Handle.IsImplicit;

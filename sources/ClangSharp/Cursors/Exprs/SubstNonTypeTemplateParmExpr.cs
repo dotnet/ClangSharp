@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class SubstNonTypeTemplateParmExpr : Expr
 {
-    private readonly Lazy<NonTypeTemplateParmDecl> _parameter;
+    private readonly ValueLazy<NonTypeTemplateParmDecl> _parameter;
 
     internal SubstNonTypeTemplateParmExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_SubstNonTypeTemplateParmExpr)
     {
         Debug.Assert(NumChildren is 1);
-        _parameter = new Lazy<NonTypeTemplateParmDecl>(() => TranslationUnit.GetOrCreate<NonTypeTemplateParmDecl>(Handle.Referenced));
+        _parameter = new ValueLazy<NonTypeTemplateParmDecl>(() => TranslationUnit.GetOrCreate<NonTypeTemplateParmDecl>(Handle.Referenced));
     }
 
     public NonTypeTemplateParmDecl Parameter => _parameter.Value;

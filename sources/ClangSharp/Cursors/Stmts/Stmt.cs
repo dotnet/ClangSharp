@@ -10,8 +10,8 @@ namespace ClangSharp;
 
 public class Stmt : Cursor
 {
-    private readonly Lazy<IReadOnlyList<Stmt?>> _children;
-    private readonly Lazy<IDeclContext> _declContext;
+    private protected readonly LazyList<Stmt> _children;
+    private readonly ValueLazy<IDeclContext> _declContext;
 
     private protected Stmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind)
     {
@@ -20,21 +20,11 @@ public class Stmt : Cursor
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _children = new Lazy<IReadOnlyList<Stmt?>>(() => {
-            var numChildren = Handle.NumChildren;
-            var children = new List<Stmt?>(numChildren);
-
-            for (var i = 0; i < numChildren; i++)
-            {
-                var childHandle = Handle.GetChild(unchecked((uint)i));
-                var child = !childHandle.IsNull ? TranslationUnit.GetOrCreate<Stmt>(childHandle) : null;
-                children.Add(child);
-            }
-
-            return children;
+        _children = LazyList.Create<Stmt>(Handle.NumChildren, (i) => {
+            var childHandle = Handle.GetChild(unchecked((uint)i));
+            return !childHandle.IsNull ? TranslationUnit.GetOrCreate<Stmt>(childHandle) : null!;
         });
-
-        _declContext = new Lazy<IDeclContext>(() => {
+        _declContext = new ValueLazy<IDeclContext>(() => {
             var semanticParent = TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent);
 
             while (semanticParent is not IDeclContext and not null)
@@ -47,7 +37,7 @@ public class Stmt : Cursor
         });
     }
 
-    public IReadOnlyList<Stmt> Children => _children.Value!;
+    public IReadOnlyList<Stmt> Children => _children;
 
     public IDeclContext DeclContext => _declContext.Value;
 

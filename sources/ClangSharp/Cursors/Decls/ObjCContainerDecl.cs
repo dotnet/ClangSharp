@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public class ObjCContainerDecl : NamedDecl, IDeclContext
 {
-    private readonly Lazy<IReadOnlyList<ObjCMethodDecl>> _classMethods;
-    private readonly Lazy<IReadOnlyList<ObjCPropertyDecl>> _classProperties;
-    private readonly Lazy<IReadOnlyList<ObjCMethodDecl>> _instanceMethods;
-    private readonly Lazy<IReadOnlyList<ObjCPropertyDecl>> _instanceProperties;
-    private readonly Lazy<IReadOnlyList<ObjCMethodDecl>> _methods;
-    private readonly Lazy<IReadOnlyList<ObjCPropertyDecl>> _properties;
+    private readonly ValueLazy<List<ObjCMethodDecl>> _classMethods;
+    private readonly ValueLazy<List<ObjCPropertyDecl>> _classProperties;
+    private readonly ValueLazy<List<ObjCMethodDecl>> _instanceMethods;
+    private readonly ValueLazy<List<ObjCPropertyDecl>> _instanceProperties;
+    private readonly ValueLazy<List<ObjCMethodDecl>> _methods;
+    private readonly ValueLazy<List<ObjCPropertyDecl>> _properties;
 
     private protected ObjCContainerDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -24,12 +24,12 @@ public class ObjCContainerDecl : NamedDecl, IDeclContext
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _classMethods = new Lazy<IReadOnlyList<ObjCMethodDecl>>(() => Methods.Where((method) => method.IsClassMethod).ToList());
-        _classProperties = new Lazy<IReadOnlyList<ObjCPropertyDecl>>(() => Properties.Where((property) => property.IsClassProperty).ToList());
-        _instanceMethods = new Lazy<IReadOnlyList<ObjCMethodDecl>>(() => Methods.Where((method) => method.IsInstanceMethod).ToList());
-        _instanceProperties = new Lazy<IReadOnlyList<ObjCPropertyDecl>>(() => Properties.Where((property) => property.IsInstanceProperty).ToList());
-        _methods = new Lazy<IReadOnlyList<ObjCMethodDecl>>(() => Decls.OfType<ObjCMethodDecl>().ToList());
-        _properties = new Lazy<IReadOnlyList<ObjCPropertyDecl>>(() => Decls.OfType<ObjCPropertyDecl>().ToList());
+        _classMethods = new ValueLazy<List<ObjCMethodDecl>>(() => [.. Methods.Where((method) => method.IsClassMethod)]);
+        _classProperties = new ValueLazy<List<ObjCPropertyDecl>>(() => [.. Properties.Where((property) => property.IsClassProperty)]);
+        _instanceMethods = new ValueLazy<List<ObjCMethodDecl>>(() => [.. Methods.Where((method) => method.IsInstanceMethod)]);
+        _instanceProperties = new ValueLazy<List<ObjCPropertyDecl>>(() => [.. Properties.Where((property) => property.IsInstanceProperty)]);
+        _methods = new ValueLazy<List<ObjCMethodDecl>>(() => [.. Decls.OfType<ObjCMethodDecl>()]);
+        _properties = new ValueLazy<List<ObjCPropertyDecl>>(() => [.. Decls.OfType<ObjCPropertyDecl>()]);
     }
 
     public IReadOnlyList<ObjCMethodDecl> ClassMethods => _classMethods.Value;

@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class DependentSizedMatrixType : MatrixType
 {
-    private readonly Lazy<Expr> _rowExpr;
-    private readonly Lazy<Expr> _columnExpr;
+    private readonly ValueLazy<Expr> _rowExpr;
+    private readonly ValueLazy<Expr> _columnExpr;
 
     internal DependentSizedMatrixType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentSizedMatrix)
     {
-        _rowExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.RowExpr));
-        _columnExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.ColumnExpr));
+        _rowExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.RowExpr));
+        _columnExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.ColumnExpr));
     }
 
     public Expr ColumnExpr => _columnExpr.Value;

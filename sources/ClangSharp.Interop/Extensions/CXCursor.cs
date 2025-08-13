@@ -37,7 +37,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             Debug.Assert(CX_AttrKind_FirstTypeAttr == CX_AttrKind_AddressSpace);
             Debug.Assert(CX_AttrKind_LastTypeAttr == CX_AttrKind_WebAssemblyFuncref);
 
-            Debug.Assert(CX_AttrKind_FirstStmtAttr == CX_AttrKind_CodeAlign);
+            Debug.Assert(CX_AttrKind_FirstStmtAttr == CX_AttrKind_CXXAssume);
             Debug.Assert(CX_AttrKind_LastStmtAttr == CX_AttrKind_Unlikely);
 
             Debug.Assert(CX_AttrKind_FirstDeclOrStmtAttr == CX_AttrKind_AlwaysInline);
@@ -49,14 +49,14 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             Debug.Assert(CX_AttrKind_FirstDeclOrTypeAttr == CX_AttrKind_AArch64SVEPcs);
             Debug.Assert(CX_AttrKind_LastDeclOrTypeAttr == CX_AttrKind_VectorCall);
 
-            Debug.Assert(CX_AttrKind_FirstInheritableParamAttr == CX_AttrKind_SwiftAsyncContext);
+            Debug.Assert(CX_AttrKind_FirstInheritableParamAttr == CX_AttrKind_Annotate);
             Debug.Assert(CX_AttrKind_LastInheritableParamAttr == CX_AttrKind_UseHandle);
 
-            Debug.Assert(CX_AttrKind_FirstParameterABIAttr == CX_AttrKind_SwiftAsyncContext);
+            Debug.Assert(CX_AttrKind_FirstParameterABIAttr == CX_AttrKind_HLSLParamModifier);
             Debug.Assert(CX_AttrKind_LastParameterABIAttr == CX_AttrKind_SwiftIndirectResult);
 
-            Debug.Assert(CX_AttrKind_FirstHLSLAnnotationAttr == CX_AttrKind_HLSLSV_DispatchThreadID);
-            Debug.Assert(CX_AttrKind_LastHLSLAnnotationAttr == CX_AttrKind_HLSLSV_GroupIndex);
+            Debug.Assert(CX_AttrKind_FirstHLSLAnnotationAttr == CX_AttrKind_HLSLPackOffset);
+            Debug.Assert(CX_AttrKind_LastHLSLAnnotationAttr == CX_AttrKind_HLSLSV_GroupThreadID);
 
             return AttrKind switch {
                 CX_AttrKind_Invalid => "Invalid",
@@ -1353,7 +1353,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             Debug.Assert(CX_StmtClass_LastSwitchCase == CX_StmtClass_CaseStmt);
 
             Debug.Assert(CX_StmtClass_FirstOMPLoopTransformationDirective == CX_StmtClass_OMPUnrollDirective);
-            Debug.Assert(CX_StmtClass_LastOMPLoopTransformationDirective == CX_StmtClass_OMPTileDirective);
+            Debug.Assert(CX_StmtClass_LastOMPLoopTransformationDirective == CX_StmtClass_OMPInterchangeDirective);
 
             Debug.Assert(CX_StmtClass_FirstOMPLoopDirective == CX_StmtClass_OMPTeamsGenericLoopDirective);
             Debug.Assert(CX_StmtClass_LastOMPLoopDirective == CX_StmtClass_OMPDistributeDirective);
@@ -1362,7 +1362,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             Debug.Assert(CX_StmtClass_LastOMPLoopBasedDirective == CX_StmtClass_OMPDistributeDirective);
 
             Debug.Assert(CX_StmtClass_FirstOMPExecutableDirective == CX_StmtClass_OMPTeamsDirective);
-            Debug.Assert(CX_StmtClass_LastOMPExecutableDirective == CX_StmtClass_OMPAtomicDirective);
+            Debug.Assert(CX_StmtClass_LastOMPExecutableDirective == CX_StmtClass_OMPAssumeDirective);
 
             Debug.Assert(CX_StmtClass_FirstAsmStmt == CX_StmtClass_MSAsmStmt);
             Debug.Assert(CX_StmtClass_LastAsmStmt == CX_StmtClass_GCCAsmStmt);

@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class ObjCIvarDecl : FieldDecl
 {
-    private readonly Lazy<ObjCInterfaceDecl> _containingInterface;
-    private readonly Lazy<ObjCIvarDecl> _nextIvar;
+    private readonly ValueLazy<ObjCInterfaceDecl> _containingInterface;
+    private readonly ValueLazy<ObjCIvarDecl> _nextIvar;
 
     internal ObjCIvarDecl(CXCursor handle) : base(handle, CXCursor_ObjCIvarDecl, CX_DeclKind_ObjCIvar)
     {
-        _containingInterface = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
-        _nextIvar = new Lazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.GetSubDecl(1)));
+        _containingInterface = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
+        _nextIvar = new ValueLazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.GetSubDecl(1)));
     }
 
     public ObjCInterfaceDecl ContainingInterface => _containingInterface.Value;

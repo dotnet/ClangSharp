@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_StmtClass;
@@ -12,8 +11,8 @@ namespace ClangSharp;
 
 public class CXXConstructExpr : Expr
 {
-    private readonly Lazy<IReadOnlyList<Expr>> _args;
-    private readonly Lazy<CXXConstructorDecl> _constructor;
+    private readonly LazyList<Expr, Stmt> _args;
+    private readonly ValueLazy<CXXConstructorDecl> _constructor;
 
     internal CXXConstructExpr(CXCursor handle) : this(handle, CXCursor_CallExpr, CX_StmtClass_CXXConstructExpr)
     {
@@ -27,11 +26,11 @@ public class CXXConstructExpr : Expr
         }
         Debug.Assert(NumChildren == NumArgs);
 
-        _args = new Lazy<IReadOnlyList<Expr>>(() => Children.Cast<Expr>().ToList());
-        _constructor = new Lazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.Referenced));
+        _args = LazyList.Create<Expr, Stmt>(_children);
+        _constructor = new ValueLazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.Referenced));
     }
 
-    public IReadOnlyList<Expr> Args => _args.Value;
+    public IReadOnlyList<Expr> Args => _args;
 
     public CXXConstructorDecl Constructor => _constructor.Value;
 

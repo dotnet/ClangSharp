@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public class SwitchCase : Stmt
 {
-    private readonly Lazy<SwitchCase> _nextSwitchCase;
+    private readonly ValueLazy<SwitchCase> _nextSwitchCase;
 
     private protected SwitchCase(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
@@ -18,7 +18,7 @@ public class SwitchCase : Stmt
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _nextSwitchCase = new Lazy<SwitchCase>(() => TranslationUnit.GetOrCreate<SwitchCase>(Handle.NextSwitchCase));
+        _nextSwitchCase = new ValueLazy<SwitchCase>(() => TranslationUnit.GetOrCreate<SwitchCase>(Handle.NextSwitchCase));
     }
 
     public SwitchCase NextSwitchCase => _nextSwitchCase.Value;

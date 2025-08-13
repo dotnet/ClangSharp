@@ -4,18 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public class RecordDecl : TagDecl
 {
-    private readonly Lazy<IReadOnlyList<FieldDecl>> _anonymousFields;
-    private readonly Lazy<IReadOnlyList<RecordDecl>> _anonymousRecords;
-    private readonly Lazy<IReadOnlyList<FieldDecl>> _fields;
-    private readonly Lazy<IReadOnlyList<IndirectFieldDecl>> _indirectFields;
-    private readonly Lazy<RecordDecl?> _injectedClassName;
+    private readonly ValueLazy<List<FieldDecl>> _anonymousFields;
+    private readonly ValueLazy<List<RecordDecl>> _anonymousRecords;
+    private readonly LazyList<FieldDecl> _fields;
+    private readonly ValueLazy<List<IndirectFieldDecl>> _indirectFields;
+    private readonly ValueLazy<RecordDecl?> _injectedClassName;
     
 
     internal RecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_Record)
@@ -34,23 +34,11 @@ public class RecordDecl : TagDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _fields = new Lazy<IReadOnlyList<FieldDecl>>(() => {
-            var numFields = Handle.NumFields;
-            var fields = new List<FieldDecl>(numFields);
-
-            for (var i = 0; i < numFields; i++)
-            {
-                var field = TranslationUnit.GetOrCreate<FieldDecl>(Handle.GetField(unchecked((uint)i)));
-                fields.Add(field);
-            }
-
-            return fields;
-        });
-
-        _anonymousFields = new Lazy<IReadOnlyList<FieldDecl>>(() => Decls.OfType<FieldDecl>().Where(decl => decl.IsAnonymousField).ToList());
-        _anonymousRecords = new Lazy<IReadOnlyList<RecordDecl>>(() => Decls.OfType<RecordDecl>().Where(decl => decl.IsAnonymous && !decl.IsInjectedClassName).ToList());
-        _indirectFields = new Lazy<IReadOnlyList<IndirectFieldDecl>>(() => Decls.OfType<IndirectFieldDecl>().ToList());
-        _injectedClassName = new Lazy<RecordDecl?>(() => Decls.OfType<RecordDecl>().Where(decl => decl.IsInjectedClassName).SingleOrDefault());
+        _fields = LazyList.Create<FieldDecl>(Handle.NumFields, (i) => TranslationUnit.GetOrCreate<FieldDecl>(Handle.GetField(unchecked((uint)i))));
+        _anonymousFields = new ValueLazy<List<FieldDecl>>(() => [.. Decls.OfType<FieldDecl>().Where(decl => decl.IsAnonymousField)]);
+        _anonymousRecords = new ValueLazy<List<RecordDecl>>(() => [.. Decls.OfType<RecordDecl>().Where(decl => decl.IsAnonymous && !decl.IsInjectedClassName)]);
+        _indirectFields = new ValueLazy<List<IndirectFieldDecl>>(() => [.. Decls.OfType<IndirectFieldDecl>()]);
+        _injectedClassName = new ValueLazy<RecordDecl?>(() => Decls.OfType<RecordDecl>().Where(decl => decl.IsInjectedClassName).SingleOrDefault());
     }
 
     public bool IsAnonymous => Handle.IsAnonymous;
@@ -61,7 +49,7 @@ public class RecordDecl : TagDecl
 
     public new RecordDecl? Definition => (RecordDecl?)base.Definition;
 
-    public IReadOnlyList<FieldDecl> Fields => _fields.Value;
+    public IReadOnlyList<FieldDecl> Fields => _fields;
 
     public IReadOnlyList<IndirectFieldDecl> IndirectFields => _indirectFields.Value;
 

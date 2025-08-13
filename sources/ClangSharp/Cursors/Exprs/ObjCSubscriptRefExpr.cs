@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class ObjCSubscriptRefExpr : Expr
 {
-    private readonly Lazy<ObjCMethodDecl> _atIndexMethodDecl;
+    private readonly ValueLazy<ObjCMethodDecl> _atIndexMethodDecl;
 
     internal ObjCSubscriptRefExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCSubscriptRefExpr)
     {
         Debug.Assert(NumChildren is 2);
-        _atIndexMethodDecl = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
+        _atIndexMethodDecl = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
     }
 
     public ObjCMethodDecl AtIndexMethodDecl => _atIndexMethodDecl.Value;

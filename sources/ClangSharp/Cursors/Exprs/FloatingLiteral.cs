@@ -12,11 +12,11 @@ namespace ClangSharp;
 
 public sealed class FloatingLiteral : Expr
 {
-    private readonly Lazy<string> _valueString;
+    private readonly ValueLazy<string> _valueString;
 
     internal FloatingLiteral(CXCursor handle) : base(handle, CXCursor_FloatingLiteral, CX_StmtClass_FloatingLiteral)
     {
-        _valueString = new Lazy<string>(() => {
+        _valueString = new ValueLazy<string>(() => {
             var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
             if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Literal and not CXToken_Identifier))

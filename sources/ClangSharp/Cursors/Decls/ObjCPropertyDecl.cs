@@ -9,17 +9,17 @@ namespace ClangSharp;
 
 public sealed class ObjCPropertyDecl : NamedDecl
 {
-    private readonly Lazy<ObjCMethodDecl> _getterMethodDecl;
-    private readonly Lazy<ObjCIvarDecl> _propertyIvarDecl;
-    private readonly Lazy<ObjCMethodDecl> _setterMethodDecl;
-    private readonly Lazy<Type> _type;
+    private readonly ValueLazy<ObjCMethodDecl> _getterMethodDecl;
+    private readonly ValueLazy<ObjCIvarDecl> _propertyIvarDecl;
+    private readonly ValueLazy<ObjCMethodDecl> _setterMethodDecl;
+    private readonly ValueLazy<Type> _type;
 
     internal ObjCPropertyDecl(CXCursor handle) : base(handle, CXCursor_ObjCPropertyDecl, CX_DeclKind_ObjCProperty)
     {
-        _getterMethodDecl = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(0)));
-        _propertyIvarDecl = new Lazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.GetSubDecl(1)));
-        _setterMethodDecl = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(2)));
-        _type = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
+        _getterMethodDecl = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(0)));
+        _propertyIvarDecl = new ValueLazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.GetSubDecl(1)));
+        _setterMethodDecl = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(2)));
+        _type = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
     }
 
     public ObjCMethodDecl GetterMethodDecl => _getterMethodDecl.Value;

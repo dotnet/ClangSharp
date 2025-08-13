@@ -1,32 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public sealed class DecompositionDecl : VarDecl
 {
-    private readonly Lazy<IReadOnlyList<BindingDecl>> _bindings;
+    private readonly LazyList<BindingDecl> _bindings;
 
     internal DecompositionDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Decomposition)
     {
-        _bindings = new Lazy<IReadOnlyList<BindingDecl>>(() => {
-            var numBindings = Handle.NumBindings;
-            var bindings = new List<BindingDecl>(numBindings);
-
-            for (var i = 0; i < numBindings; i++)
-            {
-                var binding = TranslationUnit.GetOrCreate<BindingDecl>(Handle.GetBindingDecl(unchecked((uint)i)));
-                bindings.Add(binding);
-            }
-
-            return bindings;
-        });
+        _bindings = LazyList.Create<BindingDecl>(Handle.NumBindings, (i) => TranslationUnit.GetOrCreate<BindingDecl>(Handle.GetBindingDecl(unchecked((uint)i))));
     }
 
-    public IReadOnlyList<BindingDecl> Bindings => _bindings.Value;
+    public IReadOnlyList<BindingDecl> Bindings => _bindings;
 }

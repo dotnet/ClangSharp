@@ -11,24 +11,13 @@ namespace ClangSharp;
 
 public class ClassTemplateSpecializationDecl : CXXRecordDecl
 {
-    private readonly Lazy<ClassTemplateDecl> _specializedTemplate;
-    private readonly Lazy<IReadOnlyList<TemplateArgument>> _templateArgs;
+    private readonly ValueLazy<ClassTemplateDecl> _specializedTemplate;
+    private readonly LazyList<TemplateArgument> _templateArgs;
 
     internal ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_ClassTemplateSpecialization)
     {
-        _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
-        _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
-            var templateArgCount = Handle.NumTemplateArguments;
-            var templateArgs = new List<TemplateArgument>(templateArgCount);
-
-            for (var i = 0; i < templateArgCount; i++)
-            {
-                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
-                templateArgs.Add(templateArg);
-            }
-
-            return templateArgs;
-        });
+        _specializedTemplate = new ValueLazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
+        _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 
     private protected ClassTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
@@ -38,19 +27,8 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _specializedTemplate = new Lazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
-        _templateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
-            var templateArgCount = Handle.NumTemplateArguments;
-            var templateArgs = new List<TemplateArgument>(templateArgCount);
-
-            for (var i = 0; i < templateArgCount; i++)
-            {
-                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
-                templateArgs.Add(templateArg);
-            }
-
-            return templateArgs;
-        });
+        _specializedTemplate = new ValueLazy<ClassTemplateDecl>(() => TranslationUnit.GetOrCreate<ClassTemplateDecl>(Handle.SpecializedCursorTemplate));
+        _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
     }
 
     public bool IsClassScopeExplicitSpecialization => IsExplicitSpecialization && (LexicalDeclContext is CXXRecordDecl);
@@ -88,5 +66,5 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
 
     public ClassTemplateDecl SpecializedTemplate => _specializedTemplate.Value;
 
-    public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs.Value;
+    public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs;
 }

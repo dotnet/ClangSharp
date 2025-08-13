@@ -10,13 +10,13 @@ namespace ClangSharp;
 
 public sealed class ObjCObjectPointerType : Type
 {
-    private readonly Lazy<ObjCInterfaceType> _interfaceType;
-    private readonly Lazy<Type> _superClassType;
+    private readonly ValueLazy<ObjCInterfaceType> _interfaceType;
+    private readonly ValueLazy<Type> _superClassType;
 
     internal ObjCObjectPointerType(CXType handle) : base(handle, CXType_ObjCObjectPointer, CX_TypeClass_ObjCObjectPointer)
     {
-        _interfaceType = new Lazy<ObjCInterfaceType>(() => TranslationUnit.GetOrCreate<ObjCInterfaceType>(Handle.OriginalType));
-        _superClassType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
+        _interfaceType = new ValueLazy<ObjCInterfaceType>(() => TranslationUnit.GetOrCreate<ObjCInterfaceType>(Handle.OriginalType));
+        _superClassType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
     }
 
     public ObjCInterfaceDecl InterfaceDecl => ObjectType.Interface;

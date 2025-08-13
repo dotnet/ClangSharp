@@ -12,11 +12,11 @@ namespace ClangSharp;
 
 public sealed class IntegerLiteral : Expr
 {
-    private readonly Lazy<string> _valueString;
+    private readonly ValueLazy<string> _valueString;
 
     internal IntegerLiteral(CXCursor handle) : base(handle, CXCursor_IntegerLiteral, CX_StmtClass_IntegerLiteral)
     {
-        _valueString = new Lazy<string>(() => {
+        _valueString = new ValueLazy<string>(() => {
             var tokens = Handle.TranslationUnit.Tokenize(Handle.SourceRange);
 
             if ((tokens.Length == 0) || (tokens[0].Kind is not CXToken_Literal and not CXToken_Identifier))

@@ -9,15 +9,15 @@ namespace ClangSharp;
 
 public sealed class BindingDecl : ValueDecl
 {
-    private readonly Lazy<Expr> _binding;
-    private readonly Lazy<ValueDecl> _decomposedDecl;
-    private readonly Lazy<VarDecl> _holdingVar;
+    private readonly ValueLazy<Expr> _binding;
+    private readonly ValueLazy<ValueDecl> _decomposedDecl;
+    private readonly ValueLazy<VarDecl> _holdingVar;
 
     internal BindingDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Binding)
     {
-        _binding = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.BindingExpr));
-        _decomposedDecl = new Lazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.DecomposedDecl));
-        _holdingVar = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.GetSubDecl(0)));
+        _binding = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.BindingExpr));
+        _decomposedDecl = new ValueLazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.DecomposedDecl));
+        _holdingVar = new ValueLazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.GetSubDecl(0)));
     }
 
     public Expr Binding => _binding.Value;

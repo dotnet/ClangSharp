@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class MaterializeTemporaryExpr : Expr
 {
-    private readonly Lazy<LifetimeExtendedTemporaryDecl> _lifetimeExtendedTemporaryDecl;
+    private readonly ValueLazy<LifetimeExtendedTemporaryDecl> _lifetimeExtendedTemporaryDecl;
 
     internal MaterializeTemporaryExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_MaterializeTemporaryExpr)
     {
-        _lifetimeExtendedTemporaryDecl = new Lazy<LifetimeExtendedTemporaryDecl>(() => TranslationUnit.GetOrCreate<LifetimeExtendedTemporaryDecl>(Handle.Referenced));
+        _lifetimeExtendedTemporaryDecl = new ValueLazy<LifetimeExtendedTemporaryDecl>(() => TranslationUnit.GetOrCreate<LifetimeExtendedTemporaryDecl>(Handle.Referenced));
     }
 
     public ValueDecl ExtendingDecl => LifetimeExtendedTemporaryDecl.ExtendingDecl;

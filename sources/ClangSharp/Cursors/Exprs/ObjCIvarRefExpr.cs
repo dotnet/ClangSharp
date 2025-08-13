@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class ObjCIvarRefExpr : Expr
 {
-    private readonly Lazy<ObjCIvarDecl> _decl;
+    private readonly ValueLazy<ObjCIvarDecl> _decl;
 
     internal ObjCIvarRefExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_ObjCIvarRefExpr)
     {
         Debug.Assert(NumChildren is 1);
-        _decl = new Lazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.Referenced));
+        _decl = new ValueLazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.Referenced));
     }
 
     public Expr Base => (Expr)Children[0];

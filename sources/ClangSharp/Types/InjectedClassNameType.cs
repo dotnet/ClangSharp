@@ -9,17 +9,17 @@ namespace ClangSharp;
 
 public sealed class InjectedClassNameType : Type
 {
-    private readonly Lazy<CXXRecordDecl> _decl;
-    private readonly Lazy<Type> _injectedSpecializationType;
-    private readonly Lazy<TemplateSpecializationType> _injectedTST;
-    private readonly Lazy<TemplateName> _templateName;
+    private readonly ValueLazy<CXXRecordDecl> _decl;
+    private readonly ValueLazy<Type> _injectedSpecializationType;
+    private readonly ValueLazy<TemplateSpecializationType> _injectedTST;
+    private readonly ValueLazy<TemplateName> _templateName;
 
     internal InjectedClassNameType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_InjectedClassName)
     {
-        _decl = new Lazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(handle.Declaration));
-        _injectedSpecializationType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.InjectedSpecializationType));
-        _injectedTST = new Lazy<TemplateSpecializationType>(() => TranslationUnit.GetOrCreate<TemplateSpecializationType>(Handle.InjectedTST));
-        _templateName = new Lazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.TemplateName));
+        _decl = new ValueLazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(handle.Declaration));
+        _injectedSpecializationType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.InjectedSpecializationType));
+        _injectedTST = new ValueLazy<TemplateSpecializationType>(() => TranslationUnit.GetOrCreate<TemplateSpecializationType>(Handle.InjectedTST));
+        _templateName = new ValueLazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.TemplateName));
     }
 
     public CXXRecordDecl Decl => _decl.Value;

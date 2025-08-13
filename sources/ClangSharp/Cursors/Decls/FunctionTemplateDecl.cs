@@ -1,6 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
@@ -10,41 +9,18 @@ namespace ClangSharp;
 
 public sealed class FunctionTemplateDecl : RedeclarableTemplateDecl
 {
-    private readonly Lazy<IReadOnlyList<TemplateArgument>> _injectedTemplateArgs;
-    private readonly Lazy<IReadOnlyList<FunctionDecl>> _specializations;
+    private readonly LazyList<TemplateArgument> _injectedTemplateArgs;
+    private readonly LazyList<FunctionDecl> _specializations;
 
     internal FunctionTemplateDecl(CXCursor handle) : base(handle, CXCursor_FunctionTemplate, CX_DeclKind_FunctionTemplate)
     {
-        _injectedTemplateArgs = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
-            var templateArgCount = Handle.NumTemplateArguments;
-            var templateArgs = new List<TemplateArgument>(templateArgCount);
-
-            for (var i = 0; i < templateArgCount; i++)
-            {
-                var templateArg = TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i)));
-                templateArgs.Add(templateArg);
-            }
-
-            return templateArgs;
-        });
-
-        _specializations = new Lazy<IReadOnlyList<FunctionDecl>>(() => {
-            var numSpecializations = Handle.NumSpecializations;
-            var specializations = new List<FunctionDecl>(numSpecializations);
-
-            for (var i = 0; i < numSpecializations; i++)
-            {
-                var specialization = TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetSpecialization(unchecked((uint)i)));
-                specializations.Add(specialization);
-            }
-
-            return specializations;
-        });
+        _injectedTemplateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
+        _specializations = LazyList.Create<FunctionDecl>(Handle.NumSpecializations, (i) => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetSpecialization(unchecked((uint)i))));
     }
 
     public new FunctionTemplateDecl CanonicalDecl => (FunctionTemplateDecl)base.CanonicalDecl;
 
-    public IReadOnlyList<TemplateArgument> InjectedTemplateArgs => _injectedTemplateArgs.Value;
+    public IReadOnlyList<TemplateArgument> InjectedTemplateArgs => _injectedTemplateArgs;
 
     public new FunctionTemplateDecl InstantiatedFromMemberTemplate => (FunctionTemplateDecl)base.InstantiatedFromMemberTemplate;
 
@@ -54,7 +30,7 @@ public sealed class FunctionTemplateDecl : RedeclarableTemplateDecl
 
     public new FunctionTemplateDecl PreviousDecl => (FunctionTemplateDecl)base.PreviousDecl;
 
-    public IReadOnlyList<FunctionDecl> Specializations => _specializations.Value;
+    public IReadOnlyList<FunctionDecl> Specializations => _specializations;
 
     public new FunctionDecl TemplatedDecl => (FunctionDecl)base.TemplatedDecl;
 }

@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class PipeType : Type
 {
-    private readonly Lazy<Type> _elementType;
+    private readonly ValueLazy<Type> _elementType;
 
     internal PipeType(CXType handle) : base(handle, CXType_Pipe, CX_TypeClass_Pipe)
     {
-        _elementType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
+        _elementType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
     }
 
     public Type ElementType => _elementType.Value;

@@ -11,15 +11,15 @@ namespace ClangSharp;
 
 public sealed class ObjCDictionaryLiteral : Expr
 {
-    private readonly Lazy<ObjCMethodDecl> _dictWithObjectsMethod;
-    private readonly Lazy<IReadOnlyList<(Expr Key, Expr Value)>> _keyValueElements;
+    private readonly ValueLazy<ObjCMethodDecl> _dictWithObjectsMethod;
+    private readonly ValueLazy<List<(Expr Key, Expr Value)>> _keyValueElements;
 
     internal ObjCDictionaryLiteral(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCDictionaryLiteral)
     {
         Debug.Assert((NumChildren % 2) == 0);
-        _dictWithObjectsMethod = new Lazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
+        _dictWithObjectsMethod = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
 
-        _keyValueElements = new Lazy<IReadOnlyList<(Expr Key, Expr Value)>>(() => {
+        _keyValueElements = new ValueLazy<List<(Expr Key, Expr Value)>>(() => {
             var numChildren = Handle.NumChildren;
             var keyValueElements = new List<(Expr Key, Expr Value)>(numChildren / 2);
 

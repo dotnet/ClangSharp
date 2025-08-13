@@ -10,13 +10,13 @@ namespace ClangSharp;
 
 public sealed class ReturnStmt : Stmt
 {
-    private readonly Lazy<VarDecl> _nrvoCandidate;
+    private readonly ValueLazy<VarDecl> _nrvoCandidate;
 
     internal ReturnStmt(CXCursor handle) : base(handle, CXCursor_ReturnStmt, CX_StmtClass_ReturnStmt)
     {
         Debug.Assert(NumChildren is 0 or 1);
 
-        _nrvoCandidate = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
+        _nrvoCandidate = new ValueLazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
     }
 
     public VarDecl NRVOCandidate => _nrvoCandidate.Value;

@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class ObjCProtocolExpr : Expr
 {
-    private readonly Lazy<ObjCProtocolDecl> _protocol;
+    private readonly ValueLazy<ObjCProtocolDecl> _protocol;
 
     internal ObjCProtocolExpr(CXCursor handle) : base(handle, CXCursor_ObjCProtocolExpr, CX_StmtClass_ObjCProtocolExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _protocol = new Lazy<ObjCProtocolDecl>(() => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.Referenced));
+        _protocol = new ValueLazy<ObjCProtocolDecl>(() => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.Referenced));
     }
 
     public ObjCProtocolDecl Protocol => _protocol.Value;
