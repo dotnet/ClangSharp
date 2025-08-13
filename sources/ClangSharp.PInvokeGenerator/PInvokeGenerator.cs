@@ -15,17 +15,17 @@ using ClangSharp.CSharp;
 using ClangSharp.Interop;
 using ClangSharp.XML;
 using static ClangSharp.Interop.CX_AttrKind;
-using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
 using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
-using static ClangSharp.Interop.CXUnaryOperatorKind;
+using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CXCallingConv;
 using static ClangSharp.Interop.CXDiagnosticSeverity;
 using static ClangSharp.Interop.CXEvalResultKind;
 using static ClangSharp.Interop.CXTemplateArgumentKind;
 using static ClangSharp.Interop.CXTranslationUnit_Flags;
 using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CXUnaryOperatorKind;
 
 namespace ClangSharp;
 
@@ -61,6 +61,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly Dictionary<string, bool> _topLevelClassIsUnsafe;
     private readonly Dictionary<string, HashSet<string>> _topLevelClassUsings;
     private readonly Dictionary<string, List<string>> _topLevelClassAttributes;
+    private readonly Dictionary<CXFile, (nuint Address, nuint Length)> _fileContents;
     private readonly HashSet<string> _topLevelClassNames;
     private readonly HashSet<string> _usedRemappings;
     private readonly string _placeholderMacroType;
@@ -158,6 +159,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             _topLevelClassIsUnsafe = [];
             _topLevelClassNames = [];
             _topLevelClassAttributes = [];
+            _fileContents = [];
             _topLevelClassUsings = [];
             _usedRemappings = [];
             _filePath = "";
@@ -1697,13 +1699,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             if (_config.GenerateMacroBindings)
             {
-                var translationUnitHandle = translationUnit.Handle;
-
-                var file = translationUnitHandle.GetFile(_filePath);
-                var fileContents = translationUnitHandle.GetFileContents(file, out var size);
                 var fileContentsBuilder = _fileContentsBuilder;
-
-                _ = fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents));
 
                 foreach (var cursor in translationUnit.TranslationUnitDecl.CursorChildren)
                 {
@@ -1716,7 +1712,10 @@ public sealed partial class PInvokeGenerator : IDisposable
                 var unsavedFileContents = fileContentsBuilder.ToString();
                 _ = fileContentsBuilder.Clear();
 
-                using var unsavedFile = CXUnsavedFile.Create(_filePath, unsavedFileContents);
+                var translationUnitHandle = translationUnit.Handle;
+                var file = translationUnitHandle.GetFile(_filePath);
+
+                using var unsavedFile = CXUnsavedFile.Create(_filePath, translationUnitHandle, file, unsavedFileContents);
                 var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
 
                 translationFlags = _translationFlags & ~CXTranslationUnit_DetailedPreprocessingRecord;
@@ -3418,7 +3417,19 @@ public sealed partial class PInvokeGenerator : IDisposable
         return remappedName;
     }
 
-    private static string GetSourceRangeContents(CXTranslationUnit translationUnit, CXSourceRange sourceRange)
+    private unsafe ReadOnlySpan<byte> GetFileContents(CXTranslationUnit translationUnit, CXFile file)
+    {
+        if (!_fileContents.TryGetValue(file, out var fileContentsMetadata))
+        {
+            var fileContents = translationUnit.GetFileContents(file, out _);
+            fileContentsMetadata = ((nuint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(fileContents)), (uint)fileContents.Length);
+            _fileContents.Add(file, fileContentsMetadata);
+        }
+
+        return new ReadOnlySpan<byte>((byte*)fileContentsMetadata.Address, (int)fileContentsMetadata.Length);
+    }
+
+    private string GetSourceRangeContents(CXTranslationUnit translationUnit, CXSourceRange sourceRange)
     {
         sourceRange.Start.GetFileLocation(out var startFile, out _, out _, out var startOffset);
         sourceRange.End.GetFileLocation(out var endFile, out _, out _, out var endOffset);
@@ -3428,9 +3439,9 @@ public sealed partial class PInvokeGenerator : IDisposable
             return string.Empty;
         }
 
-        var fileContents = translationUnit.GetFileContents(startFile, out _);
-        fileContents = fileContents.Slice(unchecked((int)startOffset), unchecked((int)(endOffset - startOffset)));
-        return Encoding.UTF8.GetString(fileContents);
+        var contents = GetFileContents(translationUnit, startFile);
+        contents = contents.Slice(unchecked((int)startOffset), unchecked((int)(endOffset - startOffset)));
+        return Encoding.UTF8.GetString(contents);
     }
 
     private string GetTargetTypeName(Cursor cursor, out string nativeTypeName)
