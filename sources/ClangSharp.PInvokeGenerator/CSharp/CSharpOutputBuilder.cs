@@ -18,8 +18,8 @@ internal sealed partial class CSharpOutputBuilder(string name, PInvokeGenerator 
     private readonly PInvokeGenerator _generator = generator;
     private readonly List<string> _contents = [];
     private readonly StringBuilder _currentLine = new StringBuilder();
-    private readonly SortedSet<string> _usingDirectives = [];
-    private readonly SortedSet<string> _staticUsingDirectives = [];
+    private readonly SortedSet<string> _usingDirectives = new SortedSet<string>(StringComparer.Ordinal);
+    private readonly SortedSet<string> _staticUsingDirectives = new SortedSet<string>(StringComparer.Ordinal);
     private readonly string _indentationString = indentationString;
     private readonly bool _isTestOutput = isTestOutput;
 

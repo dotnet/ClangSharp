@@ -81,28 +81,28 @@ public sealed class PInvokeGeneratorConfiguration
         _methodPrefixToStrip = DefaultMethodPrefixToStripValue;
         _testOutputLocation = DefaultTestOutputLocationValue;
 
-        _excludedNames = [];
-        _forceRemappedNames = [];
-        _includedNames = [];
-        _nativeTypeNamesToStrip = [];
-        _withManualImports = [];
-        _traversalNames = [];
-        _withSetLastErrors = [];
-        _withSuppressGCTransitions = [];
+        _excludedNames = new SortedSet<string>(StringComparer.Ordinal);
+        _forceRemappedNames = new SortedSet<string>(StringComparer.Ordinal);
+        _includedNames = new SortedSet<string>(StringComparer.Ordinal);
+        _nativeTypeNamesToStrip = new SortedSet<string>(StringComparer.Ordinal);
+        _withManualImports = new SortedSet<string>(StringComparer.Ordinal);
+        _traversalNames = new SortedSet<string>(StringComparer.Ordinal);
+        _withSetLastErrors = new SortedSet<string>(StringComparer.Ordinal);
+        _withSuppressGCTransitions = new SortedSet<string>(StringComparer.Ordinal);
 
-        _remappedNames = [];
-        _withAccessSpecifiers = [];
-        _withAttributes = [];
-        _withCallConvs = [];
-        _withClasses = [];
-        _withGuids = [];
-        _withLengths = [];
-        _withLibraryPaths = [];
-        _withNamespaces = [];
-        _withTransparentStructs = [];
-        _withTypes = [];
-        _withUsings = [];
-        _withPackings = [];
+        _remappedNames = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withAccessSpecifiers = new Dictionary<string, AccessSpecifier>(StringComparer.Ordinal);
+        _withAttributes = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+        _withCallConvs = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withClasses = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withGuids = new Dictionary<string, Guid>(StringComparer.Ordinal);
+        _withLengths = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withLibraryPaths = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withNamespaces = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withTransparentStructs = new Dictionary<string, (string, PInvokeGeneratorTransparentStructKind)>(StringComparer.Ordinal);
+        _withTypes = new Dictionary<string, string>(StringComparer.Ordinal);
+        _withUsings = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+        _withPackings = new Dictionary<string, string>(StringComparer.Ordinal);
 
         if ((outputMode == PInvokeGeneratorOutputMode.Xml) && !options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles) && (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) || options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit)))
         {

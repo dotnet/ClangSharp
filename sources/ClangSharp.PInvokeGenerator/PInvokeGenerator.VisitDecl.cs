@@ -1558,7 +1558,7 @@ public partial class PInvokeGenerator
 
                 if (!_topLevelClassUsings.TryGetValue(name, out var withUsings))
                 {
-                    withUsings = [];
+                    withUsings = new HashSet<string>(StringComparer.Ordinal);
                 }
 
                 if (desc.LayoutAttribute is not null)
@@ -3310,7 +3310,7 @@ public partial class PInvokeGenerator
                 {
                     if (!_allValidNameRemappings.TryGetValue(underlyingName, out var allRemappings))
                     {
-                        allRemappings = [];
+                        allRemappings = new HashSet<string>(StringComparer.Ordinal);
                         _allValidNameRemappings[underlyingName] = allRemappings;
                     }
                     _ = allRemappings.Add(typedefName);
@@ -3320,7 +3320,7 @@ public partial class PInvokeGenerator
                     {
                         if (!_traversedValidNameRemappings.TryGetValue(underlyingName, out var traversedRemappings))
                         {
-                            traversedRemappings = [];
+                            traversedRemappings = new HashSet<string>(StringComparer.Ordinal);
                             _traversedValidNameRemappings[underlyingName] = traversedRemappings;
                         }
                         _ = traversedRemappings.Add(typedefName);

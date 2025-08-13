@@ -12,7 +12,7 @@ namespace ClangSharp;
 internal sealed class OutputBuilderFactory(PInvokeGenerator generator)
 {
     private readonly bool _writeSourceLocation = generator.Config.GenerateSourceLocationAttribute;
-    private readonly Dictionary<string, IOutputBuilder> _outputBuilders = [];
+    private readonly Dictionary<string, IOutputBuilder> _outputBuilders = new Dictionary<string, IOutputBuilder>(StringComparer.Ordinal);
 
     public IEnumerable<IOutputBuilder> OutputBuilders => _outputBuilders.Values;
 

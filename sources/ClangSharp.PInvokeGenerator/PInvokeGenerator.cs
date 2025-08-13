@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -137,31 +138,31 @@ public sealed partial class PInvokeGenerator : IDisposable
                 return new FileStream(path, FileMode.Create);
             });
             _fileContentsBuilder = new StringBuilder();
-            _visitedFiles = [];
+            _visitedFiles = new HashSet<string>(StringComparer.Ordinal);
             _diagnostics = [];
             _context = new LinkedList<(Cursor, object?)>();
-            _uuidsToGenerate = [];
-            _generatedUuids = [];
+            _uuidsToGenerate = new Dictionary<string, Guid>(StringComparer.Ordinal);
+            _generatedUuids = new HashSet<string>(StringComparer.Ordinal);
             _cursorNames = [];
             _cursorQualifiedNames = [];
             _typeNames = [];
-            _allValidNameRemappings = new Dictionary<string, HashSet<string>>() {
+            _allValidNameRemappings = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal) {
                 ["intptr_t"] = ["IntPtr", "nint"],
                 ["ptrdiff_t"] = ["IntPtr", "nint"],
                 ["size_t"] = ["UIntPtr", "nuint"],
                 ["uintptr_t"] = ["UIntPtr", "nuint"],
                 ["_GUID"] = ["Guid"],
             };
-            _traversedValidNameRemappings = [];
+            _traversedValidNameRemappings = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
             _overloadIndices = [];
             _isExcluded = [];
-            _topLevelClassHasGuidMember = [];
-            _topLevelClassIsUnsafe = [];
-            _topLevelClassNames = [];
-            _topLevelClassAttributes = [];
+            _topLevelClassHasGuidMember = new Dictionary<string, bool>(StringComparer.Ordinal);
+            _topLevelClassIsUnsafe = new Dictionary<string, bool>(StringComparer.Ordinal);
+            _topLevelClassNames = new HashSet<string>(StringComparer.Ordinal);
+            _topLevelClassAttributes = new Dictionary<string, List<string>>(StringComparer.Ordinal);
             _fileContents = [];
-            _topLevelClassUsings = [];
-            _usedRemappings = [];
+            _topLevelClassUsings = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            _usedRemappings = new HashSet<string>(StringComparer.Ordinal);
             _filePath = "";
             _clangCommandLineArgs = [];
             _placeholderMacroType = GetPlaceholderMacroType();
@@ -214,8 +215,8 @@ public sealed partial class PInvokeGenerator : IDisposable
         Stream? stream = null;
         Stream? testStream = null;
 
-        var methodClassOutputBuilders = new Dictionary<string, IOutputBuilder>();
-        var methodClassTestOutputBuilders = new Dictionary<string, IOutputBuilder>();
+        var methodClassOutputBuilders = new Dictionary<string, IOutputBuilder>(StringComparer.Ordinal);
+        var methodClassTestOutputBuilders = new Dictionary<string, IOutputBuilder>(StringComparer.Ordinal);
         var emitNamespaceDeclaration = true;
         var leaveStreamOpen = false;
 
