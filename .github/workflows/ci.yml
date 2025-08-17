@@ -25,8 +25,13 @@ jobs:
         path: |
           ./artifacts/bin/**/*
           ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
+        path: |
+          ./artifacts/pkg/**/*
         if-no-files-found: error
   windows-arm64:
     runs-on: ${{ matrix.os }}-11-arm
@@ -45,8 +50,13 @@ jobs:
         path: |
           ./artifacts/bin/**/*
           ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
+        path: |
+          ./artifacts/pkg/**/*
         if-no-files-found: error
   linux-x64:
     runs-on: ${{ matrix.os }}-latest
@@ -65,8 +75,13 @@ jobs:
         path: |
           ./artifacts/bin/**/*
           ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
+        path: |
+          ./artifacts/pkg/**/*
         if-no-files-found: error
   linux-arm64:
     runs-on: ${{ matrix.os }}-24.04-arm
@@ -85,8 +100,13 @@ jobs:
         path: |
           ./artifacts/bin/**/*
           ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
+        path: |
+          ./artifacts/pkg/**/*
         if-no-files-found: error
   macos-arm64:
     runs-on: ${{ matrix.os }}-latest
@@ -105,8 +125,13 @@ jobs:
         path: |
           ./artifacts/bin/**/*
           ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
+        path: |
+          ./artifacts/pkg/**/*
         if-no-files-found: error
   sign-nuget:
     runs-on: windows-latest
@@ -120,7 +145,7 @@ jobs:
       with:
         merge-multiple: true
         path: ./artifacts
-        pattern: "./artifacts/pkg/Release/**/*"
+        pattern: "*_Release_*_pkg"
     - uses: actions/setup-dotnet@v4
       with:
         global-json-file: ./global.json
