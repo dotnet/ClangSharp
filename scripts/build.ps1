@@ -56,8 +56,13 @@ function Help() {
 }
 
 function Pack() {
-  $logFile = Join-Path -Path $LogDir -ChildPath "$configuration\pack.binlog"
-  & dotnet pack -c "$configuration" --no-build --no-restore -v "$verbosity" /bl:"$logFile" /err $properties "$solution"
+  $logFile = Join-Path -Path $LogDir -ChildPath "$configuration\pack"
+  & dotnet pack -c "$configuration" --no-build --no-restore -v "$verbosity" /bl:"$logFile.binlog" /err $properties "$solution"
+
+  if ($ci) {
+    & dotnet pack -c "$configuration" --no-build --no-restore -v "$verbosity" /bl:"$logFile.preview.binlog" /err /p:PACKAGE_PUBLISH_MODE=preview $properties "$solution"
+    & dotnet pack -c "$configuration" --no-build --no-restore -v "$verbosity" /bl:"$logFile.stable.binlog" /err /p:PACKAGE_PUBLISH_MODE=stable $properties "$solution"
+  }
 
   if ($LastExitCode -ne 0) {
     throw "'Pack' failed for '$solution'"
