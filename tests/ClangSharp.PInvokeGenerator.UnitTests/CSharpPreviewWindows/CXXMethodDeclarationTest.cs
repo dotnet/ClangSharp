@@ -844,7 +844,7 @@ namespace ClangSharp.Test
 {
     virtual void MyVoidMethod() = 0;
 
-    virtual char MyInt8Method()
+    virtual signed char MyInt8Method()
     {
         return 0;
     }
@@ -868,7 +868,7 @@ namespace ClangSharp.Test
             ((delegate* unmanaged[Thiscall]<MyStruct*, void>)(lpVtbl[0]))((MyStruct*)Unsafe.AsPointer(ref this));
         }}
 
-        [return: NativeTypeName(""char"")]
+        [return: NativeTypeName(""signed char"")]
         public sbyte MyInt8Method()
         {{
             return ((delegate* unmanaged[Thiscall]<MyStruct*, sbyte>)(lpVtbl[1]))((MyStruct*)Unsafe.AsPointer(ref this));
@@ -896,7 +896,7 @@ namespace ClangSharp.Test
 {
     virtual void MyVoidMethod() = 0;
 
-    virtual char MyInt8Method()
+    virtual signed char MyInt8Method()
     {
         return 0;
     }
@@ -922,7 +922,7 @@ namespace ClangSharp.Test
         }}
 
         [VtblIndex(1)]
-        [return: NativeTypeName(""char"")]
+        [return: NativeTypeName(""signed char"")]
         public sbyte MyInt8Method()
         {{
             return ((delegate* unmanaged[Thiscall]<MyStruct*, sbyte>)(lpVtbl[1]))((MyStruct*)Unsafe.AsPointer(ref this));
