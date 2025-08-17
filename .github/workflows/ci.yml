@@ -144,7 +144,7 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         merge-multiple: true
-        path: ./artifacts
+        path: ./artifacts/pkg
         pattern: "*_release_*_pkg"
     - uses: actions/setup-dotnet@v4
       with:
