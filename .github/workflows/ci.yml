@@ -160,7 +160,7 @@ jobs:
       with:
         name: sign_nuget
         path: |
-          ./artifacts/pkg/Release/*
+          ./artifacts/pkg/**/*
         if-no-files-found: error
   publish-nightlies-azure:
     runs-on: ubuntu-latest
