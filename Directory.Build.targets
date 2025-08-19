@@ -31,10 +31,9 @@
     <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
-  <!-- Settings that allow testing and packing to work by default -->
-  <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
+  <!-- Settings that allow testing to work by default -->
+  <PropertyGroup Condition="'$(SKIP_USE_CURRENT_RUNTIME)' == ''">
     <RuntimeIdentifier>$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
-    <RuntimeIdentifier Condition="'$(OVERRIDE_RUNTIME_IDENTIFIER)' != ''">$(OVERRIDE_RUNTIME_IDENTIFIER)</RuntimeIdentifier>
   </PropertyGroup>
 
 </Project>
