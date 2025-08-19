@@ -143,6 +143,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v4
       with:
+        merge-multiple: true
         path: ./artifacts/pkg
         pattern: "*_release_*_pkg"
     - uses: actions/setup-dotnet@v4
@@ -169,7 +170,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: sign-nuget
+        name: sign_nuget
         path: ./artifacts
     - uses: actions/setup-dotnet@v4
       with:
@@ -185,7 +186,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: sign-nuget
+        name: sign_nuget
         path: ./artifacts
     - uses: actions/setup-dotnet@v4
       with:
