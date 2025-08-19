@@ -171,7 +171,7 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: sign_nuget
-        path: ./artifacts
+        path: ./artifacts/pkg
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
@@ -187,7 +187,7 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: sign_nuget
-        path: ./artifacts
+        path: ./artifacts/pkg
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
