@@ -8,10 +8,16 @@ using NUnit.Framework;
 using System.Xml.Linq;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXTranslationUnit_Flags;
+using System.Xml.Serialization;
+using ClangSharp.XML;
+using System.Xml;
+using System.Text;
+using System;
+using System.Text.RegularExpressions;
 
 namespace ClangSharp.UnitTests;
 
-public abstract class PInvokeGeneratorTest
+public abstract partial class PInvokeGeneratorTest
 {
     protected const string DefaultInputFileName = "ClangUnsavedFile.h";
     protected const string DefaultLibraryPath = "ClangSharpPInvokeGenerator";
@@ -145,5 +151,85 @@ public abstract class PInvokeGeneratorTest
         using var streamReader = new StreamReader(outputStream);
         var actualOutputContents = await streamReader.ReadToEndAsync().ConfigureAwait(false);
         Assert.That(actualOutputContents, Is.EqualTo(expectedOutputContents));
+        if (outputMode == PInvokeGeneratorOutputMode.Xml && !string.IsNullOrEmpty(actualOutputContents))
+        {
+            ValidateRoundTrippedSerializedXmlBindings(actualOutputContents);
+        }
     }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Trimming",
+        "IL2026: Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code",
+        Justification = nameof(System.Xml.Serialization))]
+    private static void ValidateRoundTrippedSerializedXmlBindings(string generatedXmlOutput)
+    {
+        var generatedNsXml = GetNamespaceXml(generatedXmlOutput, true);
+
+        var bindingsSerializer = new XmlSerializer(typeof(BindingsElement));
+        XmlReaderSettings xmlReaderSettings = new() {
+            DtdProcessing = DtdProcessing.Ignore,
+            IgnoreWhitespace = false,
+        };
+        using var generatedXmlTextReader = new StringReader(generatedXmlOutput);
+        using var generatedXmlReader = XmlReader.Create(generatedXmlTextReader, xmlReaderSettings);
+        var deserializedInstance = bindingsSerializer.Deserialize(generatedXmlReader);
+        Assert.That(deserializedInstance, Is.Not.Null);
+        Assert.That(deserializedInstance, Is.InstanceOf<BindingsElement>());
+
+        var serialiedXmlOutputBuilder = new StringBuilder();
+        XmlWriterSettings xmlWriterSettings = new() {
+            OmitXmlDeclaration = true,
+            Indent = true,
+            IndentChars = new(' ', 2),
+            NewLineChars = "\n",
+        };
+        using var serializedXmlWriter = XmlWriter.Create(serialiedXmlOutputBuilder, xmlWriterSettings);
+        bindingsSerializer.Serialize(serializedXmlWriter, deserializedInstance);
+        serializedXmlWriter.Close();
+        var serializedNsXml = GetNamespaceXml(serialiedXmlOutputBuilder.ToString());
+
+        Assert.That(serializedNsXml, Is.EqualTo(generatedNsXml));
+
+        static string GetNamespaceXml(string xmlText, bool normalize = false)
+        {
+            const string NamespaceBegin = "<namespace";
+            const string NamespaceEnd = "/namespace>";
+            const string NamespaceSelfClosed = "namespace />";
+            var nsStartIndex = xmlText.IndexOf(NamespaceBegin, StringComparison.Ordinal);
+            var nsEndIndex = xmlText.LastIndexOf(NamespaceEnd, StringComparison.Ordinal);
+            if (nsEndIndex < 0)
+            {
+                nsEndIndex = xmlText.LastIndexOf(NamespaceSelfClosed, StringComparison.Ordinal);
+                if (nsEndIndex < 0)
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    nsEndIndex += NamespaceSelfClosed.Length;
+                }
+            }
+            else
+            {
+                nsEndIndex += NamespaceEnd.Length;
+            }
+            var xmlNsText = xmlText[nsStartIndex..nsEndIndex];
+            if (!normalize)
+            {
+                return xmlNsText;
+            }
+
+            var emptyRegex = GetEmptyXmlTagRegex();
+            xmlNsText = emptyRegex.Replace(xmlNsText, static emptyMatch =>
+            {
+                var tagName = emptyMatch.Groups[1];
+                var attrs = emptyMatch.Groups[2];
+                return $"<{tagName}{attrs} />";
+            });
+            return xmlNsText;
+        }
+    }
+
+    [GeneratedRegex("""<(\w+)(\s*[^>]*)></\1>""")]
+    private static partial Regex GetEmptyXmlTagRegex();
 }
