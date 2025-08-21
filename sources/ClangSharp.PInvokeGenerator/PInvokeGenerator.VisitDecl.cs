@@ -2714,10 +2714,6 @@ public partial class PInvokeGenerator
             _outputBuilder.BeginField(in desc);
             _outputBuilder.WriteRegularField(typeName, escapedName);
             _outputBuilder.BeginBody();
-            _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: !Config.GenerateCompatibleCode);
-            var code = _outputBuilder.BeginCSharpCode();
-
-            code.WriteIndented("return ");
 
             var recordDeclName = GetCursorName(recordDecl);
 
@@ -2738,6 +2734,12 @@ public partial class PInvokeGenerator
 
             // backing uint, current byte           (byte)((value >> cns) & msk)
             // backing uint, current sbyte          (sbyte)((value << cns) >> cns)
+
+            // Getter
+            _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: !Config.GenerateCompatibleCode);
+            var code = _outputBuilder.BeginCSharpCode();
+
+            code.WriteIndented("return ");
 
             if (needsCast)
             {
@@ -2805,6 +2807,7 @@ public partial class PInvokeGenerator
             _outputBuilder.EndCSharpCode(code);
             _outputBuilder.EndGetter();
 
+            // Setter
             _outputBuilder.BeginSetter(_config.GenerateAggressiveInlining);
             code = _outputBuilder.BeginCSharpCode();
             code.WriteIndentation();
