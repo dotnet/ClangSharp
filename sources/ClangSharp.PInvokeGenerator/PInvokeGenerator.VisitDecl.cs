@@ -2728,11 +2728,10 @@ public partial class PInvokeGenerator
             var isUnsignedToSigned = !isTypeBackingSigned && isTypeSigned;
             
             // Check if type is directly shiftable/maskable
+            // Remapped types are not guaranteed to be shiftable or maskable
+            // Enums are maskable, but not shiftable
             var isTypeLikelyRemapped = type == typeBacking && typeName != typeNameBacking;
             var isTypeAnEnum = IsType<EnumType>(fieldDecl);
-            var isTypeShiftableAndMaskable = !isTypeLikelyRemapped && !isTypeAnEnum;
-            var isTypeShiftable = isTypeShiftableAndMaskable;
-            var isTypeMaskable = !isTypeLikelyRemapped || isTypeAnEnum;
 
             // Main cases:
             // backing  int, current int            (value << cns) >> cns
@@ -2780,7 +2779,7 @@ public partial class PInvokeGenerator
                     code.Write('(');
                 }
 
-                var needsCastBeforeOp = !isTypeShiftableAndMaskable;
+                var needsCastBeforeOp = isTypeLikelyRemapped || isTypeAnEnum;
                 if (needsCastBeforeOp)
                 {
                     code.Write('(');
@@ -2955,7 +2954,7 @@ public partial class PInvokeGenerator
                     code.Write('(');
                 }
 
-                var needsCastBeforeOp = !isTypeShiftableAndMaskable;
+                var needsCastBeforeOp = isTypeLikelyRemapped || isTypeAnEnum;
                 if (needsCastBeforeOp)
                 {
                     code.Write('(');
