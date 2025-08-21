@@ -555,7 +555,7 @@ typedef struct UIntBitfield {
         {
             readonly get
             {
-                return (sbyte)(_bitfield << 0) >> 24;
+                return (sbyte)((_bitfield << 0) >> 24);
             }
 
             set
