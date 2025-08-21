@@ -698,4 +698,63 @@ typedef struct Bitfield {
                 { "Flags", "FlagBits" }
             });
     }
+
+    [Test]
+    public Task BitfieldEnumPropertyTypeCastWithSelfRemappingTest()
+    {
+        var inputContents = @"
+typedef unsigned int Flags;
+
+typedef struct Bitfield {
+    unsigned int bits : 8;
+    Flags flags : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""Flags : 8"")]
+        public Flags flags
+        {
+            readonly get
+            {
+                return (Flags)((_bitfield >> 8) & 0xFFu);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFFu) << 8);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents,
+            commandLineArgs: DefaultCClangCommandLineArgs,
+            language: "c",
+            languageStandard: DefaultCStandard,
+            remappedNames: new Dictionary<string, string>()
+            {
+                { "Flags", "Flags" }
+            });
+    }
 }
