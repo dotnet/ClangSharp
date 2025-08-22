@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class TemplateTypeParmType : Type
 {
-    private readonly Lazy<TemplateTypeParmDecl> _decl;
+    private readonly ValueLazy<TemplateTypeParmDecl> _decl;
 
     internal TemplateTypeParmType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TemplateTypeParm)
     {
-        _decl = new Lazy<TemplateTypeParmDecl>(() => TranslationUnit.GetOrCreate<TemplateTypeParmDecl>(Handle.Declaration));
+        _decl = new ValueLazy<TemplateTypeParmDecl>(() => TranslationUnit.GetOrCreate<TemplateTypeParmDecl>(Handle.Declaration));
     }
 
     public TemplateTypeParmDecl Decl => _decl.Value;

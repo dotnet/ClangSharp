@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class AddrLabelExpr : Expr
 {
-    private readonly Lazy<LabelDecl> _label;
+    private readonly ValueLazy<LabelDecl> _label;
 
     internal AddrLabelExpr(CXCursor handle) : base(handle, CXCursor_AddrLabelExpr, CX_StmtClass_AddrLabelExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _label = new Lazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
+        _label = new ValueLazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
     }
 
     public LabelDecl Label => _label.Value;

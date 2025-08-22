@@ -9,15 +9,15 @@ namespace ClangSharp;
 
 public sealed class ParmVarDecl : VarDecl
 {
-    private readonly Lazy<Expr> _defaultArg;
-    private readonly Lazy<Type> _originalType;
-    private readonly Lazy<Expr> _uninstantiatedDefaultArg;
+    private readonly ValueLazy<Expr> _defaultArg;
+    private readonly ValueLazy<Type> _originalType;
+    private readonly ValueLazy<Expr> _uninstantiatedDefaultArg;
 
     internal ParmVarDecl(CXCursor handle) : base(handle, CXCursor_ParmDecl, CX_DeclKind_ParmVar)
     {
-        _defaultArg = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.DefaultArg));
-        _originalType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
-        _uninstantiatedDefaultArg = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.UninstantiatedDefaultArg));
+        _defaultArg = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.DefaultArg));
+        _originalType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
+        _uninstantiatedDefaultArg = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.UninstantiatedDefaultArg));
     }
 
     public Expr DefaultArg => _defaultArg.Value;

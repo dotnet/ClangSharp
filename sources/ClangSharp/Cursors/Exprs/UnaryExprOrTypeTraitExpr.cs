@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class UnaryExprOrTypeTraitExpr : Expr
 {
-    private readonly Lazy<Expr> _argumentExpr;
-    private readonly Lazy<Type> _argumentType;
+    private readonly ValueLazy<Expr> _argumentExpr;
+    private readonly ValueLazy<Type> _argumentType;
 
     internal UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursor_UnaryExpr, CX_StmtClass_UnaryExprOrTypeTraitExpr)
     {
-        _argumentExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
-        _argumentType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ArgumentType));
+        _argumentExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SubExpr));
+        _argumentType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ArgumentType));
     }
 
     public Expr ArgumentExpr => _argumentExpr.Value;

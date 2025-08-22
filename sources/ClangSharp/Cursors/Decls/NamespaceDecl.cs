@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class NamespaceDecl : NamedDecl, IDeclContext, IRedeclarable<NamespaceDecl>
 {
-    private readonly Lazy<NamespaceDecl> _anonymousNamespace;
-    private readonly Lazy<NamespaceDecl> _originalNamespace;
+    private readonly ValueLazy<NamespaceDecl> _anonymousNamespace;
+    private readonly ValueLazy<NamespaceDecl> _originalNamespace;
 
     internal NamespaceDecl(CXCursor handle) : base(handle, CXCursor_Namespace, CX_DeclKind_Namespace)
     {
-        _anonymousNamespace = new Lazy<NamespaceDecl>(() => TranslationUnit.GetOrCreate<NamespaceDecl>(Handle.GetSubDecl(0)));
-        _originalNamespace = new Lazy<NamespaceDecl>(() => TranslationUnit.GetOrCreate<NamespaceDecl>(Handle.GetSubDecl(1)));
+        _anonymousNamespace = new ValueLazy<NamespaceDecl>(() => TranslationUnit.GetOrCreate<NamespaceDecl>(Handle.GetSubDecl(0)));
+        _originalNamespace = new ValueLazy<NamespaceDecl>(() => TranslationUnit.GetOrCreate<NamespaceDecl>(Handle.GetSubDecl(1)));
     }
 
     public NamespaceDecl AnonymousNamespace => _anonymousNamespace.Value;

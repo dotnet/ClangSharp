@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_StmtClass;
@@ -12,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class PseudoObjectExpr : Expr
 {
-    private readonly Lazy<IReadOnlyList<Expr>> _semantics;
+    private readonly LazyList<Expr, Stmt> _semantics;
 
     internal PseudoObjectExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_PseudoObjectExpr)
     {
         Debug.Assert(NumChildren >= 1);
-        _semantics = new Lazy<IReadOnlyList<Expr>>(() => Children.Skip(1).Cast<Expr>().ToList());
+        _semantics = LazyList.Create<Expr, Stmt>(_children, skip: 1);
     }
 
     public uint NumSemanticExprs => NumChildren - 1;
@@ -26,7 +24,7 @@ public sealed class PseudoObjectExpr : Expr
 
     public uint ResultExprIndex => unchecked((uint)Handle.ResultIndex);
 
-    public IReadOnlyList<Expr> Semantics => _semantics.Value;
+    public IReadOnlyList<Expr> Semantics => _semantics;
 
     public Expr SyntacticForm => (Expr)Children[0];
 }

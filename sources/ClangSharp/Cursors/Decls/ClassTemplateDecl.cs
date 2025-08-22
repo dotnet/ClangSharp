@@ -3,32 +3,20 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public sealed class ClassTemplateDecl : RedeclarableTemplateDecl
 {
-    private readonly Lazy<Type> _injectedClassNameSpecialization;
-    private readonly Lazy<IReadOnlyList<ClassTemplateSpecializationDecl>> _specializations;
+    private readonly ValueLazy<Type> _injectedClassNameSpecialization;
+    private readonly LazyList<ClassTemplateSpecializationDecl> _specializations;
 
     internal ClassTemplateDecl(CXCursor handle) : base(handle, CXCursor_ClassTemplate, CX_DeclKind_ClassTemplate)
     {
-        _injectedClassNameSpecialization = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.InjectedSpecializationType));
-
-        _specializations = new Lazy<IReadOnlyList<ClassTemplateSpecializationDecl>>(() => {
-            var numSpecializations = Handle.NumSpecializations;
-            var specializations = new List<ClassTemplateSpecializationDecl>(numSpecializations);
-
-            for (var i = 0; i <numSpecializations; i++)
-            {
-                var specialization = TranslationUnit.GetOrCreate<ClassTemplateSpecializationDecl>(Handle.GetSpecialization(unchecked((uint)i)));
-                specializations.Add(specialization);
-            }
-
-            return specializations;
-        });
+        _injectedClassNameSpecialization = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.InjectedSpecializationType));
+        _specializations = LazyList.Create<ClassTemplateSpecializationDecl>(Handle.NumSpecializations, (i) => TranslationUnit.GetOrCreate<ClassTemplateSpecializationDecl>(Handle.GetSpecialization(unchecked((uint)i))));
     }
 
     public new ClassTemplateDecl CanonicalDecl => (ClassTemplateDecl)base.CanonicalDecl;
@@ -43,7 +31,7 @@ public sealed class ClassTemplateDecl : RedeclarableTemplateDecl
 
     public new ClassTemplateDecl PreviousDecl => (ClassTemplateDecl)base.PreviousDecl;
 
-    public IReadOnlyList<ClassTemplateSpecializationDecl> Specializations => _specializations.Value;
+    public IReadOnlyList<ClassTemplateSpecializationDecl> Specializations => _specializations;
 
     public new CXXRecordDecl TemplatedDecl => (CXXRecordDecl)base.TemplatedDecl;
 }

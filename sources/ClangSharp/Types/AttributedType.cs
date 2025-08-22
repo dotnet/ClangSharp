@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class AttributedType : Type
 {
-    private readonly Lazy<Type> _equivalentType;
-    private readonly Lazy<Type> _modifiedType;
+    private readonly ValueLazy<Type> _equivalentType;
+    private readonly ValueLazy<Type> _modifiedType;
 
     internal AttributedType(CXType handle) : base(handle, CXType_Attributed, CX_TypeClass_Attributed)
     {
-        _equivalentType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EquivalentType));
-        _modifiedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ModifiedType));
+        _equivalentType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.EquivalentType));
+        _modifiedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ModifiedType));
     }
 
     public CX_AttrKind AttrKind => Handle.AttrKind;

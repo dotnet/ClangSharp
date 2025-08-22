@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class DecayedType : AdjustedType
 {
-    private readonly Lazy<Type> _decayedType;
+    private readonly ValueLazy<Type> _decayedType;
 
     internal DecayedType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_Decayed)
     {
-        _decayedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.DecayedType));
+        _decayedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.DecayedType));
     }
 
     public Type GetDecayedType => _decayedType.Value;

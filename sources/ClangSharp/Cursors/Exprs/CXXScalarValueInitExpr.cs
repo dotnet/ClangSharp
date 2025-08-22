@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class CXXScalarValueInitExpr : Expr
 {
-    private readonly Lazy<Type> _typeSourceInfoType;
+    private readonly ValueLazy<Type> _typeSourceInfoType;
 
     internal CXXScalarValueInitExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXScalarValueInitExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _typeSourceInfoType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _typeSourceInfoType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
     public Type TypeSourceInfoType => _typeSourceInfoType.Value;

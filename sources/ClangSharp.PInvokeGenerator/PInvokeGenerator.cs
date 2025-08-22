@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -15,17 +16,17 @@ using ClangSharp.CSharp;
 using ClangSharp.Interop;
 using ClangSharp.XML;
 using static ClangSharp.Interop.CX_AttrKind;
-using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
 using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CX_UnaryExprOrTypeTrait;
-using static ClangSharp.Interop.CXUnaryOperatorKind;
+using static ClangSharp.Interop.CXBinaryOperatorKind;
 using static ClangSharp.Interop.CXCallingConv;
 using static ClangSharp.Interop.CXDiagnosticSeverity;
 using static ClangSharp.Interop.CXEvalResultKind;
 using static ClangSharp.Interop.CXTemplateArgumentKind;
 using static ClangSharp.Interop.CXTranslationUnit_Flags;
 using static ClangSharp.Interop.CXTypeKind;
+using static ClangSharp.Interop.CXUnaryOperatorKind;
 
 namespace ClangSharp;
 
@@ -61,6 +62,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     private readonly Dictionary<string, bool> _topLevelClassIsUnsafe;
     private readonly Dictionary<string, HashSet<string>> _topLevelClassUsings;
     private readonly Dictionary<string, List<string>> _topLevelClassAttributes;
+    private readonly Dictionary<CXFile, (nuint Address, nuint Length)> _fileContents;
     private readonly HashSet<string> _topLevelClassNames;
     private readonly HashSet<string> _usedRemappings;
     private readonly string _placeholderMacroType;
@@ -136,30 +138,31 @@ public sealed partial class PInvokeGenerator : IDisposable
                 return new FileStream(path, FileMode.Create);
             });
             _fileContentsBuilder = new StringBuilder();
-            _visitedFiles = [];
+            _visitedFiles = new HashSet<string>(StringComparer.Ordinal);
             _diagnostics = [];
             _context = new LinkedList<(Cursor, object?)>();
-            _uuidsToGenerate = [];
-            _generatedUuids = [];
+            _uuidsToGenerate = new Dictionary<string, Guid>(StringComparer.Ordinal);
+            _generatedUuids = new HashSet<string>(StringComparer.Ordinal);
             _cursorNames = [];
             _cursorQualifiedNames = [];
             _typeNames = [];
-            _allValidNameRemappings = new Dictionary<string, HashSet<string>>() {
+            _allValidNameRemappings = new Dictionary<string, HashSet<string>>(QualifiedNameComparer.Default) {
                 ["intptr_t"] = ["IntPtr", "nint"],
                 ["ptrdiff_t"] = ["IntPtr", "nint"],
                 ["size_t"] = ["UIntPtr", "nuint"],
                 ["uintptr_t"] = ["UIntPtr", "nuint"],
                 ["_GUID"] = ["Guid"],
             };
-            _traversedValidNameRemappings = [];
+            _traversedValidNameRemappings = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
             _overloadIndices = [];
             _isExcluded = [];
-            _topLevelClassHasGuidMember = [];
-            _topLevelClassIsUnsafe = [];
-            _topLevelClassNames = [];
-            _topLevelClassAttributes = [];
-            _topLevelClassUsings = [];
-            _usedRemappings = [];
+            _topLevelClassHasGuidMember = new Dictionary<string, bool>(StringComparer.Ordinal);
+            _topLevelClassIsUnsafe = new Dictionary<string, bool>(StringComparer.Ordinal);
+            _topLevelClassNames = new HashSet<string>(StringComparer.Ordinal);
+            _topLevelClassAttributes = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+            _fileContents = [];
+            _topLevelClassUsings = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            _usedRemappings = new HashSet<string>(StringComparer.Ordinal);
             _filePath = "";
             _clangCommandLineArgs = [];
             _placeholderMacroType = GetPlaceholderMacroType();
@@ -212,8 +215,8 @@ public sealed partial class PInvokeGenerator : IDisposable
         Stream? stream = null;
         Stream? testStream = null;
 
-        var methodClassOutputBuilders = new Dictionary<string, IOutputBuilder>();
-        var methodClassTestOutputBuilders = new Dictionary<string, IOutputBuilder>();
+        var methodClassOutputBuilders = new Dictionary<string, IOutputBuilder>(StringComparer.Ordinal);
+        var methodClassTestOutputBuilders = new Dictionary<string, IOutputBuilder>(StringComparer.Ordinal);
         var emitNamespaceDeclaration = true;
         var leaveStreamOpen = false;
 
@@ -1697,13 +1700,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             if (_config.GenerateMacroBindings)
             {
-                var translationUnitHandle = translationUnit.Handle;
-
-                var file = translationUnitHandle.GetFile(_filePath);
-                var fileContents = translationUnitHandle.GetFileContents(file, out var size);
                 var fileContentsBuilder = _fileContentsBuilder;
-
-                _ = fileContentsBuilder.Append(Encoding.UTF8.GetString(fileContents));
 
                 foreach (var cursor in translationUnit.TranslationUnitDecl.CursorChildren)
                 {
@@ -1716,7 +1713,10 @@ public sealed partial class PInvokeGenerator : IDisposable
                 var unsavedFileContents = fileContentsBuilder.ToString();
                 _ = fileContentsBuilder.Clear();
 
-                using var unsavedFile = CXUnsavedFile.Create(_filePath, unsavedFileContents);
+                var translationUnitHandle = translationUnit.Handle;
+                var file = translationUnitHandle.GetFile(_filePath);
+
+                using var unsavedFile = CXUnsavedFile.Create(_filePath, translationUnitHandle, file, unsavedFileContents);
                 var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
 
                 translationFlags = _translationFlags & ~CXTranslationUnit_DetailedPreprocessingRecord;
@@ -1734,52 +1734,60 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 foreach (var kvp in _traversedValidNameRemappings)
                 {
-                    var name = kvp.Key;
+                    var name = kvp.Key.AsSpan();
                     var remappings = kvp.Value;
 
-                    if (name.Contains('<', StringComparison.OrdinalIgnoreCase))
+                    if (name.Contains('<'))
                     {
                         var parts = name.Split('<');
 
-                        if (parts.Length >= 2)
+                        if (parts.MoveNext())
                         {
-                            name = parts[0];
+                            var part = parts.Current;
+
+                            if (parts.MoveNext())
+                            {
+                                name = name[part];
+                            }
                         }
                     }
 
-                    if (!_config.RemappedNames.TryGetValue(name, out _))
+                    var remappedNamesLookup = _config._remappedNames.GetAlternateLookup<ReadOnlySpan<char>>();
+
+                    if (!remappedNamesLookup.TryGetValue(name, out _))
                     {
-                        var addDiag = false;
+                        var addDiag = true;
 
-                        var altName = name;
                         var smlName = name;
+                        var lastSeparatorIndex = smlName.LastIndexOf("::", StringComparison.Ordinal);
 
-                        if (name.Contains("::", StringComparison.Ordinal))
+                        if (lastSeparatorIndex != -1)
                         {
-                            altName = name.Replace("::", ".", StringComparison.Ordinal);
-                            smlName = altName.Split('.')[^1];
+                            smlName = smlName[(lastSeparatorIndex + 2)..];
+                            addDiag = false;
                         }
-                        else if (name.Contains('.', StringComparison.Ordinal))
+
+                        lastSeparatorIndex = smlName.LastIndexOf('.');
+
+                        if (lastSeparatorIndex != -1)
                         {
-                            altName = name.Replace(".", "::", StringComparison.Ordinal);
-                            smlName = altName.Split("::")[^1];
+                            smlName = smlName[(lastSeparatorIndex + 1)..];
+                            addDiag = false;
                         }
-                        else
+
+                        if (!addDiag && !remappedNamesLookup.TryGetValue(smlName, out _))
                         {
                             addDiag = true;
                         }
 
-                        if (!addDiag && !_config.RemappedNames.TryGetValue(altName, out _))
+                        if (addDiag)
                         {
-                            if (!_config.RemappedNames.TryGetValue(smlName, out _))
-                            {
-                                addDiag = true;
-                            }
-                        }
+                            var remappingsLookup = remappings.GetAlternateLookup<ReadOnlySpan<char>>();
 
-                        if (addDiag && !remappings.Contains(altName) && !remappings.Contains(smlName))
-                        {
-                            AddDiagnostic(DiagnosticLevel.Info, $"Potential missing remapping '{name}'. {GetFoundRemappingString(name, remappings)}");
+                            if (!remappingsLookup.Contains(name) && !remappingsLookup.Contains(smlName))
+                            {
+                                AddDiagnostic(DiagnosticLevel.Info, $"Potential missing remapping '{name}'. {GetFoundRemappingString(name, remappings)}");
+                            }
                         }
                     }
                 }
@@ -1789,34 +1797,32 @@ public sealed partial class PInvokeGenerator : IDisposable
                     var name = kvp.Key;
                     var remappings = kvp.Value;
 
-                    if (_config.RemappedNames.TryGetValue(name, out var remappedName) && !remappings.Contains(remappedName) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                    var remappedNamesLookup = _config._remappedNames.GetAlternateLookup<ReadOnlySpan<char>>();
+
+                    if (remappedNamesLookup.TryGetValue(name, out var remappedName) && !remappings.Contains(remappedName) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
                     {
-                        var addDiag = false;
+                        var addDiag = true;
 
-                        var altName = name;
                         var smlName = name;
+                        var lastSeparatorIndex = smlName.LastIndexOf("::", StringComparison.Ordinal);
 
-                        if (name.Contains("::", StringComparison.Ordinal))
+                        if (lastSeparatorIndex != -1)
                         {
-                            altName = name.Replace("::", ".", StringComparison.Ordinal);
-                            smlName = altName.Split('.')[^1];
+                            smlName = smlName[(lastSeparatorIndex + 2)..];
+                            addDiag = false;
                         }
-                        else if (name.Contains('.', StringComparison.Ordinal))
+
+                        lastSeparatorIndex = smlName.LastIndexOf('.');
+
+                        if (lastSeparatorIndex != -1)
                         {
-                            altName = name.Replace(".", "::", StringComparison.Ordinal);
-                            smlName = altName.Split("::")[^1];
+                            smlName = smlName[(lastSeparatorIndex + 1)..];
+                            addDiag = false;
                         }
-                        else
+
+                        if (!addDiag && remappedNamesLookup.TryGetValue(smlName, out remappedName) && !remappings.Contains(remappedName) && (smlName != remappedName) && !_config.ForceRemappedNames.Contains(smlName))
                         {
                             addDiag = true;
-                        }
-
-                        if (!addDiag && _config.RemappedNames.TryGetValue(altName, out remappedName) && !remappings.Contains(remappedName) && (altName != remappedName) && !_config.ForceRemappedNames.Contains(altName))
-                        {
-                            if (_config.RemappedNames.TryGetValue(smlName, out remappedName) && !remappings.Contains(remappedName) && (smlName != remappedName) && !_config.ForceRemappedNames.Contains(smlName))
-                            {
-                                addDiag = true;
-                            }
                         }
 
                         if (addDiag)
@@ -1830,34 +1836,32 @@ public sealed partial class PInvokeGenerator : IDisposable
                 {
                     var remappedName = _config.RemappedNames[name];
 
-                    if (!_allValidNameRemappings.ContainsKey(name) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
+                    var allValidNameRemappingsLookup = _allValidNameRemappings.GetAlternateLookup<ReadOnlySpan<char>>();
+
+                    if (!allValidNameRemappingsLookup.ContainsKey(name) && (name != remappedName) && !_config.ForceRemappedNames.Contains(name))
                     {
-                        var addDiag = false;
+                        var addDiag = true;
 
-                        var altName = name;
                         var smlName = name;
+                        var lastSeparatorIndex = smlName.LastIndexOf("::", StringComparison.Ordinal);
 
-                        if (name.Contains("::", StringComparison.Ordinal))
+                        if (lastSeparatorIndex != -1)
                         {
-                            altName = name.Replace("::", ".", StringComparison.Ordinal);
-                            smlName = altName.Split('.')[^1];
+                            smlName = smlName[(lastSeparatorIndex + 2)..];
+                            addDiag = false;
                         }
-                        else if (name.Contains('.', StringComparison.Ordinal))
+
+                        lastSeparatorIndex = smlName.LastIndexOf('.');
+
+                        if (lastSeparatorIndex != -1)
                         {
-                            altName = name.Replace(".", "::", StringComparison.Ordinal);
-                            smlName = altName.Split("::")[^1];
+                            smlName = smlName[(lastSeparatorIndex + 1)..];
+                            addDiag = false;
                         }
-                        else
+
+                        if (!addDiag && !allValidNameRemappingsLookup.ContainsKey(smlName) && (smlName != remappedName) && !_config.ForceRemappedNames.Contains(smlName))
                         {
                             addDiag = true;
-                        }
-
-                        if (!addDiag && !_allValidNameRemappings.ContainsKey(altName) && (altName != remappedName) && !_config.ForceRemappedNames.Contains(altName))
-                        {
-                            if (!_allValidNameRemappings.ContainsKey(smlName) && (smlName != remappedName) && !_config.ForceRemappedNames.Contains(smlName))
-                            {
-                                addDiag = true;
-                            }
                         }
 
                         if (addDiag)
@@ -1867,62 +1871,71 @@ public sealed partial class PInvokeGenerator : IDisposable
                     }
                 }
 
-                static string GetFoundRemappingString(string name, HashSet<string> remappings)
+                static ReadOnlySpan<char> GetFoundRemappingString(ReadOnlySpan<char> name, HashSet<string> remappings)
                 {
-                    var recommendedRemapping = "";
+                    var recommendedRemappingString = "";
+                    var recommendedRemapping = recommendedRemappingString.AsSpan();
 
                     if (remappings.Count == 1)
                     {
-                        recommendedRemapping = remappings.Single();
+                        recommendedRemappingString = remappings.Single();
+                        recommendedRemapping = recommendedRemappingString;
                     }
 
-                    if (string.IsNullOrEmpty(recommendedRemapping) && name.StartsWith('_'))
+                    var remappingsLookup = remappings.GetAlternateLookup<ReadOnlySpan<char>>();
+
+                    if (recommendedRemapping.IsWhiteSpace() && name.StartsWith('_'))
                     {
                         var remapping = name[1..];
 
-                        if (remappings.Contains(remapping))
+                        if (remappingsLookup.Contains(remapping))
                         {
                             recommendedRemapping = remapping;
+                            recommendedRemappingString = null;
                         }
                     }
 
-                    if (string.IsNullOrEmpty(recommendedRemapping) && name.StartsWith("tag", StringComparison.Ordinal))
+                    if (recommendedRemapping.IsWhiteSpace() && name.StartsWith("tag", StringComparison.Ordinal))
                     {
                         var remapping = name[3..];
 
-                        if (remappings.Contains(remapping))
+                        if (remappingsLookup.Contains(remapping))
                         {
                             recommendedRemapping = remapping;
+                            recommendedRemappingString = null;
                         }
                     }
 
-                    if (string.IsNullOrEmpty(recommendedRemapping) && name.EndsWith('_'))
+                    if (recommendedRemapping.IsWhiteSpace() && name.EndsWith('_'))
                     {
-                        var remapping = name[0..^1];
+                        var remapping = name[..^1];
 
-                        if (remappings.Contains(remapping))
+                        if (remappingsLookup.Contains(remapping))
                         {
                             recommendedRemapping = remapping;
+                            recommendedRemappingString = null;
                         }
                     }
 
-                    if (string.IsNullOrEmpty(recommendedRemapping) && name.EndsWith("tag", StringComparison.Ordinal))
+                    if (recommendedRemapping.IsWhiteSpace() && name.EndsWith("tag", StringComparison.Ordinal))
                     {
-                        var remapping = name[0..^3];
+                        var remapping = name[..^3];
 
-                        if (remappings.Contains(remapping))
+                        if (remappingsLookup.Contains(remapping))
                         {
                             recommendedRemapping = remapping;
+                            recommendedRemappingString = null;
                         }
                     }
 
-                    if (string.IsNullOrEmpty(recommendedRemapping))
+                    if (recommendedRemapping.IsWhiteSpace())
                     {
-                        var remapping = name.ToUpperInvariant();
+                        var remapping = name.ToString().ToUpperInvariant();
 
-                        if (remappings.Contains(remapping))
+                        if (remappingsLookup.Contains(remapping))
                         {
-                            recommendedRemapping = remapping;
+                            recommendedRemappingString = remapping;
+                            recommendedRemapping = recommendedRemappingString;
                         }
                     }
 
@@ -1930,7 +1943,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     var remainingRemappings = (IEnumerable<string>)remappings;
                     var remainingString = "Found";
 
-                    if (!string.IsNullOrEmpty(recommendedRemapping))
+                    if (!recommendedRemapping.IsWhiteSpace())
                     {
                         result += $"Recommended remapping: '{name}={recommendedRemapping}'.";
 
@@ -1941,7 +1954,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                         else
                         {
                             result += ' ';
-                            remainingRemappings = remappings.Except([recommendedRemapping]);
+                            remainingRemappings = remappings.Except([recommendedRemappingString ?? recommendedRemapping.ToString()]);
                             remainingString = "Other";
                         }
                     }
@@ -2036,9 +2049,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 if (isMethodClass)
                 {
-                    var nonTestName = outputBuilder.IsTestOutput ? outputBuilder.Name[0..^5] : outputBuilder.Name;
+                    var nonTestName = outputBuilder.IsTestOutput ? outputBuilder.Name.AsSpan()[..^5] : outputBuilder.Name;
 
-                    if (_topLevelClassUsings.TryGetValue(nonTestName, out var withUsings))
+                    if (_topLevelClassUsings.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nonTestName, out var withUsings))
                     {
                         foreach (var withUsing in withUsings)
                         {
@@ -2101,17 +2114,17 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
 
-        void ForCSharp(CSharpOutputBuilder csharpOutputBuilder)
+        void ForCSharp(CSharpOutputBuilder outputBuilder)
         {
-            var indentationString = csharpOutputBuilder.IndentationString;
-            var nonTestName = outputBuilder.IsTestOutput ? outputBuilder.Name[0..^5] : outputBuilder.Name;
+            var indentationString = outputBuilder.IndentationString;
+            var nonTestName = outputBuilder.IsTestOutput ? outputBuilder.Name.AsSpan()[..^5] : outputBuilder.Name;
 
             if (emitNamespaceDeclaration)
             {
                 sw.Write("namespace ");
                 sw.Write(GetNamespace(nonTestName));
 
-                if (csharpOutputBuilder.IsTestOutput)
+                if (outputBuilder.IsTestOutput)
                 {
                     sw.Write(".UnitTests");
                 }
@@ -2135,7 +2148,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (isMethodClass)
             {
-                var isTopLevelStruct = _config.WithTypes.TryGetValue(nonTestName, out var withType) && withType.Equals("struct", StringComparison.Ordinal);
+                var isTopLevelStruct = _config._withTypes.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nonTestName, out var withType) && withType.Equals("struct", StringComparison.Ordinal);
 
                 if (outputBuilder.IsTestOutput)
                 {
@@ -2156,7 +2169,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     sw.WriteLine(".</summary>");
                 }
 
-                if (_topLevelClassAttributes.TryGetValue(nonTestName, out var withAttributes))
+                if (_topLevelClassAttributes.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nonTestName, out var withAttributes))
                 {
                     if (withAttributes.Count != 0)
                     {
@@ -2184,7 +2197,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                     sw.Write("static ");
                 }
 
-                if ((_topLevelClassIsUnsafe.TryGetValue(nonTestName, out var isUnsafe) && isUnsafe) || (outputBuilder.IsTestOutput && isTopLevelStruct))
+                if ((_topLevelClassIsUnsafe.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nonTestName, out var isUnsafe) && isUnsafe) || (outputBuilder.IsTestOutput && isTopLevelStruct))
                 {
                     sw.Write("unsafe ");
                 }
@@ -2211,15 +2224,15 @@ public sealed partial class PInvokeGenerator : IDisposable
                 sw.Write(indentationString);
                 sw.Write('{');
 
-                if ((!outputBuilder.IsTestOutput && !isTopLevelStruct) || !string.IsNullOrEmpty(csharpOutputBuilder.Contents.First()))
+                if ((!outputBuilder.IsTestOutput && !isTopLevelStruct) || !string.IsNullOrEmpty(outputBuilder.Contents.First()))
                 {
                     sw.WriteLine();
                 }
 
-                indentationString += csharpOutputBuilder.IndentationString;
+                indentationString += outputBuilder.IndentationString;
             }
 
-            foreach (var line in csharpOutputBuilder.Contents)
+            foreach (var line in outputBuilder.Contents)
             {
                 if (string.IsNullOrWhiteSpace(line))
                 {
@@ -2234,7 +2247,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             if (isMethodClass)
             {
-                indentationString = indentationString[..^csharpOutputBuilder.IndentationString.Length];
+                indentationString = indentationString[..^outputBuilder.IndentationString.Length];
 
                 sw.Write(indentationString);
                 sw.WriteLine('}');
@@ -2246,7 +2259,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
         }
 
-        void ForXml(XmlOutputBuilder xmlOutputBuilder)
+        void ForXml(XmlOutputBuilder outputBuilder)
         {
             const string Indent = "  ";
             var indentationString = Indent;
@@ -2255,7 +2268,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 sw.Write(indentationString);
                 sw.Write("<namespace name=\"");
-                sw.Write(GetNamespace(xmlOutputBuilder.Name));
+                sw.Write(GetNamespace(outputBuilder.Name));
                 sw.WriteLine("\">");
             }
 
@@ -2265,10 +2278,10 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 sw.Write(indentationString);
                 sw.Write("<class name=\"");
-                sw.Write(xmlOutputBuilder.Name);
+                sw.Write(outputBuilder.Name);
                 sw.Write("\" access=\"public\" static=\"true\"");
 
-                if (_topLevelClassIsUnsafe.TryGetValue(xmlOutputBuilder.Name, out var isUnsafe) && isUnsafe)
+                if (_topLevelClassIsUnsafe.TryGetValue(outputBuilder.Name, out var isUnsafe) && isUnsafe)
                 {
                     sw.Write(" unsafe=\"true\"");
                 }
@@ -2277,7 +2290,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 indentationString += Indent;
             }
 
-            foreach (var line in xmlOutputBuilder.Contents)
+            foreach (var line in outputBuilder.Contents)
             {
                 if (string.IsNullOrWhiteSpace(line))
                 {
@@ -2463,7 +2476,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private AccessSpecifier GetAccessSpecifier(NamedDecl namedDecl, bool matchStar)
     {
-        if (!TryGetRemappedValue(namedDecl, _config.WithAccessSpecifiers, out var accessSpecifier, matchStar) || (accessSpecifier == AccessSpecifier.None))
+        if (!TryGetRemappedValue(namedDecl, _config._withAccessSpecifiers, out var accessSpecifier, matchStar) || (accessSpecifier == AccessSpecifier.None))
         {
             switch (namedDecl.Access)
             {
@@ -2629,7 +2642,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (cursor is NamedDecl namedDecl)
         {
-            if (TryGetRemappedValue(namedDecl, _config.WithCallConvs, out var callConv, matchStar: true))
+            if (TryGetRemappedValue(namedDecl, _config._withCallConvs, out var callConv, matchStar: true))
             {
                 if (Enum.TryParse<CallConv>(callConv, true, out var remappedCallingConvention))
                 {
@@ -2773,22 +2786,26 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private string GetCursorName(NamedDecl namedDecl)
     {
-        if (!_cursorNames.TryGetValue(namedDecl, out var name))
+        if (!_cursorNames.TryGetValue(namedDecl, out var nameString))
         {
-            name = namedDecl.Name.NormalizePath();
+            nameString = namedDecl.Name.NormalizePath();
+            var name = nameString.AsSpan();
 
             // strip the prefix
             if (name.StartsWith("enum ", StringComparison.Ordinal))
             {
                 name = name[5..];
+                nameString = null;
             }
             else if (name.StartsWith("struct ", StringComparison.Ordinal))
             {
                 name = name[7..];
+                nameString = null;
             }
             else if (name.StartsWith("union ", StringComparison.Ordinal))
             {
                 name = name[6..];
+                nameString = null;
             }
 
             var anonymousNameStartIndex = name.IndexOf("::(", StringComparison.Ordinal);
@@ -2797,21 +2814,26 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 anonymousNameStartIndex += 2;
                 name = name[anonymousNameStartIndex..];
+                nameString = null;
             }
 
             if (namedDecl is CXXConstructorDecl cxxConstructorDecl)
             {
                 var parent = cxxConstructorDecl.Parent;
                 Debug.Assert(parent is not null);
-                name = GetCursorName(parent);
+
+                nameString = GetCursorName(parent);
+                name = nameString;
             }
             else if (namedDecl is CXXDestructorDecl cxxDestructorDecl)
             {
                 var parent = cxxDestructorDecl.Parent;
                 Debug.Assert(parent is not null);
-                name = $"~{GetCursorName(parent)}";
+
+                nameString = $"~{GetCursorName(parent)}";
+                name = nameString;
             }
-            else if (string.IsNullOrWhiteSpace(name) || name.StartsWith('('))
+            else if (name.IsWhiteSpace() || name.StartsWith('('))
             {
 #if DEBUG
                 if (name.StartsWith('('))
@@ -2829,17 +2851,20 @@ public sealed partial class PInvokeGenerator : IDisposable
 
                 if (namedDecl is TypeDecl typeDecl)
                 {
-                    name = (typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous
-                         ? GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling)
-                         : GetTypeName(namedDecl, context: null, type: typeDecl.TypeForDecl, ignoreTransparentStructsWhereRequired: false, isTemplate: false, nativeTypeName: out _);
+                    nameString = (typeDecl is TagDecl tagDecl) && tagDecl.Handle.IsAnonymous
+                               ? GetAnonymousName(tagDecl, tagDecl.TypeForDecl.KindSpelling)
+                               : GetTypeName(namedDecl, context: null, type: typeDecl.TypeForDecl, ignoreTransparentStructsWhereRequired: false, isTemplate: false, nativeTypeName: out _);
+                    name = nameString;
                 }
                 else if (namedDecl is ParmVarDecl)
                 {
-                    name = "param";
+                    nameString = "param";
+                    name = nameString;
                 }
                 else if (namedDecl is FieldDecl fieldDecl)
                 {
-                    name = GetAnonymousName(fieldDecl, fieldDecl.CursorKindSpelling);
+                    nameString = GetAnonymousName(fieldDecl, fieldDecl.CursorKindSpelling);
+                    name = nameString;
                 }
                 else
                 {
@@ -2847,11 +2872,12 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
 
-            _cursorNames[namedDecl] = name;
+            nameString ??= name.ToString();
+            _cursorNames[namedDecl] = nameString;
         }
 
-        Debug.Assert(!string.IsNullOrWhiteSpace(name));
-        return name;
+        Debug.Assert(!string.IsNullOrWhiteSpace(nameString));
+        return nameString;
     }
 
     private string GetCursorQualifiedName(NamedDecl namedDecl, bool truncateParameters = false)
@@ -3156,24 +3182,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             return remappedName;
         }
 
-        name = name.Replace("::", ".", StringComparison.Ordinal);
-        remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing);
-
-        if (wasRemapped)
-        {
-            return remappedName;
-        }
-
-
         name = GetCursorQualifiedName(namedDecl, truncateParameters: true);
-        remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing);
-
-        if (wasRemapped)
-        {
-            return remappedName;
-        }
-
-        name = name.Replace("::", ".", StringComparison.Ordinal);
         remappedName = GetRemappedName(name, namedDecl, tryRemapOperatorName: true, out wasRemapped, skipUsing);
 
         if (wasRemapped)
@@ -3290,7 +3299,9 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private string GetRemappedName(string name, Cursor? cursor, bool tryRemapOperatorName, out bool wasRemapped, bool skipUsing, bool skipUsingIfNotRemapped)
     {
-        if (_config.RemappedNames.TryGetValue(name, out var remappedName))
+        var remappedNamesLookup = _config._remappedNames.GetAlternateLookup<ReadOnlySpan<char>>();
+
+        if (remappedNamesLookup.TryGetValue(name, out var remappedName))
         {
             wasRemapped = true;
             _ = _usedRemappings.Add(name);
@@ -3299,13 +3310,13 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (name.StartsWith("const ", StringComparison.Ordinal))
         {
-            var tmpName = name[6..];
+            var tmpName = name.AsSpan()[6..];
 
-            if (_config.RemappedNames.TryGetValue(tmpName, out remappedName))
+            if (remappedNamesLookup.TryGetValue(tmpName, out remappedName))
             {
 
                 wasRemapped = true;
-                _ = _usedRemappings.Add(tmpName);
+                _ = _usedRemappings.Add(tmpName.ToString());
                 return AddUsingDirectiveIfNeeded(_outputBuilder, remappedName, skipUsing);
             }
         }
@@ -3363,38 +3374,32 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         if (!wasRemapped)
         {
-            nameToCheck = nameToCheck.Replace("::", ".", StringComparison.Ordinal);
-            remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing, skipUsingIfNotRemapped: true);
+            nameToCheck = name;
+            remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing);
 
             if (!wasRemapped)
             {
-                nameToCheck = name;
-                remappedName = GetRemappedName(nameToCheck, cursor, tryRemapOperatorName: false, out wasRemapped, skipUsing);
-
-                if (!wasRemapped)
+                if (IsTypeConstantOrIncompleteArray(cursor, type, out var arrayType) && IsType<RecordType>(cursor, arrayType.ElementType))
                 {
-                    if (IsTypeConstantOrIncompleteArray(cursor, type, out var arrayType) && IsType<RecordType>(cursor, arrayType.ElementType))
-                    {
-                        type = arrayType.ElementType;
-                    }
+                    type = arrayType.ElementType;
+                }
 
-                    if (IsType<RecordType>(cursor, type, out var recordType) && remappedName.StartsWith("__AnonymousRecord_", StringComparison.Ordinal))
-                    {
-                        var recordDecl = recordType.Decl;
-                        remappedName = GetRemappedNameForAnonymousRecord(recordDecl);
-                    }
-                    else if (IsType<EnumType>(cursor, type, out var enumType) && remappedName.StartsWith("__AnonymousEnum_", StringComparison.Ordinal))
-                    {
-                        remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _, skipUsing);
-                    }
-                    else if (cursor is EnumDecl enumDecl)
-                    {
-                        // Even though some types have entries with names like *_FORCE_DWORD or *_FORCE_UINT
-                        // MSVC and Clang both still treat this as "signed" values and thus we don't want
-                        // to specially handle it as uint, as that can break ABI handling on some platforms.
+                if (IsType<RecordType>(cursor, type, out var recordType) && remappedName.StartsWith("__AnonymousRecord_", StringComparison.Ordinal))
+                {
+                    var recordDecl = recordType.Decl;
+                    remappedName = GetRemappedNameForAnonymousRecord(recordDecl);
+                }
+                else if (IsType<EnumType>(cursor, type, out var enumType) && remappedName.StartsWith("__AnonymousEnum_", StringComparison.Ordinal))
+                {
+                    remappedName = GetRemappedTypeName(enumType.Decl, context: null, enumType.Decl.IntegerType, out _, skipUsing);
+                }
+                else if (cursor is EnumDecl enumDecl)
+                {
+                    // Even though some types have entries with names like *_FORCE_DWORD or *_FORCE_UINT
+                    // MSVC and Clang both still treat this as "signed" values and thus we don't want
+                    // to specially handle it as uint, as that can break ABI handling on some platforms.
 
-                        WithType(enumDecl, ref remappedName, ref nativeTypeName);
-                    }
+                    WithType(enumDecl, ref remappedName, ref nativeTypeName);
                 }
             }
         }
@@ -3418,7 +3423,19 @@ public sealed partial class PInvokeGenerator : IDisposable
         return remappedName;
     }
 
-    private static string GetSourceRangeContents(CXTranslationUnit translationUnit, CXSourceRange sourceRange)
+    private unsafe ReadOnlySpan<byte> GetFileContents(CXTranslationUnit translationUnit, CXFile file)
+    {
+        if (!_fileContents.TryGetValue(file, out var fileContentsMetadata))
+        {
+            var fileContents = translationUnit.GetFileContents(file, out _);
+            fileContentsMetadata = ((nuint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(fileContents)), (uint)fileContents.Length);
+            _fileContents.Add(file, fileContentsMetadata);
+        }
+
+        return new ReadOnlySpan<byte>((byte*)fileContentsMetadata.Address, (int)fileContentsMetadata.Length);
+    }
+
+    private string GetSourceRangeContents(CXTranslationUnit translationUnit, CXSourceRange sourceRange)
     {
         sourceRange.Start.GetFileLocation(out var startFile, out _, out _, out var startOffset);
         sourceRange.End.GetFileLocation(out var endFile, out _, out _, out var endOffset);
@@ -3428,9 +3445,9 @@ public sealed partial class PInvokeGenerator : IDisposable
             return string.Empty;
         }
 
-        var fileContents = translationUnit.GetFileContents(startFile, out _);
-        fileContents = fileContents.Slice(unchecked((int)startOffset), unchecked((int)(endOffset - startOffset)));
-        return Encoding.UTF8.GetString(fileContents);
+        var contents = GetFileContents(translationUnit, startFile);
+        contents = contents.Slice(unchecked((int)startOffset), unchecked((int)(endOffset - startOffset)));
+        return Encoding.UTF8.GetString(contents);
     }
 
     private string GetTargetTypeName(Cursor cursor, out string nativeTypeName)
@@ -3466,13 +3483,13 @@ public sealed partial class PInvokeGenerator : IDisposable
                 else
                 {
                     var type = varDecl.Type;
-                    var cursorName = GetCursorName(varDecl);
+                    var cursorName = GetCursorName(varDecl).AsSpan();
 
                     if (cursorName.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
                     {
                         cursorName = cursorName["ClangSharpMacro_".Length..];
 
-                        if (_config.WithTypes.TryGetValue(cursorName, out targetTypeName))
+                        if (_config._withTypes.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(cursorName, out targetTypeName))
                         {
                             return targetTypeName;
                         }
@@ -4586,7 +4603,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     }
 
     private bool HasSuppressGCTransition(Cursor? cursor)
-        => (cursor is NamedDecl namedDecl) && HasRemapping(namedDecl, _config.WithSuppressGCTransitions);
+        => (cursor is NamedDecl namedDecl) && HasRemapping(namedDecl, _config._withSuppressGCTransitions);
 
     private bool HasBaseField(CXXRecordDecl cxxRecordDecl)
     {
@@ -4865,9 +4882,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
 
-            var dottedQualifiedName = qualifiedName.Replace("::", ".", StringComparison.Ordinal);
-
-            if (_config.ExcludedNames.Contains(qualifiedName) || _config.ExcludedNames.Contains(dottedQualifiedName))
+            if (_config.ExcludedNames.Contains(qualifiedName))
             {
                 if (_config.LogExclusions)
                 {
@@ -4887,9 +4902,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 return true;
             }
 
-            var dottedQualifiedNameWithoutParameters = qualifiedNameWithoutParameters.Replace("::", ".", StringComparison.Ordinal);
-
-            if (_config.ExcludedNames.Contains(qualifiedNameWithoutParameters) || _config.ExcludedNames.Contains(dottedQualifiedNameWithoutParameters) || _config.ExcludedNames.Contains(name))
+            if (_config.ExcludedNames.Contains(qualifiedNameWithoutParameters) || _config.ExcludedNames.Contains(name))
             {
                 if (_config.LogExclusions)
                 {
@@ -4919,9 +4932,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
 
             if (_config.IncludedNames.Count != 0 && !_config.IncludedNames.Contains(qualifiedName)
-                                                 && !_config.IncludedNames.Contains(dottedQualifiedName)
                                                  && !_config.IncludedNames.Contains(qualifiedNameWithoutParameters)
-                                                 && !_config.IncludedNames.Contains(dottedQualifiedNameWithoutParameters)
                                                  && !_config.IncludedNames.Contains(name))
             {
                 var semanticParentCursor = cursor.SemanticParentCursor;
@@ -5210,9 +5221,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         baseFieldName = GetRemappedName(baseFieldName, cxxBaseSpecifier, tryRemapOperatorName: true, out _, skipUsing: true);
 
         var qualifiedName = $"{GetCursorQualifiedName(cxxRecordDecl)}::{baseFieldName}";
-        var dottedQualifiedName = qualifiedName.Replace("::", ".", StringComparison.Ordinal);
-
-        return _config.ExcludedNames.Contains(qualifiedName) || _config.ExcludedNames.Contains(dottedQualifiedName);
+        return _config.ExcludedNames.Contains(qualifiedName);
     }
 
     private bool IsFixedSize(Cursor cursor, Type type)
@@ -6473,7 +6482,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool TryGetUuid(RecordDecl recordDecl, out Guid uuid)
     {
-        if (TryGetRemappedValue(recordDecl, _config.WithGuids, out var guid))
+        if (TryGetRemappedValue(recordDecl, _config._withGuids, out var guid))
         {
             uuid = guid;
             return true;
@@ -6807,7 +6816,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         var outputBuilder = isTestOutput ? _testOutputBuilder : _outputBuilder;
         Debug.Assert(outputBuilder is not null);
 
-        if (TryGetRemappedValue(namedDecl, _config.WithAttributes, out var attributes, matchStar: true))
+        if (TryGetRemappedValue(namedDecl, _config._withAttributes, out var attributes, matchStar: true))
         {
             foreach (var attribute in attributes.Where((a) => !onlySupportedOSPlatform || a.StartsWith("SupportedOSPlatform(", StringComparison.Ordinal)))
             {
@@ -6907,16 +6916,16 @@ public sealed partial class PInvokeGenerator : IDisposable
         return className;
     }
 
-    private bool TryGetClass(string remappedName, [MaybeNullWhen(false)] out string className, bool disallowPrefixMatch = false)
+    private bool TryGetClass(ReadOnlySpan<char> remappedName, [MaybeNullWhen(false)] out string className, bool disallowPrefixMatch = false)
     {
-        var index = remappedName.IndexOf('*', StringComparison.Ordinal);
+        var index = remappedName.IndexOf('*');
 
         if (index != -1)
         {
             remappedName = remappedName[..index];
         }
 
-        if (_config.WithClasses.TryGetValue(remappedName, out className))
+        if (_config._withClasses.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(remappedName, out className))
         {
             _ = _topLevelClassNames.Add(className);
             _ = _topLevelClassNames.Add($"{className}Tests");
@@ -6928,14 +6937,14 @@ public sealed partial class PInvokeGenerator : IDisposable
             return false;
         }
 
-        foreach (var withClass in _config.WithClasses)
+        foreach (var withClass in _config._withClasses)
         {
             if (!withClass.Key.EndsWith('*'))
             {
                 continue;
             }
 
-            var prefix = withClass.Key[0..^1];
+            var prefix = withClass.Key.AsSpan()[..^1];
 
             if (remappedName.StartsWith(prefix, StringComparison.Ordinal))
             {
@@ -6948,7 +6957,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         return false;
     }
 
-    private string GetNamespace(string remappedName, NamedDecl? namedDecl = null)
+    private string GetNamespace(ReadOnlySpan<char> remappedName, NamedDecl? namedDecl = null)
     {
         if (!TryGetNamespace(remappedName, out var namespaceName))
         {
@@ -6965,37 +6974,32 @@ public sealed partial class PInvokeGenerator : IDisposable
         return namespaceName;
     }
 
-    private bool TryGetNamespace(string remappedName, [MaybeNullWhen(false)] out string namespaceName)
+    private bool TryGetNamespace(ReadOnlySpan<char> remappedName, [MaybeNullWhen(false)] out string namespaceName)
     {
-        var index = remappedName.IndexOf('*', StringComparison.Ordinal);
+        var index = remappedName.IndexOf('*');
 
         if (index != -1)
         {
             remappedName = remappedName[..index];
         }
 
-        return _config.WithNamespaces.TryGetValue(remappedName, out namespaceName);
+        return _config._withNamespaces.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(remappedName, out namespaceName);
     }
 
-    private bool GetSetLastError(NamedDecl namedDecl) => HasRemapping(namedDecl, _config.WithSetLastErrors, matchStar: true);
+    private bool GetSetLastError(NamedDecl namedDecl) => HasRemapping(namedDecl, _config._withSetLastErrors, matchStar: true);
 
-    private bool HasRemapping(NamedDecl namedDecl, IReadOnlyCollection<string> entries, bool matchStar = false)
+    private bool HasRemapping(NamedDecl namedDecl, HashSet<string> entries, bool matchStar = false)
     {
-        var name = GetCursorQualifiedName(namedDecl);
+        var name = GetCursorQualifiedName(namedDecl).AsSpan();
 
         if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
         {
             name = name["ClangSharpMacro_".Length..];
         }
 
-        if (entries.Contains(name))
-        {
-            return true;
-        }
+        var entriesLookup = entries.GetAlternateLookup<ReadOnlySpan<char>>();
 
-        name = name.Replace("::", ".", StringComparison.Ordinal);
-
-        if (entries.Contains(name))
+        if (entriesLookup.Contains(name))
         {
             return true;
         }
@@ -7007,14 +7011,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             name = name["ClangSharpMacro_".Length..];
         }
 
-        if (entries.Contains(name))
-        {
-            return true;
-        }
-
-        name = name.Replace("::", ".", StringComparison.Ordinal);
-
-        if (entries.Contains(name))
+        if (entriesLookup.Contains(name))
         {
             return true;
         }
@@ -7026,26 +7023,21 @@ public sealed partial class PInvokeGenerator : IDisposable
             name = name["ClangSharpMacro_".Length..];
         }
 
-        return entries.Contains(name) || (matchStar && entries.Contains("*"));
+        return entriesLookup.Contains(name) || (matchStar && entriesLookup.Contains("*"));
     }
 
-    private bool TryGetRemappedValue<T>(NamedDecl namedDecl, IReadOnlyDictionary<string, T> remappings, [MaybeNullWhen(false)] out T value, bool matchStar = false)
+    private bool TryGetRemappedValue<T>(NamedDecl namedDecl, Dictionary<string, T> remappings, [MaybeNullWhen(false)] out T value, bool matchStar = false)
     {
-        var name = GetCursorQualifiedName(namedDecl);
+        var name = GetCursorQualifiedName(namedDecl).AsSpan();
 
         if (name.StartsWith("ClangSharpMacro_", StringComparison.Ordinal))
         {
             name = name["ClangSharpMacro_".Length..];
         }
 
-        if (remappings.TryGetValue(name, out value))
-        {
-            return true;
-        }
+        var remappingsLookup = remappings.GetAlternateLookup<ReadOnlySpan<char>>();
 
-        name = name.Replace("::", ".", StringComparison.Ordinal);
-
-        if (remappings.TryGetValue(name, out value))
+        if (remappingsLookup.TryGetValue(name, out value))
         {
             return true;
         }
@@ -7057,14 +7049,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             name = name["ClangSharpMacro_".Length..];
         }
 
-        if (remappings.TryGetValue(name, out value))
-        {
-            return true;
-        }
-
-        name = name.Replace("::", ".", StringComparison.Ordinal);
-
-        if (remappings.TryGetValue(name, out value))
+        if (remappingsLookup.TryGetValue(name, out value))
         {
             return true;
         }
@@ -7076,7 +7061,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             name = name["ClangSharpMacro_".Length..];
         }
 
-        if (remappings.TryGetValue(name, out value))
+        if (remappingsLookup.TryGetValue(name, out value))
         {
             return true;
         }
@@ -7162,7 +7147,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private void WithType(NamedDecl namedDecl, ref string integerTypeName, ref string nativeTypeName)
     {
-        if (TryGetRemappedValue(namedDecl, _config.WithTypes, out var type, matchStar: true))
+        if (TryGetRemappedValue(namedDecl, _config._withTypes, out var type, matchStar: true))
         {
             if (string.IsNullOrWhiteSpace(nativeTypeName))
             {
@@ -7182,7 +7167,7 @@ public sealed partial class PInvokeGenerator : IDisposable
     {
         Debug.Assert(_outputBuilder is not null);
 
-        if (TryGetRemappedValue(namedDecl, _config.WithUsings, out var usings, matchStar: true))
+        if (TryGetRemappedValue(namedDecl, _config._withUsings, out var usings, matchStar: true))
         {
             foreach (var @using in usings)
             {

@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class CompoundLiteralExpr : Expr
 {
-    private readonly Lazy<Type> _typeSourceInfoType;
+    private readonly ValueLazy<Type> _typeSourceInfoType;
 
     internal CompoundLiteralExpr(CXCursor handle) : base(handle, CXCursor_CompoundLiteralExpr, CX_StmtClass_CompoundLiteralExpr)
     {
         Debug.Assert(NumChildren is 1);
-        _typeSourceInfoType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _typeSourceInfoType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
     public bool IsFileScope => Handle.IsFileScope;

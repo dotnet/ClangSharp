@@ -905,7 +905,7 @@ namespace ClangSharp.Test
 {
     virtual void MyVoidMethod() = 0;
 
-    virtual char MyInt8Method()
+    virtual signed char MyInt8Method()
     {
         return 0;
     }
@@ -929,7 +929,7 @@ namespace ClangSharp.Test
         public delegate void _MyVoidMethod(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        [return: NativeTypeName(""char"")]
+        [return: NativeTypeName(""signed char"")]
         public delegate sbyte _MyInt8Method(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -946,7 +946,7 @@ namespace ClangSharp.Test
             }}
         }}
 
-        [return: NativeTypeName(""char"")]
+        [return: NativeTypeName(""signed char"")]
         public sbyte MyInt8Method()
         {{
             fixed (MyStruct* pThis = &this)
@@ -983,7 +983,7 @@ namespace ClangSharp.Test
 {
     virtual void MyVoidMethod() = 0;
 
-    virtual char MyInt8Method()
+    virtual signed char MyInt8Method()
     {
         return 0;
     }
@@ -1007,7 +1007,7 @@ namespace ClangSharp.Test
         public delegate void _MyVoidMethod(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        [return: NativeTypeName(""char"")]
+        [return: NativeTypeName(""signed char"")]
         public delegate sbyte _MyInt8Method(MyStruct* pThis);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -1026,7 +1026,7 @@ namespace ClangSharp.Test
         }}
 
         [VtblIndex(1)]
-        [return: NativeTypeName(""char"")]
+        [return: NativeTypeName(""signed char"")]
         public sbyte MyInt8Method()
         {{
             fixed (MyStruct* pThis = &this)

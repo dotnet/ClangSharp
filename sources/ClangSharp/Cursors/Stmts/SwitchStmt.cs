@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class SwitchStmt : Stmt
 {
-    private readonly Lazy<SwitchCase> _switchCaseList;
+    private readonly ValueLazy<SwitchCase> _switchCaseList;
 
     internal SwitchStmt(CXCursor handle) : base(handle, CXCursor_SwitchStmt, CX_StmtClass_SwitchStmt)
     {
         Debug.Assert(NumChildren is >= 2 and <= 4);
-        _switchCaseList = new Lazy<SwitchCase>(() => TranslationUnit.GetOrCreate<SwitchCase>(Handle.SubStmt));
+        _switchCaseList = new ValueLazy<SwitchCase>(() => TranslationUnit.GetOrCreate<SwitchCase>(Handle.SubStmt));
     }
 
     public Stmt Body => Children[BodyOffset];

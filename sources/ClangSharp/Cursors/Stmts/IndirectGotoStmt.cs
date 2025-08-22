@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class IndirectGotoStmt : Stmt
 {
-    private readonly Lazy<LabelDecl> _constantTarget;
+    private readonly ValueLazy<LabelDecl> _constantTarget;
 
     internal IndirectGotoStmt(CXCursor handle) : base(handle, CXCursor_IndirectGotoStmt, CX_StmtClass_IndirectGotoStmt)
     {
         Debug.Assert(NumChildren is 1);
-        _constantTarget = new Lazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
+        _constantTarget = new ValueLazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
     }
 
     public LabelDecl ConstantTarget => _constantTarget.Value;

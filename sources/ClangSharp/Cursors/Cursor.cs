@@ -13,11 +13,11 @@ namespace ClangSharp;
 [DebuggerDisplay("{Handle.DebuggerDisplayString,nq}")]
 public unsafe class Cursor : IEquatable<Cursor>
 {
-    private readonly Lazy<string> _kindSpelling;
-    private readonly Lazy<Cursor?> _lexicalParentCursor;
-    private readonly Lazy<Cursor?> _semanticParentCursor;
-    private readonly Lazy<string> _spelling;
-    private readonly Lazy<TranslationUnit> _translationUnit;
+    private readonly ValueLazy<string> _kindSpelling;
+    private readonly ValueLazy<Cursor?> _lexicalParentCursor;
+    private readonly ValueLazy<Cursor?> _semanticParentCursor;
+    private readonly ValueLazy<string> _spelling;
+    private readonly ValueLazy<TranslationUnit> _translationUnit;
     private List<Cursor>? _cursorChildren;
 
     private protected Cursor(CXCursor handle, CXCursorKind expectedCursorKind)
@@ -28,11 +28,11 @@ public unsafe class Cursor : IEquatable<Cursor>
         }
         Handle = handle;
 
-        _kindSpelling = new Lazy<string>(Handle.KindSpelling.ToString);
-        _lexicalParentCursor = new Lazy<Cursor?>(() => !Handle.LexicalParent.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.LexicalParent) : null);
-        _semanticParentCursor = new Lazy<Cursor?>(() => !Handle.SemanticParent.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent) : null);
-        _spelling = new Lazy<string>(Handle.Spelling.ToString);
-        _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
+        _kindSpelling = new ValueLazy<string>(Handle.KindSpelling.ToString);
+        _lexicalParentCursor = new ValueLazy<Cursor?>(() => !Handle.LexicalParent.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.LexicalParent) : null);
+        _semanticParentCursor = new ValueLazy<Cursor?>(() => !Handle.SemanticParent.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.SemanticParent) : null);
+        _spelling = new ValueLazy<string>(Handle.Spelling.ToString);
+        _translationUnit = new ValueLazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.TranslationUnit));
     }
 
     public IReadOnlyList<Cursor> CursorChildren

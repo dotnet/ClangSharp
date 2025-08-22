@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public class RedeclarableTemplateDecl : TemplateDecl, IRedeclarable<RedeclarableTemplateDecl>
 {
-    private readonly Lazy<RedeclarableTemplateDecl> _instantiatedFromMemberTemplate;
+    private readonly ValueLazy<RedeclarableTemplateDecl> _instantiatedFromMemberTemplate;
 
     private protected RedeclarableTemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -17,7 +17,7 @@ public class RedeclarableTemplateDecl : TemplateDecl, IRedeclarable<Redeclarable
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _instantiatedFromMemberTemplate = new Lazy<RedeclarableTemplateDecl>(() => TranslationUnit.GetOrCreate<RedeclarableTemplateDecl>(Handle.SpecializedCursorTemplate));
+        _instantiatedFromMemberTemplate = new ValueLazy<RedeclarableTemplateDecl>(() => TranslationUnit.GetOrCreate<RedeclarableTemplateDecl>(Handle.SpecializedCursorTemplate));
     }
 
     public new RedeclarableTemplateDecl CanonicalDecl => (RedeclarableTemplateDecl)base.CanonicalDecl;

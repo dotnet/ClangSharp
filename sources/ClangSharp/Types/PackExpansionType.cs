@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class PackExpansionType : Type
 {
-    private readonly Lazy<Type> _pattern;
+    private readonly ValueLazy<Type> _pattern;
 
     internal PackExpansionType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_PackExpansion)
     {
-        _pattern = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
+        _pattern = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
     }
 
     public Type Pattern => _pattern.Value;

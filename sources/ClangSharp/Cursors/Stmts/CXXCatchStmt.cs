@@ -10,15 +10,15 @@ namespace ClangSharp;
 
 public sealed class CXXCatchStmt : Stmt
 {
-    private readonly Lazy<Type> _caughtType;
-    private readonly Lazy<VarDecl> _exceptionDecl;
+    private readonly ValueLazy<Type> _caughtType;
+    private readonly ValueLazy<VarDecl> _exceptionDecl;
 
     internal CXXCatchStmt(CXCursor handle) : base(handle, CXCursor_CXXCatchStmt, CX_StmtClass_CXXCatchStmt)
     {
         Debug.Assert(NumChildren is 1);
 
-        _caughtType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        _exceptionDecl = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
+        _caughtType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _exceptionDecl = new ValueLazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
     }
 
     public Type CaughtType => _caughtType.Value;

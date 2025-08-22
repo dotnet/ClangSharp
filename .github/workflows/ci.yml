@@ -25,8 +25,38 @@ jobs:
         path: |
           ./artifacts/bin/**/*
           ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
+        path: |
+          ./artifacts/pkg/**/*
+        if-no-files-found: error
+  windows-arm64:
+    runs-on: ${{ matrix.os }}-11-arm
+    strategy:
+      matrix:
+        architecture: [ arm64 ]
+        configuration: [ debug, release ]
+        os: [ windows ]
+    steps:
+    - uses: actions/checkout@v4
+    - run: ./scripts/cibuild.cmd -configuration ${{ matrix.configuration }} -architecture ${{ matrix.architecture }}
+      shell: cmd
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
+        path: |
+          ./artifacts/bin/**/*
+          ./artifacts/log/**/*
+          ./artifacts/tst/**/*
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
+        path: |
+          ./artifacts/pkg/**/*.win-arm64.*
         if-no-files-found: error
   linux-x64:
     runs-on: ${{ matrix.os }}-latest
@@ -45,8 +75,38 @@ jobs:
         path: |
           ./artifacts/bin/**/*
           ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
+        path: |
+          ./artifacts/pkg/**/*.linux-x64.*
+        if-no-files-found: error
+  linux-arm64:
+    runs-on: ${{ matrix.os }}-24.04-arm
+    strategy:
+      matrix:
+        architecture: [ arm64 ]
+        configuration: [ debug, release ]
+        os: [ ubuntu ]
+    steps:
+    - uses: actions/checkout@v4
+    - run: ./scripts/cibuild.sh --configuration ${{ matrix.configuration }} --architecture ${{ matrix.architecture }}
+      shell: bash
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}
+        path: |
+          ./artifacts/bin/**/*
+          ./artifacts/log/**/*
+          ./artifacts/tst/**/*
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
+        path: |
+          ./artifacts/pkg/**/*.linux-arm64.*
         if-no-files-found: error
   macos-arm64:
     runs-on: ${{ matrix.os }}-latest
@@ -65,100 +125,53 @@ jobs:
         path: |
           ./artifacts/bin/**/*
           ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
           ./artifacts/tst/**/*
         if-no-files-found: error
-  build-nuget-preview:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v4
-    - run: ./scripts/cibuild.cmd -configuration release -architecture x64
-      shell: cmd
-      env:
-        EXCLUDE_RUN_ID_FROM_PACKAGE: true
-        EXCLUDE_SUFFIX_FROM_VERSION: false
     - uses: actions/upload-artifact@v4
       with:
-        name: nuget_preview
+        name: ${{ matrix.os }}_${{ matrix.configuration }}_${{ matrix.architecture }}_pkg
         path: |
-          ./artifacts/bin/**/*
-          ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
-          ./artifacts/tst/**/*
+          ./artifacts/pkg/**/*.osx-arm64.*
         if-no-files-found: error
-  sign-nuget-preview:
+  sign-nuget:
     runs-on: windows-latest
     if: ${{ github.event_name == 'push' }}
-    needs: [ build-nuget-preview ]
+    needs: [ windows-x64, windows-arm64, linux-x64, linux-arm64, macos-arm64 ]
     permissions:
       id-token: write
     steps:
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v4
       with:
-        name: nuget_preview
-        path: ./artifacts
+        merge-multiple: true
+        path: ./artifacts/pkg
+        pattern: "*_release_*_pkg"
     - uses: actions/setup-dotnet@v4
       with:
         global-json-file: ./global.json
-    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.1-beta.24170.3
-    - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --timestamp-url "http://timestamp.digicert.com" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileList.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-key-vault-certificate "${{ secrets.SC_KEY_VAULT_CERTIFICATE_ID }}" --azure-key-vault-client-id "${{ secrets.SC_AZURE_CLIENT_ID }}" --azure-key-vault-client-secret "${{ secrets.SC_AZURE_CLIENT_SECRET }}" --azure-key-vault-tenant-id "${{ secrets.SC_AZURE_TENANT_ID }}" --azure-key-vault-url "${{ secrets.SC_KEY_VAULT_URL }}"
+    - run: dotnet tool install --tool-path ./artifacts/tools --prerelease sign
+    - uses: azure/login@v2
+      with:
+        allow-no-subscriptions: true
+        client-id: "${{ secrets.AZURE_CLIENT_ID }}"
+        tenant-id: "${{ secrets.AZURE_TENANT_ID }}"
+    - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileList.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-credential-type "azure-cli" --azure-key-vault-url "${{ secrets.KEY_VAULT_URL }}" --azure-key-vault-certificate "${{ secrets.KEY_VAULT_CERTIFICATE_ID }}"
+      shell: pwsh
     - uses: actions/upload-artifact@v4
       with:
-        name: sign_nuget_preview
-        path: |
-          ./artifacts/pkg/**/*
-        if-no-files-found: error
-  build-nuget-release:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v4
-    - run: ./scripts/cibuild.cmd -configuration release -architecture x64
-      shell: cmd
-      env:
-        EXCLUDE_RUN_ID_FROM_PACKAGE: true
-        EXCLUDE_SUFFIX_FROM_VERSION: true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: nuget_release
-        path: |
-          ./artifacts/bin/**/*
-          ./artifacts/log/**/*
-          ./artifacts/pkg/**/*
-          ./artifacts/tst/**/*
-        if-no-files-found: error
-  sign-nuget-release:
-    runs-on: windows-latest
-    if: ${{ github.event_name == 'push' }}
-    needs: [ build-nuget-release ]
-    permissions:
-      id-token: write
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v4
-      with:
-        name: nuget_release
-        path: ./artifacts
-    - uses: actions/setup-dotnet@v4
-      with:
-        global-json-file: ./global.json
-    - run: dotnet tool install --tool-path ./artifacts/tools sign --version 0.9.1-beta.24170.3
-    - run: ./artifacts/tools/sign code azure-key-vault "**/*.nupkg" --timestamp-url "http://timestamp.digicert.com" --base-directory "${{ github.workspace }}/artifacts/pkg" --file-list "${{ github.workspace }}/scripts/SignClientFileList.txt" --publisher-name ".NET Foundation" --description "ClangSharp" --description-url "https://github.com/dotnet/clangsharp" --azure-key-vault-certificate "${{ secrets.SC_KEY_VAULT_CERTIFICATE_ID }}" --azure-key-vault-client-id "${{ secrets.SC_AZURE_CLIENT_ID }}" --azure-key-vault-client-secret "${{ secrets.SC_AZURE_CLIENT_SECRET }}" --azure-key-vault-tenant-id "${{ secrets.SC_AZURE_TENANT_ID }}" --azure-key-vault-url "${{ secrets.SC_KEY_VAULT_URL }}"
-    - uses: actions/upload-artifact@v4
-      with:
-        name: sign_nuget_release
+        name: sign_nuget
         path: |
           ./artifacts/pkg/**/*
         if-no-files-found: error
   publish-nightlies-azure:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
-    needs: [ windows-x64, linux-x64, macos-arm64, sign-nuget-preview, sign-nuget-release ]
+    needs: [ sign-nuget ]
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: windows_release_x64
-        path: ./artifacts
+        name: sign_nuget
+        path: ./artifacts/pkg
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
@@ -169,12 +182,12 @@ jobs:
   publish-nightlies-github:
     runs-on: ubuntu-latest
     if: false
-    needs: [ windows-x64, linux-x64, macos-arm64, sign-nuget-preview, sign-nuget-release ]
+    needs: [ sign-nuget ]
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: windows_release_x64
-        path: ./artifacts
+        name: sign_nuget
+        path: ./artifacts/pkg
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'

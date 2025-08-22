@@ -992,7 +992,7 @@ extern ""C"" void MyFunction();";
 {
     virtual void MyVoidMethod() = 0;
 
-    virtual char MyInt8Method()
+    virtual signed char MyInt8Method()
     {
         return 0;
     }
@@ -1017,7 +1017,7 @@ extern ""C"" void MyFunction();";
         </body>
       </function>
       <function name=""MyInt8Method"" access=""public"" unsafe=""true"">
-        <type native=""char"">sbyte</type>
+        <type native=""signed char"">sbyte</type>
         <body>
           <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, sbyte&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>
@@ -1048,7 +1048,7 @@ extern ""C"" void MyFunction();";
 {
     virtual void MyVoidMethod() = 0;
 
-    virtual char MyInt8Method()
+    virtual signed char MyInt8Method()
     {
         return 0;
     }
@@ -1073,7 +1073,7 @@ extern ""C"" void MyFunction();";
         </body>
       </function>
       <function name=""MyInt8Method"" access=""public"" unsafe=""true"" vtblindex=""1"">
-        <type native=""char"">sbyte</type>
+        <type native=""signed char"">sbyte</type>
         <body>
           <code>return ((delegate* unmanaged[Thiscall]&lt;MyStruct*, sbyte&gt;)(lpVtbl[<vtbl explicit=""False"">1</vtbl>]))(<param special=""thisPtr"">(MyStruct*)Unsafe.AsPointer(ref this)</param>);</code>
         </body>

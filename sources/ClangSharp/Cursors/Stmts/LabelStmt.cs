@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class LabelStmt : ValueStmt
 {
-    private readonly Lazy<LabelDecl> _decl;
+    private readonly ValueLazy<LabelDecl> _decl;
 
     internal LabelStmt(CXCursor handle) : base(handle, CXCursor_LabelStmt, CX_StmtClass_LabelStmt)
     {
         Debug.Assert(NumChildren is 1);
-        _decl = new Lazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
+        _decl = new ValueLazy<LabelDecl>(() => TranslationUnit.GetOrCreate<LabelDecl>(Handle.Referenced));
     }
 
     public LabelDecl Decl => _decl.Value;

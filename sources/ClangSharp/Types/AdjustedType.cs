@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public class AdjustedType : Type
 {
-    private readonly Lazy<Type> _adjustedType;
-    private readonly Lazy<Type> _originalType;
+    private readonly ValueLazy<Type> _adjustedType;
+    private readonly ValueLazy<Type> _originalType;
 
     internal AdjustedType(CXType handle) : this(handle, CXType_Unexposed, CX_TypeClass_Adjusted)
     {
@@ -18,8 +18,8 @@ public class AdjustedType : Type
 
     private protected AdjustedType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        _adjustedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.AdjustedType));
-        _originalType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
+        _adjustedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.AdjustedType));
+        _originalType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
     }
 
     public Type GetAdjustedType => _adjustedType.Value;

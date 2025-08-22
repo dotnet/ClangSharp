@@ -7,24 +7,24 @@ namespace ClangSharp;
 
 public sealed unsafe class TemplateArgumentLoc
 {
-    private readonly Lazy<TemplateArgument> _argument;
-    private readonly Lazy<Expr> _sourceDeclExpression;
-    private readonly Lazy<Expr> _sourceExpression;
-    private readonly Lazy<Expr> _sourceIntegralExpression;
-    private readonly Lazy<Expr> _sourceNullPtrExpression;
-    private readonly Lazy<TranslationUnit> _translationUnit;
+    private readonly ValueLazy<TemplateArgument> _argument;
+    private readonly ValueLazy<Expr> _sourceDeclExpression;
+    private readonly ValueLazy<Expr> _sourceExpression;
+    private readonly ValueLazy<Expr> _sourceIntegralExpression;
+    private readonly ValueLazy<Expr> _sourceNullPtrExpression;
+    private readonly ValueLazy<TranslationUnit> _translationUnit;
 
     internal TemplateArgumentLoc(CX_TemplateArgumentLoc handle)
     {
         Handle = handle;
 
-        _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
+        _translationUnit = new ValueLazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
 
-        _argument = new Lazy<TemplateArgument>(() => _translationUnit.Value.GetOrCreate(Handle.Argument));
-        _sourceDeclExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceDeclExpression));
-        _sourceExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceExpression));
-        _sourceIntegralExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceIntegralExpression));
-        _sourceNullPtrExpression = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceNullPtrExpression));
+        _argument = new ValueLazy<TemplateArgument>(() => _translationUnit.Value.GetOrCreate(Handle.Argument));
+        _sourceDeclExpression = new ValueLazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceDeclExpression));
+        _sourceExpression = new ValueLazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceExpression));
+        _sourceIntegralExpression = new ValueLazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceIntegralExpression));
+        _sourceNullPtrExpression = new ValueLazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.SourceNullPtrExpression));
     }
 
     public TemplateArgument Argument => _argument.Value;

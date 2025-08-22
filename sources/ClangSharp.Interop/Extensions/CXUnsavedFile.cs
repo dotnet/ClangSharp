@@ -46,6 +46,41 @@ public unsafe partial struct CXUnsavedFile : IDisposable
         };
     }
 
+    public static CXUnsavedFile Create(string filename, CXTranslationUnit translationUnit, CXFile baseFile, string additionalContents)
+    {
+        sbyte* pFilename, pContents;
+        nuint contentsLength;
+
+        if (string.IsNullOrEmpty(filename))
+        {
+            pFilename = null;
+        }
+        else
+        {
+            var maxFilenameLength = Encoding.UTF8.GetMaxByteCount(filename.Length);
+            pFilename = (sbyte*)NativeMemory.Alloc((uint)maxFilenameLength + 1);
+            var filenameLength = (uint)Encoding.UTF8.GetBytes(filename, new Span<byte>(pFilename, maxFilenameLength));
+            pFilename[filenameLength] = 0;
+        }
+
+        var baseFileContents = translationUnit.GetFileContents(baseFile, out _);
+        var maxContentsLength = baseFileContents.Length + Encoding.UTF8.GetMaxByteCount((additionalContents?.Length).GetValueOrDefault());
+
+        pContents = (sbyte*)NativeMemory.Alloc((uint)maxContentsLength + 1);
+
+        var contents = new Span<byte>(pContents, maxContentsLength);
+        baseFileContents.CopyTo(contents);
+
+        contentsLength = (uint)(baseFileContents.Length + Encoding.UTF8.GetBytes(additionalContents, contents[baseFileContents.Length..]));
+        pContents[contentsLength] = 0;
+
+        return new CXUnsavedFile() {
+            Filename = pFilename,
+            Contents = pContents,
+            Length = contentsLength
+        };
+    }
+
     public void Dispose()
     {
         if (Filename != null)

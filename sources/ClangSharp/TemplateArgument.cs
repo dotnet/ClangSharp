@@ -4,56 +4,43 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXTemplateArgumentKind;
 using static ClangSharp.Interop.CX_TemplateArgumentDependence;
+using static ClangSharp.Interop.CXTemplateArgumentKind;
 
 namespace ClangSharp;
 
 public sealed unsafe class TemplateArgument : IDisposable
 {
-    private readonly Lazy<ValueDecl> _asDecl;
-    private readonly Lazy<Expr> _asExpr;
-    private readonly Lazy<TemplateName> _asTemplate;
-    private readonly Lazy<TemplateName> _asTemplateOrTemplatePattern;
-    private readonly Lazy<Type> _asType;
-    private readonly Lazy<Type> _integralType;
-    private readonly Lazy<Type> _nonTypeTemplateArgumentType;
-    private readonly Lazy<Type> _nullPtrType;
-    private readonly Lazy<IReadOnlyList<TemplateArgument>> _packElements;
-    private readonly Lazy<TemplateArgument> _packExpansionPattern;
-    private readonly Lazy<Type> _paramTypeForDecl;
-    private readonly Lazy<TranslationUnit> _translationUnit;
+    private readonly ValueLazy<ValueDecl> _asDecl;
+    private readonly ValueLazy<Expr> _asExpr;
+    private readonly ValueLazy<TemplateName> _asTemplate;
+    private readonly ValueLazy<TemplateName> _asTemplateOrTemplatePattern;
+    private readonly ValueLazy<Type> _asType;
+    private readonly ValueLazy<Type> _integralType;
+    private readonly ValueLazy<Type> _nonTypeTemplateArgumentType;
+    private readonly ValueLazy<Type> _nullPtrType;
+    private readonly LazyList<TemplateArgument> _packElements;
+    private readonly ValueLazy<TemplateArgument> _packExpansionPattern;
+    private readonly ValueLazy<Type> _paramTypeForDecl;
+    private readonly ValueLazy<TranslationUnit> _translationUnit;
 
     internal TemplateArgument(CX_TemplateArgument handle)
     {
         Handle = handle;
 
-        _translationUnit = new Lazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
+        _translationUnit = new ValueLazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
 
-        _asDecl = new Lazy<ValueDecl>(() =>  _translationUnit.Value.GetOrCreate<ValueDecl>(Handle.AsDecl));
-        _asExpr = new Lazy<Expr>(() => _translationUnit.Value.GetOrCreate<Expr>(Handle.AsExpr));
-        _asTemplate = new Lazy<TemplateName>(() => _translationUnit.Value.GetOrCreate(Handle.AsTemplate));
-        _asTemplateOrTemplatePattern = new Lazy<TemplateName>(() => _translationUnit.Value.GetOrCreate(Handle.AsTemplateOrTemplatePattern));
-        _asType = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.AsType));
-        _integralType = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.IntegralType));
-        _nonTypeTemplateArgumentType = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.NonTypeTemplateArgumentType));
-        _nullPtrType = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.NullPtrType));
-        _packExpansionPattern = new Lazy<TemplateArgument>(() => _translationUnit.Value.GetOrCreate(Handle.PackExpansionPattern));
-
-        _packElements = new Lazy<IReadOnlyList<TemplateArgument>>(() => {
-            var numPackElements = Handle.NumPackElements;
-            var packElements = new List<TemplateArgument>(numPackElements);
-
-            for (var i = 0; i < numPackElements; i++)
-            {
-                var packElement = _translationUnit.Value.GetOrCreate(Handle.GetPackElement(unchecked((uint)i)));
-                packElements.Add(packElement);
-            }
-
-            return packElements;
-        });
-
-        _paramTypeForDecl = new Lazy<Type>(() => _translationUnit.Value.GetOrCreate<Type>(Handle.ParamTypeForDecl));
+        _asDecl = new ValueLazy<ValueDecl>(() =>  TranslationUnit.GetOrCreate<ValueDecl>(Handle.AsDecl));
+        _asExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.AsExpr));
+        _asTemplate = new ValueLazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.AsTemplate));
+        _asTemplateOrTemplatePattern = new ValueLazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.AsTemplateOrTemplatePattern));
+        _asType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.AsType));
+        _integralType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.IntegralType));
+        _nonTypeTemplateArgumentType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NonTypeTemplateArgumentType));
+        _nullPtrType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NullPtrType));
+        _packExpansionPattern = new ValueLazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.PackExpansionPattern));
+        _packElements = LazyList.Create<TemplateArgument>(Handle.NumPackElements, (i) => TranslationUnit.GetOrCreate(Handle.GetPackElement(unchecked((uint)i))));
+        _paramTypeForDecl = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ParamTypeForDecl));
     }
 
     ~TemplateArgument() => Dispose(isDisposing: false);
@@ -127,7 +114,7 @@ public sealed unsafe class TemplateArgument : IDisposable
 
     public Type NullPtrType => _nullPtrType.Value;
 
-    public IReadOnlyList<TemplateArgument> PackElements => _packElements.Value;
+    public IReadOnlyList<TemplateArgument> PackElements => _packElements;
 
     public TemplateArgument PackExpansionPattern => _packExpansionPattern.Value;
 

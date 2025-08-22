@@ -3,32 +3,20 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 
 namespace ClangSharp;
 
 public sealed class ObjCProtocolDecl : ObjCContainerDecl, IRedeclarable<ObjCProtocolDecl>
 {
-    private readonly Lazy<ObjCProtocolDecl> _definition;
-    private readonly Lazy<IReadOnlyList<ObjCProtocolDecl>> _protocols;
+    private readonly ValueLazy<ObjCProtocolDecl> _definition;
+    private readonly LazyList<ObjCProtocolDecl> _protocols;
 
     internal ObjCProtocolDecl(CXCursor handle) : base(handle, CXCursor_ObjCProtocolDecl, CX_DeclKind_ObjCProtocol)
     {
-        _definition = new Lazy<ObjCProtocolDecl>(() => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.Definition));
-
-        _protocols = new Lazy<IReadOnlyList<ObjCProtocolDecl>>(() => {
-            var numProtocols = Handle.NumProtocols;
-            var protocols = new List<ObjCProtocolDecl>(numProtocols);
-
-            for (var i = 0; i < numProtocols; i++)
-            {
-                var protocol = TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i)));
-                protocols.Add(protocol);
-            }
-
-            return protocols;
-        });
+        _definition = new ValueLazy<ObjCProtocolDecl>(() => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.Definition));
+        _protocols = LazyList.Create<ObjCProtocolDecl>(Handle.NumProtocols, (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i))));
     }
 
     public new ObjCProtocolDecl CanonicalDecl => (ObjCProtocolDecl)base.CanonicalDecl;
@@ -39,7 +27,7 @@ public sealed class ObjCProtocolDecl : ObjCContainerDecl, IRedeclarable<ObjCProt
 
     public string ObjCRuntimeNameAsString => Handle.Name.CString;
 
-    public IReadOnlyList<ObjCProtocolDecl> Protocols => _protocols.Value;
+    public IReadOnlyList<ObjCProtocolDecl> Protocols => _protocols;
 
     public uint ProtocolSize => unchecked((uint)Handle.NumProtocols);
 

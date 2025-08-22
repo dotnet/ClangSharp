@@ -11,12 +11,12 @@ namespace ClangSharp;
 
 public sealed class UnresolvedMemberExpr : OverloadExpr
 {
-    private readonly Lazy<Type> _baseType;
+    private readonly ValueLazy<Type> _baseType;
 
     internal UnresolvedMemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_UnresolvedMemberExpr)
     {
         Debug.Assert(NumChildren is 0 or 1);
-        _baseType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _baseType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
     public Expr? Base => (Expr?)Children.SingleOrDefault();

@@ -17,7 +17,7 @@
 
   <!-- Settings that are only set for CI builds -->
   <PropertyGroup Condition="'$(GITHUB_RUN_ID)' != ''">
-    <PackageVersion Condition="'$(EXCLUDE_RUN_ID_FROM_PACKAGE)' != 'true'">$(Version).$(GITHUB_RUN_ID)</PackageVersion>
+    <PackageVersion Condition="'$(PACKAGE_PUBLISH_MODE)' == ''">$(Version).$(GITHUB_RUN_ID)</PackageVersion>
   </PropertyGroup>
 
   <!-- Settings that are only set for executables -->
@@ -31,10 +31,9 @@
     <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
-  <!-- Settings that allow testing and packing to work by default -->
-  <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
+  <!-- Settings that allow testing to work by default -->
+  <PropertyGroup Condition="'$(SKIP_USE_CURRENT_RUNTIME)' == ''">
     <RuntimeIdentifier>$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
-    <RuntimeIdentifier Condition="'$(OVERRIDE_RUNTIME_IDENTIFIER)' != ''">$(OVERRIDE_RUNTIME_IDENTIFIER)</RuntimeIdentifier>
   </PropertyGroup>
 
 </Project>

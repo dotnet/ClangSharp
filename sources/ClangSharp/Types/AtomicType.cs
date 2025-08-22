@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class AtomicType : Type
 {
-    private readonly Lazy<Type> _valueType;
+    private readonly ValueLazy<Type> _valueType;
 
     internal AtomicType(CXType handle) : base(handle, CXType_Atomic, CX_TypeClass_Atomic)
     {
-        _valueType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ValueType));
+        _valueType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ValueType));
     }
 
     public Type ValueType => _valueType.Value;

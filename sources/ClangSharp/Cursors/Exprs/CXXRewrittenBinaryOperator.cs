@@ -10,15 +10,15 @@ namespace ClangSharp;
 
 public sealed class CXXRewrittenBinaryOperator : Expr
 {
-    private readonly Lazy<Expr> _lhs;
-    private readonly Lazy<Expr> _rhs;
+    private readonly ValueLazy<Expr> _lhs;
+    private readonly ValueLazy<Expr> _rhs;
 
     internal CXXRewrittenBinaryOperator(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXRewrittenBinaryOperator)
     {
         Debug.Assert(NumChildren is 1);
 
-        _lhs = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.LhsExpr));
-        _rhs = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.RhsExpr));
+        _lhs = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.LhsExpr));
+        _rhs = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.RhsExpr));
     }
 
     public Expr LHS => _lhs.Value;

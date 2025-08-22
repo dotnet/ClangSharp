@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class DependentSizedExtVectorType : Type
 {
-    private readonly Lazy<Type> _elementType;
-    private readonly Lazy<Expr> _sizeExpr;
+    private readonly ValueLazy<Type> _elementType;
+    private readonly ValueLazy<Expr> _sizeExpr;
 
     internal DependentSizedExtVectorType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentSizedExtVector)
     {
-        _elementType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
-        _sizeExpr = new Lazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SizeExpr));
+        _elementType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
+        _sizeExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SizeExpr));
     }
 
     public Type ElementType => _elementType.Value;

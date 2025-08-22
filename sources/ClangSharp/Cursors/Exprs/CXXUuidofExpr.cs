@@ -11,15 +11,15 @@ namespace ClangSharp;
 
 public sealed class CXXUuidofExpr : Expr
 {
-    private readonly Lazy<Type> _typeOperand;
-    private readonly Lazy<MSGuidDecl> _guidDecl;
+    private readonly ValueLazy<Type> _typeOperand;
+    private readonly ValueLazy<MSGuidDecl> _guidDecl;
 
     internal CXXUuidofExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXUuidofExpr)
     {
         Debug.Assert(NumChildren is 0 or 1);
 
-        _typeOperand = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        _guidDecl = new Lazy<MSGuidDecl>(() => TranslationUnit.GetOrCreate<MSGuidDecl>(Handle.Referenced));
+        _typeOperand = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _guidDecl = new ValueLazy<MSGuidDecl>(() => TranslationUnit.GetOrCreate<MSGuidDecl>(Handle.Referenced));
     }
 
     public Expr? ExprOperand => (Expr?)Children.SingleOrDefault();

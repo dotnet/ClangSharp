@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class UnresolvedUsingType : Type
 {
-    private readonly Lazy<UnresolvedUsingTypenameDecl> _decl;
+    private readonly ValueLazy<UnresolvedUsingTypenameDecl> _decl;
 
     internal UnresolvedUsingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_UnresolvedUsing)
     {
-        _decl = new Lazy<UnresolvedUsingTypenameDecl>(() => TranslationUnit.GetOrCreate<UnresolvedUsingTypenameDecl>(Handle.Declaration));
+        _decl = new ValueLazy<UnresolvedUsingTypenameDecl>(() => TranslationUnit.GetOrCreate<UnresolvedUsingTypenameDecl>(Handle.Declaration));
     }
 
     public UnresolvedUsingTypenameDecl Decl => _decl.Value;

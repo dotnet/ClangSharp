@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class ObjCEncodeExpr : Expr
 {
-    private readonly Lazy<Type> _encodedType;
+    private readonly ValueLazy<Type> _encodedType;
 
     internal ObjCEncodeExpr(CXCursor handle) : base(handle, CXCursor_ObjCEncodeExpr, CX_StmtClass_ObjCEncodeExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _encodedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _encodedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
     public Type EncodedType => _encodedType.Value;

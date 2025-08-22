@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class CXXPseudoDestructorExpr : Expr
 {
-    private readonly Lazy<Type> _destroyedType;
+    private readonly ValueLazy<Type> _destroyedType;
 
     internal CXXPseudoDestructorExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_CXXPseudoDestructorExpr)
     {
         Debug.Assert(NumChildren is 1);
-        _destroyedType = new Lazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _destroyedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
     }
 
     public Expr Base => (Expr)Children[0];

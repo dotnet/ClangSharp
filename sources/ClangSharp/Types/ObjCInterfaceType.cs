@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class ObjCInterfaceType : ObjCObjectType
 {
-    private readonly Lazy<ObjCInterfaceDecl> _decl;
+    private readonly ValueLazy<ObjCInterfaceDecl> _decl;
 
     internal ObjCInterfaceType(CXType handle) : base(handle, CXType_ObjCObject, CX_TypeClass_ObjCInterface)
     {
-        _decl = new Lazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.Declaration));
+        _decl = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.Declaration));
     }
 
     public ObjCInterfaceDecl Decl => _decl.Value;

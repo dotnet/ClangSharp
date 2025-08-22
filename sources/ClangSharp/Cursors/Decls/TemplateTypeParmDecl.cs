@@ -3,38 +3,27 @@
 using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CX_DeclKind;
+using static ClangSharp.Interop.CXCursorKind;
 using static ClangSharp.Interop.CXTypeKind;
 
 namespace ClangSharp;
 
 public sealed class TemplateTypeParmDecl : TypeDecl
 {
-    private readonly Lazy<IReadOnlyList<Expr>> _associatedConstraints;
-    private readonly Lazy<Type?> _defaultArgument;
+    private readonly LazyList<Expr> _associatedConstraints;
+    private readonly ValueLazy<Type?> _defaultArgument;
 
     internal TemplateTypeParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTypeParameter, CX_DeclKind_TemplateTypeParm)
     {
-        _associatedConstraints = new Lazy<IReadOnlyList<Expr>>(() => {
-            var associatedConstraintCount = Handle.NumAssociatedConstraints;
-            var associatedConstraints = new List<Expr>(associatedConstraintCount);
-
-            for (var i = 0; i < associatedConstraintCount; i++)
-            {
-                var parameter = TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i)));
-                associatedConstraints.Add(parameter);
-            }
-
-            return associatedConstraints;
-        });
-        _defaultArgument = new Lazy<Type?>(() => {
-            CXType defaultArgType = Handle.DefaultArgType;
+        _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
+        _defaultArgument = new ValueLazy<Type?>(() => {
+            var defaultArgType = Handle.DefaultArgType;
             return defaultArgType.kind == CXType_Invalid ? null : TranslationUnit.GetOrCreate<Type>(defaultArgType);
         });
     }
 
-    public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints.Value;
+    public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints;
 
     public Type? DefaultArgument => _defaultArgument.Value;
 

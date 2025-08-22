@@ -9,11 +9,11 @@ namespace ClangSharp;
 
 public sealed class ObjCCategoryImplDecl : ObjCImplDecl
 {
-    private readonly Lazy<ObjCCategoryDecl> _categoryDecl;
+    private readonly ValueLazy<ObjCCategoryDecl> _categoryDecl;
 
     internal ObjCCategoryImplDecl(CXCursor handle) : base(handle, CXCursor_ObjCCategoryImplDecl, CX_DeclKind_ObjCCategoryImpl)
     {
-        _categoryDecl = new Lazy<ObjCCategoryDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryDecl>(Handle.GetSubDecl(1)));
+        _categoryDecl = new ValueLazy<ObjCCategoryDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryDecl>(Handle.GetSubDecl(1)));
     }
 
     public ObjCCategoryDecl CategoryDecl => _categoryDecl.Value;

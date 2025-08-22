@@ -11,8 +11,8 @@ namespace ClangSharp;
 
 public class CastExpr : Expr
 {
-    private readonly Lazy<IReadOnlyList<CXXBaseSpecifier>> _path;
-    private readonly Lazy<FieldDecl> _targetUnionField;
+    private readonly LazyList<CXXBaseSpecifier> _path;
+    private readonly ValueLazy<FieldDecl> _targetUnionField;
 
     private protected CastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
@@ -23,19 +23,8 @@ public class CastExpr : Expr
 
         Debug.Assert(NumChildren is 1);
 
-        _path = new Lazy<IReadOnlyList<CXXBaseSpecifier>>(() => {
-            var pathSize = Handle.NumArguments;
-            var path = new List<CXXBaseSpecifier>(pathSize);
-
-            for (var i = 0; i < pathSize; i++)
-            {
-                var item = TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetArgument(unchecked((uint)i)));
-                path.Add(item);
-            }
-
-            return path;
-        });
-        _targetUnionField = new Lazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.TargetUnionField));
+        _path = LazyList.Create<CXXBaseSpecifier>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetArgument(unchecked((uint)i))));
+        _targetUnionField = new ValueLazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.TargetUnionField));
     }
 
     public CX_CastKind CastKind => Handle.CastKind;
@@ -72,7 +61,7 @@ public class CastExpr : Expr
 
     public bool PathEmpty => PathSize == 0;
 
-    public IReadOnlyList<CXXBaseSpecifier> Path => _path.Value;
+    public IReadOnlyList<CXXBaseSpecifier> Path => _path;
 
     public uint PathSize => unchecked((uint)Handle.NumArguments);
 

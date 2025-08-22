@@ -43,12 +43,12 @@
     <Company>.NET Foundation</Company>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_RUN_ID)' != ''">true</ContinuousIntegrationBuild>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <PackageOutputPath>$(BaseArtifactsPath)pkg/$(Configuration)/</PackageOutputPath>
+    <PackageOutputPath>$(BaseArtifactsPath)pkg/$(Configuration)/$(PACKAGE_PUBLISH_MODE)</PackageOutputPath>
     <PackageValidationBaselineVersion>17.0.0</PackageValidationBaselineVersion>
     <Product>ClangSharp</Product>
     <RootNamespace>ClangSharp</RootNamespace>
-    <VersionPrefix>20.1.2.1</VersionPrefix>
-    <VersionSuffix Condition="'$(EXCLUDE_SUFFIX_FROM_VERSION)' != 'true'">rc1</VersionSuffix>
+    <VersionPrefix>20.1.2.2</VersionPrefix>
+    <VersionSuffix Condition="'$(PACKAGE_PUBLISH_MODE)' != 'stable'">rc1</VersionSuffix>
     <VersionSuffix Condition="'$(GITHUB_EVENT_NAME)' == 'pull_request'">pr</VersionSuffix>
   </PropertyGroup>
 

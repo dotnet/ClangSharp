@@ -1,31 +1,19 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System;
 using System.Collections.Generic;
 using ClangSharp.Interop;
-using static ClangSharp.Interop.CXTypeKind;
 using static ClangSharp.Interop.CX_TypeClass;
+using static ClangSharp.Interop.CXTypeKind;
 
 namespace ClangSharp;
 
 public sealed class FunctionProtoType : FunctionType
 {
-    private readonly Lazy<IReadOnlyList<Type>> _paramTypes;
+    private readonly LazyList<Type> _paramTypes;
 
     internal FunctionProtoType(CXType handle) : base(handle, CXType_FunctionProto, CX_TypeClass_FunctionProto)
     {
-        _paramTypes = new Lazy<IReadOnlyList<Type>>(() => {
-            var paramTypeCount = Handle.NumArgTypes;
-            var paramTypes = new List<Type>(paramTypeCount);
-
-            for (var i = 0; i < paramTypeCount; i++)
-            {
-                var paramType = TranslationUnit.GetOrCreate<Type>(Handle.GetArgType(unchecked((uint)i)));
-                paramTypes.Add(paramType);
-            }
-
-            return paramTypes;
-        });
+        _paramTypes = LazyList.Create<Type>(Handle.NumArgTypes, (i) => TranslationUnit.GetOrCreate<Type>(Handle.GetArgType(unchecked((uint)i))));
     }
 
     public CXCursor_ExceptionSpecificationKind ExceptionSpecType => Handle.ExceptionSpecificationType;
@@ -34,7 +22,7 @@ public sealed class FunctionProtoType : FunctionType
 
     public uint NumParams => (uint)Handle.NumArgTypes;
 
-    public IReadOnlyList<Type> ParamTypes => _paramTypes.Value;
+    public IReadOnlyList<Type> ParamTypes => _paramTypes;
 
     public CXRefQualifierKind RefQualifier => Handle.CXXRefQualifier;
 }

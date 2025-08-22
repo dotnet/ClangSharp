@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class NamespaceAliasDecl : NamedDecl, IRedeclarable<NamespaceDecl>
 {
-    private readonly Lazy<NamedDecl> _aliasedNamespace;
-    private readonly Lazy<NamespaceDecl> _namespace;
+    private readonly ValueLazy<NamedDecl> _aliasedNamespace;
+    private readonly ValueLazy<NamespaceDecl> _namespace;
 
     internal NamespaceAliasDecl(CXCursor handle) : base(handle, CXCursor_NamespaceAlias, CX_DeclKind_NamespaceAlias)
     {
-        _aliasedNamespace = new Lazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetSubDecl(0)));
-        _namespace = new Lazy<NamespaceDecl>(() => TranslationUnit.GetOrCreate<NamespaceDecl>(Handle.GetSubDecl(1)));
+        _aliasedNamespace = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetSubDecl(0)));
+        _namespace = new ValueLazy<NamespaceDecl>(() => TranslationUnit.GetOrCreate<NamespaceDecl>(Handle.GetSubDecl(1)));
     }
 
     public NamedDecl AliasedNamespace => _aliasedNamespace.Value;

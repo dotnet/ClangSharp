@@ -9,13 +9,13 @@ namespace ClangSharp;
 
 public sealed class IndirectFieldDecl : ValueDecl, IMergeable<IndirectFieldDecl>
 {
-    private readonly Lazy<FieldDecl> _anonField;
-    private readonly Lazy<VarDecl> _varDecl;
+    private readonly ValueLazy<FieldDecl> _anonField;
+    private readonly ValueLazy<VarDecl> _varDecl;
 
     internal IndirectFieldDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_IndirectField)
     {
-        _anonField = new Lazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.GetSubDecl(0)));
-        _varDecl = new Lazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.GetSubDecl(1)));
+        _anonField = new ValueLazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.GetSubDecl(0)));
+        _varDecl = new ValueLazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.GetSubDecl(1)));
     }
 
     public FieldDecl AnonField => _anonField.Value;

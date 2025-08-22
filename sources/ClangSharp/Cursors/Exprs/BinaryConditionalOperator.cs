@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class BinaryConditionalOperator : AbstractConditionalOperator
 {
-    private readonly Lazy<OpaqueValueExpr> _opaqueValue;
+    private readonly ValueLazy<OpaqueValueExpr> _opaqueValue;
 
     internal BinaryConditionalOperator(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_BinaryConditionalOperator)
     {
         Debug.Assert(NumChildren is 4);
-        _opaqueValue = new Lazy<OpaqueValueExpr>(() => TranslationUnit.GetOrCreate<OpaqueValueExpr>(Handle.OpaqueValue));
+        _opaqueValue = new ValueLazy<OpaqueValueExpr>(() => TranslationUnit.GetOrCreate<OpaqueValueExpr>(Handle.OpaqueValue));
     }
 
     public Expr Common => (Expr)Children[0];

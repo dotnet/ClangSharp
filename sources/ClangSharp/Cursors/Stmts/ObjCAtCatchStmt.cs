@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class ObjCAtCatchStmt : Stmt
 {
-    private readonly Lazy<VarDecl?> _catchParamDecl;
+    private readonly ValueLazy<VarDecl?> _catchParamDecl;
 
     internal ObjCAtCatchStmt(CXCursor handle) : base(handle, CXCursor_ObjCAtCatchStmt, CX_StmtClass_ObjCAtCatchStmt)
     {
         Debug.Assert(NumChildren is 1);
-        _catchParamDecl = new Lazy<VarDecl?>(() => !Handle.Referenced.IsNull ? TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced) : null);
+        _catchParamDecl = new ValueLazy<VarDecl?>(() => !Handle.Referenced.IsNull ? TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced) : null);
     }
 
     public Stmt CatchBody => Children[0];
