@@ -453,8 +453,15 @@ const int ShiftSignedLong = 1 << SignedLong;
     }
 
     [Test]
-    public Task BitfieldEnumPropertySmallBackingTypeTest()
+    [Platform("unix")]
+    public Task BitfieldEnumPropertySmallBackingTypeTestUnix()
     {
+        // This test is here mainly to ensure that the sbyte case gets coverage
+        if (RuntimeInformation.ProcessArchitecture != Architecture.X64)
+        {
+            Assert.Ignore("This test is only valid for Unix x64");
+        }
+
         var inputContents = @"
 typedef struct Bitfield {
     unsigned char bits1 : 8;
@@ -518,12 +525,19 @@ typedef struct Bitfield {
 }
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
+    [Platform("unix")]
     public Task BitfieldEnumPropertyBackingTypeTestUnix()
     {
+        // This test is here mainly to ensure that the sbyte case gets coverage
+        if (RuntimeInformation.ProcessArchitecture != Architecture.X64)
+        {
+            Assert.Ignore("This test is only valid for Unix x64");
+        }
+
         var inputContents = @"
 typedef struct IntBitfield {
     int bits : 8;
