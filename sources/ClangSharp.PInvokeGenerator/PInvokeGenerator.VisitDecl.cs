@@ -2721,7 +2721,7 @@ public partial class PInvokeGenerator
             var isSmallType = fieldDecl.Type.Handle.SizeOf < 4;
             var isSmallTypeBacking = currentSize < 4;
 
-            // Check if input/output types mismatch
+            // Check if field/backing types match
             var isTypeMismatch = type != typeBacking;
 
             // Signed types are sign extended when shifted
