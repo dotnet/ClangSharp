@@ -654,8 +654,8 @@ typedef struct UIntBitfield {
     }
 
     [Test]
-    [Platform("unix")] // This test has slight platform-specific differences
-    public Task BitfieldEnumPropertyTypeCastTest()
+    [Platform("unix")]
+    public Task BitfieldEnumPropertyTypeCastTestUnix()
     {
         var inputContents = @"
 typedef enum Flags {
@@ -712,6 +712,66 @@ typedef struct Bitfield {
 ";
 
         return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("win")] // This test has slight platform-specific differences
+    public Task BitfieldEnumPropertyTypeCastTestWindows()
+    {
+        var inputContents = @"
+typedef enum Flags {
+    Member = 0x7FFFFFFF
+} Flags;
+
+typedef struct Bitfield {
+    unsigned int bits : 8;
+    Flags flags : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public enum Flags
+    {
+        Member = 0x7FFFFFFF,
+    }
+
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""Flags : 8"")]
+        public Flags flags
+        {
+            readonly get
+            {
+                return (Flags)((_bitfield << 16) >> 24);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFF) << 8);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
     [Test]
