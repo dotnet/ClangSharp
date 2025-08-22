@@ -654,6 +654,7 @@ typedef struct UIntBitfield {
     }
 
     [Test]
+    [Platform("unix")] // This test has slight platform-specific differences
     public Task BitfieldEnumPropertyTypeCastTest()
     {
         var inputContents = @"
@@ -710,12 +711,74 @@ typedef struct Bitfield {
 }
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 
+    [Test]
+    [Platform("unix")] // This test has slight platform-specific differences
+    public Task BitfieldEnumTypeDefPropertyTypeCast()
+    {
+        var inputContents = @"
+typedef enum FlagBits {
+    Member = 0x7FFFFFFF
+} FlagBits;
+typedef unsigned int Flags;
+
+typedef struct Bitfield {
+    unsigned int bits : 8;
+    Flags flags : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    [NativeTypeName(""unsigned int"")]
+    public enum FlagBits : uint
+    {
+        Member = 0x7FFFFFFF,
+    }
+
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""Flags : 8"")]
+        public uint flags
+        {
+            readonly get
+            {
+                return (_bitfield >> 8) & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | ((value & 0xFFu) << 8);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
 
     [Test]
-    public Task BitfieldEnumPropertyTypeCastWithRemappingTest()
+    [Platform("unix")] // This test has slight platform-specific differences
+    public Task BitfieldEnumTypeDefPropertyTypeCastWithRemappingTest()
     {
         var inputContents = @"
 typedef enum FlagBits {
@@ -772,7 +835,7 @@ typedef struct Bitfield {
 }
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents,
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents,
             commandLineArgs: DefaultCClangCommandLineArgs,
             language: "c",
             languageStandard: DefaultCStandard,
@@ -783,7 +846,8 @@ typedef struct Bitfield {
     }
 
     [Test]
-    public Task BitfieldEnumPropertyTypeCastWithSelfRemappingTest()
+    [Platform("unix")] // This test has slight platform-specific differences
+    public Task BitfieldEnumTypeDefPropertyTypeCastWithSelfRemappingTest()
     {
         var inputContents = @"
 typedef unsigned int Flags;
@@ -831,7 +895,7 @@ typedef struct Bitfield {
 }
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents,
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents,
             commandLineArgs: DefaultCClangCommandLineArgs,
             language: "c",
             languageStandard: DefaultCStandard,
