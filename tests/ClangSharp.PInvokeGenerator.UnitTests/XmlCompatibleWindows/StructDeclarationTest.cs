@@ -1292,7 +1292,7 @@ struct MyStruct
       <field name=""w"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct* pField = &amp;Anonymous.Anonymous_1)
+          <code>fixed (_Anonymous_e__Struct._Anonymous1_e__Struct* pField = &amp;Anonymous.Anonymous1)
     {
         return ref pField-&gt;w;
     }</code>
@@ -1301,29 +1301,29 @@ struct MyStruct
       <field name=""o0_b0_16"" access=""public"">
         <type>int</type>
         <get>
-          <code>return Anonymous.Anonymous_1.o0_b0_16;</code>
+          <code>return Anonymous.Anonymous1.o0_b0_16;</code>
         </get>
         <set>
-          <code>Anonymous.Anonymous_1.o0_b0_16 = value;</code>
+          <code>Anonymous.Anonymous1.o0_b0_16 = value;</code>
         </set>
       </field>
       <field name=""o0_b16_4"" access=""public"">
         <type>int</type>
         <get>
-          <code>return Anonymous.Anonymous_1.o0_b16_4;</code>
+          <code>return Anonymous.Anonymous1.o0_b16_4;</code>
         </get>
         <set>
-          <code>Anonymous.Anonymous_1.o0_b16_4 = value;</code>
+          <code>Anonymous.Anonymous1.o0_b16_4 = value;</code>
         </set>
       </field>
       <struct name=""_Anonymous_e__Struct"" access=""public"" unsafe=""true"">
         <field name=""z"" access=""public"">
           <type>int</type>
         </field>
-        <field name=""Anonymous_1"" access=""public"">
-          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous_1_e__Struct</type>
+        <field name=""Anonymous1"" access=""public"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous1_e__Struct</type>
         </field>
-        <struct name=""_Anonymous_1_e__Struct"" access=""public"">
+        <struct name=""_Anonymous1_e__Struct"" access=""public"">
           <field name=""w"" access=""public"">
             <type>int</type>
           </field>
@@ -2005,45 +2005,45 @@ struct MyStruct3
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""_MyStruct"" access=""public"" unsafe=""true"">
-      <field name=""Anonymous1"" access=""public"">
-        <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C5"">_Anonymous1_e__Struct</type>
+      <field name=""Anonymous"" access=""public"">
+        <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C5"">_Anonymous_e__Struct</type>
       </field>
       <field name=""MyArray"" access=""public"">
-        <type native=""struct (anonymous struct at ClangUnsavedFile.h:4:5)[2]"" count=""2"" fixed=""_MyArray_e__FixedBuffer"">_Anonymous2_e__Struct</type>
+        <type native=""struct (anonymous struct at ClangUnsavedFile.h:4:5)[2]"" count=""2"" fixed=""_MyArray_e__FixedBuffer"">_MyArray_e__Struct</type>
       </field>
       <field name=""First"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>fixed (_Anonymous1_e__Struct* pField = &amp;Anonymous1)
+          <code>fixed (_Anonymous_e__Struct* pField = &amp;Anonymous)
     {
         return ref pField-&gt;First;
     }</code>
         </get>
       </field>
-      <struct name=""_Anonymous1_e__Struct"" access=""public"">
+      <struct name=""_Anonymous_e__Struct"" access=""public"">
         <field name=""First"" access=""public"">
           <type>int</type>
         </field>
       </struct>
-      <struct name=""_Anonymous2_e__Struct"" access=""public"">
+      <struct name=""_MyArray_e__Struct"" access=""public"">
         <field name=""Second"" access=""public"">
           <type>int</type>
         </field>
       </struct>
       <struct name=""_MyArray_e__FixedBuffer"" access=""public"">
         <field name=""e0"" access=""public"">
-          <type>_Anonymous2_e__Struct</type>
+          <type>_MyArray_e__Struct</type>
         </field>
         <field name=""e1"" access=""public"">
-          <type>_Anonymous2_e__Struct</type>
+          <type>_MyArray_e__Struct</type>
         </field>
         <indexer access=""public"" unsafe=""true"">
-          <type>ref _Anonymous2_e__Struct</type>
+          <type>ref _MyArray_e__Struct</type>
           <param name=""index"">
             <type>int</type>
           </param>
           <get>
-            <code>fixed (_Anonymous2_e__Struct* pThis = &amp;e0)
+            <code>fixed (_MyArray_e__Struct* pThis = &amp;e0)
     {
         return ref pThis[index];
     }</code>
@@ -2078,7 +2078,7 @@ struct MyStruct3
       <field name=""Value1"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct._Anonymous1_2_e__Struct* pField = &amp;Anonymous.Anonymous_1.Anonymous1_2)
+          <code>fixed (_Anonymous_e__Struct._Anonymous1_e__Struct._Anonymous2_e__Struct* pField = &amp;Anonymous.Anonymous1.Anonymous2)
     {
         return ref pField-&gt;Value1;
     }</code>
@@ -2087,29 +2087,29 @@ struct MyStruct3
       <field name=""Value2"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct._Anonymous2_2_e__Struct* pField = &amp;Anonymous.Anonymous_1.Anonymous2_2)
+          <code>fixed (_Anonymous_e__Struct._Anonymous1_e__Struct._Anonymous3_e__Struct* pField = &amp;Anonymous.Anonymous1.Anonymous3)
     {
         return ref pField-&gt;Value2;
     }</code>
         </get>
       </field>
       <struct name=""_Anonymous_e__Struct"" access=""public"" unsafe=""true"">
-        <field name=""Anonymous_1"" access=""public"">
-          <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C14"">_Anonymous_1_e__Struct</type>
+        <field name=""Anonymous1"" access=""public"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C14"">_Anonymous1_e__Struct</type>
         </field>
-        <struct name=""_Anonymous_1_e__Struct"" access=""public"" unsafe=""true"">
-          <field name=""Anonymous1_2"" access=""public"">
-            <type native=""__AnonymousRecord_ClangUnsavedFile_L4_C9"">_Anonymous1_2_e__Struct</type>
+        <struct name=""_Anonymous1_e__Struct"" access=""public"" unsafe=""true"">
+          <field name=""Anonymous2"" access=""public"">
+            <type native=""__AnonymousRecord_ClangUnsavedFile_L4_C9"">_Anonymous2_e__Struct</type>
           </field>
-          <field name=""Anonymous2_2"" access=""public"">
-            <type native=""__AnonymousRecord_ClangUnsavedFile_L5_C9"">_Anonymous2_2_e__Struct</type>
+          <field name=""Anonymous3"" access=""public"">
+            <type native=""__AnonymousRecord_ClangUnsavedFile_L5_C9"">_Anonymous3_e__Struct</type>
           </field>
-          <struct name=""_Anonymous1_2_e__Struct"" access=""public"">
+          <struct name=""_Anonymous2_e__Struct"" access=""public"">
             <field name=""Value1"" access=""public"">
               <type>int</type>
             </field>
           </struct>
-          <struct name=""_Anonymous2_2_e__Struct"" access=""public"">
+          <struct name=""_Anonymous3_e__Struct"" access=""public"">
             <field name=""Value2"" access=""public"">
               <type>int</type>
             </field>

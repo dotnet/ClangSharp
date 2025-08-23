@@ -1161,7 +1161,7 @@ namespace ClangSharp.Test
         {{
             get
             {{
-                fixed (_Anonymous_e__Struct._Anonymous2_1_e__Struct* pField = &Anonymous.Anonymous2_1)
+                fixed (_Anonymous_e__Struct._Anonymous1_e__Struct* pField = &Anonymous.Anonymous1)
                 {{
                     return ref pField->value1;
                 }}
@@ -1172,7 +1172,7 @@ namespace ClangSharp.Test
         {{
             get
             {{
-                fixed (_Anonymous_e__Struct._Anonymous2_1_e__Struct._Anonymous_2_e__Struct* pField = &Anonymous.Anonymous2_1.Anonymous_2)
+                fixed (_Anonymous_e__Struct._Anonymous1_e__Struct._Anonymous_e__Struct* pField = &Anonymous.Anonymous1.Anonymous)
                 {{
                     return ref pField->value;
                 }}
@@ -1183,7 +1183,7 @@ namespace ClangSharp.Test
         {{
             get
             {{
-                fixed (_Anonymous_e__Struct._Anonymous3_1_e__Union* pField = &Anonymous.Anonymous3_1)
+                fixed (_Anonymous_e__Struct._Anonymous2_e__Union* pField = &Anonymous.Anonymous2)
                 {{
                     return ref pField->value2;
                 }}
@@ -1231,10 +1231,10 @@ namespace ClangSharp.Test
             public _w_e__Struct w;
 
             [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L19_C9"")]
-            public _Anonymous2_1_e__Struct Anonymous2_1;
+            public _Anonymous1_e__Struct Anonymous1;
 
             [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L29_C9"")]
-            public _Anonymous3_1_e__Union Anonymous3_1;
+            public _Anonymous2_e__Union Anonymous2;
 
             public MyUnion u;
 
@@ -1249,21 +1249,21 @@ namespace ClangSharp.Test
                 public {expectedManagedType} value;
             }}
 
-            public unsafe partial struct _Anonymous2_1_e__Struct
+            public unsafe partial struct _Anonymous1_e__Struct
             {{
                 public {expectedManagedType} value1;
 
                 [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L23_C13"")]
-                public _Anonymous_2_e__Struct Anonymous_2;
+                public _Anonymous_e__Struct Anonymous;
 
-                public partial struct _Anonymous_2_e__Struct
+                public partial struct _Anonymous_e__Struct
                 {{
                     public {expectedManagedType} value;
                 }}
             }}
 
             [StructLayout(LayoutKind.Explicit)]
-            public partial struct _Anonymous3_1_e__Union
+            public partial struct _Anonymous2_e__Union
             {{
                 [FieldOffset(0)]
                 public {expectedManagedType} value2;
@@ -1342,7 +1342,7 @@ namespace ClangSharp.Test
         {
             get
             {
-                fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct* pField = &Anonymous.Anonymous_1)
+                fixed (_Anonymous_e__Struct._Anonymous1_e__Struct* pField = &Anonymous.Anonymous1)
                 {
                     return ref pField->w;
                 }
@@ -1353,12 +1353,12 @@ namespace ClangSharp.Test
         {
             get
             {
-                return Anonymous.Anonymous_1.o0_b0_16;
+                return Anonymous.Anonymous1.o0_b0_16;
             }
 
             set
             {
-                Anonymous.Anonymous_1.o0_b0_16 = value;
+                Anonymous.Anonymous1.o0_b0_16 = value;
             }
         }
 
@@ -1366,12 +1366,12 @@ namespace ClangSharp.Test
         {
             get
             {
-                return Anonymous.Anonymous_1.o0_b16_4;
+                return Anonymous.Anonymous1.o0_b16_4;
             }
 
             set
             {
-                Anonymous.Anonymous_1.o0_b16_4 = value;
+                Anonymous.Anonymous1.o0_b16_4 = value;
             }
         }
 
@@ -1380,9 +1380,9 @@ namespace ClangSharp.Test
             public int z;
 
             [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L10_C9"")]
-            public _Anonymous_1_e__Struct Anonymous_1;
+            public _Anonymous1_e__Struct Anonymous1;
 
-            public partial struct _Anonymous_1_e__Struct
+            public partial struct _Anonymous1_e__Struct
             {
                 public int w;
 
@@ -2032,7 +2032,7 @@ namespace ClangSharp.Test
     public unsafe partial struct _MyStruct
     {
         [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L3_C5"")]
-        public _Anonymous1_e__Struct Anonymous1;
+        public _Anonymous_e__Struct Anonymous;
 
         [NativeTypeName(""struct (anonymous struct at ClangUnsavedFile.h:4:5)[2]"")]
         public _MyArray_e__FixedBuffer MyArray;
@@ -2041,33 +2041,33 @@ namespace ClangSharp.Test
         {
             get
             {
-                fixed (_Anonymous1_e__Struct* pField = &Anonymous1)
+                fixed (_Anonymous_e__Struct* pField = &Anonymous)
                 {
                     return ref pField->First;
                 }
             }
         }
 
-        public partial struct _Anonymous1_e__Struct
+        public partial struct _Anonymous_e__Struct
         {
             public int First;
         }
 
-        public partial struct _Anonymous2_e__Struct
+        public partial struct _MyArray_e__Struct
         {
             public int Second;
         }
 
         public partial struct _MyArray_e__FixedBuffer
         {
-            public _Anonymous2_e__Struct e0;
-            public _Anonymous2_e__Struct e1;
+            public _MyArray_e__Struct e0;
+            public _MyArray_e__Struct e1;
 
-            public unsafe ref _Anonymous2_e__Struct this[int index]
+            public unsafe ref _MyArray_e__Struct this[int index]
             {
                 get
                 {
-                    fixed (_Anonymous2_e__Struct* pThis = &e0)
+                    fixed (_MyArray_e__Struct* pThis = &e0)
                     {
                         return ref pThis[index];
                     }
@@ -2102,7 +2102,7 @@ namespace ClangSharp.Test
         {
             get
             {
-                fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct._Anonymous1_2_e__Struct* pField = &Anonymous.Anonymous_1.Anonymous1_2)
+                fixed (_Anonymous_e__Struct._Anonymous1_e__Struct._Anonymous2_e__Struct* pField = &Anonymous.Anonymous1.Anonymous2)
                 {
                     return ref pField->Value1;
                 }
@@ -2113,7 +2113,7 @@ namespace ClangSharp.Test
         {
             get
             {
-                fixed (_Anonymous_e__Struct._Anonymous_1_e__Struct._Anonymous2_2_e__Struct* pField = &Anonymous.Anonymous_1.Anonymous2_2)
+                fixed (_Anonymous_e__Struct._Anonymous1_e__Struct._Anonymous3_e__Struct* pField = &Anonymous.Anonymous1.Anonymous3)
                 {
                     return ref pField->Value2;
                 }
@@ -2123,22 +2123,22 @@ namespace ClangSharp.Test
         public unsafe partial struct _Anonymous_e__Struct
         {
             [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L3_C14"")]
-            public _Anonymous_1_e__Struct Anonymous_1;
+            public _Anonymous1_e__Struct Anonymous1;
 
-            public unsafe partial struct _Anonymous_1_e__Struct
+            public unsafe partial struct _Anonymous1_e__Struct
             {
                 [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L4_C9"")]
-                public _Anonymous1_2_e__Struct Anonymous1_2;
+                public _Anonymous2_e__Struct Anonymous2;
 
                 [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L5_C9"")]
-                public _Anonymous2_2_e__Struct Anonymous2_2;
+                public _Anonymous3_e__Struct Anonymous3;
 
-                public partial struct _Anonymous1_2_e__Struct
+                public partial struct _Anonymous2_e__Struct
                 {
                     public int Value1;
                 }
 
-                public partial struct _Anonymous2_2_e__Struct
+                public partial struct _Anonymous3_e__Struct
                 {
                     public int Value2;
                 }

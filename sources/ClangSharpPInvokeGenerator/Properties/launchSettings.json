@@ -12,7 +12,7 @@
     "GenerateLocal": {
       "commandName": "Project",
       "commandLineArgs": "@generate.rsp",
-      "workingDirectory": "D:\\Users\\tagoo\\source\\repos\\terrafx.interop.windows\\generation\\Windows\\um\\sapi"
+      "workingDirectory": "D:\\repos\\terrafx.interop.windows\\generation\\DirectX\\um\\dcommon"
     }
   }
 }
