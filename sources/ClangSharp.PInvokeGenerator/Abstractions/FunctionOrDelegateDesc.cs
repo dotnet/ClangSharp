@@ -66,6 +66,21 @@ internal struct FunctionOrDelegateDesc
         }
     }
 
+    public bool IsReadOnly
+    {
+        readonly get
+        {
+            return (Flags & FunctionOrDelegateFlags.IsReadOnly) != 0;
+        }
+
+        set
+        {
+            Flags = value
+                  ? Flags | FunctionOrDelegateFlags.IsReadOnly
+                  : Flags & ~FunctionOrDelegateFlags.IsReadOnly;
+        }
+    }
+
     public bool HasFnPtrCodeGen
     {
         readonly get

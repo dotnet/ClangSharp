@@ -19,17 +19,39 @@ public sealed class CSharpDefaultUnix_StructDeclarationTest : StructDeclarationT
 }};
 ";
 
-        var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace ClangSharp.Test
 {{
-    public unsafe partial struct MyStruct
+    public partial struct MyStruct
     {{
         [NativeTypeName(""{nativeType}[]"")]
-        public fixed {expectedManagedType} x[1];
+        public _x_e__FixedBuffer x;
+
+        public partial struct _x_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0;
+
+            [UnscopedRef]
+            public ref {expectedManagedType} this[int index]
+            {{
+                get
+                {{
+                    return ref Unsafe.Add(ref e0, index);
+                }}
+            }}
+
+            [UnscopedRef]
+            public Span<{expectedManagedType}> AsSpan(int length) => MemoryMarshal.CreateSpan(ref e0, length);
+        }}
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
@@ -55,7 +77,7 @@ public sealed class CSharpDefaultUnix_StructDeclarationTest : StructDeclarationT
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
@@ -80,7 +102,7 @@ public sealed class CSharpDefaultUnix_StructDeclarationTest : StructDeclarationT
     }}
 }}
 ";
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: []);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: []);
     }
 
     protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
@@ -109,7 +131,7 @@ public sealed class CSharpDefaultUnix_StructDeclarationTest : StructDeclarationT
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BitfieldTestImpl()
@@ -318,7 +340,7 @@ struct MyStruct3
 }
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BitfieldWithNativeBitfieldAttributeTestImpl()
@@ -538,7 +560,7 @@ struct MyStruct3
 }
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute);
     }
 
     protected override Task DeclTypeTestImpl()
@@ -568,14 +590,14 @@ namespace ClangSharp.Test
     }
 }
 ";
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task ExcludeTestImpl()
     {
         var inputContents = "typedef struct MyStruct MyStruct;";
         var expectedOutputContents = string.Empty;
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
@@ -591,8 +613,7 @@ struct MyOtherStruct
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -606,27 +627,16 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct[3]"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(3)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyStruct e0;
-            public MyStruct e1;
-            public MyStruct e2;
-
-            public ref MyStruct this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
@@ -642,8 +652,7 @@ struct MyOtherStruct
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -657,59 +666,16 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct[2][1][3][4]"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(2 * 1 * 3 * 4)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyStruct e0_0_0_0;
-            public MyStruct e1_0_0_0;
-
-            public MyStruct e0_0_1_0;
-            public MyStruct e1_0_1_0;
-
-            public MyStruct e0_0_2_0;
-            public MyStruct e1_0_2_0;
-
-            public MyStruct e0_0_0_1;
-            public MyStruct e1_0_0_1;
-
-            public MyStruct e0_0_1_1;
-            public MyStruct e1_0_1_1;
-
-            public MyStruct e0_0_2_1;
-            public MyStruct e1_0_2_1;
-
-            public MyStruct e0_0_0_2;
-            public MyStruct e1_0_0_2;
-
-            public MyStruct e0_0_1_2;
-            public MyStruct e1_0_1_2;
-
-            public MyStruct e0_0_2_2;
-            public MyStruct e1_0_2_2;
-
-            public MyStruct e0_0_0_3;
-            public MyStruct e1_0_0_3;
-
-            public MyStruct e0_0_1_3;
-            public MyStruct e1_0_1_3;
-
-            public MyStruct e0_0_2_3;
-            public MyStruct e1_0_2_3;
-
-            public ref MyStruct this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0_0_0_0, 24);
         }}
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
@@ -727,8 +693,7 @@ struct MyOtherStruct
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -742,27 +707,16 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyBuffer"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(3)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyStruct e0;
-            public MyStruct e1;
-            public MyStruct e2;
-
-            public ref MyStruct this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
@@ -778,8 +732,7 @@ struct MyOtherStruct
 }};
 ";
 
-        var expectedOutputContents = $@"using System;
-using System.Runtime.InteropServices;
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {{
@@ -794,27 +747,16 @@ namespace ClangSharp.Test
         [NativeTypeName(""MyStruct[3]"")]
         public _c_e__FixedBuffer c;
 
+        [InlineArray(3)]
         public partial struct _c_e__FixedBuffer
         {{
             public MyStruct e0;
-            public MyStruct e1;
-            public MyStruct e2;
-
-            public ref MyStruct this[int index]
-            {{
-                get
-                {{
-                    return ref AsSpan()[index];
-                }}
-            }}
-
-            public Span<MyStruct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 3);
         }}
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
@@ -853,7 +795,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
@@ -864,17 +806,25 @@ namespace ClangSharp.Test
 }};
 ";
 
-        var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+
+namespace ClangSharp.Test
 {{
-    public unsafe partial struct MyStruct
+    public partial struct MyStruct
     {{
         [NativeTypeName(""{nativeType}[3]"")]
-        public fixed {expectedManagedType} c[3];
+        public _c_e__FixedBuffer c;
+
+        [InlineArray(3)]
+        public partial struct _c_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0;
+        }}
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
@@ -885,17 +835,25 @@ namespace ClangSharp.Test
 }};
 ";
 
-        var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+
+namespace ClangSharp.Test
 {{
-    public unsafe partial struct MyStruct
+    public partial struct MyStruct
     {{
         [NativeTypeName(""{nativeType}[2][1][3][4]"")]
-        public fixed {expectedManagedType} c[2 * 1 * 3 * 4];
+        public _c_e__FixedBuffer c;
+
+        [InlineArray(2 * 1 * 3 * 4)]
+        public partial struct _c_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0_0_0_0;
+        }}
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
@@ -908,17 +866,25 @@ struct MyStruct
 }};
 ";
 
-        var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"using System.Runtime.CompilerServices;
+
+namespace ClangSharp.Test
 {{
-    public unsafe partial struct MyStruct
+    public partial struct MyStruct
     {{
         [NativeTypeName(""MyBuffer"")]
-        public fixed {expectedManagedType} c[3];
+        public _c_e__FixedBuffer c;
+
+        [InlineArray(3)]
+        public partial struct _c_e__FixedBuffer
+        {{
+            public {expectedManagedType} e0;
+        }}
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task GuidTestImpl()
@@ -968,7 +934,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidTestExcludedNames);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidTestExcludedNames);
     }
 
     protected override Task InheritanceTestImpl()
@@ -1022,7 +988,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 }
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task InheritanceWithNativeInheritanceAttributeTestImpl()
@@ -1077,7 +1043,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 }
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
     }
 
     protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
@@ -1123,6 +1089,8 @@ struct MyStruct
 ";
 
         var expectedOutputContents = $@"using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -1134,7 +1102,7 @@ namespace ClangSharp.Test
         public {expectedManagedType} value;
     }}
 
-    public unsafe partial struct MyStruct
+    public partial struct MyStruct
     {{
         public {expectedManagedType} x;
 
@@ -1143,71 +1111,79 @@ namespace ClangSharp.Test
         [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L{line}_C{column}"")]
         public _Anonymous_e__Struct Anonymous;
 
+        [UnscopedRef]
         public ref {expectedManagedType} z
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+                return ref Anonymous.z;
             }}
         }}
 
+        [UnscopedRef]
         public ref _Anonymous_e__Struct._w_e__Struct w
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));
+                return ref Anonymous.w;
             }}
         }}
 
+        [UnscopedRef]
         public ref {expectedManagedType} value1
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous1.value1, 1));
+                return ref Anonymous.Anonymous1.value1;
             }}
         }}
 
+        [UnscopedRef]
         public ref {expectedManagedType} value
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous1.Anonymous.value, 1));
+                return ref Anonymous.Anonymous1.Anonymous.value;
             }}
         }}
 
+        [UnscopedRef]
         public ref {expectedManagedType} value2
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous2.value2, 1));
+                return ref Anonymous.Anonymous2.value2;
             }}
         }}
 
+        [UnscopedRef]
         public ref MyUnion u
         {{
             get
             {{
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));
+                return ref Anonymous.u;
             }}
         }}
 
+        [UnscopedRef]
         public Span<{expectedManagedType}> buffer1
         {{
             get
             {{
-                return MemoryMarshal.CreateSpan(ref Anonymous.buffer1[0], 4);
+                return Anonymous.buffer1;
             }}
         }}
 
+        [UnscopedRef]
         public Span<MyUnion> buffer2
         {{
             get
             {{
-                return Anonymous.buffer2.AsSpan();
+                return Anonymous.buffer2;
             }}
         }}
 
-        public unsafe partial struct _Anonymous_e__Struct
+        public partial struct _Anonymous_e__Struct
         {{
             public {expectedManagedType} z;
 
@@ -1223,7 +1199,7 @@ namespace ClangSharp.Test
             public MyUnion u;
 
             [NativeTypeName(""{nativeType}[4]"")]
-            public fixed {expectedManagedType} buffer1[4];
+            public _buffer1_e__FixedBuffer buffer1;
 
             [NativeTypeName(""MyUnion[4]"")]
             public _buffer2_e__FixedBuffer buffer2;
@@ -1253,29 +1229,23 @@ namespace ClangSharp.Test
                 public {expectedManagedType} value2;
             }}
 
+            [InlineArray(4)]
+            public partial struct _buffer1_e__FixedBuffer
+            {{
+                public {expectedManagedType} e0;
+            }}
+
+            [InlineArray(4)]
             public partial struct _buffer2_e__FixedBuffer
             {{
                 public MyUnion e0;
-                public MyUnion e1;
-                public MyUnion e2;
-                public MyUnion e3;
-
-                public ref MyUnion this[int index]
-                {{
-                    get
-                    {{
-                        return ref AsSpan()[index];
-                    }}
-                }}
-
-                public Span<MyUnion> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 4);
             }}
         }}
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NestedAnonymousWithBitfieldTestImpl()
@@ -1299,7 +1269,7 @@ namespace ClangSharp.Test
 };
 ";
 
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
 
 namespace ClangSharp.Test
 {
@@ -1312,19 +1282,21 @@ namespace ClangSharp.Test
         [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L6_C5"")]
         public _Anonymous_e__Struct Anonymous;
 
+        [UnscopedRef]
         public ref int z
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));
+                return ref Anonymous.z;
             }
         }
 
+        [UnscopedRef]
         public ref int w
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous1.w, 1));
+                return ref Anonymous.Anonymous1.w;
             }
         }
 
@@ -1400,7 +1372,7 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
@@ -1445,7 +1417,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
@@ -1497,7 +1469,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NewKeywordTestImpl()
@@ -1534,7 +1506,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NoDefinitionTestImpl()
@@ -1548,7 +1520,7 @@ namespace ClangSharp.Test
     }}
 }}
 ";
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task PackTestImpl()
@@ -1607,7 +1579,7 @@ struct MyStruct2 {
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(InputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(InputContents, expectedOutputContents);
     }
 
     protected override Task PointerToSelfTestImpl()
@@ -1628,7 +1600,7 @@ struct MyStruct2 {
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task PointerToSelfViaTypedefTestImpl()
@@ -1652,7 +1624,7 @@ struct example_s {
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task RemapTestImpl()
@@ -1668,7 +1640,7 @@ struct example_s {
 ";
 
         var remappedNames = new Dictionary<string, string> { ["_MyStruct"] = "MyStruct" };
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
     }
 
     protected override Task RemapNestedAnonymousTestImpl()
@@ -1685,7 +1657,7 @@ struct example_s {
     };
 };";
 
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
 
 namespace ClangSharp.Test
 {
@@ -1700,11 +1672,12 @@ namespace ClangSharp.Test
         [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L7_C5"")]
         public _Anonymous_e__Struct Anonymous;
 
+        [UnscopedRef]
         public ref double a
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+                return ref Anonymous.a;
             }
         }
 
@@ -1720,7 +1693,7 @@ namespace ClangSharp.Test
             ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
             ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Struct"
         };
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
     }
 
     protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
@@ -1748,7 +1721,7 @@ struct MyStruct
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task SkipNonDefinitionPointerTestImpl()
@@ -1765,7 +1738,7 @@ typedef struct MyStruct& MyStructRef;
 }
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
@@ -1796,7 +1769,7 @@ struct MyStruct
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
@@ -1827,7 +1800,7 @@ struct MyStruct
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task UsingDeclarationTestImpl()
@@ -1862,7 +1835,7 @@ struct MyStruct1B : MyStruct1A
 }
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task WithAccessSpecifierTestImpl()
@@ -1917,7 +1890,7 @@ struct MyStruct3
             ["Field1"] = AccessSpecifier.Private,
             ["MyStruct3.Field2"] = AccessSpecifier.Internal,
         };
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
     }
 
     protected override Task WithPackingTestImpl()
@@ -1930,7 +1903,7 @@ struct MyStruct
 };
 ";
 
-        const string ExpectedOutputContents = @"using System;
+        const string ExpectedOutputContents = @"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
@@ -1941,20 +1914,10 @@ namespace ClangSharp.Test
         [NativeTypeName(""size_t[2]"")]
         public _FixedBuffer_e__FixedBuffer FixedBuffer;
 
+        [InlineArray(2)]
         public partial struct _FixedBuffer_e__FixedBuffer
         {
             public nuint e0;
-            public nuint e1;
-
-            public ref nuint this[int index]
-            {
-                get
-                {
-                    return ref AsSpan()[index];
-                }
-            }
-
-            public Span<nuint> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 2);
         }
     }
 }
@@ -1963,7 +1926,7 @@ namespace ClangSharp.Test
         var withPackings = new Dictionary<string, string> {
             ["MyStruct"] = "CustomPackValue"
         };
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(InputContents, ExpectedOutputContents, withPackings: withPackings);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, withPackings: withPackings);
     }
 
     protected override Task SourceLocationAttributeTestImpl()
@@ -1993,7 +1956,7 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
     }
 
     protected override Task AnonStructAndAnonStructArrayImpl()
@@ -2002,10 +1965,11 @@ namespace ClangSharp.Test
 {
     struct { int First; };
     struct { int Second; } MyArray[2];
-} MyStruct;";
+} MyStruct;
+";
 
-        var expectedOutputContents = @"using System;
-using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace ClangSharp.Test
 {
@@ -2017,11 +1981,12 @@ namespace ClangSharp.Test
         [NativeTypeName(""struct (anonymous struct at ClangUnsavedFile.h:4:5)[2]"")]
         public _MyArray_e__FixedBuffer MyArray;
 
+        [UnscopedRef]
         public ref int First
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.First, 1));
+                return ref Anonymous.First;
             }
         }
 
@@ -2035,26 +2000,16 @@ namespace ClangSharp.Test
             public int Second;
         }
 
+        [InlineArray(2)]
         public partial struct _MyArray_e__FixedBuffer
         {
             public _MyArray_e__Struct e0;
-            public _MyArray_e__Struct e1;
-
-            public ref _MyArray_e__Struct this[int index]
-            {
-                get
-                {
-                    return ref AsSpan()[index];
-                }
-            }
-
-            public Span<_MyArray_e__Struct> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 2);
         }
     }
 }
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task DeeplyNestedAnonStructsImpl()
@@ -2067,7 +2022,7 @@ namespace ClangSharp.Test
     }; };
 } MyStruct;";
 
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
 
 namespace ClangSharp.Test
 {
@@ -2076,19 +2031,21 @@ namespace ClangSharp.Test
         [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L3_C5"")]
         public _Anonymous_e__Struct Anonymous;
 
+        [UnscopedRef]
         public ref int Value1
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous1.Anonymous2.Value1, 1));
+                return ref Anonymous.Anonymous1.Anonymous2.Value1;
             }
         }
 
+        [UnscopedRef]
         public ref int Value2
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous1.Anonymous3.Value2, 1));
+                return ref Anonymous.Anonymous1.Anonymous3.Value2;
             }
         }
 
@@ -2120,6 +2077,6 @@ namespace ClangSharp.Test
 }
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 }

@@ -21,4 +21,5 @@ internal enum FunctionOrDelegateFlags
     NeedsReturnFixup = 1 << 13,
     IsCxxConstructor = 1 << 14,
     IsManualImport = 1 << 15,
+    IsReadOnly = 1 << 16,
 }
