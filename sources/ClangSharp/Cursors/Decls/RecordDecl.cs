@@ -36,12 +36,12 @@ public class RecordDecl : TagDecl
 
         _fields = LazyList.Create<FieldDecl>(Handle.NumFields, (i) => TranslationUnit.GetOrCreate<FieldDecl>(Handle.GetField(unchecked((uint)i))));
         _anonymousFields = new ValueLazy<List<FieldDecl>>(() => [.. Decls.OfType<FieldDecl>().Where(decl => decl.IsAnonymousField)]);
-        _anonymousRecords = new ValueLazy<List<RecordDecl>>(() => [.. Decls.OfType<RecordDecl>().Where(decl => decl.IsAnonymous && !decl.IsInjectedClassName)]);
+        _anonymousRecords = new ValueLazy<List<RecordDecl>>(() => [.. Decls.OfType<RecordDecl>().Where(decl => decl.IsAnonymousStructOrUnion && !decl.IsInjectedClassName)]);
         _indirectFields = new ValueLazy<List<IndirectFieldDecl>>(() => [.. Decls.OfType<IndirectFieldDecl>()]);
         _injectedClassName = new ValueLazy<RecordDecl?>(() => Decls.OfType<RecordDecl>().Where(decl => decl.IsInjectedClassName).SingleOrDefault());
     }
 
-    public bool IsAnonymous => Handle.IsAnonymous;
+    public bool IsAnonymousStructOrUnion => Handle.IsAnonymousStructOrUnion;
 
     public IReadOnlyList<FieldDecl> AnonymousFields => _anonymousFields.Value;
 

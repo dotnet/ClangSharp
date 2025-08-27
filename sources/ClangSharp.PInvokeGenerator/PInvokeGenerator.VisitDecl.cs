@@ -872,7 +872,7 @@ public partial class PInvokeGenerator
             return;
         }
 
-        if (IsPrevContextDecl<RecordDecl>(out var prevContext, out _) && prevContext.IsAnonymous)
+        if (IsPrevContextDecl<RecordDecl>(out var prevContext, out _) && prevContext.IsAnonymousStructOrUnion)
         {
             // We shouldn't process indirect fields where the prev context is an anonymous record decl
             return;
@@ -887,7 +887,7 @@ public partial class PInvokeGenerator
         var contextNameParts = new Stack<string>();
         var contextTypeParts = new Stack<string>();
 
-        while (rootRecordDecl.IsAnonymous && (rootRecordDecl.Parent is RecordDecl parentRecordDecl))
+        while (rootRecordDecl.IsAnonymousStructOrUnion && (rootRecordDecl.Parent is RecordDecl parentRecordDecl))
         {
             // The name of a field of an anonymous type should be same as the type's name minus the
             // type kind tag at the end and the leading `_`.
@@ -1390,7 +1390,7 @@ public partial class PInvokeGenerator
             var maxAlignm = recordDecl.Fields.Any() ? recordDecl.Fields.Max((fieldDecl) => Math.Max(fieldDecl.Type.Handle.AlignOf, 1)) : alignment;
 
             var isTopLevelStruct = _config.WithTypes.TryGetValue(name, out var withType) && withType.Equals("struct", StringComparison.Ordinal);
-            var generateTestsClass = !recordDecl.IsAnonymous && recordDecl.DeclContext is not RecordDecl;
+            var generateTestsClass = !recordDecl.IsAnonymousStructOrUnion && recordDecl.DeclContext is not RecordDecl;
             var testOutputStarted = false;
 
             var nullableUuid = (Guid?)null;

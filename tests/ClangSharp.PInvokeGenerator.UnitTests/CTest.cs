@@ -197,7 +197,7 @@ namespace ClangSharp.Test
         }
     }
 
-    public unsafe partial struct _MyStructWithAnonymousUnion
+    public partial struct _MyStructWithAnonymousUnion
     {
         [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L21_C5"")]
         public _union1_e__Union union1;
