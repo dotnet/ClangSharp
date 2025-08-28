@@ -607,6 +607,7 @@ public partial class PInvokeGenerator
             IsCxx = cxxMethodDecl is not null,
             IsStatic = isDllImport || (cxxMethodDecl is null) || cxxMethodDecl.IsStatic,
             NeedsNewKeyword = NeedsNewKeyword(escapedName, functionDecl.Parameters),
+            IsReadOnly = (cxxMethodDecl is not null) && cxxMethodDecl.IsConst,
             IsUnsafe = IsUnsafe(functionDecl),
             IsCtxCxxRecord = cxxRecordDecl is not null,
             IsCxxRecordCtxUnsafe = cxxRecordDecl is not null && IsUnsafe(cxxRecordDecl),
@@ -944,7 +945,7 @@ public partial class PInvokeGenerator
             ParentName = GetRemappedCursorName(parent),
             Offset = null,
             NeedsNewKeyword = false,
-            NeedsUnscopedRef = _config.GenerateLatestCode && !fieldDecl.IsBitField,
+            NeedsUnscopedRef = !_config.GenerateCompatibleCode && !fieldDecl.IsBitField,
             Location = fieldDecl.Location,
             HasBody = true,
             WriteCustomAttrs = static context => {
@@ -1110,7 +1111,7 @@ public partial class PInvokeGenerator
                         code.Write(arraySize);
                         code.Write(')');
                     }
-                    else if (!_config.GenerateLatestCode || arraySize == 1)
+                    else if (_config.GenerateCompatibleCode || arraySize == 1)
                     {
                         code.Write(".AsSpan(");
 
@@ -1657,9 +1658,23 @@ public partial class PInvokeGenerator
                 _outputBuilder.BeginValue(in valueDesc);
 
                 var code = _outputBuilder.BeginCSharpCode();
-                code.Write("(Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in ");
+
+                code.Write("(Guid*)Unsafe.AsPointer(");
+
+                if (!_config.GenerateLatestCode)
+                {
+                    code.Write("ref Unsafe.AsRef(");
+                }
+
+                code.Write("in ");
                 code.Write(usableUuidName);
-                code.Write("))");
+                code.Write(')');
+
+                if (!_config.GenerateLatestCode)
+                {
+                    code.Write(')');
+                }
+
                 _outputBuilder.EndCSharpCode(code);
 
                 _outputBuilder.EndValue(in valueDesc);
@@ -2213,6 +2228,7 @@ public partial class PInvokeGenerator
                 HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
                 IsCtxCxxRecord = true,
                 IsCxxRecordCtxUnsafe = IsUnsafe(cxxRecordDecl),
+                IsReadOnly = cxxMethodDecl.IsConst,
                 IsUnsafe = true,
                 NeedsReturnFixup = needsReturnFixup,
                 ReturnType = returnTypeName,
@@ -2335,7 +2351,27 @@ public partial class PInvokeGenerator
             {
                 body.Write('(');
                 body.Write(escapedCXXRecordDeclName);
-                body.Write("*)Unsafe.AsPointer(ref this)");
+                body.Write("*)Unsafe.AsPointer(");
+
+                if (cxxMethodDecl.IsConst)
+                {
+                    if (!_config.GenerateLatestCode)
+                    {
+                        body.Write("ref Unsafe.AsRef(");
+                    }
+
+                    body.Write("in this");
+
+                    if (!_config.GenerateLatestCode)
+                    {
+                        body.Write(')');
+                    }
+                }
+                else
+                {
+                    body.Write("ref this");
+                }
+                body.Write(')');
             }
             body.EndMarker("param");
 
@@ -2974,7 +3010,7 @@ public partial class PInvokeGenerator
                 AddDiagnostic(DiagnosticLevel.Info, $"{escapedName} (constant array field) has a size of 0", constantOrIncompleteArray);
             }
 
-            if (!_config.GenerateLatestCode || (totalSize <= 1) || isUnsafeElementType)
+            if (_config.GenerateCompatibleCode || (totalSize <= 1) || isUnsafeElementType)
             {
                 totalSizeString = null;
             }
@@ -3100,7 +3136,7 @@ public partial class PInvokeGenerator
             }
             else if (totalSizeString is null)
             {
-                _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: false, needsUnscopedRef: _config.GenerateLatestCode);
+                _outputBuilder.BeginIndexer(AccessSpecifier.Public, isUnsafe: false, needsUnscopedRef: !_config.GenerateCompatibleCode);
                 _outputBuilder.WriteIndexer($"ref {arrayTypeName}");
                 _outputBuilder.BeginIndexerParameters();
                 var param = new ParameterDesc {
@@ -3146,7 +3182,7 @@ public partial class PInvokeGenerator
                     ReturnType = $"Span<{arrayTypeName}>",
                     Location = constantOrIncompleteArray.Location,
                     HasBody = true,
-                    NeedsUnscopedRef = _config.GenerateLatestCode,
+                    NeedsUnscopedRef = !_config.GenerateCompatibleCode,
                 };
 
                 var isUnsafe = false;
@@ -3463,7 +3499,7 @@ public partial class PInvokeGenerator
 
                     case CX_SLK_UTF32:
                     {
-                        typeName = (_config.GenerateLatestCode && flags.HasFlag(ValueFlags.Constant)) ? "ReadOnlySpan<uint>" : "uint[]";
+                        typeName = (!_config.GenerateCompatibleCode && flags.HasFlag(ValueFlags.Constant)) ? "ReadOnlySpan<uint>" : "uint[]";
                         break;
                     }
 

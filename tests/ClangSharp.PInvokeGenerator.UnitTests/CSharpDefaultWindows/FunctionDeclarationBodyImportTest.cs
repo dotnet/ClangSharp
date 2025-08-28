@@ -1428,7 +1428,8 @@ void MyFunction()
 }
 ";
 
-        var expectedOutputContents = @"using System.Runtime.InteropServices;
+        var expectedOutputContents = @"using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace ClangSharp.Test
 {
@@ -1439,11 +1440,12 @@ namespace ClangSharp.Test
         [NativeTypeName(""__AnonymousRecord_ClangUnsavedFile_L3_C5"")]
         public _Anonymous_e__Struct Anonymous;
 
+        [UnscopedRef]
         public ref int a
         {
             get
             {
-                return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));
+                return ref Anonymous.a;
             }
         }
 

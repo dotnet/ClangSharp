@@ -55,7 +55,7 @@ See [LICENSE.md](LICENSE.md) in the repository root for more information.
 
 ### Building Managed
 
-ClangSharp requires the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) and can be built simply with `dotnet build -c Release`.
+ClangSharp requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and can be built simply with `dotnet build -c Release`.
 
 You can reproduce what the CI environment does by running `./scripts/cibuild.cmd` on Windows or `./scripts.cibuild.sh` on Unix.
 This will download the required .NET SDK locally and use that to build the repo; it will also run through all available actions in the appropriate order.
@@ -133,7 +133,7 @@ This program will take a given set of C or C++ header files and generate C# bind
 
 The simplest and recommended setup is to install the generator as a .NET tool and then use response files:
 ```
-dotnet tool install --global ClangSharpPInvokeGenerator --version 20.1.2
+dotnet tool install --global ClangSharpPInvokeGenerator
 ClangSharpPInvokeGenerator @generate.rsp
 ```
 
@@ -202,9 +202,9 @@ Options:
   # Codegen Options
 
   compatible-codegen                     Bindings should be generated with .NET Standard 2.0 compatibility. Setting this disables preview code generation.
-  default-codegen                        Bindings should be generated for the previous LTS version of .NET/C#. This is currently .NET 6/C# 10.
-  latest-codegen                         Bindings should be generated for the current LTS/STS version of .NET/C#. This is currently .NET 8/C# 12.
-  preview-codegen                        Bindings should be generated for the preview version of .NET/C#. This is currently .NET 9/C# 13.
+  default-codegen                        Bindings should be generated for the previous LTS version of .NET/C#. This is currently .NET 8/C# 12.
+  latest-codegen                         Bindings should be generated for the current LTS/STS version of .NET/C#. This is currently .NET 10/C# 14.
+  preview-codegen                        Bindings should be generated for the preview version of .NET/C#. This is currently .NET 10/C# 14.
 
   # File Options
 

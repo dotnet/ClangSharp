@@ -22,7 +22,7 @@ public sealed class CSharpDefaultUnix_VarDeclarationTest : VarDeclarationTest
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
@@ -39,7 +39,7 @@ public sealed class CSharpDefaultUnix_VarDeclarationTest : VarDeclarationTest
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task GuidMacroTestImpl()
@@ -67,7 +67,7 @@ namespace ClangSharp.Test
 ";
 
         var remappedNames = new Dictionary<string, string> { ["GUID"] = "Guid" };
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidMacroTestExcludedNames, remappedNames: remappedNames);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidMacroTestExcludedNames, remappedNames: remappedNames);
     }
 
     protected override Task MacroTestImpl(string nativeValue, string expectedManagedType, string expectedManagedValue)
@@ -88,7 +88,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task MultilineMacroTestImpl()
@@ -106,14 +106,14 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NoInitializerTestImpl(string nativeType)
     {
         var inputContents = $@"{nativeType} MyVariable;";
         var expectedOutputContents = "";
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task Utf8StringLiteralMacroTestImpl()
@@ -127,12 +127,12 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [NativeTypeName(""#define MyMacro1 \""Test\0\\\r\n\t\""\"""")]
-        public static ReadOnlySpan<byte> MyMacro1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00, 0x5C, 0x0D, 0x0A, 0x09, 0x22, 0x00 }};
+        public static ReadOnlySpan<byte> MyMacro1 => ""Test\0\\\r\n\t\""""u8;
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task Utf16StringLiteralMacroTestImpl()
@@ -149,7 +149,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task WideStringLiteralConstTestImpl()
@@ -158,23 +158,25 @@ namespace ClangSharp.Test
 const wchar_t* MyConst2 = L""Test\0\\\r\n\t\"""";
 const wchar_t* const MyConst3 = L""Test\0\\\r\n\t\"""";";
 
-        var expectedOutputContents = $@"namespace ClangSharp.Test
+        var expectedOutputContents = $@"using System;
+
+namespace ClangSharp.Test
 {{
     public static partial class Methods
     {{
         [NativeTypeName(""const wchar_t[11]"")]
-        public static readonly uint[] MyConst1 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000 }};
+        public static ReadOnlySpan<uint> MyConst1 => [0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000];
 
         [NativeTypeName(""const wchar_t *"")]
-        public static uint[] MyConst2 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000 }};
+        public static uint[] MyConst2 = [0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000];
 
         [NativeTypeName(""const wchar_t *const"")]
-        public static readonly uint[] MyConst3 = new uint[] {{ 0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000 }};
+        public static ReadOnlySpan<uint> MyConst3 => [0x00000054, 0x00000065, 0x00000073, 0x00000074, 0x00000000, 0x0000005C, 0x0000000D, 0x0000000A, 0x00000009, 0x00000022, 0x00000000];
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpCompatibleUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task StringLiteralConstTestImpl()
@@ -190,18 +192,18 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [NativeTypeName(""const char[11]"")]
-        public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00, 0x5C, 0x0D, 0x0A, 0x09, 0x22, 0x00 }};
+        public static ReadOnlySpan<byte> MyConst1 => ""Test\0\\\r\n\t\""""u8;
 
         [NativeTypeName(""const char *"")]
-        public static byte[] MyConst2 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00, 0x5C, 0x0D, 0x0A, 0x09, 0x22, 0x00 }};
+        public static byte[] MyConst2 = ""Test\0\\\r\n\t\""""u8.ToArray();
 
         [NativeTypeName(""const char *const"")]
-        public static ReadOnlySpan<byte> MyConst3 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00, 0x5C, 0x0D, 0x0A, 0x09, 0x22, 0x00 }};
+        public static ReadOnlySpan<byte> MyConst3 => ""Test\0\\\r\n\t\""""u8;
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task WideStringLiteralStaticConstTestImpl()
@@ -242,18 +244,18 @@ namespace ClangSharp.Test
     public static partial class Methods
     {{
         [NativeTypeName(""const char[11]"")]
-        public static ReadOnlySpan<byte> MyConst1 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00, 0x5C, 0x0D, 0x0A, 0x09, 0x22, 0x00 }};
+        public static ReadOnlySpan<byte> MyConst1 => ""Test\0\\\r\n\t\""""u8;
 
         [NativeTypeName(""const char *"")]
-        public static byte[] MyConst2 = new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00, 0x5C, 0x0D, 0x0A, 0x09, 0x22, 0x00 }};
+        public static byte[] MyConst2 = ""Test\0\\\r\n\t\""""u8.ToArray();
 
         [NativeTypeName(""const char *const"")]
-        public static ReadOnlySpan<byte> MyConst3 => new byte[] {{ 0x54, 0x65, 0x73, 0x74, 0x00, 0x5C, 0x0D, 0x0A, 0x09, 0x22, 0x00 }};
+        public static ReadOnlySpan<byte> MyConst3 => ""Test\0\\\r\n\t\""""u8;
     }}
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task UncheckedConversionMacroTestImpl()
@@ -274,7 +276,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task UncheckedFunctionLikeCastMacroTestImpl()
@@ -291,7 +293,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task UncheckedConversionMacroTest2Impl()
@@ -310,7 +312,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: UncheckedConversionMacroTest2ExcludedNames);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: UncheckedConversionMacroTest2ExcludedNames);
     }
 
     protected override Task UncheckedPointerMacroTestImpl()
@@ -327,7 +329,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task UncheckedReinterpretCastMacroTestImpl()
@@ -344,7 +346,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task MultidimensionlArrayTestImpl()
@@ -373,7 +375,7 @@ namespace ClangSharp.Test
 }}
 ";
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task ConditionalDefineConstTestImpl()
@@ -393,6 +395,6 @@ namespace ClangSharp.Test
 ";
         var diagnostics = new Diagnostic[] { new Diagnostic(DiagnosticLevel.Warning, "Function like macro definition records are not supported: 'TESTRESULT_FROM_WIN32'. Generated bindings may be incomplete.", "Line 2, Column 9 in ClangUnsavedFile.h") };
 
-        return ValidateGeneratedCSharpDefaultUnixBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, expectedDiagnostics: diagnostics);
     }
 }

@@ -517,6 +517,11 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
                 Write("new ");
             }
 
+            if (desc.IsReadOnly)
+            {
+                Write("readonly ");
+            }
+
             if (desc.IsUnsafe)
             {
                 if (!desc.IsCtxCxxRecord)
@@ -808,7 +813,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
                 Write(".Interface");
             }
 
-            if ((desc.Uuid is not null) && _generator.Config.GenerateGuidMember && _generator.Config.GenerateLatestCode)
+            if ((desc.Uuid is not null) && _generator.Config.GenerateGuidMember && !_generator.Config.GenerateCompatibleCode)
             {
                 Write(desc.HasVtbl ? ", " : " : ");
                 Write("INativeGuid");
