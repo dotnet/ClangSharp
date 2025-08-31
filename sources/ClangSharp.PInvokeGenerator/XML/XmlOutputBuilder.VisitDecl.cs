@@ -142,6 +142,11 @@ internal partial class XmlOutputBuilder
             _ = _sb.Append(" static=\"true\"");
         }
 
+        if (desc.IsReadOnly)
+        {
+            _ = _sb.Append(" readonly=\"true\"");
+        }
+
         if (desc.IsUnsafe)
         {
             _ = _sb.Append(" unsafe=\"true\"");

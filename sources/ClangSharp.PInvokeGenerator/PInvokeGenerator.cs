@@ -3274,7 +3274,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                             index++;
                         }
                     }
-                    else if ((parentIndex != 0) && (index > parentIndex))
+                    else if ((parentIndex > 0) && (index > parentIndex))
                     {
                         if (recordDecl.IsUnion == parentRecordDecl.AnonymousRecords[parentIndex].IsUnion)
                         {
@@ -5588,7 +5588,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             case "ulong":
             {
                 // We want to prefer InlineArray in modern code, as it is safer and supports more features
-                return !Config.GenerateLatestCode;
+                return Config.GenerateCompatibleCode;
             }
 
             default:
