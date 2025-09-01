@@ -54,6 +54,7 @@ internal static class Program
     private static readonly string[] s_withManualImportOptionAliases = ["--with-manual-import", "-wmi"];
     private static readonly string[] s_withNamespaceOptionAliases = ["--with-namespace", "-wn"];
     private static readonly string[] s_withPackingOptionAliases = ["--with-packing", "-wp"];
+    private static readonly string[] s_withReadonlyOptionAliases = ["--with-readonly", "-wro"];
     private static readonly string[] s_withSetLastErrorOptionAliases = ["--with-setlasterror", "-wsle"];
     private static readonly string[] s_withSuppressGCTransitionOptionAliases = ["--with-suppressgctransition", "-wsgct"];
     private static readonly string[] s_withTransparentStructOptionAliases = ["--with-transparent-struct", "-wts"];
@@ -92,6 +93,7 @@ internal static class Program
     private static readonly Option<string[]> s_withManualImports = GetWithManualImportOption();
     private static readonly Option<string[]> s_withNamespaceNameValuePairs = GetWithNamespaceOption();
     private static readonly Option<string[]> s_withPackingNameValuePairs = GetWithPackingOption();
+    private static readonly Option<string[]> s_withReadonlys = GetWithReadonlyOption();
     private static readonly Option<string[]> s_withSetLastErrors = GetWithSetLastErrorOption();
     private static readonly Option<string[]> s_withSuppressGCTransitions = GetWithSuppressGCTransitionOption();
     private static readonly Option<string[]> s_withTransparentStructNameValuePairs = GetWithTransparentStructOption();
@@ -255,6 +257,7 @@ internal static class Program
         var withLibraryPathNameValuePairs = context.ParseResult.GetValueForOption(s_withLibraryPathNameValuePairs) ?? [];
         var withManualImports = context.ParseResult.GetValueForOption(s_withManualImports) ?? [];
         var withNamespaceNameValuePairs = context.ParseResult.GetValueForOption(s_withNamespaceNameValuePairs) ?? [];
+        var withReadonlys = context.ParseResult.GetValueForOption(s_withReadonlys) ?? [];
         var withSetLastErrors = context.ParseResult.GetValueForOption(s_withSetLastErrors) ?? [];
         var withSuppressGCTransitions = context.ParseResult.GetValueForOption(s_withSuppressGCTransitions) ?? [];
         var withTransparentStructNameValuePairs = context.ParseResult.GetValueForOption(s_withTransparentStructNameValuePairs) ?? [];
@@ -729,6 +732,7 @@ internal static class Program
             WithLibraryPaths = withLibraryPaths,
             WithManualImports = withManualImports,
             WithNamespaces = withNamespaces,
+            WithReadonlys = withReadonlys,
             WithSetLastErrors = withSetLastErrors,
             WithSuppressGCTransitions = withSuppressGCTransitions,
             WithTransparentStructs = withTransparentStructs,
@@ -1202,6 +1206,7 @@ internal static class Program
             s_withManualImports,
             s_withNamespaceNameValuePairs,
             s_withPackingNameValuePairs,
+            s_withReadonlys,
             s_withSetLastErrors,
             s_withSuppressGCTransitions,
             s_withTransparentStructNameValuePairs,
@@ -1344,6 +1349,17 @@ internal static class Program
         return new Option<string[]>(
             aliases: s_withNamespaceOptionAliases,
             description: "A namespace to be used for the given remapped declaration name during binding generation. Supports wildcards.",
+            getDefaultValue: Array.Empty<string>
+        ) {
+            AllowMultipleArgumentsPerToken = true
+        };
+    }
+
+    private static Option<string[]> GetWithReadonlyOption()
+    {
+        return new Option<string[]>(
+            aliases: s_withReadonlyOptionAliases,
+            description: "Add the readonly modifier to a given instance method. Supports wildcards.",
             getDefaultValue: Array.Empty<string>
         ) {
             AllowMultipleArgumentsPerToken = true

@@ -104,6 +104,31 @@ internal sealed partial class CSharpOutputBuilder(string name, PInvokeGenerator 
         WriteLine(value);
     }
 
+    public void WriteLabel(string name)
+    {
+        if (_currentLine.Length >= _indentationString.Length)
+        {
+            var match = true;
+
+            for (var i = 0; i < _indentationString.Length; i++)
+            {
+                if (_currentLine[_currentLine.Length - i - 1] != _indentationString[_indentationString.Length - 1 - i])
+                {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match)
+            {
+                _ = _currentLine.Remove(_currentLine.Length - _indentationString.Length, _indentationString.Length);
+            }
+        }
+
+        Write(name);
+        WriteLine(':');
+    }
+
     public void WriteLine<T>(T value)
     {
         Write(value);

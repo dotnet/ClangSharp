@@ -1412,7 +1412,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 sw.Write(indentString);
                 sw.WriteLine("    {");
                 sw.Write(indentString);
-                sw.Write("            if (obj is ");
+                sw.Write("        if (obj is ");
                 sw.Write(name);
                 sw.WriteLine(" other)");
                 sw.Write(indentString);
@@ -3258,25 +3258,18 @@ public sealed partial class PInvokeGenerator : IDisposable
                     index++;
                 }
 
-                if (parentRecordDecl.Parent is RecordDecl grandParentRecordDecl)
+                if (parentRecordDecl.Parent is RecordDecl grandparentRecordDecl)
                 {
-                    var parentIndex = GetAnonymousRecordIndex(parentRecordDecl, grandParentRecordDecl);
+                    var parentIndex = GetAnonymousRecordIndex(parentRecordDecl, grandparentRecordDecl);
 
                     // We can't have the nested anonymous record have the same name as the parent
                     // so skip that index and just go one higher instead. This could still conflict
                     // with another anonymous record at a different level, but that is less likely
                     // and will still be unambiguous in total.
 
-                    if (parentIndex == index)
+                    if ((parentIndex == index) || ((parentIndex > 0) && (index > parentIndex)))
                     {
                         if (recordDecl.IsUnion == parentRecordDecl.IsUnion)
-                        {
-                            index++;
-                        }
-                    }
-                    else if ((parentIndex > 0) && (index > parentIndex))
-                    {
-                        if (recordDecl.IsUnion == parentRecordDecl.AnonymousRecords[parentIndex].IsUnion)
                         {
                             index++;
                         }
@@ -5400,6 +5393,15 @@ public sealed partial class PInvokeGenerator : IDisposable
             userData = null;
             return false;
         }
+    }
+
+    private bool IsReadonly(CXXMethodDecl? cxxMethodDecl)
+    {
+        if (cxxMethodDecl is not null)
+        {
+            return cxxMethodDecl.IsConst || HasRemapping(cxxMethodDecl, _config._withReadonlys, matchStar: true);
+        }
+        return false;
     }
 
     private static bool IsStmtAsWritten<T>(Cursor cursor, [MaybeNullWhen(false)] out T value, bool removeParens = false)
