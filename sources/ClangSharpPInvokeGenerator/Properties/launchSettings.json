@@ -12,7 +12,7 @@
     "GenerateLocal": {
       "commandName": "Project",
       "commandLineArgs": "@generate.rsp",
-      "workingDirectory": "D:\\repos\\terrafx.interop.windows\\generation\\windows\\um\\wingdi"
+      "workingDirectory": "D:\\repos\\terrafx.interop.windows\\generation\\windows\\um\\winioctl"
     }
   }
 }

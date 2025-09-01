@@ -2070,9 +2070,7 @@ public partial class PInvokeGenerator
     private void VisitLabelStmt(LabelStmt labelStmt)
     {
         var outputBuilder = StartCSharpCode();
-
-        outputBuilder.Write(labelStmt.Decl.Name);
-        outputBuilder.WriteLine(':');
+        outputBuilder.WriteLabel(labelStmt.Decl.Name);
 
         outputBuilder.WriteIndentation();
         Visit(labelStmt.SubStmt);
