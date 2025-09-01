@@ -1412,7 +1412,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 sw.Write(indentString);
                 sw.WriteLine("    {");
                 sw.Write(indentString);
-                sw.Write("            if (obj is ");
+                sw.Write("        if (obj is ");
                 sw.Write(name);
                 sw.WriteLine(" other)");
                 sw.Write(indentString);
