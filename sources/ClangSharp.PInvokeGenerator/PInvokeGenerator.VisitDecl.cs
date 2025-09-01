@@ -7,11 +7,9 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using ClangSharp.Abstractions;
 using ClangSharp.CSharp;
 using static ClangSharp.Interop.CX_CastKind;
-using static ClangSharp.Interop.CX_CharacterKind;
 using static ClangSharp.Interop.CX_DeclKind;
 using static ClangSharp.Interop.CX_StmtClass;
 using static ClangSharp.Interop.CX_StorageClass;
@@ -607,7 +605,7 @@ public partial class PInvokeGenerator
             IsCxx = cxxMethodDecl is not null,
             IsStatic = isDllImport || (cxxMethodDecl is null) || cxxMethodDecl.IsStatic,
             NeedsNewKeyword = NeedsNewKeyword(escapedName, functionDecl.Parameters),
-            IsReadOnly = (cxxMethodDecl is not null) && cxxMethodDecl.IsConst,
+            IsReadOnly = IsReadonly(cxxMethodDecl),
             IsUnsafe = IsUnsafe(functionDecl),
             IsCtxCxxRecord = cxxRecordDecl is not null,
             IsCxxRecordCtxUnsafe = cxxRecordDecl is not null && IsUnsafe(cxxRecordDecl),
@@ -2228,7 +2226,7 @@ public partial class PInvokeGenerator
                 HasFnPtrCodeGen = !_config.ExcludeFnptrCodegen,
                 IsCtxCxxRecord = true,
                 IsCxxRecordCtxUnsafe = IsUnsafe(cxxRecordDecl),
-                IsReadOnly = cxxMethodDecl.IsConst,
+                IsReadOnly = IsReadonly(cxxMethodDecl),
                 IsUnsafe = true,
                 NeedsReturnFixup = needsReturnFixup,
                 ReturnType = returnTypeName,
@@ -2353,7 +2351,7 @@ public partial class PInvokeGenerator
                 body.Write(escapedCXXRecordDeclName);
                 body.Write("*)Unsafe.AsPointer(");
 
-                if (cxxMethodDecl.IsConst)
+                if (IsReadonly(cxxMethodDecl))
                 {
                     if (!_config.GenerateLatestCode)
                     {

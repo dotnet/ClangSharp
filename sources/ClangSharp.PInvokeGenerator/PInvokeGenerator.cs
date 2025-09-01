@@ -5402,6 +5402,15 @@ public sealed partial class PInvokeGenerator : IDisposable
         }
     }
 
+    private bool IsReadonly(CXXMethodDecl? cxxMethodDecl)
+    {
+        if (cxxMethodDecl is not null)
+        {
+            return cxxMethodDecl.IsConst || HasRemapping(cxxMethodDecl, _config._withReadonlys, matchStar: true);
+        }
+        return false;
+    }
+
     private static bool IsStmtAsWritten<T>(Cursor cursor, [MaybeNullWhen(false)] out T value, bool removeParens = false)
         where T : Stmt
     {
