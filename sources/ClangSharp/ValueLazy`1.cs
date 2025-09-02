@@ -32,6 +32,7 @@ internal partial struct ValueLazy<[DynamicallyAccessedMembers(DynamicallyAccesse
             if (_factory is Func<T> factory)
             {
                 _value = factory();
+                _factory = null;
             }
             return _value;
         }

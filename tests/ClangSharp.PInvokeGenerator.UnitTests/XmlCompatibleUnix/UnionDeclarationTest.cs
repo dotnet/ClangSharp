@@ -868,7 +868,7 @@ union MyUnion
       <field name=""w"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>fixed (_Anonymous_e__Union._Anonymous_1_e__Union* pField = &amp;Anonymous.Anonymous_1)
+          <code>fixed (_Anonymous_e__Union._Anonymous1_e__Union* pField = &amp;Anonymous.Anonymous1)
     {
         return ref pField-&gt;w;
     }</code>
@@ -877,29 +877,29 @@ union MyUnion
       <field name=""o0_b0_16"" access=""public"">
         <type>int</type>
         <get>
-          <code>return Anonymous.Anonymous_1.o0_b0_16;</code>
+          <code>return Anonymous.Anonymous1.o0_b0_16;</code>
         </get>
         <set>
-          <code>Anonymous.Anonymous_1.o0_b0_16 = value;</code>
+          <code>Anonymous.Anonymous1.o0_b0_16 = value;</code>
         </set>
       </field>
       <field name=""o0_b16_4"" access=""public"">
         <type>int</type>
         <get>
-          <code>return Anonymous.Anonymous_1.o0_b16_4;</code>
+          <code>return Anonymous.Anonymous1.o0_b16_4;</code>
         </get>
         <set>
-          <code>Anonymous.Anonymous_1.o0_b16_4 = value;</code>
+          <code>Anonymous.Anonymous1.o0_b16_4 = value;</code>
         </set>
       </field>
       <struct name=""_Anonymous_e__Union"" access=""public"" unsafe=""true"" layout=""Explicit"">
         <field name=""z"" access=""public"" offset=""0"">
           <type>int</type>
         </field>
-        <field name=""Anonymous_1"" access=""public"" offset=""0"">
-          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous_1_e__Union</type>
+        <field name=""Anonymous1"" access=""public"" offset=""0"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous1_e__Union</type>
         </field>
-        <struct name=""_Anonymous_1_e__Union"" access=""public"" layout=""Explicit"">
+        <struct name=""_Anonymous1_e__Union"" access=""public"" layout=""Explicit"">
           <field name=""w"" access=""public"" offset=""0"">
             <type>int</type>
           </field>
@@ -1386,18 +1386,18 @@ union MyUnion
         </get>
       </field>
       <field name=""A"" access=""public"">
-        <type>ref _Anonymous_e__Struct._Anonymous_1_e__Union._A_e__Struct</type>
+        <type>ref _Anonymous_e__Struct._Anonymous_e__Union._A_e__Struct</type>
         <get>
-          <code>fixed (_Anonymous_e__Struct._Anonymous_1_e__Union* pField = &amp;Anonymous.Anonymous_1)
+          <code>fixed (_Anonymous_e__Struct._Anonymous_e__Union* pField = &amp;Anonymous.Anonymous)
     {{
         return ref pField-&gt;A;
     }}</code>
         </get>
       </field>
       <field name=""B"" access=""public"">
-        <type>ref _Anonymous_e__Struct._Anonymous_1_e__Union._B_e__Struct</type>
+        <type>ref _Anonymous_e__Struct._Anonymous_e__Union._B_e__Struct</type>
         <get>
-          <code>fixed (_Anonymous_e__Struct._Anonymous_1_e__Union* pField = &amp;Anonymous.Anonymous_1)
+          <code>fixed (_Anonymous_e__Struct._Anonymous_e__Union* pField = &amp;Anonymous.Anonymous)
     {{
         return ref pField-&gt;B;
     }}</code>
@@ -1407,10 +1407,10 @@ union MyUnion
         <field name=""First"" access=""public"">
           <type native=""long"">IntPtr</type>
         </field>
-        <field name=""Anonymous_1"" access=""public"">
-          <type native=""__AnonymousRecord_ClangUnsavedFile_L7_C9"">_Anonymous_1_e__Union</type>
+        <field name=""Anonymous"" access=""public"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L7_C9"">_Anonymous_e__Union</type>
         </field>
-        <struct name=""_Anonymous_1_e__Union"" access=""public"" unsafe=""true"" layout=""Explicit"">
+        <struct name=""_Anonymous_e__Union"" access=""public"" layout=""Explicit"">
           <field name=""A"" access=""public"" offset=""0"">
             <type native=""__AnonymousRecord_ClangUnsavedFile_L9_C13"">_A_e__Struct</type>
           </field>

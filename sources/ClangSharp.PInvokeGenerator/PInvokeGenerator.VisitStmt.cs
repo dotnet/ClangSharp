@@ -247,7 +247,7 @@ public partial class PInvokeGenerator
                 {
                     var args = callExpr.Args;
 
-                    if (Config.GenerateLatestCode)
+                    if (!Config.GenerateCompatibleCode)
                     {
                         outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
                         outputBuilder.Write("NativeMemory.Copy");
@@ -306,13 +306,13 @@ public partial class PInvokeGenerator
                             break;
                         }
 
-                        if (Config.GenerateLatestCode)
+                        if (!Config.GenerateCompatibleCode)
                         {
                             args = [args[0], args[2], args[1]];
                         }
                     }
 
-                    if (Config.GenerateLatestCode)
+                    if (!Config.GenerateCompatibleCode)
                     {
                         outputBuilder.AddUsingDirective("System.Runtime.InteropServices");
                         outputBuilder.Write("NativeMemory.Fill");
@@ -409,7 +409,27 @@ public partial class PInvokeGenerator
                                 outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
                                 outputBuilder.Write('(');
                                 outputBuilder.Write(referenceTypeName);
-                                outputBuilder.Write(")Unsafe.AsPointer(ref this)");
+                                outputBuilder.Write(")Unsafe.AsPointer(");
+
+                                if (referenceType.IsLocalConstQualified)
+                                {
+                                    if (!_config.GenerateLatestCode)
+                                    {
+                                        outputBuilder.Write("ref Unsafe.AsRef(");
+                                    }
+
+                                    outputBuilder.Write("in this");
+
+                                    if (!_config.GenerateLatestCode)
+                                    {
+                                        outputBuilder.Write(')');
+                                    }
+                                }
+                                else
+                                {
+                                    outputBuilder.Write("ref this");
+                                }
+                                outputBuilder.Write(')');
 
                                 needsComma = true;
                                 continue;
@@ -432,7 +452,27 @@ public partial class PInvokeGenerator
                     else if (IsStmtAsWritten<CXXThisExpr>(arg, out _) && (functionName == "memcpy"))
                     {
                         outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
-                        outputBuilder.Write("Unsafe.AsPointer(ref this)");
+                        outputBuilder.Write("Unsafe.AsPointer(");
+
+                        if (functionProtoType.ParamTypes[i].IsLocalConstQualified)
+                        {
+                            if (!_config.GenerateLatestCode)
+                            {
+                                outputBuilder.Write("ref Unsafe.AsRef(");
+                            }
+
+                            outputBuilder.Write("in this");
+
+                            if (!_config.GenerateLatestCode)
+                            {
+                                outputBuilder.Write(')');
+                            }
+                        }
+                        else
+                        {
+                            outputBuilder.Write("ref this");
+                        }
+                        outputBuilder.Write(')');
 
                         needsComma = true;
                         continue;
@@ -1756,7 +1796,7 @@ public partial class PInvokeGenerator
 
             outputBuilder.WriteIndented("ReadOnlySpan<byte> data = ");
 
-            if (_config.GenerateLatestCode)
+            if (!_config.GenerateCompatibleCode)
             {
                 outputBuilder.WriteLine("[");
             }
@@ -1772,7 +1812,7 @@ public partial class PInvokeGenerator
             outputBuilder.WriteNewline();
             outputBuilder.DecreaseIndentation();
 
-            if (_config.GenerateLatestCode)
+            if (!_config.GenerateCompatibleCode)
             {
                 outputBuilder.WriteIndented(']');
             }
@@ -2030,9 +2070,7 @@ public partial class PInvokeGenerator
     private void VisitLabelStmt(LabelStmt labelStmt)
     {
         var outputBuilder = StartCSharpCode();
-
-        outputBuilder.Write(labelStmt.Decl.Name);
-        outputBuilder.WriteLine(':');
+        outputBuilder.WriteLabel(labelStmt.Decl.Name);
 
         outputBuilder.WriteIndentation();
         Visit(labelStmt.SubStmt);
@@ -2190,7 +2228,27 @@ public partial class PInvokeGenerator
                             outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
                             outputBuilder.Write('(');
                             outputBuilder.Write(referenceTypeName);
-                            outputBuilder.Write(")Unsafe.AsPointer(ref this)");
+                            outputBuilder.Write(")Unsafe.AsPointer(");
+
+                            if (referenceType.IsLocalConstQualified)
+                            {
+                                if (!_config.GenerateLatestCode)
+                                {
+                                    outputBuilder.Write("ref Unsafe.AsRef(");
+                                }
+
+                                outputBuilder.Write("in this");
+
+                                if (!_config.GenerateLatestCode)
+                                {
+                                    outputBuilder.Write(')');
+                                }
+                            }
+                            else
+                            {
+                                outputBuilder.Write("ref this");
+                            }
+                            outputBuilder.Write(')');
 
                             StopCSharpCode();
                             return;
@@ -2793,7 +2851,7 @@ public partial class PInvokeGenerator
             case CX_SLK_Ordinary:
             case CX_SLK_UTF8:
             {
-                if (Config.GenerateLatestCode)
+                if (!Config.GenerateCompatibleCode)
                 {
                     outputBuilder.Write('"');
                     outputBuilder.Write(EscapeString(stringLiteral.String));
@@ -2851,7 +2909,7 @@ public partial class PInvokeGenerator
 
             case CX_SLK_UTF32:
             {
-                if (_config.GenerateLatestCode)
+                if (!_config.GenerateCompatibleCode)
                 {
                     outputBuilder.Write('[');
                 }
@@ -2872,7 +2930,7 @@ public partial class PInvokeGenerator
 
                 outputBuilder.Write("0x00000000");
 
-                if (_config.GenerateLatestCode)
+                if (!_config.GenerateCompatibleCode)
                 {
                     outputBuilder.Write(']');
                 }

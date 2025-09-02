@@ -22,16 +22,37 @@ public sealed class XmlDefaultUnix_StructDeclarationTest : StructDeclarationTest
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+    <struct name=""MyStruct"" access=""public"">
       <field name=""x"" access=""public"">
         <type native=""{nativeType}[]"" count=""1"" fixed=""_x_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_x_e__FixedBuffer"" access=""public"">
+        <field name=""e0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+        <indexer access=""public"">
+          <type>ref {expectedManagedType}</type>
+          <param name=""index"">
+            <type>int</type>
+          </param>
+          <get>
+            <code>return ref Unsafe.Add(ref e0, index);</code>
+          </get>
+        </indexer>
+        <function name=""AsSpan"" access=""public"">
+          <type>Span&lt;{expectedManagedType}&gt;</type>
+          <param name=""length"">
+            <type>int</type>
+          </param>
+          <code>MemoryMarshal.CreateSpan(ref e0, length);</code>
+        </function>
+      </struct>
     </struct>
   </namespace>
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BasicTestImpl(string nativeType, string expectedManagedType)
@@ -62,7 +83,7 @@ public sealed class XmlDefaultUnix_StructDeclarationTest : StructDeclarationTest
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BasicTestInCModeImpl(string nativeType, string expectedManagedType)
@@ -92,7 +113,7 @@ public sealed class XmlDefaultUnix_StructDeclarationTest : StructDeclarationTest
   </namespace>
 </bindings>
 ";
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: []);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: []);
     }
 
     protected override Task BasicWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
@@ -123,7 +144,7 @@ public sealed class XmlDefaultUnix_StructDeclarationTest : StructDeclarationTest
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BitfieldTestImpl()
@@ -294,7 +315,7 @@ struct MyStruct3
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task BitfieldWithNativeBitfieldAttributeTestImpl()
@@ -476,7 +497,7 @@ struct MyStruct3
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute);
     }
 
     protected override Task DeclTypeTestImpl()
@@ -505,14 +526,14 @@ typedef struct
   </namespace>
 </bindings>
 ";
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task ExcludeTestImpl()
     {
         var inputContents = "typedef struct MyStruct MyStruct;";
         var expectedOutputContents = string.Empty;
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: ExcludeTestExcludedNames);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveTestImpl(string nativeType, string expectedManagedType)
@@ -541,35 +562,17 @@ struct MyOtherStruct
         <type native=""MyStruct[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyStruct</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
         <field name=""e0"" access=""public"">
           <type>MyStruct</type>
         </field>
-        <field name=""e1"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e2"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <indexer access=""public"">
-          <type>ref MyStruct</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref AsSpan()[index];</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;MyStruct&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0, 3);</code>
-        </function>
       </struct>
     </struct>
   </namespace>
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
@@ -598,98 +601,17 @@ struct MyOtherStruct
         <type native=""MyStruct[2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">MyStruct</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(2 * 1 * 3 * 4)</attribute>
         <field name=""e0_0_0_0"" access=""public"">
           <type>MyStruct</type>
         </field>
-        <field name=""e1_0_0_0"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_1_0"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_1_0"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_2_0"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_2_0"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_0_1"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_0_1"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_1_1"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_1_1"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_2_1"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_2_1"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_0_2"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_0_2"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_1_2"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_1_2"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_2_2"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_2_2"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_0_3"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_0_3"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_1_3"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_1_3"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e0_0_2_3"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e1_0_2_3"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <indexer access=""public"">
-          <type>ref MyStruct</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref AsSpan()[index];</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;MyStruct&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0_0_0_0, 24);</code>
-        </function>
       </struct>
     </struct>
   </namespace>
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
@@ -720,35 +642,17 @@ struct MyOtherStruct
         <type native=""MyBuffer"" count=""3"" fixed=""_c_e__FixedBuffer"">MyStruct</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
         <field name=""e0"" access=""public"">
           <type>MyStruct</type>
         </field>
-        <field name=""e1"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e2"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <indexer access=""public"">
-          <type>ref MyStruct</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref AsSpan()[index];</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;MyStruct&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0, 3);</code>
-        </function>
       </struct>
     </struct>
   </namespace>
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferNonPrimitiveWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
@@ -777,35 +681,17 @@ struct MyOtherStruct
         <type native=""MyStruct[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">MyStruct</type>
       </field>
       <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
         <field name=""e0"" access=""public"">
           <type>MyStruct</type>
         </field>
-        <field name=""e1"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <field name=""e2"" access=""public"">
-          <type>MyStruct</type>
-        </field>
-        <indexer access=""public"">
-          <type>ref MyStruct</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref AsSpan()[index];</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;MyStruct&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0, 3);</code>
-        </function>
       </struct>
     </struct>
   </namespace>
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferPointerTestImpl(string nativeType, string expectedManagedType)
@@ -851,7 +737,7 @@ struct MyOtherStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferPrimitiveTestImpl(string nativeType, string expectedManagedType)
@@ -865,16 +751,22 @@ struct MyOtherStruct
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+    <struct name=""MyStruct"" access=""public"">
       <field name=""c"" access=""public"">
         <type native=""{nativeType}[3]"" count=""3"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
+        <field name=""e0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+      </struct>
     </struct>
   </namespace>
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferPrimitiveMultidimensionalTestImpl(string nativeType, string expectedManagedType)
@@ -888,16 +780,22 @@ struct MyOtherStruct
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+    <struct name=""MyStruct"" access=""public"">
       <field name=""c"" access=""public"">
         <type native=""{nativeType}[2][1][3][4]"" count=""2 * 1 * 3 * 4"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(2 * 1 * 3 * 4)</attribute>
+        <field name=""e0_0_0_0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+      </struct>
     </struct>
   </namespace>
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task FixedSizedBufferPrimitiveTypedefTestImpl(string nativeType, string expectedManagedType)
@@ -913,16 +811,22 @@ struct MyStruct
         var expectedOutputContents = $@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
-    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+    <struct name=""MyStruct"" access=""public"">
       <field name=""c"" access=""public"">
         <type native=""MyBuffer"" count=""3"" fixed=""_c_e__FixedBuffer"">{expectedManagedType}</type>
       </field>
+      <struct name=""_c_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(3)</attribute>
+        <field name=""e0"" access=""public"">
+          <type>{expectedManagedType}</type>
+        </field>
+      </struct>
     </struct>
   </namespace>
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task GuidTestImpl()
@@ -967,7 +871,7 @@ struct DECLSPEC_UUID(""00000000-0000-0000-C000-000000000047"") MyStruct2
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidTestExcludedNames);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, excludedNames: GuidTestExcludedNames);
     }
 
     protected override Task InheritanceTestImpl()
@@ -1028,7 +932,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task InheritanceWithNativeInheritanceAttributeTestImpl()
@@ -1089,7 +993,7 @@ struct MyStruct2 : MyStruct1A, MyStruct1B
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
     }
 
     protected override Task NestedAnonymousTestImpl(string nativeType, string expectedManagedType, int line, int column)
@@ -1127,7 +1031,7 @@ struct MyStruct
         <type>{expectedManagedType}</type>
       </field>
     </struct>
-    <struct name=""MyStruct"" access=""public"" unsafe=""true"">
+    <struct name=""MyStruct"" access=""public"">
       <field name=""x"" access=""public"">
         <type>{expectedManagedType}</type>
       </field>
@@ -1140,34 +1044,34 @@ struct MyStruct
       <field name=""z"" access=""public"">
         <type>ref {expectedManagedType}</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));</code>
+          <code>return ref Anonymous.z;</code>
         </get>
       </field>
       <field name=""w"" access=""public"">
         <type>ref _Anonymous_e__Struct._w_e__Struct</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.w, 1));</code>
+          <code>return ref Anonymous.w;</code>
         </get>
       </field>
       <field name=""u"" access=""public"">
         <type>ref MyUnion</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.u, 1));</code>
+          <code>return ref Anonymous.u;</code>
         </get>
       </field>
       <field name=""buffer1"" access=""public"">
         <type>Span&lt;{expectedManagedType}&gt;</type>
         <get>
-          <code>return MemoryMarshal.CreateSpan(ref Anonymous.buffer1[0], 4);</code>
+          <code>return Anonymous.buffer1;</code>
         </get>
       </field>
       <field name=""buffer2"" access=""public"">
         <type>Span&lt;MyUnion&gt;</type>
         <get>
-          <code>return Anonymous.buffer2.AsSpan();</code>
+          <code>return Anonymous.buffer2;</code>
         </get>
       </field>
-      <struct name=""_Anonymous_e__Struct"" access=""public"" unsafe=""true"">
+      <struct name=""_Anonymous_e__Struct"" access=""public"">
         <field name=""z"" access=""public"">
           <type>{expectedManagedType}</type>
         </field>
@@ -1188,32 +1092,17 @@ struct MyStruct
             <type>{expectedManagedType}</type>
           </field>
         </struct>
+        <struct name=""_buffer1_e__FixedBuffer"" access=""public"">
+          <attribute>InlineArray(4)</attribute>
+          <field name=""e0"" access=""public"">
+            <type>{expectedManagedType}</type>
+          </field>
+        </struct>
         <struct name=""_buffer2_e__FixedBuffer"" access=""public"">
+          <attribute>InlineArray(4)</attribute>
           <field name=""e0"" access=""public"">
             <type>MyUnion</type>
           </field>
-          <field name=""e1"" access=""public"">
-            <type>MyUnion</type>
-          </field>
-          <field name=""e2"" access=""public"">
-            <type>MyUnion</type>
-          </field>
-          <field name=""e3"" access=""public"">
-            <type>MyUnion</type>
-          </field>
-          <indexer access=""public"">
-            <type>ref MyUnion</type>
-            <param name=""index"">
-              <type>int</type>
-            </param>
-            <get>
-              <code>return ref AsSpan()[index];</code>
-            </get>
-          </indexer>
-          <function name=""AsSpan"" access=""public"">
-            <type>Span&lt;MyUnion&gt;</type>
-            <code>MemoryMarshal.CreateSpan(ref e0, 4);</code>
-          </function>
         </struct>
       </struct>
     </struct>
@@ -1221,7 +1110,7 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NestedAnonymousWithBitfieldTestImpl()
@@ -1261,41 +1150,41 @@ struct MyStruct
       <field name=""z"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.z, 1));</code>
+          <code>return ref Anonymous.z;</code>
         </get>
       </field>
       <field name=""w"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous_1.w, 1));</code>
+          <code>return ref Anonymous.Anonymous1.w;</code>
         </get>
       </field>
       <field name=""o0_b0_16"" access=""public"">
         <type>int</type>
         <get>
-          <code>return Anonymous.Anonymous_1.o0_b0_16;</code>
+          <code>return Anonymous.Anonymous1.o0_b0_16;</code>
         </get>
         <set>
-          <code>Anonymous.Anonymous_1.o0_b0_16 = value;</code>
+          <code>Anonymous.Anonymous1.o0_b0_16 = value;</code>
         </set>
       </field>
       <field name=""o0_b16_4"" access=""public"">
         <type>int</type>
         <get>
-          <code>return Anonymous.Anonymous_1.o0_b16_4;</code>
+          <code>return Anonymous.Anonymous1.o0_b16_4;</code>
         </get>
         <set>
-          <code>Anonymous.Anonymous_1.o0_b16_4 = value;</code>
+          <code>Anonymous.Anonymous1.o0_b16_4 = value;</code>
         </set>
       </field>
       <struct name=""_Anonymous_e__Struct"" access=""public"">
         <field name=""z"" access=""public"">
           <type>int</type>
         </field>
-        <field name=""Anonymous_1"" access=""public"">
-          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous_1_e__Struct</type>
+        <field name=""Anonymous1"" access=""public"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L10_C9"">_Anonymous1_e__Struct</type>
         </field>
-        <struct name=""_Anonymous_1_e__Struct"" access=""public"">
+        <struct name=""_Anonymous1_e__Struct"" access=""public"">
           <field name=""w"" access=""public"">
             <type>int</type>
           </field>
@@ -1329,7 +1218,7 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NestedTestImpl(string nativeType, string expectedManagedType)
@@ -1382,7 +1271,7 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NestedWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
@@ -1435,7 +1324,7 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NewKeywordTestImpl()
@@ -1481,7 +1370,7 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task NoDefinitionTestImpl()
@@ -1495,7 +1384,7 @@ struct MyStruct
   </namespace>
 </bindings>
 ";
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
     protected override Task PackTestImpl()
     {
@@ -1549,7 +1438,7 @@ struct MyStruct2 {
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(InputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, expectedOutputContents);
     }
 
     protected override Task PointerToSelfTestImpl()
@@ -1574,7 +1463,7 @@ struct MyStruct2 {
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task PointerToSelfViaTypedefTestImpl()
@@ -1601,7 +1490,7 @@ struct example_s {
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task RemapTestImpl()
@@ -1617,7 +1506,7 @@ struct example_s {
 ";
 
         var remappedNames = new Dictionary<string, string> { ["_MyStruct"] = "MyStruct" };
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
     }
 
     protected override Task RemapNestedAnonymousTestImpl()
@@ -1653,7 +1542,7 @@ struct example_s {
       <field name=""a"" access=""public"">
         <type>ref double</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.a, 1));</code>
+          <code>return ref Anonymous.a;</code>
         </get>
       </field>
       <struct name=""_Anonymous_e__Struct"" access=""public"">
@@ -1670,7 +1559,7 @@ struct example_s {
             ["__AnonymousField_ClangUnsavedFile_L7_C5"] = "Anonymous",
             ["__AnonymousRecord_ClangUnsavedFile_L7_C5"] = "_Anonymous_e__Struct"
         };
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, remappedNames: remappedNames);
     }
 
     protected override Task SkipNonDefinitionTestImpl(string nativeType, string expectedManagedType)
@@ -1703,7 +1592,7 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task SkipNonDefinitionPointerTestImpl()
@@ -1720,7 +1609,7 @@ typedef struct MyStruct& MyStructRef;
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task SkipNonDefinitionWithNativeTypeNameTestImpl(string nativeType, string expectedManagedType)
@@ -1753,7 +1642,7 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task TypedefTestImpl(string nativeType, string expectedManagedType)
@@ -1786,7 +1675,7 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task UsingDeclarationTestImpl()
@@ -1821,7 +1710,7 @@ struct MyStruct1B : MyStruct1A
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task WithAccessSpecifierTestImpl()
@@ -1882,7 +1771,7 @@ struct MyStruct3
             ["Field1"] = AccessSpecifier.Private,
             ["MyStruct3.Field2"] = AccessSpecifier.Internal,
         };
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents, withAccessSpecifiers: withAccessSpecifiers);
     }
 
     protected override Task WithPackingTestImpl()
@@ -1903,25 +1792,10 @@ struct MyStruct
         <type native=""size_t[2]"" count=""2"" fixed=""_FixedBuffer_e__FixedBuffer"">nuint</type>
       </field>
       <struct name=""_FixedBuffer_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(2)</attribute>
         <field name=""e0"" access=""public"">
           <type>nuint</type>
         </field>
-        <field name=""e1"" access=""public"">
-          <type>nuint</type>
-        </field>
-        <indexer access=""public"">
-          <type>ref nuint</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref AsSpan()[index];</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;nuint&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0, 2);</code>
-        </function>
       </struct>
     </struct>
   </namespace>
@@ -1931,7 +1805,7 @@ struct MyStruct
         var withPackings = new Dictionary<string, string> {
             ["MyStruct"] = "CustomPackValue"
         };
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(InputContents, ExpectedOutputContents, withPackings: withPackings);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, withPackings: withPackings);
     }
 
     protected override Task SourceLocationAttributeTestImpl()
@@ -1962,7 +1836,7 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(InputContents, ExpectedOutputContents, PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
     }
 
     protected override Task AnonStructAndAnonStructArrayImpl()
@@ -1971,61 +1845,47 @@ struct MyStruct
 {
     struct { int First; };
     struct { int Second; } MyArray[2];
-} MyStruct;";
+} MyStruct;
+";
 
         var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
   <namespace name=""ClangSharp.Test"">
     <struct name=""_MyStruct"" access=""public"">
-      <field name=""Anonymous1"" access=""public"">
-        <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C5"">_Anonymous1_e__Struct</type>
+      <field name=""Anonymous"" access=""public"">
+        <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C5"">_Anonymous_e__Struct</type>
       </field>
       <field name=""MyArray"" access=""public"">
-        <type native=""struct (anonymous struct at ClangUnsavedFile.h:4:5)[2]"" count=""2"" fixed=""_MyArray_e__FixedBuffer"">_Anonymous2_e__Struct</type>
+        <type native=""struct (anonymous struct at ClangUnsavedFile.h:4:5)[2]"" count=""2"" fixed=""_MyArray_e__FixedBuffer"">_MyArray_e__Struct</type>
       </field>
       <field name=""First"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous1.First, 1));</code>
+          <code>return ref Anonymous.First;</code>
         </get>
       </field>
-      <struct name=""_Anonymous1_e__Struct"" access=""public"">
+      <struct name=""_Anonymous_e__Struct"" access=""public"">
         <field name=""First"" access=""public"">
           <type>int</type>
         </field>
       </struct>
-      <struct name=""_Anonymous2_e__Struct"" access=""public"">
+      <struct name=""_MyArray_e__Struct"" access=""public"">
         <field name=""Second"" access=""public"">
           <type>int</type>
         </field>
       </struct>
       <struct name=""_MyArray_e__FixedBuffer"" access=""public"">
+        <attribute>InlineArray(2)</attribute>
         <field name=""e0"" access=""public"">
-          <type>_Anonymous2_e__Struct</type>
+          <type>_MyArray_e__Struct</type>
         </field>
-        <field name=""e1"" access=""public"">
-          <type>_Anonymous2_e__Struct</type>
-        </field>
-        <indexer access=""public"">
-          <type>ref _Anonymous2_e__Struct</type>
-          <param name=""index"">
-            <type>int</type>
-          </param>
-          <get>
-            <code>return ref AsSpan()[index];</code>
-          </get>
-        </indexer>
-        <function name=""AsSpan"" access=""public"">
-          <type>Span&lt;_Anonymous2_e__Struct&gt;</type>
-          <code>MemoryMarshal.CreateSpan(ref e0, 2);</code>
-        </function>
       </struct>
     </struct>
   </namespace>
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 
     protected override Task DeeplyNestedAnonStructsImpl()
@@ -2036,7 +1896,8 @@ struct MyStruct
         struct { int Value1; };
         struct { int Value2; };
     }; };
-} MyStruct;";
+} MyStruct;
+";
 
         var expectedOutputContents = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes"" ?>
 <bindings>
@@ -2048,32 +1909,32 @@ struct MyStruct
       <field name=""Value1"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous_1.Anonymous1_2.Value1, 1));</code>
+          <code>return ref Anonymous.Anonymous1.Anonymous2.Value1;</code>
         </get>
       </field>
       <field name=""Value2"" access=""public"">
         <type>ref int</type>
         <get>
-          <code>return ref MemoryMarshal.GetReference(MemoryMarshal.CreateSpan(ref Anonymous.Anonymous_1.Anonymous2_2.Value2, 1));</code>
+          <code>return ref Anonymous.Anonymous1.Anonymous3.Value2;</code>
         </get>
       </field>
       <struct name=""_Anonymous_e__Struct"" access=""public"">
-        <field name=""Anonymous_1"" access=""public"">
-          <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C14"">_Anonymous_1_e__Struct</type>
+        <field name=""Anonymous1"" access=""public"">
+          <type native=""__AnonymousRecord_ClangUnsavedFile_L3_C14"">_Anonymous1_e__Struct</type>
         </field>
-        <struct name=""_Anonymous_1_e__Struct"" access=""public"">
-          <field name=""Anonymous1_2"" access=""public"">
-            <type native=""__AnonymousRecord_ClangUnsavedFile_L4_C9"">_Anonymous1_2_e__Struct</type>
+        <struct name=""_Anonymous1_e__Struct"" access=""public"">
+          <field name=""Anonymous2"" access=""public"">
+            <type native=""__AnonymousRecord_ClangUnsavedFile_L4_C9"">_Anonymous2_e__Struct</type>
           </field>
-          <field name=""Anonymous2_2"" access=""public"">
-            <type native=""__AnonymousRecord_ClangUnsavedFile_L5_C9"">_Anonymous2_2_e__Struct</type>
+          <field name=""Anonymous3"" access=""public"">
+            <type native=""__AnonymousRecord_ClangUnsavedFile_L5_C9"">_Anonymous3_e__Struct</type>
           </field>
-          <struct name=""_Anonymous1_2_e__Struct"" access=""public"">
+          <struct name=""_Anonymous2_e__Struct"" access=""public"">
             <field name=""Value1"" access=""public"">
               <type>int</type>
             </field>
           </struct>
-          <struct name=""_Anonymous2_2_e__Struct"" access=""public"">
+          <struct name=""_Anonymous3_e__Struct"" access=""public"">
             <field name=""Value2"" access=""public"">
               <type>int</type>
             </field>
@@ -2085,6 +1946,6 @@ struct MyStruct
 </bindings>
 ";
 
-        return ValidateGeneratedXmlDefaultUnixBindingsAsync(inputContents, expectedOutputContents);
+        return ValidateGeneratedXmlLatestUnixBindingsAsync(inputContents, expectedOutputContents);
     }
 }
