@@ -715,6 +715,44 @@ typedef struct Bitfield {
     }
 
     [Test]
+    [Platform("unix")]
+    public Task BitfieldTypeDefTypeCastTestUnix()
+    {
+        var inputContents = @"
+typedef unsigned int Number;
+
+typedef struct Bitfield {
+    Number bits : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""Number : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
     [Platform("win")] // This test has slight platform-specific differences
     public Task BitfieldEnumPropertyTypeCastTestWindows()
     {
