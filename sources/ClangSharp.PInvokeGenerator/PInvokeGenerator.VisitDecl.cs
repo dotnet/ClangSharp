@@ -2748,204 +2748,282 @@ public partial class PInvokeGenerator
             _outputBuilder.BeginField(in desc);
             _outputBuilder.WriteRegularField(typeName, escapedName);
             _outputBuilder.BeginBody();
-            _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining, isReadOnly: !Config.GenerateCompatibleCode);
-            var code = _outputBuilder.BeginCSharpCode();
-
-            code.WriteIndented("return ");
 
             var recordDeclName = GetCursorName(recordDecl);
 
-            var isSmallType = currentSize < 4;
-            var isRemappedToSelf = _config.RemappedNames.TryGetValue(typeName, out var remappedTypeName) && typeName.Equals(remappedTypeName, StringComparison.Ordinal);
+            // Small types become uint32/int32s after shifting
+            var isSmallType = fieldDecl.Type.Handle.SizeOf < 4;
+            var isSmallTypeBacking = currentSize < 4;
+
+            // Check if field/backing types match
             var isTypeMismatch = type != builtinTypeBacking;
+
+            // Signed types are sign extended when shifted
             var isUnsignedToSigned = !isTypeBackingSigned && isTypeSigned;
+            
+            // Check if type is directly shiftable/maskable
+            // Remapped types are not guaranteed to be shiftable or maskable
+            // Enums are maskable, but not shiftable
+            var isTypeLikelyRemapped = !isTypeMismatch && (typeName != typeNameBacking);
+            var isTypeAnEnum = IsType<EnumType>(fieldDecl);
 
-            var needsCast = isSmallType || isRemappedToSelf || isTypeMismatch || isUnsignedToSigned;
-            var needsParenFirst = !isSmallType && isUnsignedToSigned;
-            var needsParenSecond = !needsParenFirst || isRemappedToSelf;
-
+            // Main cases:
             // backing  int, current int            (value << cns) >> cns
             // backing  int, current uint           (uint)((value >> cns) & msk)
 
-            // backing uint, current int            ((int)value << cns) >> cns
+            // backing uint, current int            (int)(value << cns) >> cns
             // backing uint, current uint           (value >> cns) & msk
 
             // backing uint, current byte           (byte)((value >> cns) & msk)
-            // backing uint, current sbyte          (sbyte)((value << cns) >> cns)
+            // backing uint, current sbyte          (sbyte)((sbyte)(value << cns) >> cns)
 
-            if (needsCast)
+            // Getter
             {
+                _outputBuilder.BeginGetter(_config.GenerateAggressiveInlining,
+                    isReadOnly: !Config.GenerateCompatibleCode);
+                var code = _outputBuilder.BeginCSharpCode();
+
+                code.WriteIndented("return ");
+
+                var needsCastToFinal = (isSmallType || isTypeMismatch || isUnsignedToSigned) && !isTypeAnEnum;
+
+                // This is to handle the "backing uint, current sbyte" case
+                var needsCastToFinalAgain = isUnsignedToSigned && isSmallType;
+                if (needsCastToFinalAgain)
+                {
+                    code.Write('(');
+                    code.BeginMarker("typeName");
+                    code.Write(typeName);
+                    code.EndMarker("typeName");
+                    code.Write(")(");
+                }
+
+                if (needsCastToFinal)
+                {
+                    code.Write('(');
+                    code.BeginMarker("typeName");
+                    code.Write(typeName);
+                    code.EndMarker("typeName");
+                    code.Write(")");
+                }
+
+                var needsCastToFinalParen = needsCastToFinal && !isUnsignedToSigned;
+                if (needsCastToFinalParen)
+                {
+                    code.Write('(');
+                }
+
+                var needsCastBeforeOp = isTypeLikelyRemapped || isTypeAnEnum;
+                if (needsCastBeforeOp)
+                {
+                    code.Write('(');
+                    code.BeginMarker("typeName");
+                    code.Write(typeName);
+                    code.EndMarker("typeName");
+                    code.Write(")(");
+                }
+
+                if (isTypeSigned)
+                {
+                    code.Write('(');
+
+                    if (!string.IsNullOrWhiteSpace(contextName))
+                    {
+                        code.BeginMarker("contextName");
+                        code.Write(contextName);
+                        code.EndMarker("contextName");
+                        code.Write('.');
+                    }
+
+                    code.BeginMarker("bitfieldName");
+                    code.Write(bitfieldName);
+                    code.EndMarker("bitfieldName");
+
+                    code.Write(" << ");
+                    code.BeginMarker("remainingBitsMinusBitWidth");
+                    code.Write(remainingBits - fieldDecl.BitWidthValue);
+                    code.EndMarker("remainingBitsMinusBitWidth");
+
+                    code.Write(')');
+
+                    code.Write(" >> ");
+                    code.BeginMarker("currentSizeMinusBitWidth");
+                    code.Write((currentSize * 8) - fieldDecl.BitWidthValue);
+                    code.EndMarker("currentSizeMinusBitWidth");
+                }
+                else
+                {
+                    var needsOffset = bitfieldOffset != 0;
+                    if (needsOffset)
+                    {
+                        code.Write('(');
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(contextName))
+                    {
+                        code.BeginMarker("contextName");
+                        code.Write(contextName);
+                        code.EndMarker("contextName");
+                        code.Write('.');
+                    }
+
+                    code.BeginMarker("bitfieldName");
+                    code.Write(bitfieldName);
+                    code.EndMarker("bitfieldName");
+
+                    if (needsOffset)
+                    {
+                        code.Write(" >> ");
+                        code.BeginMarker("bitfieldOffset");
+                        code.Write(bitfieldOffset);
+                        code.EndMarker("bitfieldOffset");
+
+                        code.Write(')');
+                    }
+
+                    code.Write(" & 0x");
+                    code.BeginMarker("bitwidthHexStringBacking");
+                    code.Write(bitwidthHexStringBacking);
+                    code.EndMarker("bitwidthHexStringBacking");
+                }
+
+                if (needsCastBeforeOp)
+                {
+                    code.Write(')');
+                }
+
+                if (needsCastToFinalParen)
+                {
+                    code.Write(')');
+                }
+
+                if (needsCastToFinalAgain)
+                {
+                    code.Write(')');
+                }
+
+                code.WriteSemicolon();
+                code.WriteNewline();
+                _outputBuilder.EndCSharpCode(code);
+                _outputBuilder.EndGetter();
+            }
+
+            // Setter
+            {
+                _outputBuilder.BeginSetter(_config.GenerateAggressiveInlining);
+                var code = _outputBuilder.BeginCSharpCode();
+                code.WriteIndentation();
+
+                if (!string.IsNullOrWhiteSpace(contextName))
+                {
+                    code.BeginMarker("contextName");
+                    code.Write(contextName);
+                    code.EndMarker("contextName");
+                    code.Write('.');
+                }
+
+                code.BeginMarker("bitfieldName");
+                code.Write(bitfieldName);
+                code.EndMarker("bitfieldName");
+
+                code.Write(" = ");
+
+                var needsCastToFinal = isSmallTypeBacking;
+                if (needsCastToFinal)
+                {
+                    code.Write('(');
+                    code.BeginMarker("typeNameBacking");
+                    code.Write(typeNameBacking);
+                    code.EndMarker("typeNameBacking");
+                    code.Write(")(");
+                }
+
+                // Zero out target bits
                 code.Write('(');
-                code.BeginMarker("typeName");
-                code.Write(typeName);
-                code.EndMarker("typeName");
-                code.Write(")(");
-            }
 
-            if ((!needsParenFirst && (bitfieldOffset != 0)) || (!isUnsignedToSigned && isTypeSigned))
-            {
-                code.Write('(');
-            }
+                if (!string.IsNullOrWhiteSpace(contextName))
+                {
+                    code.Write(contextName);
+                    code.Write('.');
+                }
 
-            if (!string.IsNullOrWhiteSpace(contextName))
-            {
-                code.BeginMarker("contextName");
-                code.Write(contextName);
-                code.EndMarker("contextName");
-                code.Write('.');
-            }
+                code.Write(bitfieldName);
 
-            code.BeginMarker("bitfieldName");
-            code.Write(bitfieldName);
-            code.EndMarker("bitfieldName");
+                code.Write(" & ~");
 
-            if (isTypeSigned)
-            {
-                code.Write(" << ");
-                code.BeginMarker("remainingBitsMinusBitWidth");
-                code.Write(remainingBits - fieldDecl.BitWidthValue);
-                code.EndMarker("remainingBitsMinusBitWidth");
-                code.Write(')');
-
-                code.Write(" >> ");
-                code.BeginMarker("currentSizeMinusBitWidth");
-                code.Write((currentSize * 8) - fieldDecl.BitWidthValue);
-                code.EndMarker("currentSizeMinusBitWidth");
-            }
-            else
-            {
                 if (bitfieldOffset != 0)
                 {
-                    code.Write(" >> ");
+                    code.Write('(');
+                }
+
+                code.Write("0x");
+                code.BeginMarker("bitwidthHexStringBacking");
+                code.Write(bitwidthHexStringBacking);
+                code.EndMarker("bitwidthHexStringBacking");
+
+                if (bitfieldOffset != 0)
+                {
+                    code.Write(" << ");
                     code.BeginMarker("bitfieldOffset");
                     code.Write(bitfieldOffset);
                     code.EndMarker("bitfieldOffset");
                     code.Write(')');
                 }
 
+                // Write to target bits
+                code.Write(") | ");
+
+                var needsCastBeforeLogicalOr = isTypeMismatch && !isTypeAnEnum;
+                if (needsCastBeforeLogicalOr)
+                {
+                    code.Write('(');
+                    code.Write(typeNameBacking);
+                    code.Write(")");
+                }
+
+                code.Write('(');
+
+                if (bitfieldOffset != 0)
+                {
+                    code.Write('(');
+                }
+
+                var needsCastBeforeOp = isTypeLikelyRemapped || isTypeAnEnum;
+                if (needsCastBeforeOp)
+                {
+                    code.Write('(');
+                    code.Write(typeNameBacking);
+                    code.Write(")(value)");
+                }
+                else
+                {
+                    code.Write("value");
+                }
+
                 code.Write(" & 0x");
-                code.BeginMarker("bitwidthHexStringBacking");
-                code.Write(bitwidthHexStringBacking);
-                code.EndMarker("bitwidthHexStringBacking");
-            }
+                code.BeginMarker("bitwidthHexString");
+                code.Write(bitwidthHexString);
+                code.EndMarker("bitwidthHexString");
 
-            if (needsCast && needsParenSecond)
-            {
+                if (bitfieldOffset != 0)
+                {
+                    code.Write(") << ");
+                    code.Write(bitfieldOffset);
+                }
+
                 code.Write(')');
+
+                if (needsCastToFinal)
+                {
+                    code.Write(')');
+                }
+
+                code.WriteSemicolon();
+                code.WriteNewline();
+                _outputBuilder.EndCSharpCode(code);
+                _outputBuilder.EndSetter();
             }
 
-            code.WriteSemicolon();
-            code.WriteNewline();
-            _outputBuilder.EndCSharpCode(code);
-            _outputBuilder.EndGetter();
-
-            _outputBuilder.BeginSetter(_config.GenerateAggressiveInlining);
-            code = _outputBuilder.BeginCSharpCode();
-            code.WriteIndentation();
-
-            if (!string.IsNullOrWhiteSpace(contextName))
-            {
-                code.BeginMarker("contextName");
-                code.Write(contextName);
-                code.EndMarker("contextName");
-                code.Write('.');
-            }
-
-            code.BeginMarker("bitfieldName");
-            code.Write(bitfieldName);
-            code.EndMarker("bitfieldName");
-
-            code.Write(" = ");
-
-            if (currentSize < 4)
-            {
-                code.Write('(');
-                code.BeginMarker("typeNameBacking");
-                code.Write(typeNameBacking);
-                code.EndMarker("typeNameBacking");
-                code.Write(")(");
-            }
-
-            code.Write('(');
-
-            if (!string.IsNullOrWhiteSpace(contextName))
-            {
-                code.Write(contextName);
-                code.Write('.');
-            }
-
-            code.Write(bitfieldName);
-
-            code.Write(" & ~");
-
-            if (bitfieldOffset != 0)
-            {
-                code.Write('(');
-            }
-
-            code.Write("0x");
-            code.BeginMarker("bitwidthHexStringBacking");
-            code.Write(bitwidthHexStringBacking);
-            code.EndMarker("bitwidthHexStringBacking");
-
-            if (bitfieldOffset != 0)
-            {
-                code.Write(" << ");
-                code.BeginMarker("bitfieldOffset");
-                code.Write(bitfieldOffset);
-                code.EndMarker("bitfieldOffset");
-                code.Write(')');
-            }
-
-            code.Write(") | ");
-
-            if ((builtinType != builtinTypeBacking) && !IsType<EnumType>(fieldDecl))
-            {
-                code.Write('(');
-                code.Write(typeNameBacking);
-                code.Write(')');
-            }
-
-            code.Write('(');
-
-            if (bitfieldOffset != 0)
-            {
-                code.Write('(');
-            }
-
-            if (IsType<EnumType>(fieldDecl) || isRemappedToSelf)
-            {
-                code.Write('(');
-                code.Write(typeNameBacking);
-                code.Write(")(value)");
-            }
-            else
-            {
-                code.Write("value");
-            }
-
-            code.Write(" & 0x");
-            code.BeginMarker("bitwidthHexString");
-            code.Write(bitwidthHexString);
-            code.EndMarker("bitwidthHexString");
-
-            if (bitfieldOffset != 0)
-            {
-                code.Write(") << ");
-                code.Write(bitfieldOffset);
-            }
-
-            code.Write(')');
-
-            if (currentSize < 4)
-            {
-                code.Write(')');
-            }
-
-            code.WriteSemicolon();
-            code.WriteNewline();
-            _outputBuilder.EndCSharpCode(code);
-            _outputBuilder.EndSetter();
             _outputBuilder.EndBody();
             _outputBuilder.EndField(in desc);
             _outputBuilder.WriteDivider();

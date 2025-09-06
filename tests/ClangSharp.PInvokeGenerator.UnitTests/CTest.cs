@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -449,5 +450,556 @@ const int ShiftSignedLong = 1 << SignedLong;
 ";
 
         return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("unix")]
+    public Task BitfieldEnumPropertySmallBackingTypeTestUnix()
+    {
+        // This test is here mainly to ensure that the sbyte case gets coverage
+        if (RuntimeInformation.ProcessArchitecture != Architecture.X64)
+        {
+            Assert.Ignore("This test is only valid for Unix x64");
+        }
+
+        var inputContents = @"
+typedef struct Bitfield {
+    unsigned char bits1 : 8;
+    char bits2 : 8;
+    unsigned char bits3 : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct Bitfield
+    {
+        public byte _bitfield1;
+
+        [NativeTypeName(""unsigned char : 8"")]
+        public byte bits1
+        {
+            readonly get
+            {
+                return (byte)(_bitfield1 & 0xFFu);
+            }
+
+            set
+            {
+                _bitfield1 = (byte)((_bitfield1 & ~0xFFu) | (value & 0xFFu));
+            }
+        }
+
+        public sbyte _bitfield2;
+
+        [NativeTypeName(""char : 8"")]
+        public sbyte bits2
+        {
+            readonly get
+            {
+                return (sbyte)((_bitfield2 << 0) >> 0);
+            }
+
+            set
+            {
+                _bitfield2 = (sbyte)((_bitfield2 & ~0xFF) | (value & 0xFF));
+            }
+        }
+
+        public byte _bitfield3;
+
+        [NativeTypeName(""unsigned char : 8"")]
+        public byte bits3
+        {
+            readonly get
+            {
+                return (byte)(_bitfield3 & 0xFFu);
+            }
+
+            set
+            {
+                _bitfield3 = (byte)((_bitfield3 & ~0xFFu) | (value & 0xFFu));
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("unix")]
+    public Task BitfieldEnumPropertyBackingTypeTestUnix()
+    {
+        // This test is here mainly to ensure that the sbyte case gets coverage
+        if (RuntimeInformation.ProcessArchitecture != Architecture.X64)
+        {
+            Assert.Ignore("This test is only valid for Unix x64");
+        }
+
+        var inputContents = @"
+typedef struct IntBitfield {
+    int bits : 8;
+    unsigned int bits2 : 8;
+} IntBitfield;
+
+typedef struct UIntBitfield {
+    unsigned int bits1 : 8;
+    int bits2 : 8;
+    unsigned char bits3 : 8;
+    char bits4 : 8;
+} UIntBitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct IntBitfield
+    {
+        public int _bitfield;
+
+        [NativeTypeName(""int : 8"")]
+        public int bits
+        {
+            readonly get
+            {
+                return (_bitfield << 24) >> 24;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFF) | (value & 0xFF);
+            }
+        }
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits2
+        {
+            readonly get
+            {
+                return (uint)((_bitfield >> 8) & 0xFF);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFF << 8)) | (int)((value & 0xFFu) << 8);
+            }
+        }
+    }
+
+    public partial struct UIntBitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits1
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""int : 8"")]
+        public int bits2
+        {
+            readonly get
+            {
+                return (int)(_bitfield << 16) >> 24;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | (uint)((value & 0xFF) << 8);
+            }
+        }
+
+        [NativeTypeName(""unsigned char : 8"")]
+        public byte bits3
+        {
+            readonly get
+            {
+                return (byte)((_bitfield >> 16) & 0xFFu);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 16)) | (uint)((value & 0xFFu) << 16);
+            }
+        }
+
+        [NativeTypeName(""char : 8"")]
+        public sbyte bits4
+        {
+            readonly get
+            {
+                return (sbyte)((sbyte)(_bitfield << 0) >> 24);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 24)) | (uint)((value & 0xFF) << 24);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("unix")]
+    public Task BitfieldEnumPropertyTypeCastTestUnix()
+    {
+        var inputContents = @"
+typedef enum Flags {
+    Member = 0x7FFFFFFF
+} Flags;
+
+typedef struct Bitfield {
+    unsigned int bits : 8;
+    Flags flags : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    [NativeTypeName(""unsigned int"")]
+    public enum Flags : uint
+    {
+        Member = 0x7FFFFFFF,
+    }
+
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""Flags : 8"")]
+        public Flags flags
+        {
+            readonly get
+            {
+                return (Flags)((_bitfield >> 8) & 0xFFu);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFFu) << 8);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("unix")]
+    public Task BitfieldTypeDefTypeCastTestUnix()
+    {
+        var inputContents = @"
+typedef unsigned int Number;
+
+typedef struct Bitfield {
+    Number bits : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""Number : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("win")] // This test has slight platform-specific differences
+    public Task BitfieldEnumPropertyTypeCastTestWindows()
+    {
+        var inputContents = @"
+typedef enum Flags {
+    Member = 0x7FFFFFFF
+} Flags;
+
+typedef struct Bitfield {
+    unsigned int bits : 8;
+    Flags flags : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public enum Flags
+    {
+        Member = 0x7FFFFFFF,
+    }
+
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""Flags : 8"")]
+        public Flags flags
+        {
+            readonly get
+            {
+                return (Flags)((_bitfield << 16) >> 24);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFF) << 8);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("unix")] // This test has slight platform-specific differences
+    public Task BitfieldEnumTypeDefPropertyTypeCast()
+    {
+        var inputContents = @"
+typedef enum FlagBits {
+    Member = 0x7FFFFFFF
+} FlagBits;
+typedef unsigned int Flags;
+
+typedef struct Bitfield {
+    unsigned int bits : 8;
+    Flags flags : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    [NativeTypeName(""unsigned int"")]
+    public enum FlagBits : uint
+    {
+        Member = 0x7FFFFFFF,
+    }
+
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""Flags : 8"")]
+        public uint flags
+        {
+            readonly get
+            {
+                return (_bitfield >> 8) & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | ((value & 0xFFu) << 8);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("unix")] // This test has slight platform-specific differences
+    public Task BitfieldEnumTypeDefPropertyTypeCastWithRemappingTest()
+    {
+        var inputContents = @"
+typedef enum FlagBits {
+    Member = 0x7FFFFFFF
+} FlagBits;
+typedef unsigned int Flags;
+
+typedef struct Bitfield {
+    unsigned int bits : 8;
+    Flags flags : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    [NativeTypeName(""unsigned int"")]
+    public enum FlagBits : uint
+    {
+        Member = 0x7FFFFFFF,
+    }
+
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""Flags : 8"")]
+        public FlagBits flags
+        {
+            readonly get
+            {
+                return (FlagBits)((_bitfield >> 8) & 0xFFu);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFFu) << 8);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents,
+            commandLineArgs: DefaultCClangCommandLineArgs,
+            language: "c",
+            languageStandard: DefaultCStandard,
+            remappedNames: new Dictionary<string, string>()
+            {
+                { "Flags", "FlagBits" }
+            });
+    }
+
+    [Test]
+    [Platform("unix")] // This test has slight platform-specific differences
+    public Task BitfieldEnumTypeDefPropertyTypeCastWithSelfRemappingTest()
+    {
+        var inputContents = @"
+typedef unsigned int Flags;
+
+typedef struct Bitfield {
+    unsigned int bits : 8;
+    Flags flags : 8;
+} Bitfield;
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public partial struct Bitfield
+    {
+        public uint _bitfield;
+
+        [NativeTypeName(""unsigned int : 8"")]
+        public uint bits
+        {
+            readonly get
+            {
+                return _bitfield & 0xFFu;
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~0xFFu) | (value & 0xFFu);
+            }
+        }
+
+        [NativeTypeName(""Flags : 8"")]
+        public Flags flags
+        {
+            readonly get
+            {
+                return (Flags)((_bitfield >> 8) & 0xFFu);
+            }
+
+            set
+            {
+                _bitfield = (_bitfield & ~(0xFFu << 8)) | (((uint)(value) & 0xFFu) << 8);
+            }
+        }
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents,
+            commandLineArgs: DefaultCClangCommandLineArgs,
+            language: "c",
+            languageStandard: DefaultCStandard,
+            remappedNames: new Dictionary<string, string>()
+            {
+                { "Flags", "Flags" }
+            });
     }
 }
