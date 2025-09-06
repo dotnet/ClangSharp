@@ -2764,7 +2764,7 @@ public partial class PInvokeGenerator
             // Check if type is directly shiftable/maskable
             // Remapped types are not guaranteed to be shiftable or maskable
             // Enums are maskable, but not shiftable
-            var isTypeLikelyRemapped = type == typeBacking && typeName != typeNameBacking;
+            var isTypeLikelyRemapped = (type == typeBacking) && (typeName != typeNameBacking);
             var isTypeAnEnum = IsType<EnumType>(fieldDecl);
 
             // Main cases:
