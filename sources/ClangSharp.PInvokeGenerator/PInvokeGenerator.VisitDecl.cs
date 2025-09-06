@@ -2756,7 +2756,7 @@ public partial class PInvokeGenerator
             var isSmallTypeBacking = currentSize < 4;
 
             // Check if field/backing types match
-            var isTypeMismatch = type != typeBacking;
+            var isTypeMismatch = type != builtinTypeBacking;
 
             // Signed types are sign extended when shifted
             var isUnsignedToSigned = !isTypeBackingSigned && isTypeSigned;
@@ -2764,7 +2764,7 @@ public partial class PInvokeGenerator
             // Check if type is directly shiftable/maskable
             // Remapped types are not guaranteed to be shiftable or maskable
             // Enums are maskable, but not shiftable
-            var isTypeLikelyRemapped = (type == typeBacking) && (typeName != typeNameBacking);
+            var isTypeLikelyRemapped = !isTypeMismatch && (typeName != typeNameBacking);
             var isTypeAnEnum = IsType<EnumType>(fieldDecl);
 
             // Main cases:
