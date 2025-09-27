@@ -127,6 +127,10 @@ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install -DPATH_TO_LLV
 make install
 ```
 
+### Using as Libraries
+
+Please refer to [how to use ClangSharp as libraris](./docs/how-to-use-as-libraries/index.md) to learn how to use as libraries.
+
 ### Generating Bindings
 
 This program will take a given set of C or C++ header files and generate C# bindings from them. It is still a work-in-progress and not every declaration can have bindings generated today (contributions are welcome).
