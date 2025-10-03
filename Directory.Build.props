@@ -47,7 +47,7 @@
     <PackageValidationBaselineVersion>17.0.0</PackageValidationBaselineVersion>
     <Product>ClangSharp</Product>
     <RootNamespace>ClangSharp</RootNamespace>
-    <VersionPrefix>20.1.2.3</VersionPrefix>
+    <VersionPrefix>20.1.2.4</VersionPrefix>
     <VersionSuffix Condition="'$(PACKAGE_PUBLISH_MODE)' != 'stable'">rc1</VersionSuffix>
     <VersionSuffix Condition="'$(GITHUB_EVENT_NAME)' == 'pull_request'">pr</VersionSuffix>
   </PropertyGroup>
