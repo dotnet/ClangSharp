@@ -1,0 +1,33 @@
+using System.Threading.Tasks;
+using NUnit.Framework;
+
+namespace ClangSharp.UnitTests.CSharpPreviewWindows;
+
+[Platform("win")]
+public sealed class DigitsSeparatorTest : UnitTests.DigitsSeparatorTest
+{
+    protected override Task StaticConstExprTestImpl(string type, string nativeValue, string expectedValue)
+    {
+        var inputContents = $@"class MyClass
+{{
+    private:
+
+      static constexpr {type} x = {nativeValue};
+}};
+";
+
+        var expectedOutputContents = $@"namespace ClangSharp.Test
+{{
+    public partial struct MyClass
+    {{
+        [NativeTypeName(""const {type}"")]
+        private const {type} x = {expectedValue};
+    }}
+}}
+";
+
+        return ValidateGeneratedCSharpPreviewWindowsBindingsAsync(
+            inputContents,
+            expectedOutputContents);
+    }
+}
