@@ -1201,7 +1201,7 @@ public partial class PInvokeGenerator
         var outputBuilder = StartCSharpCode();
         if (floatingLiteral.ValueString.EndsWith(".f", StringComparison.Ordinal))
         {
-            outputBuilder.WriteNumberLiteral(floatingLiteral.ValueString.AsSpan()[..^1]);
+            outputBuilder.WriteNumberLiteral(floatingLiteral.ValueString[..^1]);
             outputBuilder.Write("0f");
         }
         else
@@ -1994,7 +1994,7 @@ public partial class PInvokeGenerator
 
     private void VisitIntegerLiteral(IntegerLiteral integerLiteral)
     {
-        var valueString = integerLiteral.ValueString.AsSpan();
+        var valueString = integerLiteral.ValueString;
         var valueSuffix = "";
 
         if (valueString.EndsWith("ui8", StringComparison.OrdinalIgnoreCase))
