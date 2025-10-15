@@ -1670,6 +1670,17 @@ public sealed partial class PInvokeGenerator : IDisposable
         _clangCommandLineArgs = clangCommandLineArgs;
         _translationFlags = translationFlags;
 
+        // We need to clear any cached state from a previous translation unit as
+        // native handle IDs or other info may have been reused if it was disposed.
+
+        _context.Clear();
+        _cursorNames.Clear();
+        _cursorQualifiedNames.Clear();
+        _typeNames.Clear();
+        _overloadIndices.Clear();
+        _isExcluded.Clear();
+        _fileContents.Clear();
+
         if (translationUnit.Handle.NumDiagnostics != 0)
         {
             var errorDiagnostics = new StringBuilder();
@@ -3465,7 +3476,7 @@ public sealed partial class PInvokeGenerator : IDisposable
         {
             var fileContents = translationUnit.GetFileContents(file, out _);
             fileContentsMetadata = ((nuint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(fileContents)), (uint)fileContents.Length);
-            _fileContents.Add(file, fileContentsMetadata);
+            _fileContents[file] = fileContentsMetadata;
         }
 
         return new ReadOnlySpan<byte>((byte*)fileContentsMetadata.Address, (int)fileContentsMetadata.Length);
@@ -3481,8 +3492,8 @@ public sealed partial class PInvokeGenerator : IDisposable
             return string.Empty;
         }
 
-        var contents = GetFileContents(translationUnit, startFile);
-        contents = contents.Slice(unchecked((int)startOffset), unchecked((int)(endOffset - startOffset)));
+        var contents1 = GetFileContents(translationUnit, startFile);
+        var contents = contents1.Slice(unchecked((int)startOffset), unchecked((int)(endOffset - startOffset)));
         return Encoding.UTF8.GetString(contents);
     }
 

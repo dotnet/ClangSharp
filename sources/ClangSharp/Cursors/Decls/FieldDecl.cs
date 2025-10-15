@@ -43,7 +43,11 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
                 name = name[anonymousNameStartIndex..];
             }
 
+#if NET8_0
+            if (name.StartsWith("("))
+#else
             if (name.StartsWith('('))
+#endif
             {
                 Debug.Assert(name.StartsWith("(anonymous enum at ", StringComparison.Ordinal) ||
                                  name.StartsWith("(anonymous struct at ", StringComparison.Ordinal) ||
@@ -52,7 +56,12 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
                                  name.StartsWith("(unnamed struct at ", StringComparison.Ordinal) ||
                                  name.StartsWith("(unnamed union at ", StringComparison.Ordinal) ||
                                  name.StartsWith("(unnamed at ", StringComparison.Ordinal));
+
+#if NET8_0
+                Debug.Assert(name.EndsWith(")"));
+#else
                 Debug.Assert(name.EndsWith(')'));
+#endif
 
                 return true;
             }

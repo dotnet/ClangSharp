@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <RootNamespace>ClangSharp.UnitTests</RootNamespace>
-    <TargetFrameworks>net10.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
