@@ -265,7 +265,7 @@ public partial class PInvokeGenerator
                         outputBuilder.AddUsingDirective("System.Runtime.CompilerServices");
                         outputBuilder.Write("Unsafe.CopyBlockUnaligned");
                     }
-                    
+
                     VisitArgs(callExpr, args);
                     break;
                 }
@@ -1163,7 +1163,7 @@ public partial class PInvokeGenerator
         {
             var cursorName = GetCursorName(varDecl);
 
-            if (cursorName.StartsWith("ClangSharpMacro_", StringComparison.Ordinal) &&  _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
+            if (cursorName.StartsWith("ClangSharpMacro_", StringComparison.Ordinal) && _config.WithTransparentStructs.TryGetValue(typeName, out var transparentStruct))
             {
                 if (!IsPrimitiveValue(explicitCastExpr, type) || IsConstant(typeName, varDecl.Init))
                 {
@@ -1201,12 +1201,12 @@ public partial class PInvokeGenerator
         var outputBuilder = StartCSharpCode();
         if (floatingLiteral.ValueString.EndsWith(".f", StringComparison.Ordinal))
         {
-            outputBuilder.Write(floatingLiteral.ValueString.AsSpan()[..^1]);
+            outputBuilder.WriteNumberLiteral(floatingLiteral.ValueString.AsSpan()[..^1]);
             outputBuilder.Write("0f");
         }
         else
         {
-            outputBuilder.Write(floatingLiteral.ValueString);
+            outputBuilder.WriteNumberLiteral(floatingLiteral.ValueString);
 
             if (floatingLiteral.ValueString.EndsWith('.'))
             {
@@ -2060,9 +2060,9 @@ public partial class PInvokeGenerator
         {
             valueString = valueString[..^1];
         }
-        
+
         var outputBuilder = StartCSharpCode();
-        outputBuilder.Write(valueString);
+        outputBuilder.WriteNumberLiteral(valueString);
         outputBuilder.Write(valueSuffix);
         StopCSharpCode();
     }

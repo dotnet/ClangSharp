@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using ClangSharp.Abstractions;
 
 namespace ClangSharp.CSharp;
 
@@ -127,6 +128,20 @@ internal sealed partial class CSharpOutputBuilder(string name, PInvokeGenerator 
 
         Write(name);
         WriteLine(':');
+    }
+
+    public void WriteNumberLiteral(ReadOnlySpan<char> value)
+    {
+        var index = value.IndexOf('\'');
+        while (index != -1)
+        {
+            var part = value[..index];
+            Write(part);
+            Write(['_']);
+            value = value[(index + 1)..];
+            index = value.IndexOf('\'');
+        }
+        Write(value);
     }
 
     public void WriteLine<T>(T value)
