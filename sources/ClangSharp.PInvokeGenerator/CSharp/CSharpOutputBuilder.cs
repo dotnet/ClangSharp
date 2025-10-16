@@ -132,18 +132,16 @@ internal sealed partial class CSharpOutputBuilder(string name, PInvokeGenerator 
 
     public void WriteNumberLiteral(ReadOnlySpan<char> value)
     {
-        for (var i = 0; i < value.Length; i++)
+        var index = value.IndexOf('\'');
+        while (index != -1)
         {
-            var c = value[i];
-            if (c == '\'')
-            {
-                Write('_');
-            }
-            else
-            {
-                Write(c);
-            }
+            var part = value[..index];
+            Write(part);
+            Write(['_']);
+            value = value[(index + 1)..];
+            index = value.IndexOf('\'');
         }
+        Write(value);
     }
 
     public void WriteLine<T>(T value)
