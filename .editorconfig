@@ -31,17 +31,8 @@ trim_trailing_whitespace = true
 # Set file behavior to:
 #   2 space indentation
 ###############################################################################
-[*.{cmd,config,csproj,json,props,ps1,resx,sh,targets,yml}]
+[*.{cmd,config,csproj,json,props,ps1,resx,sh,slnx,targets,yml}]
 indent_size = 2
-
-###############################################################################
-# Set file behavior to:
-#   Windows-style line endings, and
-#   tabular indentation
-###############################################################################
-[*.sln]
-end_of_line = crlf
-indent_style = tab
 
 ###############################################################################
 # Set file header template to the specified text

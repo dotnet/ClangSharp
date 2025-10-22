@@ -202,7 +202,7 @@ fi
 RepoRoot="$ScriptRoot/.."
 
 if [[ -z "$solution" ]]; then
-  solution="$RepoRoot/ClangSharp.sln"
+  solution="$RepoRoot/ClangSharp.slnx"
 fi
 
 ArtifactsDir="$RepoRoot/artifacts"
