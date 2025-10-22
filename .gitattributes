@@ -21,16 +21,9 @@
 *.ps1       text        eol=lf
 *.resx      text        eol=lf
 *.sh        text        eol=lf
-*.sln       text        eol=lf
+*.slnx      text        eol=lf
 *.targets   text        eol=lf
 *.yml       text        eol=lf
-
-###############################################################################
-# Set explicit file behavior to:
-#   treat as text and
-#   normalize to Windows-style line endings
-###############################################################################
-*.sln       text        eol=crlf
 
 ###############################################################################
 # Set explicit file behavior to:

@@ -1,0 +1,120 @@
+<Solution>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/ci.yml" />
+  </Folder>
+  <Folder Name="/packages/" />
+  <Folder Name="/packages/libclang/" />
+  <Folder Name="/packages/libclang/libclang.runtime.linux-arm64/">
+    <File Path="packages/libclang/libclang.runtime.linux-arm64/libclang.runtime.linux-arm64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libclang/libclang.runtime.linux-x64/">
+    <File Path="packages/libclang/libclang.runtime.linux-x64/libclang.runtime.linux-x64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libclang/libclang.runtime.osx-arm64/">
+    <File Path="packages/libclang/libclang.runtime.osx-arm64/libclang.runtime.osx-arm64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libclang/libclang.runtime.osx-x64/">
+    <File Path="packages/libclang/libclang.runtime.osx-x64/libclang.runtime.osx-x64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libclang/libclang.runtime.win-arm64/">
+    <File Path="packages/libclang/libclang.runtime.win-arm64/libclang.runtime.win-arm64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libclang/libclang.runtime.win-x64/">
+    <File Path="packages/libclang/libclang.runtime.win-x64/libclang.runtime.win-x64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libclang/libclang/">
+    <File Path="packages/libclang/libclang/libclang.nuspec" />
+    <File Path="packages/libclang/libclang/LICENSE.TXT" />
+    <File Path="packages/libclang/libclang/runtime.json" />
+  </Folder>
+  <Folder Name="/packages/libClangSharp/" />
+  <Folder Name="/packages/libClangSharp/libClangSharp.runtime.linux-arm64/">
+    <File Path="packages/libClangSharp/libClangSharp.runtime.linux-arm64/libClangSharp.runtime.linux-arm64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libClangSharp/libClangSharp.runtime.linux-x64/">
+    <File Path="packages/libClangSharp/libClangSharp.runtime.linux-x64/libClangSharp.runtime.linux-x64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libClangSharp/libClangSharp.runtime.osx-arm64/">
+    <File Path="packages/libClangSharp/libClangSharp.runtime.osx-arm64/libClangSharp.runtime.osx-arm64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libClangSharp/libClangSharp.runtime.osx-x64/">
+    <File Path="packages/libClangSharp/libClangSharp.runtime.osx-x64/libClangSharp.runtime.osx-x64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libClangSharp/libClangSharp.runtime.win-arm64/">
+    <File Path="packages/libClangSharp/libClangSharp.runtime.win-arm64/libClangSharp.runtime.win-arm64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libClangSharp/libClangSharp.runtime.win-x64/">
+    <File Path="packages/libClangSharp/libClangSharp.runtime.win-x64/libClangSharp.runtime.win-x64.nuspec" />
+  </Folder>
+  <Folder Name="/packages/libClangSharp/libClangSharp/">
+    <File Path="packages/libClangSharp/libClangSharp/libClangSharp.nuspec" />
+    <File Path="packages/libClangSharp/libClangSharp/runtime.json" />
+  </Folder>
+  <Folder Name="/scripts/">
+    <File Path="scripts/build.ps1" />
+    <File Path="scripts/build.sh" />
+    <File Path="scripts/cibuild.cmd" />
+    <File Path="scripts/cibuild.sh" />
+    <File Path="scripts/SignClientFileList.txt" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="build.cmd" />
+    <File Path="build.sh" />
+    <File Path="CMakeLists.txt" />
+    <File Path="CODE_OF_CONDUCT.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="exclusion.dic" />
+    <File Path="global.json" />
+    <File Path="LICENSE.md" />
+    <File Path="NOTICE.md" />
+    <File Path="NuGet.config" />
+    <File Path="Open.snk" />
+    <File Path="pack.cmd" />
+    <File Path="pack.sh" />
+    <File Path="README.md" />
+    <File Path="restore.cmd" />
+    <File Path="restore.sh" />
+    <File Path="test.cmd" />
+    <File Path="test.sh" />
+  </Folder>
+  <Folder Name="/sources/">
+    <File Path="sources/CMakeLists.txt" />
+    <File Path="sources/Directory.Build.props" />
+    <File Path="sources/Directory.Build.targets" />
+    <Project Path="sources/ClangSharp.Interop/ClangSharp.Interop.csproj" />
+    <Project Path="sources/ClangSharp.PInvokeGenerator/ClangSharp.PInvokeGenerator.csproj" />
+    <Project Path="sources/ClangSharp/ClangSharp.csproj" />
+    <Project Path="sources/ClangSharpPInvokeGenerator/ClangSharpPInvokeGenerator.csproj" />
+  </Folder>
+  <Folder Name="/sources/libClangSharp/">
+    <File Path="sources/libClangSharp/CIndexDiagnostic.cpp" />
+    <File Path="sources/libClangSharp/CIndexDiagnostic.h" />
+    <File Path="sources/libClangSharp/ClangSharp.cpp" />
+    <File Path="sources/libClangSharp/ClangSharp.h" />
+    <File Path="sources/libClangSharp/CMakeLists.txt" />
+    <File Path="sources/libClangSharp/CXCursor.cpp" />
+    <File Path="sources/libClangSharp/CXCursor.h" />
+    <File Path="sources/libClangSharp/CXLoadedDiagnostic.cpp" />
+    <File Path="sources/libClangSharp/CXLoadedDiagnostic.h" />
+    <File Path="sources/libClangSharp/CXSourceLocation.cpp" />
+    <File Path="sources/libClangSharp/CXSourceLocation.h" />
+    <File Path="sources/libClangSharp/CXString.cpp" />
+    <File Path="sources/libClangSharp/CXString.h" />
+    <File Path="sources/libClangSharp/CXTranslationUnit.cpp" />
+    <File Path="sources/libClangSharp/CXTranslationUnit.h" />
+    <File Path="sources/libClangSharp/CXType.cpp" />
+    <File Path="sources/libClangSharp/CXType.h" />
+  </Folder>
+  <Folder Name="/tests/">
+    <File Path="tests/Directory.Build.props" />
+    <File Path="tests/Directory.Build.targets" />
+    <Project Path="tests/ClangSharp.PInvokeGenerator.UnitTests/ClangSharp.PInvokeGenerator.UnitTests.csproj" />
+    <Project Path="tests/ClangSharp.UnitTests/ClangSharp.UnitTests.csproj" />
+  </Folder>
+</Solution>
