@@ -6589,12 +6589,11 @@ public sealed partial class PInvokeGenerator : IDisposable
             }
             var returnTypeName = GetRemappedTypeName(cursor: null, context: null, returnType, out _, skipUsing: true);
 
-            var pointerSuffix = "";
-            if (pointerIndirectionLevel > 0)
-            {
-                pointerSuffix = string.Concat(Enumerable.Repeat("Pointer", pointerIndirectionLevel));
-            }
-            name = $"To{returnTypeName}{pointerSuffix}";
+            name = pointerIndirectionLevel switch {
+                0 => $"To{returnTypeName}",
+                1 => $"To{returnTypeName}Pointer",
+                _ => $"To{returnTypeName}Pointer{pointerIndirectionLevel}"
+            };
             return true;
         }
 
