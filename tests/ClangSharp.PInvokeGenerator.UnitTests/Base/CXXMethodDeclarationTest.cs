@@ -26,6 +26,9 @@ public abstract class CXXMethodDeclarationTest : PInvokeGeneratorTest
     public Task InstanceTest() => InstanceTestImpl();
 
     [Test]
+    public Task MacrosExpansionTest() => MacrosExpansionTestImpl();
+
+    [Test]
     public Task MemberCallTest() => MemberCallTestImpl();
 
     [Test]
@@ -64,46 +67,6 @@ public abstract class CXXMethodDeclarationTest : PInvokeGeneratorTest
     [Test]
     public Task VirtualWithVtblIndexAttributeTest() => VirtualWithVtblIndexAttributeTestImpl();
 
-    [Test]
-    public virtual Task MacrosExpansionTest()
-    {
-        var inputContents = @"typedef struct
-{
-	unsigned char *buf;
-	int size;
-} context_t;
-
-int buf_close(void *pContext)
-{
-	((context_t*)pContext)->buf=0;
-	return 0;
-}
-";
-
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public unsafe partial struct context_t
-    {
-        [NativeTypeName(""unsigned char *"")]
-        public byte* buf;
-
-        public int size;
-    }
-
-    public static unsafe partial class Methods
-    {
-        public static int buf_close(void* pContext)
-        {
-            ((context_t*)(pContext))->buf = null;
-            return 0;
-        }
-    }
-}
-";
-
-        return ValidateBindingsAsync(inputContents, expectedOutputContents);
-    }
-
     protected abstract Task ConstructorTestImpl();
 
     protected abstract Task ConstructorWithInitializeTestImpl();
@@ -115,6 +78,8 @@ int buf_close(void *pContext)
     protected abstract Task DestructorTestImpl();
 
     protected abstract Task InstanceTestImpl();
+
+    protected abstract Task MacrosExpansionTestImpl();
 
     protected abstract Task MemberCallTestImpl();
 
