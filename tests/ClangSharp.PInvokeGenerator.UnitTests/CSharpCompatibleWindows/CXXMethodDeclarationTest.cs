@@ -100,23 +100,36 @@ public sealed class CSharpCompatibleWindows_CXXMethodDeclarationTest : CXXMethod
         var inputContents = @"struct MyStruct
 {
     int value;
+    int* pointer;
 
     operator int()
     {
         return value;
+    }
+
+    operator int*()
+    {
+        return pointer;
     }
 };
 ";
 
         var expectedOutputContents = @"namespace ClangSharp.Test
 {
-    public partial struct MyStruct
+    public unsafe partial struct MyStruct
     {
         public int value;
+
+        public int* pointer;
 
         public int ToInt32()
         {
             return value;
+        }
+
+        public int* ToInt32Pointer()
+        {
+            return pointer;
         }
     }
 }
