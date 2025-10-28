@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace ClangSharp.UnitTests;
 
 [Platform("unix")]
-public sealed class CSharpPreviewUnix_CXXMethodDeclarationTest : CXXMethodDeclarationTest
+public sealed class CSharpPreviewUnix_CXXMethodDeclarationTest : CXXMethodDeclarationCSharpTest
 {
     protected override Task ConstructorTestImpl()
     {
@@ -87,49 +87,6 @@ public sealed class CSharpPreviewUnix_CXXMethodDeclarationTest : CXXMethodDeclar
         {
             _x = x;
             _y = y;
-        }
-    }
-}
-";
-
-        return ValidateGeneratedCSharpPreviewUnixBindingsAsync(inputContents, expectedOutputContents);
-    }
-
-    protected override Task ConversionTestImpl()
-    {
-        var inputContents = @"struct MyStruct
-{
-    int value;
-    int* pointer;
-
-    operator int()
-    {
-        return value;
-    }
-
-    operator int*()
-    {
-        return pointer;
-    }
-};
-";
-
-        var expectedOutputContents = @"namespace ClangSharp.Test
-{
-    public unsafe partial struct MyStruct
-    {
-        public int value;
-
-        public int* pointer;
-
-        public int ToInt32()
-        {
-            return value;
-        }
-
-        public int* ToInt32Pointer()
-        {
-            return pointer;
         }
     }
 }
