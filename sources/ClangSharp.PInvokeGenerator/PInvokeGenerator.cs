@@ -5522,7 +5522,7 @@ public sealed partial class PInvokeGenerator : IDisposable
             else if (templateSpecializationType.TemplateName.AsTemplateDecl is TemplateDecl templateDecl)
             {
                 // We exclude InjectedClassNameType here to avoid infinite recursion.
-                if (templateDecl.TemplatedDecl is TypeDecl { TypeForDecl: not InjectedClassNameType } typeDecl)
+                if ((templateDecl.TemplatedDecl is TypeDecl typeDecl) && (typeDecl.TypeForDecl is not InjectedClassNameType ))
                 {
                     return IsType(cursor, typeDecl.TypeForDecl, out value);
                 }
