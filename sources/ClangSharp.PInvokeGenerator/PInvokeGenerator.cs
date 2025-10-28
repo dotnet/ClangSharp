@@ -6580,9 +6580,19 @@ public sealed partial class PInvokeGenerator : IDisposable
         if (functionDecl is CXXConversionDecl)
         {
             var returnType = functionDecl.ReturnType;
+            var pointerIndirectionLevel = 0;
+            while (returnType is PointerType pointerType)
+            {
+                pointerIndirectionLevel++;
+                returnType = pointerType.PointeeType;
+            }
             var returnTypeName = GetRemappedTypeName(cursor: null, context: null, returnType, out _, skipUsing: true);
 
-            name = $"To{returnTypeName}";
+            name = pointerIndirectionLevel switch {
+                0 => $"To{returnTypeName}",
+                1 => $"To{returnTypeName}Pointer",
+                _ => $"To{returnTypeName}Pointer{pointerIndirectionLevel}"
+            };
             return true;
         }
 

@@ -1,25 +1,23 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System.Threading.Tasks;
-using NUnit.Framework;
 
 namespace ClangSharp.UnitTests;
 
 public abstract class CXXMethodDeclarationXmlTest: CXXMethodDeclarationTest
 {
-    [Test]
-    public override Task MacrosExpansionTest()
+    protected override Task MacrosExpansionTestImpl()
     {
         var inputContents = @"typedef struct
 {
-	unsigned char *buf;
-	int size;
+    unsigned char *buf;
+    int size;
 } context_t;
 
 int buf_close(void *pcontext)
 {
-	((context_t*)pcontext)->buf=0;
-	return 0;
+    ((context_t*)pcontext)->buf=0;
+    return 0;
 }
 ";
 
