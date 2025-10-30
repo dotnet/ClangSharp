@@ -1145,6 +1145,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool IsThisDeclarationADefinition => clangsharp.Cursor_getIsThisDeclarationADefinition(this) != 0;
 
+    public readonly bool IsPropertyAccessor => clangsharp.Cursor_getIsPropertyAccessor(this) != 0;
+
     public readonly bool IsThrownVariableInScope => clangsharp.Cursor_getIsThrownVariableInScope(this) != 0;
 
     public readonly bool IsTranslationUnit => clang.isTranslationUnit(Kind) != 0;
