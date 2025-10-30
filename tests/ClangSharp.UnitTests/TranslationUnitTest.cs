@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Text;
 using ClangSharp.Interop;
 using NUnit.Framework;
@@ -19,11 +21,10 @@ public abstract class TranslationUnitTest
     protected static readonly string[] DefaultClangCommandLineArgs =
     [
         "-std=c++17",                           // The input files should be compiled for C++ 17
-        "-xc++",                                // The input files are C++
         "-Wno-pragma-once-outside-header"       // We are processing files which may be header files
     ];
 
-    protected static TranslationUnit CreateTranslationUnit(string inputContents)
+    protected static TranslationUnit CreateTranslationUnit(string inputContents, string language = "c++" /* input files are C++ by default */)
     {
         Assert.That(DefaultInputFileName, Does.Exist);
 
@@ -31,7 +32,13 @@ public abstract class TranslationUnitTest
         var unsavedFiles = new CXUnsavedFile[] { unsavedFile };
 
         var index = CXIndex.Create();
-        var translationUnit = CXTranslationUnit.Parse(index, DefaultInputFileName, DefaultClangCommandLineArgs, unsavedFiles, DefaultTranslationUnitFlags);
+        var arguments = new List<string>(DefaultClangCommandLineArgs)
+        {
+            "-x",
+            language,
+        };
+        var errorCode = CXTranslationUnit.TryParse(index, DefaultInputFileName, arguments.ToArray(), unsavedFiles, DefaultTranslationUnitFlags, out var translationUnit);
+        Assert.That(errorCode, Is.EqualTo(CXErrorCode.CXError_Success), $"Failed to create {nameof(CXTranslationUnit)} (error code: {errorCode})");
 
         if (translationUnit.NumDiagnostics != 0)
         {
