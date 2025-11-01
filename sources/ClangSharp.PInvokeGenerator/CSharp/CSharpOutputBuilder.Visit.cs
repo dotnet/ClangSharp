@@ -84,6 +84,10 @@ internal partial class CSharpOutputBuilder
             WriteLine(name);
             WriteBlockStart();
 
+            if (_generator.Config.GenerateAggressiveInlining)
+            {
+                WriteIndentedLine<string>("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            }
             WriteIndentedLine("get");
             WriteBlockStart();
 
