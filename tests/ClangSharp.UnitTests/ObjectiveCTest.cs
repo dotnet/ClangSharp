@@ -11,6 +11,43 @@ namespace ClangSharp.UnitTests;
 public sealed class ObjectiveCTest : TranslationUnitTest
 {
     [Test]
+    public void Method_Selector()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $@"
+@interface MyClass
+    @property int P1;
+    -(void) instanceMethod;
+    +(void) staticMethod;
+@end
+";
+
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+        Assert.That(classes.Count, Is.GreaterThanOrEqualTo(1), $"At least one class");
+        var myClass = classes.SingleOrDefault(v => v.Name == "MyClass")!;
+        Assert.That(myClass, Is.Not.Null, "MyClass");
+
+        var methodP1 = myClass.Methods.SingleOrDefault(v => v.Name == "P1")!;
+        Assert.That(methodP1, Is.Not.Null, "methodP1");
+        Assert.That(methodP1.Selector, Is.EqualTo("P1"), "methodP1.Selector");
+
+        var methodSetP1 = myClass.Methods.SingleOrDefault(v => v.Name == "setP1:")!;
+        Assert.That(methodSetP1, Is.Not.Null, "methodSetP1");
+        Assert.That(methodSetP1.Selector, Is.EqualTo("setP1:"), "methodSetP1.Selector");
+
+        var methodInstanceMethod = myClass.Methods.SingleOrDefault(v => v.Name == "instanceMethod")!;
+        Assert.That(methodInstanceMethod, Is.Not.Null, "methodInstanceMethod");
+        Assert.That(methodInstanceMethod.Selector, Is.EqualTo("instanceMethod"), "methodInstanceMethod.Selector");
+
+        var methodStaticMethod = myClass.Methods.SingleOrDefault(v => v.Name == "staticMethod")!;
+        Assert.That(methodStaticMethod, Is.Not.Null, "methodStaticMethod");
+        Assert.That(methodStaticMethod.Selector, Is.EqualTo("staticMethod"), "methodStaticMethod.Selector");
+    }
+
+    [Test]
     public void Category_TypeParamList()
     {
         AssertNeedNewClangSharp();

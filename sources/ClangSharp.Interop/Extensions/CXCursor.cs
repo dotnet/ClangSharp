@@ -1321,6 +1321,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor RhsExpr => clangsharp.Cursor_getRhsExpr(this);
 
+    public readonly CXString Selector => clangsharp.Cursor_getSelector(this);
+
     public readonly CXCursor SemanticParent => clang.getCursorSemanticParent(this);
 
     public readonly bool ShouldCopy => clangsharp.Cursor_getShouldCopy(this) != 0;

@@ -55,4 +55,6 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
     public Type SendResultType => _sendResultType.Value;
 
     public bool IsPropertyAccessor => Handle.IsPropertyAccessor;
+
+    public string Selector => Handle.Selector.ToString();
 }

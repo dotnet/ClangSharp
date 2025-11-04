@@ -683,6 +683,8 @@ CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getReturnType(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getRhsExpr(CXCursor C);
 
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getSelector(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getShouldCopy(CXCursor C);
 
 CLANGSHARP_LINKAGE CXSourceRange clangsharp_Cursor_getSourceRange(CXCursor C);
