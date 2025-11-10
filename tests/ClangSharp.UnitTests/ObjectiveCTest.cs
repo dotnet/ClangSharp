@@ -170,6 +170,126 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     }
 
     [Test]
+    public void Attribute_AvailabilityAttributes()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $$"""
+__attribute__((availability(ios,unavailable,message="Use another class")))
+__attribute__((availability(tvos,introduced=10.0)))
+__attribute__((availability(macosx,introduced=10.15.3)))
+__attribute__((availability(maccatalyst,introduced=14.3.0)))
+@interface MyClass
+    @property int P1
+        __attribute__((availability(ios,unavailable,message="Not this property")))
+        __attribute__((availability(tvos,obsoleted=11.0,message="Obsoleted on tvOS")))
+        __attribute__((availability(macosx,obsoleted=11.0,message="Obsoleted on macOS")))
+        __attribute__((availability(maccatalyst,obsoleted=15.0,message="Obsoleted on Mac Catalyst")))
+        ;
+
+    -(void) instanceMethod
+        __attribute__((availability(ios,unavailable,message="Not this instance method")))
+        __attribute__((availability(tvos,deprecated=12.0,message="Deprecated on tvOS")))
+        __attribute__((availability(macosx,deprecated=12.0,message="Deprecated on macOS")))
+        __attribute__((availability(maccatalyst,deprecated=16.0,message="Deprecated on Mac Catalyst")))
+        ;
+
+    +(void) staticMethod __attribute__((unavailable("elsewhere")))
+        __attribute__((availability(ios,unavailable,message="Not this static method")))
+        __attribute__((availability(tvos,introduced=10.0,deprecated=11.0,obsoleted=12.0,message="Gone on tvOS")))
+        __attribute__((availability(macosx,introduced=10.0.1,deprecated=11.0.2,obsoleted=12.0.3,message="Gone on macOS")))
+        __attribute__((availability(maccatalyst,introduced=10.0.0,deprecated=11.0.0,obsoleted=12.0.0,message="Gone on Mac Catalyst")))
+        ;
+@end
+""";
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+        Assert.That(classes.Count, Is.GreaterThanOrEqualTo(1), $"At least one class");
+        var myClass = classes.SingleOrDefault(v => v.Name == "MyClass")!;
+        Assert.That(myClass, Is.Not.Null, "MyClass");
+
+        var assertVersionTuple = new Action<VersionTuple?, VersionTuple?, string>((VersionTuple? actual, VersionTuple? expected, string info) => {
+            if (expected is null)
+            {
+                if (actual is not null)
+                {
+                    Assert.Fail($"Expected null VersionTuple, got: {actual} -- {info}");
+                }
+                return;
+            }
+            else
+            {
+                if (actual is null)
+                {
+                    Assert.Fail($"Expected non-null VersionTuple ({expected.Value}), got null -- {info}");
+                    return;
+                }
+            }
+
+            Assert.That(actual.ToString(), Is.EqualTo(expected.ToString()), info);
+        });
+
+        var assertAttribute = new Action<Attr, string?, string?, VersionTuple?, VersionTuple?, VersionTuple?, bool, string>((Attr attrib, string? message, string? platform, VersionTuple? introduced, VersionTuple? deprecated, VersionTuple? obsoleted, bool unavailable, string info) => {
+            Assert.That(attrib, Is.Not.Null, $"attrib: {info}");
+
+            info += $" (platform: {attrib.AvailabilityAttributePlatformIdentifierName})";
+            Assert.That(attrib.AvailabilityAttributeMessage, Is.EqualTo(message), $"Message: {info}");
+            Assert.That(attrib.AvailabilityAttributePlatformIdentifierName, Is.EqualTo(platform), $"PlatformIdentifierName: {info}");
+            assertVersionTuple(attrib.AvailabilityAttributeIntroduced, introduced, $"Introduced: {info}");
+            assertVersionTuple(attrib.AvailabilityAttributeDeprecated, deprecated, $"Deprecated: {info}");
+            assertVersionTuple(attrib.AvailabilityAttributeObsoleted, obsoleted, $"Obsoleted: {info}");
+            Assert.That(attrib.AvailabilityAttributeUnavailable, Is.EqualTo(unavailable), $"Unavailable: {info}");
+        });
+
+        Assert.Multiple(() => {
+            var myClassAttrs = myClass.Attrs;
+            Assert.That(myClassAttrs.Count, Is.EqualTo(4), "myClassAttrs.Count");
+            assertAttribute(myClassAttrs[0], "Use another class", "ios", new VersionTuple(0), new VersionTuple(0), new VersionTuple(0), true, "myClass Attr - iOS");
+            assertAttribute(myClassAttrs[1], "", "tvos", new VersionTuple(10, 0), new VersionTuple(0), new VersionTuple(0), false, "myClass Attr - tvOS");
+            assertAttribute(myClassAttrs[2], "", "macos", new VersionTuple(10, 15, 3), new VersionTuple(0), new VersionTuple(0), false, "myClass Attr - macOS");
+            assertAttribute(myClassAttrs[3], "", "maccatalyst", new VersionTuple(14, 3, 0), new VersionTuple(0), new VersionTuple(0), false, "myClass Attr - Mac Catalyst");
+
+            var methodP1 = myClass.Methods.SingleOrDefault(v => v.Name == "P1")!;
+            Assert.That(methodP1, Is.Not.Null, "methodP1");
+            var methodP1Attrs = methodP1.Attrs;
+            Assert.That(methodP1Attrs.Count, Is.EqualTo(4), "methodP1Attrs.Count");
+            assertAttribute(methodP1Attrs[0], "Not this property", "ios", new VersionTuple(0), new VersionTuple(0), new VersionTuple(0), true, "methodP1 Attr - P1 - iOS");
+            assertAttribute(methodP1Attrs[1], "Obsoleted on tvOS", "tvos", new VersionTuple(0), new VersionTuple(0), new VersionTuple(11, 0), false, "methodP1 Attr - tvOS");
+            assertAttribute(methodP1Attrs[2], "Obsoleted on macOS", "macos", new VersionTuple(0), new VersionTuple(0), new VersionTuple(11, 0), false, "methodP1 Attr - macOS");
+            assertAttribute(methodP1Attrs[3], "Obsoleted on Mac Catalyst", "maccatalyst", new VersionTuple(0), new VersionTuple(0), new VersionTuple(15, 0), false, "methodP1 Attr - Mac Catalyst");
+
+            var methodSetP1 = myClass.Methods.SingleOrDefault(v => v.Name == "setP1:")!;
+            Assert.That(methodSetP1, Is.Not.Null, "methodP1");
+            var methodSetP1Attrs = methodSetP1.Attrs;
+            Assert.That(methodSetP1Attrs.Count, Is.EqualTo(4), "methodSetP1Attrs.Count");
+            assertAttribute(methodSetP1Attrs[0], "Not this property", "ios", new VersionTuple(0), new VersionTuple(0), new VersionTuple(0), true, "methodSetP1Attrs Attr - P1 - iOS");
+            assertAttribute(methodSetP1Attrs[1], "Obsoleted on tvOS", "tvos", new VersionTuple(0), new VersionTuple(0), new VersionTuple(11, 0), false, "methodSetP1Attrs Attr - tvOS");
+            assertAttribute(methodSetP1Attrs[2], "Obsoleted on macOS", "macos", new VersionTuple(0), new VersionTuple(0), new VersionTuple(11, 0), false, "methodSetP1Attrs Attr - macOS");
+            assertAttribute(methodSetP1Attrs[3], "Obsoleted on Mac Catalyst", "maccatalyst", new VersionTuple(0), new VersionTuple(0), new VersionTuple(15, 0), false, "methodSetP1Attrs Attr - Mac Catalyst");
+
+            var methodInstanceMethod = myClass.Methods.SingleOrDefault(v => v.Name == "instanceMethod")!;
+            Assert.That(methodInstanceMethod, Is.Not.Null, "methodP1");
+            var methodInstanceMethodAttrs = methodInstanceMethod.Attrs;
+            Assert.That(methodInstanceMethodAttrs.Count, Is.EqualTo(4), "methodInstanceMethodAttrs.Count");
+            assertAttribute(methodInstanceMethodAttrs[0], "Not this instance method", "ios", new VersionTuple(0), new VersionTuple(0), new VersionTuple(0), true, "methodInstanceMethodAttrs Attr - P1 - iOS");
+            assertAttribute(methodInstanceMethodAttrs[1], "Deprecated on tvOS", "tvos", new VersionTuple(0), new VersionTuple(12, 0), new VersionTuple(0), false, "methodInstanceMethodAttrs Attr - tvOS");
+            assertAttribute(methodInstanceMethodAttrs[2], "Deprecated on macOS", "macos", new VersionTuple(0), new VersionTuple(12, 0), new VersionTuple(0), false, "methodInstanceMethodAttrs Attr - macOS");
+            assertAttribute(methodInstanceMethodAttrs[3], "Deprecated on Mac Catalyst", "maccatalyst", new VersionTuple(0), new VersionTuple(16, 0), new VersionTuple(0), false, "methodInstanceMethodAttrs Attr - Mac Catalyst");
+
+            var methodStaticMethod = myClass.Methods.SingleOrDefault(v => v.Name == "staticMethod")!;
+            Assert.That(methodStaticMethod, Is.Not.Null, "methodP1");
+            var methodStaticMethodAttrs = methodStaticMethod.Attrs;
+            Assert.That(methodStaticMethodAttrs.Count, Is.EqualTo(5), "methodStaticMethodAttrs.Count");
+            assertAttribute(methodStaticMethodAttrs[0], "elsewhere", "", null, null, null, false, "methodStaticMethodAttrs Attr - P1 - unavailable");
+            assertAttribute(methodStaticMethodAttrs[1], "Not this static method", "ios", new VersionTuple(0), new VersionTuple(0), new VersionTuple(0), true, "methodStaticMethodAttrs Attr - P1 - iOS");
+            assertAttribute(methodStaticMethodAttrs[2], "Gone on tvOS", "tvos", new VersionTuple(10, 0), new VersionTuple(11, 0), new VersionTuple(12, 0), false, "methodStaticMethodAttrs Attr - tvOS");
+            assertAttribute(methodStaticMethodAttrs[3], "Gone on macOS", "macos", new VersionTuple(10, 0, 1), new VersionTuple(11, 0, 2), new VersionTuple(12, 0, 3), false, "methodStaticMethodAttrs Attr - macOS");
+            assertAttribute(methodStaticMethodAttrs[4], "Gone on Mac Catalyst", "maccatalyst", new VersionTuple(10, 0, 0), new VersionTuple(11, 0, 0), new VersionTuple(12, 0, 0), false, "methodStaticMethodAttrs Attr - Mac Catalyst");
+        });
+    }
+
+    [Test]
     public void Attribute_PrettyPrint()
     {
         AssertNeedNewClangSharp();
