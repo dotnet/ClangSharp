@@ -27,7 +27,19 @@ public sealed class ObjCPropertyDecl : NamedDecl
 
     public bool IsInstanceProperty => !IsClassProperty;
 
+#pragma warning disable CA1721
+    // CA1721: The property name 'PropertyAttributes' is confusing given the existence of method 'GetPropertyAttributes'.
+    // Handle.GetObjCPropertyAttributes() calls Cursor_getObjCPropertyAttributes, which confusingly is implemented using
+    // 'getPropertyAttributeAsWritten()' (and not 'getPropertyAttributes()'): https://github.com/llvm/llvm-project/blob/1cea4a0841dacefa49241538a55fbf4f34462633/clang/tools/libclang/CIndex.cpp#L9159-L9165
+    // We have to keep our 'PropertyAttributes' property for backwards compatibility, so introduce
+    // a new method, GetPropertyAttributes(), that gets the final property attributes, and not just the as written variety.
+
+    /// <summary>This calls ObjCPropertyDecl->getPropertyAttributesAsWritten()</summary>
     public CXObjCPropertyAttrKind PropertyAttributes => Handle.GetObjCPropertyAttributes(0);
+
+    /// <summary>This calls ObjCPropertyDecl->getPropertyAttributes()</summary>
+    public ObjCPropertyAttributeKind GetPropertyAttributes () => Handle.GetPropertyAttributes();
+#pragma warning restore CA1721
 
     public ObjCIvarDecl PropertyIvarDecl => _propertyIvarDecl.Value;
 

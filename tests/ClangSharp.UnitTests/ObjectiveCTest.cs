@@ -218,6 +218,136 @@ __attribute__((availability(ios,introduced=10.0)))
         Assert.That(methodStaticMethodAttrs[0].PrettyPrint(), Is.EqualTo("__attribute__((availability(ios, introduced=13.0)))"), "methodStaticMethod.Attr.PrettyPrint");
     }
 
+    [Test]
+    public void Property_PropertyAttributes()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $$"""
+@class NSObject;
+
+@interface MyClass
+    @property NSObject* P_none;
+
+    @property (readonly) NSObject* P_readonly;
+    @property (getter=getGetter) NSObject* P_getter;
+    @property (assign) NSObject* P_assign;
+    @property (readwrite) NSObject* P_readwrite;
+    @property (retain) NSObject* P_retain;
+    @property (copy) NSObject* P_copy;
+    @property (nonatomic) NSObject* P_nonatomic;
+    @property (setter=setSetter:) NSObject* P_setter;
+    @property (atomic) NSObject* P_atomic;
+    @property (weak) NSObject* P_weak;
+    @property (strong) NSObject* P_strong;
+    @property (unsafe_unretained) NSObject* P_unsafe_unretained;
+    @property (nonnull) NSObject* P_nonnull;
+    @property (null_unspecified) NSObject* P_null_unspecified;
+    @property (null_resettable) NSObject* P_null_resettable;
+    @property (class) NSObject* P_class;
+    @property (direct) NSObject* P_direct;
+
+    // multiple
+    @property (retain,readonly,class) NSObject* P_retain_readonly_class;
+@end
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+        Assert.That(classes.Count, Is.GreaterThanOrEqualTo(1), $"At least one class");
+        var myClass = classes.SingleOrDefault(v => v.Name == "MyClass")!;
+        Assert.That(myClass, Is.Not.Null, "MyClass");
+
+        var properties = myClass.Properties.ToList();
+
+        var take = new Func<string, ObjCPropertyDecl>((string propertyName) => {
+            var idx = properties.FindIndex(v => v.Name == propertyName);
+            Assert.That(idx, Is.GreaterThanOrEqualTo(0), $"property {propertyName} not found, properties remaining: {string.Join(", ", properties.Select(p => p.Name))}");
+            var rv = properties[idx];
+            properties.RemoveAt(idx);
+            return rv;
+        });
+
+        var property_none = take("P_none");
+        Assert.That(property_none.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_noattr), "property_none PropertyAttributes");
+        Assert.That(property_none.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained), "property_none GetPropertyAttributes()");
+
+        var property_readonly = take("P_readonly");
+        Assert.That(property_readonly.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_readonly), "property_readonly PropertyAttributes");
+        Assert.That(property_readonly.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.ReadOnly | ObjCPropertyAttributeKind.Atomic), "property_readonly GetPropertyAttributes()");
+
+        var property_getter = take("P_getter");
+        Assert.That(property_getter.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_getter), "property_getter PropertyAttributes");
+        Assert.That(property_getter.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Getter | ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained), "property_getter GetPropertyAttributes()");
+
+        var property_assign = take("P_assign");
+        Assert.That(property_assign.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_assign), "property_assign PropertyAttributes");
+        Assert.That(property_assign.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained), "property_assign GetPropertyAttributes()");
+
+        var property_readwrite = take("P_readwrite");
+        Assert.That(property_readwrite.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_readwrite), "property_readwrite PropertyAttributes");
+        Assert.That(property_readwrite.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained), "property_readwrite GetPropertyAttributes()");
+
+        var property_retain = take("P_retain");
+        Assert.That(property_retain.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_retain), "property_retain PropertyAttributes");
+        Assert.That(property_retain.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Retain | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic), "property_retain GetPropertyAttributes()");
+
+        var property_copy = take("P_copy");
+        Assert.That(property_copy.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_copy), "property_copy PropertyAttributes");
+        Assert.That(property_copy.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Copy | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic), "property_copy GetPropertyAttributes()");
+
+        var property_nonatomic = take("P_nonatomic");
+        Assert.That(property_nonatomic.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_nonatomic), "property_nonatomic PropertyAttributes");
+        Assert.That(property_nonatomic.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.NonAtomic | ObjCPropertyAttributeKind.UnsafeUnretained), "property_nonatomic GetPropertyAttributes()");
+
+        var property_setter = take("P_setter");
+        Assert.That(property_setter.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_setter), "property_setter PropertyAttributes");
+        Assert.That(property_setter.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Setter | ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained), "property_setter GetPropertyAttributes()");
+
+        var property_atomic = take("P_atomic");
+        Assert.That(property_atomic.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_atomic), "property_atomic PropertyAttributes");
+        Assert.That(property_atomic.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained), "property_atomic GetPropertyAttributes()");
+
+        var property_weak = take("P_weak");
+        Assert.That(property_weak.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_weak), "property_weak PropertyAttributes");
+        Assert.That(property_weak.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Weak | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic), "property_weak GetPropertyAttributes()");
+
+        var property_strong = take("P_strong");
+        Assert.That(property_strong.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_strong), "property_strong PropertyAttributes");
+        Assert.That(property_strong.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Strong | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic), "property_strong GetPropertyAttributes()");
+
+        var property_unsafe_unretained = take("P_unsafe_unretained");
+        Assert.That(property_unsafe_unretained.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_unsafe_unretained), "property_unsafe_unretained PropertyAttributes");
+        Assert.That(property_unsafe_unretained.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained), "property_unsafe_unretained GetPropertyAttributes()");
+
+        var property_null_resettable = take("P_null_resettable");
+        Assert.That(property_null_resettable.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_noattr), "property_null_resettable PropertyAttributes");
+        Assert.That(property_null_resettable.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained | ObjCPropertyAttributeKind.Nullability | ObjCPropertyAttributeKind.NullResettable), "property_null_resettable GetPropertyAttributes()");
+
+        var property_class = take("P_class");
+        Assert.That(property_class.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_class), "property_class PropertyAttributes");
+        Assert.That(property_class.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Class | ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained), "property_class GetPropertyAttributes()");
+
+        var property_direct = take("P_direct");
+        Assert.That(property_direct.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_noattr), "property_direct PropertyAttributes");
+        Assert.That(property_direct.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Direct | ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained), "property_direct GetPropertyAttributes()");
+
+        var property_nonnull = take("P_nonnull");
+        Assert.That(property_nonnull.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_noattr), "property_nonnull PropertyAttributes");
+        Assert.That(property_nonnull.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained | ObjCPropertyAttributeKind.Nullability), "property_nonnull GetPropertyAttributes()");
+
+        var property_unspecified = take("P_null_unspecified");
+        Assert.That(property_unspecified.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_noattr), "property_unspecified PropertyAttributes");
+        Assert.That(property_unspecified.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Assign | ObjCPropertyAttributeKind.ReadWrite | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.UnsafeUnretained | ObjCPropertyAttributeKind.Nullability), "property_unspecified GetPropertyAttributes()");
+
+        var property_retain_readonly_class = take("P_retain_readonly_class");
+        Assert.That(property_retain_readonly_class.PropertyAttributes, Is.EqualTo(CXObjCPropertyAttrKind.CXObjCPropertyAttr_retain | CXObjCPropertyAttrKind.CXObjCPropertyAttr_readonly | CXObjCPropertyAttrKind.CXObjCPropertyAttr_class), "property_retain_readonly_class PropertyAttributes");
+        Assert.That(property_retain_readonly_class.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Retain | ObjCPropertyAttributeKind.ReadOnly | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.Class), "property_retain_readonly_class GetPropertyAttributes()");
+
+        Assert.That(properties, Is.Empty, "All properties processed");
+    }
+
     private static void AssertNeedNewClangSharp()
     {
         var forceRun = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FORCE_RUN"));
