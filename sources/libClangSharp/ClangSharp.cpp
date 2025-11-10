@@ -4846,6 +4846,20 @@ int64_t clangsharp_Cursor_getVtblIdx(CXCursor C) {
     return -1;
 }
 
+CXString clangsharp_Cursor_prettyPrintAttribute(CXCursor C) {
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+
+        std::string printedExpr;
+        llvm::raw_string_ostream printedExprStream(printedExpr);
+        PrintingPolicy policy(getCursorASTUnit(C)->getASTContext().getLangOpts());
+        A->printPretty(printedExprStream, policy);
+        return createDup(printedExprStream.str());
+    }
+
+    return createEmpty();
+}
+
 CXString clangsharp_getVersion() {
     return cxstring::createDup("clangsharp version 21.1.8");
 }

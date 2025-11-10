@@ -892,6 +892,9 @@ public static partial class @clangsharp
     [return: NativeTypeName("int64_t")]
     public static extern long Cursor_getVtblIdx(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_prettyPrintAttribute", ExactSpelling = true)]
+    public static extern CXString Cursor_prettyPrintAttribute(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_getVersion", ExactSpelling = true)]
     public static extern CXString getVersion();
 
