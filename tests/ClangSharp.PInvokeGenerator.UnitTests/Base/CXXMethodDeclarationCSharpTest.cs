@@ -96,23 +96,58 @@ public abstract class CXXMethodDeclarationCSharpTest : CXXMethodDeclarationTest
         var inputContents = @"struct MyStruct
 {
     int value;
-
+    int* pointer;
+    int** pointer2;
+    int*** pointer3;
     operator int()
     {
         return value;
+    }
+    operator int*()
+    {
+        return pointer;
+    }
+    operator int**()
+    {
+        return pointer2;
+    }
+    operator int***()
+    {
+        return pointer3;
     }
 };
 ";
 
         var expectedOutputContents = @"namespace ClangSharp.Test
 {
-    public partial struct MyStruct
+    public unsafe partial struct MyStruct
     {
         public int value;
+
+        public int* pointer;
+
+        public int** pointer2;
+
+        public int*** pointer3;
 
         public int ToInt32()
         {
             return value;
+        }
+
+        public int* ToInt32Pointer()
+        {
+            return pointer;
+        }
+
+        public int** ToInt32PointerPointer()
+        {
+            return pointer2;
+        }
+
+        public int*** ToInt32PointerPointerPointer()
+        {
+            return pointer3;
         }
     }
 }
