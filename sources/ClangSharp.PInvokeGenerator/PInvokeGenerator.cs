@@ -6592,7 +6592,8 @@ public sealed partial class PInvokeGenerator : IDisposable
             name = pointerIndirectionLevel switch {
                 0 => $"To{returnTypeName}",
                 1 => $"To{returnTypeName}Pointer",
-                _ => $"To{returnTypeName}Pointer{pointerIndirectionLevel}"
+                2 => $"To{returnTypeName}PointerPointer",
+                _ => $"To{returnTypeName}{string.Concat(Enumerable.Repeat("Pointer", pointerIndirectionLevel))}"
             };
             return true;
         }

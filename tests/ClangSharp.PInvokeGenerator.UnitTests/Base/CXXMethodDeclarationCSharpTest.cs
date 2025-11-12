@@ -98,6 +98,7 @@ public abstract class CXXMethodDeclarationCSharpTest : CXXMethodDeclarationTest
     int value;
     int* pointer;
     int** pointer2;
+    int*** pointer3;
     operator int()
     {
         return value;
@@ -109,6 +110,10 @@ public abstract class CXXMethodDeclarationCSharpTest : CXXMethodDeclarationTest
     operator int**()
     {
         return pointer2;
+    }
+    operator int***()
+    {
+        return pointer3;
     }
 };
 ";
@@ -123,6 +128,8 @@ public abstract class CXXMethodDeclarationCSharpTest : CXXMethodDeclarationTest
 
         public int** pointer2;
 
+        public int*** pointer3;
+
         public int ToInt32()
         {
             return value;
@@ -133,9 +140,14 @@ public abstract class CXXMethodDeclarationCSharpTest : CXXMethodDeclarationTest
             return pointer;
         }
 
-        public int** ToInt32Pointer2()
+        public int** ToInt32PointerPointer()
         {
             return pointer2;
+        }
+
+        public int*** ToInt32PointerPointerPointer()
+        {
+            return pointer3;
         }
     }
 }
