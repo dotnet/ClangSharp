@@ -217,15 +217,4 @@ __attribute__((availability(ios,introduced=10.0)))
         Assert.That(methodStaticMethodAttrs.Count, Is.EqualTo(1), "methodStaticMethodAttrs.Count");
         Assert.That(methodStaticMethodAttrs[0].PrettyPrint(), Is.EqualTo("__attribute__((availability(ios, introduced=13.0)))"), "methodStaticMethod.Attr.PrettyPrint");
     }
-
-    private static void AssertNeedNewClangSharp()
-    {
-        var forceRun = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FORCE_RUN"));
-
-        if (forceRun)
-        {
-            return;
-        }
-        Assert.Ignore("TODO: this needs a new version of libClangSharp published.");
-    }
 }

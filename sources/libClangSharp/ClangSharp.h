@@ -333,6 +333,8 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getContextParamPosition(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCtor(CXCursor C, unsigned i);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCXXRecord_IsPOD(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getBoolLiteralValue(CXCursor C);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getDeclaredReturnType(CXCursor C);

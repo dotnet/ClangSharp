@@ -899,6 +899,18 @@ CXCursor clangsharp_Cursor_getCtor(CXCursor C, unsigned i) {
     return clang_getNullCursor();
 }
 
+unsigned clangsharp_Cursor_getCXXRecord_IsPOD(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CRD->isPOD();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getBoolLiteralValue(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
