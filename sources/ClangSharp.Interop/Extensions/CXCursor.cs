@@ -1003,6 +1003,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly long IntegerLiteralValue => clangsharp.Cursor_getIntegerLiteralValue(this);
 
+    public readonly ulong UnsignedIntegerLiteralValue => clangsharp.Cursor_getUnsignedIntegerLiteralValue(this);
+
     public readonly bool IsAllEnumCasesCovered => clangsharp.Cursor_getIsAllEnumCasesCovered(this) != 0;
 
     public readonly bool IsAlwaysNull => clangsharp.Cursor_getIsAlwaysNull(this) != 0;

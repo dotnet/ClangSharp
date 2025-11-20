@@ -1939,6 +1939,18 @@ int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C) {
     return 0;
 }
 
+uint64_t clangsharp_Cursor_getUnsignedIntegerLiteralValue(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(S)) {
+            return IL->getValue().getZExtValue();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsAllEnumCasesCovered(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);

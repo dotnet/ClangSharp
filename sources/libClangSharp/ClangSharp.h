@@ -455,6 +455,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getInstantiatedFromMember(CXCursor
 
 CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C);
 
+CLANGSHARP_LINKAGE uint64_t clangsharp_Cursor_getUnsignedIntegerLiteralValue(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsAllEnumCasesCovered(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsAlwaysNull(CXCursor C);
