@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp.Interop;
 
-public static partial class @clangsharp
+public static unsafe partial class @clangsharp
 {
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getArgument", ExactSpelling = true)]
     public static extern CXCursor Cursor_getArgument(CXCursor C, [NativeTypeName("unsigned int")] uint i);
@@ -239,6 +239,14 @@ public static partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFloatingLiteralValueAsApproximateDouble", ExactSpelling = true)]
     public static extern double Cursor_getFloatingLiteralValueAsApproximateDouble(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFloatingLiteralValueAsDouble", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getFloatingLiteralValueAsDouble(CXCursor C, double* value);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFloatingLiteralValueAsFloat", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getFloatingLiteralValueAsFloat(CXCursor C, float* value);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getFoundDecl", ExactSpelling = true)]
     public static extern CXCursor Cursor_getFoundDecl(CXCursor C);

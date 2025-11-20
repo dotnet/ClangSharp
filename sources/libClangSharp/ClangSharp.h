@@ -379,6 +379,10 @@ CLANGSHARP_LINKAGE CX_FloatingSemantics clangsharp_Cursor_getFloatingLiteralSema
 
 CLANGSHARP_LINKAGE double clangsharp_Cursor_getFloatingLiteralValueAsApproximateDouble(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getFloatingLiteralValueAsDouble(CXCursor C, double* value);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getFloatingLiteralValueAsFloat(CXCursor C, float* value);
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getFoundDecl(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getField(CXCursor C, unsigned i);

@@ -1367,6 +1367,38 @@ double clangsharp_Cursor_getFloatingLiteralValueAsApproximateDouble(CXCursor C) 
     return 0;
 }
 
+unsigned clangsharp_Cursor_getFloatingLiteralValueAsDouble(CXCursor C, double* value) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const FloatingLiteral* FL = dyn_cast<FloatingLiteral>(S)) {
+            llvm::APFloat fl = FL->getValue();
+            if (fl.isRepresentableBy(fl.getSemantics(), fl.IEEEdouble())) {
+                *value = FL->getValue ().convertToDouble();
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+unsigned clangsharp_Cursor_getFloatingLiteralValueAsFloat(CXCursor C, float* value) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const FloatingLiteral* FL = dyn_cast<FloatingLiteral>(S)) {
+            llvm::APFloat fl = FL->getValue();
+            if (fl.isRepresentableBy(fl.getSemantics(), fl.IEEEsingle())) {
+                *value = FL->getValue ().convertToFloat();
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
 CXCursor clangsharp_Cursor_getFoundDecl(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);

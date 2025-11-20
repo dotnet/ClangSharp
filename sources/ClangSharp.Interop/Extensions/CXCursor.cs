@@ -917,6 +917,32 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly double FloatingLiteralValueAsApproximateDouble => clangsharp.Cursor_getFloatingLiteralValueAsApproximateDouble(this);
 
+    public readonly double? FloatingLiteralValueAsDouble
+    {
+        get
+        {
+            double value = default;
+            if (clangsharp.Cursor_getFloatingLiteralValueAsDouble(this, &value) != 0)
+            {
+                return value;
+            }
+            return null;
+        }
+    }
+
+    public readonly float? FloatingLiteralValueAsFloat
+    {
+        get
+        {
+            float value = default;
+            if (clangsharp.Cursor_getFloatingLiteralValueAsFloat(this, &value) != 0)
+            {
+                return value;
+            }
+            return null;
+        }
+    }
+
     public readonly int FieldDeclBitWidth => clang.getFieldDeclBitWidth(this);
 
     public readonly int FieldIndex => clangsharp.Cursor_getFieldIndex(this);

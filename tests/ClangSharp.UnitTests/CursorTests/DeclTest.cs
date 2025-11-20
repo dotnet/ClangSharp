@@ -98,6 +98,47 @@ tuple<int, long> SomeFunction();
     }
 
     [Test]
+    public void FloatingLiteral()
+    {
+        ObjectiveCTest.AssertNeedNewClangSharp();
+
+        var inputContents = $$"""
+const float F1 = 3.14f;
+const double D1 = 2.718281828;
+const long double Q1 = 1.61803398874989484820458683436563811772030917980576286213544862270526046281890244L;
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var decls = translationUnit.TranslationUnitDecl.Decls.OfType<VarDecl>().ToList();
+
+        var checkConstant = (string constantName, float? expectedFloat, double? expectedDouble, double expectedApproximateDouble) => {
+            var constant = decls.SingleOrDefault(e => e.Name == constantName)!;
+            var expr = constant.Init!;
+            if (expr is ImplicitCastExpr castExpr)
+            {
+                expr = castExpr.SubExpr;
+            }
+            if (expr is FloatingLiteral floatingLiteral)
+            {
+                Assert.That(floatingLiteral.ValueAsFloat, Is.EqualTo(expectedFloat).Within(0.0001), $"Constant {constantName} float value mismatch");
+                Assert.That(floatingLiteral.ValueAsDouble, Is.EqualTo(expectedDouble).Within(0.0001), $"Constant {constantName} double value mismatch");
+                Assert.That(floatingLiteral.ValueAsApproximateDouble, Is.EqualTo(expectedApproximateDouble).Within(0.0001), $"Constant {constantName} double value mismatch");
+            }
+            else
+            {
+                Assert.Fail($"Constant {constantName} InitExpr is not FloatingLiteral, but {expr.GetType().Name}");
+            }
+        };
+
+        Assert.Multiple(() => {
+            checkConstant("F1", 3.14f, 3.14, 3.14);
+            checkConstant("D1", null, 2.718281828, 2.718281828);
+            checkConstant("Q1", null, 1.61803398874989484820458683436563811772030917980576, 1.61803398874989484820458683436563811772030917980576);
+        });
+    }
+
+    [Test]
     public void IsPodTest()
     {
         AssertNeedNewClangSharp();
