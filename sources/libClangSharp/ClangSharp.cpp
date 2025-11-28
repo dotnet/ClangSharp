@@ -5409,7 +5409,7 @@ CXCursor clangsharp_Type_getSubstTemplateTypeParamAssociatedDecl(CXType CT) {
         return MakeCXCursor(STTPT->getAssociatedDecl(), GetTypeTU(CT));
     }
 
-    clang_getNullCursor();
+    return clang_getNullCursor();
 }
 
 CXCursor clangsharp_Type_getOwnedTagDecl(CXType CT) {
