@@ -161,7 +161,7 @@ CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i) {
             if (i < EWC->getNumObjects()) {
                 llvm::PointerUnion<BlockDecl*, CompoundLiteralExpr*> object = EWC->getObject(i);
 
-                if (object.is<BlockDecl*>()) {
+                if (isa<BlockDecl*>(object)) {
                     return MakeCXCursor(object.get<BlockDecl*>(), getCursorTU(C));
                 }
                 else {
