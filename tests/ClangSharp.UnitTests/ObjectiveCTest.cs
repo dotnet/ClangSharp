@@ -65,6 +65,33 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     }
 
     [Test]
+    public void ClassWithProtocols()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $@"
+@protocol P1
+@end
+@protocol P2
+@end
+
+@interface MyClass <P1, P2>
+@end
+";
+
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+        Assert.That(classes.Count, Is.GreaterThanOrEqualTo(1), $"At least one class");
+        var myClass = classes.SingleOrDefault(v => v.Name == "MyClass")!;
+        Assert.That(myClass, Is.Not.Null, "MyClass");
+        var protocols = myClass.Protocols.ToList();
+        Assert.That(protocols.Count, Is.EqualTo(2), "protocols.Count");
+        Assert.That(protocols[0].Name, Is.EqualTo("P1"), "protocols[0].Name");
+        Assert.That(protocols[1].Name, Is.EqualTo("P2"), "protocols[1].Name");
+    }
+
+    [Test]
     public void Method_IsPropertyAccessor()
     {
         var inputContents = $@"
