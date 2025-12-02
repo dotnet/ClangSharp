@@ -44,6 +44,8 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
 
     public bool IsThisDeclarationADefinition => Handle.IsThisDeclarationADefinition;
 
+    public ObjCMethodFamily MethodFamily => Handle.MethodFamily;
+
     public CXObjCDeclQualifierKind ObjCDeclQualifier => Handle.ObjCDeclQualifiers;
 
     public IReadOnlyList<ParmVarDecl> Parameters => _parameters;

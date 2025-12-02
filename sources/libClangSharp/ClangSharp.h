@@ -593,6 +593,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getMaxAlignment(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getMethod(CXCursor C, unsigned i);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getMethodFamily(CXCursor C);
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getMostRecentDecl(CXCursor C);
 
 CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getName(CXCursor C);

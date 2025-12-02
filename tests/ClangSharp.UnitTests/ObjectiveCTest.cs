@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using ClangSharp.Interop;
 using NUnit.Framework;
@@ -43,6 +44,151 @@ public sealed class ObjectiveCTest : TranslationUnitTest
         var methodStaticMethod = myClass.Methods.SingleOrDefault(v => v.Name == "staticMethod")!;
         Assert.That(methodStaticMethod, Is.Not.Null, "methodStaticMethod");
         Assert.That(methodStaticMethod.Selector, Is.EqualTo("staticMethod"), "methodStaticMethod.Selector");
+    }
+
+    [Test]
+    public void Method_Family()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $@"
+@interface NSObject
+    -(void) none;
+    -(void) noneWithArgument:(int)arg;
+    -(void) something;
+    -(void) autoreleaseNone;
+    -(void) deallocNone;
+    -(void) finalizeNone;
+    -(void) releaseNone;
+    -(void) retainNone;
+    -(unsigned long) retainCountNone;
+    -(instancetype) selfNone;
+    -(instancetype) initializeNone;
+    -(void) performSelectorNone;
+
+    +(instancetype) alloc;
+    +(instancetype) allocWithZone:(void*)zone;
+    +(instancetype) _alloc;
+    +(instancetype) __alloc;
+    +(instancetype) _allocWithZone:(void*)zone;
+
+    -(instancetype) copy;
+    -(instancetype) copyWithZone:(void*)zone;
+    -(instancetype) _copy;
+    -(instancetype) __copyWithZone:(void*)zone;
+
+    -(instancetype) init;
+    -(instancetype) initWithValue:(int)value;
+    -(instancetype) _init;
+    -(instancetype) __initWithValue:(int)value;
+
+    -(instancetype) mutableCopy;
+    -(instancetype) mutableCopyWithZone:(void*)zone;
+    -(instancetype) _mutableCopy;
+    -(instancetype) __mutableCopyWithZone:(void*)zone;
+
+    +(instancetype) new;
+    +(instancetype) newWithValue:(int)value;
+    +(instancetype) _new;
+    +(instancetype) __newWithValue:(int)value;
+
+    -(void) autorelease;
+    -(void) dealloc;
+    -(void) finalize;
+    -(void) release;
+    -(void) retain;
+    -(unsigned long) retainCount;
+    -(instancetype) self;
+    +(void) initialize;
+    -(id) performSelector:(SEL)selector;
+@end
+
+@interface MyClass
+    -(instancetype) instanceMethod;
+    +(MyClass*) staticMethod;
+@end
+";
+
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+        Assert.That(classes.Count, Is.GreaterThanOrEqualTo(2), $"At least two classes");
+
+        foreach (var cls in classes)
+        {
+            var methods = cls.Methods.ToList();
+            if (methods.Count == 0)
+            {
+                continue;
+            }
+
+            var take = new Func<Func<string, bool>, ObjCMethodFamily, IEnumerable<ObjCMethodDecl>>((Func<string, bool> filter, ObjCMethodFamily family) => {
+                var taken = new List<ObjCMethodDecl>();
+                for (var v = methods.Count - 1; v >= 0; v--)
+                {
+                    var method = methods[v];
+                    if (filter(method.Selector))
+                    {
+                        methods.RemoveAt(v);
+                        taken.Add(method);
+                    }
+                }
+
+                Assert.That(taken.Count, Is.GreaterThanOrEqualTo(0), $"family {family} not found, methods remaining: {string.Join(", ", methods.Select(p => p.Selector))}");
+                return taken;
+            });
+
+            var assertFamily = new Action<Func<string, bool>, ObjCMethodFamily>((Func<string, bool> filter, ObjCMethodFamily family) => {
+                var methodsInFamily = take(filter, family);
+                foreach (var method in methodsInFamily)
+                {
+                    Assert.That(method.MethodFamily, Is.EqualTo(family), $"MethodFamily for {method.Selector}");
+                }
+            });
+
+            var isSelectorFamily = new Func<string, string, bool>((string selector, string family) => {
+                selector = selector.TrimStart('_');
+                if (selector == family)
+                {
+                    return true;
+                }
+                if (!selector.StartsWith(family, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+                var nextChar = selector[family.Length];
+                if (nextChar == ':' || char.IsUpper(nextChar))
+                {
+                    return true;
+                }
+                return false;
+            });
+
+            Assert.Multiple(() => {
+                assertFamily(s => isSelectorFamily(s, "alloc"), ObjCMethodFamily.Alloc);
+                assertFamily(s => isSelectorFamily(s, "copy"), ObjCMethodFamily.Copy);
+                assertFamily(s => isSelectorFamily(s, "init"), ObjCMethodFamily.Init);
+                assertFamily(s => isSelectorFamily(s, "mutableCopy"), ObjCMethodFamily.MutableCopy);
+                assertFamily(s => isSelectorFamily(s, "new"), ObjCMethodFamily.New);
+                assertFamily(s => s == "autorelease", ObjCMethodFamily.Autorelease);
+                assertFamily(s => s == "dealloc", ObjCMethodFamily.Dealloc);
+                assertFamily(s => s == "finalize", ObjCMethodFamily.Finalize);
+                assertFamily(s => s == "release", ObjCMethodFamily.Release);
+                assertFamily(s => s == "retain", ObjCMethodFamily.Retain);
+                assertFamily(s => s == "retainCount", ObjCMethodFamily.RetainCount);
+                assertFamily(s => s == "self", ObjCMethodFamily.Self);
+                assertFamily(s => s == "initialize", ObjCMethodFamily.Initialize);
+                assertFamily(s => s.StartsWith("performSelector:", StringComparison.Ordinal), ObjCMethodFamily.PerformSelector);
+
+                Assert.That(methods.Count, Is.GreaterThan(0), $"No remaining methods in {cls.Name}");
+
+                // None of the remaining methods should belong to a family
+                foreach (var method in methods)
+                {
+                    Assert.That(method.MethodFamily, Is.EqualTo(ObjCMethodFamily.None), $"MethodFamily for {method.Selector}");
+                }
+            });
+        }
     }
 
     [Test]

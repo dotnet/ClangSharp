@@ -651,6 +651,10 @@ public static partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getMethod", ExactSpelling = true)]
     public static extern CXCursor Cursor_getMethod(CXCursor C, [NativeTypeName("unsigned int")] uint i);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getMethodFamily", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getMethodFamily(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getMostRecentDecl", ExactSpelling = true)]
     public static extern CXCursor Cursor_getMostRecentDecl(CXCursor C);
 
