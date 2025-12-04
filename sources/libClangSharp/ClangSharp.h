@@ -651,6 +651,8 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumTemplateParameters(CXCursor C, un
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumTemplateParameterLists(CXCursor C);
 
+CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumTypeParams(CXCursor C);
+
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumVBases(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C);
@@ -736,6 +738,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTrailingRequiresClause(CXCursor
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTypedefNameForAnonDecl(CXCursor C);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getTypeOperand(CXCursor C);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTypeParam(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CX_UnaryExprOrTypeTrait clangsharp_Cursor_getUnaryExprOrTypeTraitKind(CXCursor C);
 

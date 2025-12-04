@@ -13,6 +13,8 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     [Test]
     public void Method_Selector()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $@"
 @interface MyClass
     @property int P1;
@@ -48,6 +50,8 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     [Test]
     public void Category_TypeParamList()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $@"
 @interface MyClass
 @end
@@ -67,6 +71,8 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     [Test]
     public void Method_IsPropertyAccessor()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $@"
 @interface MyClass
     @property int P1;
@@ -100,8 +106,48 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     }
 
     [Test]
+    public void TypeParams()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $$"""
+@interface NSObject
+@end
+
+@interface MyClass<A, B> : NSObject
+@end
+
+@interface MyClass<T, Y> (MyCategory)
+@end
+
+""";
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+
+        var myClass = classes.SingleOrDefault(v => v.Name == "MyClass")!;
+        Assert.That(myClass, Is.Not.Null, "MyClass");
+        Assert.That(myClass.TypeParamList, Is.Not.Null, "myClass TypeParamList");
+        var myClassTypeParams = myClass.TypeParamList.ToList();
+        Assert.That(myClassTypeParams.Count, Is.EqualTo(2), "myClassTypeParams.Count");
+        Assert.That(myClassTypeParams[0].Name, Is.EqualTo("A"), "myClassTypeParams[0].Name");
+        Assert.That(myClassTypeParams[1].Name, Is.EqualTo("B"), "myClassTypeParams[1].Name");
+
+        var categories = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCCategoryDecl>().ToList();
+        var myCategory = categories.SingleOrDefault(v => v.Name == "MyCategory")!;
+        Assert.That(myCategory, Is.Not.Null, "MyCategory");
+        Assert.That(myCategory.TypeParamList, Is.Not.Null, "myCategory TypeParamList");
+        var myCategoryTypeParams = myCategory.TypeParamList.ToList();
+        Assert.That(myCategoryTypeParams.Count, Is.EqualTo(2), "myCategoryTypeParams.Count");
+        Assert.That(myCategoryTypeParams[0].Name, Is.EqualTo("T"), "myCategoryTypeParams[0].Name");
+        Assert.That(myCategoryTypeParams[1].Name, Is.EqualTo("Y"), "myCategoryTypeParams[1].Name");
+    }
+
+    [Test]
     public void PointerTypes()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = """
 @interface MyClass
 -(void)instanceMethod:(MyClass **)ptrToPtrToMyClass;
@@ -131,6 +177,8 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     [Test]
     public void BlockTypes()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $$"""
 @interface MyClass
 -(MyClass *(^)(id))instanceMethod1;

@@ -3626,6 +3626,29 @@ int clangsharp_Cursor_getNumTemplateParameterLists(CXCursor C) {
     return -1;
 }
 
+int clangsharp_Cursor_getNumTypeParams(CXCursor C)
+{
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const ObjCCategoryDecl* OCCD = dyn_cast<ObjCCategoryDecl>(D)) {
+            ObjCTypeParamList* typeParamList = OCCD->getTypeParamList();
+            if (typeParamList)
+                return typeParamList->size();
+            return 0;
+        }
+
+        if (const ObjCInterfaceDecl* OCID = dyn_cast<ObjCInterfaceDecl>(D)) {
+            ObjCTypeParamList* typeParamList = OCID->getTypeParamList();
+            if (typeParamList)
+                return typeParamList->size();
+            return 0;
+        }
+    }
+
+    return 0;
+}
+
 int clangsharp_Cursor_getNumVBases(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -4741,6 +4764,42 @@ CXType clangsharp_Cursor_getTypeOperand(CXCursor C) {
     }
 
     return MakeCXType(QualType(), getCursorTU(C));
+}
+
+CXCursor clangsharp_Cursor_getTypeParam(CXCursor C, unsigned i) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const ObjCCategoryDecl* OCCD = dyn_cast<ObjCCategoryDecl>(D)) {
+            ObjCTypeParamList* typeParamList = OCCD->getTypeParamList();
+
+            unsigned int n = 0;
+            if (i < typeParamList->size()) {
+                for (auto d : *typeParamList) {
+                    if (n == i) {
+                        return MakeCXCursor(d, getCursorTU(C));
+                    }
+                    n++;
+                }
+            }
+        }
+
+        if (const ObjCInterfaceDecl* OCID = dyn_cast<ObjCInterfaceDecl>(D)) {
+            ObjCTypeParamList* typeParamList = OCID->getTypeParamList();
+
+            unsigned int n = 0;
+            if (i < typeParamList->size()) {
+                for (auto d : *typeParamList) {
+                    if (n == i) {
+                        return MakeCXCursor(d, getCursorTU(C));
+                    }
+                    n++;
+                }
+            }
+        }
+    }
+
+    return clang_getNullCursor();
 }
 
 CX_UnaryExprOrTypeTrait clangsharp_Cursor_getUnaryExprOrTypeTraitKind(CXCursor C) {

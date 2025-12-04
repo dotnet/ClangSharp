@@ -1257,6 +1257,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly int NumTemplateParameterLists => clangsharp.Cursor_getNumTemplateParameterLists(this);
 
+    public readonly int NumTypeParams => clangsharp.Cursor_getNumTypeParams(this);
+
     public readonly int NumVBases => clangsharp.Cursor_getNumVBases(this);
 
     public readonly CXObjCDeclQualifierKind ObjCDeclQualifiers => (CXObjCDeclQualifierKind)clang.Cursor_getObjCDeclQualifiers(this);
@@ -1910,6 +1912,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly ulong GetTemplateArgumentUnsignedValue(uint i) => clang.Cursor_getTemplateArgumentUnsignedValue(this, i);
 
     public readonly long GetTemplateArgumentValue(uint i) => clang.Cursor_getTemplateArgumentValue(this, i);
+
+    public readonly CXCursor GetTypeParam(uint index) => clangsharp.Cursor_getTypeParam(this, index);
 
     public readonly CXCursor GetVBase(uint index) => clangsharp.Cursor_getVBase(this, index);
 
