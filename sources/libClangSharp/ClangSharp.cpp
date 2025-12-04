@@ -4886,6 +4886,32 @@ CXCursor clangsharp_Cursor_getUsedContext(CXCursor C) {
     return clang_getNullCursor();
 }
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getTypeParamHasExplicitBound(CXCursor C)
+{
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const ObjCTypeParamDecl* OCTPD = dyn_cast<ObjCTypeParamDecl>(D)) {
+            return OCTPD->hasExplicitBound();
+        }
+    }
+
+    return 0;
+}
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getTypeParamVariance(CXCursor C)
+{
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const ObjCTypeParamDecl* OCTPD = dyn_cast<ObjCTypeParamDecl>(D)) {
+            return (unsigned int) OCTPD->getVariance();
+        }
+    }
+
+    return 0 /* ObjCTypeParamVariance::Invariant */;
+}
+
 CXCursor clangsharp_Cursor_getVBase(CXCursor C, unsigned i) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
