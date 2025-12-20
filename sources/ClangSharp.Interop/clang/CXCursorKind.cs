@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-20.1.2/clang/include/clang-c
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-21.1.8/clang/include/clang-c
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 namespace ClangSharp.Interop;
@@ -238,6 +238,7 @@ public enum CXCursorKind
     CXCursor_OMPReverseDirective = 307,
     CXCursor_OMPInterchangeDirective = 308,
     CXCursor_OMPAssumeDirective = 309,
+    CXCursor_OMPStripeDirective = 310,
     CXCursor_OpenACCComputeConstruct = 320,
     CXCursor_OpenACCLoopConstruct = 321,
     CXCursor_OpenACCCombinedConstruct = 322,
@@ -250,7 +251,9 @@ public enum CXCursorKind
     CXCursor_OpenACCShutdownConstruct = 329,
     CXCursor_OpenACCSetConstruct = 330,
     CXCursor_OpenACCUpdateConstruct = 331,
-    CXCursor_LastStmt = CXCursor_OpenACCUpdateConstruct,
+    CXCursor_OpenACCAtomicConstruct = 332,
+    CXCursor_OpenACCCacheConstruct = 333,
+    CXCursor_LastStmt = CXCursor_OpenACCCacheConstruct,
     CXCursor_TranslationUnit = 350,
     CXCursor_FirstAttr = 400,
     CXCursor_UnexposedAttr = 400,

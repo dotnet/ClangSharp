@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-20.1.2/clang/tools/libclang
+// Ported from https://github.com/llvm/llvm-project/tree/llvmorg-21.1.8/clang/tools/libclang
 // Original source is Copyright (c) the LLVM Project and Contributors. Licensed under the Apache License v2.0 with LLVM Exceptions. See NOTICE.txt in the project root for license information.
 
 #include "ClangSharp.h"
@@ -773,7 +773,6 @@ namespace clang::cxcursor {
         case Stmt::SubstNonTypeTemplateParmPackExprClass:
         case Stmt::FunctionParmPackExprClass:
         case Stmt::UnresolvedLookupExprClass:
-        case Stmt::TypoExprClass: // A typo could actually be a DeclRef or a MemberRef
             K = CXCursor_DeclRefExpr;
             break;
 
@@ -862,6 +861,9 @@ namespace clang::cxcursor {
         case Stmt::OMPTileDirectiveClass:
             K = CXCursor_OMPTileDirective;
             break;
+        case Stmt::OMPStripeDirectiveClass:
+            K = CXCursor_OMPStripeDirective;
+            break;
         case Stmt::OMPUnrollDirectiveClass:
             K = CXCursor_OMPUnrollDirective;
             break;
@@ -869,7 +871,7 @@ namespace clang::cxcursor {
             K = CXCursor_OMPReverseDirective;
             break;
         case Stmt::OMPInterchangeDirectiveClass:
-            K = CXCursor_OMPTileDirective;
+            K = CXCursor_OMPInterchangeDirective;
             break;
         case Stmt::OMPForDirectiveClass:
             K = CXCursor_OMPForDirective;
@@ -1093,6 +1095,9 @@ namespace clang::cxcursor {
         case Stmt::OpenACCWaitConstructClass:
             K = CXCursor_OpenACCWaitConstruct;
             break;
+        case Stmt::OpenACCCacheConstructClass:
+            K = CXCursor_OpenACCCacheConstruct;
+            break;
         case Stmt::OpenACCInitConstructClass:
             K = CXCursor_OpenACCInitConstruct;
             break;
@@ -1104,6 +1109,9 @@ namespace clang::cxcursor {
             break;
         case Stmt::OpenACCUpdateConstructClass:
             K = CXCursor_OpenACCUpdateConstruct;
+            break;
+        case Stmt::OpenACCAtomicConstructClass:
+            K = CXCursor_OpenACCAtomicConstruct;
             break;
         case Stmt::OMPTargetParallelGenericLoopDirectiveClass:
             K = CXCursor_OMPTargetParallelGenericLoopDirective;

@@ -211,47 +211,47 @@ CXCursor clangsharp_Cursor_getAssociatedConstraint(CXCursor C, unsigned i) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
-            SmallVector<const Expr*, 32> associatedConstraints;
+            SmallVector<AssociatedConstraint, 32> associatedConstraints;
             CTPSD->getAssociatedConstraints(associatedConstraints);
 
             if (i < associatedConstraints.size()) {
-                return MakeCXCursor(associatedConstraints[i], CTPSD, getCursorTU(C));
+                return MakeCXCursor(associatedConstraints[i].ConstraintExpr, CTPSD, getCursorTU(C));
             }
         }
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
-            SmallVector<const Expr*, 32> associatedConstraints;
+            SmallVector<AssociatedConstraint, 32> associatedConstraints;
             NTTPD->getAssociatedConstraints(associatedConstraints);
 
             if (i < associatedConstraints.size()) {
-                return MakeCXCursor(associatedConstraints[i], NTTPD, getCursorTU(C));
+                return MakeCXCursor(associatedConstraints[i].ConstraintExpr, NTTPD, getCursorTU(C));
             }
         }
 
         if (const TemplateDecl* TD = dyn_cast<TemplateDecl>(D)) {
-            SmallVector<const Expr*, 32> associatedConstraints;
+            SmallVector<AssociatedConstraint, 32> associatedConstraints;
             TD->getAssociatedConstraints(associatedConstraints);
 
             if (i < associatedConstraints.size()) {
-                return MakeCXCursor(associatedConstraints[i], TD, getCursorTU(C));
+                return MakeCXCursor(associatedConstraints[i].ConstraintExpr, TD, getCursorTU(C));
             }
         }
 
         if (const TemplateTypeParmDecl* TTPD = dyn_cast<TemplateTypeParmDecl>(D)) {
-            SmallVector<const Expr*, 32> associatedConstraints;
+            SmallVector<AssociatedConstraint, 32> associatedConstraints;
             TTPD->getAssociatedConstraints(associatedConstraints);
 
             if (i < associatedConstraints.size()) {
-                return MakeCXCursor(associatedConstraints[i], TTPD, getCursorTU(C));
+                return MakeCXCursor(associatedConstraints[i].ConstraintExpr, TTPD, getCursorTU(C));
             }
         }
 
         if (const VarTemplatePartialSpecializationDecl* VTPSD = dyn_cast<VarTemplatePartialSpecializationDecl>(D)) {
-            SmallVector<const Expr*, 32> associatedConstraints;
+            SmallVector<AssociatedConstraint, 32> associatedConstraints;
             VTPSD->getAssociatedConstraints(associatedConstraints);
 
             if (i < associatedConstraints.size()) {
-                return MakeCXCursor(associatedConstraints[i], VTPSD, getCursorTU(C));
+                return MakeCXCursor(associatedConstraints[i].ConstraintExpr, VTPSD, getCursorTU(C));
             }
         }
     }
@@ -2214,7 +2214,7 @@ unsigned clangsharp_Cursor_getIsExpandedParameterPack(CXCursor C) {
         }
 
         if (const TemplateTypeParmDecl* TTPD = dyn_cast<TemplateTypeParmDecl>(D)) {
-            return TTPD->isExpandedParameterPack();
+            return TTPD->getNumExpansionParameters() ? 1 : 0;
         }
     }
 
@@ -2261,8 +2261,8 @@ unsigned clangsharp_Cursor_getIsInjectedClassName(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
 
-        if (const RecordDecl* RD = dyn_cast<RecordDecl>(D)) {
-            return RD->isInjectedClassName();
+        if (const CXXRecordDecl* CXXRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CXXRD->isInjectedClassName();
         }
     }
 
@@ -3113,31 +3113,31 @@ int clangsharp_Cursor_getNumAssociatedConstraints(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const ClassTemplatePartialSpecializationDecl* CTPSD = dyn_cast<ClassTemplatePartialSpecializationDecl>(D)) {
-            SmallVector<const Expr*, 32> associatedConstraints;
+            SmallVector<AssociatedConstraint, 32> associatedConstraints;
             CTPSD->getAssociatedConstraints(associatedConstraints);
             return associatedConstraints.size();
         }
 
         if (const NonTypeTemplateParmDecl* NTTPD = dyn_cast<NonTypeTemplateParmDecl>(D)) {
-            SmallVector<const Expr*, 32> associatedConstraints;
+            SmallVector<AssociatedConstraint, 32> associatedConstraints;
             NTTPD->getAssociatedConstraints(associatedConstraints);
             return associatedConstraints.size();
         }
 
         if (const TemplateDecl* TD = dyn_cast<TemplateDecl>(D)) {
-            SmallVector<const Expr*, 32> associatedConstraints;
+            SmallVector<AssociatedConstraint, 32> associatedConstraints;
             TD->getAssociatedConstraints(associatedConstraints);
             return associatedConstraints.size();
         }
 
         if (const TemplateTypeParmDecl* TTPD = dyn_cast<TemplateTypeParmDecl>(D)) {
-            SmallVector<const Expr*, 32> associatedConstraints;
+            SmallVector<AssociatedConstraint, 32> associatedConstraints;
             TTPD->getAssociatedConstraints(associatedConstraints);
             return associatedConstraints.size();
         }
 
         if (const VarTemplatePartialSpecializationDecl* VTPSD = dyn_cast<VarTemplatePartialSpecializationDecl>(D)) {
-            SmallVector<const Expr*, 32> associatedConstraints;
+            SmallVector<AssociatedConstraint, 32> associatedConstraints;
             VTPSD->getAssociatedConstraints(associatedConstraints);
             return associatedConstraints.size();
         }
@@ -4596,7 +4596,7 @@ CXCursor clangsharp_Cursor_getTrailingRequiresClause(CXCursor C) {
         const Decl* D = getCursorDecl(C);
 
         if (const DeclaratorDecl* DD = dyn_cast<DeclaratorDecl>(D)) {
-            return MakeCXCursor(DD->getTrailingRequiresClause(), DD, getCursorTU(C));
+            return MakeCXCursor(DD->getTrailingRequiresClause().ConstraintExpr, DD, getCursorTU(C));
         }
     }
 
@@ -4819,7 +4819,7 @@ int64_t clangsharp_Cursor_getVtblIdx(CXCursor C) {
 }
 
 CXString clangsharp_getVersion() {
-    return cxstring::createDup("clangsharp version 20.1.2");
+    return cxstring::createDup("clangsharp version 21.1.8");
 }
 
 void clangsharp_TemplateArgument_dispose(CX_TemplateArgument T) {
