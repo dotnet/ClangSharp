@@ -6,9 +6,9 @@ using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
-public sealed class OMPUnrollDirective : OMPCanonicalLoopNestTransformationDirective
+public sealed class OpenACCCombinedConstruct : OpenACCAssociatedStmtConstruct
 {
-    internal OMPUnrollDirective(CXCursor handle) : base(handle, CXCursor_OMPUnrollDirective, CX_StmtClass_OMPUnrollDirective)
+    internal OpenACCCombinedConstruct(CXCursor handle) : base(handle, CXCursor_OpenACCCombinedConstruct, CX_StmtClass_OpenACCCombinedConstruct)
     {
     }
 }

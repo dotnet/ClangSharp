@@ -2,13 +2,13 @@
 
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
-using static ClangSharp.Interop.CX_StmtClass;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
-public sealed class OMPUnrollDirective : OMPCanonicalLoopNestTransformationDirective
+public sealed class OpenACCDeclareDecl : OpenACCConstructDecl
 {
-    internal OMPUnrollDirective(CXCursor handle) : base(handle, CXCursor_OMPUnrollDirective, CX_StmtClass_OMPUnrollDirective)
+    internal OpenACCDeclareDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_OpenACCDeclare)
     {
     }
 }
