@@ -9,6 +9,7 @@ namespace ClangSharp.UnitTests;
 public sealed class ObjectiveCTest : TranslationUnitTest
 {
     [Test]
+    [Ignore("TODO: this needs a new version of libClangSharp published.")]
     public void Category_TypeParamList()
     {
         var inputContents = $@"
