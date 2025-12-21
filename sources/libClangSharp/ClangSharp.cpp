@@ -3070,7 +3070,7 @@ int clangsharp_Cursor_getNumArguments(CXCursor C) {
 
         if (const ObjCCategoryDecl* OCCD = dyn_cast<ObjCCategoryDecl>(D)) {
             ObjCTypeParamList* typeParamList = OCCD->getTypeParamList();
-            if (typeParamList) {
+            if (typeParamList != nullptr) {
                 return typeParamList->size();
             }
             return 0;
