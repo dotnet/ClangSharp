@@ -7,11 +7,15 @@ using static ClangSharp.Interop.CX_TypeClass;
 
 namespace ClangSharp;
 
-public sealed class ConstantArrayType : ArrayType
+public class ConstantArrayType : ArrayType
 {
     private readonly ValueLazy<Expr> _sizeExpr;
 
-    internal ConstantArrayType(CXType handle) : base(handle, CXType_ConstantArray, CX_TypeClass_ConstantArray)
+    internal ConstantArrayType(CXType handle) : this(handle, CXType_ConstantArray, CX_TypeClass_ConstantArray)
+    {
+    }
+
+    private protected ConstantArrayType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
         _sizeExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.SizeExpr));
     }

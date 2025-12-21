@@ -34,6 +34,7 @@ public enum CX_TypeClass
     CX_TypeClass_FunctionNoProto,
     CX_TypeClass_FunctionProto,
     CX_TypeClass_HLSLAttributedResource,
+    CX_TypeClass_HLSLInlineSpirv,
     CX_TypeClass_InjectedClassName,
     CX_TypeClass_MacroQualified,
     CX_TypeClass_ConstantMatrix,

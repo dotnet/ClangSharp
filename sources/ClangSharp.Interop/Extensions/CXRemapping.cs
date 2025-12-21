@@ -4,6 +4,7 @@ using System;
 
 namespace ClangSharp.Interop;
 
+[Obsolete]
 public unsafe partial struct CXRemapping(IntPtr handle) : IDisposable, IEquatable<CXRemapping>
 {
     public static CXRemapping GetRemappings(string path)

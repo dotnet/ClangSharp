@@ -6,7 +6,7 @@ using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp;
 
-public sealed class OMPUnrollDirective : OMPLoopTransformationDirective
+public sealed class OMPUnrollDirective : OMPCanonicalLoopNestTransformationDirective
 {
     internal OMPUnrollDirective(CXCursor handle) : base(handle, CXCursor_OMPUnrollDirective, CX_StmtClass_OMPUnrollDirective)
     {

@@ -2,13 +2,13 @@
 
 using ClangSharp.Interop;
 using static ClangSharp.Interop.CXCursorKind;
-using static ClangSharp.Interop.CX_StmtClass;
+using static ClangSharp.Interop.CX_DeclKind;
 
 namespace ClangSharp;
 
-public sealed class TypoExpr : Expr
+public sealed class OpenACCRoutineDecl : OpenACCConstructDecl
 {
-    internal TypoExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_TypoExpr)
+    internal OpenACCRoutineDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_OpenACCRoutine)
     {
     }
 }
