@@ -923,6 +923,19 @@ public partial class PInvokeGenerator
         var accessSpecifier = GetAccessSpecifier(anonymousRecordDecl, matchStar: true);
 
         var typeName = GetRemappedTypeName(fieldDecl, context: null, type, out _);
+
+        if (!_config.GenerateDisableRuntimeMarshalling && typeName.Equals("bool", StringComparison.Ordinal))
+        {
+            // bool is not blittable when DisableRuntimeMarshalling is not specified, so we shouldn't use it for structs that may be in P/Invoke signatures
+            typeName = "byte";
+        }
+
+        if (_config.GenerateCompatibleCode && typeName.StartsWith("bool*", StringComparison.Ordinal))
+        {
+            // bool* is not blittable in compat mode, so we shouldn't use it for structs that may be in P/Invoke signatures
+            typeName = typeName.Replace("bool*", "byte*", StringComparison.Ordinal);
+        }
+
         var name = GetRemappedCursorName(fieldDecl);
         var escapedName = EscapeName(name);
 
