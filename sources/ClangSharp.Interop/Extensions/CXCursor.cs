@@ -37,7 +37,7 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
             Debug.Assert(CX_AttrKind_FirstTypeAttr == CX_AttrKind_AddressSpace);
             Debug.Assert(CX_AttrKind_LastTypeAttr == CX_AttrKind_WebAssemblyFuncref);
 
-            Debug.Assert(CX_AttrKind_FirstStmtAttr == CX_AttrKind_CXXAssume);
+            Debug.Assert(CX_AttrKind_FirstStmtAttr == CX_AttrKind_Atomic);
             Debug.Assert(CX_AttrKind_LastStmtAttr == CX_AttrKind_Unlikely);
 
             Debug.Assert(CX_AttrKind_FirstDeclOrStmtAttr == CX_AttrKind_AlwaysInline);
