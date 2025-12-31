@@ -18,9 +18,9 @@ public unsafe class Type : IEquatable<Type>
     private readonly ValueLazy<Type> _pointeeType;
     private readonly ValueLazy<TranslationUnit> _translationUnit;
 
-    protected Type(CXType handle, CXTypeKind expectedKind, CX_TypeClass expectedTypeClass)
+    protected Type(CXType handle, CXTypeKind expectedKind, CX_TypeClass expectedTypeClass, params CXTypeKind[] additionalExpectedKinds)
     {
-        if (handle.kind != expectedKind)
+        if (handle.kind != expectedKind && (additionalExpectedKinds is null || Array.IndexOf(additionalExpectedKinds, handle.kind) < 0))
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
