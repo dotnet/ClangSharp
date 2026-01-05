@@ -12,7 +12,7 @@ public sealed class ElaboratedType : TypeWithKeyword
     private readonly ValueLazy<Type> _namedType;
     private readonly ValueLazy<TagDecl?> _ownedTagDecl;
 
-    internal ElaboratedType(CXType handle) : base(handle, CXType_Elaborated, CX_TypeClass_Elaborated)
+    internal ElaboratedType(CXType handle) : base(handle, CXType_Elaborated, CX_TypeClass_Elaborated, CXType_ObjCClass, CXType_ObjCId, CXType_ObjCSel)
     {
         _namedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NamedType));
         _ownedTagDecl = new ValueLazy<TagDecl?>(() => !Handle.OwnedTagDecl.IsNull ?TranslationUnit.GetOrCreate<TagDecl>(Handle.OwnedTagDecl) : null);

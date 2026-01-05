@@ -96,7 +96,48 @@ public sealed class ObjectiveCTest : TranslationUnitTest
         var pointee2Type = pointeeType.PointeeType;
         Assert.That(pointee2Type.Kind, Is.EqualTo(CXTypeKind.CXType_ObjCInterface), "pointee2Type.Kind");
     }
-    
+
+    [Test]
+    public void BlockTypes()
+    {
+        var inputContents = $$"""
+@interface MyClass
+-(MyClass *(^)(id))instanceMethod1;
+-(MyClass *(^)(SEL))instanceMethod2;
+-(MyClass *(^)(Class))instanceMethod3;
+@end
+""";
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+
+        var myClass = classes.SingleOrDefault(v => v.Name == "MyClass")!;
+        Assert.That(myClass, Is.Not.Null, "MyClass");
+
+        var info = new[] {
+            (Name: "instanceMethod1", Type: CXTypeKind.CXType_ObjCId),
+            (Name: "instanceMethod2", Type: CXTypeKind.CXType_ObjCSel),
+            (Name: "instanceMethod3", Type: CXTypeKind.CXType_ObjCClass),
+        };
+
+        foreach (var i in info)
+        {
+            var instanceMethod = myClass.Methods.SingleOrDefault(v => v.Name == i.Name)!;
+            Assert.That(instanceMethod, Is.Not.Null, "instanceMethod");
+            var returnType = instanceMethod.ReturnType;
+            Assert.That(returnType.Kind, Is.EqualTo(CXTypeKind.CXType_BlockPointer), "returnType.Kind");
+            var pointeeType = returnType.PointeeType;
+            Assert.That(pointeeType.Kind, Is.EqualTo(CXTypeKind.CXType_FunctionProto), "pointeeType.Kind");
+            var functionProtoType = (FunctionProtoType)pointeeType;
+            Assert.That(functionProtoType.ParamTypes.Count, Is.EqualTo(1), "functionProtoType.ParamTypes.Count()");
+            var paramType = functionProtoType.ParamTypes[0];
+            Assert.That(paramType.Kind, Is.EqualTo(i.Type), "paramType.Kind");
+            var elaboratedParamType = (ElaboratedType)paramType;
+            Assert.That(elaboratedParamType, Is.Not.Null, "elaboratedParamType");
+            Assert.That(elaboratedParamType.Desugar, Is.Not.Null, "elaboratedParamType.Desugar");
+        }
+    }
+
     private static void AssertNeedNewClangSharp()
     {
         var forceRun = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FORCE_RUN"));

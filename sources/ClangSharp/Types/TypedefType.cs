@@ -11,7 +11,7 @@ public sealed class TypedefType : Type
 {
     private readonly ValueLazy<TypedefNameDecl> _decl;
 
-    internal TypedefType(CXType handle) : base(handle, CXType_Typedef, CX_TypeClass_Typedef)
+    internal TypedefType(CXType handle) : base(handle, CXType_Typedef, CX_TypeClass_Typedef, CXType_ObjCClass, CXType_ObjCId, CXType_ObjCSel)
     {
         _decl = new ValueLazy<TypedefNameDecl>(() => TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.Declaration));
     }
