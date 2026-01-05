@@ -588,6 +588,10 @@ public static partial class @clangsharp
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsThisDeclarationADefinition(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsPropertyAccessor", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getIsPropertyAccessor(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsThrownVariableInScope", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsThrownVariableInScope(CXCursor C);
