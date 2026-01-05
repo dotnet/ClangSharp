@@ -8,7 +8,6 @@ namespace ClangSharp;
 
 public sealed class HLSLAttributedResourceType : Type
 {
-
     internal HLSLAttributedResourceType(CXType handle) : base(handle, CXType_HLSLAttributedResource, CX_TypeClass_HLSLAttributedResource)
     {
     }

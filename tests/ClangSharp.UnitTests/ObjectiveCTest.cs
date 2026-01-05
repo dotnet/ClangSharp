@@ -1,6 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
-using System;
 using System.Linq;
 using ClangSharp.Interop;
 using NUnit.Framework;
@@ -13,8 +12,6 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     [Test]
     public void Method_Selector()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $@"
 @interface MyClass
     @property int P1;
@@ -50,8 +47,6 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     [Test]
     public void Category_TypeParamList()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $@"
 @interface MyClass
 @end
@@ -71,8 +66,6 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     [Test]
     public void Method_IsPropertyAccessor()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $@"
 @interface MyClass
     @property int P1;

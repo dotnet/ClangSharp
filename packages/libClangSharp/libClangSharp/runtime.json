@@ -2,27 +2,27 @@
   "runtimes": {
     "linux-arm64": {
       "libClangSharp": {
-        "libClangSharp.runtime.linux-arm64": "21.1.8"
+        "libClangSharp.runtime.linux-arm64": "21.1.8.1"
       }
     },
     "linux-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.linux-x64": "21.1.8"
+        "libClangSharp.runtime.linux-x64": "21.1.8.1"
       }
     },
     "osx-arm64": {
       "libClangSharp": {
-        "libClangSharp.runtime.osx-arm64": "21.1.8"
+        "libClangSharp.runtime.osx-arm64": "21.1.8.1"
       }
     },
     "win-arm64": {
       "libClangSharp": {
-        "libClangSharp.runtime.win-arm64": "21.1.8"
+        "libClangSharp.runtime.win-arm64": "21.1.8.1"
       }
     },
     "win-x64": {
       "libClangSharp": {
-        "libClangSharp.runtime.win-x64": "21.1.8"
+        "libClangSharp.runtime.win-x64": "21.1.8.1"
       }
     }
   }

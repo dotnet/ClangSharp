@@ -38,9 +38,6 @@
   <Folder Name="/packages/libClangSharp/libClangSharp.runtime.osx-arm64/">
     <File Path="packages/libClangSharp/libClangSharp.runtime.osx-arm64/libClangSharp.runtime.osx-arm64.nuspec" />
   </Folder>
-  <Folder Name="/packages/libClangSharp/libClangSharp.runtime.osx-x64/">
-    <File Path="packages/libClangSharp/libClangSharp.runtime.osx-x64/libClangSharp.runtime.osx-x64.nuspec" />
-  </Folder>
   <Folder Name="/packages/libClangSharp/libClangSharp.runtime.win-arm64/">
     <File Path="packages/libClangSharp/libClangSharp.runtime.win-arm64/libClangSharp.runtime.win-arm64.nuspec" />
   </Folder>

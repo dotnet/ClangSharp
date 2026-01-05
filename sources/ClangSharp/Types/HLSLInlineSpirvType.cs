@@ -8,7 +8,6 @@ namespace ClangSharp;
 
 public sealed class HLSLInlineSpirvType : Type
 {
-
     internal HLSLInlineSpirvType(CXType handle) : base(handle, CXType_HLSLInlineSpirv, CX_TypeClass_HLSLInlineSpirv)
     {
     }
