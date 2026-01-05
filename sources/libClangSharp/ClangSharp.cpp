@@ -710,6 +710,19 @@ CX_CharacterKind clangsharp_Cursor_getCharacterLiteralKind(CXCursor C) {
     return CX_CLK_Invalid;
 }
 
+CXString clangsharp_Cursor_getSelector(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const ObjCMethodDecl* OCMD = dyn_cast<ObjCMethodDecl>(D)) {
+            Selector selector = OCMD->getSelector();
+            return createDup(selector.getAsString());
+        }
+    }
+
+    return createEmpty();
+}
+
 CX_StringKind clangsharp_Cursor_getStringLiteralKind(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);

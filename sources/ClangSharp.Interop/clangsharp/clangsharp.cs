@@ -787,6 +787,9 @@ public static partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getRhsExpr", ExactSpelling = true)]
     public static extern CXCursor Cursor_getRhsExpr(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getSelector", ExactSpelling = true)]
+    public static extern CXString Cursor_getSelector(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getShouldCopy", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getShouldCopy(CXCursor C);
