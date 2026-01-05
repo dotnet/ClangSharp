@@ -11,7 +11,7 @@ public sealed class ObjCInterfaceType : ObjCObjectType
 {
     private readonly ValueLazy<ObjCInterfaceDecl> _decl;
 
-    internal ObjCInterfaceType(CXType handle) : base(handle, CXType_ObjCObject, CX_TypeClass_ObjCInterface)
+    internal ObjCInterfaceType(CXType handle) : base(handle, CXType_ObjCInterface, CX_TypeClass_ObjCInterface)
     {
         _decl = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.Declaration));
     }
