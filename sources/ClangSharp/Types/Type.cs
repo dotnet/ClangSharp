@@ -18,9 +18,13 @@ public unsafe class Type : IEquatable<Type>
     private readonly ValueLazy<Type> _pointeeType;
     private readonly ValueLazy<TranslationUnit> _translationUnit;
 
-    protected Type(CXType handle, CXTypeKind expectedKind, CX_TypeClass expectedTypeClass, params CXTypeKind[] additionalExpectedKinds)
+    protected Type(CXType handle, CXTypeKind expectedKind, CX_TypeClass expectedTypeClass, params ReadOnlySpan<CXTypeKind> additionalExpectedKinds)
     {
-        if (handle.kind != expectedKind && (additionalExpectedKinds is null || Array.IndexOf(additionalExpectedKinds, handle.kind) < 0))
+#if NET10_0_OR_GREATER
+        if (handle.kind != expectedKind && !additionalExpectedKinds.Contains(handle.kind))
+#else
+        if (handle.kind != expectedKind && !Contains(additionalExpectedKinds, handle.kind))
+#endif
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
@@ -38,6 +42,20 @@ public unsafe class Type : IEquatable<Type>
         _pointeeType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.PointeeType));
         _translationUnit = new ValueLazy<TranslationUnit>(() => TranslationUnit.GetOrCreate((CXTranslationUnit)Handle.data[1]));
     }
+
+#if !NET10_0_OR_GREATER
+    private static bool Contains(ReadOnlySpan<CXTypeKind> kinds, CXTypeKind find)
+    {
+        for (var i = 0; i < kinds.Length; i++)
+        {
+            if (kinds[i] == find)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+#endif
 
     public CXXRecordDecl? AsCXXRecordDecl => AsTagDecl as CXXRecordDecl;
 
