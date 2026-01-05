@@ -76,7 +76,6 @@ class MyClass<int, U>
     }
 
     [Test]
-    [Ignore("TODO: LibClangSharp needs to be recompiled first")]
     public void TemplateParameterPackTest()
     {
         var inputContents = $@"template<class... Types>

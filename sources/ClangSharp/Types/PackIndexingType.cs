@@ -8,7 +8,6 @@ namespace ClangSharp;
 
 public sealed class PackIndexingType : Type
 {
-
     internal PackIndexingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_PackIndexing)
     {
     }
