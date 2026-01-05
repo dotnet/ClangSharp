@@ -2716,6 +2716,17 @@ unsigned clangsharp_Cursor_getIsThisDeclarationADefinition(CXCursor C) {
     return 0;
 }
 
+unsigned clangsharp_Cursor_getIsPropertyAccessor(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const ObjCMethodDecl* OCMD = dyn_cast<ObjCMethodDecl>(D)) {
+            return OCMD->isPropertyAccessor();
+        }
+    }
+
+    return 0;
+}
 unsigned clangsharp_Cursor_getIsThrownVariableInScope(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);

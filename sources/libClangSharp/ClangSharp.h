@@ -559,6 +559,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsTemplated(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsThisDeclarationADefinition(CXCursor C);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsPropertyAccessor(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsThrownVariableInScope(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsTransparent(CXCursor C);

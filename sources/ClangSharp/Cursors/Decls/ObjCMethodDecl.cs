@@ -53,4 +53,6 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
     public ImplicitParamDecl SelfDecl => _selfDecl.Value;
 
     public Type SendResultType => _sendResultType.Value;
+
+    public bool IsPropertyAccessor => Handle.IsPropertyAccessor;
 }
