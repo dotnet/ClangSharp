@@ -8,7 +8,6 @@ namespace ClangSharp;
 
 public sealed class EnumType : TagType
 {
-
     internal EnumType(CXType handle) : base(handle, CXType_Enum, CX_TypeClass_Enum)
     {
     }

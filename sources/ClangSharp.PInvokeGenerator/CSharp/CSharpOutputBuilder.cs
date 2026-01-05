@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
-using ClangSharp.Abstractions;
 
 namespace ClangSharp.CSharp;
 
