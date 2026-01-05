@@ -471,4 +471,6 @@ public class Attr : Cursor
     public CX_AttrKind Kind => Handle.AttrKind;
 
     public string KindSpelling => Handle.AttrKindSpelling;
+
+    public string PrettyPrint() => Handle.PrettyPrintAttribute().ToString();
 }
