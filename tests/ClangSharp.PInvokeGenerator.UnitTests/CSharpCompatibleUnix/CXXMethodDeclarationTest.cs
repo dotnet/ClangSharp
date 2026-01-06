@@ -291,7 +291,7 @@ namespace ClangSharp.Test
             }}
         }}
 
-        public interface Interface
+        public partial interface Interface
         {{
             int GetType(int obj);
 
