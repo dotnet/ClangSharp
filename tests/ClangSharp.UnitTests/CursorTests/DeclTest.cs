@@ -96,4 +96,33 @@ tuple<int, long> SomeFunction();
         Assert.That(packElements[0].AsType.AsString, Is.EqualTo("int"));
         Assert.That(packElements[1].AsType.AsString, Is.EqualTo("long"));
     }
+
+    [Test]
+    public void IsPodTest()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $$"""
+struct A {
+    int a;
+};
+struct B {
+    int b;
+private:
+    int p;
+};
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var decls = translationUnit.TranslationUnitDecl.Decls.OfType<CXXRecordDecl>().ToList();
+
+        var structA = decls.SingleOrDefault(d => d.Name == "A")!;
+        Assert.That(structA, Is.Not.Null, "struct A not found");
+        Assert.That(structA.IsPOD, Is.True, "struct A should be POD");
+
+        var structB = decls.SingleOrDefault(d => d.Name == "B")!;
+        Assert.That(structB, Is.Not.Null, "struct B not found");
+        Assert.That(structB.IsPOD, Is.False, "struct B should be not POD");
+    }
 }

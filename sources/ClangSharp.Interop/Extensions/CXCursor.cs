@@ -688,6 +688,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool CXXRecord_IsAbstract => clang.CXXRecord_isAbstract(this) != 0;
 
+    public readonly bool CXXRecord_IsPOD => clangsharp.Cursor_getCXXRecord_IsPOD(this) != 0;
+
     public readonly CXType DeclaredReturnType => clangsharp.Cursor_getDeclaredReturnType(this);
 
     public readonly CX_DeclKind DeclKind => clangsharp.Cursor_getDeclKind(this);
@@ -1256,6 +1258,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly int NumTemplateArguments => clangsharp.Cursor_getNumTemplateArguments(this);
 
     public readonly int NumTemplateParameterLists => clangsharp.Cursor_getNumTemplateParameterLists(this);
+
+    public readonly int NumTypeParams => clangsharp.Cursor_getNumTypeParams(this);
 
     public readonly int NumVBases => clangsharp.Cursor_getNumVBases(this);
 
@@ -1912,6 +1916,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
     public readonly ulong GetTemplateArgumentUnsignedValue(uint i) => clang.Cursor_getTemplateArgumentUnsignedValue(this, i);
 
     public readonly long GetTemplateArgumentValue(uint i) => clang.Cursor_getTemplateArgumentValue(this, i);
+
+    public readonly CXCursor GetTypeParam(uint index) => clangsharp.Cursor_getTypeParam(this, index);
 
     public readonly CXCursor GetVBase(uint index) => clangsharp.Cursor_getVBase(this, index);
 

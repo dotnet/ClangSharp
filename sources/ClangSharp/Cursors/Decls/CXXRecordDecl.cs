@@ -55,6 +55,8 @@ public class CXXRecordDecl : RecordDecl
 
     public bool IsAbstract => Handle.CXXRecord_IsAbstract;
 
+    public bool IsPOD => Handle.CXXRecord_IsPOD;
+
     public IReadOnlyList<CXXBaseSpecifier> Bases => _bases;
 
     public new CXXRecordDecl CanonicalDecl => (CXXRecordDecl)base.CanonicalDecl;

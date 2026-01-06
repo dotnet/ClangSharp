@@ -11,8 +11,38 @@ namespace ClangSharp.UnitTests;
 public sealed class ObjectiveCTest : TranslationUnitTest
 {
     [Test]
+    public void Type_IsObjCInstanceType()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $@"
+@interface MyClass
+    -(instancetype) instanceMethod;
+    +(MyClass*) staticMethod;
+@end
+";
+
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+        Assert.That(classes.Count, Is.GreaterThanOrEqualTo(1), $"At least one class");
+        var myClass = classes.SingleOrDefault(v => v.Name == "MyClass")!;
+        Assert.That(myClass, Is.Not.Null, "MyClass");
+
+        var methodInstanceMethod = myClass.Methods.SingleOrDefault(v => v.Name == "instanceMethod")!;
+        Assert.That(methodInstanceMethod, Is.Not.Null, "methodInstanceMethod");
+        Assert.That(methodInstanceMethod.ReturnType.IsObjCInstanceType, Is.True, "methodInstanceMethod.ReturnType.IsObjCInstanceType");
+
+        var methodStaticMethod = myClass.Methods.SingleOrDefault(v => v.Name == "staticMethod")!;
+        Assert.That(methodStaticMethod, Is.Not.Null, "methodStaticMethod");
+        Assert.That(methodStaticMethod.ReturnType.IsObjCInstanceType, Is.False, "methodStaticMethod.ReturnType.IsObjCInstanceType");
+    }
+
+    [Test]
     public void Method_Selector()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $@"
 @interface MyClass
     @property int P1;
@@ -48,6 +78,8 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     [Test]
     public void Category_TypeParamList()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $@"
 @interface MyClass
 @end
@@ -65,8 +97,37 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     }
 
     [Test]
+    public void ClassWithProtocols()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $@"
+@protocol P1
+@end
+@protocol P2
+@end
+
+@interface MyClass <P1, P2>
+@end
+";
+
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+        Assert.That(classes.Count, Is.GreaterThanOrEqualTo(1), $"At least one class");
+        var myClass = classes.SingleOrDefault(v => v.Name == "MyClass")!;
+        Assert.That(myClass, Is.Not.Null, "MyClass");
+        var protocols = myClass.Protocols.ToList();
+        Assert.That(protocols.Count, Is.EqualTo(2), "protocols.Count");
+        Assert.That(protocols[0].Name, Is.EqualTo("P1"), "protocols[0].Name");
+        Assert.That(protocols[1].Name, Is.EqualTo("P2"), "protocols[1].Name");
+    }
+
+    [Test]
     public void Method_IsPropertyAccessor()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $@"
 @interface MyClass
     @property int P1;
@@ -100,8 +161,48 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     }
 
     [Test]
+    public void TypeParams()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $$"""
+@interface NSObject
+@end
+
+@interface MyClass<A, B> : NSObject
+@end
+
+@interface MyClass<T, Y> (MyCategory)
+@end
+
+""";
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+
+        var myClass = classes.SingleOrDefault(v => v.Name == "MyClass")!;
+        Assert.That(myClass, Is.Not.Null, "MyClass");
+        Assert.That(myClass.TypeParamList, Is.Not.Null, "myClass TypeParamList");
+        var myClassTypeParams = myClass.TypeParamList.ToList();
+        Assert.That(myClassTypeParams.Count, Is.EqualTo(2), "myClassTypeParams.Count");
+        Assert.That(myClassTypeParams[0].Name, Is.EqualTo("A"), "myClassTypeParams[0].Name");
+        Assert.That(myClassTypeParams[1].Name, Is.EqualTo("B"), "myClassTypeParams[1].Name");
+
+        var categories = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCCategoryDecl>().ToList();
+        var myCategory = categories.SingleOrDefault(v => v.Name == "MyCategory")!;
+        Assert.That(myCategory, Is.Not.Null, "MyCategory");
+        Assert.That(myCategory.TypeParamList, Is.Not.Null, "myCategory TypeParamList");
+        var myCategoryTypeParams = myCategory.TypeParamList.ToList();
+        Assert.That(myCategoryTypeParams.Count, Is.EqualTo(2), "myCategoryTypeParams.Count");
+        Assert.That(myCategoryTypeParams[0].Name, Is.EqualTo("T"), "myCategoryTypeParams[0].Name");
+        Assert.That(myCategoryTypeParams[1].Name, Is.EqualTo("Y"), "myCategoryTypeParams[1].Name");
+    }
+
+    [Test]
     public void PointerTypes()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = """
 @interface MyClass
 -(void)instanceMethod:(MyClass **)ptrToPtrToMyClass;
@@ -131,6 +232,8 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     [Test]
     public void BlockTypes()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $$"""
 @interface MyClass
 -(MyClass *(^)(id))instanceMethod1;
@@ -346,16 +449,5 @@ __attribute__((availability(ios,introduced=10.0)))
         Assert.That(property_retain_readonly_class.GetPropertyAttributes(), Is.EqualTo(ObjCPropertyAttributeKind.Retain | ObjCPropertyAttributeKind.ReadOnly | ObjCPropertyAttributeKind.Atomic | ObjCPropertyAttributeKind.Class), "property_retain_readonly_class GetPropertyAttributes()");
 
         Assert.That(properties, Is.Empty, "All properties processed");
-    }
-
-    private static void AssertNeedNewClangSharp()
-    {
-        var forceRun = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FORCE_RUN"));
-
-        if (forceRun)
-        {
-            return;
-        }
-        Assert.Ignore("TODO: this needs a new version of libClangSharp published.");
     }
 }
