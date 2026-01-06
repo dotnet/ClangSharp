@@ -3694,6 +3694,22 @@ int clangsharp_Cursor_getNumVBases(CXCursor C) {
     return -1;
 }
 
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getObjCRuntimeNameAttrMetadataName(CXCursor C)
+{
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+
+        StringRef message;
+        if (const auto *OCRN = dyn_cast<ObjCRuntimeNameAttr>(A)) {
+            message = OCRN->getMetadataName();
+        }
+
+        return createDup(message);
+    }
+
+    return createEmpty();
+}
+
 CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);

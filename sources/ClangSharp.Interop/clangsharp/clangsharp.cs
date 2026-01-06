@@ -752,6 +752,9 @@ public static partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumVBases", ExactSpelling = true)]
     public static extern int Cursor_getNumVBases(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjCRuntimeNameAttrMetadataName", ExactSpelling = true)]
+    public static extern CXString Cursor_getObjCRuntimeNameAttrMetadataName(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getOpaqueValue", ExactSpelling = true)]
     public static extern CXCursor Cursor_getOpaqueValue(CXCursor C);
 
