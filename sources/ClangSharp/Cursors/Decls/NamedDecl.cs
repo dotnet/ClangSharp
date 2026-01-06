@@ -26,6 +26,8 @@ public class NamedDecl : Decl
 
     public string Name => Spelling;
 
+    public string QualifiedName => Handle.QualifiedName.ToString();
+
     public NamedDecl UnderlyingDecl => _underlyingDecl.Value;
 
     public CXVisibilityKind Visibility => Handle.Visibility;

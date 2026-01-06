@@ -1358,6 +1358,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXPrintingPolicy PrintingPolicy => (kind != default) ? (CXPrintingPolicy)clang.getCursorPrintingPolicy(this) : default;
 
+    public readonly CXString QualifiedName => clangsharp.Cursor_getQualifiedName(this);
+
     public readonly CXString RawCommentText => clang.Cursor_getRawCommentText(this);
 
     public readonly CXType ReceiverType => !IsExpression ? default : clang.Cursor_getReceiverType(this);
