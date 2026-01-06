@@ -1022,6 +1022,10 @@ public static partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getInjectedTST", ExactSpelling = true)]
     public static extern CXType Type_getInjectedTST(CXType CT);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsObjCInstanceType", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Type_getIsObjCInstanceType(CXType CT);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Type_getIsSigned", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Type_getIsSigned(CXType CT);

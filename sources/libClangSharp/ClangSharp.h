@@ -837,6 +837,8 @@ CLANGSHARP_LINKAGE CXType clangsharp_Type_getInjectedSpecializationType(CXType C
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getInjectedTST(CXType CT);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCInstanceType(CXType CT);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsSigned(CXType CT);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsSugared(CXType CT);
