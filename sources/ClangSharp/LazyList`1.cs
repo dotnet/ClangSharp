@@ -11,7 +11,8 @@ internal sealed class LazyList<[DynamicallyAccessedMembers(DynamicallyAccessedMe
     where T : class
 {
     internal readonly T[] _items;
-    internal readonly Func<int, T> _valueFactory;
+    internal readonly Func<int, T>? _valueFactory;
+    internal readonly Func<int, T?, T>? _valueFactoryWithPreviousValue;
 
     public static readonly LazyList<T> Empty = new LazyList<T>(0, _ => null!);
 
@@ -19,6 +20,14 @@ internal sealed class LazyList<[DynamicallyAccessedMembers(DynamicallyAccessedMe
     {
         _items = (count <= 0) ? [] : new T[count];
         _valueFactory = valueFactory;
+        _valueFactoryWithPreviousValue = null;
+    }
+
+    public LazyList(int count, Func<int, T?, T> valueFactoryWithPreviousValue)
+    {
+        _items = (count <= 0) ? [] : new T[count];
+        _valueFactory = null;
+        _valueFactoryWithPreviousValue = valueFactoryWithPreviousValue;
     }
 
     public T this[int index]
@@ -30,7 +39,12 @@ internal sealed class LazyList<[DynamicallyAccessedMembers(DynamicallyAccessedMe
 
             if (item is null)
             {
-                item = _valueFactory(index);
+                if (_valueFactoryWithPreviousValue is not null)
+                {
+                    item = _valueFactoryWithPreviousValue(index, index == 0 ? null : _items[index - 1]);
+                } else {
+                    item = _valueFactory!.Invoke(index);
+                }
                 items[index] = item;
             }
 
@@ -56,14 +70,7 @@ internal sealed class LazyList<[DynamicallyAccessedMembers(DynamicallyAccessedMe
 
         for (var i = 0; i < items.Length; i++)
         {
-            var currentItem = items[i];
-
-            if (currentItem is null)
-            {
-                currentItem = _valueFactory(i);
-                items[i] = currentItem;
-            }
-
+            var currentItem = this[i];
             array[arrayIndex + i] = currentItem;
         }
     }
@@ -76,14 +83,7 @@ internal sealed class LazyList<[DynamicallyAccessedMembers(DynamicallyAccessedMe
 
         for (var i = 0; i < items.Length; i++)
         {
-            var currentItem = items[i];
-
-            if (currentItem is null)
-            {
-                currentItem = _valueFactory(i);
-                items[i] = currentItem;
-            }
-
+            var currentItem = this[i];
             if (EqualityComparer<T>.Default.Equals(currentItem, item))
             {
                 return i;

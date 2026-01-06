@@ -17,6 +17,16 @@ internal static class LazyList
         return new LazyList<T>(count, valueFactory);
     }
 
+    public static LazyList<T> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(int count, Func<int, T?, T> valueFactory)
+        where T : class
+    {
+        if (count <= 0)
+        {
+            return LazyList<T>.Empty;
+        }
+        return new LazyList<T>(count, valueFactory);
+    }
+
     public static LazyList<T, TBase> Create<T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TBase>(LazyList<TBase> list, int skip = -1, int take = -1)
         where T : class, TBase
         where TBase : class
