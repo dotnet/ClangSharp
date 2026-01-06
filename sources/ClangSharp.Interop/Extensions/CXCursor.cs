@@ -688,6 +688,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly bool CXXRecord_IsAbstract => clang.CXXRecord_isAbstract(this) != 0;
 
+    public readonly bool CXXRecord_IsPOD => clangsharp.Cursor_getCXXRecord_IsPOD(this) != 0;
+
     public readonly CXType DeclaredReturnType => clangsharp.Cursor_getDeclaredReturnType(this);
 
     public readonly CX_DeclKind DeclKind => clangsharp.Cursor_getDeclKind(this);
