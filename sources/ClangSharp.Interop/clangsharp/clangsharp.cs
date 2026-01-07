@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp.Interop;
 
-public static partial class @clangsharp
+public static unsafe partial class @clangsharp
 {
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getArgument", ExactSpelling = true)]
     public static extern CXCursor Cursor_getArgument(CXCursor C, [NativeTypeName("unsigned int")] uint i);
@@ -180,6 +180,9 @@ public static partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDecl", ExactSpelling = true)]
     public static extern CXCursor Cursor_getDecl(CXCursor C, [NativeTypeName("unsigned int")] uint i);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDecls", ExactSpelling = true)]
+    public static extern bool Cursor_getDecls(CXCursor C, CXCursor* decls, [NativeTypeName("unsigned int")] uint count);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getDeclKind", ExactSpelling = true)]
     public static extern CX_DeclKind Cursor_getDeclKind(CXCursor C);

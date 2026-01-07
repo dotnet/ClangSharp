@@ -10,6 +10,7 @@ public class CXCursorTest : TranslationUnitTest
     [Test]
     public void AttrKindSpelling()
     {
+        AssertNeedNewClangSharp();
 
         var inputContents =
     $$"""

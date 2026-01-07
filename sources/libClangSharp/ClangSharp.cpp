@@ -943,6 +943,28 @@ CXType clangsharp_Cursor_getDeclaredReturnType(CXCursor C) {
     return MakeCXType(QualType(), getCursorTU(C));
 }
 
+bool clangsharp_Cursor_getDecls(CXCursor C, CXCursor* decls, unsigned count) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const DeclContext* DC = dyn_cast<DeclContext>(D)) {
+            unsigned n = 0;
+
+            for (auto decl : DC->decls()) {
+                if (n == count) {
+                    return false;
+                }
+                decls[n] = MakeCXCursor(decl, getCursorTU(C));
+                n++;
+            }
+
+            return n == count;
+        }
+    }
+
+    return false;
+}
+
 CXCursor clangsharp_Cursor_getDecl(CXCursor C, unsigned i) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);

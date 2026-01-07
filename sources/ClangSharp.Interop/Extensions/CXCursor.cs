@@ -1834,6 +1834,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXCursor GetDecl(uint index) => clangsharp.Cursor_getDecl(this, index);
 
+    public readonly bool GetDecls(CXCursor* cursors, uint count) => clangsharp.Cursor_getDecls(this, cursors, count);
+
     public readonly void GetDefinitionSpellingAndExtent(out string spelling, out uint startLine, out uint startColumn, out uint endLine, out uint endColumn)
     {
         fixed (uint* pStartLine = &startLine)
