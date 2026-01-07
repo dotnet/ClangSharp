@@ -2237,6 +2237,10 @@ unsigned clangsharp_Cursor_getIsExternC(CXCursor C) {
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
             return FD->isExternC();
         }
+
+        if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
+            return VD->isExternC();
+        }
     }
 
     return 0;
