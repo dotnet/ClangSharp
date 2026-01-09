@@ -357,6 +357,12 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
 @interface MyClass<T, Y> (MyCategory)
 @end
 
+@interface MyVariantClass<__contravariant T, __covariant U, V> : NSObject
+@end
+
+@interface MyBoundedClass<T : NSObject*> : NSObject
+@end
+
 """;
         using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
 
@@ -368,7 +374,11 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
         var myClassTypeParams = myClass.TypeParamList.ToList();
         Assert.That(myClassTypeParams.Count, Is.EqualTo(2), "myClassTypeParams.Count");
         Assert.That(myClassTypeParams[0].Name, Is.EqualTo("A"), "myClassTypeParams[0].Name");
+        Assert.That(myClassTypeParams[0].HasExplicitBound, Is.EqualTo(false), "myClassTypeParams[0].HasExplicitBound");
+        Assert.That(myClassTypeParams[0].Variance, Is.EqualTo(ObjCTypeParamVariance.Invariant), "myClassTypeParams[0].Variance");
         Assert.That(myClassTypeParams[1].Name, Is.EqualTo("B"), "myClassTypeParams[1].Name");
+        Assert.That(myClassTypeParams[1].HasExplicitBound, Is.EqualTo(false), "myClassTypeParams[1].HasExplicitBound");
+        Assert.That(myClassTypeParams[1].Variance, Is.EqualTo(ObjCTypeParamVariance.Invariant), "myClassTypeParams[1].Variance");
 
         var categories = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCCategoryDecl>().ToList();
         var myCategory = categories.SingleOrDefault(v => v.Name == "MyCategory")!;
@@ -377,7 +387,35 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
         var myCategoryTypeParams = myCategory.TypeParamList.ToList();
         Assert.That(myCategoryTypeParams.Count, Is.EqualTo(2), "myCategoryTypeParams.Count");
         Assert.That(myCategoryTypeParams[0].Name, Is.EqualTo("T"), "myCategoryTypeParams[0].Name");
+        Assert.That(myCategoryTypeParams[0].HasExplicitBound, Is.EqualTo(false), "myCategoryTypeParams[0].HasExplicitBound");
+        Assert.That(myCategoryTypeParams[0].Variance, Is.EqualTo(ObjCTypeParamVariance.Invariant), "myCategoryTypeParams[0].Variance");
         Assert.That(myCategoryTypeParams[1].Name, Is.EqualTo("Y"), "myCategoryTypeParams[1].Name");
+        Assert.That(myCategoryTypeParams[1].HasExplicitBound, Is.EqualTo(false), "myCategoryTypeParams[1].HasExplicitBound");
+        Assert.That(myCategoryTypeParams[1].Variance, Is.EqualTo(ObjCTypeParamVariance.Invariant), "myCategoryTypeParams[1].Variance");
+
+        var myVariantClass = classes.SingleOrDefault(v => v.Name == "MyVariantClass")!;
+        Assert.That(myVariantClass, Is.Not.Null, "MyVariantClass");
+        Assert.That(myVariantClass.TypeParamList, Is.Not.Null, "myVariantClass TypeParamList");
+        var myVariantClassTypeParams = myVariantClass.TypeParamList.ToList();
+        Assert.That(myVariantClassTypeParams.Count, Is.EqualTo(3), "myVariantClassTypeParams.Count");
+        Assert.That(myVariantClassTypeParams[0].Name, Is.EqualTo("T"), "myVariantClassTypeParams[0].Name");
+        Assert.That(myVariantClassTypeParams[1].Name, Is.EqualTo("U"), "myVariantClassTypeParams[1].Name");
+        Assert.That(myVariantClassTypeParams[2].Name, Is.EqualTo("V"), "myVariantClassTypeParams[2].Name");
+        Assert.That(myVariantClassTypeParams[0].HasExplicitBound, Is.EqualTo(false), "myVariantClassTypeParams[0].HasExplicitBound");
+        Assert.That(myVariantClassTypeParams[1].HasExplicitBound, Is.EqualTo(false), "myVariantClassTypeParams[1].HasExplicitBound");
+        Assert.That(myVariantClassTypeParams[2].HasExplicitBound, Is.EqualTo(false), "myBoundedClassTypeParams[2].HasExplicitBound");
+        Assert.That(myVariantClassTypeParams[0].Variance, Is.EqualTo(ObjCTypeParamVariance.Contravariant), "myVariantClassTypeParams[0].Variance");
+        Assert.That(myVariantClassTypeParams[1].Variance, Is.EqualTo(ObjCTypeParamVariance.Covariant), "myVariantClassTypeParams[1].Variance");
+        Assert.That(myVariantClassTypeParams[2].Variance, Is.EqualTo(ObjCTypeParamVariance.Invariant), "myVariantClassTypeParams[2].Variance");
+
+        var myBoundedClass = classes.SingleOrDefault(v => v.Name == "MyBoundedClass")!;
+        Assert.That(myBoundedClass, Is.Not.Null, "MyBoundedClass");
+        Assert.That(myBoundedClass.TypeParamList, Is.Not.Null, "myBoundedClass TypeParamList");
+        var myBoundedClassTypeParams = myBoundedClass.TypeParamList.ToList();
+        Assert.That(myBoundedClassTypeParams.Count, Is.EqualTo(1), "myBoundedClassTypeParams.Count");
+        Assert.That(myBoundedClassTypeParams[0].Name, Is.EqualTo("T"), "myBoundedClassTypeParams[0].Name");
+        Assert.That(myBoundedClassTypeParams[0].HasExplicitBound, Is.EqualTo(true), "myBoundedClassTypeParams[0].HasExplicitBound");
+        Assert.That(myBoundedClassTypeParams[0].Variance, Is.EqualTo(ObjCTypeParamVariance.Invariant), "myBoundedClassTypeParams[0].Variance");
     }
 
     [Test]

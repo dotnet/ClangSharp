@@ -13,4 +13,8 @@ public sealed class ObjCTypeParamDecl : TypedefNameDecl
     }
 
     public uint Index => unchecked((uint)Handle.TemplateTypeParmIndex);
+
+    public bool HasExplicitBound => Handle.TypeParamHasExplicitBound;
+
+    public ObjCTypeParamVariance Variance => Handle.TypeParamVariance;
 }
