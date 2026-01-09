@@ -455,6 +455,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getInstantiatedFromMember(CXCursor
 
 CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C);
 
+CLANGSHARP_LINKAGE uint64_t clangsharp_Cursor_getUnsignedIntegerLiteralValue(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsAllEnumCasesCovered(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsAlwaysNull(CXCursor C);
@@ -656,6 +658,8 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumTemplateParameterLists(CXCursor C
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumTypeParams(CXCursor C);
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumVBases(CXCursor C);
+
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getObjCRuntimeNameAttrMetadataName(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C);
 

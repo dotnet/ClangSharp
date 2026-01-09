@@ -11,6 +11,42 @@ namespace ClangSharp.UnitTests;
 public sealed class ObjectiveCTest : TranslationUnitTest
 {
     [Test]
+    public void Attribute_ObjCRuntimeName()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $$"""
+__attribute__((objc_runtime_name("MyRenamedClass")))
+@interface MyClass
+@end
+
+__attribute__((objc_runtime_name("MyRenamedProtocol")))
+@protocol MyProtocol
+@end
+""";
+        using var translationUnit = CreateTranslationUnit(inputContents, "objective-c++");
+
+        var classes = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCInterfaceDecl>().ToList();
+
+        var myClass = classes.SingleOrDefault(v => v.Name == "MyClass")!;
+        Assert.That(myClass, Is.Not.Null, "MyClass");
+        var myClassAttrs = myClass.Attrs;
+        Assert.That(myClassAttrs.Count, Is.EqualTo(1), "myClassAttrs.Count");
+        var runtimeNameAttr = myClassAttrs[0];
+        Assert.That(runtimeNameAttr.Kind, Is.EqualTo(CX_AttrKind.CX_AttrKind_ObjCRuntimeName), "myClass Attr Kind");
+        Assert.That(runtimeNameAttr.ObjCRuntimeNameMetadataName, Is.EqualTo("MyRenamedClass"), "myClass Attr ObjCRuntimeNameMetadataName");
+
+        var protocols = translationUnit.TranslationUnitDecl.Decls.OfType<ObjCProtocolDecl>().ToList();
+        var myProtocol = protocols.SingleOrDefault(v => v.Name == "MyProtocol")!;
+        Assert.That(myProtocol, Is.Not.Null, "MyProtocol");
+        var myProtocolAttrs = myProtocol.Attrs;
+        Assert.That(myProtocolAttrs.Count, Is.EqualTo(1), "myProtocolAttrs.Count");
+        runtimeNameAttr = myProtocolAttrs[0];
+        Assert.That(runtimeNameAttr.Kind, Is.EqualTo(CX_AttrKind.CX_AttrKind_ObjCRuntimeName), "myProtocol Attr Kind");
+        Assert.That(runtimeNameAttr.ObjCRuntimeNameMetadataName, Is.EqualTo("MyRenamedProtocol"), "myProtocol Attr ObjCRuntimeNameMetadataName");
+    }
+
+    [Test]
     public void Type_IsObjCInstanceType()
     {
         AssertNeedNewClangSharp();

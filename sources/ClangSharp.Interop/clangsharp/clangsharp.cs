@@ -380,6 +380,10 @@ public static partial class @clangsharp
     [return: NativeTypeName("int64_t")]
     public static extern long Cursor_getIntegerLiteralValue(CXCursor C);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getUnsignedIntegerLiteralValue", ExactSpelling = true)]
+    [return: NativeTypeName("uint64_t")]
+    public static extern ulong Cursor_getUnsignedIntegerLiteralValue(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getIsAllEnumCasesCovered", ExactSpelling = true)]
     [return: NativeTypeName("unsigned int")]
     public static extern uint Cursor_getIsAllEnumCasesCovered(CXCursor C);
@@ -747,6 +751,9 @@ public static partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getNumVBases", ExactSpelling = true)]
     public static extern int Cursor_getNumVBases(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getObjCRuntimeNameAttrMetadataName", ExactSpelling = true)]
+    public static extern CXString Cursor_getObjCRuntimeNameAttrMetadataName(CXCursor C);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getOpaqueValue", ExactSpelling = true)]
     public static extern CXCursor Cursor_getOpaqueValue(CXCursor C);

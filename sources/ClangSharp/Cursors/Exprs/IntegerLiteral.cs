@@ -43,5 +43,7 @@ public sealed class IntegerLiteral : Expr
 
     public long Value => Handle.IntegerLiteralValue;
 
+    public ulong UnsignedValue => Handle.UnsignedIntegerLiteralValue;
+
     public string ValueString => _valueString.Value;
 }
