@@ -1939,6 +1939,18 @@ int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C) {
     return 0;
 }
 
+uint64_t clangsharp_Cursor_getUnsignedIntegerLiteralValue(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(S)) {
+            return IL->getValue().getZExtValue();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsAllEnumCasesCovered(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
@@ -2224,6 +2236,10 @@ unsigned clangsharp_Cursor_getIsExternC(CXCursor C) {
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
             return FD->isExternC();
+        }
+
+        if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
+            return VD->isExternC();
         }
     }
 
@@ -3680,6 +3696,22 @@ int clangsharp_Cursor_getNumVBases(CXCursor C) {
     }
 
     return -1;
+}
+
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getObjCRuntimeNameAttrMetadataName(CXCursor C)
+{
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+
+        StringRef message;
+        if (const auto *OCRN = dyn_cast<ObjCRuntimeNameAttr>(A)) {
+            message = OCRN->getMetadataName();
+        }
+
+        return createDup(message);
+    }
+
+    return createEmpty();
 }
 
 CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C) {
