@@ -314,6 +314,99 @@ CX_AttrKind clangsharp_Cursor_getAttrKind(CXCursor C) {
     return CX_AttrKind_Invalid;
 }
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getAvailabilityAttributeDeprecated(CXCursor C, llvm::VersionTuple* version)
+{
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+
+        StringRef message;
+        if (const auto *Availability = dyn_cast<AvailabilityAttr>(A)) {
+            *version = Availability->getDeprecated();
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getAvailabilityAttributeIntroduced(CXCursor C, llvm::VersionTuple* version)
+{
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+
+        StringRef message;
+        if (const auto *Availability = dyn_cast<AvailabilityAttr>(A)) {
+            *version = Availability->getIntroduced();
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getAvailabilityAttributeMessage(CXCursor C)
+{
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+
+        StringRef message;
+        if (const auto *Unavailable = dyn_cast<UnavailableAttr>(A)) {
+            message = Unavailable->getMessage();
+        } else if (const auto *Availability = dyn_cast<AvailabilityAttr>(A)) {
+            message = Availability->getMessage();
+        }
+
+        return createDup(message);
+    }
+
+    return createEmpty();
+}
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getAvailabilityAttributeObsoleted(CXCursor C, llvm::VersionTuple* version)
+{
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+
+        StringRef message;
+        if (const auto *Availability = dyn_cast<AvailabilityAttr>(A)) {
+            *version = Availability->getObsoleted();
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getAvailabilityAttributePlatformIdentifierName(CXCursor C)
+{
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+
+        StringRef message;
+        if (const auto *Availability = dyn_cast<AvailabilityAttr>(A)) {
+            message = Availability->getPlatform()->getName();
+        }
+
+        return createDup(message);
+    }
+
+    return createEmpty();
+}
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getAvailabilityAttributeUnavailable(CXCursor C)
+{
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+
+        StringRef message;
+        if (const auto *Availability = dyn_cast<AvailabilityAttr>(A)) {
+            return Availability->getUnavailable();
+        }
+    }
+
+    return 0;
+}
+
 CXCursor clangsharp_Cursor_getBase(CXCursor C, unsigned i) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);

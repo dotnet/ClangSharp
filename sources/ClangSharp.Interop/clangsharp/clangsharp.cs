@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace ClangSharp.Interop;
 
-public static partial class @clangsharp
+public static unsafe partial class @clangsharp
 {
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getArgument", ExactSpelling = true)]
     public static extern CXCursor Cursor_getArgument(CXCursor C, [NativeTypeName("unsigned int")] uint i);
@@ -32,6 +32,28 @@ public static partial class @clangsharp
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAttrKind", ExactSpelling = true)]
     public static extern CX_AttrKind Cursor_getAttrKind(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAvailabilityAttributeDeprecated", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getAvailabilityAttributeDeprecated(CXCursor param0, [NativeTypeName("llvm::VersionTuple *")] VersionTuple* version);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAvailabilityAttributeIntroduced", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getAvailabilityAttributeIntroduced(CXCursor param0, [NativeTypeName("llvm::VersionTuple *")] VersionTuple* version);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAvailabilityAttributeMessage", ExactSpelling = true)]
+    public static extern CXString Cursor_getAvailabilityAttributeMessage(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAvailabilityAttributeObsoleted", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getAvailabilityAttributeObsoleted(CXCursor param0, [NativeTypeName("llvm::VersionTuple *")] VersionTuple* version);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAvailabilityAttributePlatformIdentifierName", ExactSpelling = true)]
+    public static extern CXString Cursor_getAvailabilityAttributePlatformIdentifierName(CXCursor C);
+
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getAvailabilityAttributeUnavailable", ExactSpelling = true)]
+    [return: NativeTypeName("unsigned int")]
+    public static extern uint Cursor_getAvailabilityAttributeUnavailable(CXCursor param0);
 
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getBase", ExactSpelling = true)]
     public static extern CXCursor Cursor_getBase(CXCursor C, [NativeTypeName("unsigned int")] uint i);

@@ -513,6 +513,51 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXAvailabilityKind Availability => clang.getCursorAvailability(this);
 
+    public readonly VersionTuple? AvailabilityAttributeDeprecated
+    {
+        get
+        {
+            VersionTuple rv = default;
+            if (clangsharp.Cursor_getAvailabilityAttributeDeprecated(this, &rv) == 1)
+            {
+                return rv;
+            }
+            return null;
+        }
+    }
+
+    public readonly VersionTuple? AvailabilityAttributeIntroduced
+    {
+        get
+        {
+            VersionTuple rv = default;
+            if (clangsharp.Cursor_getAvailabilityAttributeIntroduced(this, &rv) == 1)
+            {
+                return rv;
+            }
+            return null;
+        }
+    }
+
+    public readonly CXString AvailabilityAttributeMessage => clangsharp.Cursor_getAvailabilityAttributeMessage(this);
+
+    public readonly VersionTuple? AvailabilityAttributeObsoleted
+    {
+        get
+        {
+            VersionTuple rv = default;
+            if (clangsharp.Cursor_getAvailabilityAttributeObsoleted(this, &rv) == 1)
+            {
+                return rv;
+            }
+            return null;
+        }
+    }
+
+    public readonly CXString AvailabilityAttributePlatformIdentifierName => clangsharp.Cursor_getAvailabilityAttributePlatformIdentifierName(this);
+
+    public bool AvailabilityAttributeUnavailable => clangsharp.Cursor_getAvailabilityAttributeUnavailable(this) != 0;
+
     public readonly CXBinaryOperatorKind BinaryOperatorKind => clangsharp.Cursor_getBinaryOpcode(this);
 
     public readonly CXString BinaryOperatorKindSpelling

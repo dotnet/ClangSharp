@@ -464,6 +464,18 @@ public class Attr : Cursor
         _ => new Attr(handle),
     };
 
+    public VersionTuple? AvailabilityAttributeDeprecated => Handle.AvailabilityAttributeDeprecated;
+
+    public VersionTuple? AvailabilityAttributeIntroduced => Handle.AvailabilityAttributeIntroduced;
+
+    public string AvailabilityAttributeMessage => Handle.AvailabilityAttributeMessage.ToString();
+
+    public VersionTuple? AvailabilityAttributeObsoleted => Handle.AvailabilityAttributeObsoleted;
+
+    public string AvailabilityAttributePlatformIdentifierName => Handle.AvailabilityAttributePlatformIdentifierName.ToString();
+
+    public bool AvailabilityAttributeUnavailable => Handle.AvailabilityAttributeUnavailable;
+
     public bool IsImplicit => Handle.IsImplicit;
 
     public bool IsPackExpansion => Handle.IsPackExpansion;
