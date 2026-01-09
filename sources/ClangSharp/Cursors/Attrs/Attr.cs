@@ -485,4 +485,6 @@ public class Attr : Cursor
     public string KindSpelling => Handle.AttrKindSpelling;
 
     public string PrettyPrint() => Handle.PrettyPrintAttribute().ToString();
+
+    public string ObjCRuntimeNameMetadataName => Handle.ObjCRuntimeNameAttrMetadataName.ToString();
 }

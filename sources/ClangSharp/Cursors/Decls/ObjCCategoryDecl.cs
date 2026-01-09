@@ -26,7 +26,7 @@ public sealed class ObjCCategoryDecl : ObjCContainerDecl
         _nextClassCategory = new ValueLazy<ObjCCategoryDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryDecl>(Handle.GetSubDecl(2)));
         _nextClassCategoryRaw = new ValueLazy<ObjCCategoryDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryDecl>(Handle.GetSubDecl(3)));
         _protocols = LazyList.Create<ObjCProtocolDecl>(Handle.NumProtocols, (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i))));
-        _typeParamList = LazyList.Create<ObjCTypeParamDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetArgument(unchecked((uint)i))));
+        _typeParamList = LazyList.Create<ObjCTypeParamDecl>(Handle.NumTypeParams, (i) => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetTypeParam(unchecked((uint)i))));
     }
 
     public ObjCInterfaceDecl ClassInterface => _classInterface.Value;

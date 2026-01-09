@@ -992,6 +992,18 @@ CXCursor clangsharp_Cursor_getCtor(CXCursor C, unsigned i) {
     return clang_getNullCursor();
 }
 
+unsigned clangsharp_Cursor_getCXXRecord_IsPOD(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const CXXRecordDecl* CRD = dyn_cast<CXXRecordDecl>(D)) {
+            return CRD->isPOD();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getBoolLiteralValue(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
@@ -2020,6 +2032,18 @@ int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C) {
     return 0;
 }
 
+uint64_t clangsharp_Cursor_getUnsignedIntegerLiteralValue(CXCursor C) {
+    if (isStmtOrExpr(C.kind)) {
+        const Stmt* S = getCursorStmt(C);
+
+        if (const IntegerLiteral* IL = dyn_cast<IntegerLiteral>(S)) {
+            return IL->getValue().getZExtValue();
+        }
+    }
+
+    return 0;
+}
+
 unsigned clangsharp_Cursor_getIsAllEnumCasesCovered(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
@@ -2305,6 +2329,10 @@ unsigned clangsharp_Cursor_getIsExternC(CXCursor C) {
 
         if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(D)) {
             return FD->isExternC();
+        }
+
+        if (const VarDecl* VD = dyn_cast<VarDecl>(D)) {
+            return VD->isExternC();
         }
     }
 
@@ -3539,6 +3567,15 @@ int clangsharp_Cursor_getNumProtocols(CXCursor C) {
         if (const ObjCProtocolDecl* OCPD = dyn_cast<ObjCProtocolDecl>(D)) {
             return OCPD->protocol_size();
         }
+
+        if (const ObjCInterfaceDecl* OCID = dyn_cast<ObjCInterfaceDecl>(D)) {
+            unsigned n = 0;
+
+            for (auto protocol : OCID->protocols()) {
+                n++;
+            }
+            return n;
+        }
     }
 
     return -1;
@@ -3719,6 +3756,29 @@ int clangsharp_Cursor_getNumTemplateParameterLists(CXCursor C) {
     return -1;
 }
 
+int clangsharp_Cursor_getNumTypeParams(CXCursor C)
+{
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const ObjCCategoryDecl* OCCD = dyn_cast<ObjCCategoryDecl>(D)) {
+            ObjCTypeParamList* typeParamList = OCCD->getTypeParamList();
+            if (typeParamList)
+                return typeParamList->size();
+            return 0;
+        }
+
+        if (const ObjCInterfaceDecl* OCID = dyn_cast<ObjCInterfaceDecl>(D)) {
+            ObjCTypeParamList* typeParamList = OCID->getTypeParamList();
+            if (typeParamList)
+                return typeParamList->size();
+            return 0;
+        }
+    }
+
+    return 0;
+}
+
 int clangsharp_Cursor_getNumVBases(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);
@@ -3729,6 +3789,22 @@ int clangsharp_Cursor_getNumVBases(CXCursor C) {
     }
 
     return -1;
+}
+
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getObjCRuntimeNameAttrMetadataName(CXCursor C)
+{
+    if (clang_isAttribute(C.kind)) {
+        const Attr* A = getCursorAttr(C);
+
+        StringRef message;
+        if (const auto *OCRN = dyn_cast<ObjCRuntimeNameAttr>(A)) {
+            message = OCRN->getMetadataName();
+        }
+
+        return createDup(message);
+    }
+
+    return createEmpty();
 }
 
 CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C) {
@@ -3851,6 +3927,17 @@ CXCursor clangsharp_Cursor_getProtocol(CXCursor C, unsigned i) {
             unsigned n = 0;
 
             for (auto protocol : OCPD->protocols()) {
+                if (n == i) {
+                    return MakeCXCursor(protocol, getCursorTU(C));
+                }
+                n++;
+            }
+        }
+
+        if (const ObjCInterfaceDecl* OCID = dyn_cast<ObjCInterfaceDecl>(D)) {
+            unsigned n = 0;
+
+            for (auto protocol : OCID->protocols()) {
                 if (n == i) {
                     return MakeCXCursor(protocol, getCursorTU(C));
                 }
@@ -4836,6 +4923,42 @@ CXType clangsharp_Cursor_getTypeOperand(CXCursor C) {
     return MakeCXType(QualType(), getCursorTU(C));
 }
 
+CXCursor clangsharp_Cursor_getTypeParam(CXCursor C, unsigned i) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const ObjCCategoryDecl* OCCD = dyn_cast<ObjCCategoryDecl>(D)) {
+            ObjCTypeParamList* typeParamList = OCCD->getTypeParamList();
+
+            unsigned int n = 0;
+            if (i < typeParamList->size()) {
+                for (auto d : *typeParamList) {
+                    if (n == i) {
+                        return MakeCXCursor(d, getCursorTU(C));
+                    }
+                    n++;
+                }
+            }
+        }
+
+        if (const ObjCInterfaceDecl* OCID = dyn_cast<ObjCInterfaceDecl>(D)) {
+            ObjCTypeParamList* typeParamList = OCID->getTypeParamList();
+
+            unsigned int n = 0;
+            if (i < typeParamList->size()) {
+                for (auto d : *typeParamList) {
+                    if (n == i) {
+                        return MakeCXCursor(d, getCursorTU(C));
+                    }
+                    n++;
+                }
+            }
+        }
+    }
+
+    return clang_getNullCursor();
+}
+
 CX_UnaryExprOrTypeTrait clangsharp_Cursor_getUnaryExprOrTypeTraitKind(CXCursor C) {
     if (isStmtOrExpr(C.kind)) {
         const Stmt* S = getCursorStmt(C);
@@ -5382,6 +5505,13 @@ CXType clangsharp_Type_getInjectedTST(CXType CT) {
     }
 
     return MakeCXType(QualType(), GetTypeTU(CT));
+}
+
+unsigned clangsharp_Type_getIsObjCInstanceType(CXType CT) {
+    QualType T = GetQualType(CT);
+    CXTranslationUnit tu = GetTypeTU(CT);
+    ASTContext& ctx = getASTUnit(tu)->getASTContext();
+    return ctx.getObjCInstanceType() == T;
 }
 
 unsigned clangsharp_Type_getIsSigned(CXType CT) {

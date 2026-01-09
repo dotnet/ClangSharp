@@ -95,6 +95,8 @@ public unsafe class Type : IEquatable<Type>
 
     public bool IsLocalConstQualified => Handle.IsConstQualified;
 
+    public bool IsObjCInstanceType => Handle.IsObjCInstanceType;
+
     public bool IsObjCObjectPointerType => CanonicalType is ObjCObjectPointerType;
 
     public bool IsPointerType => CanonicalType is PointerType;

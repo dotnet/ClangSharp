@@ -47,7 +47,7 @@ public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInt
         _superClass = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(2)));
         _superClassType = new ValueLazy<ObjCObjectType>(() => TranslationUnit.GetOrCreate<ObjCObjectType>(Handle.TypeOperand));
         _typeForDecl = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisType));
-        _typeParamList = LazyList.Create<ObjCTypeParamDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetArgument(unchecked((uint)i))));
+        _typeParamList = LazyList.Create<ObjCTypeParamDecl>(Handle.NumTypeParams, (i) => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetTypeParam(unchecked((uint)i))));
         _visibleCategories = new ValueLazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsUnconditionallyVisible)]);
         _visibleExtensions = new ValueLazy<List<ObjCCategoryDecl>>(() => [.. CategoryList.Where((category) => category.IsClassExtension && category.IsUnconditionallyVisible)]);
     }
