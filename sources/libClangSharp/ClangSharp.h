@@ -333,6 +333,8 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getContextParamPosition(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getCtor(CXCursor C, unsigned i);
 
+CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getCXXRecord_IsPOD(CXCursor C);
+
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getBoolLiteralValue(CXCursor C);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getDeclaredReturnType(CXCursor C);
@@ -452,6 +454,8 @@ CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getInjectedSpecializationType(CXCurs
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getInstantiatedFromMember(CXCursor C);
 
 CLANGSHARP_LINKAGE int64_t clangsharp_Cursor_getIntegerLiteralValue(CXCursor C);
+
+CLANGSHARP_LINKAGE uint64_t clangsharp_Cursor_getUnsignedIntegerLiteralValue(CXCursor C);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getIsAllEnumCasesCovered(CXCursor C);
 
@@ -653,7 +657,11 @@ CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumTemplateParameters(CXCursor C, un
 
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumTemplateParameterLists(CXCursor C);
 
+CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumTypeParams(CXCursor C);
+
 CLANGSHARP_LINKAGE int clangsharp_Cursor_getNumVBases(CXCursor C);
+
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getObjCRuntimeNameAttrMetadataName(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getOpaqueValue(CXCursor C);
 
@@ -738,6 +746,8 @@ CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTrailingRequiresClause(CXCursor
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTypedefNameForAnonDecl(CXCursor C);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getTypeOperand(CXCursor C);
+
+CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getTypeParam(CXCursor C, unsigned i);
 
 CLANGSHARP_LINKAGE CX_UnaryExprOrTypeTrait clangsharp_Cursor_getUnaryExprOrTypeTraitKind(CXCursor C);
 
@@ -834,6 +844,8 @@ CLANGSHARP_LINKAGE int clangsharp_Type_getIndex(CXType CT);
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getInjectedSpecializationType(CXType CT);
 
 CLANGSHARP_LINKAGE CXType clangsharp_Type_getInjectedTST(CXType CT);
+
+CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsObjCInstanceType(CXType CT);
 
 CLANGSHARP_LINKAGE unsigned clangsharp_Type_getIsSigned(CXType CT);
 

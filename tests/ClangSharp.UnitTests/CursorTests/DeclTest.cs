@@ -96,4 +96,92 @@ tuple<int, long> SomeFunction();
         Assert.That(packElements[0].AsType.AsString, Is.EqualTo("int"));
         Assert.That(packElements[1].AsType.AsString, Is.EqualTo("long"));
     }
+
+    [Test]
+    public void IsPodTest()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = $$"""
+struct A {
+    int a;
+};
+struct B {
+    int b;
+private:
+    int p;
+};
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var decls = translationUnit.TranslationUnitDecl.Decls.OfType<CXXRecordDecl>().ToList();
+
+        var structA = decls.SingleOrDefault(d => d.Name == "A")!;
+        Assert.That(structA, Is.Not.Null, "struct A not found");
+        Assert.That(structA.IsPOD, Is.True, "struct A should be POD");
+
+        var structB = decls.SingleOrDefault(d => d.Name == "B")!;
+        Assert.That(structB, Is.Not.Null, "struct B not found");
+        Assert.That(structB.IsPOD, Is.False, "struct B should be not POD");
+    }
+
+    [Test]
+    public void UnsignedValue()
+    {
+        ObjectiveCTest.AssertNeedNewClangSharp();
+
+        var inputContents = $$"""
+enum E {
+    A = 1,
+    B = 4294967295U,
+    C = 4294967296U,
+    D = 18446744073709551615ULL,
+    E = -1,
+    F = -4294967295,
+    G = -4294967296,
+    H = -18446744073709551615LL,
+};
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var decls = translationUnit.TranslationUnitDecl.Decls.OfType<EnumDecl>().ToList();
+
+        var enumE = decls.SingleOrDefault(d => d.Name == "E")!;
+        Assert.That(enumE, Is.Not.Null, "enum E not found");
+
+        var checkField = (string fieldName, long expectedValue, ulong expectedUnsignedValue, bool negative) => {
+            var field = enumE.Enumerators.SingleOrDefault(e => e.Name == fieldName)!;
+            Assert.That(field, Is.Not.Null, $"enum E::{fieldName} not found");
+            var initExpr = field.InitExpr;
+            Assert.That(initExpr, Is.Not.Null, $"enum E::{fieldName} InitExpr is null");
+
+            var isNegativeExpression = false;
+            var castExpr = (ImplicitCastExpr)initExpr!;
+            var subExpr = castExpr.SubExpr;
+            if (subExpr is UnaryOperator unaryOperator)
+            {
+                Assert.That(unaryOperator.Opcode, Is.EqualTo(CXUnaryOperatorKind.CXUnaryOperator_Minus), $"enum E::{fieldName} InitExpr is not a minus UnaryOperator");
+                subExpr = unaryOperator.SubExpr;
+                isNegativeExpression = true;
+            }
+            var literalExpr = subExpr as IntegerLiteral;
+            Assert.That(literalExpr, Is.Not.Null, $"enum E::{fieldName} InitExpr is not IntegerLiteral {castExpr.SubExpr!.GetType().Name}");
+            Assert.That(literalExpr!.Value, Is.EqualTo(expectedValue), $"enum E::{fieldName} value mismatch");
+            Assert.That(literalExpr!.UnsignedValue, Is.EqualTo(expectedUnsignedValue), $"enum E::{fieldName} unsigned value mismatch");
+            Assert.That(negative, Is.EqualTo(isNegativeExpression), $"enum E::{fieldName} negative mismatch");
+        };
+
+        Assert.Multiple(() => {
+            checkField("A", 1, 1, false);
+            checkField("B", -1, 4294967295UL, false);
+            checkField("C", 4294967296, 4294967296UL, false);
+            checkField("D", -1, 18446744073709551615UL, false);
+            checkField("E", 1, 1, true);
+            checkField("F", 4294967295, 4294967295, true);
+            checkField("G", 4294967296, 4294967296, true);
+            checkField("H", -1, 18446744073709551615UL, true);
+        });
+    }
 }

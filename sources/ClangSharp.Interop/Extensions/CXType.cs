@@ -65,6 +65,8 @@ public unsafe partial struct CXType : IEquatable<CXType>
 
     public readonly bool IsFunctionTypeVariadic => clang.isFunctionTypeVariadic(this) != 0;
 
+    public readonly bool IsObjCInstanceType => (kind != CXType_Invalid) && clangsharp.Type_getIsObjCInstanceType(this) != 0;
+
     public readonly bool IsPODType => clang.isPODType(this) != 0;
 
     public readonly bool IsRestrictQualified => clang.isRestrictQualifiedType(this) != 0;
