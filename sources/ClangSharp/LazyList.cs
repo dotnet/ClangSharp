@@ -7,14 +7,14 @@ namespace ClangSharp;
 
 internal static class LazyList
 {
-    public static LazyList<T> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(int count, Func<int, T> valueFactory)
+    public static LazyList<T> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(int count, Func<int, T> valueFactory, Action<T[]>? allValuesFactory = null)
         where T : class
     {
         if (count <= 0)
         {
             return LazyList<T>.Empty;
         }
-        return new LazyList<T>(count, valueFactory);
+        return new LazyList<T>(count, valueFactory, allValuesFactory);
     }
 
     public static LazyList<T, TBase> Create<T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TBase>(LazyList<TBase> list, int skip = -1, int take = -1)

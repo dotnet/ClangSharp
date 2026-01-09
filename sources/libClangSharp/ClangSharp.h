@@ -353,6 +353,8 @@ CLANGSHARP_LINKAGE CXType clangsharp_Cursor_getDeclaredReturnType(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getDecl(CXCursor C, unsigned i);
 
+CLANGSHARP_LINKAGE bool clangsharp_Cursor_getDecls(CXCursor C, CXCursor* decls, unsigned count);
+
 CLANGSHARP_LINKAGE CX_DeclKind clangsharp_Cursor_getDeclKind(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getDecomposedDecl(CXCursor C);

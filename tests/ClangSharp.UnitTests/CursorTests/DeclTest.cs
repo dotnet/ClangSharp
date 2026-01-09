@@ -15,6 +15,8 @@ public sealed class DeclTest : TranslationUnitTest
     [TestCase("public", CX_CXXPublic)]
     public void AccessSpecDeclTest(string accessSpecifier, CX_CXXAccessSpecifier expectedAccessSpecifier)
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $@"struct MyStruct
 {{
 {accessSpecifier}:
@@ -32,6 +34,8 @@ public sealed class DeclTest : TranslationUnitTest
     [Test]
     public void ClassTemplateDeclTest()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $@"template<class T>
 class MyClass
 {{
@@ -51,6 +55,8 @@ class MyClass
     [Test]
     public void ClassTemplatePartialSpecializationDeclTest()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $@"template<class T, class U>
 class MyClass
 {{
@@ -78,6 +84,8 @@ class MyClass<int, U>
     [Test]
     public void TemplateParameterPackTest()
     {
+        AssertNeedNewClangSharp();
+
         var inputContents = $@"template<class... Types>
 class tuple;
 
