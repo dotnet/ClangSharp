@@ -1878,6 +1878,8 @@ public unsafe partial struct CXCursor : IEquatable<CXCursor>
 
     public readonly CXObjCPropertyAttrKind GetObjCPropertyAttributes(uint reserved) => (CXObjCPropertyAttrKind)clang.Cursor_getObjCPropertyAttributes(this, reserved);
 
+    public readonly ObjCPropertyAttributeKind GetPropertyAttributes() => (ObjCPropertyAttributeKind)clangsharp.Cursor_getPropertyAttributes(this);
+
     public readonly CXCursor GetOverloadedDecl(uint index) => clang.getOverloadedDecl(this, index);
 
     public readonly int GetPlatformAvailability(out bool alwaysDeprecated, out CXString deprecatedMessage, out bool alwaysUnavailable, out CXString unavailableMessage, Span<CXPlatformAvailability> availability)
