@@ -35,7 +35,16 @@ public class Decl : Cursor
         _attrs = LazyList.Create<Attr>(Handle.NumAttrs, (i) => TranslationUnit.GetOrCreate<Attr>(Handle.GetAttr(unchecked((uint)i))));
         _body = new ValueLazy<Stmt?>(() => !Handle.Body.IsNull ? TranslationUnit.GetOrCreate<Stmt>(Handle.Body) : null);
         _canonicalDecl = new ValueLazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
-        _decls = LazyList.Create<Decl>(Handle.NumDecls, (i) => TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i))));
+        _decls = LazyList.Create<Decl>(Handle.NumDecls, (i, previousDecl) => {
+            if (previousDecl is null)
+            {
+                return TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i)));
+            }
+            else
+            {
+                return previousDecl.NextDeclInContext;
+            }
+        });
         _describedTemplate = new ValueLazy<TemplateDecl?>(() => {
             var describedTemplate = Handle.DescribedTemplate;
             return describedTemplate.IsNull ? null : TranslationUnit.GetOrCreate<TemplateDecl>(describedTemplate);
