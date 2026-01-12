@@ -812,6 +812,9 @@ public static unsafe partial class @clangsharp
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getProtocol", ExactSpelling = true)]
     public static extern CXCursor Cursor_getProtocol(CXCursor C, [NativeTypeName("unsigned int")] uint i);
 
+    [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getQualifiedName", ExactSpelling = true)]
+    public static extern CXString Cursor_getQualifiedName(CXCursor C);
+
     [DllImport("libClangSharp", CallingConvention = CallingConvention.Cdecl, EntryPoint = "clangsharp_Cursor_getRedeclContext", ExactSpelling = true)]
     public static extern CXCursor Cursor_getRedeclContext(CXCursor C);
 

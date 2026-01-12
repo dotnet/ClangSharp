@@ -3975,6 +3975,18 @@ CXCursor clangsharp_Cursor_getProtocol(CXCursor C, unsigned i) {
     return clang_getNullCursor();
 }
 
+CXString clangsharp_Cursor_getQualifiedName(CXCursor C) {
+    if (isDeclOrTU(C.kind)) {
+        const Decl* D = getCursorDecl(C);
+
+        if (const NamedDecl* ND = dyn_cast<NamedDecl>(D)) {
+            return createDup(ND->getQualifiedNameAsString());
+        }
+    }
+
+    return createEmpty();
+}
+
 CXCursor clangsharp_Cursor_getRedeclContext(CXCursor C) {
     if (isDeclOrTU(C.kind)) {
         const Decl* D = getCursorDecl(C);

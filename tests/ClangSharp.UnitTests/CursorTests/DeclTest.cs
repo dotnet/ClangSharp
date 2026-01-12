@@ -126,6 +126,39 @@ private:
         Assert.That(structB.IsPOD, Is.False, "struct B should be not POD");
     }
 
+
+    [Test]
+    public void QualifiedNameTest()
+    {
+        AssertNeedNewClangSharp();
+
+        var inputContents = """
+class C {
+    void M();
+    int F;
+};
+
+struct S {
+    void M();
+    int F;
+};
+""";
+
+        using var translationUnit = CreateTranslationUnit(inputContents);
+
+        var records = translationUnit.TranslationUnitDecl.Decls.OfType<CXXRecordDecl>().ToArray();
+        var classDecl = records.Single(v => v.Name == "C");
+        var structDecl = records.Single(v => v.Name == "S");
+        var classM = classDecl.Decls.OfType<FunctionDecl>().Single();
+        var structM = structDecl.Decls.OfType<FunctionDecl>().Single();
+
+        Assert.That(classDecl.QualifiedName, Is.EqualTo("C"), "Class");
+        Assert.That(classM.QualifiedName, Is.EqualTo("C::M"), "Class Method");
+
+        Assert.That(structDecl.QualifiedName, Is.EqualTo("S"), "Struct");
+        Assert.That(structM.QualifiedName, Is.EqualTo("S::M"), "Struct Method");
+    }
+
     [Test]
     public void UnsignedValue()
     {

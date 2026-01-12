@@ -695,6 +695,8 @@ CLANGSHARP_LINKAGE unsigned clangsharp_Cursor_getPropertyAttributes(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getProtocol(CXCursor C, unsigned i);
 
+CLANGSHARP_LINKAGE CXString clangsharp_Cursor_getQualifiedName(CXCursor C);
+
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getRedeclContext(CXCursor C);
 
 CLANGSHARP_LINKAGE CXCursor clangsharp_Cursor_getReferenced(CXCursor C);
