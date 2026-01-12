@@ -42,7 +42,9 @@ internal sealed class LazyList<[DynamicallyAccessedMembers(DynamicallyAccessedMe
                 if (_valueFactoryWithPreviousValue is not null)
                 {
                     item = _valueFactoryWithPreviousValue(index, index == 0 ? null : _items[index - 1]);
-                } else {
+                }
+                else
+                {
                     item = _valueFactory!.Invoke(index);
                 }
                 items[index] = item;
