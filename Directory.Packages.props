@@ -13,10 +13,10 @@
   <!-- Package versions for package references across all projects -->
   <ItemGroup>
     <PackageVersion Include="libClang" Version="21.1.8" />
-    <PackageVersion Include="libClangSharp" Version="21.1.8.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="libClangSharp" Version="21.1.8.2" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="NUnit" Version="4.4.0" />
-    <PackageVersion Include="NUnit3TestAdapter" Version="5.1.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
   </ItemGroup>
 
