@@ -14,8 +14,6 @@ public sealed class ObjectiveCTest : TranslationUnitTest
     [Test]
     public void Attribute_ObjCRuntimeName()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $$"""
 __attribute__((objc_runtime_name("MyRenamedClass")))
 @interface MyClass
@@ -50,8 +48,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
     [Test]
     public void Type_IsObjCInstanceType()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $@"
 @interface MyClass
     -(instancetype) instanceMethod;
@@ -78,8 +74,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
     [Test]
     public void Method_Selector()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $@"
 @interface MyClass
     @property int P1;
@@ -115,8 +109,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
     [Test]
     public void Method_Family()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $@"
 @interface NSObject
     -(void) none;
@@ -260,8 +252,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
     [Test]
     public void Category_TypeParamList()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $@"
 @interface MyClass
 @end
@@ -281,8 +271,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
     [Test]
     public void ClassWithProtocols()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $@"
 @protocol P1
 @end
@@ -308,8 +296,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
     [Test]
     public void Method_IsPropertyAccessor()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $@"
 @interface MyClass
     @property int P1;
@@ -345,8 +331,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
     [Test]
     public void TypeParams()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $$"""
 @interface NSObject
 @end
@@ -421,8 +405,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
     [Test]
     public void PointerTypes()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = """
 @interface MyClass
 -(void)instanceMethod:(MyClass **)ptrToPtrToMyClass;
@@ -452,8 +434,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
     [Test]
     public void BlockTypes()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $$"""
 @interface MyClass
 -(MyClass *(^)(id))instanceMethod1;
@@ -495,8 +475,6 @@ __attribute__((objc_runtime_name("MyRenamedProtocol")))
     [Test]
     public void Attribute_AvailabilityAttributes()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $$"""
 __attribute__((availability(ios,unavailable,message="Use another class")))
 __attribute__((availability(tvos,introduced=10.0)))
@@ -615,8 +593,6 @@ __attribute__((availability(maccatalyst,introduced=14.3.0)))
     [Test]
     public void Attribute_PrettyPrint()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $@"
 __attribute__((availability(ios,introduced=10.0)))
 @interface MyClass
@@ -664,8 +640,6 @@ __attribute__((availability(ios,introduced=10.0)))
     [Test]
     public void Property_PropertyAttributes()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $$"""
 @class NSObject;
 

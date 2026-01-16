@@ -5,6 +5,7 @@ using System.Linq;
 using ClangSharp.Interop;
 using NUnit.Framework;
 using static ClangSharp.Interop.CX_CXXAccessSpecifier;
+using static ClangSharp.Interop.CX_StmtClass;
 
 namespace ClangSharp.UnitTests;
 
@@ -100,8 +101,6 @@ tuple<int, long> SomeFunction();
     [Test]
     public void IsPodTest()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = $$"""
 struct A {
     int a;
@@ -130,8 +129,6 @@ private:
     [Test]
     public void QualifiedNameTest()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents = """
 class C {
     void M();
@@ -162,8 +159,6 @@ struct S {
     [Test]
     public void UnsignedValue()
     {
-        ObjectiveCTest.AssertNeedNewClangSharp();
-
         var inputContents = $$"""
 enum E {
     A = 1,
@@ -191,16 +186,25 @@ enum E {
             Assert.That(initExpr, Is.Not.Null, $"enum E::{fieldName} InitExpr is null");
 
             var isNegativeExpression = false;
-            var castExpr = (ImplicitCastExpr)initExpr!;
-            var subExpr = castExpr.SubExpr;
-            if (subExpr is UnaryOperator unaryOperator)
+
+            if (initExpr is not IntegerLiteral literalExpr)
             {
-                Assert.That(unaryOperator.Opcode, Is.EqualTo(CXUnaryOperatorKind.CXUnaryOperator_Minus), $"enum E::{fieldName} InitExpr is not a minus UnaryOperator");
-                subExpr = unaryOperator.SubExpr;
-                isNegativeExpression = true;
+                if (initExpr is not { StmtClass: CX_StmtClass_UnaryOperator } subExpr)
+                {
+                    var castExpr = (ImplicitCastExpr)initExpr!;
+                    subExpr = castExpr.SubExpr;
+                }
+
+                if (subExpr is UnaryOperator unaryOperator)
+                {
+                    Assert.That(unaryOperator.Opcode, Is.EqualTo(CXUnaryOperatorKind.CXUnaryOperator_Minus), $"enum E::{fieldName} InitExpr is not a minus UnaryOperator");
+                    subExpr = unaryOperator.SubExpr;
+                    isNegativeExpression = true;
+                }
+
+                literalExpr = (IntegerLiteral)subExpr;
             }
-            var literalExpr = subExpr as IntegerLiteral;
-            Assert.That(literalExpr, Is.Not.Null, $"enum E::{fieldName} InitExpr is not IntegerLiteral {castExpr.SubExpr!.GetType().Name}");
+            Assert.That(literalExpr, Is.Not.Null, $"enum E::{fieldName} InitExpr is not IntegerLiteral {initExpr?.GetType().Name}");
             Assert.That(literalExpr!.Value, Is.EqualTo(expectedValue), $"enum E::{fieldName} value mismatch");
             Assert.That(literalExpr!.UnsignedValue, Is.EqualTo(expectedUnsignedValue), $"enum E::{fieldName} unsigned value mismatch");
             Assert.That(negative, Is.EqualTo(isNegativeExpression), $"enum E::{fieldName} negative mismatch");

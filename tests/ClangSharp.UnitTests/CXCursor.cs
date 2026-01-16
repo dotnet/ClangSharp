@@ -30,8 +30,6 @@ public class CXCursorTest : TranslationUnitTest
     [Test]
     public void IsExternC()
     {
-        AssertNeedNewClangSharp();
-
         var inputContents =
     $$"""
     extern "C" {

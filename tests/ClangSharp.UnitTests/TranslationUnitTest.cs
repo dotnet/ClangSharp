@@ -63,15 +63,4 @@ public abstract class TranslationUnitTest
 
         return TranslationUnit.GetOrCreate(translationUnit);
     }
-
-    protected static void AssertNeedNewClangSharp()
-    {
-        var forceRun = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FORCE_RUN"));
-
-        if (forceRun)
-        {
-            return;
-        }
-        Assert.Ignore("TODO: this needs a new version of libClangSharp published.");
-    }
 }
