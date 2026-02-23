@@ -412,36 +412,70 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
         {
             AddUsingDirective("System.Runtime.InteropServices");
 
-            WriteIndented("[DllImport(");
-
-            Write('"');
-            Write(desc.LibraryPath);
-            Write('"');
-
-            Write(", ");
-
-            if (desc.CallingConvention != CallConv.Winapi)
+            if (_generator.Config.GenerateLibraryImport)
             {
-                Write("CallingConvention = CallingConvention.");
-                Write(desc.CallingConvention);
+                WriteIndented("[LibraryImport(");
+
+                Write('"');
+                Write(desc.LibraryPath);
+                Write('"');
+
+                if (desc.EntryPoint != desc.EscapedName)
+                {
+                    Write(", EntryPoint = \"");
+                    Write(desc.EntryPoint);
+                    Write('"');
+                }
+
+                if (desc.SetLastError && !_generator.Config.GenerateSetsLastSystemErrorAttribute)
+                {
+                    Write(", SetLastError = true");
+                }
+
+                WriteLine(")]");
+
+                if (desc.CallingConvention != CallConv.Winapi)
+                {
+                    AddUsingDirective("System.Runtime.CompilerServices");
+
+                    WriteIndented("[UnmanagedCallConv(CallConvs = new[] { typeof(CallConv");
+                    Write(desc.CallingConvention);
+                    WriteLine(") })]");
+                }
+            }
+            else
+            {
+                WriteIndented("[DllImport(");
+
+                Write('"');
+                Write(desc.LibraryPath);
+                Write('"');
+
                 Write(", ");
+
+                if (desc.CallingConvention != CallConv.Winapi)
+                {
+                    Write("CallingConvention = CallingConvention.");
+                    Write(desc.CallingConvention);
+                    Write(", ");
+                }
+
+                if (desc.EntryPoint != desc.EscapedName)
+                {
+                    Write("EntryPoint = \"");
+                    Write(desc.EntryPoint);
+                    Write("\", ");
+                }
+
+                Write("ExactSpelling = true");
+
+                if (desc.SetLastError && !_generator.Config.GenerateSetsLastSystemErrorAttribute)
+                {
+                    Write(", SetLastError = true");
+                }
+
+                WriteLine(")]");
             }
-
-            if (desc.EntryPoint != desc.EscapedName)
-            {
-                Write("EntryPoint = \"");
-                Write(desc.EntryPoint);
-                Write("\", ");
-            }
-
-            Write("ExactSpelling = true");
-
-            if (desc.SetLastError && !_generator.Config.GenerateSetsLastSystemErrorAttribute)
-            {
-                Write(", SetLastError = true");
-            }
-
-            WriteLine(")]");
         }
 
         if (desc.Location is {} location)
@@ -505,7 +539,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
 
                 if (desc.IsDllImport)
                 {
-                    Write("extern ");
+                    Write(_generator.Config.GenerateLibraryImport ? "partial " : "extern ");
                 }
             }
         }

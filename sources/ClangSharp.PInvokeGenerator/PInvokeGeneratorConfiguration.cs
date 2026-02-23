@@ -237,6 +237,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool GenerateLatestCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateLatestCode);
 
+    public bool GenerateLibraryImport => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateLibraryImport);
+
     public bool GenerateMacroBindings => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMacroBindings);
 
     public bool GenerateMarkerInterfaces => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
