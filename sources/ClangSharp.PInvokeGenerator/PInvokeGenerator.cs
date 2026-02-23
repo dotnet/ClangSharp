@@ -4793,7 +4793,8 @@ public sealed partial class PInvokeGenerator : IDisposable
 
         bool IsExcludedByConfig(Cursor cursor)
         {
-            return (_config.ExcludeFunctionsWithBody && (cursor is FunctionDecl functionDecl) && functionDecl.HasBody)
+            return (_config.ExcludeFunctions && (cursor is FunctionDecl))
+                || (_config.ExcludeFunctionsWithBody && (cursor is FunctionDecl functionDecl) && functionDecl.HasBody)
                 || (!_config.GenerateTemplateBindings && ((cursor is TemplateDecl) || (cursor is ClassTemplateSpecializationDecl)));
         }
 

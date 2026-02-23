@@ -139,6 +139,7 @@ internal static class Program
         new TwoColumnHelpRow("exclude-empty-records", "Bindings for records that contain no members should not be generated. These are commonly encountered for opaque handle like types such as HWND."),
         new TwoColumnHelpRow("exclude-enum-operators", "Bindings for operators over enum types should not be generated. These are largely unnecessary in C# as the operators are available by default."),
         new TwoColumnHelpRow("exclude-fnptr-codegen", "Generated bindings for latest or preview codegen should not use function pointers."),
+        new TwoColumnHelpRow("exclude-functions", "Bindings for functions and methods should not be generated."),
         new TwoColumnHelpRow("exclude-funcs-with-body", "Bindings for functions with bodies should not be generated."),
         new TwoColumnHelpRow("exclude-using-statics-for-enums", "Enum usages should be fully qualified and should not include a corresponding 'using static EnumName;'"),
 
@@ -425,6 +426,12 @@ internal static class Program
                 case "exclude-fnptr-codegen":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeFnptrCodegen;
+                    break;
+                }
+
+                case "exclude-functions":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.ExcludeFunctions;
                     break;
                 }
 
