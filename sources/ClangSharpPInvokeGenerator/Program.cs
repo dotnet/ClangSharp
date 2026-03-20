@@ -166,6 +166,7 @@ internal static class Program
         new TwoColumnHelpRow("generate-cpp-attributes", "[CppAttributeList(\"\")] should be generated to document the encountered C++ attributes."),
         new TwoColumnHelpRow("generate-disable-runtime-marshalling", "[assembly: DisableRuntimeMarshalling] should be generated."),
         new TwoColumnHelpRow("generate-doc-includes", "<include> xml documentation tags should be generated for declarations."),
+        new TwoColumnHelpRow("generate-doc-comments", "Xml doc comments should be generated from encountered doxygen comments."),
         new TwoColumnHelpRow("generate-file-scoped-namespaces", "Namespaces should be scoped to the file to reduce nesting."),
         new TwoColumnHelpRow("generate-guid-member", "Types with an associated GUID should have a corresponding member generated."),
         new TwoColumnHelpRow("generate-helper-types", "Code files should be generated for various helper attributes and declared transparent structs."),
@@ -538,6 +539,12 @@ internal static class Program
                 case "generate-doc-includes":
                 {
                     configOptions |= PInvokeGeneratorConfigurationOptions.GenerateDocIncludes;
+                    break;
+                }
+
+                case "generate-doc-comments":
+                {
+                    configOptions |= PInvokeGeneratorConfigurationOptions.GenerateDocComments;
                     break;
                 }
 

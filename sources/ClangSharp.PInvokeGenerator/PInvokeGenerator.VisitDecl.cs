@@ -320,6 +320,7 @@ public partial class PInvokeGenerator
             CustomAttrGeneratorData = (enumConstantDecl, this),
         };
 
+        WriteDocCommentXml(enumConstantDecl.Handle.ParsedComment);
         _outputBuilder.BeginValue(in desc);
 
         if (enumConstantDecl.InitExpr != null)
@@ -388,6 +389,7 @@ public partial class PInvokeGenerator
                     CustomAttrGeneratorData = (enumDecl, this),
                 };
 
+                WriteDocCommentXml(enumDecl.Handle.ParsedComment);
                 _outputBuilder.BeginEnum(in desc);
             }
 
@@ -458,6 +460,7 @@ public partial class PInvokeGenerator
             CustomAttrGeneratorData = (fieldDecl, this),
         };
 
+        WriteDocCommentXml(fieldDecl.Handle.ParsedComment);
         _outputBuilder.BeginField(in desc);
 
         if (IsTypeConstantOrIncompleteArray(fieldDecl, type, out var arrayType))
@@ -575,6 +578,8 @@ public partial class PInvokeGenerator
                 nativeTypeName = string.IsNullOrWhiteSpace(nativeTypeName) ? returnTypeName.Replace("byte*", "bool*", StringComparison.Ordinal) : nativeTypeName;
             }
         }
+
+        WriteDocCommentXml(functionDecl.Handle.ParsedComment);
 
         var type = functionDecl.Type;
         var callingConventionName = GetCallingConvention(functionDecl, cxxRecordDecl, type);
@@ -1557,6 +1562,8 @@ public partial class PInvokeGenerator
             };
             Debug.Assert(_outputBuilder is not null);
 
+            WriteDocCommentXml(recordDecl.Handle.ParsedComment);
+
             if (!isTopLevelStruct)
             {
                 _outputBuilder.BeginStruct(in desc);
@@ -2095,6 +2102,7 @@ public partial class PInvokeGenerator
             };
 
             var isUnsafe = true;
+            WriteDocCommentXml(cxxMethodDecl.Handle.ParsedComment);
             _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
 
             _outputBuilder.BeginFunctionInnerPrototype(in desc);
@@ -2256,6 +2264,7 @@ public partial class PInvokeGenerator
             };
 
             var isUnsafe = true;
+            WriteDocCommentXml(cxxMethodDecl.Handle.ParsedComment);
             _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
 
             _outputBuilder.BeginFunctionInnerPrototype(in desc);
@@ -2773,7 +2782,7 @@ public partial class PInvokeGenerator
 
             // Signed types are sign extended when shifted
             var isUnsignedToSigned = !isTypeBackingSigned && isTypeSigned;
-            
+
             // Check if type is directly shiftable/maskable
             // Remapped types are not guaranteed to be shiftable or maskable
             // Enums are maskable, but not shiftable
@@ -3386,6 +3395,7 @@ public partial class PInvokeGenerator
                 };
 
                 var isUnsafe = desc.IsUnsafe;
+                WriteDocCommentXml(typedefDecl.Handle.ParsedComment);
                 _outputBuilder.BeginFunctionOrDelegate(in desc, ref isUnsafe);
 
                 _outputBuilder.BeginFunctionInnerPrototype(in desc);
@@ -3680,6 +3690,7 @@ public partial class PInvokeGenerator
 
             Debug.Assert(_outputBuilder is not null);
 
+            WriteDocCommentXml(varDecl.Handle.ParsedComment);
             _outputBuilder.BeginValue(in desc);
 
             var currentContext = _context.Last;
