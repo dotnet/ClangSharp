@@ -271,6 +271,8 @@ public sealed class PInvokeGeneratorConfiguration
 
     public bool DontUseUsingStaticsForGuidMember => _options.HasFlag(PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForGuidMember);
 
+    public bool GenerateDocComments => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateDocComments);
+
     public string HeaderText => _headerText;
 
     [AllowNull]
