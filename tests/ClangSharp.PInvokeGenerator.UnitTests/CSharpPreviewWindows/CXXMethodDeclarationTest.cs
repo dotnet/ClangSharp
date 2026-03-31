@@ -229,7 +229,7 @@ namespace ClangSharp.Test
             return lpVtbl->GetType2((MyStruct*)Unsafe.AsPointer(ref this), obj);
         }}
 
-        public interface Interface
+        public partial interface Interface
         {{
             int GetType(int objA, int objB);
 

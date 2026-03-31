@@ -826,7 +826,7 @@ internal partial class CSharpOutputBuilder : IOutputBuilder
 
     public void BeginMarkerInterface(string[]? baseTypeNames)
     {
-        WriteIndented("public interface Interface");
+        WriteIndented("public partial interface Interface");
 
         if (baseTypeNames is not null)
         {
