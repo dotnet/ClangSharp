@@ -1002,4 +1002,42 @@ typedef struct Bitfield {
                 { "Flags", "Flags" }
             });
     }
+
+    [Test]
+    public Task LongDefinesTest()
+    {
+        var inputContents = @"
+// stdint.h
+#define SIZE_MAX (18446744073709551615UL)
+
+// cl_ext.h from OpenCL
+#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX
+
+// limits.h
+#define LONG_MAX  __LONG_MAX__
+#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)
+";
+
+        // TODO: This is the current output on Linux, not the expected
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""#define SIZE_MAX (18446744073709551615UL)"")]
+        public const uint SIZE_MAX = (18446744073709551615U);
+
+        [NativeTypeName(""#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX"")]
+        public const uint CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = (18446744073709551615U);
+
+        [NativeTypeName(""#define LONG_MAX __LONG_MAX__"")]
+        public const int LONG_MAX = unchecked(9223372036854775807);
+
+        [NativeTypeName(""#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)"")]
+        public const uint ULONG_MAX = (9223372036854775807 * 2U + 1U);
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
 }
