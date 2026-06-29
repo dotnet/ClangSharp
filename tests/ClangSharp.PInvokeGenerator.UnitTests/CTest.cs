@@ -1008,7 +1008,7 @@ typedef struct Bitfield {
     public Task CLongDefinesTestUnix()
     {
         // C longs differ based on platform
-        // These values are taken from the Linux headers
+        // These values are taken from the Linux headers when using Clang
         var inputContents = @"
 // stdint.h
 #define SIZE_MAX (18446744073709551615UL)
@@ -1049,7 +1049,7 @@ typedef struct Bitfield {
     public Task CLongDefinesTestWindows()
     {
         // C longs differ based on platform
-        // These values are taken from the Windows headers
+        // These values are taken from the Windows headers when using MSVC
         var inputContents = @"
 // limits.h
 #define SIZE_MAX 0xffffffffffffffffui64
