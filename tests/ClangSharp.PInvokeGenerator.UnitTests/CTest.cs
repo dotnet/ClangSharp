@@ -1004,7 +1004,7 @@ typedef struct Bitfield {
     }
 
     [Test]
-    [Platform("unix")] // This test has slight platform-specific differences
+    [Platform("unix")] // This test has slight platform-specific differences (on Windows, __LONG_MAX__ is 32-bit)
     public Task CLongDefinesTestUnix()
     {
         // C longs differ based on platform
@@ -1049,34 +1049,34 @@ typedef struct Bitfield {
     public Task CLongDefinesTestWindows()
     {
         // C longs differ based on platform
-        // These values are taken from the Linux headers
+        // These values are taken from the Windows headers
         var inputContents = @"
-// stdint.h
-#define SIZE_MAX (18446744073709551615UL)
+// limits.h
+#define SIZE_MAX 0xffffffffffffffffui64
 
 // cl_ext.h from OpenCL
 #define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX
 
 // limits.h
-#define LONG_MAX  __LONG_MAX__
-#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)
+#define LONG_MAX 2147483647L
+#define ULONG_MAX 0xffffffffUL
 ";
 
         var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static partial class Methods
     {
-        [NativeTypeName(""#define SIZE_MAX (18446744073709551615UL)"")]
-        public const ulong SIZE_MAX = (18446744073709551615U);
+        [NativeTypeName(""#define SIZE_MAX 0xffffffffffffffffui64"")]
+        public const ulong SIZE_MAX = 0xffffffffffffffffUL;
 
         [NativeTypeName(""#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX"")]
-        public const ulong CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = (18446744073709551615U);
+        public const ulong CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = 0xffffffffffffffffUL;
 
-        [NativeTypeName(""#define LONG_MAX __LONG_MAX__"")]
-        public const long LONG_MAX = unchecked(9223372036854775807);
+        [NativeTypeName(""#define LONG_MAX 2147483647L"")]
+        public const int LONG_MAX = 2147483647;
 
-        [NativeTypeName(""#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)"")]
-        public const ulong ULONG_MAX = unchecked((ulong)(9223372036854775807 * 2U + 1U));
+        [NativeTypeName(""#define ULONG_MAX 0xffffffffUL"")]
+        public const uint ULONG_MAX = 0xffffffffU;
     }
 }
 ";
