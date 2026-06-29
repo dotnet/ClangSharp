@@ -1008,7 +1008,48 @@ typedef struct Bitfield {
     public Task CLongDefinesTestUnix()
     {
         // C longs differ based on platform
-        // This test was added due to some missing type casts
+        // These values are taken from the Linux headers
+        var inputContents = @"
+// stdint.h
+#define SIZE_MAX (18446744073709551615UL)
+
+// cl_ext.h from OpenCL
+#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX
+
+// limits.h
+#define LONG_MAX  __LONG_MAX__
+#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)
+";
+
+        // We use "static readonly" instead of "const" because nint/nuint differ on 32/64-bit platforms
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""#define SIZE_MAX (18446744073709551615UL)"")]
+        public static readonly nuint SIZE_MAX = (nuint)(18446744073709551615U);
+
+        [NativeTypeName(""#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX"")]
+        public static readonly nuint CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = (nuint)(18446744073709551615U);
+
+        [NativeTypeName(""#define LONG_MAX __LONG_MAX__"")]
+        public static readonly nint LONG_MAX = (nint)(9223372036854775807);
+
+        [NativeTypeName(""#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)"")]
+        public static readonly nuint ULONG_MAX = unchecked((nuint)(9223372036854775807 * 2U + 1U));
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("win")] // This test has slight platform-specific differences
+    public Task CLongDefinesTestWindows()
+    {
+        // C longs differ based on platform
+        // These values are taken from the Linux headers
         var inputContents = @"
 // stdint.h
 #define SIZE_MAX (18446744073709551615UL)
@@ -1026,20 +1067,20 @@ typedef struct Bitfield {
     public static partial class Methods
     {
         [NativeTypeName(""#define SIZE_MAX (18446744073709551615UL)"")]
-        public const nuint SIZE_MAX = (18446744073709551615U);
+        public const ulong SIZE_MAX = (18446744073709551615U);
 
         [NativeTypeName(""#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX"")]
-        public const nuint CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = (18446744073709551615U);
+        public const ulong CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = (18446744073709551615U);
 
         [NativeTypeName(""#define LONG_MAX __LONG_MAX__"")]
-        public const nint LONG_MAX = unchecked(9223372036854775807);
+        public const long LONG_MAX = unchecked(9223372036854775807);
 
         [NativeTypeName(""#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)"")]
-        public const nuint ULONG_MAX = unchecked((ulong)(unchecked(9223372036854775807 * 2U) + 1U));
+        public const ulong ULONG_MAX = unchecked((ulong)(9223372036854775807 * 2U + 1U));
     }
 }
 ";
 
-        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 }
