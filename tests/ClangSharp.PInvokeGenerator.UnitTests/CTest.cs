@@ -1004,8 +1004,11 @@ typedef struct Bitfield {
     }
 
     [Test]
-    public Task LongDefinesTest()
+    [Platform("unix")] // This test has slight platform-specific differences
+    public Task CLongDefinesTestUnix()
     {
+        // C longs differ based on platform
+        // This test was added due to some missing type casts
         var inputContents = @"
 // stdint.h
 #define SIZE_MAX (18446744073709551615UL)
@@ -1023,20 +1026,20 @@ typedef struct Bitfield {
     public static partial class Methods
     {
         [NativeTypeName(""#define SIZE_MAX (18446744073709551615UL)"")]
-        public const ulong SIZE_MAX = (18446744073709551615U);
+        public const nuint SIZE_MAX = (18446744073709551615U);
 
         [NativeTypeName(""#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX"")]
-        public const ulong CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = (18446744073709551615U);
+        public const nuint CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = (18446744073709551615U);
 
         [NativeTypeName(""#define LONG_MAX __LONG_MAX__"")]
-        public const long LONG_MAX = unchecked(9223372036854775807);
+        public const nint LONG_MAX = unchecked(9223372036854775807);
 
         [NativeTypeName(""#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)"")]
-        public const ulong ULONG_MAX = unchecked((ulong)(unchecked(9223372036854775807 * 2U) + 1U));
+        public const nuint ULONG_MAX = unchecked((ulong)(unchecked(9223372036854775807 * 2U) + 1U));
     }
 }
 ";
 
-        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
 }
