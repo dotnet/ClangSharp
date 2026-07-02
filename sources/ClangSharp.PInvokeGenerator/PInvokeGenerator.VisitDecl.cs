@@ -2587,7 +2587,7 @@ public partial class PInvokeGenerator
 
                 case CXType_ULongLong:
                 {
-                    if (typeNameBacking.Equals("nuint", StringComparison.Ordinal))
+                    if (typeNameBacking.Equals("nuint", StringComparison.Ordinal)) // TODO: Shouldn't this also check UIntPtr?
                     {
                         goto case CXType_UInt;
                     }
@@ -2620,7 +2620,7 @@ public partial class PInvokeGenerator
                 {
                     isTypeBackingSigned = true;
 
-                    if (typeNameBacking.Equals("nint", StringComparison.Ordinal))
+                    if (typeNameBacking.Equals("nint", StringComparison.Ordinal)) // TODO: Shouldn't this also check IntPtr?
                     {
                         goto case CXType_Int;
                     }
@@ -2686,7 +2686,7 @@ public partial class PInvokeGenerator
 
                 case CXType_ULongLong:
                 {
-                    if (typeNameBacking.Equals("nuint", StringComparison.Ordinal))
+                    if (typeNameBacking.Equals("nuint", StringComparison.Ordinal)) // TODO: Shouldn't this also check UIntPtr?
                     {
                         goto case CXType_UInt;
                     }
@@ -2719,7 +2719,7 @@ public partial class PInvokeGenerator
                 {
                     isTypeSigned = true;
 
-                    if (typeNameBacking.Equals("nint", StringComparison.Ordinal))
+                    if (typeNameBacking.Equals("nint", StringComparison.Ordinal)) // TODO: Shouldn't this also check IntPtr?
                     {
                         goto case CXType_Int;
                     }
@@ -2773,7 +2773,7 @@ public partial class PInvokeGenerator
 
             // Signed types are sign extended when shifted
             var isUnsignedToSigned = !isTypeBackingSigned && isTypeSigned;
-            
+
             // Check if type is directly shiftable/maskable
             // Remapped types are not guaranteed to be shiftable or maskable
             // Enums are maskable, but not shiftable
@@ -3981,7 +3981,25 @@ public partial class PInvokeGenerator
 
             case CX_StmtClass_IntegerLiteral:
             {
-                return true;
+                var notConstant = false;
+
+                // TODO: This is incorrect because C#'s compiler only checks for the range when casting from a const expr ulong/long to a nuint/nint.
+                // TODO: The ulong/long literal itself is otherwise constant. Eg: const nuint N = (nuint)(4294967296 - 10) compiles just fine.
+                // TODO: This means we need to track the value of the const expr, which might require a decent amount of work and restructuring
+                // Constants for native integers must be in range: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/native-integers.md
+
+                // TODO: This condition is stricter than it should be.
+                // TODO: Apparently unchecked operations involving a source expression of any 32-bit value is fine. See constant folding in the native-integers proposal.
+                // TODO: Eg: nuint = unchecked(4294967295 + 10) is fine. Eg: nint = unchecked((nint)4294967295) is also fine.
+                // TODO: This causes existing tests to fail. Eg: ClangSharp.UnitTests.VarDeclarationTest.UncheckedConversionMacroTest. "const nint MyMacro1 = unchecked((nint)(0x80000000))" incorrectly becomes "static readonly nint MyMacro1 = unchecked((nint)(0x80000000))"
+                // notConstant |= targetTypeName is "nuint" or "UIntPtr" && initExpr is IntegerLiteral { Value: < 0 or > uint.MaxValue };
+                // notConstant |= targetTypeName is "nint" or "IntPtr" && initExpr is IntegerLiteral { Value: < int.MinValue or > int.MaxValue };
+
+                // TODO: This condition is looser than it should be, but avoids causing existing tests to fail. This might be the best we can do without proper expression value evaluation.
+                notConstant |= targetTypeName is "nuint" or "UIntPtr" && initExpr is IntegerLiteral { Value: < 0 or > uint.MaxValue };
+                notConstant |= targetTypeName is "nint" or "IntPtr" && initExpr is IntegerLiteral { Value: < int.MinValue or > uint.MaxValue };
+
+                return !notConstant;
             }
 
             case CX_StmtClass_LambdaExpr:
