@@ -1027,13 +1027,13 @@ typedef struct Bitfield {
     public static partial class Methods
     {
         [NativeTypeName(""#define SIZE_MAX (18446744073709551615UL)"")]
-        public static readonly nuint SIZE_MAX = (nuint)(18446744073709551615U);
+        public static readonly nuint SIZE_MAX = unchecked((nuint)(18446744073709551615U));
 
         [NativeTypeName(""#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX"")]
-        public static readonly nuint CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = (nuint)(18446744073709551615U);
+        public static readonly nuint CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = unchecked((nuint)(18446744073709551615U));
 
         [NativeTypeName(""#define LONG_MAX __LONG_MAX__"")]
-        public static readonly nint LONG_MAX = (nint)(9223372036854775807);
+        public static readonly nint LONG_MAX = unchecked((nint)(9223372036854775807));
 
         [NativeTypeName(""#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)"")]
         public static readonly nuint ULONG_MAX = unchecked((nuint)(9223372036854775807 * 2U + 1U));
