@@ -5847,6 +5847,13 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 var integerLiteral = (IntegerLiteral)stmt;
                 var signedValue = integerLiteral.Value;
+
+                if ((targetTypeName is "nuint" or "UIntPtr" && integerLiteral is { UnsignedValue: > uint.MaxValue })
+                    || (targetTypeName is "nint" or "IntPtr" && integerLiteral is { Value: < int.MinValue or > int.MaxValue }))
+                {
+                    return true;
+                }
+
                 return IsUnchecked(targetTypeName, signedValue, integerLiteral.IsNegative, isHex: integerLiteral.ValueString.StartsWith("0x", StringComparison.Ordinal));
             }
 
@@ -6778,6 +6785,13 @@ public sealed partial class PInvokeGenerator : IDisposable
                         break;
                     }
                 }
+            }
+
+            if (IsPrevContextDecl<VarDecl>(out _, out _)
+                && ((targetTypeName is "nuint" or "UIntPtr" && stmt.Handle.Evaluate.AsUnsigned > uint.MaxValue)
+                    || (targetTypeName is "nint" or "IntPtr" && stmt.Handle.Evaluate.AsLongLong is < int.MinValue or > uint.MaxValue)))
+            {
+                needsCast = true;
             }
 
             if (needsCast)

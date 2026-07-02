@@ -3994,11 +3994,11 @@ public partial class PInvokeGenerator
 
                 // TODO: This condition leads to more change in output than ideal due to the behavior described above.
                 // TODO: This causes existing tests to fail. Eg: ClangSharp.UnitTests.VarDeclarationTest.UncheckedConversionMacroTest. "const nint MyMacro1 = unchecked((nint)(0x80000000))" incorrectly becomes "static readonly nint MyMacro1 = unchecked((nint)(0x80000000))"
-                // notConstant |= targetTypeName is "nuint" or "UIntPtr" && initExpr is IntegerLiteral { Value: < 0 or > uint.MaxValue };
+                // notConstant |= targetTypeName is "nuint" or "UIntPtr" && initExpr is IntegerLiteral { UnsignedValue: > uint.MaxValue };
                 // notConstant |= targetTypeName is "nint" or "IntPtr" && initExpr is IntegerLiteral { Value: < int.MinValue or > int.MaxValue };
 
                 // TODO: This condition leads to less change in output than ideal, but avoids incorrectly failing existing tests. This might be the best we can do without proper expression value evaluation.
-                notConstant |= targetTypeName is "nuint" or "UIntPtr" && initExpr is IntegerLiteral { Value: < 0 or > uint.MaxValue };
+                notConstant |= targetTypeName is "nuint" or "UIntPtr" && initExpr is IntegerLiteral { UnsignedValue: > uint.MaxValue };
                 notConstant |= targetTypeName is "nint" or "IntPtr" && initExpr is IntegerLiteral { Value: < int.MinValue or > uint.MaxValue }; // Note the uint.MaxValue here
 
                 return !notConstant;
