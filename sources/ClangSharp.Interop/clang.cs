@@ -30,16 +30,10 @@ public static unsafe partial class @clang
             return nativeLibrary;
         }
 
-        // The default resolver with SafeDirectories should search the assembly's directory,
-        // but this doesn't always work for dotnet tools (especially AOT-compiled executables
-        // run from the NuGet cache). Explicitly try the assembly's own directory as a fallback.
-        var assemblyDir = Path.GetDirectoryName(assembly.Location);
-        if (assemblyDir is not null)
+        // When invoked as a dotnet tool (ClangSharpPInvokeGenerator) on Unix, assemblies next to the executable aren't searched by default.
+        if (NativeLibrary.TryLoad(Path.Combine(AppContext.BaseDirectory, libraryName), out nativeLibrary))
         {
-            if (NativeLibrary.TryLoad(Path.Combine(assemblyDir, libraryName), out nativeLibrary))
-            {
-                return nativeLibrary;
-            }
+            return nativeLibrary;
         }
 
         return IntPtr.Zero;
