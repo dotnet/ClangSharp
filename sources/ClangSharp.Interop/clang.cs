@@ -29,24 +29,7 @@ public static unsafe partial class @clang
             return nativeLibrary;
         }
 
-        if (libraryName.Equals("libclang", StringComparison.Ordinal) && TryResolveClang(assembly, searchPath, out nativeLibrary))
-        {
-            return nativeLibrary;
-        }
-
         return IntPtr.Zero;
-    }
-
-    private static bool TryResolveClang(Assembly assembly, DllImportSearchPath? searchPath, out IntPtr nativeLibrary)
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            return NativeLibrary.TryLoad("libclang.so", assembly, searchPath, out nativeLibrary)
-                || NativeLibrary.TryLoad("libclang.so.1", assembly, searchPath, out nativeLibrary);
-        }
-
-        nativeLibrary = IntPtr.Zero;
-        return false;
     }
 
     private static bool TryResolveLibrary(string libraryName, Assembly assembly, DllImportSearchPath? searchPath, out IntPtr nativeLibrary)
