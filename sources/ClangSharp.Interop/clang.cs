@@ -30,10 +30,22 @@ public static unsafe partial class @clang
             return nativeLibrary;
         }
 
-        // When invoked as a dotnet tool (ClangSharpPInvokeGenerator) on Unix, assemblies next to the executable aren't searched by default.
-        if (NativeLibrary.TryLoad(Path.Combine(AppContext.BaseDirectory, libraryName), out nativeLibrary))
+        // When invoked as a dotnet tool (ClangSharpPInvokeGenerator), native libraries
+        // are co-located with the executable in the NuGet cache but aren't always found
+        // by the default resolver. Explicitly try the application base directory.
+        var baseDir = AppContext.BaseDirectory;
+        if (baseDir is not null)
         {
-            return nativeLibrary;
+            // NativeLibrary.TryLoad with an absolute path does not apply platform-specific
+            // name mangling (lib prefix, .so/.dylib/.dll suffix), so we add it explicitly.
+            var suffix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".dll"
+                       : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ".dylib"
+                       : ".so";
+
+            if (NativeLibrary.TryLoad(Path.Combine(baseDir, libraryName + suffix), out nativeLibrary))
+            {
+                return nativeLibrary;
+            }
         }
 
         return IntPtr.Zero;
