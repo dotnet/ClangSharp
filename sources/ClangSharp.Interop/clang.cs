@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -27,6 +28,18 @@ public static unsafe partial class @clang
         if (TryResolveLibrary(libraryName, assembly, searchPath, out var nativeLibrary))
         {
             return nativeLibrary;
+        }
+
+        // The default resolver with SafeDirectories should search the assembly's directory,
+        // but this doesn't always work for dotnet tools (especially AOT-compiled executables
+        // run from the NuGet cache). Explicitly try the assembly's own directory as a fallback.
+        var assemblyDir = Path.GetDirectoryName(assembly.Location);
+        if (assemblyDir is not null)
+        {
+            if (NativeLibrary.TryLoad(Path.Combine(assemblyDir, libraryName), out nativeLibrary))
+            {
+                return nativeLibrary;
+            }
         }
 
         return IntPtr.Zero;
