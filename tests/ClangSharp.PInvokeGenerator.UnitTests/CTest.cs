@@ -1083,4 +1083,51 @@ typedef struct Bitfield {
 
         return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
     }
+
+    [Test]
+    public Task IntptrDefineTest()
+    {
+        string inputContents;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // These values are taken from the Windows headers when using MSVC
+            inputContents = @"
+// vcruntime.h
+typedef __int64 intptr_t;
+
+// cl_ext.h from OpenCL
+#define CL_ICD2_TAG_KHR ((intptr_t)0x4F50454E434C3331)
+";
+        }
+        else
+        {
+            // These values are taken from the Linux headers when using Clang
+            inputContents = @"
+// stdint.h
+typedef long int intptr_t;
+
+// cl_ext.h from OpenCL
+#define CL_ICD2_TAG_KHR ((intptr_t)0x4F50454E434C3331)
+";
+        }
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""#define CL_ICD2_TAG_KHR ((intptr_t)0x4F50454E434C3331)"")]
+        public static readonly nint CL_ICD2_TAG_KHR = unchecked((nint)((nint)(0x4F50454E434C3331)));
+    }
+}
+";
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        }
+        else
+        {
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        }
+    }
 }
