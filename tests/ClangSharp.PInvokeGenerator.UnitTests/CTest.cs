@@ -1004,7 +1004,7 @@ typedef struct Bitfield {
     }
 
     [Test]
-    [Platform("unix")] // This test has slight platform-specific differences (on Windows, __LONG_MAX__ is 32-bit)
+    [Platform("unix")] // This test has platform-specific differences (on Windows, __LONG_MAX__ is 32-bit)
     public Task CLongDefinesTestUnix()
     {
         // C longs differ based on platform
@@ -1019,6 +1019,15 @@ typedef struct Bitfield {
 // limits.h
 #define LONG_MAX  __LONG_MAX__
 #define ULONG_MAX (__LONG_MAX__ *2UL+1UL)
+
+// These expressions never exceed the allowed range, so should remain const
+#define CONST_IN_RANGE_S1 ((long)2147483647)
+#define CONST_IN_RANGE_U1 ((unsigned long)4294967295)
+
+// These expressions exceed the allowed range, so should become static readonly
+#define READONLY_OUT_OF_RANGE_S1 ((long)4294967295)
+#define READONLY_OUT_OF_RANGE_S2 ((long)4294967296)
+#define READONLY_OUT_OF_RANGE_U1 ((unsigned long)4294967296)
 ";
 
         // We use "static readonly" instead of "const" because nint/nuint differ on 32/64-bit platforms
@@ -1037,6 +1046,21 @@ typedef struct Bitfield {
 
         [NativeTypeName(""#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)"")]
         public static readonly nuint ULONG_MAX = unchecked((nuint)(9223372036854775807 * 2U + 1U));
+
+        [NativeTypeName(""#define CONST_IN_RANGE_S1 ((long)2147483647)"")]
+        public const nint CONST_IN_RANGE_S1 = ((nint)(2147483647));
+
+        [NativeTypeName(""#define CONST_IN_RANGE_U1 ((unsigned long)4294967295)"")]
+        public const nuint CONST_IN_RANGE_U1 = ((nuint)(4294967295));
+
+        [NativeTypeName(""#define READONLY_OUT_OF_RANGE_S1 ((long)4294967295)"")]
+        public static readonly nint READONLY_OUT_OF_RANGE_S1 = unchecked((nint)(4294967295));
+
+        [NativeTypeName(""#define READONLY_OUT_OF_RANGE_S2 ((long)4294967296)"")]
+        public static readonly nint READONLY_OUT_OF_RANGE_S2 = unchecked((nint)((nint)(4294967296)));
+
+        [NativeTypeName(""#define READONLY_OUT_OF_RANGE_U1 ((unsigned long)4294967296)"")]
+        public static readonly nuint READONLY_OUT_OF_RANGE_U1 = unchecked((nuint)((nuint)(4294967296)));
     }
 }
 ";
@@ -1045,7 +1069,7 @@ typedef struct Bitfield {
     }
 
     [Test]
-    [Platform("win")] // This test has slight platform-specific differences
+    [Platform("win")] // This test has platform-specific differences
     public Task CLongDefinesTestWindows()
     {
         // C longs differ based on platform
