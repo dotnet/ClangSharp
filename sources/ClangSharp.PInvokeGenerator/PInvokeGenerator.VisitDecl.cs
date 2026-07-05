@@ -3761,6 +3761,14 @@ public partial class PInvokeGenerator
 
     private bool IsConstant(string targetTypeName, Expr initExpr)
     {
+        // Constant expressions for native integers must be in range of the corresponding 32-bit integer type
+        // Also see: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/native-integers.md
+        if ((targetTypeName is "nuint" or "UIntPtr" && initExpr.Handle.Evaluate is { Kind: CXEval_Int, AsUnsigned: > uint.MaxValue })
+             || (targetTypeName is "nint" or "IntPtr" && initExpr.Handle.Evaluate is { Kind: CXEval_Int, AsLongLong: < int.MinValue or > int.MaxValue }))
+        {
+            return false;
+        }
+
         if (IsTypePointerOrReference(initExpr) && !targetTypeName.Equals("string", StringComparison.Ordinal))
         {
             return false;
@@ -3981,27 +3989,7 @@ public partial class PInvokeGenerator
 
             case CX_StmtClass_IntegerLiteral:
             {
-                var notConstant = false;
-
-                // Constant expressions for native integers must be in range: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/native-integers.md
-
-                // TODO: C#'s compiler only checks for the range when outputting as a nuint/nint. See constant folding in the native-integers proposal.
-                // These compile fine as const fields:
-                // Eg: nuint = (nuint)(4294967296 - 10) // The integer literal itself is constant
-                // Eg: nuint = unchecked(4294967295 + 10)
-                // Eg: nint = unchecked((nint)4294967295)
-                // TODO: This means for proper analysis we need to evaluate the value of the expression, which seems out of scope
-
-                // TODO: This condition leads to more change in output than ideal due to the behavior described above.
-                // TODO: This causes existing tests to fail. Eg: ClangSharp.UnitTests.VarDeclarationTest.UncheckedConversionMacroTest. "const nint MyMacro1 = unchecked((nint)(0x80000000))" incorrectly becomes "static readonly nint MyMacro1 = unchecked((nint)(0x80000000))"
-                // notConstant |= targetTypeName is "nuint" or "UIntPtr" && initExpr is IntegerLiteral { UnsignedValue: > uint.MaxValue };
-                // notConstant |= targetTypeName is "nint" or "IntPtr" && initExpr is IntegerLiteral { Value: < int.MinValue or > int.MaxValue };
-
-                // TODO: This condition leads to less change in output than ideal, but avoids incorrectly failing existing tests. This might be the best we can do without proper expression value evaluation.
-                notConstant |= targetTypeName is "nuint" or "UIntPtr" && initExpr is IntegerLiteral { UnsignedValue: > uint.MaxValue };
-                notConstant |= targetTypeName is "nint" or "IntPtr" && initExpr is IntegerLiteral { Value: < int.MinValue or > uint.MaxValue }; // Note the uint.MaxValue here
-
-                return !notConstant;
+                return true;
             }
 
             case CX_StmtClass_LambdaExpr:

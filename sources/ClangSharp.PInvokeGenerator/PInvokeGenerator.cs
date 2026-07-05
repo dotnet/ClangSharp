@@ -5848,6 +5848,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 var integerLiteral = (IntegerLiteral)stmt;
                 var signedValue = integerLiteral.Value;
 
+                // Casts to native integers may overflow if out of range of corresponding 32-bit integer type
                 if ((targetTypeName is "nuint" or "UIntPtr" && integerLiteral is { UnsignedValue: > uint.MaxValue })
                     || (targetTypeName is "nint" or "IntPtr" && integerLiteral is { Value: < int.MinValue or > int.MaxValue }))
                 {
@@ -6787,9 +6788,10 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
 
+            // Need to cast to output type if out of range of corresponding 32-bit integer type
             if (IsPrevContextDecl<VarDecl>(out _, out _)
                 && ((targetTypeName is "nuint" or "UIntPtr" && stmt.Handle.Evaluate.AsUnsigned > uint.MaxValue)
-                    || (targetTypeName is "nint" or "IntPtr" && stmt.Handle.Evaluate.AsLongLong is < int.MinValue or > uint.MaxValue)))
+                    || (targetTypeName is "nint" or "IntPtr" && stmt.Handle.Evaluate.AsLongLong is < int.MinValue or > int.MaxValue)))
             {
                 needsCast = true;
             }
