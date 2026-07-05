@@ -6788,7 +6788,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
 
-            // Need to cast to output type if out of range of corresponding 32-bit integer type
+            // Cast to output type if out of range of corresponding 32-bit integer type
             if (IsPrevContextDecl<VarDecl>(out _, out _) && !IsStmtAsWritten<CastExpr>(stmt, out _, removeParens: true)
                 && ((targetTypeName is "nuint" or "UIntPtr" && stmt.Handle.Evaluate.AsUnsigned > uint.MaxValue)
                     || (targetTypeName is "nint" or "IntPtr" && stmt.Handle.Evaluate.AsLongLong is < int.MinValue or > int.MaxValue)))
