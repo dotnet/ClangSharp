@@ -1057,10 +1057,10 @@ typedef struct Bitfield {
         public static readonly nint READONLY_OUT_OF_RANGE_S1 = unchecked((nint)(4294967295));
 
         [NativeTypeName(""#define READONLY_OUT_OF_RANGE_S2 ((long)4294967296)"")]
-        public static readonly nint READONLY_OUT_OF_RANGE_S2 = unchecked((nint)((nint)(4294967296)));
+        public static readonly nint READONLY_OUT_OF_RANGE_S2 = unchecked((nint)(4294967296));
 
         [NativeTypeName(""#define READONLY_OUT_OF_RANGE_U1 ((unsigned long)4294967296)"")]
-        public static readonly nuint READONLY_OUT_OF_RANGE_U1 = unchecked((nuint)((nuint)(4294967296)));
+        public static readonly nuint READONLY_OUT_OF_RANGE_U1 = unchecked((nuint)(4294967296));
     }
 }
 ";
@@ -1140,7 +1140,7 @@ typedef long int intptr_t;
     public static partial class Methods
     {
         [NativeTypeName(""#define CL_ICD2_TAG_KHR ((intptr_t)0x4F50454E434C3331)"")]
-        public static readonly nint CL_ICD2_TAG_KHR = unchecked((nint)((nint)(0x4F50454E434C3331)));
+        public static readonly nint CL_ICD2_TAG_KHR = unchecked((nint)(0x4F50454E434C3331));
     }
 }
 ";
