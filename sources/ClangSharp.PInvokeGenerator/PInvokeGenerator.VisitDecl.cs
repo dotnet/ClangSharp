@@ -2587,7 +2587,7 @@ public partial class PInvokeGenerator
 
                 case CXType_ULongLong:
                 {
-                    if (typeNameBacking.Equals("nuint", StringComparison.Ordinal)) // TODO: Shouldn't this also check UIntPtr?
+                    if (typeNameBacking is "nuint" or "UIntPtr")
                     {
                         goto case CXType_UInt;
                     }
@@ -2620,7 +2620,7 @@ public partial class PInvokeGenerator
                 {
                     isTypeBackingSigned = true;
 
-                    if (typeNameBacking.Equals("nint", StringComparison.Ordinal)) // TODO: Shouldn't this also check IntPtr?
+                    if (typeNameBacking is "nint" or "IntPtr")
                     {
                         goto case CXType_Int;
                     }
@@ -2686,7 +2686,7 @@ public partial class PInvokeGenerator
 
                 case CXType_ULongLong:
                 {
-                    if (typeNameBacking.Equals("nuint", StringComparison.Ordinal)) // TODO: Shouldn't this also check UIntPtr?
+                    if (typeNameBacking is "nuint" or "UIntPtr")
                     {
                         goto case CXType_UInt;
                     }
@@ -2719,7 +2719,7 @@ public partial class PInvokeGenerator
                 {
                     isTypeSigned = true;
 
-                    if (typeNameBacking.Equals("nint", StringComparison.Ordinal)) // TODO: Shouldn't this also check IntPtr?
+                    if (typeNameBacking is "nint" or "IntPtr")
                     {
                         goto case CXType_Int;
                     }
