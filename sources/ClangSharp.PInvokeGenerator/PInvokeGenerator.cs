@@ -5847,14 +5847,6 @@ public sealed partial class PInvokeGenerator : IDisposable
             {
                 var integerLiteral = (IntegerLiteral)stmt;
                 var signedValue = integerLiteral.Value;
-
-                // Casts to native integers may overflow if out of range of corresponding 32-bit integer type
-                if ((targetTypeName is "nuint" or "UIntPtr" && integerLiteral is { UnsignedValue: > uint.MaxValue })
-                    || (targetTypeName is "nint" or "IntPtr" && integerLiteral is { Value: < int.MinValue or > int.MaxValue }))
-                {
-                    return true;
-                }
-
                 return IsUnchecked(targetTypeName, signedValue, integerLiteral.IsNegative, isHex: integerLiteral.ValueString.StartsWith("0x", StringComparison.Ordinal));
             }
 
@@ -6163,10 +6155,15 @@ public sealed partial class PInvokeGenerator : IDisposable
 
             case "uint":
             case "UInt32":
+            {
+                return false;
+            }
+
             case "nuint":
             case "UIntPtr":
             {
-                return false;
+                var unsignedValue = unchecked((ulong)signedValue);
+                return unsignedValue is < uint.MinValue or > uint.MaxValue;
             }
 
             case "ulong":
@@ -6788,7 +6785,7 @@ public sealed partial class PInvokeGenerator : IDisposable
                 }
             }
 
-            // Cast to output type if out of range of corresponding 32-bit integer type
+            // Cast to output type if out of range of the corresponding 32-bit integer type
             if (IsPrevContextDecl<VarDecl>(out _, out _) && !IsStmtAsWritten<CastExpr>(stmt, out _, removeParens: true)
                 && ((targetTypeName is "nuint" or "UIntPtr" && stmt.Handle.Evaluate.AsUnsigned > uint.MaxValue)
                     || (targetTypeName is "nint" or "IntPtr" && stmt.Handle.Evaluate.AsLongLong is < int.MinValue or > int.MaxValue)))
