@@ -1069,6 +1069,63 @@ typedef struct Bitfield {
     }
 
     [Test]
+    [Platform("unix")]
+    public Task CLongDefinesRegressionTestUnix()
+    {
+        // This test is to catch a potential regression when changing how native integers are handled
+        // Specifically, (18446744073709551615U) became unchecked(18446744073709551615U)
+
+        // Macro values are taken from the Linux headers when using Clang
+        // Some values are substituted for simplicity
+        var inputContents = @"
+// __stddef_size_t.h
+typedef __SIZE_TYPE__ size_t;
+
+// stdbool.h
+#define bool _Bool
+#define true 1
+#define false 0
+
+// SDL_stdinc.h from SDL3
+bool SDL_size_add_check_overflow(size_t a, size_t b, size_t *ret)
+{
+    if (b > (18446744073709551615UL) - a) {
+        return false;
+    }
+    *ret = a + b;
+    return true;
+}
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static unsafe partial class Methods
+    {
+        [return: NativeTypeName(""_Bool"")]
+        public static bool SDL_size_add_check_overflow([NativeTypeName(""size_t"")] nuint a, [NativeTypeName(""size_t"")] nuint b, [NativeTypeName(""size_t *"")] nuint* ret)
+        {
+            if (b > (18446744073709551615U) - a)
+            {
+                return (0) != 0;
+            }
+
+            *ret = a + b;
+            return (1) != 0;
+        }
+
+        [NativeTypeName(""#define true 1"")]
+        public const int @true = 1;
+
+        [NativeTypeName(""#define false 0"")]
+        public const int @false = 0;
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
     [Platform("win")] // This test has platform-specific differences
     public Task CLongDefinesTestWindows()
     {
