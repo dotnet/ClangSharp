@@ -4705,7 +4705,7 @@ public sealed partial class PInvokeGenerator : IDisposable
 
     private bool HasVtbl(CXXRecordDecl cxxRecordDecl, out bool hasBaseVtbl)
     {
-        var hasVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual && method.IsVirtual && (method.OverriddenMethods.Count == 0));
+        var hasVtbl = cxxRecordDecl.Methods.Any((method) => method.IsVirtual && (method.OverriddenMethods.Count == 0));
         hasBaseVtbl = false;
 
         if (!hasVtbl)
