@@ -38,8 +38,8 @@ public sealed partial class PInvokeGenerator : IDisposable
     private static readonly string[] s_doubleColonSeparator = ["::"];
     private static readonly char[] s_doubleQuoteSeparator = ['"'];
 
-    private const string ExpectedClangVersion = "version 21.1";
-    private const string ExpectedClangSharpVersion = "version 21.1";
+    private static string ExpectedClangVersion => $"version {clang.MajorVersion}.{clang.MinorVersion}";
+    private static string ExpectedClangSharpVersion => ExpectedClangVersion; // change if necessary
 
     private readonly CXIndex _index;
     private readonly OutputBuilderFactory _outputBuilderFactory;
