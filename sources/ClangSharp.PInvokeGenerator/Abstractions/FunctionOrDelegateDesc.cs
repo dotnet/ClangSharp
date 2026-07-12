@@ -27,12 +27,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsVirtual) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsVirtual);
         }
 
         set
         {
-            Flags = value ? Flags | FunctionOrDelegateFlags.IsVirtual : Flags & ~FunctionOrDelegateFlags.IsVirtual;
+            SetFlag(FunctionOrDelegateFlags.IsVirtual, value);
         }
     }
 
@@ -40,14 +40,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsDllImport) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsDllImport);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.IsDllImport
-                  : Flags & ~FunctionOrDelegateFlags.IsDllImport;
+            SetFlag(FunctionOrDelegateFlags.IsDllImport, value);
         }
     }
 
@@ -55,14 +53,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsManualImport) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsManualImport);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.IsManualImport
-                  : Flags & ~FunctionOrDelegateFlags.IsManualImport;
+            SetFlag(FunctionOrDelegateFlags.IsManualImport, value);
         }
     }
 
@@ -70,14 +66,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsReadOnly) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsReadOnly);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.IsReadOnly
-                  : Flags & ~FunctionOrDelegateFlags.IsReadOnly;
+            SetFlag(FunctionOrDelegateFlags.IsReadOnly, value);
         }
     }
 
@@ -85,14 +79,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.HasFnPtrCodeGen) != 0;
+            return GetFlag(FunctionOrDelegateFlags.HasFnPtrCodeGen);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.HasFnPtrCodeGen
-                  : Flags & ~FunctionOrDelegateFlags.HasFnPtrCodeGen;
+            SetFlag(FunctionOrDelegateFlags.HasFnPtrCodeGen, value);
         }
     }
 
@@ -100,14 +92,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsAggressivelyInlined) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsAggressivelyInlined);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.IsAggressivelyInlined
-                  : Flags & ~FunctionOrDelegateFlags.IsAggressivelyInlined;
+            SetFlag(FunctionOrDelegateFlags.IsAggressivelyInlined, value);
         }
     }
 
@@ -115,14 +105,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.SetLastError) != 0;
+            return GetFlag(FunctionOrDelegateFlags.SetLastError);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.SetLastError
-                  : Flags & ~FunctionOrDelegateFlags.SetLastError;
+            SetFlag(FunctionOrDelegateFlags.SetLastError, value);
         }
     }
 
@@ -130,12 +118,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsCxx) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsCxx);
         }
 
         set
         {
-            Flags = value ? Flags | FunctionOrDelegateFlags.IsCxx : Flags & ~FunctionOrDelegateFlags.IsCxx;
+            SetFlag(FunctionOrDelegateFlags.IsCxx, value);
         }
     }
 
@@ -143,14 +131,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.NeedsNewKeyword) != 0;
+            return GetFlag(FunctionOrDelegateFlags.NeedsNewKeyword);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.NeedsNewKeyword
-                  : Flags & ~FunctionOrDelegateFlags.NeedsNewKeyword;
+            SetFlag(FunctionOrDelegateFlags.NeedsNewKeyword, value);
         }
     }
 
@@ -158,12 +144,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsUnsafe) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsUnsafe);
         }
 
         set
         {
-            Flags = value ? Flags | FunctionOrDelegateFlags.IsUnsafe : Flags & ~FunctionOrDelegateFlags.IsUnsafe;
+            SetFlag(FunctionOrDelegateFlags.IsUnsafe, value);
         }
     }
 
@@ -171,14 +157,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsCtxCxxRecord) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsCtxCxxRecord);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.IsCtxCxxRecord
-                  : Flags & ~FunctionOrDelegateFlags.IsCtxCxxRecord;
+            SetFlag(FunctionOrDelegateFlags.IsCtxCxxRecord, value);
         }
     }
 
@@ -186,14 +170,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsCxxRecordCtxUnsafe) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsCxxRecordCtxUnsafe);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.IsCxxRecordCtxUnsafe
-                  : Flags & ~FunctionOrDelegateFlags.IsCxxRecordCtxUnsafe;
+            SetFlag(FunctionOrDelegateFlags.IsCxxRecordCtxUnsafe, value);
         }
     }
 
@@ -201,14 +183,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsMemberFunction) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsMemberFunction);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.IsMemberFunction
-                  : Flags & ~FunctionOrDelegateFlags.IsMemberFunction;
+            SetFlag(FunctionOrDelegateFlags.IsMemberFunction, value);
         }
     }
 
@@ -236,14 +216,12 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.NeedsReturnFixup) != 0;
+            return GetFlag(FunctionOrDelegateFlags.NeedsReturnFixup);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.NeedsReturnFixup
-                  : Flags & ~FunctionOrDelegateFlags.NeedsReturnFixup;
+            SetFlag(FunctionOrDelegateFlags.NeedsReturnFixup, value);
         }
     }
 
@@ -251,16 +229,18 @@ internal struct FunctionOrDelegateDesc
     {
         readonly get
         {
-            return (Flags & FunctionOrDelegateFlags.IsCxxConstructor) != 0;
+            return GetFlag(FunctionOrDelegateFlags.IsCxxConstructor);
         }
 
         set
         {
-            Flags = value
-                  ? Flags | FunctionOrDelegateFlags.IsCxxConstructor
-                  : Flags & ~FunctionOrDelegateFlags.IsCxxConstructor;
+            SetFlag(FunctionOrDelegateFlags.IsCxxConstructor, value);
         }
     }
+
+    private readonly bool GetFlag(FunctionOrDelegateFlags flag) => (Flags & flag) != 0;
+
+    private void SetFlag(FunctionOrDelegateFlags flag, bool value) => Flags = value ? Flags | flag : Flags & ~flag;
 
     public Action<object> WriteCustomAttrs { get; set; }
     public object CustomAttrGeneratorData { get; set; }
