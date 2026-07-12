@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -9,6 +10,11 @@ namespace ClangSharp;
 internal class QualifiedNameComparer : IEqualityComparer<string>, IAlternateEqualityComparer<ReadOnlySpan<char>, string>
 {
     public static readonly QualifiedNameComparer Default = new QualifiedNameComparer();
+
+    // A qualified name is separated by either `::` or `.`. A `:` only ever appears as part of a
+    // `::` pair, so scanning for the single characters `:` and `.` is equivalent to scanning for
+    // the `::` and `.` separators while allowing a single `IndexOfAny`/`LastIndexOfAny` pass.
+    private static readonly SearchValues<char> s_separatorChars = SearchValues.Create(".:");
 
     public string Create(ReadOnlySpan<char> alternate) => alternate.ToString();
 
@@ -68,20 +74,12 @@ internal class QualifiedNameComparer : IEqualityComparer<string>, IAlternateEqua
             var part = alternate;
             var separatorLength = 0;
 
-            var colonSeparatorIndex = part.IndexOf("::", StringComparison.Ordinal);
+            var separatorIndex = alternate.IndexOfAny(s_separatorChars);
 
-            if (colonSeparatorIndex != -1)
+            if (separatorIndex != -1)
             {
-                part = part[..colonSeparatorIndex];
-                separatorLength = 2;
-            }
-
-            var dotSeparatorIndex = part.IndexOf('.');
-
-            if (dotSeparatorIndex != -1)
-            {
-                part = part[..dotSeparatorIndex];
-                separatorLength = 1;
+                part = alternate[..separatorIndex];
+                separatorLength = (alternate[separatorIndex] == ':') ? 2 : 1;
             }
 
             hashCode.Add(string.GetHashCode(part, StringComparison.Ordinal));
