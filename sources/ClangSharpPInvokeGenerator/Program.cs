@@ -314,7 +314,7 @@ internal static partial class Program
                         errorList.Add("Error: No test output file location provided. Use --test-output or -to");
                     }
 
-                    if (configOptions.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit))
+                    if ((configOptions & PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit) != 0)
                     {
                         errorList.Add("Cannot generate both NUnit and XUnit tests.");
                     }
@@ -329,7 +329,7 @@ internal static partial class Program
                         errorList.Add("Error: No test output file location provided. Use --test-output or -to");
                     }
 
-                    if (configOptions.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit))
+                    if ((configOptions & PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) != 0)
                     {
                         errorList.Add("Cannot generate both NUnit and XUnit tests.");
                     }
@@ -485,7 +485,7 @@ internal static partial class Program
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(testOutputLocation) && !configOptions.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) && !configOptions.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit))
+        if (!string.IsNullOrWhiteSpace(testOutputLocation) && (configOptions & PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) == 0 && (configOptions & PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit) == 0)
         {
             errorList.Add("Error: No test format provided. Use --config generate-tests-nunit or --config generate-tests-xunit");
         }
