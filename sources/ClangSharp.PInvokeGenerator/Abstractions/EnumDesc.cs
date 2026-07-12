@@ -16,14 +16,19 @@ internal struct EnumDesc
     {
         readonly get
         {
-            return (Flags & EnumFlags.Nested) != 0;
+            return GetFlag(EnumFlags.Nested);
         }
 
         set
         {
-            Flags = value ? Flags | EnumFlags.Nested : Flags & ~EnumFlags.Nested;
+            SetFlag(EnumFlags.Nested, value);
         }
     }
+
+    private readonly bool GetFlag(EnumFlags flag) => (Flags & flag) != 0;
+
+    private void SetFlag(EnumFlags flag, bool value) => Flags = value ? Flags | flag : Flags & ~flag;
+
     public Action<object> WriteCustomAttrs { get; set; }
     public object CustomAttrGeneratorData { get; set; }
 }

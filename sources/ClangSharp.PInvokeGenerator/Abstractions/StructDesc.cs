@@ -22,12 +22,12 @@ internal struct StructDesc
     {
         readonly get
         {
-            return (Flags & StructFlags.Nested) != 0;
+            return GetFlag(StructFlags.Nested);
         }
 
         set
         {
-            Flags = value ? Flags | StructFlags.Nested : Flags & ~StructFlags.Nested;
+            SetFlag(StructFlags.Nested, value);
         }
     }
 
@@ -35,12 +35,12 @@ internal struct StructDesc
     {
         readonly get
         {
-            return (Flags & StructFlags.Unsafe) != 0;
+            return GetFlag(StructFlags.Unsafe);
         }
 
         set
         {
-            Flags = value ? Flags | StructFlags.Unsafe : Flags & ~StructFlags.Unsafe;
+            SetFlag(StructFlags.Unsafe, value);
         }
     }
 
@@ -48,12 +48,12 @@ internal struct StructDesc
     {
         readonly get
         {
-            return (Flags & StructFlags.Vtbl) != 0;
+            return GetFlag(StructFlags.Vtbl);
         }
 
         set
         {
-            Flags = value ? Flags | StructFlags.Vtbl : Flags & ~StructFlags.Vtbl;
+            SetFlag(StructFlags.Vtbl, value);
         }
     }
 
@@ -61,14 +61,18 @@ internal struct StructDesc
     {
         readonly get
         {
-            return (Flags & StructFlags.Union) != 0;
+            return GetFlag(StructFlags.Union);
         }
 
         set
         {
-            Flags = value ? Flags | StructFlags.Union : Flags & ~StructFlags.Union;
+            SetFlag(StructFlags.Union, value);
         }
     }
+
+    private readonly bool GetFlag(StructFlags flag) => (Flags & flag) != 0;
+
+    private void SetFlag(StructFlags flag, bool value) => Flags = value ? Flags | flag : Flags & ~flag;
 
     public Action<object> WriteCustomAttrs { get; set; }
     public object CustomAttrGeneratorData { get; set; }
