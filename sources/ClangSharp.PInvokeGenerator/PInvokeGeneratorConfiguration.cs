@@ -106,25 +106,25 @@ public sealed class PInvokeGeneratorConfiguration
         _withUsings = new Dictionary<string, IReadOnlyList<string>>(QualifiedNameComparer.Default);
         _withPackings = new Dictionary<string, string>(QualifiedNameComparer.Default);
 
-        if ((outputMode == PInvokeGeneratorOutputMode.Xml) && !options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles) && (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) || options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit)))
+        if ((outputMode == PInvokeGeneratorOutputMode.Xml) && (options & PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles) == 0 && ((options & PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) != 0 || (options & PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit) != 0))
         {
             // we can't mix XML and C#! we're in XML mode, not generating multiple files, and generating tests; fail
             throw new ArgumentException("Can't generate tests in XML mode without multiple files.", nameof(options));
         }
-        else if (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode) && options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode))
+        else if ((options & PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode) != 0 && (options & PInvokeGeneratorConfigurationOptions.GeneratePreviewCode) != 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options));
         }
-        else if (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode) && options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateLatestCode))
+        else if ((options & PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode) != 0 && (options & PInvokeGeneratorConfigurationOptions.GenerateLatestCode) != 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options));
         }
-        else if (options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateLatestCode) && options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode))
+        else if ((options & PInvokeGeneratorConfigurationOptions.GenerateLatestCode) != 0 && (options & PInvokeGeneratorConfigurationOptions.GeneratePreviewCode) != 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options));
         }
 
-        if (options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode))
+        if ((options & PInvokeGeneratorConfigurationOptions.GeneratePreviewCode) != 0)
         {
             // While users shouldn't have passed it in like this, we can simplify
             // our own downstream checks be having preview also opt into "latest".
@@ -132,7 +132,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
         _options = options;
 
-        if (!_options.HasFlag(PInvokeGeneratorConfigurationOptions.NoDefaultRemappings))
+        if ((_options & PInvokeGeneratorConfigurationOptions.NoDefaultRemappings) == 0)
         {
             if (!ExcludeNIntCodegen)
             {
@@ -165,21 +165,21 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    public bool DontUseUsingStaticsForEnums => _options.HasFlag(PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForEnums);
+    public bool DontUseUsingStaticsForEnums => (_options & PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForEnums) != 0;
 
-    public bool ExcludeAnonymousFieldHelpers => _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeAnonymousFieldHelpers);
+    public bool ExcludeAnonymousFieldHelpers => (_options & PInvokeGeneratorConfigurationOptions.ExcludeAnonymousFieldHelpers) != 0;
 
-    public bool ExcludeComProxies => _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeComProxies);
+    public bool ExcludeComProxies => (_options & PInvokeGeneratorConfigurationOptions.ExcludeComProxies) != 0;
 
-    public bool ExcludeEmptyRecords => _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeEmptyRecords);
+    public bool ExcludeEmptyRecords => (_options & PInvokeGeneratorConfigurationOptions.ExcludeEmptyRecords) != 0;
 
-    public bool ExcludeEnumOperators => _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeEnumOperators);
+    public bool ExcludeEnumOperators => (_options & PInvokeGeneratorConfigurationOptions.ExcludeEnumOperators) != 0;
 
     public bool ExcludeFnptrCodegen
     {
         get
         {
-            return GenerateCompatibleCode || _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeFnptrCodegen);
+            return GenerateCompatibleCode || (_options & PInvokeGeneratorConfigurationOptions.ExcludeFnptrCodegen) != 0;
         }
 
         set
@@ -195,7 +195,7 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    public bool ExcludeFunctionsWithBody => _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeFunctionsWithBody);
+    public bool ExcludeFunctionsWithBody => (_options & PInvokeGeneratorConfigurationOptions.ExcludeFunctionsWithBody) != 0;
 
     [AllowNull]
     public IReadOnlyCollection<string> ExcludedNames
@@ -211,65 +211,65 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    public bool ExcludeNIntCodegen => GenerateCompatibleCode || _options.HasFlag(PInvokeGeneratorConfigurationOptions.ExcludeNIntCodegen);
+    public bool ExcludeNIntCodegen => GenerateCompatibleCode || (_options & PInvokeGeneratorConfigurationOptions.ExcludeNIntCodegen) != 0;
 
-    public bool GenerateAggressiveInlining => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateAggressiveInlining);
+    public bool GenerateAggressiveInlining => (_options & PInvokeGeneratorConfigurationOptions.GenerateAggressiveInlining) != 0;
 
-    public bool GenerateCallConvMemberFunction => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCallConvMemberFunction);
+    public bool GenerateCallConvMemberFunction => (_options & PInvokeGeneratorConfigurationOptions.GenerateCallConvMemberFunction) != 0;
 
-    public bool GenerateCompatibleCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode);
+    public bool GenerateCompatibleCode => (_options & PInvokeGeneratorConfigurationOptions.GenerateCompatibleCode) != 0;
 
-    public bool GenerateCppAttributes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateCppAttributes);
+    public bool GenerateCppAttributes => (_options & PInvokeGeneratorConfigurationOptions.GenerateCppAttributes) != 0;
 
-    public bool GenerateDisableRuntimeMarshalling => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateDisableRuntimeMarshalling);
+    public bool GenerateDisableRuntimeMarshalling => (_options & PInvokeGeneratorConfigurationOptions.GenerateDisableRuntimeMarshalling) != 0;
 
-    public bool GenerateDocIncludes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateDocIncludes);
+    public bool GenerateDocIncludes => (_options & PInvokeGeneratorConfigurationOptions.GenerateDocIncludes) != 0;
 
-    public bool GenerateExplicitVtbls => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls);
+    public bool GenerateExplicitVtbls => (_options & PInvokeGeneratorConfigurationOptions.GenerateExplicitVtbls) != 0;
 
-    public bool GenerateFileScopedNamespaces => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces);
+    public bool GenerateFileScopedNamespaces => (_options & PInvokeGeneratorConfigurationOptions.GenerateFileScopedNamespaces) != 0;
 
-    public bool GenerateGenericPointerWrapper => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper);
+    public bool GenerateGenericPointerWrapper => (_options & PInvokeGeneratorConfigurationOptions.GenerateGenericPointerWrapper) != 0;
 
-    public bool GenerateGuidMember => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateGuidMember);
+    public bool GenerateGuidMember => (_options & PInvokeGeneratorConfigurationOptions.GenerateGuidMember) != 0;
 
-    public bool GenerateHelperTypes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateHelperTypes);
+    public bool GenerateHelperTypes => (_options & PInvokeGeneratorConfigurationOptions.GenerateHelperTypes) != 0;
 
-    public bool GenerateLatestCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateLatestCode);
+    public bool GenerateLatestCode => (_options & PInvokeGeneratorConfigurationOptions.GenerateLatestCode) != 0;
 
-    public bool GenerateMacroBindings => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMacroBindings);
+    public bool GenerateMacroBindings => (_options & PInvokeGeneratorConfigurationOptions.GenerateMacroBindings) != 0;
 
-    public bool GenerateMarkerInterfaces => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces);
+    public bool GenerateMarkerInterfaces => (_options & PInvokeGeneratorConfigurationOptions.GenerateMarkerInterfaces) != 0;
 
-    public bool GenerateMultipleFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles);
+    public bool GenerateMultipleFiles => (_options & PInvokeGeneratorConfigurationOptions.GenerateMultipleFiles) != 0;
 
-    public bool GenerateNativeBitfieldAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute);
+    public bool GenerateNativeBitfieldAttribute => (_options & PInvokeGeneratorConfigurationOptions.GenerateNativeBitfieldAttribute) != 0;
 
-    public bool GenerateNativeInheritanceAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute);
+    public bool GenerateNativeInheritanceAttribute => (_options & PInvokeGeneratorConfigurationOptions.GenerateNativeInheritanceAttribute) != 0;
 
-    public bool GeneratePreviewCode => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GeneratePreviewCode);
+    public bool GeneratePreviewCode => (_options & PInvokeGeneratorConfigurationOptions.GeneratePreviewCode) != 0;
 
-    public bool GenerateSetsLastSystemErrorAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateSetsLastSystemErrorAttribute);
+    public bool GenerateSetsLastSystemErrorAttribute => (_options & PInvokeGeneratorConfigurationOptions.GenerateSetsLastSystemErrorAttribute) != 0;
 
-    public bool GenerateSourceLocationAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute);
+    public bool GenerateSourceLocationAttribute => (_options & PInvokeGeneratorConfigurationOptions.GenerateSourceLocationAttribute) != 0;
 
-    public bool GenerateTemplateBindings => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTemplateBindings);
+    public bool GenerateTemplateBindings => (_options & PInvokeGeneratorConfigurationOptions.GenerateTemplateBindings) != 0;
 
-    public bool GenerateTestsNUnit => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit);
+    public bool GenerateTestsNUnit => (_options & PInvokeGeneratorConfigurationOptions.GenerateTestsNUnit) != 0;
 
-    public bool GenerateTestsXUnit => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit);
+    public bool GenerateTestsXUnit => (_options & PInvokeGeneratorConfigurationOptions.GenerateTestsXUnit) != 0;
 
-    public bool GenerateTrimmableVtbls => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateTrimmableVtbls);
+    public bool GenerateTrimmableVtbls => (_options & PInvokeGeneratorConfigurationOptions.GenerateTrimmableVtbls) != 0;
 
-    public bool GenerateUnixTypes => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateUnixTypes);
+    public bool GenerateUnixTypes => (_options & PInvokeGeneratorConfigurationOptions.GenerateUnixTypes) != 0;
 
-    public bool GenerateUnmanagedConstants => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateUnmanagedConstants);
+    public bool GenerateUnmanagedConstants => (_options & PInvokeGeneratorConfigurationOptions.GenerateUnmanagedConstants) != 0;
 
-    public bool GenerateVtblIndexAttribute => _options.HasFlag(PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute);
+    public bool GenerateVtblIndexAttribute => (_options & PInvokeGeneratorConfigurationOptions.GenerateVtblIndexAttribute) != 0;
 
-    public bool StripEnumMemberTypeName => _options.HasFlag(PInvokeGeneratorConfigurationOptions.StripEnumMemberTypeName);
+    public bool StripEnumMemberTypeName => (_options & PInvokeGeneratorConfigurationOptions.StripEnumMemberTypeName) != 0;
 
-    public bool DontUseUsingStaticsForGuidMember => _options.HasFlag(PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForGuidMember);
+    public bool DontUseUsingStaticsForGuidMember => (_options & PInvokeGeneratorConfigurationOptions.DontUseUsingStaticsForGuidMember) != 0;
 
     public string HeaderText => _headerText;
 
@@ -301,11 +301,11 @@ public sealed class PInvokeGeneratorConfiguration
         }
     }
 
-    public bool LogExclusions => _options.HasFlag(PInvokeGeneratorConfigurationOptions.LogExclusions);
+    public bool LogExclusions => (_options & PInvokeGeneratorConfigurationOptions.LogExclusions) != 0;
 
-    public bool LogPotentialTypedefRemappings => _options.HasFlag(PInvokeGeneratorConfigurationOptions.LogPotentialTypedefRemappings);
+    public bool LogPotentialTypedefRemappings => (_options & PInvokeGeneratorConfigurationOptions.LogPotentialTypedefRemappings) != 0;
 
-    public bool LogVisitedFiles => _options.HasFlag(PInvokeGeneratorConfigurationOptions.LogVisitedFiles);
+    public bool LogVisitedFiles => (_options & PInvokeGeneratorConfigurationOptions.LogVisitedFiles) != 0;
 
     [AllowNull]
     public string MethodPrefixToStrip

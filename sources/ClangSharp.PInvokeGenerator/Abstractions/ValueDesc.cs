@@ -17,10 +17,10 @@ internal struct ValueDesc
     public ValueFlags Flags { get; set; }
     public CXSourceLocation? Location { get; set; }
 
-    public readonly bool HasInitializer => Flags.HasFlag(ValueFlags.Initializer);
-    public readonly bool IsArray => Flags.HasFlag(ValueFlags.Array);
-    public readonly bool IsConstant => Flags.HasFlag(ValueFlags.Constant);
-    public readonly bool IsCopy => Flags.HasFlag(ValueFlags.Copy);
+    public readonly bool HasInitializer => (Flags & ValueFlags.Initializer) != 0;
+    public readonly bool IsArray => (Flags & ValueFlags.Array) != 0;
+    public readonly bool IsConstant => (Flags & ValueFlags.Constant) != 0;
+    public readonly bool IsCopy => (Flags & ValueFlags.Copy) != 0;
     public Action<object> WriteCustomAttrs { get; set; }
     public object CustomAttrGeneratorData { get; set; }
 }

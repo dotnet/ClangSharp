@@ -3563,7 +3563,7 @@ public partial class PInvokeGenerator
                     case CX_SLK_Ordinary:
                     case CX_SLK_UTF8:
                     {
-                        typeName = flags.HasFlag(ValueFlags.Constant) ? "ReadOnlySpan<byte>" : "byte[]";
+                        typeName = (flags & ValueFlags.Constant) != 0 ? "ReadOnlySpan<byte>" : "byte[]";
                         break;
                     }
 
@@ -3588,7 +3588,7 @@ public partial class PInvokeGenerator
 
                     case CX_SLK_UTF32:
                     {
-                        typeName = (!_config.GenerateCompatibleCode && flags.HasFlag(ValueFlags.Constant)) ? "ReadOnlySpan<uint>" : "uint[]";
+                        typeName = (!_config.GenerateCompatibleCode && (flags & ValueFlags.Constant) != 0) ? "ReadOnlySpan<uint>" : "uint[]";
                         break;
                     }
 
@@ -3603,7 +3603,7 @@ public partial class PInvokeGenerator
             {
                 kind = ValueKind.Primitive;
 
-                if (flags.HasFlag(ValueFlags.Constant) && !IsConstant(typeName, varDecl.Init))
+                if ((flags & ValueFlags.Constant) != 0 && !IsConstant(typeName, varDecl.Init))
                 {
                     flags |= ValueFlags.Copy;
                 }
