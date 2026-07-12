@@ -1097,6 +1097,9 @@ bool SDL_size_add_check_overflow(size_t a, size_t b, size_t *ret)
 }
 ";
 
+        // The expected below currently does not represent the ideal behavior.
+        // Ideally, the unchecked keywork is removed as it is unnecessary.
+        // This issue is tracked here: https://github.com/dotnet/ClangSharp/issues/709
         var expectedOutputContents = @"namespace ClangSharp.Test
 {
     public static unsafe partial class Methods
@@ -1104,7 +1107,7 @@ bool SDL_size_add_check_overflow(size_t a, size_t b, size_t *ret)
         [return: NativeTypeName(""_Bool"")]
         public static bool SDL_size_add_check_overflow([NativeTypeName(""size_t"")] nuint a, [NativeTypeName(""size_t"")] nuint b, [NativeTypeName(""size_t *"")] nuint* ret)
         {
-            if (b > (18446744073709551615U) - a)
+            if (b > unchecked(18446744073709551615U) - a)
             {
                 return (0) != 0;
             }
