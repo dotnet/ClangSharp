@@ -34,7 +34,7 @@ public class RecordDecl : TagDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _fields = LazyList.Create<FieldDecl>(Handle.NumFields, (i) => TranslationUnit.GetOrCreate<FieldDecl>(Handle.GetField(unchecked((uint)i))));
+        _fields = LazyList.Create<FieldDecl>(this, Handle.NumFields, &FieldsFactory);
         _anonymousFields = new ValueLazy<RecordDecl, List<FieldDecl>>(&AnonymousFieldsFactory);
         _anonymousRecords = new ValueLazy<RecordDecl, List<RecordDecl>>(&AnonymousRecordsFactory);
         _indirectFields = new ValueLazy<RecordDecl, List<IndirectFieldDecl>>(&IndirectFieldsFactory);
@@ -68,4 +68,10 @@ public class RecordDecl : TagDecl
     private static unsafe List<RecordDecl> AnonymousRecordsFactory(RecordDecl self) => [.. self.Decls.OfType<RecordDecl>().Where(decl => decl.IsAnonymousStructOrUnion && !decl.IsInjectedClassName)];
 
     private static unsafe List<FieldDecl> AnonymousFieldsFactory(RecordDecl self) => [.. self.Decls.OfType<FieldDecl>().Where(decl => decl.IsAnonymousField)];
+
+    private static unsafe FieldDecl FieldsFactory(object self, int i)
+    {
+        var @this = (RecordDecl)self;
+        return @this.TranslationUnit.GetOrCreate<FieldDecl>(@this.Handle.GetField(unchecked((uint)i)));
+    }
 }

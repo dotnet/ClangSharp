@@ -25,7 +25,7 @@ public class VarTemplateSpecializationDecl : VarDecl
         }
 
         _specializedTemplate = new ValueLazy<VarTemplateSpecializationDecl, VarTemplateDecl>(&SpecializedTemplateFactory);
-        _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgument>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     public new VarTemplateSpecializationDecl MostRecentDecl => (VarTemplateSpecializationDecl)base.MostRecentDecl;
@@ -35,4 +35,10 @@ public class VarTemplateSpecializationDecl : VarDecl
     public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs;
 
     private static unsafe VarTemplateDecl SpecializedTemplateFactory(VarTemplateSpecializationDecl self) => self.TranslationUnit.GetOrCreate<VarTemplateDecl>(self.Handle.SpecializedCursorTemplate);
+
+    private static unsafe TemplateArgument TemplateArgsFactory(object self, int i)
+    {
+        var @this = (VarTemplateSpecializationDecl)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgument(unchecked((uint)i)));
+    }
 }

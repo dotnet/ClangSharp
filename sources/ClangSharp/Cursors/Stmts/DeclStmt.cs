@@ -12,9 +12,9 @@ public sealed class DeclStmt : Stmt
 {
     private readonly LazyList<Decl> _decls;
 
-    internal DeclStmt(CXCursor handle) : base(handle, CXCursor_DeclStmt, CX_StmtClass_DeclStmt)
+    internal unsafe DeclStmt(CXCursor handle) : base(handle, CXCursor_DeclStmt, CX_StmtClass_DeclStmt)
     {
-        _decls = LazyList.Create<Decl>(Handle.NumDecls, (i) => TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i))));
+        _decls = LazyList.Create<Decl>(this, Handle.NumDecls, &DeclsFactory);
     }
 
     public IReadOnlyList<Decl> Decls => _decls;
@@ -22,4 +22,10 @@ public sealed class DeclStmt : Stmt
     public bool IsSingleDecl => Decls.Count == 1;
 
     public Decl? SingleDecl => Decls.SingleOrDefault();
+
+    private static unsafe Decl DeclsFactory(object self, int i)
+    {
+        var @this = (DeclStmt)self;
+        return @this.TranslationUnit.GetOrCreate<Decl>(@this.Handle.GetDecl(unchecked((uint)i)));
+    }
 }

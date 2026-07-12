@@ -21,7 +21,7 @@ public sealed class CXXDependentScopeMemberExpr : Expr
 
         _baseType = new ValueLazy<CXXDependentScopeMemberExpr, Type>(&BaseTypeFactory);
         _firstQualifierFoundInScope = new ValueLazy<CXXDependentScopeMemberExpr, NamedDecl>(&FirstQualifierFoundInScopeFactory);
-        _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgumentLoc>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     public Expr? Base => (Expr?)Children.SingleOrDefault();
@@ -47,4 +47,10 @@ public sealed class CXXDependentScopeMemberExpr : Expr
     private static unsafe NamedDecl FirstQualifierFoundInScopeFactory(CXXDependentScopeMemberExpr self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.Referenced);
 
     private static unsafe Type BaseTypeFactory(CXXDependentScopeMemberExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
+
+    private static unsafe TemplateArgumentLoc TemplateArgsFactory(object self, int i)
+    {
+        var @this = (CXXDependentScopeMemberExpr)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
+    }
 }

@@ -15,7 +15,7 @@ public sealed class SizeOfPackExpr : Expr
     internal unsafe SizeOfPackExpr(CXCursor handle) : base(handle, CXCursor_SizeOfPackExpr, CX_StmtClass_SizeOfPackExpr)
     {
         _pack = new ValueLazy<SizeOfPackExpr, NamedDecl>(&PackFactory);
-        _partialArguments = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
+        _partialArguments = LazyList.Create<TemplateArgument>(this, Handle.NumTemplateArguments, &PartialArgumentsFactory);
     }
 
     public NamedDecl Pack => _pack.GetValue(this);
@@ -27,4 +27,10 @@ public sealed class SizeOfPackExpr : Expr
     public IReadOnlyList<TemplateArgument> PartialArguments => _partialArguments;
 
     private static unsafe NamedDecl PackFactory(SizeOfPackExpr self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.Referenced);
+
+    private static unsafe TemplateArgument PartialArgumentsFactory(object self, int i)
+    {
+        var @this = (SizeOfPackExpr)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgument(unchecked((uint)i)));
+    }
 }

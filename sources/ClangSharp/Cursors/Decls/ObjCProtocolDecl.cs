@@ -15,7 +15,7 @@ public sealed class ObjCProtocolDecl : ObjCContainerDecl, IRedeclarable<ObjCProt
     internal unsafe ObjCProtocolDecl(CXCursor handle) : base(handle, CXCursor_ObjCProtocolDecl, CX_DeclKind_ObjCProtocol)
     {
         _definition = new ValueLazy<ObjCProtocolDecl, ObjCProtocolDecl>(&DefinitionFactory);
-        _protocols = LazyList.Create<ObjCProtocolDecl>(Handle.NumProtocols, (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i))));
+        _protocols = LazyList.Create<ObjCProtocolDecl>(this, Handle.NumProtocols, &ProtocolsFactory);
     }
 
     public new ObjCProtocolDecl CanonicalDecl => (ObjCProtocolDecl)base.CanonicalDecl;
@@ -33,4 +33,10 @@ public sealed class ObjCProtocolDecl : ObjCContainerDecl, IRedeclarable<ObjCProt
     public IReadOnlyList<ObjCProtocolDecl> ReferencedProtocols => Protocols;
 
     private static unsafe ObjCProtocolDecl DefinitionFactory(ObjCProtocolDecl self) => self.TranslationUnit.GetOrCreate<ObjCProtocolDecl>(self.Handle.Definition);
+
+    private static unsafe ObjCProtocolDecl ProtocolsFactory(object self, int i)
+    {
+        var @this = (ObjCProtocolDecl)self;
+        return @this.TranslationUnit.GetOrCreate<ObjCProtocolDecl>(@this.Handle.GetProtocol(unchecked((uint)i)));
+    }
 }

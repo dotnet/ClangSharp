@@ -15,7 +15,7 @@ public sealed class TemplateTypeParmDecl : TypeDecl
 
     internal unsafe TemplateTypeParmDecl(CXCursor handle) : base(handle, CXCursor_TemplateTypeParameter, CX_DeclKind_TemplateTypeParm)
     {
-        _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
+        _associatedConstraints = LazyList.Create<Expr>(this, Handle.NumAssociatedConstraints, &AssociatedConstraintsFactory);
         _defaultArgument = new ValueLazy<TemplateTypeParmDecl, Type?>(&DefaultArgumentFactory);
     }
 
@@ -41,4 +41,10 @@ public sealed class TemplateTypeParmDecl : TypeDecl
             var defaultArgType = self.Handle.DefaultArgType;
             return defaultArgType.kind == CXType_Invalid ? null : self.TranslationUnit.GetOrCreate<Type>(defaultArgType);
         }
+
+    private static unsafe Expr AssociatedConstraintsFactory(object self, int i)
+    {
+        var @this = (TemplateTypeParmDecl)self;
+        return @this.TranslationUnit.GetOrCreate<Expr>(@this.Handle.GetAssociatedConstraint(unchecked((uint)i)));
+    }
 }

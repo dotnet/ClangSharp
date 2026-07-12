@@ -17,7 +17,7 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
     internal unsafe ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_ClassTemplateSpecialization)
     {
         _specializedTemplate = new ValueLazy<ClassTemplateSpecializationDecl, ClassTemplateDecl>(&SpecializedTemplateFactory);
-        _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgument>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     private protected unsafe ClassTemplateSpecializationDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
@@ -28,7 +28,7 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
         }
 
         _specializedTemplate = new ValueLazy<ClassTemplateSpecializationDecl, ClassTemplateDecl>(&SpecializedTemplateFactory);
-        _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgument>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     public bool IsClassScopeExplicitSpecialization => IsExplicitSpecialization && (LexicalDeclContext is CXXRecordDecl);
@@ -69,4 +69,10 @@ public class ClassTemplateSpecializationDecl : CXXRecordDecl
     public IReadOnlyList<TemplateArgument> TemplateArgs => _templateArgs;
 
     private static unsafe ClassTemplateDecl SpecializedTemplateFactory(ClassTemplateSpecializationDecl self) => self.TranslationUnit.GetOrCreate<ClassTemplateDecl>(self.Handle.SpecializedCursorTemplate);
+
+    private static unsafe TemplateArgument TemplateArgsFactory(object self, int i)
+    {
+        var @this = (ClassTemplateSpecializationDecl)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgument(unchecked((uint)i)));
+    }
 }

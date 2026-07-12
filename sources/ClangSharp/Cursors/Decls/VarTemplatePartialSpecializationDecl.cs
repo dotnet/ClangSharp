@@ -15,9 +15,9 @@ public class VarTemplatePartialSpecializationDecl : VarDecl
 
     internal unsafe VarTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplatePartialSpecialization)
     {
-        _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
+        _associatedConstraints = LazyList.Create<Expr>(this, Handle.NumAssociatedConstraints, &AssociatedConstraintsFactory);
         _instantiatedFromMember = new ValueLazy<VarTemplatePartialSpecializationDecl, VarTemplatePartialSpecializationDecl>(&InstantiatedFromMemberFactory);
-        _templateParameters = LazyList.Create<NamedDecl>(Handle.GetNumTemplateParameters(0), (i) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(0, unchecked((uint)i))));
+        _templateParameters = LazyList.Create<NamedDecl>(this, Handle.GetNumTemplateParameters(0), &TemplateParametersFactory);
     }
 
     public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints;
@@ -29,4 +29,16 @@ public class VarTemplatePartialSpecializationDecl : VarDecl
     public IReadOnlyList<NamedDecl> TemplateParameters => _templateParameters;
 
     private static unsafe VarTemplatePartialSpecializationDecl InstantiatedFromMemberFactory(VarTemplatePartialSpecializationDecl self) => self.TranslationUnit.GetOrCreate<VarTemplatePartialSpecializationDecl>(self.Handle.InstantiatedFromMember);
+
+    private static unsafe Expr AssociatedConstraintsFactory(object self, int i)
+    {
+        var @this = (VarTemplatePartialSpecializationDecl)self;
+        return @this.TranslationUnit.GetOrCreate<Expr>(@this.Handle.GetAssociatedConstraint(unchecked((uint)i)));
+    }
+
+    private static unsafe NamedDecl TemplateParametersFactory(object self, int i)
+    {
+        var @this = (VarTemplatePartialSpecializationDecl)self;
+        return @this.TranslationUnit.GetOrCreate<NamedDecl>(@this.Handle.GetTemplateParameter(0, unchecked((uint)i)));
+    }
 }

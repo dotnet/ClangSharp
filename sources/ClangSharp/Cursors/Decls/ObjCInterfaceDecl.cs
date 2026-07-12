@@ -31,11 +31,11 @@ public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInt
         _implementation = new ValueLazy<ObjCInterfaceDecl, ObjCImplementationDecl>(&ImplementationFactory);
         _ivars = new ValueLazy<ObjCInterfaceDecl, List<ObjCIvarDecl>>(&IvarsFactory);
         _knownExtensions = new ValueLazy<ObjCInterfaceDecl, List<ObjCCategoryDecl>>(&KnownExtensionsFactory);
-        _protocols = LazyList.Create<ObjCProtocolDecl>(Handle.NumProtocols, (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i))));
+        _protocols = LazyList.Create<ObjCProtocolDecl>(this, Handle.NumProtocols, &ProtocolsFactory);
         _superClass = new ValueLazy<ObjCInterfaceDecl, ObjCInterfaceDecl>(&SuperClassFactory);
         _superClassType = new ValueLazy<ObjCInterfaceDecl, ObjCObjectType>(&SuperClassTypeFactory);
         _typeForDecl = new ValueLazy<ObjCInterfaceDecl, Type>(&TypeForDeclFactory);
-        _typeParamList = LazyList.Create<ObjCTypeParamDecl>(Handle.NumTypeParams, (i) => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetTypeParam(unchecked((uint)i))));
+        _typeParamList = LazyList.Create<ObjCTypeParamDecl>(this, Handle.NumTypeParams, &TypeParamListFactory);
         _visibleCategories = new ValueLazy<ObjCInterfaceDecl, List<ObjCCategoryDecl>>(&VisibleCategoriesFactory);
         _visibleExtensions = new ValueLazy<ObjCInterfaceDecl, List<ObjCCategoryDecl>>(&VisibleExtensionsFactory);
     }
@@ -103,4 +103,16 @@ public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInt
 
             return categories;
         }
+
+    private static unsafe ObjCProtocolDecl ProtocolsFactory(object self, int i)
+    {
+        var @this = (ObjCInterfaceDecl)self;
+        return @this.TranslationUnit.GetOrCreate<ObjCProtocolDecl>(@this.Handle.GetProtocol(unchecked((uint)i)));
+    }
+
+    private static unsafe ObjCTypeParamDecl TypeParamListFactory(object self, int i)
+    {
+        var @this = (ObjCInterfaceDecl)self;
+        return @this.TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(@this.Handle.GetTypeParam(unchecked((uint)i)));
+    }
 }

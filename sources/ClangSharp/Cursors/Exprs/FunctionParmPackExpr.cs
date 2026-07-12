@@ -17,7 +17,7 @@ public sealed class FunctionParmPackExpr : Expr
     {
         Debug.Assert(NumChildren is 0);
 
-        _expansions = LazyList.Create<VarDecl>(Handle.NumDecls, (i) => TranslationUnit.GetOrCreate<VarDecl>(Handle.GetDecl(unchecked((uint)i))));
+        _expansions = LazyList.Create<VarDecl>(this, Handle.NumDecls, &ExpansionsFactory);
         _parameterPack = new ValueLazy<FunctionParmPackExpr, VarDecl>(&ParameterPackFactory);
     }
 
@@ -28,4 +28,10 @@ public sealed class FunctionParmPackExpr : Expr
     public VarDecl ParameterPack => _parameterPack.GetValue(this);
 
     private static unsafe VarDecl ParameterPackFactory(FunctionParmPackExpr self) => self.TranslationUnit.GetOrCreate<VarDecl>(self.Handle.Referenced);
+
+    private static unsafe VarDecl ExpansionsFactory(object self, int i)
+    {
+        var @this = (FunctionParmPackExpr)self;
+        return @this.TranslationUnit.GetOrCreate<VarDecl>(@this.Handle.GetDecl(unchecked((uint)i)));
+    }
 }

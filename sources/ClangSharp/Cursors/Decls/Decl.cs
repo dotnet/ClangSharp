@@ -37,19 +37,10 @@ public class Decl : Cursor
         }
 
         _asFunction = new ValueLazy<Decl, FunctionDecl>(&AsFunctionFactory);
-        _attrs = LazyList.Create<Attr>(Handle.NumAttrs, (i) => TranslationUnit.GetOrCreate<Attr>(Handle.GetAttr(unchecked((uint)i))));
+        _attrs = LazyList.Create<Attr>(this, Handle.NumAttrs, &AttrsFactory);
         _body = new ValueLazy<Decl, Stmt?>(&BodyFactory);
         _canonicalDecl = new ValueLazy<Decl, Decl>(&CanonicalDeclFactory);
-        _decls = LazyList.Create<Decl>(Handle.NumDecls, (i, previousDecl) => {
-            if (previousDecl is null)
-            {
-                return TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i)));
-            }
-            else
-            {
-                return previousDecl.NextDeclInContext;
-            }
-        });
+        _decls = LazyList.Create<Decl>(this, Handle.NumDecls, &DeclsFactory);
         _describedTemplate = new ValueLazy<Decl, TemplateDecl?>(&DescribedTemplateFactory);
         _mostRecentDecl = new ValueLazy<Decl, Decl>(&MostRecentDeclFactory);
         _nextDeclInContext = new ValueLazy<Decl, Decl>(&NextDeclInContextFactory);
@@ -276,4 +267,48 @@ public class Decl : Cursor
     private static unsafe Stmt? BodyFactory(Decl self) => !self.Handle.Body.IsNull ? self.TranslationUnit.GetOrCreate<Stmt>(self.Handle.Body) : null;
 
     private static unsafe FunctionDecl AsFunctionFactory(Decl self) => self.TranslationUnit.GetOrCreate<FunctionDecl>(self.Handle.AsFunction);
+
+    private static unsafe Attr AttrsFactory(object self, int i)
+    {
+        var @this = (Decl)self;
+        return @this.TranslationUnit.GetOrCreate<Attr>(@this.Handle.GetAttr(unchecked((uint)i)));
+    }
+
+    private static unsafe Decl DeclsFactory(object self, int i, Decl? previousDecl)
+    {
+        var @this = (Decl)self;
+
+        if (previousDecl is null)
+        {
+            return @this.TranslationUnit.GetOrCreate<Decl>(@this.Handle.GetDecl(unchecked((uint)i)));
+        }
+        else
+        {
+            return previousDecl.NextDeclInContext;
+        }
+    }
+
+    private protected static unsafe LazyList<LazyList<NamedDecl>> CreateTemplateParameterLists(Decl self)
+    {
+        return LazyList.Create<LazyList<NamedDecl>>(self, self.Handle.NumTemplateParameterLists, &TemplateParameterListFactory);
+    }
+
+    private static unsafe LazyList<NamedDecl> TemplateParameterListFactory(object self, int listIndex)
+    {
+        var @this = (Decl)self;
+        var numTemplateParameters = @this.Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
+        return LazyList.Create<NamedDecl>(new TemplateParameterListContext(@this, unchecked((uint)listIndex)), numTemplateParameters, &TemplateParameterFactory);
+    }
+
+    private static unsafe NamedDecl TemplateParameterFactory(object self, int parameterIndex)
+    {
+        var context = (TemplateParameterListContext)self;
+        return context.Owner.TranslationUnit.GetOrCreate<NamedDecl>(context.Owner.Handle.GetTemplateParameter(context.ListIndex, unchecked((uint)parameterIndex)));
+    }
+
+    private sealed class TemplateParameterListContext(Decl owner, uint listIndex)
+    {
+        public readonly Decl Owner = owner;
+        public readonly uint ListIndex = listIndex;
+    }
 }

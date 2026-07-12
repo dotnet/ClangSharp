@@ -20,10 +20,7 @@ public class Stmt : Cursor
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _children = LazyList.Create<Stmt>(Handle.NumChildren, (i) => {
-            var childHandle = Handle.GetChild(unchecked((uint)i));
-            return !childHandle.IsNull ? TranslationUnit.GetOrCreate<Stmt>(childHandle) : null!;
-        });
+        _children = LazyList.Create<Stmt>(this, Handle.NumChildren, &ChildrenFactory);
         _declContext = new ValueLazy<Stmt, IDeclContext>(&DeclContextFactory);
     }
 
@@ -374,4 +371,11 @@ public class Stmt : Cursor
             Debug.Assert(semanticParent is not null);
             return (IDeclContext)semanticParent!;
         }
+
+    private static unsafe Stmt ChildrenFactory(object self, int i)
+    {
+        var @this = (Stmt)self;
+        var childHandle = @this.Handle.GetChild(unchecked((uint)i));
+        return !childHandle.IsNull ? @this.TranslationUnit.GetOrCreate<Stmt>(childHandle) : null!;
+    }
 }

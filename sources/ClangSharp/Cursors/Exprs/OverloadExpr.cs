@@ -20,9 +20,9 @@ public class OverloadExpr : Expr
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _decls = LazyList.Create<Decl>(Handle.NumDecls, (i) => TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i))));
+        _decls = LazyList.Create<Decl>(this, Handle.NumDecls, &DeclsFactory);
         _namingClass = new ValueLazy<OverloadExpr, CXXRecordDecl>(&NamingClassFactory);
-        _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgumentLoc>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     public IReadOnlyList<Decl> Decls => _decls;
@@ -42,4 +42,16 @@ public class OverloadExpr : Expr
     public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
 
     private static unsafe CXXRecordDecl NamingClassFactory(OverloadExpr self) => self.TranslationUnit.GetOrCreate<CXXRecordDecl>(self.Handle.Referenced);
+
+    private static unsafe Decl DeclsFactory(object self, int i)
+    {
+        var @this = (OverloadExpr)self;
+        return @this.TranslationUnit.GetOrCreate<Decl>(@this.Handle.GetDecl(unchecked((uint)i)));
+    }
+
+    private static unsafe TemplateArgumentLoc TemplateArgsFactory(object self, int i)
+    {
+        var @this = (OverloadExpr)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
+    }
 }

@@ -17,10 +17,7 @@ public sealed class FriendTemplateDecl : Decl
     {
         _friendDecl = new ValueLazy<FriendTemplateDecl, NamedDecl>(&FriendDeclFactory);
         _friendType = new ValueLazy<FriendTemplateDecl, Type>(&FriendTypeFactory);
-        _templateParameterLists = LazyList.Create<LazyList<NamedDecl>>(Handle.NumTemplateParameterLists, (listIndex) => {
-            var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
-            return LazyList.Create<NamedDecl>(numTemplateParameters, (parameterIndex) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex))));
-        });
+        _templateParameterLists = CreateTemplateParameterLists(this);
     }
 
     public NamedDecl FriendDecl => _friendDecl.GetValue(this);

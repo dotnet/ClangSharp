@@ -25,8 +25,8 @@ public sealed class ObjCCategoryDecl : ObjCContainerDecl
         _ivars = new ValueLazy<ObjCCategoryDecl, List<ObjCIvarDecl>>(&IvarsFactory);
         _nextClassCategory = new ValueLazy<ObjCCategoryDecl, ObjCCategoryDecl>(&NextClassCategoryFactory);
         _nextClassCategoryRaw = new ValueLazy<ObjCCategoryDecl, ObjCCategoryDecl>(&NextClassCategoryRawFactory);
-        _protocols = LazyList.Create<ObjCProtocolDecl>(Handle.NumProtocols, (i) => TranslationUnit.GetOrCreate<ObjCProtocolDecl>(Handle.GetProtocol(unchecked((uint)i))));
-        _typeParamList = LazyList.Create<ObjCTypeParamDecl>(Handle.NumTypeParams, (i) => TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(Handle.GetTypeParam(unchecked((uint)i))));
+        _protocols = LazyList.Create<ObjCProtocolDecl>(this, Handle.NumProtocols, &ProtocolsFactory);
+        _typeParamList = LazyList.Create<ObjCTypeParamDecl>(this, Handle.NumTypeParams, &TypeParamListFactory);
     }
 
     public ObjCInterfaceDecl ClassInterface => _classInterface.GetValue(this);
@@ -56,4 +56,16 @@ public sealed class ObjCCategoryDecl : ObjCContainerDecl
     private static unsafe ObjCCategoryImplDecl ImplementationFactory(ObjCCategoryDecl self) => self.TranslationUnit.GetOrCreate<ObjCCategoryImplDecl>(self.Handle.GetSubDecl(1));
 
     private static unsafe ObjCInterfaceDecl ClassInterfaceFactory(ObjCCategoryDecl self) => self.TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(self.Handle.GetSubDecl(0));
+
+    private static unsafe ObjCProtocolDecl ProtocolsFactory(object self, int i)
+    {
+        var @this = (ObjCCategoryDecl)self;
+        return @this.TranslationUnit.GetOrCreate<ObjCProtocolDecl>(@this.Handle.GetProtocol(unchecked((uint)i)));
+    }
+
+    private static unsafe ObjCTypeParamDecl TypeParamListFactory(object self, int i)
+    {
+        var @this = (ObjCCategoryDecl)self;
+        return @this.TranslationUnit.GetOrCreate<ObjCTypeParamDecl>(@this.Handle.GetTypeParam(unchecked((uint)i)));
+    }
 }

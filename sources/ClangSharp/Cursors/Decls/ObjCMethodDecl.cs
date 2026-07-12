@@ -26,7 +26,7 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
 
         _classInterface = new ValueLazy<ObjCMethodDecl, ObjCInterfaceDecl>(&ClassInterfaceFactory);
         _cmdDecl = new ValueLazy<ObjCMethodDecl, ImplicitParamDecl>(&CmdDeclFactory);
-        _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
+        _parameters = LazyList.Create<ParmVarDecl>(this, Handle.NumArguments, &ParametersFactory);
         _selfDecl = new ValueLazy<ObjCMethodDecl, ImplicitParamDecl>(&SelfDeclFactory);
         _returnType = new ValueLazy<ObjCMethodDecl, Type>(&ReturnTypeFactory);
         _sendResultType = new ValueLazy<ObjCMethodDecl, Type>(&SendResultTypeFactory);
@@ -69,4 +69,10 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
     private static unsafe ImplicitParamDecl CmdDeclFactory(ObjCMethodDecl self) => self.TranslationUnit.GetOrCreate<ImplicitParamDecl>(self.Handle.GetSubDecl(1));
 
     private static unsafe ObjCInterfaceDecl ClassInterfaceFactory(ObjCMethodDecl self) => self.TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(self.Handle.GetSubDecl(0));
+
+    private static unsafe ParmVarDecl ParametersFactory(object self, int i)
+    {
+        var @this = (ObjCMethodDecl)self;
+        return @this.TranslationUnit.GetOrCreate<ParmVarDecl>(@this.Handle.GetArgument(unchecked((uint)i)));
+    }
 }

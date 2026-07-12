@@ -18,7 +18,7 @@ public sealed class MemberExpr : Expr
         Debug.Assert(NumChildren is 1);
 
         _memberDecl = new ValueLazy<MemberExpr, ValueDecl>(&MemberDeclFactory);
-        _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgumentLoc>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     public Expr Base => (Expr)Children[0];
@@ -42,4 +42,10 @@ public sealed class MemberExpr : Expr
     public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
 
     private static unsafe ValueDecl MemberDeclFactory(MemberExpr self) => self.TranslationUnit.GetOrCreate<ValueDecl>(self.Handle.Referenced);
+
+    private static unsafe TemplateArgumentLoc TemplateArgsFactory(object self, int i)
+    {
+        var @this = (MemberExpr)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
+    }
 }

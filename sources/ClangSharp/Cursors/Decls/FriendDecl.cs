@@ -15,10 +15,7 @@ public sealed class FriendDecl : Decl
     internal unsafe FriendDecl(CXCursor handle) : base(handle, CXCursor_FriendDecl, CX_DeclKind_Friend)
     {
         _friendNamedDecl = new ValueLazy<FriendDecl, NamedDecl>(&FriendNamedDeclFactory);
-        _friendTypeTemplateParameterLists = LazyList.Create<LazyList<NamedDecl>>(Handle.NumTemplateParameterLists, (listIndex) => {
-            var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
-            return LazyList.Create<NamedDecl>(numTemplateParameters, (parameterIndex) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex))));
-        });
+        _friendTypeTemplateParameterLists = CreateTemplateParameterLists(this);
     }
 
     public NamedDecl FriendNamedDecl => _friendNamedDecl.GetValue(this);

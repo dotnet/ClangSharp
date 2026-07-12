@@ -20,7 +20,7 @@ public sealed partial class CapturedStmt : Stmt
         _capturedDecl = new ValueLazy<CapturedStmt, CapturedDecl>(&CapturedDeclFactory);
         _capturedRecordDecl = new ValueLazy<CapturedStmt, RecordDecl>(&CapturedRecordDeclFactory);
         _captureStmt = new ValueLazy<CapturedStmt, Stmt>(&CaptureStmtFactory);
-        _captures = LazyList.Create<Capture>(Handle.NumCaptures, (i) => new Capture(this, unchecked((uint)i)));
+        _captures = LazyList.Create<Capture>(this, Handle.NumCaptures, &CapturesFactory);
         _captureInits = LazyList.Create<Expr, Stmt>(_children);
     }
 
@@ -62,4 +62,10 @@ public sealed partial class CapturedStmt : Stmt
     private static unsafe RecordDecl CapturedRecordDeclFactory(CapturedStmt self) => self.TranslationUnit.GetOrCreate<RecordDecl>(self.Handle.CapturedRecordDecl);
 
     private static unsafe CapturedDecl CapturedDeclFactory(CapturedStmt self) => self.TranslationUnit.GetOrCreate<CapturedDecl>(self.Handle.CapturedDecl);
+
+    private static unsafe Capture CapturesFactory(object self, int i)
+    {
+        var @this = (CapturedStmt)self;
+        return new Capture(@this, unchecked((uint)i));
+    }
 }

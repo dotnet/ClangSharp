@@ -37,11 +37,11 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
         _definition = new ValueLazy<FunctionDecl, FunctionDecl>(&DefinitionFactory);
         _describedFunctionDecl = new ValueLazy<FunctionDecl, FunctionTemplateDecl>(&DescribedFunctionDeclFactory);
         _instantiatedFromMemberFunction = new ValueLazy<FunctionDecl, FunctionDecl>(&InstantiatedFromMemberFunctionFactory);
-        _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
+        _parameters = LazyList.Create<ParmVarDecl>(this, Handle.NumArguments, &ParametersFactory);
         _primaryTemplate = new ValueLazy<FunctionDecl, FunctionTemplateDecl>(&PrimaryTemplateFactory);
         _returnType = new ValueLazy<FunctionDecl, Type>(&ReturnTypeFactory);
         _templateInstantiationPattern = new ValueLazy<FunctionDecl, FunctionDecl>(&TemplateInstantiationPatternFactory);
-        _templateSpecializationArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
+        _templateSpecializationArgs = LazyList.Create<TemplateArgument>(this, Handle.NumTemplateArguments, &TemplateSpecializationArgsFactory);
     }
 
     public Type CallResultType => _callResultType.GetValue(this);
@@ -127,4 +127,16 @@ public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<Function
     private static unsafe Type DeclaredReturnTypeFactory(FunctionDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.DeclaredReturnType);
 
     private static unsafe Type CallResultTypeFactory(FunctionDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.CallResultType);
+
+    private static unsafe ParmVarDecl ParametersFactory(object self, int i)
+    {
+        var @this = (FunctionDecl)self;
+        return @this.TranslationUnit.GetOrCreate<ParmVarDecl>(@this.Handle.GetArgument(unchecked((uint)i)));
+    }
+
+    private static unsafe TemplateArgument TemplateSpecializationArgsFactory(object self, int i)
+    {
+        var @this = (FunctionDecl)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgument(unchecked((uint)i)));
+    }
 }

@@ -12,10 +12,10 @@ public sealed class FunctionTemplateDecl : RedeclarableTemplateDecl
     private readonly LazyList<TemplateArgument> _injectedTemplateArgs;
     private readonly LazyList<FunctionDecl> _specializations;
 
-    internal FunctionTemplateDecl(CXCursor handle) : base(handle, CXCursor_FunctionTemplate, CX_DeclKind_FunctionTemplate)
+    internal unsafe FunctionTemplateDecl(CXCursor handle) : base(handle, CXCursor_FunctionTemplate, CX_DeclKind_FunctionTemplate)
     {
-        _injectedTemplateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
-        _specializations = LazyList.Create<FunctionDecl>(Handle.NumSpecializations, (i) => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.GetSpecialization(unchecked((uint)i))));
+        _injectedTemplateArgs = LazyList.Create<TemplateArgument>(this, Handle.NumTemplateArguments, &InjectedTemplateArgsFactory);
+        _specializations = LazyList.Create<FunctionDecl>(this, Handle.NumSpecializations, &SpecializationsFactory);
     }
 
     public new FunctionTemplateDecl CanonicalDecl => (FunctionTemplateDecl)base.CanonicalDecl;
@@ -33,4 +33,16 @@ public sealed class FunctionTemplateDecl : RedeclarableTemplateDecl
     public IReadOnlyList<FunctionDecl> Specializations => _specializations;
 
     public new FunctionDecl TemplatedDecl => (FunctionDecl)base.TemplatedDecl;
+
+    private static unsafe TemplateArgument InjectedTemplateArgsFactory(object self, int i)
+    {
+        var @this = (FunctionTemplateDecl)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgument(unchecked((uint)i)));
+    }
+
+    private static unsafe FunctionDecl SpecializationsFactory(object self, int i)
+    {
+        var @this = (FunctionTemplateDecl)self;
+        return @this.TranslationUnit.GetOrCreate<FunctionDecl>(@this.Handle.GetSpecialization(unchecked((uint)i)));
+    }
 }

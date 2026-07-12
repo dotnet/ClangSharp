@@ -35,19 +35,19 @@ public class CXXRecordDecl : RecordDecl
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _bases = LazyList.Create<CXXBaseSpecifier>(Handle.NumBases, (i) => TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetBase(unchecked((uint)i))));
-        _ctors = LazyList.Create<CXXConstructorDecl>(Handle.NumCtors, (i) => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.GetCtor(unchecked((uint)i))));
+        _bases = LazyList.Create<CXXBaseSpecifier>(this, Handle.NumBases, &BasesFactory);
+        _ctors = LazyList.Create<CXXConstructorDecl>(this, Handle.NumCtors, &CtorsFactory);
         _dependentLambdaCallOperator = new ValueLazy<CXXRecordDecl, FunctionTemplateDecl>(&DependentLambdaCallOperatorFactory);
         _describedClassTemplate = new ValueLazy<CXXRecordDecl, ClassTemplateDecl>(&DescribedClassTemplateFactory);
         _destructor = new ValueLazy<CXXRecordDecl, CXXDestructorDecl?>(&DestructorFactory);
-        _friends = LazyList.Create<FriendDecl>(Handle.NumFriends, (i) => TranslationUnit.GetOrCreate<FriendDecl>(Handle.GetFriend(unchecked((uint)i))));
+        _friends = LazyList.Create<FriendDecl>(this, Handle.NumFriends, &FriendsFactory);
         _instantiatedFromMemberClass = new ValueLazy<CXXRecordDecl, CXXRecordDecl>(&InstantiatedFromMemberClassFactory);
         _lambdaCallOperator = new ValueLazy<CXXRecordDecl, CXXMethodDecl>(&LambdaCallOperatorFactory);
         _lambdaContextDecl = new ValueLazy<CXXRecordDecl, Decl>(&LambdaContextDeclFactory);
         _lambdaStaticInvoker = new ValueLazy<CXXRecordDecl, CXXMethodDecl>(&LambdaStaticInvokerFactory);
-        _methods = LazyList.Create<CXXMethodDecl>(Handle.NumMethods, (i) => TranslationUnit.GetOrCreate<CXXMethodDecl>(Handle.GetMethod(unchecked((uint)i))));
+        _methods = LazyList.Create<CXXMethodDecl>(this, Handle.NumMethods, &MethodsFactory);
         _templateInstantiationPattern = new ValueLazy<CXXRecordDecl, CXXRecordDecl>(&TemplateInstantiationPatternFactory);
-        _vbases = LazyList.Create<CXXBaseSpecifier>(Handle.NumVBases, (i) => TranslationUnit.GetOrCreate<CXXBaseSpecifier>(Handle.GetVBase(unchecked((uint)i))));
+        _vbases = LazyList.Create<CXXBaseSpecifier>(this, Handle.NumVBases, &VbasesFactory);
     }
 
     public bool IsAbstract => Handle.CXXRecord_IsAbstract;
@@ -146,4 +146,34 @@ public class CXXRecordDecl : RecordDecl
     private static unsafe ClassTemplateDecl DescribedClassTemplateFactory(CXXRecordDecl self) => self.TranslationUnit.GetOrCreate<ClassTemplateDecl>(self.Handle.DescribedCursorTemplate);
 
     private static unsafe FunctionTemplateDecl DependentLambdaCallOperatorFactory(CXXRecordDecl self) => self.TranslationUnit.GetOrCreate<FunctionTemplateDecl>(self.Handle.DependentLambdaCallOperator);
+
+    private static unsafe CXXBaseSpecifier BasesFactory(object self, int i)
+    {
+        var @this = (CXXRecordDecl)self;
+        return @this.TranslationUnit.GetOrCreate<CXXBaseSpecifier>(@this.Handle.GetBase(unchecked((uint)i)));
+    }
+
+    private static unsafe CXXConstructorDecl CtorsFactory(object self, int i)
+    {
+        var @this = (CXXRecordDecl)self;
+        return @this.TranslationUnit.GetOrCreate<CXXConstructorDecl>(@this.Handle.GetCtor(unchecked((uint)i)));
+    }
+
+    private static unsafe FriendDecl FriendsFactory(object self, int i)
+    {
+        var @this = (CXXRecordDecl)self;
+        return @this.TranslationUnit.GetOrCreate<FriendDecl>(@this.Handle.GetFriend(unchecked((uint)i)));
+    }
+
+    private static unsafe CXXMethodDecl MethodsFactory(object self, int i)
+    {
+        var @this = (CXXRecordDecl)self;
+        return @this.TranslationUnit.GetOrCreate<CXXMethodDecl>(@this.Handle.GetMethod(unchecked((uint)i)));
+    }
+
+    private static unsafe CXXBaseSpecifier VbasesFactory(object self, int i)
+    {
+        var @this = (CXXRecordDecl)self;
+        return @this.TranslationUnit.GetOrCreate<CXXBaseSpecifier>(@this.Handle.GetVBase(unchecked((uint)i)));
+    }
 }

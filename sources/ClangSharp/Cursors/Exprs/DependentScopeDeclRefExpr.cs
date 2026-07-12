@@ -12,10 +12,10 @@ public sealed class DependentScopeDeclRefExpr : Expr
 {
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
-    internal DependentScopeDeclRefExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_DependentScopeDeclRefExpr)
+    internal unsafe DependentScopeDeclRefExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_DependentScopeDeclRefExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgumentLoc>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     public string DeclName => Handle.Name.CString;
@@ -25,4 +25,10 @@ public sealed class DependentScopeDeclRefExpr : Expr
     public bool HasTemplateKeyword => Handle.HasTemplateKeyword;
 
     public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
+
+    private static unsafe TemplateArgumentLoc TemplateArgsFactory(object self, int i)
+    {
+        var @this = (DependentScopeDeclRefExpr)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgumentLoc(unchecked((uint)i)));
+    }
 }

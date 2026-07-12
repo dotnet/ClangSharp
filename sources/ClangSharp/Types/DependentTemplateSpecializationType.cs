@@ -11,10 +11,16 @@ public sealed class DependentTemplateSpecializationType : TypeWithKeyword
 {
     private readonly LazyList<TemplateArgument> _templateArgs;
 
-    internal DependentTemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentTemplateSpecialization)
+    internal unsafe DependentTemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentTemplateSpecialization)
     {
-        _templateArgs = LazyList.Create<TemplateArgument>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgument(unchecked((uint)i))));
+        _templateArgs = LazyList.Create<TemplateArgument>(this, Handle.NumTemplateArguments, &TemplateArgsFactory);
     }
 
     public IReadOnlyList<TemplateArgument> Args => _templateArgs;
+
+    private static unsafe TemplateArgument TemplateArgsFactory(object self, int i)
+    {
+        var @this = (DependentTemplateSpecializationType)self;
+        return @this.TranslationUnit.GetOrCreate(@this.Handle.GetTemplateArgument(unchecked((uint)i)));
+    }
 }
