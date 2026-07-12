@@ -131,7 +131,7 @@ CXCursor clangsharp_Cursor_getArgument(CXCursor C, unsigned i) {
         if (const ObjCCategoryDecl* OCCD = dyn_cast<ObjCCategoryDecl>(D)) {
             ObjCTypeParamList* typeParamList = OCCD->getTypeParamList();
 
-            if (i < typeParamList->size()) {
+            if (typeParamList != nullptr && i < typeParamList->size()) {
                 return MakeCXCursor(&typeParamList->front()[i], getCursorTU(C));
             }
         }
@@ -4969,7 +4969,7 @@ CXCursor clangsharp_Cursor_getTypeParam(CXCursor C, unsigned i) {
             ObjCTypeParamList* typeParamList = OCCD->getTypeParamList();
 
             unsigned int n = 0;
-            if (i < typeParamList->size()) {
+            if (typeParamList != nullptr && i < typeParamList->size()) {
                 for (auto d : *typeParamList) {
                     if (n == i) {
                         return MakeCXCursor(d, getCursorTU(C));
@@ -4983,7 +4983,7 @@ CXCursor clangsharp_Cursor_getTypeParam(CXCursor C, unsigned i) {
             ObjCTypeParamList* typeParamList = OCID->getTypeParamList();
 
             unsigned int n = 0;
-            if (i < typeParamList->size()) {
+            if (typeParamList != nullptr && i < typeParamList->size()) {
                 for (auto d : *typeParamList) {
                     if (n == i) {
                         return MakeCXCursor(d, getCursorTU(C));
