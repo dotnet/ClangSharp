@@ -8,16 +8,18 @@ namespace ClangSharp;
 
 public sealed class DependentBitIntType : Type
 {
-    private ValueLazy<Expr> _numBitsExpr;
+    private ValueLazy<DependentBitIntType, Expr> _numBitsExpr;
 
-    internal DependentBitIntType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentBitInt)
+    internal unsafe DependentBitIntType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentBitInt)
     {
-        _numBitsExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.NumBitsExpr));
+        _numBitsExpr = new ValueLazy<DependentBitIntType, Expr>(&NumBitsExprFactory);
     }
 
     public bool IsSigned => Handle.IsSigned;
 
     public bool IsUnsigned => Handle.IsUnsigned;
 
-    public Expr NumBitsExpr => _numBitsExpr.Value;
+    public Expr NumBitsExpr => _numBitsExpr.GetValue(this);
+
+    private static unsafe Expr NumBitsExprFactory(DependentBitIntType self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.NumBitsExpr);
 }

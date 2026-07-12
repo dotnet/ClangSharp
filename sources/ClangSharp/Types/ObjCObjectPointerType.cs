@@ -9,24 +9,28 @@ namespace ClangSharp;
 
 public sealed class ObjCObjectPointerType : Type
 {
-    private ValueLazy<ObjCInterfaceType> _interfaceType;
-    private ValueLazy<Type> _superClassType;
+    private ValueLazy<ObjCObjectPointerType, ObjCInterfaceType> _interfaceType;
+    private ValueLazy<ObjCObjectPointerType, Type> _superClassType;
 
-    internal ObjCObjectPointerType(CXType handle) : base(handle, CXType_ObjCObjectPointer, CX_TypeClass_ObjCObjectPointer)
+    internal unsafe ObjCObjectPointerType(CXType handle) : base(handle, CXType_ObjCObjectPointer, CX_TypeClass_ObjCObjectPointer)
     {
-        _interfaceType = new ValueLazy<ObjCInterfaceType>(() => TranslationUnit.GetOrCreate<ObjCInterfaceType>(Handle.OriginalType));
-        _superClassType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
+        _interfaceType = new ValueLazy<ObjCObjectPointerType, ObjCInterfaceType>(&InterfaceTypeFactory);
+        _superClassType = new ValueLazy<ObjCObjectPointerType, Type>(&SuperClassTypeFactory);
     }
 
     public ObjCInterfaceDecl InterfaceDecl => ObjectType.Interface;
 
-    public ObjCInterfaceType InterfaceType => _interfaceType.Value;
+    public ObjCInterfaceType InterfaceType => _interfaceType.GetValue(this);
 
     public ObjCObjectType ObjectType => PointeeType.CastAs<ObjCObjectType>();
 
     public IReadOnlyList<ObjCProtocolDecl> Protocols => ObjectType.Protocols;
 
-    public Type SuperClassType => _superClassType.Value;
+    public Type SuperClassType => _superClassType.GetValue(this);
 
     public IReadOnlyList<Type> TypeArgs => ObjectType.TypeArgs;
+
+    private static unsafe Type SuperClassTypeFactory(ObjCObjectPointerType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.UnderlyingType);
+
+    private static unsafe ObjCInterfaceType InterfaceTypeFactory(ObjCObjectPointerType self) => self.TranslationUnit.GetOrCreate<ObjCInterfaceType>(self.Handle.OriginalType);
 }

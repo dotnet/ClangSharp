@@ -9,17 +9,19 @@ namespace ClangSharp;
 
 public sealed class OverloadedDeclRef : Ref
 {
-    private ValueLazy<IEnumerable<Decl>> _overloadedDecls;
+    private ValueLazy<OverloadedDeclRef, IEnumerable<Decl>> _overloadedDecls;
 
-    internal OverloadedDeclRef(CXCursor handle) : base(handle, CXCursor_OverloadedDeclRef)
+    internal unsafe OverloadedDeclRef(CXCursor handle) : base(handle, CXCursor_OverloadedDeclRef)
     {
-        _overloadedDecls = new ValueLazy<IEnumerable<Decl>>(() => {
-            var num = Handle.NumOverloadedDecls;
-            return [.. Enumerable.Range(0, (int)num)
-                .Select(i => Handle.GetOverloadedDecl((uint)i))
-                .Select(c => TranslationUnit.GetOrCreate<Decl>(c))];
-        });
+        _overloadedDecls = new ValueLazy<OverloadedDeclRef, IEnumerable<Decl>>(&OverloadedDeclsFactory);
     }
 
-    public IEnumerable<Decl> OverloadedDecls => _overloadedDecls.Value;
+    public IEnumerable<Decl> OverloadedDecls => _overloadedDecls.GetValue(this);
+
+    private static unsafe IEnumerable<Decl> OverloadedDeclsFactory(OverloadedDeclRef self) {
+            var num = self.Handle.NumOverloadedDecls;
+            return [.. Enumerable.Range(0, (int)num)
+                .Select(i => self.Handle.GetOverloadedDecl((uint)i))
+                .Select(c => self.TranslationUnit.GetOrCreate<Decl>(c))];
+        }
 }

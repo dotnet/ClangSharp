@@ -11,18 +11,18 @@ namespace ClangSharp;
 
 public class RecordDecl : TagDecl
 {
-    private ValueLazy<List<FieldDecl>> _anonymousFields;
-    private ValueLazy<List<RecordDecl>> _anonymousRecords;
+    private ValueLazy<RecordDecl, List<FieldDecl>> _anonymousFields;
+    private ValueLazy<RecordDecl, List<RecordDecl>> _anonymousRecords;
     private readonly LazyList<FieldDecl> _fields;
-    private ValueLazy<List<IndirectFieldDecl>> _indirectFields;
-    private ValueLazy<RecordDecl?> _injectedClassName;
+    private ValueLazy<RecordDecl, List<IndirectFieldDecl>> _indirectFields;
+    private ValueLazy<RecordDecl, RecordDecl?> _injectedClassName;
     
 
     internal RecordDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_Record)
     {
     }
 
-    private protected RecordDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    private protected unsafe RecordDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
         if (handle.DeclKind is > CX_DeclKind_LastRecord or < CX_DeclKind_FirstRecord)
         {
@@ -35,29 +35,37 @@ public class RecordDecl : TagDecl
         }
 
         _fields = LazyList.Create<FieldDecl>(Handle.NumFields, (i) => TranslationUnit.GetOrCreate<FieldDecl>(Handle.GetField(unchecked((uint)i))));
-        _anonymousFields = new ValueLazy<List<FieldDecl>>(() => [.. Decls.OfType<FieldDecl>().Where(decl => decl.IsAnonymousField)]);
-        _anonymousRecords = new ValueLazy<List<RecordDecl>>(() => [.. Decls.OfType<RecordDecl>().Where(decl => decl.IsAnonymousStructOrUnion && !decl.IsInjectedClassName)]);
-        _indirectFields = new ValueLazy<List<IndirectFieldDecl>>(() => [.. Decls.OfType<IndirectFieldDecl>()]);
-        _injectedClassName = new ValueLazy<RecordDecl?>(() => Decls.OfType<RecordDecl>().Where(decl => decl.IsInjectedClassName).SingleOrDefault());
+        _anonymousFields = new ValueLazy<RecordDecl, List<FieldDecl>>(&AnonymousFieldsFactory);
+        _anonymousRecords = new ValueLazy<RecordDecl, List<RecordDecl>>(&AnonymousRecordsFactory);
+        _indirectFields = new ValueLazy<RecordDecl, List<IndirectFieldDecl>>(&IndirectFieldsFactory);
+        _injectedClassName = new ValueLazy<RecordDecl, RecordDecl?>(&InjectedClassNameFactory);
     }
 
     public bool IsAnonymousStructOrUnion => Handle.IsAnonymousStructOrUnion;
 
-    public IReadOnlyList<FieldDecl> AnonymousFields => _anonymousFields.Value;
+    public IReadOnlyList<FieldDecl> AnonymousFields => _anonymousFields.GetValue(this);
 
-    public IReadOnlyList<RecordDecl> AnonymousRecords => _anonymousRecords.Value;
+    public IReadOnlyList<RecordDecl> AnonymousRecords => _anonymousRecords.GetValue(this);
 
     public new RecordDecl? Definition => (RecordDecl?)base.Definition;
 
     public IReadOnlyList<FieldDecl> Fields => _fields;
 
-    public IReadOnlyList<IndirectFieldDecl> IndirectFields => _indirectFields.Value;
+    public IReadOnlyList<IndirectFieldDecl> IndirectFields => _indirectFields.GetValue(this);
 
-    public RecordDecl? InjectedClassName => _injectedClassName.Value;
+    public RecordDecl? InjectedClassName => _injectedClassName.GetValue(this);
 
     public bool IsInjectedClassName => Handle.IsInjectedClassName;
 
     public new RecordDecl MostRecentDecl => (RecordDecl)base.MostRecentDecl;
 
     public new RecordDecl PreviousDecl => (RecordDecl)base.PreviousDecl;
+
+    private static unsafe RecordDecl? InjectedClassNameFactory(RecordDecl self) => self.Decls.OfType<RecordDecl>().Where(decl => decl.IsInjectedClassName).SingleOrDefault();
+
+    private static unsafe List<IndirectFieldDecl> IndirectFieldsFactory(RecordDecl self) => [.. self.Decls.OfType<IndirectFieldDecl>()];
+
+    private static unsafe List<RecordDecl> AnonymousRecordsFactory(RecordDecl self) => [.. self.Decls.OfType<RecordDecl>().Where(decl => decl.IsAnonymousStructOrUnion && !decl.IsInjectedClassName)];
+
+    private static unsafe List<FieldDecl> AnonymousFieldsFactory(RecordDecl self) => [.. self.Decls.OfType<FieldDecl>().Where(decl => decl.IsAnonymousField)];
 }

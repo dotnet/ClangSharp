@@ -9,18 +9,20 @@ namespace ClangSharp;
 
 public sealed class ObjCArrayLiteral : Expr
 {
-    private ValueLazy<ObjCMethodDecl> _arrayWithObjectsMethod;
+    private ValueLazy<ObjCArrayLiteral, ObjCMethodDecl> _arrayWithObjectsMethod;
     private readonly LazyList<Expr, Stmt> _elements;
 
-    internal ObjCArrayLiteral(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCArrayLiteral)
+    internal unsafe ObjCArrayLiteral(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCArrayLiteral)
     {
-        _arrayWithObjectsMethod = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
+        _arrayWithObjectsMethod = new ValueLazy<ObjCArrayLiteral, ObjCMethodDecl>(&ArrayWithObjectsMethodFactory);
         _elements = LazyList.Create<Expr, Stmt>(_children);
     }
 
-    public ObjCMethodDecl ArrayWithObjectsMethod => _arrayWithObjectsMethod.Value;
+    public ObjCMethodDecl ArrayWithObjectsMethod => _arrayWithObjectsMethod.GetValue(this);
 
     public IReadOnlyList<Expr> Elements => _elements;
 
     public uint NumElements => NumChildren;
+
+    private static unsafe ObjCMethodDecl ArrayWithObjectsMethodFactory(ObjCArrayLiteral self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.Referenced);
 }

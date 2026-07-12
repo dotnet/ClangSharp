@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class CXXTemporaryObjectExpr : CXXConstructExpr
 {
-    private ValueLazy<Type> _typeSourceInfoType;
+    private ValueLazy<CXXTemporaryObjectExpr, Type> _typeSourceInfoType;
 
-    internal CXXTemporaryObjectExpr(CXCursor handle) : base(handle, CXCursor_CallExpr, CX_StmtClass_CXXTemporaryObjectExpr)
+    internal unsafe CXXTemporaryObjectExpr(CXCursor handle) : base(handle, CXCursor_CallExpr, CX_StmtClass_CXXTemporaryObjectExpr)
     {
-        _typeSourceInfoType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _typeSourceInfoType = new ValueLazy<CXXTemporaryObjectExpr, Type>(&TypeSourceInfoTypeFactory);
     }
 
-    public Type TypeSourceInfoType => _typeSourceInfoType.Value;
+    public Type TypeSourceInfoType => _typeSourceInfoType.GetValue(this);
+
+    private static unsafe Type TypeSourceInfoTypeFactory(CXXTemporaryObjectExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

@@ -11,17 +11,17 @@ public partial class CapturedStmt
     {
         private readonly CapturedStmt _parentStmt;
         private readonly uint _index;
-        private ValueLazy<VarDecl> _capturedVar;
+        private ValueLazy<Capture, VarDecl> _capturedVar;
 
-        internal Capture(CapturedStmt parentStmt, uint index)
+        internal unsafe Capture(CapturedStmt parentStmt, uint index)
         {
             _parentStmt = parentStmt;
             _index = index;
 
-            _capturedVar = new ValueLazy<VarDecl>(() => _parentStmt.TranslationUnit.GetOrCreate<VarDecl>(_parentStmt.Handle.GetCapturedVar(_index)));
+            _capturedVar = new ValueLazy<Capture, VarDecl>(&CapturedVarFactory);
         }
 
-        public VarDecl CapturedVar => _capturedVar.Value;
+        public VarDecl CapturedVar => _capturedVar.GetValue(this);
 
         public CX_VariableCaptureKind CaptureKind => _parentStmt.Handle.GetCaptureKind(_index);
 
@@ -32,5 +32,7 @@ public partial class CapturedStmt
         public bool CapturesVariableByCopy => CaptureKind == CX_VCK_ByCopy;
 
         public bool CapturesVariableArrayType => CaptureKind == CX_VCK_VLAType;
-    }
+    
+    private static unsafe VarDecl CapturedVarFactory(Capture self) => self._parentStmt.TranslationUnit.GetOrCreate<VarDecl>(self._parentStmt.Handle.GetCapturedVar(self._index));
+}
 }

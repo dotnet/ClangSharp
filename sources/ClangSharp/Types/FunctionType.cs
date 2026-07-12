@@ -6,14 +6,16 @@ namespace ClangSharp;
 
 public class FunctionType : Type
 {
-    private ValueLazy<Type> _returnType;
+    private ValueLazy<FunctionType, Type> _returnType;
 
-    private protected FunctionType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
+    private protected unsafe FunctionType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        _returnType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ResultType));
+        _returnType = new ValueLazy<FunctionType, Type>(&ReturnTypeFactory);
     }
 
     public CXCallingConv CallConv => Handle.FunctionTypeCallingConv;
 
-    public Type ReturnType => _returnType.Value;
+    public Type ReturnType => _returnType.GetValue(this);
+
+    private static unsafe Type ReturnTypeFactory(FunctionType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ResultType);
 }

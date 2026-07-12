@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class ComplexType : Type
 {
-    private ValueLazy<Type> _elementType;
+    private ValueLazy<ComplexType, Type> _elementType;
 
-    internal ComplexType(CXType handle) : base(handle, CXType_Complex, CX_TypeClass_Complex)
+    internal unsafe ComplexType(CXType handle) : base(handle, CXType_Complex, CX_TypeClass_Complex)
     {
-        _elementType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
+        _elementType = new ValueLazy<ComplexType, Type>(&ElementTypeFactory);
     }
 
-    public Type ElementType => _elementType.Value;
+    public Type ElementType => _elementType.GetValue(this);
+
+    private static unsafe Type ElementTypeFactory(ComplexType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ElementType);
 }

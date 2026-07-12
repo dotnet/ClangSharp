@@ -8,16 +8,20 @@ namespace ClangSharp;
 
 public sealed class CompoundAssignOperator : BinaryOperator
 {
-    private ValueLazy<Type> _computationLHSType;
-    private ValueLazy<Type> _computationResultType;
+    private ValueLazy<CompoundAssignOperator, Type> _computationLHSType;
+    private ValueLazy<CompoundAssignOperator, Type> _computationResultType;
 
-    internal CompoundAssignOperator(CXCursor handle) : base(handle, CXCursor_CompoundAssignOperator, CX_StmtClass_CompoundAssignOperator)
+    internal unsafe CompoundAssignOperator(CXCursor handle) : base(handle, CXCursor_CompoundAssignOperator, CX_StmtClass_CompoundAssignOperator)
     {
-        _computationLHSType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(handle.ComputationLhsType));
-        _computationResultType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(handle.ComputationResultType));
+        _computationLHSType = new ValueLazy<CompoundAssignOperator, Type>(&ComputationLHSTypeFactory);
+        _computationResultType = new ValueLazy<CompoundAssignOperator, Type>(&ComputationResultTypeFactory);
     }
 
-    public Type ComputationLHSType => _computationLHSType.Value;
+    public Type ComputationLHSType => _computationLHSType.GetValue(this);
 
-    public Type ComputationResultType => _computationResultType.Value;
+    public Type ComputationResultType => _computationResultType.GetValue(this);
+
+    private static unsafe Type ComputationResultTypeFactory(CompoundAssignOperator self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ComputationResultType);
+
+    private static unsafe Type ComputationLHSTypeFactory(CompoundAssignOperator self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ComputationLhsType);
 }

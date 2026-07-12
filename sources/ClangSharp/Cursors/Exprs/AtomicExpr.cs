@@ -11,12 +11,12 @@ namespace ClangSharp;
 public sealed class AtomicExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _subExprs;
-    private ValueLazy<Type> _valueType;
+    private ValueLazy<AtomicExpr, Type> _valueType;
 
-    internal AtomicExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_AtomicExpr)
+    internal unsafe AtomicExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_AtomicExpr)
     {
         _subExprs = LazyList.Create<Expr, Stmt>(_children);
-        _valueType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _valueType = new ValueLazy<AtomicExpr, Type>(&ValueTypeFactory);
     }
 
     public CX_AtomicOperatorKind Op => Handle.AtomicOperatorKind;
@@ -47,7 +47,9 @@ public sealed class AtomicExpr : Expr
 
     public Expr? Val => Op == CX_AO__atomic_exchange ? OrderFail : (NumSubExprs > 4) ? SubExprs[4] : null;
 
-    public Type ValueType => _valueType.Value;
+    public Type ValueType => _valueType.GetValue(this);
 
     public Expr? Weak => (NumSubExprs > 5) ? SubExprs[5] : null;
+
+    private static unsafe Type ValueTypeFactory(AtomicExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

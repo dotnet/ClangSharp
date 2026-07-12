@@ -8,18 +8,20 @@ namespace ClangSharp;
 
 public class VectorType : Type
 {
-    private ValueLazy<Type> _elementType;
+    private ValueLazy<VectorType, Type> _elementType;
 
     internal VectorType(CXType handle) : this(handle, CXType_Vector, CX_TypeClass_Vector)
     {
     }
 
-    private protected VectorType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
+    private protected unsafe VectorType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        _elementType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ElementType));
+        _elementType = new ValueLazy<VectorType, Type>(&ElementTypeFactory);
     }
 
-    public Type ElementType => _elementType.Value;
+    public Type ElementType => _elementType.GetValue(this);
 
     public long NumElements => Handle.NumElements;
+
+    private static unsafe Type ElementTypeFactory(VectorType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ElementType);
 }

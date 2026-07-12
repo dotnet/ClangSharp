@@ -9,17 +9,19 @@ namespace ClangSharp;
 
 public sealed class CXXPseudoDestructorExpr : Expr
 {
-    private ValueLazy<Type> _destroyedType;
+    private ValueLazy<CXXPseudoDestructorExpr, Type> _destroyedType;
 
-    internal CXXPseudoDestructorExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_CXXPseudoDestructorExpr)
+    internal unsafe CXXPseudoDestructorExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_CXXPseudoDestructorExpr)
     {
         Debug.Assert(NumChildren is 1);
-        _destroyedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _destroyedType = new ValueLazy<CXXPseudoDestructorExpr, Type>(&DestroyedTypeFactory);
     }
 
     public Expr Base => (Expr)Children[0];
 
-    public Type DestroyedType => _destroyedType.Value;
+    public Type DestroyedType => _destroyedType.GetValue(this);
 
     public bool IsArrow => Handle.IsArrow;
+
+    private static unsafe Type DestroyedTypeFactory(CXXPseudoDestructorExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

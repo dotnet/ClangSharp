@@ -27,7 +27,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
     private readonly Dictionary<CX_TemplateArgumentLoc, WeakReference<TemplateArgumentLoc>> _createdTemplateArgumentLocs;
     private readonly Dictionary<CX_TemplateName, WeakReference<TemplateName>> _createdTemplateNames;
     private readonly Dictionary<CXType, WeakReference<Type>> _createdTypes;
-    private ValueLazy<TranslationUnitDecl> _translationUnitDecl;
+    private ValueLazy<TranslationUnit, TranslationUnitDecl> _translationUnitDecl;
 
     private bool _isDisposed;
 
@@ -41,7 +41,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
         _createdTemplateNames = [];
         _createdTypes = [];
 
-        _translationUnitDecl = new ValueLazy<TranslationUnitDecl>(() => GetOrCreate<TranslationUnitDecl>(Handle.Cursor));
+        _translationUnitDecl = new ValueLazy<TranslationUnit, TranslationUnitDecl>(&TranslationUnitDeclFactory);
     }
 
     ~TranslationUnit()
@@ -51,7 +51,7 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
     public CXTranslationUnit Handle { get; }
 
-    public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.Value;
+    public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.GetValue(this);
 
     public static bool operator ==(TranslationUnit? left, TranslationUnit? right) => (left is not null) ? ((right is not null) && (left.Handle == right.Handle)) : (right is null);
 
@@ -227,4 +227,6 @@ public sealed unsafe class TranslationUnit : IDisposable, IEquatable<Translation
 
         _ = s_createdTranslationUnits.TryRemove(Handle, out _);
     }
+
+    private static unsafe TranslationUnitDecl TranslationUnitDeclFactory(TranslationUnit self) => self.GetOrCreate<TranslationUnitDecl>(self.Handle.Cursor);
 }

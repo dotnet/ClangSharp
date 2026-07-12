@@ -9,20 +9,24 @@ namespace ClangSharp;
 
 public sealed class CXXCatchStmt : Stmt
 {
-    private ValueLazy<Type> _caughtType;
-    private ValueLazy<VarDecl> _exceptionDecl;
+    private ValueLazy<CXXCatchStmt, Type> _caughtType;
+    private ValueLazy<CXXCatchStmt, VarDecl> _exceptionDecl;
 
-    internal CXXCatchStmt(CXCursor handle) : base(handle, CXCursor_CXXCatchStmt, CX_StmtClass_CXXCatchStmt)
+    internal unsafe CXXCatchStmt(CXCursor handle) : base(handle, CXCursor_CXXCatchStmt, CX_StmtClass_CXXCatchStmt)
     {
         Debug.Assert(NumChildren is 1);
 
-        _caughtType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        _exceptionDecl = new ValueLazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
+        _caughtType = new ValueLazy<CXXCatchStmt, Type>(&CaughtTypeFactory);
+        _exceptionDecl = new ValueLazy<CXXCatchStmt, VarDecl>(&ExceptionDeclFactory);
     }
 
-    public Type CaughtType => _caughtType.Value;
+    public Type CaughtType => _caughtType.GetValue(this);
 
-    public VarDecl ExceptionDecl => _exceptionDecl.Value;
+    public VarDecl ExceptionDecl => _exceptionDecl.GetValue(this);
 
     public Stmt HandlerBlock => Children[0];
+
+    private static unsafe VarDecl ExceptionDeclFactory(CXXCatchStmt self) => self.TranslationUnit.GetOrCreate<VarDecl>(self.Handle.Referenced);
+
+    private static unsafe Type CaughtTypeFactory(CXXCatchStmt self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

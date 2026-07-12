@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class PackExpansionType : Type
 {
-    private ValueLazy<Type> _pattern;
+    private ValueLazy<PackExpansionType, Type> _pattern;
 
-    internal PackExpansionType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_PackExpansion)
+    internal unsafe PackExpansionType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_PackExpansion)
     {
-        _pattern = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.OriginalType));
+        _pattern = new ValueLazy<PackExpansionType, Type>(&PatternFactory);
     }
 
-    public Type Pattern => _pattern.Value;
+    public Type Pattern => _pattern.GetValue(this);
+
+    private static unsafe Type PatternFactory(PackExpansionType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.OriginalType);
 }

@@ -12,13 +12,13 @@ namespace ClangSharp;
 public class CXXConstructExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _args;
-    private ValueLazy<CXXConstructorDecl> _constructor;
+    private ValueLazy<CXXConstructExpr, CXXConstructorDecl> _constructor;
 
     internal CXXConstructExpr(CXCursor handle) : this(handle, CXCursor_CallExpr, CX_StmtClass_CXXConstructExpr)
     {
     }
 
-    private protected CXXConstructExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
+    private protected unsafe CXXConstructExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
         if (handle.StmtClass is > CX_StmtClass_LastCXXConstructExpr or < CX_StmtClass_FirstCXXConstructExpr)
         {
@@ -27,12 +27,12 @@ public class CXXConstructExpr : Expr
         Debug.Assert(NumChildren == NumArgs);
 
         _args = LazyList.Create<Expr, Stmt>(_children);
-        _constructor = new ValueLazy<CXXConstructorDecl>(() => TranslationUnit.GetOrCreate<CXXConstructorDecl>(Handle.Referenced));
+        _constructor = new ValueLazy<CXXConstructExpr, CXXConstructorDecl>(&ConstructorFactory);
     }
 
     public IReadOnlyList<Expr> Args => _args;
 
-    public CXXConstructorDecl Constructor => _constructor.Value;
+    public CXXConstructorDecl Constructor => _constructor.GetValue(this);
 
     public CX_ConstructionKind ConstructionKind => Handle.ConstructionKind;
 
@@ -47,4 +47,6 @@ public class CXXConstructExpr : Expr
     public uint NumArgs => (uint)Handle.NumArguments;
 
     public bool RequiresZeroInitialization => Handle.RequiresZeroInitialization;
+
+    private static unsafe CXXConstructorDecl ConstructorFactory(CXXConstructExpr self) => self.TranslationUnit.GetOrCreate<CXXConstructorDecl>(self.Handle.Referenced);
 }

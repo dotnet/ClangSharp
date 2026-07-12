@@ -8,13 +8,15 @@ namespace ClangSharp;
 
 public sealed class ObjCCompatibleAliasDecl : NamedDecl
 {
-    private ValueLazy<ObjCInterfaceDecl> _classInterface;
+    private ValueLazy<ObjCCompatibleAliasDecl, ObjCInterfaceDecl> _classInterface;
 
-    internal ObjCCompatibleAliasDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ObjCCompatibleAlias)
+    internal unsafe ObjCCompatibleAliasDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ObjCCompatibleAlias)
     {
 
-        _classInterface = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
+        _classInterface = new ValueLazy<ObjCCompatibleAliasDecl, ObjCInterfaceDecl>(&ClassInterfaceFactory);
     }
 
-    public ObjCInterfaceDecl ClassInterface => _classInterface.Value;
+    public ObjCInterfaceDecl ClassInterface => _classInterface.GetValue(this);
+
+    private static unsafe ObjCInterfaceDecl ClassInterfaceFactory(ObjCCompatibleAliasDecl self) => self.TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(self.Handle.GetSubDecl(0));
 }

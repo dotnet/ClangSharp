@@ -10,30 +10,34 @@ namespace ClangSharp;
 
 public sealed class ObjCDictionaryLiteral : Expr
 {
-    private ValueLazy<ObjCMethodDecl> _dictWithObjectsMethod;
-    private ValueLazy<List<(Expr Key, Expr Value)>> _keyValueElements;
+    private ValueLazy<ObjCDictionaryLiteral, ObjCMethodDecl> _dictWithObjectsMethod;
+    private ValueLazy<ObjCDictionaryLiteral, List<(Expr Key, Expr Value)>> _keyValueElements;
 
-    internal ObjCDictionaryLiteral(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCDictionaryLiteral)
+    internal unsafe ObjCDictionaryLiteral(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCDictionaryLiteral)
     {
         Debug.Assert((NumChildren % 2) == 0);
-        _dictWithObjectsMethod = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
+        _dictWithObjectsMethod = new ValueLazy<ObjCDictionaryLiteral, ObjCMethodDecl>(&DictWithObjectsMethodFactory);
 
-        _keyValueElements = new ValueLazy<List<(Expr Key, Expr Value)>>(() => {
-            var numChildren = Handle.NumChildren;
+        _keyValueElements = new ValueLazy<ObjCDictionaryLiteral, List<(Expr Key, Expr Value)>>(&KeyValueElementsFactory);
+    }
+
+    public ObjCMethodDecl DictWithObjectsMethod => _dictWithObjectsMethod.GetValue(this);
+
+    public IReadOnlyList<(Expr Key, Expr Value)> KeyValueElements => _keyValueElements.GetValue(this);
+
+    public uint NumElements => NumChildren / 2;
+
+    private static unsafe List<(Expr Key, Expr Value)> KeyValueElementsFactory(ObjCDictionaryLiteral self) {
+            var numChildren = self.Handle.NumChildren;
             var keyValueElements = new List<(Expr Key, Expr Value)>(numChildren / 2);
 
             for (var i = 0; i < numChildren; i += 2)
             {
-                keyValueElements.Add(((Expr)Children[i + 0], (Expr)Children[i + 1]));
+                keyValueElements.Add(((Expr)self.Children[i + 0], (Expr)self.Children[i + 1]));
             }
 
             return keyValueElements;
-        });
-    }
+        }
 
-    public ObjCMethodDecl DictWithObjectsMethod => _dictWithObjectsMethod.Value;
-
-    public IReadOnlyList<(Expr Key, Expr Value)> KeyValueElements => _keyValueElements.Value;
-
-    public uint NumElements => NumChildren / 2;
+    private static unsafe ObjCMethodDecl DictWithObjectsMethodFactory(ObjCDictionaryLiteral self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.Referenced);
 }

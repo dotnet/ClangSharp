@@ -9,13 +9,15 @@ namespace ClangSharp;
 
 public sealed class ObjCEncodeExpr : Expr
 {
-    private ValueLazy<Type> _encodedType;
+    private ValueLazy<ObjCEncodeExpr, Type> _encodedType;
 
-    internal ObjCEncodeExpr(CXCursor handle) : base(handle, CXCursor_ObjCEncodeExpr, CX_StmtClass_ObjCEncodeExpr)
+    internal unsafe ObjCEncodeExpr(CXCursor handle) : base(handle, CXCursor_ObjCEncodeExpr, CX_StmtClass_ObjCEncodeExpr)
     {
         Debug.Assert(NumChildren is 0);
-        _encodedType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _encodedType = new ValueLazy<ObjCEncodeExpr, Type>(&EncodedTypeFactory);
     }
 
-    public Type EncodedType => _encodedType.Value;
+    public Type EncodedType => _encodedType.GetValue(this);
+
+    private static unsafe Type EncodedTypeFactory(ObjCEncodeExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

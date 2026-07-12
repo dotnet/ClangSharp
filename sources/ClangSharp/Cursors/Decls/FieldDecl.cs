@@ -10,25 +10,50 @@ namespace ClangSharp;
 
 public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
 {
-    private ValueLazy<Expr> _bitWidth;
-    private ValueLazy<Expr> _inClassInitializer;
-    private ValueLazy<bool> _isAnonymousField;
+    private ValueLazy<FieldDecl, Expr> _bitWidth;
+    private ValueLazy<FieldDecl, Expr> _inClassInitializer;
+    private ValueLazy<FieldDecl, bool> _isAnonymousField;
 
     internal FieldDecl(CXCursor handle) : this(handle, CXCursor_FieldDecl, CX_DeclKind_Field)
     {
     }
 
-    private protected FieldDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    private protected unsafe FieldDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
         if (handle.DeclKind is > CX_DeclKind_LastField or < CX_DeclKind_FirstField)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _bitWidth = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.BitWidth));
-        _inClassInitializer = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.InClassInitializer));
-        _isAnonymousField = new ValueLazy<bool>(() => {
-            var name = Name.AsSpan();
+        _bitWidth = new ValueLazy<FieldDecl, Expr>(&BitWidthFactory);
+        _inClassInitializer = new ValueLazy<FieldDecl, Expr>(&InClassInitializerFactory);
+        _isAnonymousField = new ValueLazy<FieldDecl, bool>(&IsAnonymousFieldFactory);
+    }
+
+    public Expr BitWidth => _bitWidth.GetValue(this);
+
+    public int BitWidthValue => Handle.FieldDeclBitWidth;
+
+    public new FieldDecl CanonicalDecl => (FieldDecl)base.CanonicalDecl;
+
+    public int FieldIndex => Handle.FieldIndex;
+
+    public Expr InClassInitializer => _inClassInitializer.GetValue(this);
+
+    public bool IsAnonymousField => _isAnonymousField.GetValue(this);
+
+    public bool IsAnonymousStructOrUnion => Handle.IsAnonymousStructOrUnion;
+
+    public bool IsBitField => Handle.IsBitField;
+
+    public bool IsMutable => Handle.CXXField_IsMutable;
+
+    public bool IsUnnamedBitfield => Handle.IsUnnamedBitfield;
+
+    public new RecordDecl? Parent => (DeclContext as RecordDecl) ?? ((SemanticParentCursor is ClassTemplateDecl classTemplateDecl) ? (RecordDecl)classTemplateDecl.TemplatedDecl : null);
+
+    private static unsafe bool IsAnonymousFieldFactory(FieldDecl self) {
+            var name = self.Name.AsSpan();
 
             if (name.IsWhiteSpace())
             {
@@ -67,28 +92,9 @@ public class FieldDecl : DeclaratorDecl, IMergeable<FieldDecl>
             }
 
             return false;
-        });
-    }
+        }
 
-    public Expr BitWidth => _bitWidth.Value;
+    private static unsafe Expr InClassInitializerFactory(FieldDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.InClassInitializer);
 
-    public int BitWidthValue => Handle.FieldDeclBitWidth;
-
-    public new FieldDecl CanonicalDecl => (FieldDecl)base.CanonicalDecl;
-
-    public int FieldIndex => Handle.FieldIndex;
-
-    public Expr InClassInitializer => _inClassInitializer.Value;
-
-    public bool IsAnonymousField => _isAnonymousField.Value;
-
-    public bool IsAnonymousStructOrUnion => Handle.IsAnonymousStructOrUnion;
-
-    public bool IsBitField => Handle.IsBitField;
-
-    public bool IsMutable => Handle.CXXField_IsMutable;
-
-    public bool IsUnnamedBitfield => Handle.IsUnnamedBitfield;
-
-    public new RecordDecl? Parent => (DeclContext as RecordDecl) ?? ((SemanticParentCursor is ClassTemplateDecl classTemplateDecl) ? (RecordDecl)classTemplateDecl.TemplatedDecl : null);
+    private static unsafe Expr BitWidthFactory(FieldDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.BitWidth);
 }

@@ -10,21 +10,21 @@ namespace ClangSharp;
 
 public class Decl : Cursor
 {
-    private ValueLazy<FunctionDecl> _asFunction;
+    private ValueLazy<Decl, FunctionDecl> _asFunction;
     private readonly LazyList<Attr> _attrs;
-    private ValueLazy<Stmt?> _body;
-    private ValueLazy<Decl> _canonicalDecl;
+    private ValueLazy<Decl, Stmt?> _body;
+    private ValueLazy<Decl, Decl> _canonicalDecl;
     private readonly LazyList<Decl> _decls;
-    private ValueLazy<TemplateDecl?> _describedTemplate;
-    private ValueLazy<Decl> _mostRecentDecl;
-    private ValueLazy<Decl> _nextDeclInContext;
-    private ValueLazy<Decl> _nonClosureContext;
-    private ValueLazy<IDeclContext?> _parentFunctionOrMethod;
-    private ValueLazy<Decl> _previousDecl;
-    private ValueLazy<IDeclContext?> _redeclContext;
-    private ValueLazy<TranslationUnitDecl> _translationUnitDecl;
+    private ValueLazy<Decl, TemplateDecl?> _describedTemplate;
+    private ValueLazy<Decl, Decl> _mostRecentDecl;
+    private ValueLazy<Decl, Decl> _nextDeclInContext;
+    private ValueLazy<Decl, Decl> _nonClosureContext;
+    private ValueLazy<Decl, IDeclContext?> _parentFunctionOrMethod;
+    private ValueLazy<Decl, Decl> _previousDecl;
+    private ValueLazy<Decl, IDeclContext?> _redeclContext;
+    private ValueLazy<Decl, TranslationUnitDecl> _translationUnitDecl;
 
-    private protected Decl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind)
+    private protected unsafe Decl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind)
     {
         // When the native libClangSharp doesn't have a mapping for a declaration kind,
         // it returns CX_DeclKind_Invalid. When the default case in Decl.Create() constructs
@@ -36,10 +36,10 @@ public class Decl : Cursor
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _asFunction = new ValueLazy<FunctionDecl>(() => TranslationUnit.GetOrCreate<FunctionDecl>(Handle.AsFunction));
+        _asFunction = new ValueLazy<Decl, FunctionDecl>(&AsFunctionFactory);
         _attrs = LazyList.Create<Attr>(Handle.NumAttrs, (i) => TranslationUnit.GetOrCreate<Attr>(Handle.GetAttr(unchecked((uint)i))));
-        _body = new ValueLazy<Stmt?>(() => !Handle.Body.IsNull ? TranslationUnit.GetOrCreate<Stmt>(Handle.Body) : null);
-        _canonicalDecl = new ValueLazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.CanonicalCursor));
+        _body = new ValueLazy<Decl, Stmt?>(&BodyFactory);
+        _canonicalDecl = new ValueLazy<Decl, Decl>(&CanonicalDeclFactory);
         _decls = LazyList.Create<Decl>(Handle.NumDecls, (i, previousDecl) => {
             if (previousDecl is null)
             {
@@ -50,30 +50,27 @@ public class Decl : Cursor
                 return previousDecl.NextDeclInContext;
             }
         });
-        _describedTemplate = new ValueLazy<TemplateDecl?>(() => {
-            var describedTemplate = Handle.DescribedTemplate;
-            return describedTemplate.IsNull ? null : TranslationUnit.GetOrCreate<TemplateDecl>(describedTemplate);
-        });
-        _mostRecentDecl = new ValueLazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.MostRecentDecl));
-        _nextDeclInContext = new ValueLazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NextDeclInContext));
-        _nonClosureContext = new ValueLazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.NonClosureContext));
-        _parentFunctionOrMethod = new ValueLazy<IDeclContext?>(() => TranslationUnit.GetOrCreate<Decl>(Handle.ParentFunctionOrMethod) as IDeclContext);
-        _previousDecl = new ValueLazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.PreviousDecl));
-        _redeclContext = new ValueLazy<IDeclContext?>(() => TranslationUnit.GetOrCreate<Decl>(Handle.RedeclContext) as IDeclContext);
-        _translationUnitDecl = new ValueLazy<TranslationUnitDecl>(() => TranslationUnit.GetOrCreate<TranslationUnitDecl>(Handle.TranslationUnit.Cursor));
+        _describedTemplate = new ValueLazy<Decl, TemplateDecl?>(&DescribedTemplateFactory);
+        _mostRecentDecl = new ValueLazy<Decl, Decl>(&MostRecentDeclFactory);
+        _nextDeclInContext = new ValueLazy<Decl, Decl>(&NextDeclInContextFactory);
+        _nonClosureContext = new ValueLazy<Decl, Decl>(&NonClosureContextFactory);
+        _parentFunctionOrMethod = new ValueLazy<Decl, IDeclContext?>(&ParentFunctionOrMethodFactory);
+        _previousDecl = new ValueLazy<Decl, Decl>(&PreviousDeclFactory);
+        _redeclContext = new ValueLazy<Decl, IDeclContext?>(&RedeclContextFactory);
+        _translationUnitDecl = new ValueLazy<Decl, TranslationUnitDecl>(&TranslationUnitDeclFactory);
     }
 
     public CX_CXXAccessSpecifier Access => Handle.CXXAccessSpecifier;
 
-    public FunctionDecl AsFunction => _asFunction.Value;
+    public FunctionDecl AsFunction => _asFunction.GetValue(this);
 
     public IReadOnlyList<Attr> Attrs => _attrs;
 
     public CXAvailabilityKind Availability => Handle.Availability;
 
-    public Stmt? Body => _body.Value;
+    public Stmt? Body => _body.GetValue(this);
 
-    public Decl CanonicalDecl => _canonicalDecl.Value;
+    public Decl CanonicalDecl => _canonicalDecl.GetValue(this);
 
     public IDeclContext? DeclContext => SemanticParentCursor as IDeclContext;
 
@@ -85,7 +82,7 @@ public class Decl : Cursor
     /// Per clang documentation: This returns null for partial specializations, because they are not modeled as TemplateDecls.
     /// Use DescribedTemplateParams to handle those cases.
     /// </summary>
-    public TemplateDecl? DescribedTemplate => _describedTemplate.Value;
+    public TemplateDecl? DescribedTemplate => _describedTemplate.GetValue(this);
 
     public bool HasAttrs => Handle.HasAttrs;
 
@@ -140,25 +137,25 @@ public class Decl : Cursor
 
     public uint MaxAlignment => Handle.MaxAlignment;
 
-    public Decl MostRecentDecl => _mostRecentDecl.Value;
+    public Decl MostRecentDecl => _mostRecentDecl.GetValue(this);
 
-    public Decl NextDeclInContext => _nextDeclInContext.Value;
+    public Decl NextDeclInContext => _nextDeclInContext.GetValue(this);
 
-    public Decl NonClosureContext => _nonClosureContext.Value;
+    public Decl NonClosureContext => _nonClosureContext.GetValue(this);
 
     public IDeclContext? Parent => (this is IDeclContext) ? DeclContext : null;
 
-    public IDeclContext? ParentFunctionOrMethod => _parentFunctionOrMethod.Value;
+    public IDeclContext? ParentFunctionOrMethod => _parentFunctionOrMethod.GetValue(this);
 
-    public Decl PreviousDecl => _previousDecl.Value;
+    public Decl PreviousDecl => _previousDecl.GetValue(this);
 
-    public IDeclContext? RedeclContext => _redeclContext.Value;
+    public IDeclContext? RedeclContext => _redeclContext.GetValue(this);
 
     public CXSourceRange SourceRange => clangsharp.Cursor_getSourceRange(Handle);
 
     public CXSourceRange SourceRangeRaw => clangsharp.Cursor_getSourceRangeRaw(Handle);
 
-    public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.Value;
+    public TranslationUnitDecl TranslationUnitDecl => _translationUnitDecl.GetValue(this);
 
     internal static new Decl Create(CXCursor handle) => handle.DeclKind switch {
         CX_DeclKind_Invalid => new Decl(handle, handle.kind, handle.DeclKind),
@@ -254,4 +251,29 @@ public class Decl : Cursor
         CX_DeclKind_AccessSpec => new AccessSpecDecl(handle),
         _ => new Decl(handle, handle.kind, handle.DeclKind),
     };
+
+    private static unsafe TranslationUnitDecl TranslationUnitDeclFactory(Decl self) => self.TranslationUnit.GetOrCreate<TranslationUnitDecl>(self.Handle.TranslationUnit.Cursor);
+
+    private static unsafe IDeclContext? RedeclContextFactory(Decl self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.RedeclContext) as IDeclContext;
+
+    private static unsafe Decl PreviousDeclFactory(Decl self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.PreviousDecl);
+
+    private static unsafe IDeclContext? ParentFunctionOrMethodFactory(Decl self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.ParentFunctionOrMethod) as IDeclContext;
+
+    private static unsafe Decl NonClosureContextFactory(Decl self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.NonClosureContext);
+
+    private static unsafe Decl NextDeclInContextFactory(Decl self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.NextDeclInContext);
+
+    private static unsafe Decl MostRecentDeclFactory(Decl self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.MostRecentDecl);
+
+    private static unsafe TemplateDecl? DescribedTemplateFactory(Decl self) {
+            var describedTemplate = self.Handle.DescribedTemplate;
+            return describedTemplate.IsNull ? null : self.TranslationUnit.GetOrCreate<TemplateDecl>(describedTemplate);
+        }
+
+    private static unsafe Decl CanonicalDeclFactory(Decl self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.CanonicalCursor);
+
+    private static unsafe Stmt? BodyFactory(Decl self) => !self.Handle.Body.IsNull ? self.TranslationUnit.GetOrCreate<Stmt>(self.Handle.Body) : null;
+
+    private static unsafe FunctionDecl AsFunctionFactory(Decl self) => self.TranslationUnit.GetOrCreate<FunctionDecl>(self.Handle.AsFunction);
 }

@@ -10,35 +10,45 @@ namespace ClangSharp;
 public sealed class ObjCMessageExpr : Expr
 {
     private readonly LazyList<Expr> _args;
-    private ValueLazy<Type> _classReceiver;
-    private ValueLazy<Expr> _instanceReceiver;
-    private ValueLazy<ObjCMethodDecl> _methodDecl;
-    private ValueLazy<Type> _receiverType;
-    private ValueLazy<Type> _superType;
+    private ValueLazy<ObjCMessageExpr, Type> _classReceiver;
+    private ValueLazy<ObjCMessageExpr, Expr> _instanceReceiver;
+    private ValueLazy<ObjCMessageExpr, ObjCMethodDecl> _methodDecl;
+    private ValueLazy<ObjCMessageExpr, Type> _receiverType;
+    private ValueLazy<ObjCMessageExpr, Type> _superType;
 
-    internal ObjCMessageExpr(CXCursor handle) : base(handle, CXCursor_ObjCMessageExpr, CX_StmtClass_ObjCMessageExpr)
+    internal unsafe ObjCMessageExpr(CXCursor handle) : base(handle, CXCursor_ObjCMessageExpr, CX_StmtClass_ObjCMessageExpr)
     {
         _args = LazyList.Create<Expr>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetArgument(unchecked((uint)i))));
-        _classReceiver = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        _instanceReceiver = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
-        _methodDecl = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.Referenced));
-        _receiverType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReceiverType));
-        _superType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ThisObjectType));
+        _classReceiver = new ValueLazy<ObjCMessageExpr, Type>(&ClassReceiverFactory);
+        _instanceReceiver = new ValueLazy<ObjCMessageExpr, Expr>(&InstanceReceiverFactory);
+        _methodDecl = new ValueLazy<ObjCMessageExpr, ObjCMethodDecl>(&MethodDeclFactory);
+        _receiverType = new ValueLazy<ObjCMessageExpr, Type>(&ReceiverTypeFactory);
+        _superType = new ValueLazy<ObjCMessageExpr, Type>(&SuperTypeFactory);
     }
 
     public IReadOnlyList<Expr> Args => _args;
 
-    public Type ClassReceiver => _classReceiver.Value;
+    public Type ClassReceiver => _classReceiver.GetValue(this);
 
     public bool IsImplicit => Handle.IsImplicit;
 
-    public Expr InstanceReceiver => _instanceReceiver.Value;
+    public Expr InstanceReceiver => _instanceReceiver.GetValue(this);
 
-    public Type ReceiverType => _receiverType.Value;
+    public Type ReceiverType => _receiverType.GetValue(this);
 
-    public Type SuperType => _superType.Value;
+    public Type SuperType => _superType.GetValue(this);
 
-    public ObjCMethodDecl MethodDecl => _methodDecl.Value;
+    public ObjCMethodDecl MethodDecl => _methodDecl.GetValue(this);
 
     public uint NumArgs => unchecked((uint)Handle.NumArguments);
+
+    private static unsafe Type SuperTypeFactory(ObjCMessageExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ThisObjectType);
+
+    private static unsafe Type ReceiverTypeFactory(ObjCMessageExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ReceiverType);
+
+    private static unsafe ObjCMethodDecl MethodDeclFactory(ObjCMessageExpr self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.Referenced);
+
+    private static unsafe Expr InstanceReceiverFactory(ObjCMessageExpr self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.GetExpr(0));
+
+    private static unsafe Type ClassReceiverFactory(ObjCMessageExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

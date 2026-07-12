@@ -11,11 +11,11 @@ namespace ClangSharp;
 
 public sealed class DeclRefExpr : Expr
 {
-    private ValueLazy<ValueDecl> _decl;
-    private ValueLazy<NamedDecl> _foundDecl;
+    private ValueLazy<DeclRefExpr, ValueDecl> _decl;
+    private ValueLazy<DeclRefExpr, NamedDecl> _foundDecl;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
-    internal DeclRefExpr(CXCursor handle) : base(handle, handle.Kind, CX_StmtClass_DeclRefExpr)
+    internal unsafe DeclRefExpr(CXCursor handle) : base(handle, handle.Kind, CX_StmtClass_DeclRefExpr)
     {
         if (handle.Kind is not CXCursor_DeclRefExpr and not CXCursor_ObjCSelfExpr)
         {
@@ -24,14 +24,14 @@ public sealed class DeclRefExpr : Expr
 
         Debug.Assert(NumChildren is 0);
 
-        _decl = new ValueLazy<ValueDecl>(() => TranslationUnit.GetOrCreate<ValueDecl>(Handle.Referenced));
-        _foundDecl = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.FoundDecl));
+        _decl = new ValueLazy<DeclRefExpr, ValueDecl>(&DeclFactory);
+        _foundDecl = new ValueLazy<DeclRefExpr, NamedDecl>(&FoundDeclFactory);
         _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
     }
 
-    public ValueDecl Decl => _decl.Value;
+    public ValueDecl Decl => _decl.GetValue(this);
 
-    public NamedDecl FoundDecl => _foundDecl.Value;
+    public NamedDecl FoundDecl => _foundDecl.GetValue(this);
 
     public bool HadMultipleCandidates => Handle.HadMultipleCandidates;
 
@@ -44,4 +44,8 @@ public sealed class DeclRefExpr : Expr
     public uint NumTemplateArgs => unchecked((uint)Handle.NumTemplateArguments);
 
     public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
+
+    private static unsafe NamedDecl FoundDeclFactory(DeclRefExpr self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.FoundDecl);
+
+    private static unsafe ValueDecl DeclFactory(DeclRefExpr self) => self.TranslationUnit.GetOrCreate<ValueDecl>(self.Handle.Referenced);
 }

@@ -7,16 +7,18 @@ namespace ClangSharp;
 
 public sealed class MacroExpansion : PreprocessedEntity
 {
-    private ValueLazy<MacroDefinitionRecord> _definition;
+    private ValueLazy<MacroExpansion, MacroDefinitionRecord> _definition;
 
-    internal MacroExpansion(CXCursor handle) : base(handle, CXCursor_MacroExpansion)
+    internal unsafe MacroExpansion(CXCursor handle) : base(handle, CXCursor_MacroExpansion)
     {
-        _definition = new ValueLazy<MacroDefinitionRecord>(() => TranslationUnit.GetOrCreate<MacroDefinitionRecord>(handle.Referenced));
+        _definition = new ValueLazy<MacroExpansion, MacroDefinitionRecord>(&DefinitionFactory);
     }
 
-    public MacroDefinitionRecord Definition => _definition.Value;
+    public MacroDefinitionRecord Definition => _definition.GetValue(this);
 
     public bool IsBuiltinMacro => Handle.IsMacroBuiltIn;
 
     public string Name => Handle.Spelling.CString;
+
+    private static unsafe MacroDefinitionRecord DefinitionFactory(MacroExpansion self) => self.TranslationUnit.GetOrCreate<MacroDefinitionRecord>(self.Handle.Referenced);
 }

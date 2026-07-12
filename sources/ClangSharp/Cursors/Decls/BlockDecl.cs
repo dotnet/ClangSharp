@@ -9,18 +9,18 @@ namespace ClangSharp;
 
 public sealed partial class BlockDecl : Decl, IDeclContext
 {
-    private ValueLazy<Decl> _blockManglingContextDecl;
+    private ValueLazy<BlockDecl, Decl> _blockManglingContextDecl;
     private readonly LazyList<Capture> _captures;
     private readonly LazyList<ParmVarDecl> _parameters;
 
-    internal BlockDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Block)
+    internal unsafe BlockDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Block)
     {
-        _blockManglingContextDecl = new ValueLazy<Decl>(() => TranslationUnit.GetOrCreate<Decl>(Handle.BlockManglingContextDecl));
+        _blockManglingContextDecl = new ValueLazy<BlockDecl, Decl>(&BlockManglingContextDeclFactory);
         _captures = LazyList.Create<Capture>(Handle.NumCaptures, (i) => new Capture(this, unchecked((uint)i)));
         _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
     }
 
-    public Decl BlockManglingContextDecl => _blockManglingContextDecl.Value;
+    public Decl BlockManglingContextDecl => _blockManglingContextDecl.GetValue(this);
 
     public uint BlockManglingNumber => unchecked((uint)Handle.BlockManglingNumber);
 
@@ -53,4 +53,6 @@ public sealed partial class BlockDecl : Decl, IDeclContext
     public nuint ParamSize => NumParams;
 
     public bool CapturesVariable(VarDecl var) => Handle.CapturesVariable((var is not null) ? var.Handle : CXCursor.Null);
+
+    private static unsafe Decl BlockManglingContextDeclFactory(BlockDecl self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.BlockManglingContextDecl);
 }

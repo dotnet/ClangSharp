@@ -10,37 +10,49 @@ namespace ClangSharp;
 
 public class ObjCContainerDecl : NamedDecl, IDeclContext
 {
-    private ValueLazy<List<ObjCMethodDecl>> _classMethods;
-    private ValueLazy<List<ObjCPropertyDecl>> _classProperties;
-    private ValueLazy<List<ObjCMethodDecl>> _instanceMethods;
-    private ValueLazy<List<ObjCPropertyDecl>> _instanceProperties;
-    private ValueLazy<List<ObjCMethodDecl>> _methods;
-    private ValueLazy<List<ObjCPropertyDecl>> _properties;
+    private ValueLazy<ObjCContainerDecl, List<ObjCMethodDecl>> _classMethods;
+    private ValueLazy<ObjCContainerDecl, List<ObjCPropertyDecl>> _classProperties;
+    private ValueLazy<ObjCContainerDecl, List<ObjCMethodDecl>> _instanceMethods;
+    private ValueLazy<ObjCContainerDecl, List<ObjCPropertyDecl>> _instanceProperties;
+    private ValueLazy<ObjCContainerDecl, List<ObjCMethodDecl>> _methods;
+    private ValueLazy<ObjCContainerDecl, List<ObjCPropertyDecl>> _properties;
 
-    private protected ObjCContainerDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    private protected unsafe ObjCContainerDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
         if (handle.DeclKind is > CX_DeclKind_LastObjCContainer or < CX_DeclKind_FirstObjCContainer)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _classMethods = new ValueLazy<List<ObjCMethodDecl>>(() => [.. Methods.Where((method) => method.IsClassMethod)]);
-        _classProperties = new ValueLazy<List<ObjCPropertyDecl>>(() => [.. Properties.Where((property) => property.IsClassProperty)]);
-        _instanceMethods = new ValueLazy<List<ObjCMethodDecl>>(() => [.. Methods.Where((method) => method.IsInstanceMethod)]);
-        _instanceProperties = new ValueLazy<List<ObjCPropertyDecl>>(() => [.. Properties.Where((property) => property.IsInstanceProperty)]);
-        _methods = new ValueLazy<List<ObjCMethodDecl>>(() => [.. Decls.OfType<ObjCMethodDecl>()]);
-        _properties = new ValueLazy<List<ObjCPropertyDecl>>(() => [.. Decls.OfType<ObjCPropertyDecl>()]);
+        _classMethods = new ValueLazy<ObjCContainerDecl, List<ObjCMethodDecl>>(&ClassMethodsFactory);
+        _classProperties = new ValueLazy<ObjCContainerDecl, List<ObjCPropertyDecl>>(&ClassPropertiesFactory);
+        _instanceMethods = new ValueLazy<ObjCContainerDecl, List<ObjCMethodDecl>>(&InstanceMethodsFactory);
+        _instanceProperties = new ValueLazy<ObjCContainerDecl, List<ObjCPropertyDecl>>(&InstancePropertiesFactory);
+        _methods = new ValueLazy<ObjCContainerDecl, List<ObjCMethodDecl>>(&MethodsFactory);
+        _properties = new ValueLazy<ObjCContainerDecl, List<ObjCPropertyDecl>>(&PropertiesFactory);
     }
 
-    public IReadOnlyList<ObjCMethodDecl> ClassMethods => _classMethods.Value;
+    public IReadOnlyList<ObjCMethodDecl> ClassMethods => _classMethods.GetValue(this);
 
-    public IReadOnlyList<ObjCPropertyDecl> ClassProperties => _classProperties.Value;
+    public IReadOnlyList<ObjCPropertyDecl> ClassProperties => _classProperties.GetValue(this);
 
-    public IReadOnlyList<ObjCMethodDecl> InstanceMethods => _instanceMethods.Value;
+    public IReadOnlyList<ObjCMethodDecl> InstanceMethods => _instanceMethods.GetValue(this);
 
-    public IReadOnlyList<ObjCPropertyDecl> InstanceProperties => _instanceProperties.Value;
+    public IReadOnlyList<ObjCPropertyDecl> InstanceProperties => _instanceProperties.GetValue(this);
 
-    public IReadOnlyList<ObjCMethodDecl> Methods => _methods.Value;
+    public IReadOnlyList<ObjCMethodDecl> Methods => _methods.GetValue(this);
 
-    public IReadOnlyList<ObjCPropertyDecl> Properties => _properties.Value;
+    public IReadOnlyList<ObjCPropertyDecl> Properties => _properties.GetValue(this);
+
+    private static unsafe List<ObjCPropertyDecl> PropertiesFactory(ObjCContainerDecl self) => [.. self.Decls.OfType<ObjCPropertyDecl>()];
+
+    private static unsafe List<ObjCMethodDecl> MethodsFactory(ObjCContainerDecl self) => [.. self.Decls.OfType<ObjCMethodDecl>()];
+
+    private static unsafe List<ObjCPropertyDecl> InstancePropertiesFactory(ObjCContainerDecl self) => [.. self.Properties.Where((property) => property.IsInstanceProperty)];
+
+    private static unsafe List<ObjCMethodDecl> InstanceMethodsFactory(ObjCContainerDecl self) => [.. self.Methods.Where((method) => method.IsInstanceMethod)];
+
+    private static unsafe List<ObjCPropertyDecl> ClassPropertiesFactory(ObjCContainerDecl self) => [.. self.Properties.Where((property) => property.IsClassProperty)];
+
+    private static unsafe List<ObjCMethodDecl> ClassMethodsFactory(ObjCContainerDecl self) => [.. self.Methods.Where((method) => method.IsClassMethod)];
 }

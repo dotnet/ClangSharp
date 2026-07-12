@@ -8,37 +8,49 @@ namespace ClangSharp;
 
 public sealed class ObjCPropertyRefExpr : Expr
 {
-    private ValueLazy<Expr> _base;
-    private ValueLazy<ObjCInterfaceDecl> _classReceiver;
-    private ValueLazy<ObjCPropertyDecl> _explicitProperty;
-    private ValueLazy<ObjCMethodDecl> _implicitPropertyGetter;
-    private ValueLazy<ObjCMethodDecl> _implicitPropertySetter;
-    private ValueLazy<Type> _superReceiverType;
+    private ValueLazy<ObjCPropertyRefExpr, Expr> _base;
+    private ValueLazy<ObjCPropertyRefExpr, ObjCInterfaceDecl> _classReceiver;
+    private ValueLazy<ObjCPropertyRefExpr, ObjCPropertyDecl> _explicitProperty;
+    private ValueLazy<ObjCPropertyRefExpr, ObjCMethodDecl> _implicitPropertyGetter;
+    private ValueLazy<ObjCPropertyRefExpr, ObjCMethodDecl> _implicitPropertySetter;
+    private ValueLazy<ObjCPropertyRefExpr, Type> _superReceiverType;
 
-    internal ObjCPropertyRefExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_ObjCPropertyRefExpr)
+    internal unsafe ObjCPropertyRefExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_ObjCPropertyRefExpr)
     {
-        _base = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.GetExpr(0)));
-        _classReceiver = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetDecl(0)));
-        _explicitProperty = new ValueLazy<ObjCPropertyDecl>(() => TranslationUnit.GetOrCreate<ObjCPropertyDecl>(Handle.GetDecl(1)));
-        _implicitPropertyGetter = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetDecl(2)));
-        _implicitPropertySetter = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetDecl(3)));
-        _superReceiverType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _base = new ValueLazy<ObjCPropertyRefExpr, Expr>(&BaseFactory);
+        _classReceiver = new ValueLazy<ObjCPropertyRefExpr, ObjCInterfaceDecl>(&ClassReceiverFactory);
+        _explicitProperty = new ValueLazy<ObjCPropertyRefExpr, ObjCPropertyDecl>(&ExplicitPropertyFactory);
+        _implicitPropertyGetter = new ValueLazy<ObjCPropertyRefExpr, ObjCMethodDecl>(&ImplicitPropertyGetterFactory);
+        _implicitPropertySetter = new ValueLazy<ObjCPropertyRefExpr, ObjCMethodDecl>(&ImplicitPropertySetterFactory);
+        _superReceiverType = new ValueLazy<ObjCPropertyRefExpr, Type>(&SuperReceiverTypeFactory);
     }
 
 
-    public Expr Base => _base.Value;
+    public Expr Base => _base.GetValue(this);
 
-    public ObjCInterfaceDecl ClassReceiver => _classReceiver.Value;
+    public ObjCInterfaceDecl ClassReceiver => _classReceiver.GetValue(this);
 
-    public ObjCPropertyDecl ExplicitProperty => _explicitProperty.Value;
+    public ObjCPropertyDecl ExplicitProperty => _explicitProperty.GetValue(this);
 
     public bool IsExplicitProperty => !IsImplicitProperty;
 
     public bool IsImplicitProperty => Handle.IsImplicit;
 
-    public ObjCMethodDecl ImplicitPropertyGetter => _implicitPropertyGetter.Value;
+    public ObjCMethodDecl ImplicitPropertyGetter => _implicitPropertyGetter.GetValue(this);
 
-    public ObjCMethodDecl ImplicitPropertySetter => _implicitPropertySetter.Value;
+    public ObjCMethodDecl ImplicitPropertySetter => _implicitPropertySetter.GetValue(this);
 
-    public Type SuperReceiverType => _superReceiverType.Value;
+    public Type SuperReceiverType => _superReceiverType.GetValue(this);
+
+    private static unsafe Type SuperReceiverTypeFactory(ObjCPropertyRefExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
+
+    private static unsafe ObjCMethodDecl ImplicitPropertySetterFactory(ObjCPropertyRefExpr self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.GetDecl(3));
+
+    private static unsafe ObjCMethodDecl ImplicitPropertyGetterFactory(ObjCPropertyRefExpr self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.GetDecl(2));
+
+    private static unsafe ObjCPropertyDecl ExplicitPropertyFactory(ObjCPropertyRefExpr self) => self.TranslationUnit.GetOrCreate<ObjCPropertyDecl>(self.Handle.GetDecl(1));
+
+    private static unsafe ObjCInterfaceDecl ClassReceiverFactory(ObjCPropertyRefExpr self) => self.TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(self.Handle.GetDecl(0));
+
+    private static unsafe Expr BaseFactory(ObjCPropertyRefExpr self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.GetExpr(0));
 }

@@ -11,57 +11,57 @@ namespace ClangSharp;
 
 public sealed unsafe class TemplateArgument : IDisposable
 {
-    private ValueLazy<ValueDecl> _asDecl;
-    private ValueLazy<Expr> _asExpr;
-    private ValueLazy<TemplateName> _asTemplate;
-    private ValueLazy<TemplateName> _asTemplateOrTemplatePattern;
-    private ValueLazy<Type> _asType;
-    private ValueLazy<Type> _integralType;
-    private ValueLazy<Type> _nonTypeTemplateArgumentType;
-    private ValueLazy<Type> _nullPtrType;
+    private ValueLazy<TemplateArgument, ValueDecl> _asDecl;
+    private ValueLazy<TemplateArgument, Expr> _asExpr;
+    private ValueLazy<TemplateArgument, TemplateName> _asTemplate;
+    private ValueLazy<TemplateArgument, TemplateName> _asTemplateOrTemplatePattern;
+    private ValueLazy<TemplateArgument, Type> _asType;
+    private ValueLazy<TemplateArgument, Type> _integralType;
+    private ValueLazy<TemplateArgument, Type> _nonTypeTemplateArgumentType;
+    private ValueLazy<TemplateArgument, Type> _nullPtrType;
     private readonly LazyList<TemplateArgument> _packElements;
-    private ValueLazy<TemplateArgument> _packExpansionPattern;
-    private ValueLazy<Type> _paramTypeForDecl;
-    private ValueLazy<TranslationUnit> _translationUnit;
+    private ValueLazy<TemplateArgument, TemplateArgument> _packExpansionPattern;
+    private ValueLazy<TemplateArgument, Type> _paramTypeForDecl;
+    private ValueLazy<TemplateArgument, TranslationUnit> _translationUnit;
 
     internal TemplateArgument(CX_TemplateArgument handle)
     {
         Handle = handle;
 
-        _translationUnit = new ValueLazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
+        _translationUnit = new ValueLazy<TemplateArgument, TranslationUnit>(&TranslationUnitFactory);
 
-        _asDecl = new ValueLazy<ValueDecl>(() =>  TranslationUnit.GetOrCreate<ValueDecl>(Handle.AsDecl));
-        _asExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.AsExpr));
-        _asTemplate = new ValueLazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.AsTemplate));
-        _asTemplateOrTemplatePattern = new ValueLazy<TemplateName>(() => TranslationUnit.GetOrCreate(Handle.AsTemplateOrTemplatePattern));
-        _asType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.AsType));
-        _integralType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.IntegralType));
-        _nonTypeTemplateArgumentType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NonTypeTemplateArgumentType));
-        _nullPtrType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.NullPtrType));
-        _packExpansionPattern = new ValueLazy<TemplateArgument>(() => TranslationUnit.GetOrCreate(Handle.PackExpansionPattern));
+        _asDecl = new ValueLazy<TemplateArgument, ValueDecl>(&AsDeclFactory);
+        _asExpr = new ValueLazy<TemplateArgument, Expr>(&AsExprFactory);
+        _asTemplate = new ValueLazy<TemplateArgument, TemplateName>(&AsTemplateFactory);
+        _asTemplateOrTemplatePattern = new ValueLazy<TemplateArgument, TemplateName>(&AsTemplateOrTemplatePatternFactory);
+        _asType = new ValueLazy<TemplateArgument, Type>(&AsTypeFactory);
+        _integralType = new ValueLazy<TemplateArgument, Type>(&IntegralTypeFactory);
+        _nonTypeTemplateArgumentType = new ValueLazy<TemplateArgument, Type>(&NonTypeTemplateArgumentTypeFactory);
+        _nullPtrType = new ValueLazy<TemplateArgument, Type>(&NullPtrTypeFactory);
+        _packExpansionPattern = new ValueLazy<TemplateArgument, TemplateArgument>(&PackExpansionPatternFactory);
         _packElements = LazyList.Create<TemplateArgument>(Handle.NumPackElements, (i) => TranslationUnit.GetOrCreate(Handle.GetPackElement(unchecked((uint)i))));
-        _paramTypeForDecl = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ParamTypeForDecl));
+        _paramTypeForDecl = new ValueLazy<TemplateArgument, Type>(&ParamTypeForDeclFactory);
     }
 
     ~TemplateArgument() => Dispose(isDisposing: false);
 
-    public ValueDecl AsDecl => _asDecl.Value;
+    public ValueDecl AsDecl => _asDecl.GetValue(this);
 
-    public Expr AsExpr => _asExpr.Value;
+    public Expr AsExpr => _asExpr.GetValue(this);
 
     public long AsIntegral => Handle.AsIntegral;
 
-    public TemplateName AsTemplate => _asTemplate.Value;
+    public TemplateName AsTemplate => _asTemplate.GetValue(this);
 
-    public TemplateName AsTemplateOrTemplatePattern => _asTemplateOrTemplatePattern.Value;
+    public TemplateName AsTemplateOrTemplatePattern => _asTemplateOrTemplatePattern.GetValue(this);
 
-    public Type AsType => _asType.Value;
+    public Type AsType => _asType.GetValue(this);
 
     public bool ContainsUnexpandedParameterPack => (Dependence & CX_TAD_UnexpandedPack) != 0;
 
     public CX_TemplateArgumentDependence Dependence => Handle.Dependence;
 
-    public Type IntegralType => _integralType.Value;
+    public Type IntegralType => _integralType.GetValue(this);
 
     public bool IsDependent => (Dependence & CX_TAD_Dependent) != 0;
 
@@ -110,17 +110,17 @@ public sealed unsafe class TemplateArgument : IDisposable
 
     public CXTemplateArgumentKind Kind => Handle.kind;
 
-    public Type NonTypeTemplateArgumentType => _nonTypeTemplateArgumentType.Value;
+    public Type NonTypeTemplateArgumentType => _nonTypeTemplateArgumentType.GetValue(this);
 
-    public Type NullPtrType => _nullPtrType.Value;
+    public Type NullPtrType => _nullPtrType.GetValue(this);
 
     public IReadOnlyList<TemplateArgument> PackElements => _packElements;
 
-    public TemplateArgument PackExpansionPattern => _packExpansionPattern.Value;
+    public TemplateArgument PackExpansionPattern => _packExpansionPattern.GetValue(this);
 
-    public Type ParamTypeForDecl => _paramTypeForDecl.Value;
+    public Type ParamTypeForDecl => _paramTypeForDecl.GetValue(this);
 
-    public TranslationUnit TranslationUnit => _translationUnit.Value;
+    public TranslationUnit TranslationUnit => _translationUnit.GetValue(this);
 
     public void Dispose()
     {
@@ -129,4 +129,26 @@ public sealed unsafe class TemplateArgument : IDisposable
     }
 
     private void Dispose(bool isDisposing) => Handle.Dispose();
+
+    private static unsafe Type ParamTypeForDeclFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ParamTypeForDecl);
+
+    private static unsafe TemplateArgument PackExpansionPatternFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate(self.Handle.PackExpansionPattern);
+
+    private static unsafe Type NullPtrTypeFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.NullPtrType);
+
+    private static unsafe Type NonTypeTemplateArgumentTypeFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.NonTypeTemplateArgumentType);
+
+    private static unsafe Type IntegralTypeFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.IntegralType);
+
+    private static unsafe Type AsTypeFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.AsType);
+
+    private static unsafe TemplateName AsTemplateOrTemplatePatternFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate(self.Handle.AsTemplateOrTemplatePattern);
+
+    private static unsafe TemplateName AsTemplateFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate(self.Handle.AsTemplate);
+
+    private static unsafe Expr AsExprFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.AsExpr);
+
+    private static unsafe ValueDecl AsDeclFactory(TemplateArgument self) => self.TranslationUnit.GetOrCreate<ValueDecl>(self.Handle.AsDecl);
+
+    private static unsafe TranslationUnit TranslationUnitFactory(TemplateArgument self) => TranslationUnit.GetOrCreate(self.Handle.tu);
 }

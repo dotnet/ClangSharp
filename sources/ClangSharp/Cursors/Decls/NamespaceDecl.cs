@@ -8,16 +8,16 @@ namespace ClangSharp;
 
 public sealed class NamespaceDecl : NamedDecl, IDeclContext, IRedeclarable<NamespaceDecl>
 {
-    private ValueLazy<NamespaceDecl> _anonymousNamespace;
-    private ValueLazy<NamespaceDecl> _originalNamespace;
+    private ValueLazy<NamespaceDecl, NamespaceDecl> _anonymousNamespace;
+    private ValueLazy<NamespaceDecl, NamespaceDecl> _originalNamespace;
 
-    internal NamespaceDecl(CXCursor handle) : base(handle, CXCursor_Namespace, CX_DeclKind_Namespace)
+    internal unsafe NamespaceDecl(CXCursor handle) : base(handle, CXCursor_Namespace, CX_DeclKind_Namespace)
     {
-        _anonymousNamespace = new ValueLazy<NamespaceDecl>(() => TranslationUnit.GetOrCreate<NamespaceDecl>(Handle.GetSubDecl(0)));
-        _originalNamespace = new ValueLazy<NamespaceDecl>(() => TranslationUnit.GetOrCreate<NamespaceDecl>(Handle.GetSubDecl(1)));
+        _anonymousNamespace = new ValueLazy<NamespaceDecl, NamespaceDecl>(&AnonymousNamespaceFactory);
+        _originalNamespace = new ValueLazy<NamespaceDecl, NamespaceDecl>(&OriginalNamespaceFactory);
     }
 
-    public NamespaceDecl AnonymousNamespace => _anonymousNamespace.Value;
+    public NamespaceDecl AnonymousNamespace => _anonymousNamespace.GetValue(this);
 
     public new NamespaceDecl CanonicalDecl => (NamespaceDecl)base.CanonicalDecl;
 
@@ -25,5 +25,9 @@ public sealed class NamespaceDecl : NamedDecl, IDeclContext, IRedeclarable<Names
 
     public bool IsInline => Handle.IsInlineNamespace;
 
-    public NamespaceDecl OriginalNamespace => _originalNamespace.Value;
+    public NamespaceDecl OriginalNamespace => _originalNamespace.GetValue(this);
+
+    private static unsafe NamespaceDecl OriginalNamespaceFactory(NamespaceDecl self) => self.TranslationUnit.GetOrCreate<NamespaceDecl>(self.Handle.GetSubDecl(1));
+
+    private static unsafe NamespaceDecl AnonymousNamespaceFactory(NamespaceDecl self) => self.TranslationUnit.GetOrCreate<NamespaceDecl>(self.Handle.GetSubDecl(0));
 }

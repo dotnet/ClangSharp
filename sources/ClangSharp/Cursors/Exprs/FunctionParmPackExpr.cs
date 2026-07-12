@@ -11,19 +11,21 @@ namespace ClangSharp;
 public sealed class FunctionParmPackExpr : Expr
 {
     private readonly LazyList<VarDecl> _expansions;
-    private ValueLazy<VarDecl> _parameterPack;
+    private ValueLazy<FunctionParmPackExpr, VarDecl> _parameterPack;
 
-    internal FunctionParmPackExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_FunctionParmPackExpr)
+    internal unsafe FunctionParmPackExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_FunctionParmPackExpr)
     {
         Debug.Assert(NumChildren is 0);
 
         _expansions = LazyList.Create<VarDecl>(Handle.NumDecls, (i) => TranslationUnit.GetOrCreate<VarDecl>(Handle.GetDecl(unchecked((uint)i))));
-        _parameterPack = new ValueLazy<VarDecl>(() => TranslationUnit.GetOrCreate<VarDecl>(Handle.Referenced));
+        _parameterPack = new ValueLazy<FunctionParmPackExpr, VarDecl>(&ParameterPackFactory);
     }
 
     public IReadOnlyList<VarDecl> Expansions => _expansions;
 
     public uint NumExpansions => unchecked((uint)Handle.NumDecls);
 
-    public VarDecl ParameterPack => _parameterPack.Value;
+    public VarDecl ParameterPack => _parameterPack.GetValue(this);
+
+    private static unsafe VarDecl ParameterPackFactory(FunctionParmPackExpr self) => self.TranslationUnit.GetOrCreate<VarDecl>(self.Handle.Referenced);
 }

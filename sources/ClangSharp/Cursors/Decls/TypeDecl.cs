@@ -8,17 +8,19 @@ namespace ClangSharp;
 
 public class TypeDecl : NamedDecl
 {
-    private ValueLazy<Type> _typeForDecl;
+    private ValueLazy<TypeDecl, Type> _typeForDecl;
 
-    private protected TypeDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    private protected unsafe TypeDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
         if (handle.DeclKind is > CX_DeclKind_LastType or < CX_DeclKind_FirstType)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _typeForDecl = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.Type));
+        _typeForDecl = new ValueLazy<TypeDecl, Type>(&TypeForDeclFactory);
     }
 
-    public Type TypeForDecl => _typeForDecl.Value;
+    public Type TypeForDecl => _typeForDecl.GetValue(this);
+
+    private static unsafe Type TypeForDeclFactory(TypeDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.Type);
 }

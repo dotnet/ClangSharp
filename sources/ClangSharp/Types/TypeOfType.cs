@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class TypeOfType : Type
 {
-    private ValueLazy<Type> _underlyingType;
+    private ValueLazy<TypeOfType, Type> _underlyingType;
 
-    internal TypeOfType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TypeOf)
+    internal unsafe TypeOfType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TypeOf)
     {
-        _underlyingType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
+        _underlyingType = new ValueLazy<TypeOfType, Type>(&UnderlyingTypeFactory);
     }
 
-    public Type UnderlyingType => _underlyingType.Value;
+    public Type UnderlyingType => _underlyingType.GetValue(this);
+
+    private static unsafe Type UnderlyingTypeFactory(TypeOfType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.UnderlyingType);
 }

@@ -6,20 +6,24 @@ namespace ClangSharp;
 
 public sealed unsafe class TemplateName
 {
-    private ValueLazy<TemplateDecl> _asTemplateDecl;
-    private ValueLazy<TranslationUnit> _translationUnit;
+    private ValueLazy<TemplateName, TemplateDecl> _asTemplateDecl;
+    private ValueLazy<TemplateName, TranslationUnit> _translationUnit;
 
     internal TemplateName(CX_TemplateName handle)
     {
         Handle = handle;
 
-        _translationUnit = new ValueLazy<TranslationUnit>(() => TranslationUnit.GetOrCreate(Handle.tu));
-        _asTemplateDecl = new ValueLazy<TemplateDecl>(() => _translationUnit.Value.GetOrCreate<TemplateDecl>(Handle.AsTemplateDecl));
+        _translationUnit = new ValueLazy<TemplateName, TranslationUnit>(&TranslationUnitFactory);
+        _asTemplateDecl = new ValueLazy<TemplateName, TemplateDecl>(&AsTemplateDeclFactory);
     }
 
-    public TemplateDecl AsTemplateDecl => _asTemplateDecl.Value;
+    public TemplateDecl AsTemplateDecl => _asTemplateDecl.GetValue(this);
 
     public CX_TemplateName Handle { get; }
 
-    public TranslationUnit TranslationUnit => _translationUnit.Value;
+    public TranslationUnit TranslationUnit => _translationUnit.GetValue(this);
+
+    private static unsafe TemplateDecl AsTemplateDeclFactory(TemplateName self) => self._translationUnit.GetValue(self).GetOrCreate<TemplateDecl>(self.Handle.AsTemplateDecl);
+
+    private static unsafe TranslationUnit TranslationUnitFactory(TemplateName self) => TranslationUnit.GetOrCreate(self.Handle.tu);
 }

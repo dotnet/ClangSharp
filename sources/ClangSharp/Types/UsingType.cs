@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class UsingType : Type
 {
-    private ValueLazy<UsingShadowDecl> _foundDecl;
+    private ValueLazy<UsingType, UsingShadowDecl> _foundDecl;
 
-    internal UsingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_Using)
+    internal unsafe UsingType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_Using)
     {
-        _foundDecl = new ValueLazy<UsingShadowDecl>(() => TranslationUnit.GetOrCreate<UsingShadowDecl>(Handle.Declaration));
+        _foundDecl = new ValueLazy<UsingType, UsingShadowDecl>(&FoundDeclFactory);
     }
 
-    public UsingShadowDecl FoundDecl => _foundDecl.Value;
+    public UsingShadowDecl FoundDecl => _foundDecl.GetValue(this);
+
+    private static unsafe UsingShadowDecl FoundDeclFactory(UsingType self) => self.TranslationUnit.GetOrCreate<UsingShadowDecl>(self.Handle.Declaration);
 }

@@ -10,21 +10,25 @@ namespace ClangSharp;
 public sealed class OffsetOfExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _indexExprs;
-    private ValueLazy<Cursor?> _referenced;
-    private ValueLazy<Type> _typeSourceInfoType;
+    private ValueLazy<OffsetOfExpr, Cursor?> _referenced;
+    private ValueLazy<OffsetOfExpr, Type> _typeSourceInfoType;
 
-    internal OffsetOfExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_OffsetOfExpr)
+    internal unsafe OffsetOfExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_OffsetOfExpr)
     {
         _indexExprs = LazyList.Create<Expr, Stmt>(_children);
-        _referenced = new ValueLazy<Cursor?>(() => !Handle.Referenced.IsNull ? TranslationUnit.GetOrCreate<Cursor>(Handle.Referenced) : null);
-        _typeSourceInfoType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _referenced = new ValueLazy<OffsetOfExpr, Cursor?>(&ReferencedFactory);
+        _typeSourceInfoType = new ValueLazy<OffsetOfExpr, Type>(&TypeSourceInfoTypeFactory);
     }
 
     public IReadOnlyList<Expr> IndexExprs => _indexExprs;
 
     public uint NumExpressions => NumChildren;
 
-    public Cursor? Referenced => _referenced.Value;
+    public Cursor? Referenced => _referenced.GetValue(this);
 
-    public Type TypeSourceInfoType => _typeSourceInfoType.Value;
+    public Type TypeSourceInfoType => _typeSourceInfoType.GetValue(this);
+
+    private static unsafe Type TypeSourceInfoTypeFactory(OffsetOfExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
+
+    private static unsafe Cursor? ReferencedFactory(OffsetOfExpr self) => !self.Handle.Referenced.IsNull ? self.TranslationUnit.GetOrCreate<Cursor>(self.Handle.Referenced) : null;
 }

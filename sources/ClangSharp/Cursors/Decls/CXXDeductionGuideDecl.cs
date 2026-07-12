@@ -8,14 +8,16 @@ namespace ClangSharp;
 
 public sealed class CXXDeductionGuideDecl : FunctionDecl
 {
-    private ValueLazy<TemplateDecl> _deducedTemplate;
+    private ValueLazy<CXXDeductionGuideDecl, TemplateDecl> _deducedTemplate;
 
-    internal CXXDeductionGuideDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_CXXDeductionGuide)
+    internal unsafe CXXDeductionGuideDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_CXXDeductionGuide)
     {
-        _deducedTemplate = new ValueLazy<TemplateDecl>(() => TranslationUnit.GetOrCreate<TemplateDecl>(handle.TemplatedDecl));
+        _deducedTemplate = new ValueLazy<CXXDeductionGuideDecl, TemplateDecl>(&DeducedTemplateFactory);
     }
 
     public bool IsExplicit => !Handle.IsImplicit;
 
-    public TemplateDecl DeducedTemplate => _deducedTemplate.Value;
+    public TemplateDecl DeducedTemplate => _deducedTemplate.GetValue(this);
+
+    private static unsafe TemplateDecl DeducedTemplateFactory(CXXDeductionGuideDecl self) => self.TranslationUnit.GetOrCreate<TemplateDecl>(self.Handle.TemplatedDecl);
 }

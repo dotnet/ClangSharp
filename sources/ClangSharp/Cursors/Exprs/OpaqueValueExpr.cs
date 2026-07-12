@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class OpaqueValueExpr : Expr
 {
-    private ValueLazy<Expr> _sourceExpr;
+    private ValueLazy<OpaqueValueExpr, Expr> _sourceExpr;
 
-    internal OpaqueValueExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_OpaqueValueExpr)
+    internal unsafe OpaqueValueExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_OpaqueValueExpr)
     {
-        _sourceExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.SubExpr));
+        _sourceExpr = new ValueLazy<OpaqueValueExpr, Expr>(&SourceExprFactory);
     }
 
-    public Expr SourceExpr => _sourceExpr.Value;
+    public Expr SourceExpr => _sourceExpr.GetValue(this);
+
+    private static unsafe Expr SourceExprFactory(OpaqueValueExpr self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.SubExpr);
 }

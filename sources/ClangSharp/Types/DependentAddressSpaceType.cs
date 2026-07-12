@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class DependentAddressSpaceType : Type
 {
-    private ValueLazy<Expr> _addrSpaceExpr;
+    private ValueLazy<DependentAddressSpaceType, Expr> _addrSpaceExpr;
 
-    internal DependentAddressSpaceType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentAddressSpace)
+    internal unsafe DependentAddressSpaceType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentAddressSpace)
     {
-        _addrSpaceExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.AddrSpaceExpr));
+        _addrSpaceExpr = new ValueLazy<DependentAddressSpaceType, Expr>(&AddrSpaceExprFactory);
     }
 
-    public Expr AddrSpaceExpr => _addrSpaceExpr.Value;
+    public Expr AddrSpaceExpr => _addrSpaceExpr.GetValue(this);
+
+    private static unsafe Expr AddrSpaceExprFactory(DependentAddressSpaceType self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.AddrSpaceExpr);
 }

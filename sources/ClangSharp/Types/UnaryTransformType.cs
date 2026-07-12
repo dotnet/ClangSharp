@@ -8,20 +8,24 @@ namespace ClangSharp;
 
 public class UnaryTransformType : Type
 {
-    private ValueLazy<Type> _baseType;
-    private ValueLazy<Type> _underlyingType;
+    private ValueLazy<UnaryTransformType, Type> _baseType;
+    private ValueLazy<UnaryTransformType, Type> _underlyingType;
 
     internal UnaryTransformType(CXType handle) : this(handle, CXType_Unexposed, CX_TypeClass_UnaryTransform)
     {
     }
 
-    private protected UnaryTransformType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
+    private protected unsafe UnaryTransformType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {
-        _baseType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.BaseType));
-        _underlyingType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.UnderlyingType));
+        _baseType = new ValueLazy<UnaryTransformType, Type>(&BaseTypeFactory);
+        _underlyingType = new ValueLazy<UnaryTransformType, Type>(&UnderlyingTypeFactory);
     }
 
-    public Type BaseType => _baseType.Value;
+    public Type BaseType => _baseType.GetValue(this);
 
-    public Type UnderlyingType => _underlyingType.Value;
+    public Type UnderlyingType => _underlyingType.GetValue(this);
+
+    private static unsafe Type UnderlyingTypeFactory(UnaryTransformType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.UnderlyingType);
+
+    private static unsafe Type BaseTypeFactory(UnaryTransformType self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.BaseType);
 }

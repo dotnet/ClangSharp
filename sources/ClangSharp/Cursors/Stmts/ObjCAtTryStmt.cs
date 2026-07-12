@@ -10,15 +10,34 @@ namespace ClangSharp;
 
 public sealed class ObjCAtTryStmt : Stmt
 {
-    private ValueLazy<LazyList<ObjCAtCatchStmt, Stmt>> _catchStmts;
-    private ValueLazy<ObjCAtFinallyStmt?> _finallyStmt;
+    private ValueLazy<ObjCAtTryStmt, LazyList<ObjCAtCatchStmt, Stmt>> _catchStmts;
+    private ValueLazy<ObjCAtTryStmt, ObjCAtFinallyStmt?> _finallyStmt;
 
-    internal ObjCAtTryStmt(CXCursor handle) : base(handle, CXCursor_ObjCAtTryStmt, CX_StmtClass_ObjCAtTryStmt)
+    internal unsafe ObjCAtTryStmt(CXCursor handle) : base(handle, CXCursor_ObjCAtTryStmt, CX_StmtClass_ObjCAtTryStmt)
     {
         Debug.Assert(NumChildren is >= 1);
 
-        _catchStmts = new ValueLazy<LazyList<ObjCAtCatchStmt, Stmt>>(() => {
-            var children = _children;
+        _catchStmts = new ValueLazy<ObjCAtTryStmt, LazyList<ObjCAtCatchStmt, Stmt>>(&CatchStmtsFactory);
+
+        _finallyStmt = new ValueLazy<ObjCAtTryStmt, ObjCAtFinallyStmt?>(&FinallyStmtFactory);
+    }
+
+    public Stmt Body => Children[0];
+
+    public IReadOnlyList<ObjCAtCatchStmt> CatchStmts => _catchStmts.GetValue(this);
+
+    public ObjCAtFinallyStmt? FinallyStmt => _finallyStmt.GetValue(this);
+
+    public uint NumCatchStmts => (uint)CatchStmts.Count;
+
+    private static unsafe ObjCAtFinallyStmt? FinallyStmtFactory(ObjCAtTryStmt self) {
+            var children = self.Children;
+
+            return (children[children.Count - 1] is ObjCAtFinallyStmt finallyStmt) ? finallyStmt : null;
+        }
+
+    private static unsafe LazyList<ObjCAtCatchStmt, Stmt> CatchStmtsFactory(ObjCAtTryStmt self) {
+            var children = self._children;
             var skipLast = 0;
 
             if (children[children.Count - 1] is ObjCAtFinallyStmt)
@@ -26,22 +45,7 @@ public sealed class ObjCAtTryStmt : Stmt
                 skipLast++;
             }
 
-            var take = (int)(NumChildren - 1 - skipLast);
-            return LazyList.Create<ObjCAtCatchStmt, Stmt>(_children, skip: 1, take);
-        });
-
-        _finallyStmt = new ValueLazy<ObjCAtFinallyStmt?>(() => {
-            var children = Children;
-
-            return (children[children.Count - 1] is ObjCAtFinallyStmt finallyStmt) ? finallyStmt : null;
-        });
-    }
-
-    public Stmt Body => Children[0];
-
-    public IReadOnlyList<ObjCAtCatchStmt> CatchStmts => _catchStmts.Value;
-
-    public ObjCAtFinallyStmt? FinallyStmt => _finallyStmt.Value;
-
-    public uint NumCatchStmts => (uint)CatchStmts.Count;
+            var take = (int)(self.NumChildren - 1 - skipLast);
+            return LazyList.Create<ObjCAtCatchStmt, Stmt>(self._children, skip: 1, take);
+        }
 }

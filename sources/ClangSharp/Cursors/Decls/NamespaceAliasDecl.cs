@@ -8,18 +8,22 @@ namespace ClangSharp;
 
 public sealed class NamespaceAliasDecl : NamedDecl, IRedeclarable<NamespaceDecl>
 {
-    private ValueLazy<NamedDecl> _aliasedNamespace;
-    private ValueLazy<NamespaceDecl> _namespace;
+    private ValueLazy<NamespaceAliasDecl, NamedDecl> _aliasedNamespace;
+    private ValueLazy<NamespaceAliasDecl, NamespaceDecl> _namespace;
 
-    internal NamespaceAliasDecl(CXCursor handle) : base(handle, CXCursor_NamespaceAlias, CX_DeclKind_NamespaceAlias)
+    internal unsafe NamespaceAliasDecl(CXCursor handle) : base(handle, CXCursor_NamespaceAlias, CX_DeclKind_NamespaceAlias)
     {
-        _aliasedNamespace = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetSubDecl(0)));
-        _namespace = new ValueLazy<NamespaceDecl>(() => TranslationUnit.GetOrCreate<NamespaceDecl>(Handle.GetSubDecl(1)));
+        _aliasedNamespace = new ValueLazy<NamespaceAliasDecl, NamedDecl>(&AliasedNamespaceFactory);
+        _namespace = new ValueLazy<NamespaceAliasDecl, NamespaceDecl>(&NamespaceFactory);
     }
 
-    public NamedDecl AliasedNamespace => _aliasedNamespace.Value;
+    public NamedDecl AliasedNamespace => _aliasedNamespace.GetValue(this);
 
     public new NamespaceAliasDecl CanonicalDecl => (NamespaceAliasDecl)base.CanonicalDecl;
 
-    public NamespaceDecl Namespace => _namespace.Value;
+    public NamespaceDecl Namespace => _namespace.GetValue(this);
+
+    private static unsafe NamespaceDecl NamespaceFactory(NamespaceAliasDecl self) => self.TranslationUnit.GetOrCreate<NamespaceDecl>(self.Handle.GetSubDecl(1));
+
+    private static unsafe NamedDecl AliasedNamespaceFactory(NamespaceAliasDecl self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.GetSubDecl(0));
 }

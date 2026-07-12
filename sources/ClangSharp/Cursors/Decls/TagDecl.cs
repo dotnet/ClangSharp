@@ -10,9 +10,9 @@ namespace ClangSharp;
 
 public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
 {
-    private ValueLazy<TagDecl?> _definition;
+    private ValueLazy<TagDecl, TagDecl?> _definition;
     private readonly LazyList<LazyList<NamedDecl>> _templateParameterLists;
-    private ValueLazy<TypedefNameDecl?> _typedefNameForAnonDecl;
+    private ValueLazy<TagDecl, TypedefNameDecl?> _typedefNameForAnonDecl;
 
     private protected TagDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
@@ -21,17 +21,17 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _definition = new ValueLazy<TagDecl?>(() => !Handle.Definition.IsNull ? TranslationUnit.GetOrCreate<TagDecl>(Handle.Definition) : null);
+        _definition = new ValueLazy<TagDecl, TagDecl?>(&DefinitionFactory);
         _templateParameterLists = LazyList.Create<LazyList<NamedDecl>>(Handle.NumTemplateParameterLists, (listIndex) => {
             var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
             return LazyList.Create<NamedDecl>(numTemplateParameters, (parameterIndex) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex))));
         });
-        _typedefNameForAnonDecl = new ValueLazy<TypedefNameDecl?>(() => !Handle.TypedefNameForAnonDecl.IsNull ? TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.TypedefNameForAnonDecl) : null);
+        _typedefNameForAnonDecl = new ValueLazy<TagDecl, TypedefNameDecl?>(&TypedefNameForAnonDeclFactory);
     }
 
     public new TagDecl CanonicalDecl => (TagDecl)base.CanonicalDecl;
 
-    public TagDecl? Definition => _definition.Value;
+    public TagDecl? Definition => _definition.GetValue(this);
 
     public bool IsClass => CursorKind == CXCursor_ClassDecl;
 
@@ -49,5 +49,9 @@ public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
 
     public IReadOnlyList<IReadOnlyList<NamedDecl>> TemplateParameterLists => _templateParameterLists;
 
-    public TypedefNameDecl? TypedefNameForAnonDecl => _typedefNameForAnonDecl.Value;
+    public TypedefNameDecl? TypedefNameForAnonDecl => _typedefNameForAnonDecl.GetValue(this);
+
+    private static unsafe TypedefNameDecl? TypedefNameForAnonDeclFactory(TagDecl self) => !self.Handle.TypedefNameForAnonDecl.IsNull ? self.TranslationUnit.GetOrCreate<TypedefNameDecl>(self.Handle.TypedefNameForAnonDecl) : null;
+
+    private static unsafe TagDecl? DefinitionFactory(TagDecl self) => !self.Handle.Definition.IsNull ? self.TranslationUnit.GetOrCreate<TagDecl>(self.Handle.Definition) : null;
 }

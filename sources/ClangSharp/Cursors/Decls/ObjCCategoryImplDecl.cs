@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class ObjCCategoryImplDecl : ObjCImplDecl
 {
-    private ValueLazy<ObjCCategoryDecl> _categoryDecl;
+    private ValueLazy<ObjCCategoryImplDecl, ObjCCategoryDecl> _categoryDecl;
 
-    internal ObjCCategoryImplDecl(CXCursor handle) : base(handle, CXCursor_ObjCCategoryImplDecl, CX_DeclKind_ObjCCategoryImpl)
+    internal unsafe ObjCCategoryImplDecl(CXCursor handle) : base(handle, CXCursor_ObjCCategoryImplDecl, CX_DeclKind_ObjCCategoryImpl)
     {
-        _categoryDecl = new ValueLazy<ObjCCategoryDecl>(() => TranslationUnit.GetOrCreate<ObjCCategoryDecl>(Handle.GetSubDecl(1)));
+        _categoryDecl = new ValueLazy<ObjCCategoryImplDecl, ObjCCategoryDecl>(&CategoryDeclFactory);
     }
 
-    public ObjCCategoryDecl CategoryDecl => _categoryDecl.Value;
+    public ObjCCategoryDecl CategoryDecl => _categoryDecl.GetValue(this);
+
+    private static unsafe ObjCCategoryDecl CategoryDeclFactory(ObjCCategoryImplDecl self) => self.TranslationUnit.GetOrCreate<ObjCCategoryDecl>(self.Handle.GetSubDecl(1));
 }

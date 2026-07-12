@@ -8,28 +8,36 @@ namespace ClangSharp;
 
 public sealed class ConstructorUsingShadowDecl : UsingShadowDecl
 {
-    private ValueLazy<CXXRecordDecl> _constructedBaseClass;
-    private ValueLazy<ConstructorUsingShadowDecl> _constructedBaseClassShadowDecl;
-    private ValueLazy<CXXRecordDecl> _nominatedBaseClass;
-    private ValueLazy<ConstructorUsingShadowDecl> _nominatedBaseClassShadowDecl;
+    private ValueLazy<ConstructorUsingShadowDecl, CXXRecordDecl> _constructedBaseClass;
+    private ValueLazy<ConstructorUsingShadowDecl, ConstructorUsingShadowDecl> _constructedBaseClassShadowDecl;
+    private ValueLazy<ConstructorUsingShadowDecl, CXXRecordDecl> _nominatedBaseClass;
+    private ValueLazy<ConstructorUsingShadowDecl, ConstructorUsingShadowDecl> _nominatedBaseClassShadowDecl;
 
-    internal ConstructorUsingShadowDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ConstructorUsingShadow)
+    internal unsafe ConstructorUsingShadowDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_ConstructorUsingShadow)
     {
-        _constructedBaseClass = new ValueLazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.ConstructedBaseClass));
-        _constructedBaseClassShadowDecl = new ValueLazy<ConstructorUsingShadowDecl>(() => TranslationUnit.GetOrCreate<ConstructorUsingShadowDecl>(Handle.ConstructedBaseClassShadowDecl));
-        _nominatedBaseClass = new ValueLazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.NominatedBaseClass));
-        _nominatedBaseClassShadowDecl = new ValueLazy<ConstructorUsingShadowDecl>(() => TranslationUnit.GetOrCreate<ConstructorUsingShadowDecl>(Handle.NominatedBaseClassShadowDecl));
+        _constructedBaseClass = new ValueLazy<ConstructorUsingShadowDecl, CXXRecordDecl>(&ConstructedBaseClassFactory);
+        _constructedBaseClassShadowDecl = new ValueLazy<ConstructorUsingShadowDecl, ConstructorUsingShadowDecl>(&ConstructedBaseClassShadowDeclFactory);
+        _nominatedBaseClass = new ValueLazy<ConstructorUsingShadowDecl, CXXRecordDecl>(&NominatedBaseClassFactory);
+        _nominatedBaseClassShadowDecl = new ValueLazy<ConstructorUsingShadowDecl, ConstructorUsingShadowDecl>(&NominatedBaseClassShadowDeclFactory);
     }
 
-    public CXXRecordDecl ConstructedBaseClass => _constructedBaseClass.Value;
+    public CXXRecordDecl ConstructedBaseClass => _constructedBaseClass.GetValue(this);
 
-    public ConstructorUsingShadowDecl ConstructedBaseClassShadowDecl => _constructedBaseClassShadowDecl.Value;
+    public ConstructorUsingShadowDecl ConstructedBaseClassShadowDecl => _constructedBaseClassShadowDecl.GetValue(this);
 
     public bool ConstructsVirtualBase => Handle.ConstructsVirtualBase;
 
-    public CXXRecordDecl NominatedBaseClass => _nominatedBaseClass.Value;
+    public CXXRecordDecl NominatedBaseClass => _nominatedBaseClass.GetValue(this);
 
-    public ConstructorUsingShadowDecl NominatedBaseClassShadowDecl => _nominatedBaseClassShadowDecl.Value;
+    public ConstructorUsingShadowDecl NominatedBaseClassShadowDecl => _nominatedBaseClassShadowDecl.GetValue(this);
 
     public new CXXRecordDecl? Parent => (CXXRecordDecl?)DeclContext;
+
+    private static unsafe ConstructorUsingShadowDecl NominatedBaseClassShadowDeclFactory(ConstructorUsingShadowDecl self) => self.TranslationUnit.GetOrCreate<ConstructorUsingShadowDecl>(self.Handle.NominatedBaseClassShadowDecl);
+
+    private static unsafe CXXRecordDecl NominatedBaseClassFactory(ConstructorUsingShadowDecl self) => self.TranslationUnit.GetOrCreate<CXXRecordDecl>(self.Handle.NominatedBaseClass);
+
+    private static unsafe ConstructorUsingShadowDecl ConstructedBaseClassShadowDeclFactory(ConstructorUsingShadowDecl self) => self.TranslationUnit.GetOrCreate<ConstructorUsingShadowDecl>(self.Handle.ConstructedBaseClassShadowDecl);
+
+    private static unsafe CXXRecordDecl ConstructedBaseClassFactory(ConstructorUsingShadowDecl self) => self.TranslationUnit.GetOrCreate<CXXRecordDecl>(self.Handle.ConstructedBaseClass);
 }

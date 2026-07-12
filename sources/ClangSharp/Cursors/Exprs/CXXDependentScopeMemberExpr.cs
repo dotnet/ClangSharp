@@ -11,24 +11,24 @@ namespace ClangSharp;
 
 public sealed class CXXDependentScopeMemberExpr : Expr
 {
-    private ValueLazy<Type> _baseType;
-    private ValueLazy<NamedDecl> _firstQualifierFoundInScope;
+    private ValueLazy<CXXDependentScopeMemberExpr, Type> _baseType;
+    private ValueLazy<CXXDependentScopeMemberExpr, NamedDecl> _firstQualifierFoundInScope;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
-    internal CXXDependentScopeMemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_CXXDependentScopeMemberExpr)
+    internal unsafe CXXDependentScopeMemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_CXXDependentScopeMemberExpr)
     {
         Debug.Assert(NumChildren is 0 or 1);
 
-        _baseType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
-        _firstQualifierFoundInScope = new ValueLazy<NamedDecl>(() => TranslationUnit.GetOrCreate<NamedDecl>(handle.Referenced));
+        _baseType = new ValueLazy<CXXDependentScopeMemberExpr, Type>(&BaseTypeFactory);
+        _firstQualifierFoundInScope = new ValueLazy<CXXDependentScopeMemberExpr, NamedDecl>(&FirstQualifierFoundInScopeFactory);
         _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
     }
 
     public Expr? Base => (Expr?)Children.SingleOrDefault();
 
-    public Type BaseType => _baseType.Value;
+    public Type BaseType => _baseType.GetValue(this);
 
-    public NamedDecl FirstQualifierFoundInScope => _firstQualifierFoundInScope.Value;
+    public NamedDecl FirstQualifierFoundInScope => _firstQualifierFoundInScope.GetValue(this);
 
     public bool HasExplicitTemplateArgs => Handle.HasExplicitTemplateArgs;
 
@@ -43,4 +43,8 @@ public sealed class CXXDependentScopeMemberExpr : Expr
     public uint NumTemplateArgs => unchecked((uint)Handle.NumTemplateArguments);
 
     public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
+
+    private static unsafe NamedDecl FirstQualifierFoundInScopeFactory(CXXDependentScopeMemberExpr self) => self.TranslationUnit.GetOrCreate<NamedDecl>(self.Handle.Referenced);
+
+    private static unsafe Type BaseTypeFactory(CXXDependentScopeMemberExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

@@ -8,17 +8,19 @@ namespace ClangSharp;
 
 public class ExplicitCastExpr : CastExpr
 {
-    private ValueLazy<Type> _typeAsWritten;
+    private ValueLazy<ExplicitCastExpr, Type> _typeAsWritten;
 
-    private protected ExplicitCastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
+    private protected unsafe ExplicitCastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
         if (handle.StmtClass is > CX_StmtClass_LastExplicitCastExpr or < CX_StmtClass_FirstExplicitCastExpr)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _typeAsWritten = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _typeAsWritten = new ValueLazy<ExplicitCastExpr, Type>(&TypeAsWrittenFactory);
     }
 
-    public Type TypeAsWritten => _typeAsWritten.Value;
+    public Type TypeAsWritten => _typeAsWritten.GetValue(this);
+
+    private static unsafe Type TypeAsWrittenFactory(ExplicitCastExpr self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
 }

@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class TypeOfExprType : Type
 {
-    private ValueLazy<Expr> _underlyingExpr;
+    private ValueLazy<TypeOfExprType, Expr> _underlyingExpr;
 
-    internal TypeOfExprType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TypeOfExpr)
+    internal unsafe TypeOfExprType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TypeOfExpr)
     {
-        _underlyingExpr = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(handle.UnderlyingExpr));
+        _underlyingExpr = new ValueLazy<TypeOfExprType, Expr>(&UnderlyingExprFactory);
     }
 
-    public Expr UnderlyingExpr => _underlyingExpr.Value;
+    public Expr UnderlyingExpr => _underlyingExpr.GetValue(this);
+
+    private static unsafe Expr UnderlyingExprFactory(TypeOfExprType self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.UnderlyingExpr);
 }

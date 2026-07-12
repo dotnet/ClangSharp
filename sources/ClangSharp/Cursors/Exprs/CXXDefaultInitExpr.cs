@@ -9,20 +9,24 @@ namespace ClangSharp;
 
 public sealed class CXXDefaultInitExpr : Expr
 {
-    private ValueLazy<FieldDecl> _field;
-    private ValueLazy<IDeclContext?> _usedContext;
+    private ValueLazy<CXXDefaultInitExpr, FieldDecl> _field;
+    private ValueLazy<CXXDefaultInitExpr, IDeclContext?> _usedContext;
 
-    internal CXXDefaultInitExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXDefaultInitExpr)
+    internal unsafe CXXDefaultInitExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXDefaultInitExpr)
     {
         Debug.Assert(NumChildren is 0);
 
-        _field = new ValueLazy<FieldDecl>(() => TranslationUnit.GetOrCreate<FieldDecl>(Handle.Referenced));
-        _usedContext = new ValueLazy<IDeclContext?>(() => TranslationUnit.GetOrCreate<Decl>(Handle.UsedContext) as IDeclContext);
+        _field = new ValueLazy<CXXDefaultInitExpr, FieldDecl>(&FieldFactory);
+        _usedContext = new ValueLazy<CXXDefaultInitExpr, IDeclContext?>(&UsedContextFactory);
     }
 
     public Expr Expr => Field.InClassInitializer;
 
-    public FieldDecl Field => _field.Value;
+    public FieldDecl Field => _field.GetValue(this);
 
-    public IDeclContext? UsedContext => _usedContext.Value;
+    public IDeclContext? UsedContext => _usedContext.GetValue(this);
+
+    private static unsafe IDeclContext? UsedContextFactory(CXXDefaultInitExpr self) => self.TranslationUnit.GetOrCreate<Decl>(self.Handle.UsedContext) as IDeclContext;
+
+    private static unsafe FieldDecl FieldFactory(CXXDefaultInitExpr self) => self.TranslationUnit.GetOrCreate<FieldDecl>(self.Handle.Referenced);
 }

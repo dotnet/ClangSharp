@@ -8,20 +8,20 @@ namespace ClangSharp;
 
 public sealed class ObjCPropertyDecl : NamedDecl
 {
-    private ValueLazy<ObjCMethodDecl> _getterMethodDecl;
-    private ValueLazy<ObjCIvarDecl> _propertyIvarDecl;
-    private ValueLazy<ObjCMethodDecl> _setterMethodDecl;
-    private ValueLazy<Type> _type;
+    private ValueLazy<ObjCPropertyDecl, ObjCMethodDecl> _getterMethodDecl;
+    private ValueLazy<ObjCPropertyDecl, ObjCIvarDecl> _propertyIvarDecl;
+    private ValueLazy<ObjCPropertyDecl, ObjCMethodDecl> _setterMethodDecl;
+    private ValueLazy<ObjCPropertyDecl, Type> _type;
 
-    internal ObjCPropertyDecl(CXCursor handle) : base(handle, CXCursor_ObjCPropertyDecl, CX_DeclKind_ObjCProperty)
+    internal unsafe ObjCPropertyDecl(CXCursor handle) : base(handle, CXCursor_ObjCPropertyDecl, CX_DeclKind_ObjCProperty)
     {
-        _getterMethodDecl = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(0)));
-        _propertyIvarDecl = new ValueLazy<ObjCIvarDecl>(() => TranslationUnit.GetOrCreate<ObjCIvarDecl>(Handle.GetSubDecl(1)));
-        _setterMethodDecl = new ValueLazy<ObjCMethodDecl>(() => TranslationUnit.GetOrCreate<ObjCMethodDecl>(Handle.GetSubDecl(2)));
-        _type = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
+        _getterMethodDecl = new ValueLazy<ObjCPropertyDecl, ObjCMethodDecl>(&GetterMethodDeclFactory);
+        _propertyIvarDecl = new ValueLazy<ObjCPropertyDecl, ObjCIvarDecl>(&PropertyIvarDeclFactory);
+        _setterMethodDecl = new ValueLazy<ObjCPropertyDecl, ObjCMethodDecl>(&SetterMethodDeclFactory);
+        _type = new ValueLazy<ObjCPropertyDecl, Type>(&TypeFactory);
     }
 
-    public ObjCMethodDecl GetterMethodDecl => _getterMethodDecl.Value;
+    public ObjCMethodDecl GetterMethodDecl => _getterMethodDecl.GetValue(this);
 
     public bool IsClassProperty => (PropertyAttributes & CXObjCPropertyAttrKind.CXObjCPropertyAttr_class) != 0;
 
@@ -41,9 +41,17 @@ public sealed class ObjCPropertyDecl : NamedDecl
     public ObjCPropertyAttributeKind GetPropertyAttributes () => Handle.GetPropertyAttributes();
 #pragma warning restore CA1721
 
-    public ObjCIvarDecl PropertyIvarDecl => _propertyIvarDecl.Value;
+    public ObjCIvarDecl PropertyIvarDecl => _propertyIvarDecl.GetValue(this);
 
-    public ObjCMethodDecl SetterMethodDecl => _setterMethodDecl.Value;
+    public ObjCMethodDecl SetterMethodDecl => _setterMethodDecl.GetValue(this);
 
-    public Type Type => _type.Value;
+    public Type Type => _type.GetValue(this);
+
+    private static unsafe Type TypeFactory(ObjCPropertyDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ReturnType);
+
+    private static unsafe ObjCMethodDecl SetterMethodDeclFactory(ObjCPropertyDecl self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.GetSubDecl(2));
+
+    private static unsafe ObjCIvarDecl PropertyIvarDeclFactory(ObjCPropertyDecl self) => self.TranslationUnit.GetOrCreate<ObjCIvarDecl>(self.Handle.GetSubDecl(1));
+
+    private static unsafe ObjCMethodDecl GetterMethodDeclFactory(ObjCPropertyDecl self) => self.TranslationUnit.GetOrCreate<ObjCMethodDecl>(self.Handle.GetSubDecl(0));
 }

@@ -9,18 +9,18 @@ namespace ClangSharp;
 
 public sealed class CXXRewrittenBinaryOperator : Expr
 {
-    private ValueLazy<Expr> _lhs;
-    private ValueLazy<Expr> _rhs;
+    private ValueLazy<CXXRewrittenBinaryOperator, Expr> _lhs;
+    private ValueLazy<CXXRewrittenBinaryOperator, Expr> _rhs;
 
-    internal CXXRewrittenBinaryOperator(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXRewrittenBinaryOperator)
+    internal unsafe CXXRewrittenBinaryOperator(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXRewrittenBinaryOperator)
     {
         Debug.Assert(NumChildren is 1);
 
-        _lhs = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.LhsExpr));
-        _rhs = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.RhsExpr));
+        _lhs = new ValueLazy<CXXRewrittenBinaryOperator, Expr>(&LhsFactory);
+        _rhs = new ValueLazy<CXXRewrittenBinaryOperator, Expr>(&RhsFactory);
     }
 
-    public Expr LHS => _lhs.Value;
+    public Expr LHS => _lhs.GetValue(this);
 
     public static bool IsAssignmentOp => false;
 
@@ -32,7 +32,11 @@ public sealed class CXXRewrittenBinaryOperator : Expr
 
     public string OpcodeStr => Handle.BinaryOperatorKindSpelling.CString;
 
-    public Expr RHS => _rhs.Value;
+    public Expr RHS => _rhs.GetValue(this);
 
     public Expr SemanticForm => (Expr)Children[0];
+
+    private static unsafe Expr RhsFactory(CXXRewrittenBinaryOperator self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.RhsExpr);
+
+    private static unsafe Expr LhsFactory(CXXRewrittenBinaryOperator self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.LhsExpr);
 }

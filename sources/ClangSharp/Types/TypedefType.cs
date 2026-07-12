@@ -8,12 +8,14 @@ namespace ClangSharp;
 
 public sealed class TypedefType : Type
 {
-    private ValueLazy<TypedefNameDecl> _decl;
+    private ValueLazy<TypedefType, TypedefNameDecl> _decl;
 
-    internal TypedefType(CXType handle) : base(handle, CXType_Typedef, CX_TypeClass_Typedef, CXType_ObjCClass, CXType_ObjCId, CXType_ObjCSel)
+    internal unsafe TypedefType(CXType handle) : base(handle, CXType_Typedef, CX_TypeClass_Typedef, CXType_ObjCClass, CXType_ObjCId, CXType_ObjCSel)
     {
-        _decl = new ValueLazy<TypedefNameDecl>(() => TranslationUnit.GetOrCreate<TypedefNameDecl>(Handle.Declaration));
+        _decl = new ValueLazy<TypedefType, TypedefNameDecl>(&DeclFactory);
     }
 
-    public TypedefNameDecl Decl => _decl.Value;
+    public TypedefNameDecl Decl => _decl.GetValue(this);
+
+    private static unsafe TypedefNameDecl DeclFactory(TypedefType self) => self.TranslationUnit.GetOrCreate<TypedefNameDecl>(self.Handle.Declaration);
 }

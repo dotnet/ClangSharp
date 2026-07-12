@@ -10,9 +10,9 @@ namespace ClangSharp;
 public class DeclaratorDecl : ValueDecl
 {
     private readonly LazyList<LazyList<NamedDecl>> _templateParameterLists;
-    private ValueLazy<Expr> _trailingRequiresClause;
+    private ValueLazy<DeclaratorDecl, Expr> _trailingRequiresClause;
 
-    private protected DeclaratorDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
+    private protected unsafe DeclaratorDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {
         if (handle.DeclKind is > CX_DeclKind_LastDeclarator or < CX_DeclKind_FirstDeclarator)
         {
@@ -23,12 +23,14 @@ public class DeclaratorDecl : ValueDecl
             var numTemplateParameters = Handle.GetNumTemplateParameters(unchecked((uint)listIndex));
             return LazyList.Create<NamedDecl>(numTemplateParameters, (parameterIndex) => TranslationUnit.GetOrCreate<NamedDecl>(Handle.GetTemplateParameter(unchecked((uint)listIndex), unchecked((uint)parameterIndex))));
         });
-        _trailingRequiresClause = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.TrailingRequiresClause));
+        _trailingRequiresClause = new ValueLazy<DeclaratorDecl, Expr>(&TrailingRequiresClauseFactory);
     }
 
     public uint NumTemplateParameterLists => unchecked((uint)Handle.NumTemplateParameterLists);
 
     public IReadOnlyList<IReadOnlyList<NamedDecl>> TemplateParameterLists => _templateParameterLists;
 
-    public Expr TrailingRequiresClause => _trailingRequiresClause.Value;
+    public Expr TrailingRequiresClause => _trailingRequiresClause.GetValue(this);
+
+    private static unsafe Expr TrailingRequiresClauseFactory(DeclaratorDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.TrailingRequiresClause);
 }

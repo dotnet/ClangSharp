@@ -10,33 +10,33 @@ namespace ClangSharp;
 
 public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
 {
-    private ValueLazy<ObjCInterfaceDecl> _classInterface;
-    private ValueLazy<ImplicitParamDecl> _cmdDecl;
+    private ValueLazy<ObjCMethodDecl, ObjCInterfaceDecl> _classInterface;
+    private ValueLazy<ObjCMethodDecl, ImplicitParamDecl> _cmdDecl;
     private readonly LazyList<ParmVarDecl> _parameters;
-    private ValueLazy<Type> _returnType;
-    private ValueLazy<ImplicitParamDecl> _selfDecl;
-    private ValueLazy<Type> _sendResultType;
+    private ValueLazy<ObjCMethodDecl, Type> _returnType;
+    private ValueLazy<ObjCMethodDecl, ImplicitParamDecl> _selfDecl;
+    private ValueLazy<ObjCMethodDecl, Type> _sendResultType;
 
-    internal ObjCMethodDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind_ObjCMethod)
+    internal unsafe ObjCMethodDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind_ObjCMethod)
     {
         if (handle.Kind is not CXCursor_ObjCInstanceMethodDecl and not CXCursor_ObjCClassMethodDecl)
         {
             throw new ArgumentOutOfRangeException(nameof(handle));
         }
 
-        _classInterface = new ValueLazy<ObjCInterfaceDecl>(() => TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(Handle.GetSubDecl(0)));
-        _cmdDecl = new ValueLazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetSubDecl(1)));
+        _classInterface = new ValueLazy<ObjCMethodDecl, ObjCInterfaceDecl>(&ClassInterfaceFactory);
+        _cmdDecl = new ValueLazy<ObjCMethodDecl, ImplicitParamDecl>(&CmdDeclFactory);
         _parameters = LazyList.Create<ParmVarDecl>(Handle.NumArguments, (i) => TranslationUnit.GetOrCreate<ParmVarDecl>(Handle.GetArgument(unchecked((uint)i))));
-        _selfDecl = new ValueLazy<ImplicitParamDecl>(() => TranslationUnit.GetOrCreate<ImplicitParamDecl>(Handle.GetSubDecl(2)));
-        _returnType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.ReturnType));
-        _sendResultType = new ValueLazy<Type>(() => TranslationUnit.GetOrCreate<Type>(Handle.TypeOperand));
+        _selfDecl = new ValueLazy<ObjCMethodDecl, ImplicitParamDecl>(&SelfDeclFactory);
+        _returnType = new ValueLazy<ObjCMethodDecl, Type>(&ReturnTypeFactory);
+        _sendResultType = new ValueLazy<ObjCMethodDecl, Type>(&SendResultTypeFactory);
     }
 
     public new ObjCMethodDecl CanonicalDecl => (ObjCMethodDecl)base.CanonicalDecl;
 
-    public ObjCInterfaceDecl ClassInterface => _classInterface.Value;
+    public ObjCInterfaceDecl ClassInterface => _classInterface.GetValue(this);
 
-    public ImplicitParamDecl CmdDecl => _cmdDecl.Value;
+    public ImplicitParamDecl CmdDecl => _cmdDecl.GetValue(this);
 
     public bool IsClassMethod => CursorKind == CXCursor_ObjCClassMethodDecl;
 
@@ -50,13 +50,23 @@ public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
 
     public IReadOnlyList<ParmVarDecl> Parameters => _parameters;
 
-    public Type ReturnType => _returnType.Value;
+    public Type ReturnType => _returnType.GetValue(this);
 
-    public ImplicitParamDecl SelfDecl => _selfDecl.Value;
+    public ImplicitParamDecl SelfDecl => _selfDecl.GetValue(this);
 
-    public Type SendResultType => _sendResultType.Value;
+    public Type SendResultType => _sendResultType.GetValue(this);
 
     public bool IsPropertyAccessor => Handle.IsPropertyAccessor;
 
     public string Selector => Handle.Selector.ToString();
+
+    private static unsafe Type SendResultTypeFactory(ObjCMethodDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.TypeOperand);
+
+    private static unsafe Type ReturnTypeFactory(ObjCMethodDecl self) => self.TranslationUnit.GetOrCreate<Type>(self.Handle.ReturnType);
+
+    private static unsafe ImplicitParamDecl SelfDeclFactory(ObjCMethodDecl self) => self.TranslationUnit.GetOrCreate<ImplicitParamDecl>(self.Handle.GetSubDecl(2));
+
+    private static unsafe ImplicitParamDecl CmdDeclFactory(ObjCMethodDecl self) => self.TranslationUnit.GetOrCreate<ImplicitParamDecl>(self.Handle.GetSubDecl(1));
+
+    private static unsafe ObjCInterfaceDecl ClassInterfaceFactory(ObjCMethodDecl self) => self.TranslationUnit.GetOrCreate<ObjCInterfaceDecl>(self.Handle.GetSubDecl(0));
 }

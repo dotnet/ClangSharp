@@ -10,10 +10,10 @@ namespace ClangSharp;
 public class OverloadExpr : Expr
 {
     private readonly LazyList<Decl> _decls;
-    private ValueLazy<CXXRecordDecl> _namingClass;
+    private ValueLazy<OverloadExpr, CXXRecordDecl> _namingClass;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
-    private protected OverloadExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
+    private protected unsafe OverloadExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {
         if (handle.StmtClass is > CX_StmtClass_LastOverloadExpr or < CX_StmtClass_FirstOverloadExpr)
         {
@@ -21,7 +21,7 @@ public class OverloadExpr : Expr
         }
 
         _decls = LazyList.Create<Decl>(Handle.NumDecls, (i) => TranslationUnit.GetOrCreate<Decl>(Handle.GetDecl(unchecked((uint)i))));
-        _namingClass = new ValueLazy<CXXRecordDecl>(() => TranslationUnit.GetOrCreate<CXXRecordDecl>(Handle.Referenced));
+        _namingClass = new ValueLazy<OverloadExpr, CXXRecordDecl>(&NamingClassFactory);
         _templateArgs = LazyList.Create<TemplateArgumentLoc>(Handle.NumTemplateArguments, (i) => TranslationUnit.GetOrCreate(Handle.GetTemplateArgumentLoc(unchecked((uint)i))));
     }
 
@@ -31,7 +31,7 @@ public class OverloadExpr : Expr
 
     public bool HasTemplateKeyword => Handle.HasTemplateKeyword;
 
-    public CXXRecordDecl NamingClass => _namingClass.Value;
+    public CXXRecordDecl NamingClass => _namingClass.GetValue(this);
 
     public string Name => Handle.Name.CString;
 
@@ -40,4 +40,6 @@ public class OverloadExpr : Expr
     public uint NumTemplateArgs => unchecked((uint)Handle.NumTemplateArguments);
 
     public IReadOnlyList<TemplateArgumentLoc> TemplateArgs => _templateArgs;
+
+    private static unsafe CXXRecordDecl NamingClassFactory(OverloadExpr self) => self.TranslationUnit.GetOrCreate<CXXRecordDecl>(self.Handle.Referenced);
 }

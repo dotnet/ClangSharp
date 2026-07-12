@@ -10,21 +10,21 @@ namespace ClangSharp;
 public sealed class NonTypeTemplateParmDecl : DeclaratorDecl, ITemplateParmPosition
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private ValueLazy<Expr> _defaultArgument;
+    private ValueLazy<NonTypeTemplateParmDecl, Expr> _defaultArgument;
     private readonly LazyList<Type> _expansionTypes;
-    private ValueLazy<Expr> _placeholderTypeConstraint;
+    private ValueLazy<NonTypeTemplateParmDecl, Expr> _placeholderTypeConstraint;
 
-    internal NonTypeTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_NonTypeTemplateParameter, CX_DeclKind_NonTypeTemplateParm)
+    internal unsafe NonTypeTemplateParmDecl(CXCursor handle) : base(handle, CXCursor_NonTypeTemplateParameter, CX_DeclKind_NonTypeTemplateParm)
     {
         _associatedConstraints = LazyList.Create<Expr>(Handle.NumAssociatedConstraints, (i) => TranslationUnit.GetOrCreate<Expr>(Handle.GetAssociatedConstraint(unchecked((uint)i))));
-        _defaultArgument = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.DefaultArg));
+        _defaultArgument = new ValueLazy<NonTypeTemplateParmDecl, Expr>(&DefaultArgumentFactory);
         _expansionTypes = LazyList.Create<Type>(Handle.NumExpansionTypes, (i) => TranslationUnit.GetOrCreate<Type>(Handle.GetExpansionType(unchecked((uint)i))));
-        _placeholderTypeConstraint = new ValueLazy<Expr>(() => TranslationUnit.GetOrCreate<Expr>(Handle.PlaceholderTypeConstraint));
+        _placeholderTypeConstraint = new ValueLazy<NonTypeTemplateParmDecl, Expr>(&PlaceholderTypeConstraintFactory);
     }
 
     public IReadOnlyList<Expr> AssociatedConstraints => _associatedConstraints;
 
-    public Expr DefaultArgument => _defaultArgument.Value;
+    public Expr DefaultArgument => _defaultArgument.GetValue(this);
 
     public bool DefaultArgumentWasInherited => Handle.HasInheritedDefaultArg;
 
@@ -42,7 +42,11 @@ public sealed class NonTypeTemplateParmDecl : DeclaratorDecl, ITemplateParmPosit
 
     public bool IsParameterPack => Handle.IsParameterPack;
 
-    public Expr PlaceholderTypeConstraint => _placeholderTypeConstraint.Value;
+    public Expr PlaceholderTypeConstraint => _placeholderTypeConstraint.GetValue(this);
 
     public uint Position => unchecked((uint)Handle.TemplateTypeParmPosition);
+
+    private static unsafe Expr PlaceholderTypeConstraintFactory(NonTypeTemplateParmDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.PlaceholderTypeConstraint);
+
+    private static unsafe Expr DefaultArgumentFactory(NonTypeTemplateParmDecl self) => self.TranslationUnit.GetOrCreate<Expr>(self.Handle.DefaultArg);
 }
