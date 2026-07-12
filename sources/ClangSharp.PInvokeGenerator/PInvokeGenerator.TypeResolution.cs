@@ -926,7 +926,7 @@ public sealed partial class PInvokeGenerator
 
                     if (alignment64 < 4)
                     {
-                        alignment64 = Math.Max(Math.Min(alignment32, 8), 1);
+                        alignment64 = Math.Max(Math.Min(alignment64, 8), 1);
                     }
 
                     maxFieldSize32 = Math.Max(maxFieldSize32, 4);
