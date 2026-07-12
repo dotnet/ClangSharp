@@ -38,7 +38,7 @@ indent_size = 2
 # Set file header template to the specified text
 ###############################################################################
 [*.cs]
-file_header_template = Copyright © Tanner Gooding and Contributors. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
+file_header_template = Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 ###############################################################################
 # Set dotnet naming rules to:
