@@ -1463,10 +1463,15 @@ public sealed partial class PInvokeGenerator
 
             case "uint":
             case "UInt32":
+            {
+                return false;
+            }
+
             case "nuint":
             case "UIntPtr":
             {
-                return false;
+                var unsignedValue = unchecked((ulong)signedValue);
+                return unsignedValue is < uint.MinValue or > uint.MaxValue;
             }
 
             case "ulong":

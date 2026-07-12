@@ -2587,7 +2587,7 @@ public partial class PInvokeGenerator
 
                 case CXType_ULongLong:
                 {
-                    if (typeNameBacking.Equals("nuint", StringComparison.Ordinal))
+                    if (typeNameBacking is "nuint" or "UIntPtr")
                     {
                         goto case CXType_UInt;
                     }
@@ -2620,7 +2620,7 @@ public partial class PInvokeGenerator
                 {
                     isTypeBackingSigned = true;
 
-                    if (typeNameBacking.Equals("nint", StringComparison.Ordinal))
+                    if (typeNameBacking is "nint" or "IntPtr")
                     {
                         goto case CXType_Int;
                     }
@@ -2686,7 +2686,7 @@ public partial class PInvokeGenerator
 
                 case CXType_ULongLong:
                 {
-                    if (typeNameBacking.Equals("nuint", StringComparison.Ordinal))
+                    if (typeNameBacking is "nuint" or "UIntPtr")
                     {
                         goto case CXType_UInt;
                     }
@@ -2719,7 +2719,7 @@ public partial class PInvokeGenerator
                 {
                     isTypeSigned = true;
 
-                    if (typeNameBacking.Equals("nint", StringComparison.Ordinal))
+                    if (typeNameBacking is "nint" or "IntPtr")
                     {
                         goto case CXType_Int;
                     }
@@ -2773,7 +2773,7 @@ public partial class PInvokeGenerator
 
             // Signed types are sign extended when shifted
             var isUnsignedToSigned = !isTypeBackingSigned && isTypeSigned;
-            
+
             // Check if type is directly shiftable/maskable
             // Remapped types are not guaranteed to be shiftable or maskable
             // Enums are maskable, but not shiftable
@@ -3761,6 +3761,14 @@ public partial class PInvokeGenerator
 
     private bool IsConstant(string targetTypeName, Expr initExpr)
     {
+        // Constant expressions for native integers must be in range of the corresponding 32-bit integer type
+        // Also see: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/native-integers.md
+        if ((targetTypeName is "nuint" or "UIntPtr" && initExpr.Handle.Evaluate is { Kind: CXEval_Int, AsUnsigned: > uint.MaxValue })
+             || (targetTypeName is "nint" or "IntPtr" && initExpr.Handle.Evaluate is { Kind: CXEval_Int, AsLongLong: < int.MinValue or > int.MaxValue }))
+        {
+            return false;
+        }
+
         if (IsTypePointerOrReference(initExpr) && !targetTypeName.Equals("string", StringComparison.Ordinal))
         {
             return false;

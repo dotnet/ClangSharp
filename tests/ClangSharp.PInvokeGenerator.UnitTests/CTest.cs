@@ -1002,4 +1002,216 @@ typedef struct Bitfield {
                 { "Flags", "Flags" }
             });
     }
+
+    [Test]
+    [Platform("unix")] // This test has platform-specific differences (on Windows, __LONG_MAX__ is 32-bit)
+    public Task CLongDefinesTestUnix()
+    {
+        // C longs differ based on platform
+        // These values are taken from the Linux headers when using Clang
+        var inputContents = @"
+// stdint.h
+#define SIZE_MAX (18446744073709551615UL)
+
+// cl_ext.h from OpenCL
+#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX
+
+// limits.h
+#define LONG_MAX  __LONG_MAX__
+#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)
+
+// These expressions never exceed the allowed range, so should remain const
+#define CONST_IN_RANGE_S1 ((long)2147483647)
+#define CONST_IN_RANGE_U1 ((unsigned long)4294967295)
+
+// These expressions exceed the allowed range, so should become static readonly
+#define READONLY_OUT_OF_RANGE_S1 ((long)4294967295)
+#define READONLY_OUT_OF_RANGE_S2 ((long)4294967296)
+#define READONLY_OUT_OF_RANGE_U1 ((unsigned long)4294967296)
+";
+
+        // We use "static readonly" instead of "const" because nint/nuint differ on 32/64-bit platforms
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""#define SIZE_MAX (18446744073709551615UL)"")]
+        public static readonly nuint SIZE_MAX = unchecked((nuint)(18446744073709551615U));
+
+        [NativeTypeName(""#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX"")]
+        public static readonly nuint CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = unchecked((nuint)(18446744073709551615U));
+
+        [NativeTypeName(""#define LONG_MAX __LONG_MAX__"")]
+        public static readonly nint LONG_MAX = unchecked((nint)(9223372036854775807));
+
+        [NativeTypeName(""#define ULONG_MAX (__LONG_MAX__ *2UL+1UL)"")]
+        public static readonly nuint ULONG_MAX = unchecked((nuint)(9223372036854775807 * 2U + 1U));
+
+        [NativeTypeName(""#define CONST_IN_RANGE_S1 ((long)2147483647)"")]
+        public const nint CONST_IN_RANGE_S1 = ((nint)(2147483647));
+
+        [NativeTypeName(""#define CONST_IN_RANGE_U1 ((unsigned long)4294967295)"")]
+        public const nuint CONST_IN_RANGE_U1 = ((nuint)(4294967295));
+
+        [NativeTypeName(""#define READONLY_OUT_OF_RANGE_S1 ((long)4294967295)"")]
+        public static readonly nint READONLY_OUT_OF_RANGE_S1 = unchecked((nint)(4294967295));
+
+        [NativeTypeName(""#define READONLY_OUT_OF_RANGE_S2 ((long)4294967296)"")]
+        public static readonly nint READONLY_OUT_OF_RANGE_S2 = unchecked((nint)(4294967296));
+
+        [NativeTypeName(""#define READONLY_OUT_OF_RANGE_U1 ((unsigned long)4294967296)"")]
+        public static readonly nuint READONLY_OUT_OF_RANGE_U1 = unchecked((nuint)(4294967296));
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("unix")]
+    public Task CLongDefinesRegressionTestUnix()
+    {
+        // This test is to catch a potential regression when changing how native integers are handled
+        // Specifically, (18446744073709551615U) became unchecked(18446744073709551615U)
+
+        // Macro values are taken from the Linux headers when using Clang
+        // Some values are substituted for simplicity
+        var inputContents = @"
+// __stddef_size_t.h
+typedef __SIZE_TYPE__ size_t;
+
+// stdbool.h
+#define bool _Bool
+#define true 1
+#define false 0
+
+// SDL_stdinc.h from SDL3
+bool SDL_size_add_check_overflow(size_t a, size_t b, size_t *ret)
+{
+    if (b > (18446744073709551615UL) - a) {
+        return false;
+    }
+    *ret = a + b;
+    return true;
+}
+";
+
+        // The expected below currently does not represent the ideal behavior.
+        // Ideally, the unchecked keywork is removed as it is unnecessary.
+        // This issue is tracked here: https://github.com/dotnet/ClangSharp/issues/709
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static unsafe partial class Methods
+    {
+        [return: NativeTypeName(""_Bool"")]
+        public static bool SDL_size_add_check_overflow([NativeTypeName(""size_t"")] nuint a, [NativeTypeName(""size_t"")] nuint b, [NativeTypeName(""size_t *"")] nuint* ret)
+        {
+            if (b > unchecked(18446744073709551615U) - a)
+            {
+                return (0) != 0;
+            }
+
+            *ret = a + b;
+            return (1) != 0;
+        }
+
+        [NativeTypeName(""#define true 1"")]
+        public const int @true = 1;
+
+        [NativeTypeName(""#define false 0"")]
+        public const int @false = 0;
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    [Platform("win")] // This test has platform-specific differences
+    public Task CLongDefinesTestWindows()
+    {
+        // C longs differ based on platform
+        // These values are taken from the Windows headers when using MSVC
+        var inputContents = @"
+// limits.h
+#define SIZE_MAX 0xffffffffffffffffui64
+
+// cl_ext.h from OpenCL
+#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX
+
+// limits.h
+#define LONG_MAX 2147483647L
+#define ULONG_MAX 0xffffffffUL
+";
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""#define SIZE_MAX 0xffffffffffffffffui64"")]
+        public const ulong SIZE_MAX = 0xffffffffffffffffUL;
+
+        [NativeTypeName(""#define CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM SIZE_MAX"")]
+        public const ulong CL_IMPORT_MEMORY_WHOLE_ALLOCATION_ARM = 0xffffffffffffffffUL;
+
+        [NativeTypeName(""#define LONG_MAX 2147483647L"")]
+        public const int LONG_MAX = 2147483647;
+
+        [NativeTypeName(""#define ULONG_MAX 0xffffffffUL"")]
+        public const uint ULONG_MAX = 0xffffffffU;
+    }
+}
+";
+
+        return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+    }
+
+    [Test]
+    public Task IntptrDefineTest()
+    {
+        string inputContents;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // These values are taken from the Windows headers when using MSVC
+            inputContents = @"
+// vcruntime.h
+typedef __int64 intptr_t;
+
+// cl_ext.h from OpenCL
+#define CL_ICD2_TAG_KHR ((intptr_t)0x4F50454E434C3331)
+";
+        }
+        else
+        {
+            // These values are taken from the Linux headers when using Clang
+            inputContents = @"
+// stdint.h
+typedef long int intptr_t;
+
+// cl_ext.h from OpenCL
+#define CL_ICD2_TAG_KHR ((intptr_t)0x4F50454E434C3331)
+";
+        }
+
+        var expectedOutputContents = @"namespace ClangSharp.Test
+{
+    public static partial class Methods
+    {
+        [NativeTypeName(""#define CL_ICD2_TAG_KHR ((intptr_t)0x4F50454E434C3331)"")]
+        public static readonly nint CL_ICD2_TAG_KHR = unchecked((nint)(0x4F50454E434C3331));
+    }
+}
+";
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return ValidateGeneratedCSharpLatestWindowsBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        }
+        else
+        {
+            return ValidateGeneratedCSharpLatestUnixBindingsAsync(inputContents, expectedOutputContents, commandLineArgs: DefaultCClangCommandLineArgs, language: "c", languageStandard: DefaultCStandard);
+        }
+    }
 }
