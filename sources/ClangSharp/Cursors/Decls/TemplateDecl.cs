@@ -10,7 +10,7 @@ namespace ClangSharp;
 public class TemplateDecl : NamedDecl
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private readonly ValueLazy<NamedDecl> _templatedDecl;
+    private ValueLazy<NamedDecl> _templatedDecl;
     private readonly LazyList<NamedDecl> _templateParameters;
 
     private protected TemplateDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)

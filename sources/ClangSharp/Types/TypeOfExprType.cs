@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class TypeOfExprType : Type
 {
-    private readonly ValueLazy<Expr> _underlyingExpr;
+    private ValueLazy<Expr> _underlyingExpr;
 
     internal TypeOfExprType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TypeOfExpr)
     {

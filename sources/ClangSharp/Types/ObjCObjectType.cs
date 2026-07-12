@@ -9,10 +9,10 @@ namespace ClangSharp;
 
 public class ObjCObjectType : Type
 {
-    private readonly ValueLazy<Type> _baseType;
-    private readonly ValueLazy<ObjCInterfaceDecl> _interface;
+    private ValueLazy<Type> _baseType;
+    private ValueLazy<ObjCInterfaceDecl> _interface;
     private readonly LazyList<ObjCProtocolDecl> _protocols;
-    private readonly ValueLazy<Type> _superClassType;
+    private ValueLazy<Type> _superClassType;
     private readonly LazyList<Type> _typeArgs;
 
     internal ObjCObjectType(CXType handle) : this(handle, CXType_ObjCObject, CX_TypeClass_ObjCObject)

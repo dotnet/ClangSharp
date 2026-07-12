@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class ReturnStmt : Stmt
 {
-    private readonly ValueLazy<VarDecl> _nrvoCandidate;
+    private ValueLazy<VarDecl> _nrvoCandidate;
 
     internal ReturnStmt(CXCursor handle) : base(handle, CXCursor_ReturnStmt, CX_StmtClass_ReturnStmt)
     {

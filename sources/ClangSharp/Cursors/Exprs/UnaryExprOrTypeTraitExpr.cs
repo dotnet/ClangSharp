@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class UnaryExprOrTypeTraitExpr : Expr
 {
-    private readonly ValueLazy<Expr> _argumentExpr;
-    private readonly ValueLazy<Type> _argumentType;
+    private ValueLazy<Expr> _argumentExpr;
+    private ValueLazy<Type> _argumentType;
 
     internal UnaryExprOrTypeTraitExpr(CXCursor handle) : base(handle, CXCursor_UnaryExpr, CX_StmtClass_UnaryExprOrTypeTraitExpr)
     {

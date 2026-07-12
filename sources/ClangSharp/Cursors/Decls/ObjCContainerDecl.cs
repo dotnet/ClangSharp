@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public class ObjCContainerDecl : NamedDecl, IDeclContext
 {
-    private readonly ValueLazy<List<ObjCMethodDecl>> _classMethods;
-    private readonly ValueLazy<List<ObjCPropertyDecl>> _classProperties;
-    private readonly ValueLazy<List<ObjCMethodDecl>> _instanceMethods;
-    private readonly ValueLazy<List<ObjCPropertyDecl>> _instanceProperties;
-    private readonly ValueLazy<List<ObjCMethodDecl>> _methods;
-    private readonly ValueLazy<List<ObjCPropertyDecl>> _properties;
+    private ValueLazy<List<ObjCMethodDecl>> _classMethods;
+    private ValueLazy<List<ObjCPropertyDecl>> _classProperties;
+    private ValueLazy<List<ObjCMethodDecl>> _instanceMethods;
+    private ValueLazy<List<ObjCPropertyDecl>> _instanceProperties;
+    private ValueLazy<List<ObjCMethodDecl>> _methods;
+    private ValueLazy<List<ObjCPropertyDecl>> _properties;
 
     private protected ObjCContainerDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {

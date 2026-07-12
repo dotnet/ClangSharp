@@ -10,7 +10,7 @@ namespace ClangSharp;
 
 public sealed class CXXInheritedCtorInitExpr : Expr
 {
-    private readonly ValueLazy<CXXConstructorDecl> _constructor;
+    private ValueLazy<CXXConstructorDecl> _constructor;
 
     internal CXXInheritedCtorInitExpr(CXCursor handle) : base(handle, CXCursor_CallExpr, CX_StmtClass_CXXInheritedCtorInitExpr)
     {

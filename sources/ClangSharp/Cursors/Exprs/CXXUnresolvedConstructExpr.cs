@@ -10,7 +10,7 @@ namespace ClangSharp;
 public sealed class CXXUnresolvedConstructExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _args;
-    private readonly ValueLazy<Type> _typeAsWritten;
+    private ValueLazy<Type> _typeAsWritten;
 
     internal CXXUnresolvedConstructExpr(CXCursor handle) : base(handle, CXCursor_CallExpr, CX_StmtClass_CXXUnresolvedConstructExpr)
     {

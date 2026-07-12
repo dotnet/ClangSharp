@@ -10,12 +10,12 @@ namespace ClangSharp;
 
 public sealed class ObjCMethodDecl : NamedDecl, IDeclContext
 {
-    private readonly ValueLazy<ObjCInterfaceDecl> _classInterface;
-    private readonly ValueLazy<ImplicitParamDecl> _cmdDecl;
+    private ValueLazy<ObjCInterfaceDecl> _classInterface;
+    private ValueLazy<ImplicitParamDecl> _cmdDecl;
     private readonly LazyList<ParmVarDecl> _parameters;
-    private readonly ValueLazy<Type> _returnType;
-    private readonly ValueLazy<ImplicitParamDecl> _selfDecl;
-    private readonly ValueLazy<Type> _sendResultType;
+    private ValueLazy<Type> _returnType;
+    private ValueLazy<ImplicitParamDecl> _selfDecl;
+    private ValueLazy<Type> _sendResultType;
 
     internal ObjCMethodDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind_ObjCMethod)
     {

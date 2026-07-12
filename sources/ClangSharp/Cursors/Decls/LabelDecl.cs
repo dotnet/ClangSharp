@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class LabelDecl : NamedDecl
 {
-    private readonly ValueLazy<LabelStmt> _stmt;
+    private ValueLazy<LabelStmt> _stmt;
 
     internal LabelDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Label)
     {

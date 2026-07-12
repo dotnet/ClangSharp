@@ -8,9 +8,9 @@ namespace ClangSharp;
 
 public sealed class ParmVarDecl : VarDecl
 {
-    private readonly ValueLazy<Expr> _defaultArg;
-    private readonly ValueLazy<Type> _originalType;
-    private readonly ValueLazy<Expr> _uninstantiatedDefaultArg;
+    private ValueLazy<Expr> _defaultArg;
+    private ValueLazy<Type> _originalType;
+    private ValueLazy<Expr> _uninstantiatedDefaultArg;
 
     internal ParmVarDecl(CXCursor handle) : base(handle, CXCursor_ParmDecl, CX_DeclKind_ParmVar)
     {

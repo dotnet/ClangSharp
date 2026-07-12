@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public class ExplicitCastExpr : CastExpr
 {
-    private readonly ValueLazy<Type> _typeAsWritten;
+    private ValueLazy<Type> _typeAsWritten;
 
     private protected ExplicitCastExpr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {

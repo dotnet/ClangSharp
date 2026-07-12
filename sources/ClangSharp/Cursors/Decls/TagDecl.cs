@@ -10,9 +10,9 @@ namespace ClangSharp;
 
 public unsafe class TagDecl : TypeDecl, IDeclContext, IRedeclarable<TagDecl>
 {
-    private readonly ValueLazy<TagDecl?> _definition;
+    private ValueLazy<TagDecl?> _definition;
     private readonly LazyList<LazyList<NamedDecl>> _templateParameterLists;
-    private readonly ValueLazy<TypedefNameDecl?> _typedefNameForAnonDecl;
+    private ValueLazy<TypedefNameDecl?> _typedefNameForAnonDecl;
 
     private protected TagDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {

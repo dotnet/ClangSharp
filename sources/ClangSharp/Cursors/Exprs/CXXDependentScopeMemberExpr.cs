@@ -11,8 +11,8 @@ namespace ClangSharp;
 
 public sealed class CXXDependentScopeMemberExpr : Expr
 {
-    private readonly ValueLazy<Type> _baseType;
-    private readonly ValueLazy<NamedDecl> _firstQualifierFoundInScope;
+    private ValueLazy<Type> _baseType;
+    private ValueLazy<NamedDecl> _firstQualifierFoundInScope;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
     internal CXXDependentScopeMemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_CXXDependentScopeMemberExpr)

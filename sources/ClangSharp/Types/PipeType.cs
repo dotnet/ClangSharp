@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class PipeType : Type
 {
-    private readonly ValueLazy<Type> _elementType;
+    private ValueLazy<Type> _elementType;
 
     internal PipeType(CXType handle) : base(handle, CXType_Pipe, CX_TypeClass_Pipe)
     {

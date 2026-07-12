@@ -6,7 +6,7 @@ namespace ClangSharp;
 
 public class TagType : Type
 {
-    private readonly ValueLazy<TagDecl> _decl;
+    private ValueLazy<TagDecl> _decl;
 
     private protected TagType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {

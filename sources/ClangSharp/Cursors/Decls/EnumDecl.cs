@@ -10,10 +10,10 @@ namespace ClangSharp;
 public sealed class EnumDecl : TagDecl
 {
     private readonly LazyList<EnumConstantDecl> _enumerators;
-    private readonly ValueLazy<EnumDecl> _instantiatedFromMemberEnum;
-    private readonly ValueLazy<Type> _integerType;
-    private readonly ValueLazy<Type> _promotionType;
-    private readonly ValueLazy<EnumDecl> _templateInstantiationPattern;
+    private ValueLazy<EnumDecl> _instantiatedFromMemberEnum;
+    private ValueLazy<Type> _integerType;
+    private ValueLazy<Type> _promotionType;
+    private ValueLazy<EnumDecl> _templateInstantiationPattern;
 
     internal EnumDecl(CXCursor handle) : base(handle, CXCursor_EnumDecl, CX_DeclKind_Enum)
     {

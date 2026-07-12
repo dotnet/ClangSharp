@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public sealed class CXXNewExpr : Expr
 {
-    private readonly ValueLazy<FunctionDecl> _operatorDelete;
-    private readonly ValueLazy<FunctionDecl> _operatorNew;
+    private ValueLazy<FunctionDecl> _operatorDelete;
+    private ValueLazy<FunctionDecl> _operatorNew;
     private readonly LazyList<Expr, Stmt> _placementArgs;
 
     internal CXXNewExpr(CXCursor handle) : base(handle, CXCursor_CXXNewExpr, CX_StmtClass_CXXNewExpr)

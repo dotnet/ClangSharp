@@ -8,9 +8,9 @@ namespace ClangSharp;
 
 public sealed class BindingDecl : ValueDecl
 {
-    private readonly ValueLazy<Expr> _binding;
-    private readonly ValueLazy<ValueDecl> _decomposedDecl;
-    private readonly ValueLazy<VarDecl> _holdingVar;
+    private ValueLazy<Expr> _binding;
+    private ValueLazy<ValueDecl> _decomposedDecl;
+    private ValueLazy<VarDecl> _holdingVar;
 
     internal BindingDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_Binding)
     {

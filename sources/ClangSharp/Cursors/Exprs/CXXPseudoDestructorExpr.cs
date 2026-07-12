@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class CXXPseudoDestructorExpr : Expr
 {
-    private readonly ValueLazy<Type> _destroyedType;
+    private ValueLazy<Type> _destroyedType;
 
     internal CXXPseudoDestructorExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_CXXPseudoDestructorExpr)
     {

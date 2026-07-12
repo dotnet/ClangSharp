@@ -10,7 +10,7 @@ namespace ClangSharp;
 
 public sealed class MemberExpr : Expr
 {
-    private readonly ValueLazy<ValueDecl> _memberDecl;
+    private ValueLazy<ValueDecl> _memberDecl;
     private readonly LazyList<TemplateArgumentLoc> _templateArgs;
 
     internal MemberExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_MemberExpr)

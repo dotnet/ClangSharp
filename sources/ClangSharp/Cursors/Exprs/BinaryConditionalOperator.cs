@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class BinaryConditionalOperator : AbstractConditionalOperator
 {
-    private readonly ValueLazy<OpaqueValueExpr> _opaqueValue;
+    private ValueLazy<OpaqueValueExpr> _opaqueValue;
 
     internal BinaryConditionalOperator(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_BinaryConditionalOperator)
     {

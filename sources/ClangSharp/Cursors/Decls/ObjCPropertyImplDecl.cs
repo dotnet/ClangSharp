@@ -9,12 +9,12 @@ namespace ClangSharp;
 
 public sealed class ObjCPropertyImplDecl : Decl
 {
-    private readonly ValueLazy<Expr> _getterCXXConstructor;
-    private readonly ValueLazy<ObjCMethodDecl> _getterMethodDecl;
-    private readonly ValueLazy<ObjCPropertyDecl> _propertyDecl;
-    private readonly ValueLazy<ObjCIvarDecl> _propertyIvarDecl;
-    private readonly ValueLazy<ObjCMethodDecl> _setterMethodDecl;
-    private readonly ValueLazy<Expr> _setterCXXAssignment;
+    private ValueLazy<Expr> _getterCXXConstructor;
+    private ValueLazy<ObjCMethodDecl> _getterMethodDecl;
+    private ValueLazy<ObjCPropertyDecl> _propertyDecl;
+    private ValueLazy<ObjCIvarDecl> _propertyIvarDecl;
+    private ValueLazy<ObjCMethodDecl> _setterMethodDecl;
+    private ValueLazy<Expr> _setterCXXAssignment;
 
     internal ObjCPropertyImplDecl(CXCursor handle) : base(handle, handle.Kind, CX_DeclKind_ObjCPropertyImpl)
     {

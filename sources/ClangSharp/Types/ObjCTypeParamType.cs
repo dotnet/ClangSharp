@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class ObjCTypeParamType : Type
 {
-    private readonly ValueLazy<ObjCTypeParamDecl> _decl;
+    private ValueLazy<ObjCTypeParamDecl> _decl;
 
     internal ObjCTypeParamType(CXType handle) : base(handle, CXType_ObjCTypeParam, CX_TypeClass_ObjCTypeParam)
     {

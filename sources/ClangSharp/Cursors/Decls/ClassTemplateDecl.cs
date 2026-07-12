@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class ClassTemplateDecl : RedeclarableTemplateDecl
 {
-    private readonly ValueLazy<Type> _injectedClassNameSpecialization;
+    private ValueLazy<Type> _injectedClassNameSpecialization;
     private readonly LazyList<ClassTemplateSpecializationDecl> _specializations;
 
     internal ClassTemplateDecl(CXCursor handle) : base(handle, CXCursor_ClassTemplate, CX_DeclKind_ClassTemplate)

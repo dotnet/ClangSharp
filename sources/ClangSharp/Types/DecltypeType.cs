@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class DecltypeType : Type
 {
-    private readonly ValueLazy<Expr> _underlyingExpr;
-    private readonly ValueLazy<Type> _underlyingType;
+    private ValueLazy<Expr> _underlyingExpr;
+    private ValueLazy<Type> _underlyingType;
 
     internal DecltypeType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_Decltype)
     {

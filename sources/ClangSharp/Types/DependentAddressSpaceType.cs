@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class DependentAddressSpaceType : Type
 {
-    private readonly ValueLazy<Expr> _addrSpaceExpr;
+    private ValueLazy<Expr> _addrSpaceExpr;
 
     internal DependentAddressSpaceType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentAddressSpace)
     {

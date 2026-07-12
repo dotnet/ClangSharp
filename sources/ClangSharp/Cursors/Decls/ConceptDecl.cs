@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class ConceptDecl : TemplateDecl, IMergeable<ConceptDecl>
 {
-    private readonly ValueLazy<Expr> _constraintExpr;
+    private ValueLazy<Expr> _constraintExpr;
 
     internal ConceptDecl(CXCursor handle) : base(handle, CXCursor_ConceptDecl, CX_DeclKind_Concept)
     {

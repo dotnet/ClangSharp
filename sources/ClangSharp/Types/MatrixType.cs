@@ -6,7 +6,7 @@ namespace ClangSharp;
 
 public class MatrixType : Type
 {
-    private readonly ValueLazy<Type> _elementType;
+    private ValueLazy<Type> _elementType;
 
     private protected MatrixType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {

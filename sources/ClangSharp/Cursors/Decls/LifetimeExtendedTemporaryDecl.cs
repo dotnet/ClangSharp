@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class LifetimeExtendedTemporaryDecl : Decl, IMergeable<LifetimeExtendedTemporaryDecl>
 {
-    private readonly ValueLazy<ValueDecl> _extendingDecl;
-    private readonly ValueLazy<Expr> _temporaryExpr;
+    private ValueLazy<ValueDecl> _extendingDecl;
+    private ValueLazy<Expr> _temporaryExpr;
 
     internal LifetimeExtendedTemporaryDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_LifetimeExtendedTemporary)
     {

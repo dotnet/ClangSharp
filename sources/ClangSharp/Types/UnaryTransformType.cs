@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public class UnaryTransformType : Type
 {
-    private readonly ValueLazy<Type> _baseType;
-    private readonly ValueLazy<Type> _underlyingType;
+    private ValueLazy<Type> _baseType;
+    private ValueLazy<Type> _underlyingType;
 
     internal UnaryTransformType(CXType handle) : this(handle, CXType_Unexposed, CX_TypeClass_UnaryTransform)
     {

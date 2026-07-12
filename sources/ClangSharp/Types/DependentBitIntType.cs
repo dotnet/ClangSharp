@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class DependentBitIntType : Type
 {
-    private readonly ValueLazy<Expr> _numBitsExpr;
+    private ValueLazy<Expr> _numBitsExpr;
 
     internal DependentBitIntType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DependentBitInt)
     {

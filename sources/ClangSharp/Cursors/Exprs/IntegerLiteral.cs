@@ -11,7 +11,7 @@ namespace ClangSharp;
 
 public sealed class IntegerLiteral : Expr
 {
-    private readonly ValueLazy<string> _valueString;
+    private ValueLazy<string> _valueString;
 
     internal IntegerLiteral(CXCursor handle) : base(handle, CXCursor_IntegerLiteral, CX_StmtClass_IntegerLiteral)
     {

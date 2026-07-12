@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class NamespaceDecl : NamedDecl, IDeclContext, IRedeclarable<NamespaceDecl>
 {
-    private readonly ValueLazy<NamespaceDecl> _anonymousNamespace;
-    private readonly ValueLazy<NamespaceDecl> _originalNamespace;
+    private ValueLazy<NamespaceDecl> _anonymousNamespace;
+    private ValueLazy<NamespaceDecl> _originalNamespace;
 
     internal NamespaceDecl(CXCursor handle) : base(handle, CXCursor_Namespace, CX_DeclKind_Namespace)
     {

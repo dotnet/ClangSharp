@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public class Ref : Cursor
 {
-    private readonly ValueLazy<NamedDecl> _referenced;
-    private readonly ValueLazy<Type> _type;
+    private ValueLazy<NamedDecl> _referenced;
+    private ValueLazy<Type> _type;
 
     private protected Ref(CXCursor handle, CXCursorKind expectedCursorKind) : base(handle, expectedCursorKind)
     {

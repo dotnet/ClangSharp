@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class IndirectGotoStmt : Stmt
 {
-    private readonly ValueLazy<LabelDecl> _constantTarget;
+    private ValueLazy<LabelDecl> _constantTarget;
 
     internal IndirectGotoStmt(CXCursor handle) : base(handle, CXCursor_IndirectGotoStmt, CX_StmtClass_IndirectGotoStmt)
     {

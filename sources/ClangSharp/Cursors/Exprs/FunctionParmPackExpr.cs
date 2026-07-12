@@ -11,7 +11,7 @@ namespace ClangSharp;
 public sealed class FunctionParmPackExpr : Expr
 {
     private readonly LazyList<VarDecl> _expansions;
-    private readonly ValueLazy<VarDecl> _parameterPack;
+    private ValueLazy<VarDecl> _parameterPack;
 
     internal FunctionParmPackExpr(CXCursor handle) : base(handle, CXCursor_DeclRefExpr, CX_StmtClass_FunctionParmPackExpr)
     {

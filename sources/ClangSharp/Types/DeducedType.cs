@@ -6,7 +6,7 @@ namespace ClangSharp;
 
 public class DeducedType : Type
 {
-    private readonly ValueLazy<Type> _deducedType;
+    private ValueLazy<Type> _deducedType;
 
     private protected DeducedType(CXType handle, CXTypeKind expectedTypeKind, CX_TypeClass expectedTypeClass) : base(handle, expectedTypeKind, expectedTypeClass)
     {

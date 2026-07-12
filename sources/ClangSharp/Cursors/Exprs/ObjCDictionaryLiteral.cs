@@ -10,8 +10,8 @@ namespace ClangSharp;
 
 public sealed class ObjCDictionaryLiteral : Expr
 {
-    private readonly ValueLazy<ObjCMethodDecl> _dictWithObjectsMethod;
-    private readonly ValueLazy<List<(Expr Key, Expr Value)>> _keyValueElements;
+    private ValueLazy<ObjCMethodDecl> _dictWithObjectsMethod;
+    private ValueLazy<List<(Expr Key, Expr Value)>> _keyValueElements;
 
     internal ObjCDictionaryLiteral(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCDictionaryLiteral)
     {

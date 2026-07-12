@@ -7,7 +7,7 @@ namespace ClangSharp;
 
 public sealed class MacroExpansion : PreprocessedEntity
 {
-    private readonly ValueLazy<MacroDefinitionRecord> _definition;
+    private ValueLazy<MacroDefinitionRecord> _definition;
 
     internal MacroExpansion(CXCursor handle) : base(handle, CXCursor_MacroExpansion)
     {

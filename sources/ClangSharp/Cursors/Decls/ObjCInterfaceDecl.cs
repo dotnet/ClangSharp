@@ -10,18 +10,18 @@ namespace ClangSharp;
 
 public sealed class ObjCInterfaceDecl : ObjCContainerDecl, IRedeclarable<ObjCInterfaceDecl>
 {
-    private readonly ValueLazy<List<ObjCCategoryDecl>> _categoryList;
-    private readonly ValueLazy<ObjCInterfaceDecl> _definition;
-    private readonly ValueLazy<ObjCImplementationDecl> _implementation;
-    private readonly ValueLazy<List<ObjCIvarDecl>> _ivars;
-    private readonly ValueLazy<List<ObjCCategoryDecl>> _knownExtensions;
+    private ValueLazy<List<ObjCCategoryDecl>> _categoryList;
+    private ValueLazy<ObjCInterfaceDecl> _definition;
+    private ValueLazy<ObjCImplementationDecl> _implementation;
+    private ValueLazy<List<ObjCIvarDecl>> _ivars;
+    private ValueLazy<List<ObjCCategoryDecl>> _knownExtensions;
     private readonly LazyList<ObjCProtocolDecl> _protocols;
-    private readonly ValueLazy<ObjCInterfaceDecl> _superClass;
-    private readonly ValueLazy<ObjCObjectType> _superClassType;
-    private readonly ValueLazy<Type> _typeForDecl;
+    private ValueLazy<ObjCInterfaceDecl> _superClass;
+    private ValueLazy<ObjCObjectType> _superClassType;
+    private ValueLazy<Type> _typeForDecl;
     private readonly LazyList<ObjCTypeParamDecl> _typeParamList;
-    private readonly ValueLazy<List<ObjCCategoryDecl>> _visibleCategories;
-    private readonly ValueLazy<List<ObjCCategoryDecl>> _visibleExtensions;
+    private ValueLazy<List<ObjCCategoryDecl>> _visibleCategories;
+    private ValueLazy<List<ObjCCategoryDecl>> _visibleExtensions;
 
     internal ObjCInterfaceDecl(CXCursor handle) : base(handle, CXCursor_ObjCInterfaceDecl, CX_DeclKind_ObjCInterface)
     {

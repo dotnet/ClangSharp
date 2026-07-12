@@ -57,7 +57,7 @@ public class Expr : ValueStmt
         return e;
     };
 
-    private readonly ValueLazy<Type> _type;
+    private ValueLazy<Type> _type;
 
     private protected Expr(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind, expectedStmtClass)
     {

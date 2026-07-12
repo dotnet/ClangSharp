@@ -8,10 +8,10 @@ namespace ClangSharp;
 
 public sealed class ObjCPropertyDecl : NamedDecl
 {
-    private readonly ValueLazy<ObjCMethodDecl> _getterMethodDecl;
-    private readonly ValueLazy<ObjCIvarDecl> _propertyIvarDecl;
-    private readonly ValueLazy<ObjCMethodDecl> _setterMethodDecl;
-    private readonly ValueLazy<Type> _type;
+    private ValueLazy<ObjCMethodDecl> _getterMethodDecl;
+    private ValueLazy<ObjCIvarDecl> _propertyIvarDecl;
+    private ValueLazy<ObjCMethodDecl> _setterMethodDecl;
+    private ValueLazy<Type> _type;
 
     internal ObjCPropertyDecl(CXCursor handle) : base(handle, CXCursor_ObjCPropertyDecl, CX_DeclKind_ObjCProperty)
     {

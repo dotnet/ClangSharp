@@ -11,18 +11,18 @@ namespace ClangSharp;
 
 public sealed unsafe class TemplateArgument : IDisposable
 {
-    private readonly ValueLazy<ValueDecl> _asDecl;
-    private readonly ValueLazy<Expr> _asExpr;
-    private readonly ValueLazy<TemplateName> _asTemplate;
-    private readonly ValueLazy<TemplateName> _asTemplateOrTemplatePattern;
-    private readonly ValueLazy<Type> _asType;
-    private readonly ValueLazy<Type> _integralType;
-    private readonly ValueLazy<Type> _nonTypeTemplateArgumentType;
-    private readonly ValueLazy<Type> _nullPtrType;
+    private ValueLazy<ValueDecl> _asDecl;
+    private ValueLazy<Expr> _asExpr;
+    private ValueLazy<TemplateName> _asTemplate;
+    private ValueLazy<TemplateName> _asTemplateOrTemplatePattern;
+    private ValueLazy<Type> _asType;
+    private ValueLazy<Type> _integralType;
+    private ValueLazy<Type> _nonTypeTemplateArgumentType;
+    private ValueLazy<Type> _nullPtrType;
     private readonly LazyList<TemplateArgument> _packElements;
-    private readonly ValueLazy<TemplateArgument> _packExpansionPattern;
-    private readonly ValueLazy<Type> _paramTypeForDecl;
-    private readonly ValueLazy<TranslationUnit> _translationUnit;
+    private ValueLazy<TemplateArgument> _packExpansionPattern;
+    private ValueLazy<Type> _paramTypeForDecl;
+    private ValueLazy<TranslationUnit> _translationUnit;
 
     internal TemplateArgument(CX_TemplateArgument handle)
     {

@@ -11,7 +11,7 @@ namespace ClangSharp;
 
 public class ClassTemplateSpecializationDecl : CXXRecordDecl
 {
-    private readonly ValueLazy<ClassTemplateDecl> _specializedTemplate;
+    private ValueLazy<ClassTemplateDecl> _specializedTemplate;
     private readonly LazyList<TemplateArgument> _templateArgs;
 
     internal ClassTemplateSpecializationDecl(CXCursor handle) : this(handle, handle.Kind, CX_DeclKind_ClassTemplateSpecialization)

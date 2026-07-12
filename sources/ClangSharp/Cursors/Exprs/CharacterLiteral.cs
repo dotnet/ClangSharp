@@ -11,7 +11,7 @@ namespace ClangSharp;
 
 public sealed class CharacterLiteral : Expr
 {
-    private readonly ValueLazy<string> _valueString;
+    private ValueLazy<string> _valueString;
 
     internal CharacterLiteral(CXCursor handle) : base(handle, CXCursor_CharacterLiteral, CX_StmtClass_CharacterLiteral)
     {

@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public sealed class ObjCObjectPointerType : Type
 {
-    private readonly ValueLazy<ObjCInterfaceType> _interfaceType;
-    private readonly ValueLazy<Type> _superClassType;
+    private ValueLazy<ObjCInterfaceType> _interfaceType;
+    private ValueLazy<Type> _superClassType;
 
     internal ObjCObjectPointerType(CXType handle) : base(handle, CXType_ObjCObjectPointer, CX_TypeClass_ObjCObjectPointer)
     {

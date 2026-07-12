@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class ObjCInterfaceType : ObjCObjectType
 {
-    private readonly ValueLazy<ObjCInterfaceDecl> _decl;
+    private ValueLazy<ObjCInterfaceDecl> _decl;
 
     internal ObjCInterfaceType(CXType handle) : base(handle, CXType_ObjCInterface, CX_TypeClass_ObjCInterface)
     {

@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class ObjCProtocolDecl : ObjCContainerDecl, IRedeclarable<ObjCProtocolDecl>
 {
-    private readonly ValueLazy<ObjCProtocolDecl> _definition;
+    private ValueLazy<ObjCProtocolDecl> _definition;
     private readonly LazyList<ObjCProtocolDecl> _protocols;
 
     internal ObjCProtocolDecl(CXCursor handle) : base(handle, CXCursor_ObjCProtocolDecl, CX_DeclKind_ObjCProtocol)

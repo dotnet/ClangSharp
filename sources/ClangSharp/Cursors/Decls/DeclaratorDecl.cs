@@ -10,7 +10,7 @@ namespace ClangSharp;
 public class DeclaratorDecl : ValueDecl
 {
     private readonly LazyList<LazyList<NamedDecl>> _templateParameterLists;
-    private readonly ValueLazy<Expr> _trailingRequiresClause;
+    private ValueLazy<Expr> _trailingRequiresClause;
 
     private protected DeclaratorDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {

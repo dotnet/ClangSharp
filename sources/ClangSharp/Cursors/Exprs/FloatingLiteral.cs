@@ -11,7 +11,7 @@ namespace ClangSharp;
 
 public sealed class FloatingLiteral : Expr
 {
-    private readonly ValueLazy<string> _valueString;
+    private ValueLazy<string> _valueString;
 
     internal FloatingLiteral(CXCursor handle) : base(handle, CXCursor_FloatingLiteral, CX_StmtClass_FloatingLiteral)
     {

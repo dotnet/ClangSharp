@@ -11,7 +11,7 @@ namespace ClangSharp;
 public sealed class TemplateSpecializationType : Type
 {
     private readonly LazyList<TemplateArgument> _templateArgs;
-    private readonly ValueLazy<TemplateName> _templateName;
+    private ValueLazy<TemplateName> _templateName;
 
     internal TemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_TemplateSpecialization)
     {

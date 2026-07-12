@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class SubstTemplateTypeParmPackType : Type
 {
-    private readonly ValueLazy<TemplateArgument> _argumentPack;
-    private readonly ValueLazy<TemplateTypeParmType> _replacedParameter;
+    private ValueLazy<TemplateArgument> _argumentPack;
+    private ValueLazy<TemplateTypeParmType> _replacedParameter;
 
     internal SubstTemplateTypeParmPackType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_SubstTemplateTypeParmPack)
     {

@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public sealed class CXXDefaultArgExpr : Expr
 {
-    private readonly ValueLazy<ParmVarDecl> _param;
-    private readonly ValueLazy<IDeclContext?> _usedContext;
+    private ValueLazy<ParmVarDecl> _param;
+    private ValueLazy<IDeclContext?> _usedContext;
 
     internal CXXDefaultArgExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXDefaultArgExpr)
     {

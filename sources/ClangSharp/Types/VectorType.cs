@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public class VectorType : Type
 {
-    private readonly ValueLazy<Type> _elementType;
+    private ValueLazy<Type> _elementType;
 
     internal VectorType(CXType handle) : this(handle, CXType_Vector, CX_TypeClass_Vector)
     {

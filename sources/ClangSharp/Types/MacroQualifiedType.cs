@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class MacroQualifiedType : Type
 {
-    private readonly ValueLazy<Type> _modifiedType;
-    private readonly ValueLazy<Type> _underlyingType;
+    private ValueLazy<Type> _modifiedType;
+    private ValueLazy<Type> _underlyingType;
 
     internal MacroQualifiedType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_MacroQualified)
     {

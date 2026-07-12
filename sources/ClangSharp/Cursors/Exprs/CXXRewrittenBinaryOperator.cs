@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public sealed class CXXRewrittenBinaryOperator : Expr
 {
-    private readonly ValueLazy<Expr> _lhs;
-    private readonly ValueLazy<Expr> _rhs;
+    private ValueLazy<Expr> _lhs;
+    private ValueLazy<Expr> _rhs;
 
     internal CXXRewrittenBinaryOperator(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXRewrittenBinaryOperator)
     {

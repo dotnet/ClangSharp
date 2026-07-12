@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public class AdjustedType : Type
 {
-    private readonly ValueLazy<Type> _adjustedType;
-    private readonly ValueLazy<Type> _originalType;
+    private ValueLazy<Type> _adjustedType;
+    private ValueLazy<Type> _originalType;
 
     internal AdjustedType(CXType handle) : this(handle, CXType_Unexposed, CX_TypeClass_Adjusted)
     {

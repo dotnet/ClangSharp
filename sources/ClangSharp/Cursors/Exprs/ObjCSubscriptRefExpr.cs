@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class ObjCSubscriptRefExpr : Expr
 {
-    private readonly ValueLazy<ObjCMethodDecl> _atIndexMethodDecl;
+    private ValueLazy<ObjCMethodDecl> _atIndexMethodDecl;
 
     internal ObjCSubscriptRefExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_ObjCSubscriptRefExpr)
     {

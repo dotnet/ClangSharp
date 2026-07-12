@@ -10,7 +10,7 @@ namespace ClangSharp;
 
 public sealed class CXXBoolLiteralExpr : Expr
 {
-    private readonly ValueLazy<string> _valueString;
+    private ValueLazy<string> _valueString;
 
     internal CXXBoolLiteralExpr(CXCursor handle) : base(handle, CXCursor_CXXBoolLiteralExpr, CX_StmtClass_CXXBoolLiteralExpr)
     {

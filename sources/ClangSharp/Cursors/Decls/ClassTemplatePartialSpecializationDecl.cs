@@ -10,8 +10,8 @@ namespace ClangSharp;
 public sealed class ClassTemplatePartialSpecializationDecl : ClassTemplateSpecializationDecl
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private readonly ValueLazy<Type> _injectedSpecializationType;
-    private readonly ValueLazy<ClassTemplatePartialSpecializationDecl> _instantiatedFromMember;
+    private ValueLazy<Type> _injectedSpecializationType;
+    private ValueLazy<ClassTemplatePartialSpecializationDecl> _instantiatedFromMember;
     private readonly LazyList<NamedDecl> _templateParameters;
 
     internal ClassTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursor_ClassTemplatePartialSpecialization, CX_DeclKind_ClassTemplatePartialSpecialization)

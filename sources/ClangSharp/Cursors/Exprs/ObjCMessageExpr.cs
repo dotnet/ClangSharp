@@ -10,11 +10,11 @@ namespace ClangSharp;
 public sealed class ObjCMessageExpr : Expr
 {
     private readonly LazyList<Expr> _args;
-    private readonly ValueLazy<Type> _classReceiver;
-    private readonly ValueLazy<Expr> _instanceReceiver;
-    private readonly ValueLazy<ObjCMethodDecl> _methodDecl;
-    private readonly ValueLazy<Type> _receiverType;
-    private readonly ValueLazy<Type> _superType;
+    private ValueLazy<Type> _classReceiver;
+    private ValueLazy<Expr> _instanceReceiver;
+    private ValueLazy<ObjCMethodDecl> _methodDecl;
+    private ValueLazy<Type> _receiverType;
+    private ValueLazy<Type> _superType;
 
     internal ObjCMessageExpr(CXCursor handle) : base(handle, CXCursor_ObjCMessageExpr, CX_StmtClass_ObjCMessageExpr)
     {

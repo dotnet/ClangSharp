@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public class NamedDecl : Decl
 {
-    private readonly ValueLazy<NamedDecl> _underlyingDecl;
+    private ValueLazy<NamedDecl> _underlyingDecl;
 
     private protected NamedDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {

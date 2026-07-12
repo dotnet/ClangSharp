@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class BlockExpr : Expr
 {
-    private readonly ValueLazy<BlockDecl> _blockDecl;
+    private ValueLazy<BlockDecl> _blockDecl;
 
     internal BlockExpr(CXCursor handle) : base(handle, CXCursor_BlockExpr, CX_StmtClass_BlockExpr)
     {

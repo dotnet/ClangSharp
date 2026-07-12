@@ -9,9 +9,9 @@ namespace ClangSharp;
 
 public sealed partial class CapturedStmt : Stmt
 {
-    private readonly ValueLazy<CapturedDecl> _capturedDecl;
-    private readonly ValueLazy<RecordDecl> _capturedRecordDecl;
-    private readonly ValueLazy<Stmt> _captureStmt;
+    private ValueLazy<CapturedDecl> _capturedDecl;
+    private ValueLazy<RecordDecl> _capturedRecordDecl;
+    private ValueLazy<Stmt> _captureStmt;
     private readonly LazyList<Capture> _captures;
     private readonly LazyList<Expr, Stmt> _captureInits;
 

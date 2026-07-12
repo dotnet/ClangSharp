@@ -8,10 +8,10 @@ namespace ClangSharp;
 
 public sealed class InjectedClassNameType : Type
 {
-    private readonly ValueLazy<CXXRecordDecl> _decl;
-    private readonly ValueLazy<Type> _injectedSpecializationType;
-    private readonly ValueLazy<TemplateSpecializationType> _injectedTST;
-    private readonly ValueLazy<TemplateName> _templateName;
+    private ValueLazy<CXXRecordDecl> _decl;
+    private ValueLazy<Type> _injectedSpecializationType;
+    private ValueLazy<TemplateSpecializationType> _injectedTST;
+    private ValueLazy<TemplateName> _templateName;
 
     internal InjectedClassNameType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_InjectedClassName)
     {

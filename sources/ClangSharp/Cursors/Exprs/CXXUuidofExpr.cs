@@ -10,8 +10,8 @@ namespace ClangSharp;
 
 public sealed class CXXUuidofExpr : Expr
 {
-    private readonly ValueLazy<Type> _typeOperand;
-    private readonly ValueLazy<MSGuidDecl> _guidDecl;
+    private ValueLazy<Type> _typeOperand;
+    private ValueLazy<MSGuidDecl> _guidDecl;
 
     internal CXXUuidofExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXUuidofExpr)
     {

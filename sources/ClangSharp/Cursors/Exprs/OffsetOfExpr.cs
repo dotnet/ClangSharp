@@ -10,8 +10,8 @@ namespace ClangSharp;
 public sealed class OffsetOfExpr : Expr
 {
     private readonly LazyList<Expr, Stmt> _indexExprs;
-    private readonly ValueLazy<Cursor?> _referenced;
-    private readonly ValueLazy<Type> _typeSourceInfoType;
+    private ValueLazy<Cursor?> _referenced;
+    private ValueLazy<Type> _typeSourceInfoType;
 
     internal OffsetOfExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_OffsetOfExpr)
     {

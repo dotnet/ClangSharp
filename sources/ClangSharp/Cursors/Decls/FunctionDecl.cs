@@ -10,15 +10,15 @@ namespace ClangSharp;
 
 public class FunctionDecl : DeclaratorDecl, IDeclContext, IRedeclarable<FunctionDecl>
 {
-    private readonly ValueLazy<Type> _callResultType;
-    private readonly ValueLazy<Type> _declaredReturnType;
-    private readonly ValueLazy<FunctionDecl> _definition;
-    private readonly ValueLazy<FunctionTemplateDecl> _describedFunctionDecl;
-    private readonly ValueLazy<FunctionDecl> _instantiatedFromMemberFunction;
+    private ValueLazy<Type> _callResultType;
+    private ValueLazy<Type> _declaredReturnType;
+    private ValueLazy<FunctionDecl> _definition;
+    private ValueLazy<FunctionTemplateDecl> _describedFunctionDecl;
+    private ValueLazy<FunctionDecl> _instantiatedFromMemberFunction;
     private readonly LazyList<ParmVarDecl> _parameters;
-    private readonly ValueLazy<FunctionTemplateDecl> _primaryTemplate;
-    private readonly ValueLazy<Type> _returnType;
-    private readonly ValueLazy<FunctionDecl> _templateInstantiationPattern;
+    private ValueLazy<FunctionTemplateDecl> _primaryTemplate;
+    private ValueLazy<Type> _returnType;
+    private ValueLazy<FunctionDecl> _templateInstantiationPattern;
     private readonly LazyList<TemplateArgument> _templateSpecializationArgs;
 
     internal FunctionDecl(CXCursor handle) : this(handle, CXCursor_FunctionDecl, CX_DeclKind_Function)

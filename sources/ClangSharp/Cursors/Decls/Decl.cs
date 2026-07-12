@@ -10,19 +10,19 @@ namespace ClangSharp;
 
 public class Decl : Cursor
 {
-    private readonly ValueLazy<FunctionDecl> _asFunction;
+    private ValueLazy<FunctionDecl> _asFunction;
     private readonly LazyList<Attr> _attrs;
-    private readonly ValueLazy<Stmt?> _body;
-    private readonly ValueLazy<Decl> _canonicalDecl;
+    private ValueLazy<Stmt?> _body;
+    private ValueLazy<Decl> _canonicalDecl;
     private readonly LazyList<Decl> _decls;
-    private readonly ValueLazy<TemplateDecl?> _describedTemplate;
-    private readonly ValueLazy<Decl> _mostRecentDecl;
-    private readonly ValueLazy<Decl> _nextDeclInContext;
-    private readonly ValueLazy<Decl> _nonClosureContext;
-    private readonly ValueLazy<IDeclContext?> _parentFunctionOrMethod;
-    private readonly ValueLazy<Decl> _previousDecl;
-    private readonly ValueLazy<IDeclContext?> _redeclContext;
-    private readonly ValueLazy<TranslationUnitDecl> _translationUnitDecl;
+    private ValueLazy<TemplateDecl?> _describedTemplate;
+    private ValueLazy<Decl> _mostRecentDecl;
+    private ValueLazy<Decl> _nextDeclInContext;
+    private ValueLazy<Decl> _nonClosureContext;
+    private ValueLazy<IDeclContext?> _parentFunctionOrMethod;
+    private ValueLazy<Decl> _previousDecl;
+    private ValueLazy<IDeclContext?> _redeclContext;
+    private ValueLazy<TranslationUnitDecl> _translationUnitDecl;
 
     private protected Decl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind)
     {

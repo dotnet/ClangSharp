@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class MaterializeTemporaryExpr : Expr
 {
-    private readonly ValueLazy<LifetimeExtendedTemporaryDecl> _lifetimeExtendedTemporaryDecl;
+    private ValueLazy<LifetimeExtendedTemporaryDecl> _lifetimeExtendedTemporaryDecl;
 
     internal MaterializeTemporaryExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_MaterializeTemporaryExpr)
     {

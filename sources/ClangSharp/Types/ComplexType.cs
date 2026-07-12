@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class ComplexType : Type
 {
-    private readonly ValueLazy<Type> _elementType;
+    private ValueLazy<Type> _elementType;
 
     internal ComplexType(CXType handle) : base(handle, CXType_Complex, CX_TypeClass_Complex)
     {

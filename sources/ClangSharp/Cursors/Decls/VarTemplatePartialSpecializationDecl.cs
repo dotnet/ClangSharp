@@ -10,7 +10,7 @@ namespace ClangSharp;
 public class VarTemplatePartialSpecializationDecl : VarDecl
 {
     private readonly LazyList<Expr> _associatedConstraints;
-    private readonly ValueLazy<VarTemplatePartialSpecializationDecl> _instantiatedFromMember;
+    private ValueLazy<VarTemplatePartialSpecializationDecl> _instantiatedFromMember;
     private readonly LazyList<NamedDecl> _templateParameters;
 
     internal VarTemplatePartialSpecializationDecl(CXCursor handle) : base(handle, CXCursor_UnexposedDecl, CX_DeclKind_VarTemplatePartialSpecialization)

@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public class TypedefNameDecl : TypeDecl, IRedeclarable<TypedefNameDecl>
 {
-    private readonly ValueLazy<Type> _underlyingType;
+    private ValueLazy<Type> _underlyingType;
 
     private protected TypedefNameDecl(CXCursor handle, CXCursorKind expectedCursorKind, CX_DeclKind expectedDeclKind) : base(handle, expectedCursorKind, expectedDeclKind)
     {

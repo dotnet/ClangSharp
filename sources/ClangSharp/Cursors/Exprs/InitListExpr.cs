@@ -9,8 +9,8 @@ namespace ClangSharp;
 
 public sealed class InitListExpr : Expr
 {
-    private readonly ValueLazy<Expr> _arrayFiller;
-    private readonly ValueLazy<FieldDecl> _initializedFieldInUnion;
+    private ValueLazy<Expr> _arrayFiller;
+    private ValueLazy<FieldDecl> _initializedFieldInUnion;
     private readonly LazyList<Expr, Stmt> _inits;
 
     internal InitListExpr(CXCursor handle) : base(handle, CXCursor_InitListExpr, CX_StmtClass_InitListExpr)

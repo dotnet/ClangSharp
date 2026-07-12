@@ -8,12 +8,12 @@ namespace ClangSharp;
 
 public sealed class ObjCPropertyRefExpr : Expr
 {
-    private readonly ValueLazy<Expr> _base;
-    private readonly ValueLazy<ObjCInterfaceDecl> _classReceiver;
-    private readonly ValueLazy<ObjCPropertyDecl> _explicitProperty;
-    private readonly ValueLazy<ObjCMethodDecl> _implicitPropertyGetter;
-    private readonly ValueLazy<ObjCMethodDecl> _implicitPropertySetter;
-    private readonly ValueLazy<Type> _superReceiverType;
+    private ValueLazy<Expr> _base;
+    private ValueLazy<ObjCInterfaceDecl> _classReceiver;
+    private ValueLazy<ObjCPropertyDecl> _explicitProperty;
+    private ValueLazy<ObjCMethodDecl> _implicitPropertyGetter;
+    private ValueLazy<ObjCMethodDecl> _implicitPropertySetter;
+    private ValueLazy<Type> _superReceiverType;
 
     internal ObjCPropertyRefExpr(CXCursor handle) : base(handle, CXCursor_MemberRefExpr, CX_StmtClass_ObjCPropertyRefExpr)
     {

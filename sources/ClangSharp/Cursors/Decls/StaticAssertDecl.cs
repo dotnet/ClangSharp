@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class StaticAssertDecl : Decl
 {
-    private readonly ValueLazy<Expr> _assertExpr;
-    private readonly ValueLazy<StringLiteral> _message;
+    private ValueLazy<Expr> _assertExpr;
+    private ValueLazy<StringLiteral> _message;
 
     internal StaticAssertDecl(CXCursor handle) : base(handle, CXCursor_StaticAssert, CX_DeclKind_StaticAssert)
     {

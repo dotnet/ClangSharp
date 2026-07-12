@@ -11,7 +11,7 @@ public partial class CapturedStmt
     {
         private readonly CapturedStmt _parentStmt;
         private readonly uint _index;
-        private readonly ValueLazy<VarDecl> _capturedVar;
+        private ValueLazy<VarDecl> _capturedVar;
 
         internal Capture(CapturedStmt parentStmt, uint index)
         {

@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed partial class BlockDecl : Decl, IDeclContext
 {
-    private readonly ValueLazy<Decl> _blockManglingContextDecl;
+    private ValueLazy<Decl> _blockManglingContextDecl;
     private readonly LazyList<Capture> _captures;
     private readonly LazyList<ParmVarDecl> _parameters;
 

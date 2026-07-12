@@ -8,8 +8,8 @@ namespace ClangSharp;
 
 public sealed class AttributedType : Type
 {
-    private readonly ValueLazy<Type> _equivalentType;
-    private readonly ValueLazy<Type> _modifiedType;
+    private ValueLazy<Type> _equivalentType;
+    private ValueLazy<Type> _modifiedType;
 
     internal AttributedType(CXType handle) : base(handle, CXType_Attributed, CX_TypeClass_Attributed)
     {

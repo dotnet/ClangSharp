@@ -10,8 +10,8 @@ namespace ClangSharp;
 
 public sealed class ObjCAtTryStmt : Stmt
 {
-    private readonly ValueLazy<LazyList<ObjCAtCatchStmt, Stmt>> _catchStmts;
-    private readonly ValueLazy<ObjCAtFinallyStmt?> _finallyStmt;
+    private ValueLazy<LazyList<ObjCAtCatchStmt, Stmt>> _catchStmts;
+    private ValueLazy<ObjCAtFinallyStmt?> _finallyStmt;
 
     internal ObjCAtTryStmt(CXCursor handle) : base(handle, CXCursor_ObjCAtTryStmt, CX_StmtClass_ObjCAtTryStmt)
     {

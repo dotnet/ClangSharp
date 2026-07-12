@@ -10,7 +10,7 @@ namespace ClangSharp;
 
 public sealed class CXXTypeidExpr : Expr
 {
-    private readonly ValueLazy<Type> _typeOperand;
+    private ValueLazy<Type> _typeOperand;
 
     internal CXXTypeidExpr(CXCursor handle) : base(handle, CXCursor_CXXTypeidExpr, CX_StmtClass_CXXTypeidExpr)
     {

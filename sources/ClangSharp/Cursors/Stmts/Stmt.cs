@@ -11,7 +11,7 @@ namespace ClangSharp;
 public class Stmt : Cursor
 {
     private protected readonly LazyList<Stmt> _children;
-    private readonly ValueLazy<IDeclContext> _declContext;
+    private ValueLazy<IDeclContext> _declContext;
 
     private protected Stmt(CXCursor handle, CXCursorKind expectedCursorKind, CX_StmtClass expectedStmtClass) : base(handle, expectedCursorKind)
     {

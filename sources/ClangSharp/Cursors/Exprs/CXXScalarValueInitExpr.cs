@@ -9,7 +9,7 @@ namespace ClangSharp;
 
 public sealed class CXXScalarValueInitExpr : Expr
 {
-    private readonly ValueLazy<Type> _typeSourceInfoType;
+    private ValueLazy<Type> _typeSourceInfoType;
 
     internal CXXScalarValueInitExpr(CXCursor handle) : base(handle, CXCursor_UnexposedExpr, CX_StmtClass_CXXScalarValueInitExpr)
     {

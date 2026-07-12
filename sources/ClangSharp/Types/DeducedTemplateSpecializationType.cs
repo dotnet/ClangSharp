@@ -8,7 +8,7 @@ namespace ClangSharp;
 
 public sealed class DeducedTemplateSpecializationType : DeducedType
 {
-    private readonly ValueLazy<TemplateName> _templateName;
+    private ValueLazy<TemplateName> _templateName;
 
     internal DeducedTemplateSpecializationType(CXType handle) : base(handle, CXType_Unexposed, CX_TypeClass_DeducedTemplateSpecialization)
     {

@@ -9,9 +9,9 @@ namespace ClangSharp;
 
 public class VarDecl : DeclaratorDecl, IRedeclarable<VarDecl>
 {
-    private readonly ValueLazy<VarDecl> _definition;
-    private readonly ValueLazy<Expr> _init;
-    private readonly ValueLazy<VarDecl> _instantiatedFromStaticDataMember;
+    private ValueLazy<VarDecl> _definition;
+    private ValueLazy<Expr> _init;
+    private ValueLazy<VarDecl> _instantiatedFromStaticDataMember;
 
     internal VarDecl(CXCursor handle) : this(handle, CXCursor_VarDecl, CX_DeclKind_Var)
     {
